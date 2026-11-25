@@ -1,4 +1,4 @@
-import { isSecretKey, looksLikeSecret, scrub, truncateString, REDACTED } from './redact.js';
+import { isSecretKey, scrub, truncateString, redactSecretsInText, stripPathsInText, stripPathsDeep } from './redact.js';
 import type { LogLevel } from './config.js';
 
 // Log lines describe what the server did, never what a caller sent or got back: attribute
@@ -28,6 +28,8 @@ export function isForbiddenLogKey (key: string): boolean {
 
 export type LogValue = string | number | boolean | null;
 
+const SERVER_ID_KEYS: ReadonlySet<string> = new Set ([ 'requestId', 'request_id', 'sessionId', 'posthogDistinctId', 'client_hash' ]);
+
 function logValue (value: unknown): LogValue | undefined {
     if (value === undefined || typeof value === 'function' || typeof value === 'symbol') {
         return undefined;
@@ -41,17 +43,18 @@ function logValue (value: unknown): LogValue | undefined {
     if (typeof value === 'bigint') {
         return String (value);
     }
+    // the same rules as analytics: secret-shaped parts replaced, absolute paths (a stack,
+    // a path in an error message) reduced to file names
     if (value instanceof Error) {
-        const text = value.name + ': ' + value.message;
-        return looksLikeSecret (text) ? REDACTED : truncateString (text, MAX_LOG_VALUE_CHARS);
+        return truncateString (redactSecretsInText (stripPathsInText (value.name + ': ' + value.message)), MAX_LOG_VALUE_CHARS);
     }
     if (typeof value === 'string') {
-        return looksLikeSecret (value) ? REDACTED : truncateString (value, MAX_LOG_VALUE_CHARS);
+        return truncateString (redactSecretsInText (stripPathsInText (value)), MAX_LOG_VALUE_CHARS);
     }
     // objects are flattened to bounded JSON after the same key redaction events get
     let json: string | undefined;
     try {
-        json = JSON.stringify (scrub (value));
+        json = JSON.stringify (stripPathsDeep (scrub (value)));
     } catch (e) {
         json = '[unserializable]';
     }
@@ -71,7 +74,9 @@ export function sanitizeLogAttributes (attributes: Record<string, unknown> | und
         if (isForbiddenLogKey (key)) {
             continue;
         }
-        const value = logValue ((attributes as Record<string, unknown>)[key]);
+        const raw = (attributes as Record<string, unknown>)[key];
+        // ids this server generates (a UUID request id) would match the UUID secret shape
+        const value = (SERVER_ID_KEYS.has (key) && typeof raw === 'string') ? truncateString (raw, 128) : logValue (raw);
         if (value !== undefined) {
             out[key] = value;
             count += 1;

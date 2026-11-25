@@ -38,7 +38,7 @@ claude mcp add --transport http ccxt-local http://127.0.0.1:8080/mcp
 - **Without building:** `npm run dev` runs `src/main.ts` under tsx.
 - **Behind a proxy:** set `NODE_USE_ENV_PROXY=1` so Node's fetch honours `HTTPS_PROXY`.
 - **Tests:** `npm test`, offline (a fake exchange module, real HTTP on loopback).
-- **Smoke test of the bundle:** `npm run smoke`, using the official MCP client in both protocol eras. Add `-- --live` to call real exchanges.
+- **Smoke test of the bundle:** `npm run smoke`, using the official MCP client in both protocol eras. Add `-- --live` to call real exchanges (kraken, coinbase and okx by default, set `EXCHANGES` to change them).
 
 ## Configuration
 
@@ -56,12 +56,15 @@ All configuration comes from environment variables. [`.env.example`](.env.exampl
 | `READY_GRACE_MS` | `120000` | `/readyz` waits for every exchange. After this long, one warm exchange is enough, and cold ones answer `EXCHANGE_WARMING`. |
 | `REQUEST_DEADLINE_MS` | `20000` | Per-call deadline. Waiting work ends with a `TIMEOUT` tool error, never a hung socket. |
 | `MAX_CONCURRENT_REQUESTS` | `64` | Global cap. Beyond it: 503 + `Retry-After`. |
+| `MAX_SUBSCRIPTIONS`, `MAX_LISTENS_PER_CLIENT` | `200`, `4` | Open `subscriptions/listen` streams, in total and per client. Each holds a socket here and two at nginx for as long as the client keeps it; this server never publishes list changes. Past the per-client cap: 429. |
+| `REQUEST_READ_TIMEOUT_MS` | `15000` | Time to receive a whole request (headers at most 10 s). A client trickling its body is cut with 408 instead of holding a connection. |
 | `UPSTREAM_CONCURRENCY_PER_EXCHANGE`, `UPSTREAM_QUEUE_PER_EXCHANGE` | `4`, `16` | Requests in flight to, and waiting for, one exchange. Beyond that: `RATE_LIMITED` + `retryAfterSeconds`. |
 | `MAX_UPSTREAM_CALLS_PER_TOOL` | `10` | Cache misses one tool call may cause, which bounds the per-symbol fan-out. |
 | `BREAKER_*` | 3 failures / 60 s, 30 s cooldown (max 10 min) | Circuit breaker per exchange. |
-| `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_BURST` | `60`, `30` | Per-client token bucket. A tool call costs 1; list and read requests cost 0.25. |
+| `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_BURST` | `60`, `30` | Per-client token bucket (an IPv4 address, or an IPv6 /64). A tool call costs 1; list and read requests cost 0.25. |
 | `HOST_RATE_LIMIT_PER_MINUTE`, `HOST_RATE_LIMIT_BURST` | `3000`, `600` | Budget for Anthropic's and OpenAI's egress addresses, which all their users share. |
 | `UI_WHEN_UNKNOWN` | `attach` | What a `show_*` result does when the client did not state its capabilities: attach the view payload, or omit it. |
+| `CCXT_MCP_UI` | `auto` | View mode for `show_*` results: `auto` (follow the client's stated capabilities, else `UI_WHEN_UNKNOWN`), `always` (send the dataset to every client, reported as `displayed`) or `off`. Any other value falls back to `auto`. |
 | `OPENAI_APPS_CHALLENGE` | unset | Token served at `/.well-known/openai-apps-challenge`. |
 | `DRAIN_TIMEOUT_MS` | `25000` | How long in-flight calls get after SIGTERM. |
 
@@ -81,9 +84,10 @@ Every caller shares this server's IP addresses at each exchange. One abusive cli
   - A full queue or a spent budget answers `RATE_LIMITED`; an open breaker answers `EXCHANGE_UNAVAILABLE`. Both carry `retryAfterSeconds`.
   - Nothing is ever retried automatically, least of all a rate-limit answer.
   - Queued work whose caller disconnected or passed its deadline is dropped before it reaches the exchange.
-- **Circuit breaker.** It opens after three `DDoSProtection`, `RateLimitExceeded` or `ExchangeNotAvailable` errors, or HTTP 429 responses, within a minute. It opens at once on 418 (IP ban) or 451 (geo-block). After the cooldown it lets one probe through.
+  - A symbol must be one of the exchange's own markets and a timeframe one of its own timeframes, checked as own properties before the guard: `__proto__`, `constructor` and similar names are `BAD_SYMBOL` / `BAD_TIMEFRAME` and never reach an exchange (ccxt's plain property lookups would accept them).
+- **Circuit breaker.** It opens after three `DDoSProtection`, `RateLimitExceeded` or `ExchangeNotAvailable` errors, or HTTP 429 responses, within a minute. A 404 does not count: it is about the request, not about our addresses. It opens at once on 418 (IP ban) or 451 (geo-block). After the cooldown it lets one probe through.
 - **Per-client limits.**
-  - Clients are keyed by IP, taken from the trusted proxy header.
+  - Clients are keyed by IP, taken from the trusted proxy header: an IPv4 address, or an IPv6 /64 (one subscriber normally holds a whole /64 and could otherwise rotate addresses for fresh budgets).
   - `_meta["openai/subject"]` is the key instead, but only on requests from OpenAI's published connector ranges. From anywhere else it is just a string the caller chose.
   - Anthropic's (`160.79.104.0/21`, `153.61.208.0/20`) and OpenAI's ranges get the higher host budget.
   - The OpenAI list is a dated snapshot in `src/data/openai-egress.ts`. Refresh it with `node scripts/refresh-egress-ranges.mjs` and review the diff.
@@ -99,7 +103,7 @@ Every caller shares this server's IP addresses at each exchange. One abusive cli
 | `POST /mcp` | yes | MCP over stateless Streamable HTTP: 2026-07-28 clients and 2025-era clients that still send `initialize`. A new `McpServer` is built for each request. No sessions. |
 | `/.well-known/openai-apps-challenge` | yes | OpenAI domain verification. 404 when unset. |
 | `/.well-known/oauth-protected-resource/mcp` | yes | Reserved for phase 2. Returns 404 today, which tells clients the server is authless. |
-| `GET /healthz` | no | Liveness. Used by the container health check. |
+| `GET /healthz` | no | Liveness. Used by the container health check. 503 if `Object.prototype` gained a property since start-up (a polluted process answers everything wrongly and needs a restart). |
 | `GET /readyz` | no | 200 once the allowlist is warm. Reports each exchange's state, market count, breaker and last error, plus telemetry status. 503 while warming or draining. |
 
 **Phase 2 seam.** `verifyBearer()` in `src/app.ts` is the one place a bearer token would become `AuthInfo`. In phase 1 it returns `undefined`, and an `Authorization` header is ignored. Everything downstream, from the factory and `ctx.http.authInfo` to the request scope, already carries it.
@@ -109,8 +113,14 @@ Every caller shares this server's IP addresses at each exchange. One abusive cli
 **One-time setup on the VM** (Docker with the compose plugin; nginx already serves docs.ccxt.com):
 
 ```bash
-git clone https://github.com/ccxt/ccxt.git /srv/ccxt && cd /srv/ccxt/mcp/hosted
+# only mcp/ is needed: the image is built from mcp/, and ccxt comes from npm. A full clone
+# of the repository is several GB of history and generated code
+git clone --depth 1 --filter=blob:none --sparse https://github.com/ccxt/ccxt.git /srv/ccxt
+cd /srv/ccxt && git sparse-checkout set mcp && cd mcp/hosted
 cp .env.example .env && chmod 600 .env    # set EXCHANGES, OPENAI_APPS_CHALLENGE, POSTHOG_PROJECT_TOKEN, CLIENT_HASH_SECRET
+# secrets: generate them with `openssl rand -hex 32`. Compose expands $NAME in unquoted .env
+# values, so single-quote any value that contains a '$'
+sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env   # the deployed build
 docker compose build
 docker compose run --rm hosted node /app/check-exchanges.mjs   # reachability from THIS machine
 # drop every exchange the check reports as unreachable from EXCHANGES in .env, then:
@@ -118,16 +128,21 @@ docker compose up -d
 curl -s http://127.0.0.1:8080/readyz | head -c 400
 ```
 
-**nginx.**
+`BUILD_ID` lives in `.env`, not in the shell, so every compose command (an `.env` edit, a `run` of the reachability check, a rollback) uses the build that is deployed. Compose refuses to run without it.
 
-- Copy [`deploy/nginx-docs.ccxt.com.conf`](deploy/nginx-docs.ccxt.com.conf). The `upstream` block goes in the `http {}` context. The `location` blocks go inside the existing `server {}` for docs.ccxt.com.
-- Then run `nginx -t && systemctl reload nginx`.
+**nginx** ([`deploy/nginx/`](deploy/nginx/)):
+
+- [`ccxt-mcp-http.conf`](deploy/nginx/ccxt-mcp-http.conf) goes in the `http {}` context (`/etc/nginx/conf.d/`): the upstream, the per-address `limit_conn` / `limit_req` zones, and the `ccxt_mcp` log format.
+- [`ccxt-mcp-locations.conf`](deploy/nginx/ccxt-mcp-locations.conf) goes inside the existing `server {}` for docs.ccxt.com (`include /etc/nginx/snippets/ccxt-mcp-locations.conf;`). Add `client_header_timeout 10s;` to that server block too.
+- Then run `nginx -t && systemctl reload nginx`. `test/nginx.test.ts` loads both files in a real nginx and exercises them (CI installs nginx for it).
 - It proxies only `/mcp` and the two reserved `/.well-known` paths, with these settings:
-  - `proxy_buffering off`;
-  - a 300 s read timeout;
-  - `Host` passed through;
-  - `X-Real-IP` overwritten with `$remote_addr`;
-  - a 256 KB body cap.
+  - responses unbuffered (`proxy_buffering off`, for SSE), requests buffered (`proxy_request_buffering on`, `client_body_timeout 10s`): a client trickling a body holds an nginx connection, never one of the app's;
+  - at most 20 open connections and 10 requests/s (burst 40) per client address, 429 beyond;
+  - a 300 s read timeout, `Host` passed through, `X-Real-IP` overwritten with `$remote_addr`, a 256 KB body cap;
+  - its own access log, `/var/log/nginx/ccxt-mcp.log`, in a format without the client address (the privacy text promises no IP addresses in logs); `$request_id` joins it to the app's lines;
+  - while the container is being recreated, a JSON-RPC 503 with `Retry-After: 5` instead of nginx's HTML 502.
+- **Capacity.** Every `subscriptions/listen` stream holds two nginx connections for as long as the client keeps it, next to the docs site's traffic. Keep `worker_processes` × `worker_connections` comfortably above 2 × `MAX_SUBSCRIPTIONS` plus the docs load: e.g. `worker_connections 4096;` and `worker_rlimit_nofile 8192;` in `nginx.conf` (Ubuntu's stock 768 per worker is too small).
+- nginx's error log can still record a client address for a failed connection; rotate it accordingly.
 
 **Check from outside:**
 
@@ -141,16 +156,16 @@ claude mcp add --transport http ccxt https://docs.ccxt.com/mcp && claude mcp lis
 - read-only root filesystem, no tmpfs needed;
 - runs as the non-root `node` user, with all capabilities dropped and `no-new-privileges`;
 - 1.5 GB memory limit, `NODE_OPTIONS=--max-old-space-size=1024`;
-- `restart: unless-stopped`;
+- `restart: unless-stopped`, plus the `autoheal` service, which restarts it when its health check fails (Docker itself never acts on an unhealthy status);
 - port bound to `127.0.0.1:8080` only.
 
-The image is the single bundle on `node:22-bookworm-slim`, with no `node_modules`.
+The image is the single bundle on `node:22-bookworm-slim`, with no `node_modules` and no package managers (npm, npx, corepack and yarn are removed).
 
 ## Upgrading
 
 ```bash
-cd /srv/ccxt && git pull
-cd mcp/hosted && BUILD_ID=$(git rev-parse --short HEAD) docker compose up -d --build
+cd /srv/ccxt && git pull --depth 1
+cd mcp/hosted && sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env && docker compose up -d --build
 docker compose logs --tail 20 hosted && curl -s http://127.0.0.1:8080/readyz | head -c 400
 ```
 
@@ -159,10 +174,27 @@ docker compose logs --tail 20 hosted && curl -s http://127.0.0.1:8080/readyz | h
   - lets in-flight calls finish within `DRAIN_TIMEOUT_MS`;
   - flushes telemetry, then exits 0.
 - `stop_grace_period` is 30 s.
-- There is a short gap while the new container warms its markets, typically 2–10 s. Hosts retry on 503.
+- The gap has two parts. From the old container's exit until the new one listens (about a second), nginx answers a JSON-RPC 503 with `Retry-After: 5`. After that, while the new container warms its markets (typically 2–10 s), calls are served and cold exchanges answer `EXCHANGE_WARMING` with `retryAfterSeconds`.
 - A zero-downtime switch needs a second container behind the same nginx upstream. That is not built.
+- **Rollback:** `sed -i 's/^BUILD_ID=.*/BUILD_ID=<previous sha>/' .env && docker compose up -d --no-build` (each build is kept as `ccxt-mcp-hosted:<sha>`).
+- **Old images:** each is about 380 MB. Keep the last few: `docker image ls ccxt-mcp-hosted --format '{{.Tag}}' | tail -n +4 | xargs -r -I{} docker image rm ccxt-mcp-hosted:{}` (the listing is newest first).
 - **New ccxt version:** `npm update ccxt` in `mcp/`, commit the lockfile, and rebuild.
 - **Changed views:** their URIs change by content hash on their own.
+
+## Monitoring
+
+Nothing in the container alerts anyone; an outage is otherwise reported by users. Set up:
+
+- **An external uptime check** from outside the VM, every minute, alerting on anything but 200:
+
+  ```bash
+  curl -fsS -X POST https://docs.ccxt.com/mcp -H 'content-type: application/json' \
+    -H 'accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' >/dev/null
+  ```
+
+- **A readiness check on the VM** (cron, every minute): `curl -fsS http://127.0.0.1:8080/readyz >/dev/null || <alert>`. It catches an allowlist that is entirely `failed` and a draining or polluted process.
+- **Automatic restart** when the container health check fails: the `autoheal` service in `docker-compose.yml`. Without the Docker socket mount it needs, use a systemd timer that runs every minute: `[ "$(docker inspect -f '{{.State.Health.Status}}' ccxt-mcp-hosted-1)" = unhealthy ] && docker restart ccxt-mcp-hosted-1`.
+- **PostHog log alerts** on `breaker_open`, `markets load failed` and `uncaught exception`, and on `/readyz` reporting `telemetry.analytics` as `error`.
 
 ## Operations
 
@@ -173,7 +205,7 @@ docker compose logs --tail 20 hosted && curl -s http://127.0.0.1:8080/readyz | h
 - `breaker_open` warnings;
 - `draining` / `drained` lines.
 
-Lines are also mirrored to PostHog Logs when a token is set (see Telemetry). nginx's `$request_id` arrives as `X-Request-Id`, so nginx and app lines join on it. An incoming `X-Request-Id` is used only under the same rule as the client-IP headers (`TRUSTED_PROXY` set and a loopback or private peer); otherwise the server makes its own, because the id also becomes the analytics session id.
+Lines are also mirrored to PostHog Logs when a token is set (see Telemetry). nginx's `$request_id` arrives as `X-Request-Id`, and the `ccxt_mcp` log format writes it to `/var/log/nginx/ccxt-mcp.log`, so nginx and app lines join on it. An incoming `X-Request-Id` is used only under the same rule as the client-IP headers (`TRUSTED_PROXY` set and a loopback or private peer); otherwise the server makes its own, because the id also becomes the analytics session id.
 
 **Readiness.** `curl -s 127.0.0.1:8080/readyz | jq`. Per exchange it shows:
 
@@ -199,7 +231,7 @@ kraken    ok      1436     1309    BTC/USDT  58493.5   1053
 **An exchange starts failing for everyone.** Check `/readyz` and the `breaker_open` warnings.
 
 - **Temporary throttling:** the breaker handles it.
-- **A ban or geo-block** (418, 451, or a CloudFront 403): remove the exchange from `EXCHANGES` and restart.
+- **A ban or geo-block** (418, 451, or a CloudFront 403): remove the exchange from `EXCHANGES` in `.env` and run `docker compose up -d` (it recreates the container; a plain `docker compose restart` keeps the old environment).
 
 **Memory.** About 175 MB with four exchanges warm. Measured: kraken, coinbase, okx and bitstamp, 7,600 markets, read-only container.
 
@@ -217,13 +249,13 @@ The server reports usage to PostHog when `POSTHOG_PROJECT_TOKEN` is set, and oth
 | `POSTHOG_PROJECT_TOKEN` | unset | PostHog project token. Unset means telemetry is off. A personal (`phx_`) key is refused. |
 | `POSTHOG_HOST` | `https://eu.i.posthog.com` | Ingestion host. The project is in the EU region. |
 | `POSTHOG_SAMPLE_RATE` | `1` | Fraction of successful events kept. Errors are always kept. |
-| `POSTHOG_CONTEXT` | `1` | Adds a `context` argument to every tool and records the model's stated intent. |
+| `POSTHOG_CONTEXT` | `1` | Adds a required `context` argument to every tool and records the model's stated intent. With analytics off (no token) the tools still accept an optional `context`, so a host that cached a tools/list from an instance with analytics on keeps working. |
 | `POSTHOG_CAPTURE_MODEL` | `0` | Adds an `llm_model` argument. |
 | `POSTHOG_CONVERSATION_ID` | `0` | Adds a `conversation_id` argument and an extra result block. Keep it off. |
 | `POSTHOG_TOOLS_LIST_EVENT` / `POSTHOG_INITIALIZE_EVENT` / `POSTHOG_EXCEPTIONS` | `1` | Turn individual event types off. |
 | `POSTHOG_EXPECTED_ERROR_CODES` | empty | Extra tool error codes that should not produce `$exception`. |
-| `CLIENT_HASH_SECRET` | random per process | HMAC key for `client_hash`. Set it, and use the same value on every instance. |
-| `SERVICE_NAME` / `DEPLOYMENT_ENV` / `LOG_LEVEL` / `SERVER_BUILD` | `ccxt-mcp-hosted` / `development` / `info` / unset | Labels and log verbosity. |
+| `CLIENT_HASH_SECRET` | random per process | HMAC key for `client_hash`. Set it, and use the same value on every instance. Generate it with `openssl rand -hex 32`; compose expands `$` in unquoted `.env` values, so single-quote any value that contains one. |
+| `SERVICE_NAME` / `DEPLOYMENT_ENV` / `LOG_LEVEL` / `SERVER_BUILD` | `ccxt-mcp-hosted` / `development` (`.env.example` sets `production`) / `info` / unset (compose sets it from `BUILD_ID`) | Labels and log verbosity. |
 
 **Verifying a deployment.**
 

@@ -69,6 +69,9 @@ export interface Telemetry {
     annotate (fields: { cache?: 'hit' | 'miss' | 'coalesced'; exchange?: string }): void;
     // resolves once the start-up token check has answered (or failed); never rejects
     verified (): Promise<void>;
+    // whether instrument () will inject the `context` argument into tool schemas right now
+    // (analytics on, not shut down, POSTHOG_CONTEXT on); the profile accepts it otherwise
+    injectsContext? (): boolean;
 }
 
 interface RequestState {
@@ -424,5 +427,6 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
             }
         },
         'verified': () => verification,
+        'injectsContext': () => analyticsClient !== undefined && !closed && config.analytics.context,
     };
 }

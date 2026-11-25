@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { ok } from '../format.js';
-import { run, exchangeParam, predictionParam, paramsParam, marketTypeParam, methodNameParam, symbolParam, accountNameParam, MAX_SYMBOLS } from './common.js';
+import { run, exchangeParam, predictionParam, paramsParam, marketTypeParam, methodNameParam, symbolParam, accountNameParam } from './common.js';
 import { StreamArgError } from '../subscriptions.js';
 
 export function registerWatchTools (server: McpServer, ctx: ServerContext): void {
@@ -14,7 +14,7 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
             'method': methodNameParam ('a ccxt.pro watch* method, e.g. "watchOHLCV", "watchTicker", "watchOrderBook", "watchTrades"'),
             'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])) ])).optional ().describe ('positional arguments — they differ per method (get the exact signature with describe_method): e.g. watchTicker ["BTC/USDT"], watchOHLCV ["BTC/USDT","1m"], watchOrderBook ["BTC/USDT", depthLimit], watchTrades ["BTC/USDT"]. Methods that take a symbol LIST take a nested array, e.g. watchTickers [["BTC/USDT","ETH/USDT"]]. Resolve symbols with search_markets.'),
             'symbol': symbolParam ('convenience alias for a single-symbol stream (watchTicker/watchOrderBook/watchTrades/watchOHLCV) — equivalent to passing it as args[0]; ignored if args is given').optional (),
-            'symbols': z.array (symbolParam ('unified symbol')).max (MAX_SYMBOLS).optional ().describe ('convenience alias for a multi-symbol stream (watchTickers/watchOrderBookForSymbols/…) — equivalent to passing the list as args[0]; ignored if args is given'),
+            'symbols': z.array (symbolParam ('unified symbol')).optional ().describe ('convenience alias for a multi-symbol stream (watchTickers/watchOrderBookForSymbols/…) — equivalent to passing the list as args[0]; ignored if args is given'),
             'account': accountNameParam.optional ().describe ('configured account name — required for private streams (watchOrders, watchMyTrades, watchBalance, watchPositions, watchMyLiquidations)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,

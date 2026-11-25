@@ -93,6 +93,15 @@ export interface BuildServerOptions {
     instructions?: string;
 }
 
+const HOSTED_LIST_HINT = { 'ttlMs': 60000, 'cacheScope': 'public' } as const;
+export const HOSTED_LIST_CACHE_HINTS = Object.freeze ({
+    'server/discover': HOSTED_LIST_HINT,
+    'tools/list': HOSTED_LIST_HINT,
+    'resources/list': HOSTED_LIST_HINT,
+    'resources/templates/list': HOSTED_LIST_HINT,
+    'prompts/list': HOSTED_LIST_HINT,
+});
+
 // Builds one McpServer over the shared state. Cheap and side-effect free (no I/O, no
 // timers, nothing registered outside the new instance), because the SDK serving entries
 // call it once per stdio connection plus a discarded server/discover probe, and a hosted
@@ -108,6 +117,12 @@ export function buildServer (shared: SharedState, options: BuildServerOptions = 
         'version': shared.version,
     }, {
         instructions,
+        // 2026-07-28 results say how long a client may reuse them; without hints every one
+        // is "ttlMs 0, private". Hosted lists are the same for every caller (a fixed profile,
+        // no per-caller auth in phase 1), so they are public; the TTL stays short because a
+        // deploy that changes a view's hash retires its old ui:// URI. stdio keeps the SDK
+        // default: its list depends on the local config. Phase 2 per-user lists go private.
+        ...(hosted ? { 'cacheHints': HOSTED_LIST_CACHE_HINTS } : {}),
     });
     const ctx: ServerContext = {
         'ccxt': shared.ccxt,

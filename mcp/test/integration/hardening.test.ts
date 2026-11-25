@@ -7,6 +7,7 @@ import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createSharedState, buildServer } from '../../ts/factory.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 import type { SharedState } from '../../ts/factory.js';
+import { registerSecret, clearSecrets } from '../../ts/redact.js';
 
 // Input hardening in the shared tool code: it protects the local server and is the base
 // the hosted server builds on (prototype review C1, H4, H5).
@@ -79,11 +80,11 @@ test ('params: credential-like keys are refused with BAD_REQUEST before the exch
     const cases: Array<[ string, any ]> = [
         [ 'get_tickers', { 'exchange': 'fakex', 'symbols': [ 'BTC/USDT' ], 'params': { 'apiKey': secret } } ],
         [ 'get_tickers', { 'exchange': 'fakex', 'symbols': [ 'BTC/USDT' ], 'params': { 'nested': { 'secret': secret } } } ],
-        [ 'get_ohlcv', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'params': { 'password': secret } } ],
+        [ 'get_ohlcv', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'params': { 'secretKey': secret } } ],
         [ 'call_implicit_get', { 'exchange': 'fakex', 'method': 'publicGetTime', 'params': { 'privateKey': secret } } ],
         [ 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRate', 'args': [ 'BTC/USDT' ], 'params': { 'passphrase': secret } } ],
         [ 'create_order', { 'account': 'acc', 'symbol': 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.001, 'price': 50000, 'params': { 'twofa': secret } } ],
-        [ 'call_write_method', { 'account': 'acc', 'method': 'closePosition', 'args': [ 'BTC/USDT', { 'token': secret } ] } ],
+        [ 'call_write_method', { 'account': 'acc', 'method': 'closePosition', 'args': [ 'BTC/USDT', { 'accessToken': secret } ] } ],
     ];
     for (const [ name, args ] of cases) {
         const result = await raw (client, name, args);
@@ -102,6 +103,29 @@ test ('params: credential-like keys are refused with BAD_REQUEST before the exch
     const address = await call (client, 'get_tickers', { 'exchange': 'fakex', 'symbols': [ 'BTC/USDT' ], 'params': { 'walletAddress': '0x' + '1'.repeat (40), 'user': '0x' + '2'.repeat (40) } });
     assert.equal (address.ok, true);
     assert.equal (tickerCalls, 1);
+    await client.close ();
+});
+
+test ('params: token, uid and password reach real endpoints locally (gemini {token}, krakenfutures {uid}); a configured credential under them does not', async () => {
+    const { client, shared } = await connect ();
+    const exchange: any = await shared.pools.getPublic ('fakex');
+    for (const params of [ { 'token': 'btc' }, { 'uid': '123' }, { 'password': 'not-a-configured-secret' } ]) {
+        const before = exchange.implicitCalls.length;
+        const envelope = await call (client, 'call_implicit_get', { 'exchange': 'fakex', 'method': 'publicGetTime', params });
+        assert.equal (envelope.ok, true, JSON.stringify (params) + ' ' + JSON.stringify (envelope.error));
+        assert.equal (exchange.implicitCalls.length, before + 1);
+        assert.deepEqual (exchange.implicitCalls.at (-1)[1], params);
+    }
+    // a configured credential (loadConfig registers each one with the redactor) pasted under
+    // one of these names is still refused
+    registerSecret ('FAKESECRET123456', 'secret');
+    try {
+        const pasted = await call (client, 'call_implicit_get', { 'exchange': 'fakex', 'method': 'publicGetTime', 'params': { 'password': 'FAKESECRET123456' } });
+        assert.equal (pasted.ok, false);
+        assert.equal (pasted.error.code, 'BAD_REQUEST');
+    } finally {
+        clearSecrets ();
+    }
     await client.close ();
 });
 

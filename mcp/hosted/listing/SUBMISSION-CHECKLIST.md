@@ -4,6 +4,14 @@ Everything the Anthropic and OpenAI directories ask for, for the hosted server a
 
 **Do not submit to either directory before the policy questions in [POLICY-RISKS.md](POLICY-RISKS.md) are answered.** Both directories have written rules that a crypto market-data connector may not pass.
 
+**Do not merge the hosted-server change into master before `POST https://docs.ccxt.com/mcp` answers 200 and `https://docs.ccxt.com/docs/mcp-privacy` and `/docs/mcp-terms` are live.** The marketplaces (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`) and the `ccxt-mcp` skill are read from master, so merging is what makes `/plugin install ccxt@ccxt` and the skill's hosted instructions reach users.
+
+## Launch steps (once the endpoint and both pages answer)
+
+1. Add `"remotes": [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` back to `mcp/server.json` (the tests accept it; every ccxt-mcp release publishes that file to the MCP Registry, which is why it is not there before launch).
+2. Remove the "not deployed yet" status lines from `wiki/MCP.md`, `mcp/README.md`, `.claude/skills/ccxt-mcp/SKILL.md` and `mcp/hosted/plugin/README.md`.
+3. Recheck the rows below marked BLOCKED (deployment).
+
 Status values:
 
 - **DONE**: in the repo and checked (the evidence is named).
@@ -104,7 +112,7 @@ Source: [registry remote servers](https://modelcontextprotocol.io/registry/remot
 
 | Requirement | Status | Notes |
 |---|---|---|
-| `remotes: [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` in `mcp/server.json` | DONE | Valid against the schema with ajv on 2026-11-25; pinned by `server-json.test.ts`. |
+| `remotes: [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` in `mcp/server.json` | TODO (launch step 1) | Valid against the schema with ajv on 2026-11-25. Removed again until launch: `mcp-release.yml` publishes `server.json` on every ccxt-mcp release, which would list a remote that answers 404. `server-json.test.ts` accepts it once added. |
 | "A remote server MUST be publicly accessible at its specified URL" | BLOCKED (deployment) | Publish the registry entry (`mcp-publisher publish`) only after the endpoint is live. The registry does not check URL ownership. |
 | Listing in the registry does not make the server discoverable in Claude | — | "Only a directory listing makes your connector discoverable inside Claude" ([directory vs custom](https://claude.com/docs/connectors/building/directory-vs-custom)). |
 

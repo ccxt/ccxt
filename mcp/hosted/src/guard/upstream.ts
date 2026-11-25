@@ -98,11 +98,11 @@ export class UpstreamGuard {
             return structuredClone (await this.wait (existing, scope));
         }
         const gate = this.gateFor (exchangeId);
-        const wasHalfOpen = gate.breaker.state () === 'half-open';
-        if (!gate.breaker.tryAcquire ()) {
+        const acquired = gate.breaker.tryAcquire ();
+        if (acquired === false) {
             throw this.reject (breakerError (exchangeId, gate.breaker.retryAfterSeconds ()));
         }
-        const probe = wasHalfOpen;
+        const probe = (acquired === 'probe');
         if (scope !== undefined) {
             scope.upstreamCalls += 1;
             if (scope.upstreamCalls > this.options.maxUpstreamPerCall) {

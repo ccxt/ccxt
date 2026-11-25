@@ -52,7 +52,12 @@ for (const mode of [ 'legacy', 'auto' ] as const) {
             for (const removed of [ 'params', 'reload', 'prediction' ]) {
                 assert.ok (!properties.includes (removed), tool.name + ' must not take ' + removed);
             }
-            assert.equal ((tool.inputSchema as any).additionalProperties, false, tool.name + ' schema must be strict');
+            if (HOSTED_TOOLS[tool.name] === 'account') {
+                // the stubs accept anything, so any call reaches ACCOUNT_REQUIRED and its hint
+                assert.notEqual ((tool.inputSchema as any).additionalProperties, false, tool.name + ' stub schema must accept any arguments');
+            } else {
+                assert.equal ((tool.inputSchema as any).additionalProperties, false, tool.name + ' schema must be strict');
+            }
         }
         // a deterministic order: the same list twice
         const again = await client.listTools ();

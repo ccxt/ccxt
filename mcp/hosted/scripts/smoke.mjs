@@ -6,7 +6,8 @@
 //   node scripts/smoke.mjs --live                # also call market tools (needs exchange access)
 //   node scripts/smoke.mjs --require-ready       # fail unless /readyz turns 200
 //
-// Without --url it starts the bundle with EXCHANGES (default "kraken"). The default checks
+// Without --url it starts the bundle with EXCHANGES (default "kraken", or "kraken,coinbase,okx"
+// with --live: the live checks call those). The default checks
 // (health, tools/list, an account stub, a view resource) need no exchange at all, so CI can
 // run them anywhere; --live and --require-ready need the exchanges to be reachable.
 import { spawn } from 'node:child_process';
@@ -71,7 +72,7 @@ try {
         const port = await freePort ();
         const bundle = path.join (here, '..', 'dist', 'server.mjs');
         child = spawn (process.execPath, [ bundle ], {
-            'env': { ...process.env, 'PORT': String (port), 'HOST': '127.0.0.1', 'EXCHANGES': process.env.EXCHANGES ?? 'kraken' },
+            'env': { ...process.env, 'PORT': String (port), 'HOST': '127.0.0.1', 'EXCHANGES': process.env.EXCHANGES ?? (flag ('--live') ? 'kraken,coinbase,okx' : 'kraken') },
             'stdio': [ 'ignore', 'inherit', 'inherit' ],
         });
         url = 'http://127.0.0.1:' + port + '/mcp';
@@ -89,20 +90,26 @@ try {
         console.log ('  negotiated ' + client.getNegotiatedProtocolVersion ());
         const { tools } = await client.listTools ();
         check (JSON.stringify (tools.map ((tool) => tool.name).sort ()) === JSON.stringify (EXPECTED), 'tools/list is the 14 hosted tools');
-        const stub = await client.callTool ({ 'name': 'get_balance', 'arguments': { 'account': 'main' } });
-        check (stub.isError === true && envelope (stub).error.code === 'ACCOUNT_REQUIRED', 'get_balance answers ACCOUNT_REQUIRED');
+        for (const stubArgs of [ { 'account': 'main' }, {}, { 'exchange': 'coinbase' } ]) {
+            const stub = await client.callTool ({ 'name': 'get_balance', 'arguments': stubArgs });
+            check (stub.isError === true && envelope (stub)?.error?.code === 'ACCOUNT_REQUIRED', 'get_balance ' + JSON.stringify (stubArgs) + ' answers ACCOUNT_REQUIRED');
+        }
         const chartUri = tools.find ((tool) => tool.name === 'show_chart')._meta.ui.resourceUri;
         const view = await client.readResource ({ 'uri': chartUri });
         check (view.contents[0].mimeType === 'text/html;profile=mcp-app' && view.contents[0].text.length > 10000, 'resources/read ' + chartUri + ' (' + view.contents[0].text.length + ' chars)');
         if (flag ('--live')) {
+            // the server's own allowlist decides which venue answers the order book check
+            const served = Object.keys ((await (await fetch (origin + '/readyz')).json ()).exchanges ?? {});
+            check (served.includes ('kraken'), 'kraken is on the allowlist (' + served.join (',') + ')');
             const tickers = await client.callTool ({ 'name': 'get_tickers', 'arguments': { 'exchange': 'kraken', 'symbols': [ 'BTC/USD' ] } });
             const ticker = envelope (tickers);
-            check (ticker.ok === true, 'get_tickers kraken BTC/USD -> last ' + ticker.data?.[0]?.last);
-            const chart = await client.callTool ({ 'name': 'show_chart', 'arguments': { 'exchange': 'coinbase', 'symbol': 'BTC/USD', 'timeframe': '1h' } });
-            check (chart.isError !== true && Array.isArray (chart.structuredContent?.candles), 'show_chart coinbase BTC/USD 1h -> ui ' + chart.structuredContent?.ui + ', ' + chart.structuredContent?.candles?.length + ' candles, ' + JSON.stringify (chart.structuredContent).length + ' bytes');
-            const book = await client.callTool ({ 'name': 'show_orderbook', 'arguments': { 'exchange': 'okx', 'symbol': 'BTC/USDT' } });
-            check (book.isError !== true && Array.isArray (book.structuredContent?.bids), 'show_orderbook okx BTC/USDT -> ui ' + book.structuredContent?.ui + ', best bid ' + book.structuredContent?.bids?.[0]?.[0] + ', best ask ' + book.structuredContent?.asks?.[0]?.[0]);
-            console.log ('  summary: ' + book.content[0].text.slice (0, 300));
+            check (ticker?.ok === true, 'get_tickers kraken BTC/USD -> last ' + ticker?.data?.[0]?.last);
+            const chart = await client.callTool ({ 'name': 'show_chart', 'arguments': { 'exchange': 'kraken', 'symbol': 'BTC/USD', 'timeframe': '1h' } });
+            check (chart.isError !== true && Array.isArray (chart.structuredContent?.candles), 'show_chart kraken BTC/USD 1h -> ui ' + chart.structuredContent?.ui + ', ' + chart.structuredContent?.candles?.length + ' candles, ' + (JSON.stringify (chart.structuredContent) ?? '').length + ' bytes');
+            const [ venue, symbol ] = served.includes ('coinbase') ? [ 'coinbase', 'BTC/USD' ] : (served.includes ('okx') ? [ 'okx', 'BTC/USDT' ] : [ 'kraken', 'BTC/USD' ]);
+            const book = await client.callTool ({ 'name': 'show_orderbook', 'arguments': { 'exchange': venue, symbol } });
+            check (book.isError !== true && Array.isArray (book.structuredContent?.bids), 'show_orderbook ' + venue + ' ' + symbol + ' -> ui ' + book.structuredContent?.ui + ', best bid ' + book.structuredContent?.bids?.[0]?.[0] + ', best ask ' + book.structuredContent?.asks?.[0]?.[0]);
+            console.log ('  summary: ' + String (book.content?.[0]?.text).slice (0, 300));
         }
         await client.close ();
     }

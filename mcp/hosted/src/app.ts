@@ -7,7 +7,7 @@ import type { HostedConfig } from './config.js';
 import { canonicalUrl } from './config.js';
 import { CidrSet, PROXY_PEERS } from './ip.js';
 import { clientIp, identifyClient, jsonDepthExceeds, RateLimiter, requestCost } from './limits.js';
-import { HostedToolProfile, HOSTED_INSTRUCTIONS } from './profile.js';
+import { HostedToolProfile, HOSTED_INSTRUCTIONS, HOSTED_TOOLS } from './profile.js';
 import { runInCallScope, currentCallScope, summariseCache, type CallScope } from './scope.js';
 import type { HostedExchanges } from './guard/exchanges.js';
 import type { Telemetry, RequestSummary } from './telemetry/index.js';
@@ -56,6 +56,9 @@ export async function verifyBearer (_request: Request, _resource: string): Promi
 }
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,128}$/;
+// initialize, tools/call, notifications/initialized, subscriptions/listen, server/discover ...
+const MCP_METHOD = /^[a-z]+(?:\/[a-zA-Z_]+){0,2}$/;
+const EXCHANGE_ID = /^[a-z][a-z0-9_]{0,31}$/;
 const PROTOCOL_VERSION_META = 'io.modelcontextprotocol/protocolVersion';
 const CLIENT_INFO_META = 'io.modelcontextprotocol/clientInfo';
 
@@ -73,12 +76,17 @@ interface MessageFacts {
     modern: boolean;
 }
 
-function messageFacts (body: any, headers: Headers): MessageFacts {
+function messageFacts (body: any, headers: Headers, allowlist: readonly string[]): MessageFacts {
     const params = (body !== null && typeof body === 'object') ? body.params : undefined;
     const meta = (params !== null && typeof params === 'object') ? params._meta : undefined;
-    const method = (typeof body?.method === 'string') ? body.method.slice (0, 64) : undefined;
-    const name = (method === 'tools/call' && typeof params?.name === 'string') ? params.name.slice (0, 64) : undefined;
-    const exchange = (typeof params?.arguments?.exchange === 'string') ? params.arguments.exchange.slice (0, 64) : undefined;
+    // these three reach log lines and the request summary: only values of a known shape are
+    // kept, never caller text ("What is never logged: tool arguments")
+    const rawMethod = (typeof body?.method === 'string') ? body.method : undefined;
+    const method = (rawMethod === undefined) ? undefined : (MCP_METHOD.test (rawMethod) ? rawMethod : 'unknown');
+    const rawName = (rawMethod === 'tools/call' && typeof params?.name === 'string') ? params.name : undefined;
+    const name = (rawName === undefined) ? undefined : (Object.prototype.hasOwnProperty.call (HOSTED_TOOLS, rawName) ? rawName : 'unknown');
+    const rawExchange = params?.arguments?.exchange;
+    const exchange = (typeof rawExchange === 'string' && EXCHANGE_ID.test (rawExchange) && allowlist.includes (rawExchange)) ? rawExchange : undefined;
     const clientName = (typeof meta?.[CLIENT_INFO_META]?.name === 'string')
         ? meta[CLIENT_INFO_META].name
         : ((method === 'initialize' && typeof params?.clientInfo?.name === 'string') ? params.clientInfo.name : undefined);
@@ -129,18 +137,26 @@ function outcomeOf (text: string): { ok?: boolean, errorCode?: string } {
     }
 }
 
+// Object.prototype's own property names at load time; any addition later is pollution
+const PROTOTYPE_NAMES = Object.getOwnPropertyNames (Object.prototype).sort ().join (',');
+
+export function prototypeIntact (): boolean {
+    return Object.getOwnPropertyNames (Object.prototype).sort ().join (',') === PROTOTYPE_NAMES;
+}
+
 export function createHostedApp (deps: HostedAppDeps): HostedApp {
     const { config, shared, exchanges, telemetry } = deps;
     const now = deps.now ?? Date.now;
     const startedAt = deps.startedAt ?? now ();
     const resource = canonicalUrl (config);
-    const profile = new HostedToolProfile ();
+    const profile = new HostedToolProfile (() => !(telemetry.injectsContext?.() ?? false));
     const limiter = new RateLimiter (config.rateLimit.maxKeys, now);
     const ranges = { 'anthropic': new CidrSet (config.hostRanges.anthropic), 'openai': new CidrSet (config.hostRanges.openai) };
     const clientBudget = { 'perMinute': config.rateLimit.perMinute, 'burst': config.rateLimit.burst };
     const hostBudget = { 'perMinute': config.rateLimit.hostPerMinute, 'burst': config.rateLimit.hostBurst };
     let inflight = 0;
     let draining = false;
+    const openListens = new Map<string, number> ();
     const drainWaiters: Array<() => void> = [];
 
     // One McpServer per request over the process-wide shared state. It runs inside the call
@@ -249,9 +265,14 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         return warm > 0 && (now () - startedAt) >= config.readyGraceMs;
     };
 
-    app.get ('/healthz', (c) => c.json ({ 'ok': true, 'version': config.version, 'uptimeSeconds': Math.round ((now () - startedAt) / 1000) }));
+    app.get ('/healthz', (c) => {
+        // a process whose Object.prototype gained a property answers every later request
+        // wrongly (the SDK rejects valid JSON-RPC); only a restart fixes it, so liveness fails
+        const intact = prototypeIntact ();
+        return c.json ({ 'ok': intact, 'version': config.version, 'uptimeSeconds': Math.round ((now () - startedAt) / 1000) }, intact ? 200 : 503);
+    });
     app.get ('/readyz', (c) => {
-        const ready = isReady ();
+        const ready = isReady () && prototypeIntact ();
         return c.json ({ ready, draining, 'exchanges': exchanges.status (), 'telemetry': telemetry.status () }, ready ? 200 : 503);
     });
 
@@ -292,7 +313,7 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         if (jsonDepthExceeds (body, config.maxJsonDepth)) {
             return rpcError (c, 400, -32600, 'request JSON is nested deeper than ' + config.maxJsonDepth + ' levels');
         }
-        const facts = messageFacts (body, c.req.raw.headers);
+        const facts = messageFacts (body, c.req.raw.headers, exchanges.allowlist);
         // 5. per-client rate limit
         const identity = identifyClient (ip, facts.subject, ranges);
         const info = { requestId, 'clientKey': identity.key, 'clientHash': '', 'userAgent': c.req.header ('user-agent')?.slice (0, 200), 'authState': 'anonymous' as const, ip };
@@ -309,6 +330,16 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         if (!listen && inflight >= config.maxConcurrentRequests) {
             void early ({ requestId, 'status': 503, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'ok': false, 'errorCode': 'OVERLOADED', 'durationMs': now () - started });
             return rpcError (c, 503, -32000, 'server busy, retry shortly', facts.id, { 'retry-after': '1' });
+        }
+        // 6b. open listen streams per client: each holds sockets here and at nginx for as
+        // long as the client keeps it, and costs only a fraction of a rate-limit token
+        if (listen) {
+            const open = openListens.get (identity.key) ?? 0;
+            if (open >= config.maxListensPerClient) {
+                void early ({ requestId, 'status': 429, 'mcpMethod': facts.method, 'ok': false, 'errorCode': 'TOO_MANY_LISTENS', 'durationMs': now () - started });
+                return rpcError (c, 429, -32000, 'too many open subscriptions/listen streams for this client (at most ' + config.maxListensPerClient + ')', facts.id, { 'retry-after': '60' });
+            }
+            openListens.set (identity.key, open + 1);
         }
         // 7. deadline: the abort signal ends upstream waits (TOOL error TIMEOUT); the client
         // going away ends them too, so abandoned work never reaches an exchange
@@ -343,11 +374,36 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
                 }
             }
         };
+        // The SDK's 2025-era stateless fallback adds an abort listener to the request's signal
+        // and never removes it. On the node-server Request that listener (and the closures
+        // around it) kept every per-request McpServer alive: ~300 KB per call, never freed.
+        // The SDK gets a Request whose signal this code owns instead, aborted when the
+        // exchange is over, which runs (and so removes) that listener. It is not chained to
+        // c.req.raw.signal: a listener there re-creates the cycle. A client that goes away
+        // still cancels upstream work through scope.signal.
+        const own = new AbortController ();
+        const finish = () => own.abort ();
+        const outgoing = (c.env as any)?.outgoing;
+        if (outgoing !== undefined && typeof outgoing.once === 'function') {
+            outgoing.once ('close', finish);
+        }
+        if (listen) {
+            // the stream is over when the socket closes, which aborts `own`
+            own.signal.addEventListener ('abort', () => {
+                const left = (openListens.get (identity.key) ?? 1) - 1;
+                if (left <= 0) {
+                    openListens.delete (identity.key);
+                } else {
+                    openListens.set (identity.key, left);
+                }
+            }, { 'once': true });
+        }
+        const forSdk = new Request (c.req.raw.url, { 'method': 'POST', 'headers': c.req.raw.headers, 'signal': own.signal });
         let response: Response;
         try {
             response = await telemetry.runWithRequest (info, () => runInCallScope (scope, async () => {
                 const authInfo = await verifyBearer (c.req.raw, resource);
-                const served = handler.fetch (c.req.raw, { 'parsedBody': body, authInfo });
+                const served = handler.fetch (forSdk, { 'parsedBody': body, authInfo });
                 if (listen) {
                     return served;
                 }
@@ -365,6 +421,7 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
             }));
         } catch (error: any) {
             release ();
+            finish ();
             telemetry.log ('error', 'request failed', { requestId, 'error': String (error?.message ?? error).slice (0, 300) });
             return rpcError (c, 500, -32603, 'internal error', facts.id);
         }
@@ -388,6 +445,10 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         if (listen || response.body === null) {
             release ();
             summarise ('');
+            if (response.body === null) {
+                finish ();
+            }
+            // a listen stream ends when the socket closes (the outgoing 'close' above)
             return response;
         }
         // the summary needs the outcome, which is in the body: read a copy while the
@@ -395,9 +456,11 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         response.clone ().text ().then ((text) => {
             release ();
             summarise (text);
+            finish ();
         }, () => {
             release ();
             summarise ('');
+            finish ();
         });
         return response;
     });

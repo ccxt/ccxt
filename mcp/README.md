@@ -27,6 +27,8 @@ One honest caveat: any local agent with filesystem access could read the config 
 
 ### Hosted server (no install)
 
+> **Status: not deployed yet.** Until `https://docs.ccxt.com/mcp` answers, use the local server below (`npx -y ccxt-mcp`). This note is removed at launch.
+
 `https://docs.ccxt.com/mcp` is a public, read-only, stateless MCP endpoint (Streamable HTTP) run by CCXT. No install, no sign-in, no API keys. Status: phase 1, public market data only; signing in with your own exchange accounts is planned for later.
 
 - **Claude (web, desktop):** [add it as a custom connector](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp) (prefilled link; you confirm), or Customize > Connectors > Add > Add custom connector, then choose **No sign-in**. A connector added there also works in the Claude mobile apps.
@@ -35,7 +37,7 @@ One honest caveat: any local agent with filesystem access could read the config 
 - **ChatGPT desktop app / Codex:** Settings > MCP servers > Add server > **Streamable HTTP** > the URL; or in `~/.codex/config.toml`: `[mcp_servers.ccxt]` with `url = "https://docs.ccxt.com/mcp"`.
 - **Cursor / VS Code / Gemini CLI:** `{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }` in `~/.cursor/mcp.json`; `{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }` in `.vscode/mcp.json`; `gemini mcp add --transport http ccxt https://docs.ccxt.com/mcp`.
 
-It serves `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades` and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges. `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED` with a pointer to the local server. No trading, no WebSocket streams, no prediction markets, no free-form `params`. Requests are rate-limited per client and answered from a cache that is 1–2 s old for books and tickers. It records anonymous usage analytics without IP addresses ([what is recorded](https://github.com/ccxt/ccxt/blob/master/mcp/hosted/src/telemetry/README.md)). Full steps: [docs.ccxt.com/docs/mcp](https://docs.ccxt.com/docs/mcp#hosted-server-no-install). Source and deployment: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted).
+It serves `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades` and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges. `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED` with a pointer to the local server. No trading, no WebSocket streams, no prediction markets, no free-form `params`. Requests are rate-limited per client and answered from a short cache: 1 s for order books, 2 s for tickers and trades, up to 60 s for candles. It records anonymous usage analytics without IP addresses ([what is recorded](https://github.com/ccxt/ccxt/blob/master/mcp/hosted/src/telemetry/README.md)). Full steps: [docs.ccxt.com/docs/mcp](https://docs.ccxt.com/docs/mcp#hosted-server-no-install). Source and deployment: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted).
 
 ### Local server
 

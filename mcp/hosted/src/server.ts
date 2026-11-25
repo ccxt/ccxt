@@ -33,14 +33,27 @@ export async function startHostedServer (options: StartOptions): Promise<Running
     const runtime = createRuntime (config, options.ccxt, telemetry, { 'now': options.now, 'random': options.random });
     const hosted = createHostedApp ({ config, 'shared': runtime.shared, 'exchanges': runtime.exchanges, telemetry, 'now': options.now });
     const server: any = await new Promise ((resolve) => {
-        const started = serve ({ 'fetch': hosted.app.fetch, 'port': config.port, 'hostname': config.host }, () => resolve (started));
+        // Connection hygiene for the origin behind nginx. The read timeouts are given at
+        // creation, with a short connectionsCheckingInterval: Node enforces them only on
+        // that interval (30 s by default), so set afterwards a slow body lived ~60 s and one
+        // client could hold every connection.
+        const started = serve ({
+            'fetch': hosted.app.fetch,
+            'port': config.port,
+            'hostname': config.host,
+            'serverOptions': {
+                'requestTimeout': config.requestReadTimeoutMs,
+                'headersTimeout': Math.min (10000, config.requestReadTimeoutMs),
+                'connectionsCheckingInterval': Math.min (2000, config.requestReadTimeoutMs),
+            },
+        } as any, () => resolve (started));
     });
-    // connection hygiene for the origin behind nginx: bounded header and body read time,
-    // idle keep-alive above nginx's upstream keepalive, a connection cap
-    server.headersTimeout = 15000;
-    server.requestTimeout = 30000;
+    // idle keep-alive above nginx's upstream keepalive, a connection cap, and an inactivity
+    // timeout for a socket that never sends a request at all (a listen stream writes a
+    // keepalive comment every 15 s, a tool call answers within the request deadline)
     server.keepAliveTimeout = 65000;
     server.maxConnections = 2048;
+    server.timeout = config.requestDeadlineMs + 10000;
     const address = server.address () as AddressInfo;
     const host = (address.family === 'IPv6') ? '[' + address.address + ']' : address.address;
     const origin = 'http://' + host + ':' + address.port;
@@ -89,7 +102,10 @@ export function installSignalHandlers (target: EventEmitter, running: RunningSer
         telemetry.log ('error', 'unhandled rejection', { 'error': String (reason?.message ?? reason).slice (0, 300) });
     });
     target.on ('uncaughtException', (error: any) => {
-        telemetry.log ('error', 'uncaught exception', { 'error': String (error?.stack ?? error).slice (0, 1000) });
+        // name and message only, like every other error line: a stack carries the
+        // deployment's paths, and the log value is sanitised the same way either way
+        const text = (error instanceof Error) ? (error.name + ': ' + error.message) : String (error);
+        telemetry.log ('error', 'uncaught exception', { 'error': text.slice (0, 300) });
         void telemetry.shutdown (2000).finally (() => exit (1));
     });
 }

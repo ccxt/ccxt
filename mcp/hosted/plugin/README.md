@@ -1,5 +1,7 @@
 # CCXT — hosted market-data plugin
 
+> **Status: not deployed yet.** Until `https://docs.ccxt.com/mcp` answers, installing this plugin gives a connector that fails with HTTP 404. This note is removed at launch.
+
 This plugin connects your assistant to the **hosted CCXT MCP server** at `https://docs.ccxt.com/mcp` and adds a skill that teaches the assistant how to use it. Nothing runs on your computer, and no exchange account or API key is needed.
 
 Ask for prices, order books, OHLCV candles, recent trades and market listings on a curated set of major cryptocurrency exchanges. In hosts that render [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps), the assistant can also show an interactive candlestick chart, an order-book depth view or a price board in the chat.

@@ -52,7 +52,8 @@ export function createVenue (ids: string[] = [ 'alpha', 'beta' ], extraSymbols =
         if (failure !== undefined) {
             throw failure;
         }
-        if (self.markets?.[args[0]] === undefined && typeof args[0] === 'string') {
+        // ccxt's market () uses `symbol in markets`: a prototype member name passes, as it does there
+        if (typeof args[0] === 'string' && !(args[0] in (self.markets ?? {}))) {
             throw new BadSymbol (self.id + ' does not have market symbol ' + args[0]);
         }
         return answer ();
@@ -76,17 +77,31 @@ export function createVenue (ids: string[] = [ 'alpha', 'beta' ], extraSymbols =
                 return Number (timeframe.slice (0, -1)) * units[timeframe.slice (-1)];
             }
 
-            async loadMarkets (reload = false): Promise<any> {
-                if (this.markets !== undefined && !reload) {
-                    return this.markets;
+            marketsLoading: Promise<any> | undefined;
+            reloadingMarkets: boolean | undefined;
+
+            // the same promise caching as ccxt's Exchange.loadMarkets: one promise, rejected
+            // ones included, handed to every later non-reload call
+            loadMarkets (reload = false): Promise<any> {
+                if ((reload && this.reloadingMarkets !== true) || this.marketsLoading === undefined) {
+                    this.reloadingMarkets = true;
+                    this.marketsLoading = (async () => {
+                        control.loads.push ({ 'exchange': id, reload });
+                        await wait (control.loadLatencyMs[id] ?? 0);
+                        if (control.failLoad.has (id)) {
+                            throw new ExchangeNotAvailable (id + ' GET https://api.' + id + '.example/markets 503 Service Unavailable <html>down</html>');
+                        }
+                        this.markets = markets ();
+                        return this.markets;
+                    }) ().then ((resolved) => {
+                        this.reloadingMarkets = false;
+                        return resolved;
+                    }, (error) => {
+                        this.reloadingMarkets = false;
+                        throw error;
+                    });
                 }
-                control.loads.push ({ 'exchange': id, reload });
-                await wait (control.loadLatencyMs[id] ?? 0);
-                if (control.failLoad.has (id)) {
-                    throw new ExchangeNotAvailable (id + ' GET https://api.' + id + '.example/markets 503 Service Unavailable <html>down</html>');
-                }
-                this.markets = markets ();
-                return this.markets;
+                return this.marketsLoading as Promise<any>;
             }
 
             setMarketsFromExchange (source: any): void {
@@ -98,7 +113,16 @@ export function createVenue (ids: string[] = [ 'alpha', 'beta' ], extraSymbols =
             }
 
             async fetchTickers (symbols: string[]): Promise<any> {
-                return upstream (this, 'fetchTickers', [ symbols ], () => Object.fromEntries (symbols.map ((symbol) => [ symbol, { symbol, 'last': 100, 'timestamp': 1700000000000 } ])));
+                // like ccxt: a plain object holding only the symbols the exchange answered for
+                return upstream (this, 'fetchTickers', [ symbols ], () => {
+                    const result: Record<string, any> = {};
+                    for (const symbol of symbols) {
+                        if (Object.prototype.hasOwnProperty.call (this.markets ?? {}, symbol)) {
+                            result[symbol] = { symbol, 'last': 100, 'timestamp': 1700000000000 };
+                        }
+                    }
+                    return result;
+                });
             }
 
             async fetchOrderBook (symbol: string, limit = 20): Promise<any> {

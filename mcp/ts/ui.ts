@@ -124,7 +124,11 @@ export function uiToolMeta (view: UiView): Record<string, any> {
 // Only the current URI of each view is registered, so resources/list and resources/read
 // agree with the tools' _meta, and a URI from before a change is "resource not found"
 // rather than a different document under an old name.
-export function registerUiResources (server: McpServer, catalog: ViewCatalog): void {
+// A view's URI embeds its content hash, so a document read under it never changes: on the
+// hosted server it may be cached publicly for a day.
+export const VIEW_CACHE_HINT = Object.freeze ({ 'ttlMs': 86400000, 'cacheScope': 'public' as const });
+
+export function registerUiResources (server: McpServer, catalog: ViewCatalog, options: { publicCache?: boolean } = {}): void {
     for (const view of Object.values (catalog)) {
         // the views are self-contained (no network, no external assets), so no csp block is
         // declared and the host applies its most restrictive default
@@ -134,6 +138,7 @@ export function registerUiResources (server: McpServer, catalog: ViewCatalog): v
             'description': view.description,
             'mimeType': UI_MIME_TYPE,
             '_meta': meta,
+            ...(options.publicCache ? { 'cacheHint': { ...VIEW_CACHE_HINT } } : {}),
         }, async (uri) => ({
             'contents': [ { 'uri': uri.href, 'mimeType': UI_MIME_TYPE, 'text': view.html, '_meta': meta } ],
         }));

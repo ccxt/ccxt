@@ -140,28 +140,39 @@ export function marketTypeMismatchNotice (exchange: any, symbols: string[], mark
     return undefined;
 }
 
+// own-property lookup: a symbol or timeframe is caller text, and a plain lookup of
+// "__proto__" or "constructor" finds Object.prototype members instead of "not there"
+export function hasOwn (object: any, key: string): boolean {
+    return object !== null && typeof object === 'object' && Object.prototype.hasOwnProperty.call (object, key);
+}
+
+// a ticker that lacks `symbol`, as a copy: the object may be a cached result other callers
+// share, and writing onto an object we did not create is how "__proto__" became a write
+// to Object.prototype
+function withSymbol (ticker: any, symbol: string): any {
+    return (ticker.symbol === undefined) ? { ...ticker, 'symbol': symbol } : ticker;
+}
+
 // one ticker per requested symbol, in request order; backfills `symbol` so callers can match
 // rows to the handles they requested (some prediction/outcome tickers omit it). A symbol
 // the exchange did not answer for is left out (see missingTickersNotice in ./market.ts)
 export async function fetchTickerList (exchange: any, symbols: string[], params: Record<string, any>): Promise<any[]> {
     if (exchange.has['fetchTickers'] && symbols.length > 1) {
         const result = await exchange.fetchTickers (symbols, params);
-        return symbols.map ((symbol: string) => {
-            const ticker = result?.[symbol];
-            if (ticker !== undefined && ticker !== null && ticker.symbol === undefined) {
-                ticker.symbol = symbol;
+        const tickers: any[] = [];
+        for (const symbol of symbols) {
+            const ticker = hasOwn (result, symbol) ? result[symbol] : undefined;
+            if (ticker !== undefined && ticker !== null && typeof ticker === 'object') {
+                tickers.push (withSymbol (ticker, symbol));
             }
-            return ticker;
-        }).filter ((ticker: any) => ticker !== undefined && ticker !== null);
+        }
+        return tickers;
     }
     const tickers: any[] = [];
     for (const symbol of symbols) {
         const ticker = await exchange.fetchTicker (symbol, params);
-        if (ticker !== undefined && ticker !== null) {
-            if (ticker.symbol === undefined) {
-                ticker.symbol = symbol;
-            }
-            tickers.push (ticker);
+        if (ticker !== undefined && ticker !== null && typeof ticker === 'object') {
+            tickers.push (withSymbol (ticker, symbol));
         }
     }
     return tickers;
@@ -177,7 +188,7 @@ export function normalizeBookSide (side: any[] | undefined, levels: number): any
 // shared by get_ohlcv and show_chart so both reject an unsupported timeframe identically
 export function badTimeframe (exchange: any, frame: string): Envelope | undefined {
     const timeframes = exchange.timeframes;
-    if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
+    if (timeframes !== null && timeframes !== undefined && !hasOwn (timeframes, frame)) {
         return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
     }
     return undefined;

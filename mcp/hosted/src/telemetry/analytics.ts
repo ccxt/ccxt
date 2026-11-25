@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { relativizePath, sanitizeParameters, scrub, capJson, jsonSize, truncateString, stripPathsInText, stripPathsDeep, looksLikeSecret, REDACTED } from './redact.js';
+import { relativizePath, sanitizeParameters, scrub, capJson, jsonSize, truncateString, stripPathsInText, stripPathsDeep, redactSecretsInText, REDACTED } from './redact.js';
+import { HOSTED_TOOLS } from '../profile.js';
 
 // What beforeSend does to every event @posthog/mcp builds, as a function of the event and
 // the request it belongs to, so it can be tested without a server. It runs after the SDK's
@@ -83,6 +84,33 @@ export function exchangeOf (parameters: unknown): string | undefined {
     return (typeof value === 'string' && /^[a-z][a-z0-9_]{0,31}$/.test (value)) ? value : undefined;
 }
 
+function toolNameOf (props: Record<string, unknown>): string | undefined {
+    const fromParameters = (props['$mcp_parameters'] as any)?.request?.params?.name;
+    const name = (typeof fromParameters === 'string') ? fromParameters : props['$mcp_tool_name'];
+    return (typeof name === 'string') ? name : undefined;
+}
+
+// the account stubs never use their arguments on the hosted server, and their arguments are
+// where pasted credentials land: only the argument names are kept (and a ccxt-shaped exchange id)
+function isAccountTool (props: Record<string, unknown>): boolean {
+    const name = toolNameOf (props);
+    return name !== undefined && Object.prototype.hasOwnProperty.call (HOSTED_TOOLS, name) && HOSTED_TOOLS[name] === 'account';
+}
+
+function withoutArgumentValues (parameters: unknown): unknown {
+    const request: any = (parameters as any)?.request;
+    const args = request?.params?.arguments;
+    if (args === null || typeof args !== 'object') {
+        return parameters;
+    }
+    const exchange = exchangeOf (parameters);
+    const names: Record<string, unknown> = {};
+    for (const key of Object.keys (args).slice (0, 50)) {
+        names[key] = (key === 'exchange' && exchange !== undefined) ? exchange : REDACTED;
+    }
+    return { ...(parameters as object), 'request': { ...request, 'params': { ...request.params, 'arguments': names } } };
+}
+
 function sampleKey (event: CaptureEvent): string {
     const props = event.properties;
     // a session the SDK generated for this one request is as good as random; the request
@@ -108,7 +136,7 @@ function cleanExceptionList (list: unknown, appRoot: string): unknown {
         }
         const out: Record<string, unknown> = { ...entry };
         if (typeof entry.value === 'string') {
-            out['value'] = truncateString (stripPathsInText (entry.value), MAX_ERROR_PREVIEW_BYTES);
+            out['value'] = truncateString (redactSecretsInText (stripPathsInText (entry.value)), MAX_ERROR_PREVIEW_BYTES);
         }
         const frames = entry.stacktrace?.frames;
         if (Array.isArray (frames)) {
@@ -153,12 +181,14 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
         return null;
     }
     props['sample_rate'] = context.sampleRate;
+    const accountTool = isAccountTool (props);
     if ('$mcp_parameters' in props) {
         const exchange = exchangeOf (props['$mcp_parameters']);
         if (exchange !== undefined) {
             props['exchange'] = exchange;
         }
-        props['$mcp_parameters'] = sanitizeParameters (props['$mcp_parameters'], MAX_PARAMETERS_BYTES);
+        const parameters = accountTool ? withoutArgumentValues (props['$mcp_parameters']) : props['$mcp_parameters'];
+        props['$mcp_parameters'] = sanitizeParameters (parameters, MAX_PARAMETERS_BYTES);
     }
     if (props['exchange'] === undefined && context.exchange !== undefined) {
         props['exchange'] = context.exchange;
@@ -177,11 +207,15 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
         }
     }
     if (typeof props['$mcp_error_message'] === 'string') {
-        props['$mcp_error_message'] = truncateString (stripPathsInText (props['$mcp_error_message'] as string), MAX_ERROR_PREVIEW_BYTES);
+        // the tool's error text echoes the caller's arguments (BAD_SYMBOL names the symbol)
+        props['$mcp_error_message'] = truncateString (redactSecretsInText (stripPathsInText (props['$mcp_error_message'] as string)), MAX_ERROR_PREVIEW_BYTES);
     }
-    if (typeof props['$mcp_intent'] === 'string') {
-        const intent = props['$mcp_intent'] as string;
-        props['$mcp_intent'] = looksLikeSecret (intent) ? REDACTED : truncateString (intent, MAX_INTENT_CHARS);
+    if (accountTool) {
+        // the path a user who just pasted keys ends up on ("check my balance, here is my
+        // key"): the model's explanation of the call is not recorded at all
+        delete props['$mcp_intent'];
+    } else if (typeof props['$mcp_intent'] === 'string') {
+        props['$mcp_intent'] = truncateString (redactSecretsInText (props['$mcp_intent'] as string), MAX_INTENT_CHARS);
     }
     if ('$exception_list' in props) {
         props['$exception_list'] = cleanExceptionList (props['$exception_list'], context.appRoot);

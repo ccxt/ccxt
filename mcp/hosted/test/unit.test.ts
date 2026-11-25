@@ -38,7 +38,7 @@ test ('unit: breaker opens at the threshold within the window, half-opens after 
     assert.equal (breaker.tryAcquire (), false);
     now += 500;
     assert.equal (breaker.state (), 'half-open');
-    assert.equal (breaker.tryAcquire (), true);
+    assert.equal (breaker.tryAcquire (), 'probe');
     assert.equal (breaker.tryAcquire (), false, 'one probe at a time');
     breaker.onFailure (new RateLimitExceeded ('probe'));
     assert.equal (breaker.state (), 'open');
@@ -46,9 +46,9 @@ test ('unit: breaker opens at the threshold within the window, half-opens after 
     now += 999;
     assert.equal (breaker.state (), 'open');
     now += 1;
-    assert.equal (breaker.tryAcquire (), true);
+    assert.equal (breaker.tryAcquire (), 'probe');
     breaker.release (); // the probe was cancelled before it ran
-    assert.equal (breaker.tryAcquire (), true);
+    assert.equal (breaker.tryAcquire (), 'probe');
     breaker.onSuccess ();
     assert.equal (breaker.state (), 'closed');
     // a 418 opens at once

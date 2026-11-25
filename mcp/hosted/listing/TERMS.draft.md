@@ -26,7 +26,7 @@ The Service provides data, not advice. Nothing it returns, and nothing an assist
 
 ## 3. Data accuracy and availability
 
-- Market data comes from third-party exchanges. It may be delayed (responses can be cached for a few seconds), incomplete, inaccurate or unavailable, and exchanges may change or withdraw it at any time.
+- Market data comes from third-party exchanges. It may be delayed (responses can be cached for a few seconds, candles for up to a minute), incomplete, inaccurate or unavailable, and exchanges may change or withdraw it at any time.
 - The set of exchanges, markets and tools offered may change without notice.
 - The Service is provided free of charge, "as is" and "as available", without any warranty and without a service level. We may limit, suspend or stop it at any time. **[Legal review: warranty disclaimer and limitation of liability wording.]**
 

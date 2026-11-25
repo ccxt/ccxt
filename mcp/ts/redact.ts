@@ -15,6 +15,11 @@ export function registerSecret (value: string | undefined, label: string): void 
     secrets.set (value, label);
 }
 
+// whether a value is one of the configured credentials, exactly
+export function isRegisteredSecret (value: unknown): boolean {
+    return typeof value === 'string' && secrets.has (value);
+}
+
 export function clearSecrets (): void {
     secrets.clear ();
 }

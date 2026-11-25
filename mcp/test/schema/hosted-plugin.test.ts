@@ -106,7 +106,10 @@ test ('every manifest points at the same hosted URL, with one server', () => {
         // rejected by OpenAI's public submission
         assert.deepEqual (servers[SERVER_NAME], { 'type': type, 'url': HOSTED_URL }, file);
     }
-    assert.deepEqual (serverJson['remotes'], [ { 'type': 'streamable-http', 'url': HOSTED_URL } ]);
+    // added to server.json at launch only (every release publishes it to the MCP Registry)
+    if (serverJson['remotes'] !== undefined) {
+        assert.deepEqual (serverJson['remotes'], [ { 'type': 'streamable-http', 'url': HOSTED_URL } ]);
+    }
     // the Claude manifest must not declare a second copy of the server inline
     assert.equal (claudePlugin['mcpServers'], undefined);
 });

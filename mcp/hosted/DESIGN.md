@@ -67,7 +67,7 @@ Every caller shares the server's IP addresses at each exchange. One abusive clie
 - **Response cache with in-flight coalescing**, keyed by normalised arguments, with a TTL per method: about 2 s for tickers and trades, 1 s for order books, a fraction of the candle length for OHLCV, hours for markets and exchange descriptions. Most traffic is the same few tickers and charts.
 - **Bounded queue per exchange.** When it is full the tool fails fast with `RATE_LIMITED` and a retry-after hint rather than queueing for minutes.
 - **Circuit breaker per exchange** on DDoS-protection, rate-limit, 418 and 451 responses. Rate-limit errors are never retried automatically.
-- **Per-call deadline** of about 20 s, and upstream work is aborted when the client disconnects.
+- **Per-call deadline** of about 20 s. Queued upstream work is dropped when the client disconnects or the deadline passes; a request already sent to the exchange runs to completion and fills the cache.
 - **Per-client limits.** The key is `_meta["openai/subject"]` when ChatGPT sends it, otherwise the client IP from the trusted proxy header. Documented host egress ranges (Anthropic `160.79.104.0/21`; OpenAI's published connector ranges) get higher budgets, because all Claude users arrive from them. A global concurrency cap sits on top.
 - **Geo-blocking.** Some exchanges block some datacenter regions. Reachability of every allowlisted exchange is checked from the production machine before launch, and an exchange that cannot be reached is removed from the allowlist rather than left failing.
 

@@ -1,4 +1,4 @@
-import { CidrSet, normaliseIp, PROXY_PEERS } from './ip.js';
+import { CidrSet, normaliseIp, PROXY_PEERS, rateKeyForIp } from './ip.js';
 import type { TrustedProxy } from './config.js';
 
 // ---- client IP ----
@@ -115,7 +115,7 @@ export function requestCost (method: string | undefined): number {
 }
 
 export interface ClientIdentity {
-    key: string; // the rate-limit key: "openai-subject:<id>" or "ip:<address>"
+    key: string; // the rate-limit key: "openai-subject:<id>", "ip:<address>" (IPv4, host ranges) or "ip6:<prefix>::/64"
     budget: 'client' | 'host';
     host?: 'anthropic' | 'openai';
 }
@@ -138,5 +138,5 @@ export function identifyClient (ip: string, subject: unknown, ranges: { anthropi
     if (ranges.anthropic.has (ip)) {
         return { 'key': 'ip:' + ip, 'budget': 'host', 'host': 'anthropic' };
     }
-    return { 'key': 'ip:' + ip, 'budget': 'client' };
+    return { 'key': rateKeyForIp (ip), 'budget': 'client' };
 }

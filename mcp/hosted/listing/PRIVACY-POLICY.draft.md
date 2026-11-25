@@ -28,7 +28,7 @@ Your AI assistant, not you, connects to the Service. We receive what the assista
 - technical metadata: the assistant's self-declared client name and version (for example `claude-ai`), its HTTP User-Agent, the protocol version, and your network address (IP address) as seen by our server;
 - for ChatGPT, an anonymised user identifier that ChatGPT attaches for rate limiting (`openai/subject`).
 
-We do **not** receive your conversation with the assistant. We do not receive or accept exchange API keys, passwords or other credentials. If credential-like values are sent anyway, they are rejected and removed from what we record.
+We do **not** receive your conversation with the assistant. We do not receive or accept exchange API keys, passwords or other credentials. If credential-like values are sent anyway, they are rejected, and we remove what we can recognise as a credential (by field name and by the formats exchanges use) from what we record. That removal is best effort: a secret in an unusual format may not be recognised, so never paste keys into the chat.
 
 ## What we record, and why
 
@@ -37,12 +37,12 @@ We record two kinds of data about the use of the Service: **usage analytics** an
 | Data | Purpose |
 |---|---|
 | Which tool was called, its cleaned arguments (credential-like fields removed, values shortened), how long it took, and whether it failed (with the error code and a short error message) | Operating and improving the Service; finding errors |
-| A one-line reason for each tool call, written by the AI assistant (the `context` argument). It can paraphrase what you asked. It is shortened to 1,024 characters and dropped if it looks like a credential. **[Legal review: this is the field most likely to contain personal data. It can be switched off (`POSTHOG_CONTEXT=0`). Decide whether to keep it.]** | Understanding what people try to do with the Service |
+| A one-line reason for each tool call, written by the AI assistant (the `context` argument). It can paraphrase what you asked. It is shortened to 1,024 characters, anything in it that looks like a credential is removed, and it is not recorded at all for the account tools (balances, orders, positions, your trades). **[Legal review: this is the field most likely to contain personal data. It can be switched off (`POSTHOG_CONTEXT=0`). Decide whether to keep it.]** | Understanding what people try to do with the Service |
 | The assistant's client name and version, and its HTTP User-Agent (analytics events only; never in logs) | Compatibility with different assistants |
 | A `client_hash`: a 16-character code derived with a secret key from your IP address (or, for ChatGPT, its anonymised user identifier) and the current date. It changes every day. The IP address and the ChatGPT identifier themselves are not recorded. | Detecting abuse and counting distinct clients per day without identifying anyone |
 | One log line per request: status, duration, tool, exchange, error code, cache use, client name | Operating, securing and debugging the Service |
 
-We do not record: the market data we return to the assistant (only its size), IP addresses (they are used in memory for rate limiting and are not written to our analytics or logs **[legal review: confirm the web server in front of the Service, nginx on docs.ccxt.com, does not keep IP addresses in its own access logs, or describe how long it does]**), names, email addresses, credentials, or person profiles. We do not use the data for advertising and do not sell it.
+We do not record: the market data we return to the assistant (only its size), IP addresses (they are used in memory for rate limiting and are not written to our analytics or logs; the web server in front of the Service, nginx on docs.ccxt.com, logs requests to the Service in a format without IP addresses **[legal review: nginx's error log can still contain a client address for failed connections; state its retention]**), names, email addresses, credentials, or person profiles. We do not use the data for advertising and do not sell it.
 
 ## Who receives data
 

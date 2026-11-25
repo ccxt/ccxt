@@ -116,7 +116,7 @@ test ('prepareEvent: expected exceptions dropped, unexpected kept, success respo
     assert.equal (success.properties.cache, 'coalesced');
     assert.equal (success.properties.exchange, 'okx');
     const intent: any = prepareEvent ({ 'event': '$mcp_tool_call', 'distinct_id': 'd', 'properties': { '$mcp_intent': 'use my key sk-abcdefghijklmnopqrstu' } }, context ());
-    assert.equal (intent.properties.$mcp_intent, REDACTED);
+    assert.equal (intent.properties.$mcp_intent, 'use my key ' + REDACTED, 'only the secret-shaped part goes');
 });
 
 test ('log attributes: payload, header and address keys dropped, values bounded', () => {

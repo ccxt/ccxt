@@ -1,4 +1,5 @@
 import { accessClassOf, type AccessClass, type ToolProfile } from '../../ts/tools/access.js';
+import { z } from 'zod';
 import { toContent } from '../../ts/format.js';
 
 // The hosted tool surface: an explicit list, so a tool added to the local server never
@@ -93,10 +94,21 @@ export function accountRequiredResult (tool: string) {
     });
 }
 
+// what a strict public schema accepts as `context` when the PostHog SDK does not inject it
+const CONTEXT_ARGUMENT = 'optional: a few words on why this tool is being called';
+
 export class HostedToolProfile implements ToolProfile {
     'name' = 'hosted';
+    // With analytics on, @posthog/mcp injects a required `context` argument into every tool
+    // (and strips it before the handler). With analytics off nothing does, and the strict
+    // schemas rejected it — so a host holding a tools/list cached from an instance with
+    // analytics on failed every call on one without. When the SDK will not inject it, the
+    // profile accepts it as optional; when it will, the profile leaves it to the SDK, which
+    // only injects (and records) an argument the schema does not already have.
+    private acceptContext: () => boolean;
 
-    constructor () {
+    constructor (acceptContext: () => boolean = () => true) {
+        this.acceptContext = acceptContext;
         for (const [ tool, expected ] of Object.entries (HOSTED_TOOLS)) {
             const actual = accessClassOf (tool);
             if (actual !== expected) {
@@ -119,12 +131,22 @@ export class HostedToolProfile implements ToolProfile {
             }
         }
         let inputSchema = schema.omit (removed);
-        if (HOSTED_TOOLS[tool] === 'account' && 'account' in shape) {
-            inputSchema = inputSchema.extend ({ 'account': shape['account'].describe (ACCOUNT_ARGUMENT) });
+        if (HOSTED_TOOLS[tool] === 'account') {
+            // the stub ignores its arguments: any call, {} or {"exchange": ...} included, must
+            // reach ACCOUNT_REQUIRED and its hint, not a schema error about an "account name"
+            // a hosted user cannot have
+            if ('account' in shape) {
+                inputSchema = inputSchema.extend ({ 'account': shape['account'].describe (ACCOUNT_ARGUMENT) });
+            }
+            inputSchema = inputSchema.partial ().loose ();
+        } else {
+            if (this.acceptContext () && !('context' in shape)) {
+                inputSchema = inputSchema.extend ({ 'context': z.string ().max (1000).optional ().describe (CONTEXT_ARGUMENT) });
+            }
+            // unknown keys (a "params" a model remembers from the local server, a typo) are a
+            // validation error naming the key, not silently dropped
+            inputSchema = inputSchema.strict ();
         }
-        // unknown keys (a "params" a model remembers from the local server, a typo) are a
-        // validation error naming the key, not silently dropped
-        inputSchema = inputSchema.strict ();
         let description = editDescription (tool, String (config.description ?? ''));
         if (HOSTED_TOOLS[tool] === 'account') {
             description = ACCOUNT_PREFIX + description;
@@ -153,5 +175,5 @@ Conventions:
 - Symbols are unified ccxt symbols ("BTC/USDT" spot, "BTC/USDT:USDT" swap) — resolve them with search_markets (fields: ["symbol"] lists many compactly). marketType selects the market family on exchanges with several.
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp and datetime. Results are capped (meta.count, meta.hasMore) — page with since/offset.
 - show_* tools render an interactive view and return a compact summary. meta.ui says what happened: "displayed" — the user sees the view, so comment on it instead of repeating numbers; "attached" — a view was sent but the host did not say whether it renders views, so also state the key figures; "unsupported", "unknown" or "off" — nothing was shown, present the summary in text.
-- This server is shared by everyone who uses it: data is cached for a second or two, and an error with code RATE_LIMITED or EXCHANGE_UNAVAILABLE carries retryAfterSeconds — wait that long before retrying, do not loop.
+- This server is shared by everyone who uses it: data is briefly cached (order books 1 s, tickers and trades 2 s, candles up to 60 s), and an error with code RATE_LIMITED or EXCHANGE_UNAVAILABLE carries retryAfterSeconds — wait that long before retrying, do not loop.
 - get_balance, get_orders, get_positions and get_my_trades return ACCOUNT_REQUIRED here: relay its hint (install the local server; API keys stay on the user's machine). Never ask the user for API keys or secrets.`;

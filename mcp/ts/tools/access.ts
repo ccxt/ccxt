@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { toContent } from '../format.js';
 import { runInRequestScope } from '../request-scope.js';
+import { isRegisteredSecret } from '../redact.js';
 
 // What a tool does with respect to accounts and the outside world. Deployments choose
 // their tool surface by access class (the hosted server's profile filters on it), so the
@@ -95,12 +96,17 @@ export const FULL_PROFILE: ToolProfile = Object.freeze ({
 // are public identifiers that keyless venues (hyperliquid, prediction markets) need for
 // legitimate reads.
 const CREDENTIAL_KEYS = new Set ([
-    'apikey', 'apisecret', 'secret', 'secretkey', 'password', 'passphrase', 'privatekey',
-    'uid', 'twofa', 'accesstoken', 'refreshtoken', 'mnemonic', 'seedphrase',
+    'apikey', 'apisecret', 'secret', 'secretkey', 'passphrase', 'privatekey',
+    'twofa', 'accesstoken', 'refreshtoken', 'mnemonic', 'seedphrase',
 ]);
-// "token" is both a ccxt credential name and, on prediction venues (limitless, myriad,
-// predictfun), the collateral/outcome token CONTRACT ADDRESS — public data. Allow it only
-// when the value is an EVM address; anything else is treated as a credential.
+// ccxt credential field names that are also ordinary request and path parameters on real
+// endpoints (gemini v1/network/{token}, woo token_interest/{token}, krakenfutures
+// subaccount/{uid}/trading-enabled, "token" as a currency id in several request bodies).
+// The anonymous hosted server never takes credentials, so there they are refused outright.
+// On a local server they are forwarded as before, unless the value is one of the user's
+// own configured credentials. "token" with an EVM address value is public data (the
+// collateral/outcome token contract on prediction venues) everywhere.
+const AMBIGUOUS_KEYS = new Set ([ 'token', 'uid', 'password' ]);
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const MAX_SCAN_DEPTH = 32;
 
@@ -108,14 +114,15 @@ function normaliseKey (key: string): string {
     return key.toLowerCase ().replace (/[_-]/g, '');
 }
 
-// returns the path of the first credential-looking key, e.g. "params.apiKey", never the value
-export function findCredentialKey (value: any, path = '', depth = 0): string | undefined {
+// returns the path of the first credential-looking key, e.g. "params.apiKey", never the
+// value. strict (the hosted server) also refuses the ambiguous names whatever their value
+export function findCredentialKey (value: any, strict = true, path = '', depth = 0): string | undefined {
     if (value === null || typeof value !== 'object' || depth > MAX_SCAN_DEPTH) {
         return undefined;
     }
     if (Array.isArray (value)) {
         for (let i = 0; i < value.length; i++) {
-            const found = findCredentialKey (value[i], path + '[' + i + ']', depth + 1);
+            const found = findCredentialKey (value[i], strict, path + '[' + i + ']', depth + 1);
             if (found !== undefined) {
                 return found;
             }
@@ -128,10 +135,13 @@ export function findCredentialKey (value: any, path = '', depth = 0): string | u
         if (CREDENTIAL_KEYS.has (normalised)) {
             return keyPath;
         }
-        if (normalised === 'token' && !(typeof entry === 'string' && EVM_ADDRESS.test (entry))) {
-            return keyPath;
+        if (AMBIGUOUS_KEYS.has (normalised)) {
+            const address = normalised === 'token' && typeof entry === 'string' && EVM_ADDRESS.test (entry);
+            if (!address && (strict || isRegisteredSecret (entry))) {
+                return keyPath;
+            }
         }
-        const found = findCredentialKey (entry, keyPath, depth + 1);
+        const found = findCredentialKey (entry, strict, keyPath, depth + 1);
         if (found !== undefined) {
             return found;
         }
@@ -179,7 +189,7 @@ export function installRegistrationGuard (server: McpServer, ctx: ServerContext,
         }
         const inner = profile.replace?.(name, access) ?? handler;
         const guarded = async (args: any, request: any) => {
-            const keyPath = findCredentialKey (args);
+            const keyPath = findCredentialKey (args, ctx.hosted);
             if (keyPath !== undefined) {
                 return credentialRejection (keyPath, ctx.hosted);
             }

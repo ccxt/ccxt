@@ -74,6 +74,13 @@ const MAPPINGS: ErrorMapping[] = [
     },
 ];
 
+// The hosted profile registers neither search_events nor describe_method, so a hint that
+// points at them sends a hosted model to a tool that answers "not found"
+const HOSTED_HINTS: Readonly<Record<string, string>> = Object.freeze ({
+    'BAD_SYMBOL': 'symbol not found on this exchange — resolve symbols with search_markets',
+    'BAD_REQUEST': 'check the arguments against the tool schema (describe_exchange lists what this exchange supports)',
+});
+
 function errorClassNames (error: any): string[] {
     const names: string[] = [];
     let proto = Object.getPrototypeOf (error);
@@ -215,6 +222,9 @@ export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelo
         hint = 'could not reach ' + (context.exchange ?? 'the exchange') + ' — this looks like a LOCAL network/DNS failure (often DNS/threadpool exhaustion from too many concurrent cold market loads or watch_subscribe calls), NOT necessarily an exchange outage; reduce concurrency (a few at a time) and retry';
     }
     const hosted = context.hosted ?? currentRequestScope ()?.hosted ?? false;
+    if (hosted && HOSTED_HINTS[code] !== undefined) {
+        hint = HOSTED_HINTS[code];
+    }
     const message = sanitizeUpstreamError (error, { hosted });
     const errorBody: Record<string, any> = {
         code,

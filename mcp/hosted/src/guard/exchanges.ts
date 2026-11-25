@@ -59,6 +59,14 @@ const OHLCV_MAX_TTL_MS = 60000;
 const NETWORK_METHOD = /^(fetch|load|watch|create|cancel|edit|set|withdraw|transfer|close|un[A-Z]|request$|sign$)/;
 const GUARDED_METHODS = new Set ([ 'fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchOHLCV', 'fetchTrades', 'loadMarkets' ]);
 
+// ccxt's market () also resolves expired option symbols it has no market for; none of
+// those spellings can be a prototype member name
+const EXPIRED_OPTION = /(^[CP]-)|(-[CP]$)/;
+
+function hasOwn (object: any, key: string): boolean {
+    return object !== null && typeof object === 'object' && Object.prototype.hasOwnProperty.call (object, key);
+}
+
 export function ohlcvTtlMs (exchange: any, timeframe: string): number {
     let seconds = 0;
     try {
@@ -248,6 +256,13 @@ export class HostedExchanges {
                 timer = setTimeout (() => reject (new Error ('markets load timed out after ' + this.options.marketsLoadTimeoutMs + ' ms')), this.options.marketsLoadTimeoutMs);
                 (timer as any).unref?.();
             });
+            if (!reload) {
+                // ccxt caches its markets promise, a rejected or still-pending (timed-out) one
+                // included, and hands it to every later loadMarkets (): a cold retry after a
+                // failure would get the old rejection back without asking the exchange again
+                venue.base.marketsLoading = undefined;
+                venue.base.reloadingMarkets = false;
+            }
             try {
                 // a reload goes through the guard like any request (queue, breaker), but
                 // under a key no tool can produce, so it is never answered from the cache
@@ -304,12 +319,57 @@ export class HostedExchanges {
         const guard = this.options.guard;
         const prefix = venue.id + '|' + typeKey + '|';
         const call = (method: string, args: any[], ttlMs: number) => guard.call (venue.id, prefix + method + '|' + stableKey (args), ttlMs, () => instance[method] (...args));
+        // Checked here, before the guard: ccxt resolves symbols (market ()) and timeframes
+        // with plain property lookups, so "__proto__", "constructor" or "toString" pass as
+        // valid and go upstream as nonsense requests. Their 403/404 answers counted against
+        // the shared breaker, which let one anonymous caller pause a venue for everyone.
+        const symbolOk = (symbol: unknown) => {
+            if (typeof symbol !== 'string') {
+                return; // ccxt's own ArgumentsRequired path; nothing to look up
+            }
+            if (hasOwn (instance.markets, symbol) || hasOwn (instance.markets_by_id, symbol) || EXPIRED_OPTION.test (symbol)) {
+                return;
+            }
+            throw new ToolError ('BAD_SYMBOL', venue.id + ' does not have market symbol ' + JSON.stringify (symbol.slice (0, 64)), {
+                'retryable': false,
+                'hint': 'resolve symbols with search_markets',
+            });
+        };
+        const timeframeOk = (timeframe: unknown) => {
+            const timeframes = instance.timeframes;
+            if (timeframes !== undefined && timeframes !== null && !hasOwn (timeframes, String (timeframe))) {
+                throw new ToolError ('BAD_TIMEFRAME', String (timeframe).slice (0, 16) + ' is not a supported timeframe on ' + venue.id, {
+                    'retryable': false,
+                    'hint': 'supported: ' + Object.keys (timeframes).join (', '),
+                });
+            }
+        };
         const methods: Record<string, (...args: any[]) => Promise<any>> = {
-            'fetchTicker': (symbol: string, params = {}) => call ('fetchTicker', [ symbol, params ], TICKER_TTL_MS),
-            'fetchTickers': (symbols: string[] | undefined, params = {}) => call ('fetchTickers', [ (symbols === undefined) ? undefined : [ ...new Set (symbols) ].sort (), params ], TICKER_TTL_MS),
-            'fetchOrderBook': (symbol: string, limit?: number, params = {}) => call ('fetchOrderBook', [ symbol, limit, params ], ORDERBOOK_TTL_MS),
-            'fetchOHLCV': (symbol: string, timeframe = '1m', since?: number, limit?: number, params = {}) => call ('fetchOHLCV', [ symbol, timeframe, since, limit, params ], ohlcvTtlMs (instance, timeframe)),
-            'fetchTrades': (symbol: string, since?: number, limit?: number, params = {}) => call ('fetchTrades', [ symbol, since, limit, params ], TRADES_TTL_MS),
+            'fetchTicker': async (symbol: string, params = {}) => {
+                symbolOk (symbol);
+                return call ('fetchTicker', [ symbol, params ], TICKER_TTL_MS);
+            },
+            'fetchTickers': async (symbols: string[] | undefined, params = {}) => {
+                if (symbols !== undefined) {
+                    for (const symbol of symbols) {
+                        symbolOk (symbol);
+                    }
+                }
+                return call ('fetchTickers', [ (symbols === undefined) ? undefined : [ ...new Set (symbols) ].sort (), params ], TICKER_TTL_MS);
+            },
+            'fetchOrderBook': async (symbol: string, limit?: number, params = {}) => {
+                symbolOk (symbol);
+                return call ('fetchOrderBook', [ symbol, limit, params ], ORDERBOOK_TTL_MS);
+            },
+            'fetchOHLCV': async (symbol: string, timeframe = '1m', since?: number, limit?: number, params = {}) => {
+                symbolOk (symbol);
+                timeframeOk (timeframe);
+                return call ('fetchOHLCV', [ symbol, timeframe, since, limit, params ], ohlcvTtlMs (instance, timeframe));
+            },
+            'fetchTrades': async (symbol: string, since?: number, limit?: number, params = {}) => {
+                symbolOk (symbol);
+                return call ('fetchTrades', [ symbol, since, limit, params ], TRADES_TTL_MS);
+            },
             // markets are the server's business: a "reload" from a tool is answered from memory
             'loadMarkets': async () => instance.markets,
         };

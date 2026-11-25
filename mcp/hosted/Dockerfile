@@ -28,16 +28,22 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=8080
 WORKDIR /app
-# the bundle is the whole application: no node_modules, no npm at run time
+# the bundle is the whole application: no node_modules
 COPY --from=build --chown=root:root /src/mcp/hosted/dist/server.mjs /app/server.mjs
 # the exchange reachability check (README: operations), same ccxt build as the server
 COPY --from=build --chown=root:root /src/mcp/hosted/dist/check-exchanges.mjs /app/check-exchanges.mjs
+# the base image ships npm, npx, corepack and yarn; nothing here runs them, and an
+# internet-facing image carries no package managers
+RUN rm -rf /usr/local/lib/node_modules /opt/yarn* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 # the image's unprivileged "node" user (uid 1000); the app owns nothing it could modify
 USER node
 EXPOSE 8080
 STOPSIGNAL SIGTERM
-# liveness only (the process answers HTTP); readiness (/readyz, markets warm) is for the
-# deploy step and the reverse proxy, not a reason to restart the container
+# Liveness: the process answers HTTP and its Object.prototype is intact. Docker itself never
+# acts on an unhealthy status; the autoheal service in docker-compose.yml restarts the
+# container when this fails. Readiness (/readyz, markets warm) is for the deploy step and
+# monitoring, not a reason to restart
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/healthz').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 CMD ["node", "/app/server.mjs"]

@@ -25,6 +25,8 @@ export interface HostedConfig {
     maxBodyBytes: number;
     maxJsonDepth: number;
     maxSubscriptions: number;
+    maxListensPerClient: number;
+    requestReadTimeoutMs: number;
     upstream: {
         maxConcurrentPerExchange: number;
         maxQueuedPerExchange: number;
@@ -133,7 +135,15 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
         'maxConcurrentRequests': int (env, 'MAX_CONCURRENT_REQUESTS', 64, 1),
         'maxBodyBytes': int (env, 'MAX_BODY_BYTES', 262144, 1024),
         'maxJsonDepth': int (env, 'MAX_JSON_DEPTH', 32, 4),
-        'maxSubscriptions': int (env, 'MAX_SUBSCRIPTIONS', 1000, 1),
+        // every open listen stream holds a socket here and two at nginx (client + upstream),
+        // indefinitely; this server never publishes list changes, so a listen gives a client
+        // nothing and the caps stay well under nginx's worker_connections
+        'maxSubscriptions': int (env, 'MAX_SUBSCRIPTIONS', 200, 1),
+        'maxListensPerClient': int (env, 'MAX_LISTENS_PER_CLIENT', 4, 1),
+        // time to receive a whole request (headers + body) and the headers alone: a client
+        // trickling its body cannot hold a connection (the per-client limit runs only once
+        // the body is parsed)
+        'requestReadTimeoutMs': int (env, 'REQUEST_READ_TIMEOUT_MS', 15000, 1000),
         'upstream': {
             'maxConcurrentPerExchange': int (env, 'UPSTREAM_CONCURRENCY_PER_EXCHANGE', 4, 1),
             'maxQueuedPerExchange': int (env, 'UPSTREAM_QUEUE_PER_EXCHANGE', 16, 0),

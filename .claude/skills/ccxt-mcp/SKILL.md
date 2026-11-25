@@ -14,6 +14,8 @@ Key property: **your API keys stay on your machine and the model never sees them
 
 ## Hosted server (no install, public data only)
 
+Status: not deployed yet. Until `https://docs.ccxt.com/mcp` answers (it returns 404 today), recommend the local server below (`npx -y ccxt-mcp`) and do not present the hosted endpoint as working.
+
 CCXT also runs a public, read-only MCP endpoint at `https://docs.ccxt.com/mcp` (Streamable HTTP, no sign-in, no API keys). Use it when the user only needs market data and does not want to install anything; use the local server below for balances, orders, positions or trading.
 
 - **Claude (web/desktop):** Customize > Connectors > Add > Add custom connector, URL `https://docs.ccxt.com/mcp`, **No sign-in**; or the prefilled link `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp`. It then also works in the Claude mobile apps.
@@ -21,7 +23,7 @@ CCXT also runs a public, read-only MCP endpoint at `https://docs.ccxt.com/mcp` (
 - **ChatGPT (web):** chatgpt.com/plugins > plus button > **Add custom MCP server** > the URL, **No authentication** > **Create as a plugin**. **ChatGPT desktop / Codex:** Settings > MCP servers > Add server > **Streamable HTTP**, or `[mcp_servers.ccxt]` `url = "https://docs.ccxt.com/mcp"` in `~/.codex/config.toml`.
 - **Cursor / VS Code:** `{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }` / `{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }`.
 
-What it offers: `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges (`list_exchanges` names them). `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED`: relay it and point the user to the local server. No trading, no `watch_*` streams, no prediction markets, no `params`, no `call_read_method`. It is shared and rate-limited: on `RATE_LIMITED` / `EXCHANGE_UNAVAILABLE` wait `retryAfterSeconds`, don't loop. Data may be cached for 1–2 s. Phase 1: signing in with exchange accounts is planned, not available. Details: https://docs.ccxt.com/docs/mcp#hosted-server-no-install
+What it offers: `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges (`list_exchanges` names them). `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED`: relay it and point the user to the local server. No trading, no `watch_*` streams, no prediction markets, no `params`, no `call_read_method`. It is shared and rate-limited: on `RATE_LIMITED` / `EXCHANGE_UNAVAILABLE` wait `retryAfterSeconds`, don't loop. Data is briefly cached: order books 1 s, tickers and trades 2 s, candles a tenth of the candle length (2–60 s). Phase 1: signing in with exchange accounts is planned, not available. Details: https://docs.ccxt.com/docs/mcp#hosted-server-no-install
 
 ## Install (local server)
 

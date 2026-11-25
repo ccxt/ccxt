@@ -40,6 +40,8 @@ Recommended exchange‑side backstops (they hold even if your machine is comprom
 
 The hosted server is a public, read‑only MCP endpoint run by CCXT:
 
+> **Status: not deployed yet.** Until `https://docs.ccxt.com/mcp` answers, the steps below fail with HTTP 404; use the [local server](#local-server) (`npx -y ccxt-mcp`). This note is removed at launch.
+
 ```
 https://docs.ccxt.com/mcp
 ```

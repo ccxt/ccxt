@@ -29,20 +29,46 @@ export function isSecretKey (key: string): boolean {
     return SECRET_KEY_PARTS.some ((part) => normalized.includes (part));
 }
 
-// Values that are secrets whatever key holds them: PostHog and OpenAI-style keys, PEM
-// blocks, bearer headers, JWTs and 32-byte hex strings (an EVM private key; a 20-byte
-// wallet address is public and stays)
-const SECRET_VALUE_PATTERNS: readonly RegExp[] = [
-    /\bph[cxs]_[A-Za-z0-9]{16,}/,
-    /\bsk-[A-Za-z0-9_-]{8,}/,
-    /-----BEGIN [A-Z ]*(PRIVATE KEY|CERTIFICATE)-----/,
-    /\bbearer\s+[A-Za-z0-9._~+\/-]{8,}/i,
-    /\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}/,
-    /\b(0x)?[0-9a-fA-F]{64}\b/,
+// Values that are secrets whatever key holds them. Best effort, by shape, so a key the
+// user pastes into the chat (and the model copies into an argument or into `context`) is
+// caught in the formats exchanges actually issue:
+// - PostHog and OpenAI-style keys, PEM headers, bearer values, JWTs (with signature);
+// - a credential word followed by a value ("my api key is X", "password: X", "apiKey=X");
+// - 32+ character tokens mixing upper case, lower case and digits, base64 or url-safe
+//   (Binance keys, Kraken/Bitstamp/Coinbase secrets) — a checksummed EVM wallet address
+//   (0x + 40 hex) is public and stays;
+// - 32+ hex characters (OKX secrets, HMAC keys, a 32-byte EVM private key);
+// - UUIDs (OKX and KuCoin API keys).
+// Every pattern stays within one token or the words right before it, so redaction can
+// replace just the match inside free text.
+const TOKEN_CHAR = 'A-Za-z0-9+\\/=_-';
+const SECRET_VALUE_SOURCES: readonly (readonly [ string, string ])[] = [
+    [ '\\bph[cxs]_[A-Za-z0-9]{16,}', '' ],
+    [ '\\bsk-[A-Za-z0-9_-]{8,}', '' ],
+    [ '-----BEGIN [A-Z ]*(?:PRIVATE KEY|CERTIFICATE)-----', '' ],
+    [ '\\bbearer\\s+[A-Za-z0-9._~+\\/-]{8,}=*', 'i' ],
+    [ '\\beyJ[A-Za-z0-9_-]{8,}\\.eyJ[A-Za-z0-9_-]{8,}(?:\\.[A-Za-z0-9_-]+)?', '' ],
+    [ '\\b(?:api[\\s_-]?(?:key|secret)|secret(?:[\\s_-]?key)?|passw(?:or)?d|pass[\\s_-]?phrase|private[\\s_-]?key|mnemonic|seed[\\s_-]?phrase)\\b[\\s:=]{0,3}(?:is[\\s:]{1,3})?["\']?[^\\s"\'<>,;]{6,}', 'i' ],
+    [ '(?<![' + TOKEN_CHAR + '])(?!0x[0-9a-fA-F]{40}(?![' + TOKEN_CHAR + ']))(?=[' + TOKEN_CHAR + ']*[A-Z])(?=[' + TOKEN_CHAR + ']*[a-z])(?=[' + TOKEN_CHAR + ']*[0-9])[' + TOKEN_CHAR + ']{32,}', '' ],
+    [ '(?<![A-Za-z0-9])(?:0x)?[0-9a-fA-F]{32,}(?![A-Za-z0-9])(?<!0x[0-9a-fA-F]{40})', '' ],
+    [ '\\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\b', '' ],
 ];
+const SECRET_VALUE_PATTERNS: readonly RegExp[] = SECRET_VALUE_SOURCES.map (([ source, flags ]) => new RegExp (source, flags));
+const SECRET_VALUE_PATTERNS_GLOBAL: readonly RegExp[] = SECRET_VALUE_SOURCES.map (([ source, flags ]) => new RegExp (source, flags + 'g'));
 
 export function looksLikeSecret (text: string): boolean {
     return SECRET_VALUE_PATTERNS.some ((pattern) => pattern.test (text));
+}
+
+// replaces only the secret-shaped parts of free text (error messages echo the caller's
+// arguments, `context` is the model's own words), so the rest stays readable
+export function redactSecretsInText (text: string): string {
+    let out = String (text);
+    for (const pattern of SECRET_VALUE_PATTERNS_GLOBAL) {
+        pattern.lastIndex = 0;
+        out = out.replace (pattern, REDACTED);
+    }
+    return out;
 }
 
 export interface ScrubLimits {
@@ -60,7 +86,7 @@ export function truncateString (text: string, max: number): string {
 
 function scrubAt (value: unknown, limits: ScrubLimits, depth: number, seen: WeakSet<object>): unknown {
     if (typeof value === 'string') {
-        return looksLikeSecret (value) ? REDACTED : truncateString (value, limits.maxString);
+        return truncateString (redactSecretsInText (value), limits.maxString);
     }
     if (value === null || typeof value === 'number' || typeof value === 'boolean') {
         return value;

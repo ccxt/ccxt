@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createSharedState, buildServer } from '../../ts/factory.js';
 import { TOOL_ACCESS, accessClassOf, findCredentialKey, type ToolProfile } from '../../ts/tools/access.js';
+import { registerSecret, clearSecrets } from '../../ts/redact.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 
 const FULL_ACCOUNT = { 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } };
@@ -121,4 +122,24 @@ test ('findCredentialKey: secrets are found at any depth, addresses are not', ()
     // public identifiers stay usable
     assert.equal (findCredentialKey ({ 'params': { 'walletAddress': '0xabc', 'user': '0xabc', 'address': 'x', 'token_id': '123', 'until': 1 } }), undefined);
     assert.equal (findCredentialKey ({ 'symbol': 'BTC/USDT', 'limit': 5 }), undefined);
+});
+
+test ('findCredentialKey: token, uid and password are ordinary parameters on a local server, refused on the hosted one', () => {
+    // real endpoints: gemini v1/network/{token}, woo token_interest/{token}, krakenfutures subaccount/{uid}/...
+    for (const params of [ { 'token': 'btc' }, { 'uid': '123' }, { 'password': 'x' }, { 'Token': 'USDT' } ]) {
+        assert.equal (findCredentialKey ({ params }, false), undefined, JSON.stringify (params));
+        assert.equal (findCredentialKey ({ params }, true), 'params.' + Object.keys (params)[0], JSON.stringify (params));
+    }
+    // the unambiguous secret names are refused everywhere
+    for (const strict of [ true, false ]) {
+        assert.equal (findCredentialKey ({ 'params': { 'apiKey': 'x' } }, strict), 'params.apiKey');
+        assert.equal (findCredentialKey ({ 'params': { 'secret': 'x' } }, strict), 'params.secret');
+    }
+    // locally, an ambiguous key still is refused when its value is one of the configured credentials
+    registerSecret ('configured-password-123', 'test');
+    try {
+        assert.equal (findCredentialKey ({ 'params': { 'password': 'configured-password-123' } }, false), 'params.password');
+    } finally {
+        clearSecrets ();
+    }
 });

@@ -21,6 +21,11 @@ const TRIPPING_CLASSES = [ 'DDoSProtection', 'RateLimitExceeded', 'ExchangeNotAv
 // transient, so a single one opens the breaker
 const STATUS = /(?:^|\s)(418|429|451)(?:\s|$)/;
 const IMMEDIATE = new Set ([ '418', '451' ]);
+// A 404 is about the request (a path or market the exchange does not have), not about our
+// addresses; ccxt still raises some as ExchangeNotAvailable (bitstamp). Counting them let
+// caller-shaped requests open the shared breaker. Throttling classes still count.
+const NOT_FOUND = /(?:^|\s)404(?:\s|$)/;
+const THROTTLING_CLASSES = [ 'DDoSProtection', 'RateLimitExceeded' ];
 
 function classNames (error: any): string[] {
     const names: string[] = [];
@@ -42,7 +47,11 @@ export function trippingKind (error: any): 'immediate' | 'counted' | undefined {
     if (status !== null && IMMEDIATE.has (status[1])) {
         return 'immediate';
     }
-    if (status !== null || classNames (error).some ((name) => TRIPPING_CLASSES.includes (name))) {
+    const names = classNames (error);
+    if (status === null && NOT_FOUND.test (String (error?.message ?? '')) && !names.some ((name) => THROTTLING_CLASSES.includes (name))) {
+        return undefined;
+    }
+    if (status !== null || names.some ((name) => TRIPPING_CLASSES.includes (name))) {
         return 'counted';
     }
     return undefined;
@@ -84,16 +93,18 @@ export class CircuitBreaker {
         return Math.max (1, Math.ceil ((this.openedUntil - this.now ()) / 1000));
     }
 
-    // asks for permission to call upstream. In half-open state exactly one probe is let
-    // through; everyone else is refused until it answers
-    tryAcquire (): boolean {
+    // asks for permission to call upstream: 'call' when closed, 'probe' for the single
+    // half-open probe, false when refused. The answer comes from one state read: deciding
+    // "is this the probe?" from a second read let a call at the end of the cooldown take the
+    // probe slot as a non-probe, which was then refused and never gave the slot back
+    tryAcquire (): 'call' | 'probe' | false {
         const state = this.state ();
         if (state === 'closed') {
-            return true;
+            return 'call';
         }
         if (state === 'half-open' && !this.probing) {
             this.probing = true;
-            return true;
+            return 'probe';
         }
         return false;
     }

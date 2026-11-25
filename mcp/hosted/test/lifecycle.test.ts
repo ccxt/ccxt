@@ -117,3 +117,24 @@ test ('lifecycle: the background refresh reloads markets on schedule and keeps s
         await harness.close ();
     }
 });
+
+test ('lifecycle: an exchange whose first markets load failed is really refetched by the retry, and becomes warm', async () => {
+    const venue = createVenue ([ 'alpha', 'beta' ]);
+    venue.control.failLoad.add ('beta');
+    const harness = await startHarness ({ 'READY_GRACE_MS': '0' }, { venue, 'warm': false });
+    try {
+        const exchanges: any = harness.server.runtime.exchanges;
+        await waitFor (() => exchanges.status ().beta.state === 'failed', 2000);
+        const loadsBefore = venue.control.loads.filter ((load) => load.exchange === 'beta').length;
+        venue.control.failLoad.delete ('beta');
+        // what the 60 s retry timer runs (a cold load, reload=false)
+        await exchanges.load (exchanges.venues.get ('beta'), false);
+        assert.equal (venue.control.loads.filter ((load) => load.exchange === 'beta').length, loadsBefore + 1, 'the exchange was asked again');
+        assert.equal (exchanges.status ().beta.state, 'warm');
+        const ready: any = await (await fetch (harness.origin + '/readyz')).json ();
+        assert.equal (ready.exchanges.beta.state, 'warm');
+        assert.equal ((await callTool (harness.url, 'get_tickers', { 'exchange': 'beta', 'symbols': [ 'BTC/USDT' ] })).envelope.ok, true);
+    } finally {
+        await harness.close ();
+    }
+});

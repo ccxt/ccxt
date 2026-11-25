@@ -48,7 +48,7 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 | `auth_state` | `anonymous` |
 | `deployment` | `DEPLOYMENT_ENV` (e.g. `production`) |
 | `sample_rate` | The success sampling rate in force, so counts can be scaled back up. |
-| `$mcp_server_name`, `$mcp_server_version`, `$mcp_server_build` | This server. The build is `SERVER_BUILD` / `GIT_SHA` when set. |
+| `$mcp_server_name`, `$mcp_server_version`, `$mcp_server_build` | This server. The version carries the build id (`BUILD_ID`, the git commit, in the compose deployment). The build is `SERVER_BUILD` / `GIT_SHA` when set; the compose file passes `SERVER_BUILD` from `BUILD_ID`. |
 | `$mcp_protocol_version` | The protocol revision the request used. |
 | `$mcp_client_name`, `$mcp_client_version` | The client's self-declared name, e.g. `claude-ai`. Present on 2026-07-28 requests and on `initialize`. 2025-era stateless tool calls do not carry it. |
 | `$mcp_client_user_agent` | The client's HTTP `User-Agent`. |
@@ -62,11 +62,12 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 | `$mcp_tool_name`, `$mcp_resource_name`, `$mcp_tool_description` | The tool called. |
 | `$mcp_input_keys` | Argument *names*. The SDK records names the tool's schema declares; any other name becomes `[redacted]`. |
 | `exchange` | The `exchange` argument, only when it is a ccxt id: lower case, at most 32 characters. |
+| `$mcp_parameters` of an account tool | `get_balance`, `get_orders`, `get_positions`, `get_my_trades`: argument **names** only (each value is `[redacted]`, except a ccxt-shaped `exchange`). These stubs never use their arguments, and they are where a user who has just pasted a key ends up. |
 | `cache` | `hit`, `miss` or `coalesced`, when the response cache answered. |
 | `response_bytes` | The size of the tool result. The result itself is not sent on success. |
 | `$mcp_is_error`, and on failure `$mcp_error_type`, `$mcp_error_message`, `error_code` | `error_code` is the code of the tool's error envelope (`BAD_SYMBOL`, `RATE_LIMITED`, `ACCOUNT_REQUIRED`, ...), or `VALIDATION` when the SDK rejected the arguments. |
 | `$mcp_response` | **Errors only:** a preview of the error result, at most 1 KB. |
-| `$mcp_intent`, `$mcp_intent_source` | The model's one-line reason for the call. See "Options". This is free text written by the model and may paraphrase what the user asked. It is capped at 1,024 characters, and replaced by `[redacted]` if it contains anything shaped like a credential. |
+| `$mcp_intent`, `$mcp_intent_source` | The model's one-line reason for the call. See "Options". This is free text written by the model and may paraphrase what the user asked. It is capped at 1,024 characters, and every part shaped like a credential (rule 3 below) is replaced by `[redacted]`. It is **not recorded at all** for the account tools. |
 
 `$mcp_tools_list` also carries `$mcp_listed_tool_names`.
 
@@ -78,7 +79,14 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 2. **Credential-like key names are redacted anywhere, at any depth, inside arrays too.** Matching is case- and separator-insensitive. The names covered:
    - every ccxt `requiredCredentials` name: `apiKey`, `secret`, `uid`, `login`, `password`, `twofa`, `privateKey`, `walletAddress`, `token`;
    - `passphrase`, `accessToken`, `authorization`, `cookie`, `signature`, `mnemonic`, `otp`, `key` and similar.
-3. **Secret-shaped values are redacted whatever their key:** PostHog and `sk-` keys, PEM blocks, `Bearer` values, JWTs and 32-byte hex strings (EVM private keys).
+3. **Secret-shaped values are redacted whatever their key**, as a best effort by shape (no pattern can recognise every secret):
+   - PostHog and `sk-` keys, PEM headers, `Bearer` values, JWTs;
+   - a credential word followed by a value (`my api key is ...`, `password: ...`, `apiKey=...`);
+   - tokens of 32 or more characters mixing upper case, lower case and digits, base64 or url-safe (Binance keys, Kraken, Bitstamp and Coinbase secrets); a checksummed EVM wallet address is public and stays;
+   - 32 or more hex characters (OKX secrets, HMAC keys, EVM private keys);
+   - UUIDs (OKX and KuCoin API keys).
+
+   Only the matching part of a string is replaced. The same rule applies to `$mcp_intent`, `$mcp_error_message` (a tool error echoes its arguments, e.g. the symbol in `BAD_SYMBOL`), the error `$mcp_response` preview, every `$exception_list` value, and log values.
 4. **Sizes are capped:**
    - strings at 256 characters;
    - arrays at 20 items;
@@ -134,11 +142,11 @@ Each log record is one JSON line on standard output. When a token is set, the sa
 | `request_id`, `client_hash`, `auth_state` | On every record written inside a request. |
 | `posthogDistinctId`, `sessionId` | The same values as that request's events, so PostHog links a log line to its events. |
 | One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name` |
-| Other lines | Server life-cycle events (listening, draining, circuit breaker), and errors with a message of at most 300 characters. |
+| Other lines | Server life-cycle events (listening, draining, circuit breaker), and errors as `name: message` of at most 300 characters (never a stack). |
 
 ### What is never logged
 
-- Tool arguments and tool results.
+- Tool arguments and tool results. The request line's `mcp_method`, `tool_name` and `exchange` keep only known values: a method name of MCP's shape, a hosted tool name (anything else is `unknown`), and an allowlisted exchange id.
 - HTTP headers, including `User-Agent`.
 - IP addresses.
 - Tokens.
@@ -149,13 +157,13 @@ Attribute names that would carry these are dropped by the logger whatever a call
 - `headers`, `ip`, `x-forwarded-for`, `clientKey`, `subject`;
 - every credential-like key.
 
-Other values are capped at 1,024 characters, and secret-shaped values are redacted. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`; default `info`) filters standard output and PostHog alike.
+Other values are capped at 1,024 characters, their secret-shaped parts are redacted (rule 3) and absolute paths are reduced to file names. `LOG_LEVEL` (`debug`, `info`, `warn`, `error`; default `info`) filters standard output and PostHog alike.
 
 ## What is never collected
 
-- Exchange API keys or any other credential. The hosted server accepts none, and any that are sent anyway are redacted as described above.
+- Exchange API keys or any other credential, as far as they can be recognised. The hosted server accepts none. Any that are sent anyway are redacted by name and by shape as described above; that is a best effort, and a secret in a format none of the rules recognises can still be recorded.
 - Successful tool results: no market data or other content.
-- IP addresses. GeoIP is disabled, and only the `client_hash` derived from the IP is sent.
+- IP addresses. GeoIP is disabled, and only the `client_hash` derived from the IP is sent. (The nginx snippet in `deploy/` logs MCP requests in its own format without client addresses; see the deploy README.)
 - Person profiles, and email addresses or names.
 - Anything from the local stdio server.
 
