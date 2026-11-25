@@ -17548,17 +17548,33 @@ function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Ve
 
 
 // split `text` (masked twin `masked`) at top-level occurrences of `sep`
-function goAddSplitTop (text: string, masked: string, sep: string): string[] | null {
-    const parts: string[] = [];
+// shared bracket-depth splitter: separator offsets at depth 0 from `from`; `stop` ends at the first unmatched
+// closer (end = its index), otherwise depth may go negative (`neg`) and end = masked.length
+function goTopCuts (masked: string, from: number, sep: string, stop: boolean): { cuts: number[], end: number, depth: number, neg: boolean } {
+    const cuts: number[] = [];
     let depth = 0;
-    let last = 0;
-    for (let i = 0; i < masked.length; i++) {
+    let neg = false;
+    for (let i = from; i < masked.length; i++) {
         const c = masked[i];
-        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) { return null; } } else if (c === sep && depth === 0) { parts.push (text.slice (last, i)); last = i + 1; }
+        if ((c === '(') || (c === '[') || (c === '{')) {
+            depth++;
+        } else if ((c === ')') || (c === ']') || (c === '}')) {
+            if (stop && (depth === 0)) { return { cuts, 'end': i, depth, neg }; }
+            if (--depth < 0) { neg = true; }
+        } else if ((c === sep) && (depth === 0)) {
+            cuts.push (i);
+        }
     }
-    if (depth !== 0) { return null; }
-    parts.push (text.slice (last));
-    return parts;
+    return { cuts, 'end': masked.length, depth, neg };
+}
+
+function goTopPieces (text: string, from: number, cuts: number[], end: number): string[] {
+    return [ ...cuts, end ].map ((c, k) => text.slice (k === 0 ? from : cuts[k - 1] + 1, c));
+}
+
+function goAddSplitTop (text: string, masked: string, sep: string): string[] | null {
+    const r = goTopCuts (masked, 0, sep, false);
+    return (r.neg || (r.depth !== 0)) ? null : goTopPieces (text, 0, r.cuts, masked.length);
 }
 
 type GoFileAddIndex = {
@@ -17595,24 +17611,7 @@ function goBuildFileAddIndex (fileMasked: string): GoFileAddIndex {
 }
 
 function goAddStringLocals (fn: string, masked: string, fileIndex: GoFileAddIndex): Set<string> {
-    const out = new Set<string> ();
-    const braceAt = masked.indexOf ('{');
-    const signature = masked.slice (0, braceAt < 0 ? masked.length : braceAt);
-    const body = masked.slice (braceAt < 0 ? 0 : braceAt);
-    const candidates = new Set<string> ();
-    let m: RegExpExecArray | null;
-    const varRe = /\bvar (\w+) string\b/g;
-    while ((m = varRe.exec (masked)) !== null) { candidates.add (m[1]); }
-    const paramRe = /[(,]\s*(\w+) string(?=[,)])/g;
-    while ((m = paramRe.exec (signature)) !== null) { candidates.add (m[1]); }
-    for (const name of candidates) {
-        if (fileIndex.globals.has (name)) { continue; }
-        const decls = masked.match (new RegExp ('\\bvar ' + name + '\\b(?! string\\b)', 'g'));
-        const shorts = new RegExp ('\\b' + name + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(,\\s*\\w+\\s*)*:=').test (masked);
-        const lits = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + '\\b').test (body);
-        const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!string[,)])').test (signature);
-        if (!decls && !shorts && !lits && !otherParam) { out.add (name); }
-    }
+    const out = goOnceTypedLocals (masked, fileIndex, 'string', false);
     goStringPointerLocals (masked, fileIndex).forEach ((n: string) => { out.add ('*' + n); if (goNonNilStringPtr (fn, n) || goAddNonNilProducerPtr (fn, n, fileIndex)) { out.add ('!' + n); } });
     goRowStringLocals (fn, masked, fileIndex).forEach ((n: string) => { out.add (n); });
     goAddIntLocals (masked, fileIndex).forEach ((n: string) => { out.add ('#i:' + n); });
@@ -17869,25 +17868,8 @@ function GO_STRING_LITERAL_RX () { return /^(?:"(?:[^"\\\n]|\\.)*"|`[^`]*`)$/; }
 function GO_SMALL_INT_LITERAL_RX () { return /^(?:0|[1-9]\d{0,8})$/; }
 
 function goSplitCallArgs (content: string, masked: string, open: number): { args: string[], end: number } | undefined {
-    let depth = 0;
-    let start = open + 1;
-    const args: string[] = [];
-    for (let i = open + 1; i < masked.length; i++) {
-        const c = masked[i];
-        if ((c === '(') || (c === '[') || (c === '{')) {
-            depth++;
-        } else if ((c === ')') || (c === ']') || (c === '}')) {
-            if (depth === 0) {
-                args.push (content.substring (start, i).trim ());
-                return { args, end: i };
-            }
-            depth--;
-        } else if ((c === ',') && (depth === 0)) {
-            args.push (content.substring (start, i).trim ());
-            start = i + 1;
-        }
-    }
-    return undefined;
+    const r = goTopCuts (masked, open + 1, ',', true);
+    return (r.end === masked.length) ? undefined : { 'args': goTopPieces (content, open + 1, r.cuts, r.end).map ((a) => a.trim ()), 'end': r.end };
 }
 
 // the Go type of `name` when the function declares it exactly once as `var name T` (no param,
@@ -20411,22 +20393,12 @@ function goTupleSlotEncloses (ctx: any, j: number, k: number): boolean {
 
 // top-level comma split of a masked list body; raw pieces share the masked offsets
 function goTupleSplitTop (masked: string, raw: string): string[][] {
-    const out: string[][] = [];
-    let depth = 0;
-    let start = 0;
-    for (let i = 0; i <= masked.length; i++) {
-        const c = masked[i];
-        if ((i === masked.length) || ((c === ',') && (depth === 0))) {
-            out.push ([ masked.substring (start, i).trim (), raw.substring (start, i).trim () ]);
-            start = i + 1;
-            continue;
-        }
-        depth += '({['.includes (c) ? 1 : (')}]'.includes (c) ? -1 : 0);
-        if (depth < 0) {
-            return undefined;
-        }
+    const r = goTopCuts (masked, 0, ',', false);
+    if (r.neg || (r.depth !== 0)) {
+        return undefined;
     }
-    return (depth === 0) ? out : undefined;
+    const rawParts = goTopPieces (raw, 0, r.cuts, masked.length);
+    return goTopPieces (masked, 0, r.cuts, masked.length).map ((m, k) => [ m.trim (), rawParts[k].trim () ]);
 }
 
 // the nearest line above k (inside fn) matching rx, when its block encloses k and name is unwritten in between
@@ -20892,24 +20864,31 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
 // Add leaves proven non-nil Go strings: `*x` on a once-declared `*string` local/param, `*this.Safe<String>(..)`,
 // strings.*/strconv.* string returns, NumberToString, base/same-file methods printed `string`.
 function goStringPointerLocals (masked: string, fileIndex: GoFileAddIndex): Set<string> {
+    return goOnceTypedLocals (masked, fileIndex, '\\*string', true);
+}
+
+// locals/params of Go type `ty` (regex source) declared once: no other-typed var/param, `:=`, or closure param.
+// ptr mode counts the typed decl itself (exactly one var-or-param), string mode forbids any other-typed var.
+function goOnceTypedLocals (masked: string, fileIndex: GoFileAddIndex, ty: string, ptr: boolean): Set<string> {
     const out = new Set<string> ();
     const braceAt = masked.indexOf ('{');
     const signature = masked.slice (0, braceAt < 0 ? masked.length : braceAt);
     const body = masked.slice (braceAt < 0 ? 0 : braceAt);
     const candidates = new Set<string> ();
     let m: RegExpExecArray | null;
-    const varRe = /\bvar (\w+) \*string\b/g;
+    const varRe = new RegExp ('\\bvar (\\w+) ' + ty + '\\b', 'g');
     while ((m = varRe.exec (masked)) !== null) { candidates.add (m[1]); }
-    const paramRe = /[(,]\s*(\w+) \*string(?=[,)])/g;
+    const paramRe = new RegExp ('[(,]\\s*(\\w+) ' + ty + '(?=[,)])', 'g');
     while ((m = paramRe.exec (signature)) !== null) { candidates.add (m[1]); }
     for (const name of candidates) {
         if (fileIndex.globals.has (name)) { continue; }
-        const decls = (masked.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length;
-        const inSig = new RegExp ('[(,]\\s*' + name + ' \\*string(?=[,)])').test (signature) ? 1 : 0;
-        const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!\\*string[,)])').test (signature);
         const shorts = new RegExp ('\\b' + name + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(,\\s*\\w+\\s*)*:=').test (masked);
         const lits = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + '\\b').test (body);
-        if (decls + inSig === 1 && !otherParam && !shorts && !lits) { out.add (name); }
+        const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!' + ty + '[,)])').test (signature);
+        const once = ptr
+            ? ((masked.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length + (new RegExp ('[(,]\\s*' + name + ' ' + ty + '(?=[,)])').test (signature) ? 1 : 0) === 1)
+            : !masked.match (new RegExp ('\\bvar ' + name + '\\b(?! ' + ty + '\\b)', 'g'));
+        if (once && !otherParam && !shorts && !lits) { out.add (name); }
     }
     return out;
 }
@@ -21682,18 +21661,7 @@ function goPairRebindsBlanked (maskedFunc: string, name: string): string {
 }
 
 function goSplitTopLevelCommas (text: string): string[] {
-    const parts: string[] = [];
-    let depth = 0;
-    let from = 0;
-    for (let i = 0; i < text.length; i++) {
-        depth += ('([{'.indexOf (text[i]) >= 0) ? 1 : ((')]}'.indexOf (text[i]) >= 0) ? -1 : 0);
-        if ((depth === 0) && (text[i] === ',')) {
-            parts.push (text.substring (from, i));
-            from = i + 1;
-        }
-    }
-    parts.push (text.substring (from));
-    return parts;
+    return goTopPieces (text, 0, goTopCuts (text, 0, ',', false).cuts, text.length);
 }
 
 function goTupleSlotNeverNilCheck (ok: SelfTestOk): void {
