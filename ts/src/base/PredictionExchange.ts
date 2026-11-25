@@ -631,7 +631,7 @@ export default class PredictionExchange extends BaseExchange {
         if (this.outcomes_by_id === undefined) {
             this.outcomes_by_id = {};
         }
-        const outcomesList = this.safeList (market, 'outcomes', []);
+        const outcomesList: Dict[] = this.safeList (market, 'outcomes', []);
         for (let j = 0; j < outcomesList.length; j++) {
             const oc = this.safeDict (outcomesList, j);
             if (oc === undefined) {
