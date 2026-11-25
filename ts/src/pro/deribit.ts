@@ -291,7 +291,7 @@ export default class deribit extends deribitRest {
     override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const interval = this.safeString (params, 'interval', '100ms');
         const paramsOmitted: Dict = this.omit (params, 'interval');
-        return await this.unWatchMultipleWrapper ('ticker', 'ticker', interval, symbols, paramsOmitted);
+        return await this.unsubscribeMultipleWrapper ('ticker', 'ticker', interval, symbols, paramsOmitted);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -385,7 +385,7 @@ export default class deribit extends deribitRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        return await this.unWatchMultipleWrapper ('bidsasks', 'quote', undefined, symbols, params);
+        return await this.unsubscribeMultipleWrapper ('bidsasks', 'quote', undefined, symbols, params);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -546,7 +546,7 @@ export default class deribit extends deribitRest {
      */
     override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
-        return await this.unWatchMultipleWrapper ('trades', 'trades', interval, symbols, paramsInterval);
+        return await this.unsubscribeMultipleWrapper ('trades', 'trades', interval, symbols, paramsInterval);
     }
 
     /**
@@ -743,7 +743,7 @@ export default class deribit extends deribitRest {
         if (useDepthEndpoint) {
             paramsResolved = paramsGroup;
         }
-        return await this.unWatchMultipleWrapper ('orderbook', 'book', descriptor, symbols, paramsResolved);
+        return await this.unsubscribeMultipleWrapper ('orderbook', 'book', descriptor, symbols, paramsResolved);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -1051,7 +1051,7 @@ export default class deribit extends deribitRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        return await this.unWatchMultipleWrapper ('ohlcv', 'chart.trades', undefined, symbolsAndTimeframes, params);
+        return await this.unsubscribeMultipleWrapper ('ohlcv', 'chart.trades', undefined, symbolsAndTimeframes, params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -1173,7 +1173,7 @@ export default class deribit extends deribitRest {
     /**
      * @ignore
      * @method
-     * @name deribit#unWatchMultipleWrapper
+     * @name deribit#unsubscribeMultipleWrapper
      * @description sends a public/unsubscribe request for a list of symbols and registers the pending unsubscription under the request id
      * @param {string} topic unified cache topic: trades, orderbook, ticker, bidsasks, ohlcv
      * @param {string} channelName exchange channel name
@@ -1182,12 +1182,12 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchMultipleWrapper (topic: string, channelName: string, channelDescriptor: Str, symbolsArray: any, params: Dict = {}): Promise<any> {
+    async unsubscribeMultipleWrapper (topic: string, channelName: string, channelDescriptor: Str, symbolsArray: any, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         if (symbolsArray === undefined) {
-            throw new ArgumentsRequired (this.id + ' unWatchMultipleWrapper() requires a symbols argument');
+            throw new ArgumentsRequired (this.id + ' unsubscribeMultipleWrapper() requires a symbols argument');
         }
         const url = this.urls['api']['ws'];
         const isOHLCV = (topic === 'ohlcv');
