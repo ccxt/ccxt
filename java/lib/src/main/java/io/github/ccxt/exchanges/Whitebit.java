@@ -1298,8 +1298,8 @@ public class Whitebit extends WhitebitApi
                 depositResult.put("percentage", (((!java.util.Objects.equals(depositFee, null)))) ? false : null);
                 if (!java.util.Objects.equals(networkId, null))
                 {
-                    Integer networkLength = networkId.length();
-                    String networkCode = this.networkIdToCode(java.util.Objects.toString(Helpers.slice(networkId, 1, (((long) networkLength) - 1L)), null), code);
+                    Long networkLength = (((long) networkId.length()) - 0L);
+                    String networkCode = this.networkIdToCode(java.util.Objects.toString(Helpers.slice(networkId, 1, (networkLength - 1L)), null), code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
                         Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
