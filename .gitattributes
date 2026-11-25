@@ -34,5 +34,6 @@ rust/ccxt-base/src/pro/mod.rs linguist-generated=true
 *.dll binary
 *.dylib binary
 *.png binary
+*.gif binary
 *.ico binary
 *.jar binary

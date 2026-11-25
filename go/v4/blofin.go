@@ -20,7 +20,7 @@ func (this *Blofin) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "blofin",
 		"name":      "BloFin",
-		"countries": []any{"US"},
+		"countries": []any{"MH"},
 		"version":   "v1",
 		"rateLimit": 200,
 		"pro":       true,
@@ -52,7 +52,7 @@ func (this *Blofin) Describe() map[string]any {
 			"createStopOrder":                      false,
 			"createTakeProfitOrder":                true,
 			"createTriggerOrder":                   true,
-			"editOrder":                            false,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchBalance":                         true,
 			"fetchBidsAsks":                        nil,
@@ -89,7 +89,7 @@ func (this *Blofin) Describe() map[string]any {
 			"fetchLeverageTiers":                   false,
 			"fetchMarginMode":                      true,
 			"fetchMarginModes":                     false,
-			"fetchMarketLeverageTiers":             false,
+			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
 			"fetchMySettlementHistory":             false,
@@ -858,7 +858,6 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var isActive bool = (this.SafeString(market, "state") != nil && *this.SafeString(market, "state") == "live")
-	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
 	var contractType *string = this.SafeString(market, "contractType")
 	var maxLimitAmount *float64 = this.SafeNumber(market, "maxLimitSize")
 	var maxSpotCost *float64 = this.SafeNumber(market, "maxMarketSize") // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -874,7 +873,7 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 		"type":     typeVar,
 		"spot":     spot,
 		"option":   option,
-		"margin":   isMargin,
+		"margin":   (spot && Precise.StringGt(maxLeverage, "1")),
 		"swap":     swap,
 		"future":   future,
 		"active":   isActive,
@@ -968,12 +967,12 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 50
+	} else {
+		limitValue = *limit
+	}
 	request["size"] = limitValue // max 100
 
 	r1 := <-this.PublicGetMarketBooks(this.Extend(request, params))
@@ -1323,7 +1322,6 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Blofin) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
@@ -1347,21 +1345,8 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 			panic(r.Err)
 		}
 	}
-	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	if paginate {
-
-		r1 := <-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", nil, 100)
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		var retRes102319 []any = r1.Value
-		if retRes102319 == nil {
-			ch <- AsyncResult[[]Trade]{Value: nil}
-		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102319)}
-		}
-		return nil
-	}
+	// the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+	var paramsNoPaginate map[string]any = this.OmitDict(params, "paginate")
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -1370,14 +1355,14 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 	if method != nil && *method == "publicGetMarketTrades" {
 
-		r2 := <-this.PublicGetMarketTrades(this.Extend(request, paramsMethod))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.PublicGetMarketTrades(this.Extend(request, paramsMethod))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response = r2.Value
+		response = r1.Value
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -1442,7 +1427,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1450,20 +1435,20 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes108819 []any = r1.Value
-		if retRes108819 == nil {
+		var retRes108419 []any = r1.Value
+		if retRes108419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108419)}
 		}
 		return nil
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}() // default 100, max 100
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	} // default 100, max 100
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"bar":    this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1471,13 +1456,13 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	if since != nil {
 		var durationInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
-		request["before"] = mathMax(*since-1, 0)
-		request["after"] = this.Sum(since, (durationInMilliseconds * limitResolved))
+		request["before"] = max(*since-1, 0)
+		request["after"] = this.Sum(since, durationInMilliseconds*limitResolved)
 	}
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketCandles(this.Extend(request, query))
@@ -1531,19 +1516,19 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		}
 	}
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", query, 100)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, query, 100)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes113519 []any = r1.Value
-		if retRes113519 == nil {
+		var retRes113119 []any = r1.Value
+		if retRes113119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113119)}
 		}
 		return nil
 	}
@@ -1552,7 +1537,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1560,7 +1545,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketFundingRateHistory(this.Extend(request, query))
@@ -2017,6 +2002,9 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, "-")
 	var filled *string = this.SafeString(order, "filledSize")
 	var price *string = this.SafeStringN(order, []any{"px", "price", "orderPrice"})
+	if price != nil && *price == "-1" {
+		price = nil // trigger orders send orderPrice -1 for market execution
+	}
 	var average *string = this.SafeString(order, "averagePrice")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var feeCostString *string = this.SafeString(order, "fee")
@@ -2031,8 +2019,11 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringAbs(feeCostString)
-		var feeCurrencyId string = *this.SafeString(order, "feeCcy", "USDT")
+		var feeCurrencyId *string = this.SafeString(order, "feeCcy")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
+		if feeCurrencyCode == nil {
+			feeCurrencyCode = this.SafeString(marketResolved, "settle")
+		}
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCostSigned),
 			"currency": feeCurrencyCode,
@@ -2061,6 +2052,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 		"postOnly":            postOnly,
 		"side":                side,
 		"price":               price,
+		"triggerPrice":        this.SafeNumber(order, "triggerPrice"),
 		"stopLossPrice":       stopLossPrice,
 		"takeProfitPrice":     takeProfitPrice,
 		"average":             average,
@@ -2152,7 +2144,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		response = r1.Value
 	} else if isTriggerOrder || isSlOrTp {
-		var triggerRequest map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsTpsl)
+		var triggerRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, paramsTpsl)
 
 		r2 := <-this.PrivatePostTradeOrderAlgo(triggerRequest)
 		if r2.Err != nil {
@@ -2160,7 +2152,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		response = r2.Value
 	} else {
-		var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, paramsTpsl)
+		var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, paramsTpsl)
 
 		r3 := <-this.PrivatePostTradeOrder(request)
 		if r3.Err != nil {
@@ -2266,12 +2258,12 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
  * @param {boolean} [params.tpsl] True if cancelling a tpsl order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blofin) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Blofin) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2309,7 +2301,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var query map[string]any = this.OmitDict(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
 	if isTpsl != nil && *isTpsl {
 
-		r1 := <-this.CancelOrdersAsync([]any{id}, symbol, params)
+		r1 := <-this.CancelOrdersAsync([]string{id}, symbol, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -2391,6 +2383,146 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
+	return nil
+}
+
+/**
+ * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @see https://docs.blofin.com/index.html#amend-algo-order
+ * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.trigger] True if editing a trigger order
+ * @param {boolean} [params.tpsl] True if editing a tpsl order
+ * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+ * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+ * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+ * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+ * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
+	return ch
+}
+func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": market["id"],
+	}
+	var isTrigger *bool = this.SafeBool(params, "trigger", false)
+	var isTpsl *bool = this.SafeBool2(params, "tpsl", "TPSL", false)
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId != nil {
+		request["clientOrderId"] = clientOrderId
+	} else if isTpsl != nil && *isTpsl {
+		request["tpslId"] = id
+	} else if isTrigger != nil && *isTrigger {
+		request["algoId"] = id
+	} else {
+		request["orderId"] = id
+	}
+	if amount != nil {
+		request["newSize"] = this.AmountToPrecision(symbol, amount)
+	}
+	var query map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice"})
+	var response map[string]any = nil
+	if isTpsl != nil && *isTpsl {
+		var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
+		if stopLossPrice != nil {
+			request["newSlTriggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+			var slLimitPrice *string = this.SafeString(params, "stopLossLimitPrice")
+			if IsEqual(typeVar, "market") {
+				request["newSlOrderPrice"] = "-1"
+			} else if slLimitPrice != nil {
+				request["newSlOrderPrice"] = this.PriceToPrecision(symbol, slLimitPrice)
+			}
+		}
+		var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+		if takeProfitPrice != nil {
+			request["newTpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			var tpLimitPrice *string = this.SafeString(params, "takeProfitLimitPrice")
+			if IsEqual(typeVar, "market") {
+				request["newTpOrderPrice"] = "-1"
+			} else if tpLimitPrice != nil {
+				request["newTpOrderPrice"] = this.PriceToPrecision(symbol, tpLimitPrice)
+			}
+		}
+
+		r1 := <-this.PrivatePostTradeAmendTpsl(this.Extend(request, query))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
+	} else if isTrigger != nil && *isTrigger {
+		var triggerPrice *string = this.SafeString(params, "triggerPrice")
+		if triggerPrice != nil {
+			request["newTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		}
+		if IsEqual(typeVar, "market") {
+			request["newOrderPrice"] = "-1"
+		} else if price != nil {
+			request["newOrderPrice"] = this.PriceToPrecision(symbol, price)
+		}
+
+		r2 := <-this.PrivatePostTradeAmendAlgo(this.Extend(request, query))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
+	} else {
+		if price != nil {
+			request["newPrice"] = this.PriceToPrecision(symbol, price)
+		}
+
+		r3 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, query))
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		response = r3.Value
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "Order modified",
+	//         "data": {
+	//             "orderId": "6000004088576",
+	//             "clientOrderId": "",
+	//             "requestId": "",
+	//             "msg": "Order modified",
+	//             "code": "0",
+	//             "ts": "1795184228537"
+	//         }
+	//     }
+	//
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
 
@@ -2513,11 +2645,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes187819 []any = r1.Value
-		if retRes187819 == nil {
+		var retRes198719 []any = r1.Value
+		if retRes198719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes187819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes198719)}
 		}
 		return nil
 	}
@@ -2609,11 +2741,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes192819 []any = r1.Value
-		if retRes192819 == nil {
+		var retRes203719 []any = r1.Value
+		if retRes203719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes192819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes203719)}
 		}
 		return nil
 	}
@@ -2719,11 +2851,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes199719 []any = r1.Value
-		if retRes199719 == nil {
+		var retRes210619 []any = r1.Value
+		if retRes210619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes199719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes210619)}
 		}
 		return nil
 	}
@@ -2734,7 +2866,7 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2795,11 +2927,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes203719 []any = r1.Value
-		if retRes203719 == nil {
+		var retRes214619 []any = r1.Value
+		if retRes214619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes214619)}
 		}
 		return nil
 	}
@@ -2810,7 +2942,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		request["currency"] = currency["id"]
 	}
 	if since != nil {
-		request["before"] = mathMax(*since-1, 0)
+		request["before"] = max(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2827,7 +2959,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, paramsUntil))}
 	return nil
 }
-func (this *Blofin) NetworkCodeToChainId(networkCode any, optionalArgs ...any) any {
+func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any) any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var aliasedCode *string = this.SafeString(this.Options["networkCodeAliases"], networkCode, networkCode)
@@ -2963,8 +3095,7 @@ func (this *Blofin) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Blofin) ParseCurrency(currency any) map[string]any {
-	var chains any = currency
+func (this *Blofin) ParseCurrency(chains any) map[string]any {
 	var firstChain map[string]any = SafeMapTyped(chains, 0)
 	var currencyId *string = this.SafeString(firstChain, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -3074,7 +3205,7 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a params[\"network\"] or params[\"chain\"] for " + code))
 		}
 		// the same display-name chain ids that withdrawal-apply and the currencies registry use
-		request["chain"] = this.NetworkCodeToChainId(networkCode, currency)
+		request["chain"] = this.NetworkCodeToChainId(*networkCode, currency)
 	}
 
 	r1 := <-this.PrivateGetAssetDepositAddress(this.Extend(request, query))
@@ -3248,12 +3379,12 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id, in case the
 	// venue ignores the filter and returns the latest records instead
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeValue(data, i)
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if IsEqual(this.SafeString(entry, "depositId"), id) {
 
 			ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(entry, currency)}
@@ -3310,12 +3441,12 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id (or clientId), in
 	// case the venue ignores the filter and returns the latest records
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeValue(data, i)
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var matches bool = false
 		if !IsEqual(id, nil) {
 			matches = (IsEqual(this.SafeString(entry, "withdrawId"), id))
@@ -3375,7 +3506,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagValue *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	tagValue, query = this.HandleParamString(params, "tag")
 
 	r := <-this.LoadMarketsAsync()
@@ -3390,7 +3521,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var dest *string = this.SafeString(query, "dest", "onchain")
 	request["dest"] = dest
-	query = this.Omit(query, "dest")
+	query = this.OmitDict(query, "dest")
 	if dest != nil && *dest == "onchain" {
 		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
@@ -3398,23 +3529,19 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		// it (152001 "Parameter addrType cannot be empty") - default to
 		// 1 = wallet address, callers can override for other kinds
 		request["addrType"] = this.SafeString(query, "addrType", "1")
-		query = this.Omit(query, "addrType")
+		query = this.OmitDict(query, "addrType")
 	}
 	if tagValue != nil {
 		request["tag"] = *tagValue
 	}
 	// consume the unified network key unconditionally so it never leaks
 	// onto the wire; an explicit raw params['chain'] takes precedence
-	var networkCode any = nil
-	var networkCodePtr *string = nil
-	networkCodePtr, query = this.HandleNetworkCodeAndParams(query)
-	if networkCodePtr != nil {
-		networkCode = *networkCodePtr
-	}
+	var networkCode *string = nil
+	networkCode, query = this.HandleNetworkCodeAndParams(query)
 	var chain *string = this.SafeString(query, "chain")
 	if chain == nil {
 		if networkCode != nil {
-			request["chain"] = this.NetworkCodeToChainId(networkCode, currency)
+			request["chain"] = this.NetworkCodeToChainId(*networkCode, currency)
 		} else if dest != nil && *dest == "onchain" {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals"))
 		}
@@ -3489,11 +3616,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes254219 []any = r1.Value
-		if retRes254219 == nil {
+		var retRes265019 []any = r1.Value
+		if retRes265019 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes265019)}
 		}
 		return nil
 	}
@@ -3704,12 +3831,12 @@ func (this *Blofin) ParseIds(ids any) any {
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blofin) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Blofin) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
@@ -3997,7 +4124,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		}
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	if since != nil {
 		request["begin"] = since
@@ -4128,9 +4255,9 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
 	var leverageString *string = this.SafeString(position, "leverage")
-	var initialMarginPercentage any = nil
+	var initialMarginPercentageString *string = nil
 	var collateralString any = nil
-	var marginString any = nil
+	var marginString *string = nil
 	if marginMode != nil && *marginMode == "cross" {
 		if derefPtr := this.SafeString(position, "initialMargin"); derefPtr != nil {
 			initialMarginString = *derefPtr
@@ -4144,8 +4271,8 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 			return initialMarginString
 		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
-		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		var isolatedMarginString any = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
+		initialMarginPercentageString = Precise.StringDiv("1", leverageString)
+		var isolatedMarginString *string = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
 		if isolatedMarginString != nil {
 			initialMarginString = isolatedMarginString
 			marginString = isolatedMarginString
@@ -4160,10 +4287,9 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
 	var maintenanceMargin *float64 = this.ParseNumber(maintenanceMarginString)
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
-	if initialMarginPercentage == nil {
-		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
+	if initialMarginPercentageString == nil {
+		initialMarginPercentageString = Precise.StringDiv(initialMarginString, notionalString, 4)
 	} else if IsEqual(initialMarginString, nil) {
-		var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
@@ -4173,24 +4299,24 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		}
 		return nil
 	}()
-	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
 		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0006")
 		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
 		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
 		var marginPerUnit *string = Precise.StringDiv(initialMarginString, totalSize)
-		var num *string = func() *string {
-			if side != nil && *side == "long" {
-				return Precise.StringSub(entryPriceString, marginPerUnit)
-			}
-			return Precise.StringAdd(entryPriceString, marginPerUnit)
-		}()
-		var denom any = func() any {
-			if side != nil && *side == "long" {
-				return Precise.StringSub("1", mmpWithFee)
-			}
-			return Precise.StringAdd("1", mmpWithFee)
-		}()
+		var num *string
+		if side != nil && *side == "long" {
+			num = Precise.StringSub(entryPriceString, marginPerUnit)
+		} else {
+			num = Precise.StringAdd(entryPriceString, marginPerUnit)
+		}
+		var denom *string
+		if side != nil && *side == "long" {
+			denom = Precise.StringSub("1", mmpWithFee)
+		} else {
+			denom = Precise.StringAdd("1", mmpWithFee)
+		}
 		if (denom != nil) && Precise.StringGt(denom, "0") {
 			liquidationPriceString = Precise.StringDiv(num, denom)
 		}
@@ -4231,12 +4357,93 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(collateralString),
 		"initialMargin":               this.ParseNumber(initialMarginString),
-		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentage),
+		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentageString),
 		"leverage":                    this.ParseNumber(leverageString),
 		"marginRatio":                 marginRatio,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
 	})
+}
+
+/**
+ * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier] {
+	ch := make(chan AsyncResult[[]LeverageTier], 1)
+	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Blofin) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	marginMode, query := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "cross")
+	var request map[string]any = map[string]any{
+		"instId":     market["id"],
+		"marginMode": marginMode,
+	}
+
+	r1 := <-this.PublicGetMarketPositionTiers(this.Extend(request, query))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "success",
+	//         "data": [
+	//             {
+	//                 "symbol": "LTC-USDT",
+	//                 "marginMode": "cross",
+	//                 "minSize": "0",
+	//                 "maxSize": "500",
+	//                 "maintenanceMarginRate": "0.0065",
+	//                 "maxLeverage": "50"
+	//             }
+	//         ]
+	//     }
+	//
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+
+	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(data, market))}
+	return nil
+}
+func (this *Blofin) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var tiers []any = []any{}
+	for i := 0; i < GetArrayLength(info); i++ {
+		var tier map[string]any = SafeMapTyped(info, i)
+		var marketId *string = this.SafeString(tier, "symbol")
+		tiers = append(tiers, map[string]any{
+			"tier":                  this.Sum(i, 1),
+			"symbol":                this.SafeSymbol(marketId, market),
+			"currency":              this.SafeString(market, "quote"),
+			"minNotional":           this.SafeNumber(tier, "minSize"),
+			"maxNotional":           this.SafeNumber(tier, "maxSize"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMarginRate"),
+			"maxLeverage":           this.SafeNumber(tier, "maxLeverage"),
+			"info":                  tier,
+		})
+	}
+	return tiers
 }
 
 /**
@@ -4272,7 +4479,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage],
 		panic(ArgumentsRequired(this.Id + " fetchLeverages() requires a symbols argument"))
 	}
 	var marginMode *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	marginMode, query = this.HandleMarginModeAndParams("fetchLeverages", params)
 	if marginMode == nil {
 		marginMode = this.SafeString(query, "marginMode", "cross") // cross as default marginMode
@@ -4338,7 +4545,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 		}
 	}
 	var marginMode *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	marginMode, query = this.HandleMarginModeAndParams("fetchLeverage", params)
 	if marginMode == nil {
 		marginMode = this.SafeString(query, "marginMode", "cross") // cross as default marginMode
@@ -4462,7 +4669,7 @@ func (this *Blofin) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
  * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blofin) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
@@ -4549,11 +4756,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332519 []any = r1.Value
-		if retRes332519 == nil {
+		var retRes349219 []any = r1.Value
+		if retRes349219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes349219)}
 		}
 		return nil
 	}
@@ -5148,7 +5355,6 @@ func (this *Blofin) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Blofin) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -5360,6 +5566,45 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 		return nil, r.Err
 	}
 	var res []Order = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @see https://docs.blofin.com/index.html#amend-algo-order
+ * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.trigger] True if editing a trigger order
+ * @param {boolean} [params.tpsl] True if editing a tpsl order
+ * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+ * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+ * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+ * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+ * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5820,6 +6065,31 @@ func (this *Blofin) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 
 /**
  * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+
+	opts := FetchMarketLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchMarketLeverageTiersAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []LeverageTier = r.Value
+	return res, nil
+}
+
+/**
+ * @method
  * @name blofin#fetchLeverages
  * @description fetch the set leverage for all contract markets
  * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -5910,7 +6180,7 @@ func (this *Blofin) SetLeverage(leverage int64, options ...SetLeverageOptions) (
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
  * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blofin) ClosePosition(symbol string, options ...ClosePositionOptions) (Order, error) {
 

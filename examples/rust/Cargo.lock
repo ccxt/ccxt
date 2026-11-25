@@ -47,17 +47,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-trait"
-version = "0.1.89"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9035ad2d096bed7955a320ee7e2230574d28fd3c3a0f186cbea1ff3c7eed5dbb"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.117",
-]
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -190,15 +179,14 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "ccxt-common",
  "futures",
@@ -207,9 +195,8 @@ dependencies = [
 
 [[package]]
 name = "ccxt-common"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "base64",
  "chrono",
  "ed25519-dalek",
@@ -242,7 +229,6 @@ dependencies = [
 name = "ccxt-examples"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "ccxt",
  "ccxt-prediction",
  "ccxt-pro",
@@ -253,17 +239,15 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
- "async-trait",
  "ccxt-base",
  "futures",
  "indexmap",
@@ -1623,9 +1607,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",
@@ -1815,9 +1799,9 @@ dependencies = [
 
 [[package]]
 name = "simd-adler32"
-version = "0.3.10"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
 
 [[package]]
 name = "simdutf8"

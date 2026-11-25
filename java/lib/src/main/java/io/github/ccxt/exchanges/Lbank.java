@@ -546,7 +546,7 @@ public class Lbank extends LbankApi
             //     }
             //
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -596,7 +596,7 @@ public class Lbank extends LbankApi
             //        "ts": "1747973911431"
             //    }
             //
-            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currenciesData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> grouped = this.groupBy(currenciesData, "assetCode");
             List<Object> values = new ArrayList<Object>(grouped.values());
             return this.parseCurrencies(values);
@@ -611,7 +611,7 @@ public class Lbank extends LbankApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)rawCurrency).size(); j++)
         {
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, j, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(rawCurrency, j, null);
             String networkId = this.safeString(networkEntry, "chain");
             if (java.util.Objects.equals(networkId, null))
             {
@@ -682,9 +682,9 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
-            Object resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object spotMarkets = this.safeValue(resolvedMarkets, 0);
-            Object swapMarkets = this.safeValue(resolvedMarkets, 1);
+            List<Object> resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> spotMarkets = this.safeList(resolvedMarkets, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = this.safeList(resolvedMarkets, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
 
@@ -711,9 +711,9 @@ public class Lbank extends LbankApi
             //         "ts": 1691560288484
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(market, "symbol");
@@ -819,9 +819,9 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(market, "symbol");
@@ -930,7 +930,7 @@ public class Lbank extends LbankApi
         }
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
+        Map<String, Object> tickerData = this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Object data = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))) ? ticker : tickerData;
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
@@ -979,7 +979,7 @@ public class Lbank extends LbankApi
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 Tickers responseForSwap = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
-                Map<String, Object> swapTicker = (Map<String, Object>) this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+                Map<String, Object> swapTicker = this.safeDict(responseForSwap, market.get("symbol"), null);
                 return swapTicker;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1007,8 +1007,8 @@ public class Lbank extends LbankApi
             //         "ts": :1692064276872
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -1037,7 +1037,7 @@ public class Lbank extends LbankApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1102,7 +1102,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -1129,7 +1129,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 60 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 60 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -1194,7 +1194,7 @@ public class Lbank extends LbankApi
             //         "success": true
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
@@ -1358,7 +1358,7 @@ public class Lbank extends LbankApi
             {
                 request.put("size", 600); // max
             }
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTrades", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPublicGetTrades");
             String method = this.safeString(parameters, "method", defaultMethod);
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
@@ -1386,7 +1386,7 @@ public class Lbank extends LbankApi
             //           "ts":1647021999308
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1448,7 +1448,7 @@ public class Lbank extends LbankApi
             request.put("time", parsedSince);
             request.put("size", parsedLimit);
             Map<String, Object> response = (this.spotPublicGetKline(this.extend(request, parameters))).join();
-            List<Object> ohlcvs = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             //
             //
             // [
@@ -1560,15 +1560,15 @@ public class Lbank extends LbankApi
             put( "timestamp", timestamp );
             put( "datetime", Lbank.this.iso8601(timestamp) );
         }};
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(response, "data", null);
         // from spotPrivatePostUserInfo
-        Map<String, Object> toBtc = (Map<String, Object>) this.safeDict(data, "toBtc", (Object) null);
+        Map<String, Object> toBtc = this.safeDict(data, "toBtc", null);
         if (!java.util.Objects.equals(toBtc, null))
         {
-            Map<String, Object> used = (Map<String, Object>) this.safeDict(data, "freeze", new HashMap<String, Object>() {{}});
-            Map<String, Object> free = (Map<String, Object>) this.safeDict(data, "free", new HashMap<String, Object>() {{}});
+            Map<String, Object> used = this.safeDict(data, "freeze", new HashMap<String, Object>() {{}});
+            Map<String, Object> free = this.safeDict(data, "free", new HashMap<String, Object>() {{}});
             List<String> currencies = new ArrayList<String>(free.keySet());
-            for (var i = 0; i < ((List<?>)currencies).size(); i++)
+            for (var i = 0; i < currencies.size(); i++)
             {
                 String currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1583,12 +1583,12 @@ public class Lbank extends LbankApi
             return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfoAccount
-        List<Object> balances = (List<Object>) this.safeList(data, "balances", (Object) null);
+        List<Object> balances = this.safeList(data, "balances", null);
         if (!java.util.Objects.equals(balances, null))
         {
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            for (var i = 0; i < balances.size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> item = this.safeDict(balances, i, null);
                 String currencyId = this.safeString(item, "asset");
                 String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
@@ -1607,7 +1607,7 @@ public class Lbank extends LbankApi
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(data, i, (Object) null);
+                Map<String, Object> item = this.safeDict(data, i, null);
                 String currencyId = this.safeString(item, "coin");
                 String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
@@ -1695,7 +1695,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = this.market(symbol);
             FundingRates responseForSwap = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
-            Map<String, Object> fundingRate = (Map<String, Object>) this.safeDict(responseForSwap, market.get("symbol"), (Object) null);
+            Map<String, Object> fundingRate = this.safeDict(responseForSwap, market.get("symbol"), null);
             return fundingRate;
         }).thenApply(FundingRate::new);
 
@@ -1747,7 +1747,7 @@ public class Lbank extends LbankApi
             //     "result": "true",
             //     "success": True,
             // }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -1772,7 +1772,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchBalance", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementUserInfo");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object response = null;
@@ -1816,8 +1816,8 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            Object balanceResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
-            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance((Map<String, Object>) (balanceResponse));
+            Map<String, Object> balanceResponse = (Map<String, Object>) ((((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response);
+            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance(balanceResponse);
             if (java.util.Objects.equals(balanceResult, null))
             {
                 throw new NullResponse((this.id + " fetchBalance() returned empty response")) ;
@@ -1866,7 +1866,7 @@ public class Lbank extends LbankApi
             TradingFees result = (this.fetchTradingFees(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", market.get("id") );
             }}))).join();
-            Map<String, Object> fee = (Map<String, Object>) this.safeDict(result, symbol, (Object) null);
+            Map<String, Object> fee = this.safeDict(result, symbol, null);
             return fee;
         }).thenApply(TradingFeeInterface::new);
 
@@ -1891,9 +1891,9 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters))).join();
-            List<Object> fees = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fees = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
@@ -2034,7 +2034,7 @@ public class Lbank extends LbankApi
             {
                 request.put("custom_id", clientOrderId);
             }
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "spotPrivatePostSupplementCreateOrder");
             String method = this.safeString(paramsRequest, "method", defaultMethod);
             Map<String, Object> paramsOmitted = this.omit(paramsRequest, "method");
@@ -2057,7 +2057,7 @@ public class Lbank extends LbankApi
             //          "ts":1648162321043
             //      }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Lbank.this.safeString(result, "order_id") );
                 put( "info", result );
@@ -2254,7 +2254,7 @@ public class Lbank extends LbankApi
             String method = this.safeString(parameters, "method");
             if (java.util.Objects.equals(method, null))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = this.safeDict(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
                 method = this.safeString(options, "method", "fetchOrderSupplement");
             }
             if (java.util.Objects.equals(method, "fetchOrderSupplement"))
@@ -2306,7 +2306,7 @@ public class Lbank extends LbankApi
             //          "ts":1648164471827
             //      }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(result, (Map<String, Object>) null);
         });
 
@@ -2352,8 +2352,8 @@ public class Lbank extends LbankApi
             //          "ts":1647455270776
             //      }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer numOrders = ((List<?>)result).size();
+            List<Object> result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer numOrders = result.size();
             if (java.util.Objects.equals(numOrders, 1))
             {
                 return this.parseOrder(this.safeDict(result, 0, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
@@ -2425,7 +2425,7 @@ public class Lbank extends LbankApi
             //          "ts":1648509742164
             //      }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, sinceValue, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2458,7 +2458,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -2492,8 +2492,8 @@ public class Lbank extends LbankApi
             //          "ts":1648505706348
             //      }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2524,7 +2524,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -2558,8 +2558,8 @@ public class Lbank extends LbankApi
             //         "ts":1648506110196
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2613,7 +2613,7 @@ public class Lbank extends LbankApi
             //      "error_code":0,
             //      "ts":1648501286196
             //  }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -2663,7 +2663,7 @@ public class Lbank extends LbankApi
             //          "ts":1648506641468
             //      }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2671,9 +2671,9 @@ public class Lbank extends LbankApi
 
     public String getNetworkCodeForCurrency(String currencyCode, Map<String, Object> parameters)
     {
-        Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", (Object) null);
+        Map<String, Object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", null);
         String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
-        Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
         String networkParam = this.safeStringUpper(parameters, "network", defaultNetwork); // accepts unified codes and aliases
         String networkCode = (((!java.util.Objects.equals(networkParam, null)))) ? this.safeString(this.networkAliases, networkParam, networkParam) : null;
         return this.safeString(networks, networkCode, networkCode);
@@ -2698,7 +2698,7 @@ public class Lbank extends LbankApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositAddress", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchDepositAddress", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "fetchDepositAddressDefault");
             String method = this.safeString(parameters, "method", defaultMethod);
             Map<String, Object> paramsOmitted = this.omit(parameters, "method");
@@ -2748,7 +2748,7 @@ public class Lbank extends LbankApi
             //          "ts":1648075865103
             //      }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "data", null);
             String address = this.safeString(result, "address");
             String tag = this.safeString(result, "memo");
             return new HashMap<String, Object>() {{
@@ -2776,7 +2776,7 @@ public class Lbank extends LbankApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
             }};
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
+            Map<String, Object> networks = this.safeDict(this.options, "networks", null);
             String network = this.safeStringUpper(parameters, "network");
             if (!java.util.Objects.equals(network, null))
             {
@@ -2801,7 +2801,7 @@ public class Lbank extends LbankApi
             //          "ts":1648073818880
             //     }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "data", null);
             String address = this.safeString(result, "address");
             String tag = this.safeString(result, "memo");
             return new HashMap<String, Object>() {{
@@ -2861,7 +2861,7 @@ public class Lbank extends LbankApi
                 network = this.safeString(this.networkAliases, network, network);
             }
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("network", "networkName")));
-            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", (Object) null);
+            Map<String, Object> networks = this.safeDict(this.options, "networks", null);
             String networkId = this.safeString(networks, network, network);
             if (!java.util.Objects.equals(networkId, null))
             {
@@ -2879,7 +2879,7 @@ public class Lbank extends LbankApi
             //          "ts":1648992501414
             //      }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", Lbank.this.safeString(result, "withdrawId") );
@@ -3056,8 +3056,8 @@ public class Lbank extends LbankApi
             //          "ts":1649719721758
             //      }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> deposits = (List<Object>) this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> deposits = this.safeList(data, "depositOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3121,8 +3121,8 @@ public class Lbank extends LbankApi
             //          "ts":1649720362362
             //      }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> withdraws = (List<Object>) this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> withdraws = this.safeList(data, "withdraws", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdraws, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3151,7 +3151,7 @@ public class Lbank extends LbankApi
             Boolean isAuthorized = this.checkRequiredCredentials(false);
             if (Boolean.TRUE.equals(isAuthorized))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = this.safeDict(this.options, "fetchTransactionFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateTransactionFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
                 Map<String, Object> paramsOmitted = this.omit(parameters, "method");
@@ -3208,20 +3208,20 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(result, i, null);
                 String code = this.safeCurrencyCode(this.safeString(entry, "coin"), (Map<String, Object>) null);
-                List<Object> networkList = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(code, null))
                 {
                     withdrawFees.put(code, new HashMap<String, Object>() {{}});
                 }
-                for (var j = 0; j < ((List<?>)networkList).size(); j++)
+                for (var j = 0; j < networkList.size(); j++)
                 {
-                    Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
+                    Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
                     Double fee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
                     if (!java.util.Objects.equals(fee, null))
                     {
@@ -3243,7 +3243,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3288,11 +3288,11 @@ public class Lbank extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
-                Map<String, Object> item = (Map<String, Object>) this.safeDict(result, i, (Object) null);
+                Map<String, Object> item = this.safeDict(result, i, null);
                 String canWithdraw = this.safeString(item, "canWithDraw");
                 if (java.util.Objects.equals(canWithdraw, "true"))
                 {
@@ -3316,7 +3316,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3342,7 +3342,7 @@ public class Lbank extends LbankApi
             Boolean isAuthorized = this.checkRequiredCredentials(false);
             if (Boolean.TRUE.equals(isAuthorized))
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = this.safeDict(this.options, "fetchDepositWithdrawFees", new HashMap<String, Object>() {{}});
                 String defaultMethod = this.safeString(options, "method", "fetchPrivateDepositWithdrawFees");
                 String method = this.safeString(parameters, "method", defaultMethod);
                 Map<String, Object> paramsOmitted = this.omit(parameters, "method");
@@ -3399,7 +3399,7 @@ public class Lbank extends LbankApi
             //        "code": 0
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         });
 
@@ -3439,7 +3439,7 @@ public class Lbank extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePublicDepositWithdrawFees(data, codes);
         });
 
@@ -3464,7 +3464,7 @@ public class Lbank extends LbankApi
         //    ]
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             Object fee = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
             Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw", false);
@@ -3476,7 +3476,7 @@ public class Lbank extends LbankApi
                     Double withdrawFee = this.safeNumber(fee, "fee", (Object) null);
                     if (!java.util.Objects.equals(withdrawFee, null))
                     {
-                        Map<String, Object> resultValue = (Map<String, Object>) this.safeDict(result, code, (Object) null);
+                        Map<String, Object> resultValue = this.safeDict(result, code, null);
                         if (java.util.Objects.equals(resultValue, null))
                         {
                             result.put(code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
@@ -3551,10 +3551,10 @@ public class Lbank extends LbankApi
         //
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
-        List<Object> networkList = (List<Object>) this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        List<Object> networkList = this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
+        for (var j = 0; j < networkList.size(); j++)
         {
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
+            Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
             String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault", false);
@@ -3637,7 +3637,7 @@ public class Lbank extends LbankApi
                 put( "signature_method", finalSig );
                 put( "timestamp", timestamp );
             }}, signedQuery)));
-            Object encoded = this.encode(auth);
+            byte[] encoded = this.encode(auth);
             String uppercaseHash = ((String)this.hash(encoded, md5())).toUpperCase();
             Object sign = "";
             if (java.util.Objects.equals(signatureMethod, "RSA"))
@@ -3692,13 +3692,13 @@ public class Lbank extends LbankApi
 
     public String convertSecretToPem(Object secret)
     {
-        Integer secretLength = (switch ((Object)(secret)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Long secretLength = (((switch ((Object)(secret)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; })) - 0L);
         Long fullLines = this.parseToInt((((double) secretLength) / ((double) 64)));
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)
         {
             Long start = (((long) i) * 64L);
-            Long end = (Long) this.sum(start, 64);
+            Long end = (start + 64L);
             pem = (pem + (Helpers.slice(this.secret, start, end) + "\n")); // eslint-disable-line
         }
         return (pem + "-----END PRIVATE KEY-----");

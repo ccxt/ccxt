@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, FeeString, DepositWithdrawFees, Status, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
+import type { Dictionary, Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, FeeString, DepositWithdrawFees, Status, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1480,7 +1480,7 @@ export default class bybit extends Exchange {
 
     addPaginationCursorToResult (response: Dict): any[] {
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeListN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
+        const data: Dict[] = this.safeListN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
         const dataLength = data.length;
         if ((paginationCursor !== undefined) && (dataLength > 0)) {
@@ -2136,7 +2136,7 @@ export default class bybit extends Exchange {
             preLaunchMarkets = this.safeDict (promises, 1, {});
         }
         const data = this.safeDict (response, 'result', {});
-        let markets = this.safeList (data, 'list', []);
+        let markets: Dict[] = this.safeList (data, 'list', []);
         let paginationCursor = this.safeString (data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
@@ -2332,7 +2332,7 @@ export default class bybit extends Exchange {
             response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
         }
         const data = this.safeDict (response, 'result', {});
-        let markets = this.safeList (data, 'list', []);
+        let markets: Dict[] = this.safeList (data, 'list', []);
         const loadAllOptions = this.handleOption ('fetchMarkets', 'loadAllOptions');
         if (loadAllOptions === true) {
             request['limit'] = 1000;
@@ -2778,7 +2778,19 @@ export default class bybit extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const tickerList: Dict[] = this.safeList (result, 'list', []);
+        let tickerList: Dict[] = this.safeList (result, 'list', []);
+        if (category === 'spot') {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            const spotTickers: Dict[] = [];
+            for (let i = 0; i < tickerList.length; i++) {
+                const tickerMarket = this.safeMarket (this.safeString (tickerList[i], 'symbol'), undefined, undefined, 'spot');
+                if (!this.safeBool (tickerMarket, 'contract', false)) {
+                    spotTickers.push (tickerList[i]);
+                }
+            }
+            tickerList = spotTickers;
+        }
         return this.parseTickers (tickerList, parsedSymbols);
     }
 
@@ -2942,7 +2954,7 @@ export default class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
-    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -4198,7 +4210,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount: boolean = this.safeBool (types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
@@ -4254,7 +4266,7 @@ export default class bybit extends Exchange {
         }
         const market = this.market (symbol);
         const parts = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = parts[1];
+        const enableUnifiedAccount: boolean = this.safeBool (parts, 1, false);
         const isTrailingOrder = this.safeString2 (params, 'trailingAmount', 'trailingStop') !== undefined;
         const isStopLossOrder = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString (params, 'takeProfitPrice') !== undefined;
@@ -4609,7 +4621,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
+        const isUta: boolean = this.safeBool (accounts, 1, false);
         const ordersRequests: List = [];
         const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4993,7 +5005,7 @@ export default class bybit extends Exchange {
         }
         const market = this.market (symbol);
         const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount: boolean = this.safeBool (types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new NotSupported (this.id + ' cancelOrders() supports UTA accounts only');
         }
@@ -5113,7 +5125,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount: boolean = this.safeBool (types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
         }
@@ -6667,7 +6679,7 @@ export default class bybit extends Exchange {
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
+        const isUta: boolean = this.safeBool (accounts, 1, false);
         const [ accountTypeOption, paramsAccountType ] = this.handleOptionStringAndParams (paramsWithdrawTag, 'withdraw', 'accountType');
         const defaultAccountType = (isUta === true) ? 'UTA' : 'SPOT';
         const accountType = (accountTypeOption === undefined) ? defaultAccountType : accountTypeOption;
@@ -9018,7 +9030,7 @@ export default class bybit extends Exchange {
         const marketIds = this.marketIds (symbols);
         const idKey = (marketIdKey === undefined) ? 'symbol' : marketIdKey;
         const filteredResults = this.filterByArray (response, idKey, marketIds, false);
-        const grouped = this.groupBy (filteredResults, idKey);
+        const grouped: Dictionary<Dict[]> = this.groupBy (filteredResults, idKey);
         const keys = Object.keys (grouped);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];

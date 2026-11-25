@@ -77,7 +77,7 @@ class xt extends xt$1["default"] {
         if (isContract) {
             tradeType = 'contract';
         }
-        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         let url = this.safeString(apiUrls, tradeType);
         if (!isContract) {
             url = url + '/private';
@@ -238,7 +238,7 @@ class xt extends xt$1["default"] {
         const subscription = {
             'id': id,
         };
-        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
@@ -292,7 +292,7 @@ class xt extends xt$1["default"] {
         if (isContract) {
             tail = privateAccess ? 'user' : 'market';
         }
-        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const url = this.safeString(apiUrls, tradeType, '') + '/' + tail;
         const subscription = {
             'unsubscribe': true,
@@ -649,7 +649,7 @@ class xt extends xt$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const apiUrls = this.safeDict(this.urls, 'api', {});
+        const apiUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const url = this.safeString(apiUrls, 'contract', '') + '/' + 'user';
         const client = this.client(url);
         this.setPositionsCache(client);
@@ -1215,7 +1215,7 @@ class xt extends xt$1["default"] {
                 const cacheLength = orderbook.cache.length;
                 const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
                 if (cacheLength === snapshotDelay) {
-                    this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                    this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
                 }
                 orderbook.cache.push(data);
                 return;
@@ -1552,6 +1552,11 @@ class xt extends xt$1["default"] {
             tradeType = 'contract';
         }
         client.resolve(stored, 'trade::' + tradeType);
+    }
+    handleTextMessage(client, message) {
+        if (message === 'pong') {
+            client.lastPong = this.milliseconds();
+        }
     }
     handleMessage(client, message) {
         const event = this.safeString(message, 'event');

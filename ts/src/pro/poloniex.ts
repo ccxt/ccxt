@@ -177,10 +177,8 @@ export default class poloniex extends poloniexRest {
             marketIds = this.marketIds (symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join (',');
-        let symbolsHash: Str = undefined;
-        if (this.isEmpty (symbols)) {
-            symbolsHash = messageHash;
-        } else {
+        let symbolsHash: string = messageHash;
+        if (!this.isEmpty (symbols)) {
             symbolsHash = messageHash + '::' + symbolsSuffix;
         }
         if (name !== 'balances') {
@@ -220,7 +218,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async tradeRequest (name: string, params: Dict = {}) {
+    async tradeRequest (name: string, params: Dict = {}): Promise<Order[]> {
         const url = this.safeString (this.urls['api']['ws'], 'private', '');
         const messageHash = this.numberToString (this.nonce ());
         const subscribe: Dict = {
@@ -492,8 +490,8 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -1444,7 +1442,7 @@ export default class poloniex extends poloniexRest {
             this.handleAuthenticate (client, message);
         } else if (type === undefined) {
             this.handleOrderRequest (client, message);
-        } else {
+        } else if (method !== undefined) {
             const data = this.safeList (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {

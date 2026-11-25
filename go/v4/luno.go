@@ -641,9 +641,9 @@ func (this *Luno) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	//     }
 	//
 	var result []any = []any{}
-	var markets []any = SafeListTyped(response, "markets")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "markets")
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "market_id")
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
@@ -760,10 +760,10 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var wallets []any = SafeListTyped(response, "balance")
+	var wallets []map[string]any = this.SafeListMapsTyped(response, "balance")
 	var result []any = []any{}
 	for i := 0; i < len(wallets); i++ {
-		var account any = wallets[i]
+		var account map[string]any = wallets[i]
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -1842,12 +1842,12 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Luno) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Luno) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Luno) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Luno) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1904,27 +1904,26 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan AsyncResult[[]LedgerEntry], o
 		}
 		return entry
 	}()
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 1
-		}
-		return *limit
-	}()
-	var since any = nil
+	var limitValue int64
+	if limit == nil {
+		limitValue = 1
+	} else {
+		limitValue = *limit
+	}
 	var request map[string]any = map[string]any{
 		"min_row": entryValue,
 		"max_row": this.Sum(entryValue, limitValue),
 	}
 
-	r := <-this.FetchLedgerAsync(code, since, limitValue, this.Extend(request, params))
+	r := <-this.FetchLedgerAsync(code, nil, limitValue, this.Extend(request, params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes141115 []any = LedgerEntriesToList(r.Value)
-	if retRes141115 == nil {
+	var retRes141015 []any = LedgerEntriesToList(r.Value)
+	if retRes141015 == nil {
 		ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes141115)}
+		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes141015)}
 	}
 	return nil
 }
@@ -2358,7 +2357,7 @@ func (this *Luno) HandleErrors(code int64, reason string, url string, method str
 	if response == nil {
 		return nil
 	}
-	var error any = this.SafeValue(response, "error")
+	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		var feedback string = this.Id + " " + this.Json(response)
 		var errorCode *string = this.SafeString(response, "error_code")

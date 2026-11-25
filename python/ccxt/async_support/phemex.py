@@ -1325,17 +1325,17 @@ class phemex(Exchange, ImplicitAPI):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep: object, market: Market = None):
+    def from_ep(self, ep: Str, market: Market = None) -> Str:
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev: object, market: Market = None):
+    def from_ev(self, ev: Str, market: Market = None) -> Str:
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er: object, market: Market = None):
+    def from_er(self, er: Str, market: Market = None) -> Str:
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
@@ -4156,7 +4156,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "askEp": 2332500,
@@ -4204,16 +4204,16 @@ class phemex(Exchange, ImplicitAPI):
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': self.safe_number(contract, 'markPriceRp', markEp),
-            'indexPrice': self.safe_number(contract, 'indexPriceRp', indexEp),
+            'markPrice': self.safe_number(contract, 'markPriceRp', self.parse_number(markEp)),
+            'indexPrice': self.safe_number(contract, 'indexPriceRp', self.parse_number(indexEp)),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 'fundingRateRr', fundingRateEr),
+            'fundingRate': self.safe_number(contract, 'fundingRateRr', self.parse_number(fundingRateEr)),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.safe_number(contract, 'predFundingRateRr', nextFundingRateEr),
+            'nextFundingRate': self.safe_number(contract, 'predFundingRateRr', self.parse_number(nextFundingRateEr)),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,
@@ -4591,7 +4591,7 @@ class phemex(Exchange, ImplicitAPI):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        scaledAmmount = self.to_ev(amount, currency)
+        scaledAmmount = self.to_en(amount, self.safe_integer(currency, 'valueScale'))
         direction = None
         transfer = None
         if fromId == 'spot' and toId == 'future':
@@ -4748,7 +4748,7 @@ class phemex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
-            'amount': amountTransfered,
+            'amount': self.parse_number(amountTransfered),
             'fromAccount': fromId,
             'toAccount': toId,
             'status': self.parse_transfer_status(status),
@@ -4788,7 +4788,7 @@ class phemex(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100)
         customSymbol = None
         if isUsdtSettled:
             customSymbol = '.' + self.safe_string(market, 'id', '') + 'FR8H'  # phemex requires a custom symbol for funding rate history

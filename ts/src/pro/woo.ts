@@ -5,7 +5,7 @@ import wooRest from '../woo.js';
 import { ArgumentsRequired, ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
+import type { Dictionary, Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -77,7 +77,7 @@ export default class woo extends wooRest {
         });
     }
 
-    requestId (url: string): number {
+    requestId (url: string): int {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -1383,7 +1383,7 @@ export default class woo extends wooRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1426,12 +1426,12 @@ export default class woo extends wooRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeDict (data, 'positions', {});
+        const rawPositions: Dictionary<Dict> = this.safeDict (data, 'positions', {});
         const postitionsIds = Object.keys (rawPositions);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < postitionsIds.length; i++) {
             const marketId = postitionsIds[i];

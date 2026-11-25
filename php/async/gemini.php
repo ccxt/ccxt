@@ -1081,7 +1081,7 @@ class gemini extends Exchange {
             'change' => $this->safe_string($tickerB, 'change'),
             'percentage' => $this->safe_string($tickerB, 'percentage'),
             'average' => $this->safe_string($tickerB, 'average'),
-            'info' => $this->safe_value($tickerB, 'info'),
+            'info' => $this->safe_dict($tickerB, 'info'),
         ));
     }
 

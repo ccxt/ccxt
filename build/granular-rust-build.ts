@@ -37,7 +37,7 @@ function withAncestors (ids: string[]): string[] {
 }
 
 // rust/tests/src/language_specific.rs is hand written (tracked, not generated) and imports
-// concrete typed wrappers, so those cores must survive the prune even when the PR did not
+// concrete exchanges, so those must survive the prune even when the PR did not
 // touch them; they are kept from git, not re-transpiled.
 function requiredByHandWrittenTests (): string[] {
     const file = './rust/tests/src/language_specific.rs';
@@ -62,9 +62,7 @@ function requiredByHandWrittenTests (): string[] {
 
 const prunedFolders = [
     { folder: './rust/ccxt-base/src/exchanges', suffixes: [ '.rs', '_api.rs' ] },
-    { folder: './rust/ccxt/src/exchanges', suffixes: [ '_typed.rs' ] },
     { folder: './rust/ccxt-pro/src/pro', suffixes: [ '.rs' ] },
-    { folder: './rust/ccxt-pro/src/pro_typed', suffixes: [ '_typed.rs' ] },
 ];
 const handWritten = new Set ([ 'mod.rs', 'cache.rs', 'order_book.rs', 'ws_client.rs' ]);
 
@@ -83,7 +81,7 @@ function pruneExchanges (keep: string[]): void {
             if (!file.endsWith ('.rs') || handWritten.has (file)) {
                 continue;
             }
-            const suffix = suffixes.find ((sfx) => file.endsWith (sfx) && (sfx !== '.rs' || !file.endsWith ('_api.rs') && !file.endsWith ('_typed.rs')));
+            const suffix = suffixes.find ((sfx) => file.endsWith (sfx) && (sfx !== '.rs' || !file.endsWith ('_api.rs')));
             if (suffix === undefined) {
                 continue;
             }

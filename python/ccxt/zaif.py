@@ -675,7 +675,7 @@ class zaif(Exchange, ImplicitAPI):
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
         data = self.safe_dict(response, 'return', {})
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(self.add_key_in_array_items(data, 'id'), market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -711,7 +711,7 @@ class zaif(Exchange, ImplicitAPI):
             request['count'] = min(limit, 1000)
         response = self.privatePostTradeHistory(self.extend(request, params))
         data = self.safe_dict(response, 'return', {})
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(self.add_key_in_array_items(data, 'id'), market, since, limit)
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """

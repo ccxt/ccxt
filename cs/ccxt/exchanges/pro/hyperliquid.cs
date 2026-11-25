@@ -76,7 +76,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrdersWs(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrdersWs(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -115,7 +115,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -156,7 +156,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -194,7 +194,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersWs(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -235,7 +235,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.vaultAddress] the vault address for order cancellation
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
@@ -252,7 +252,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -267,7 +267,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -285,7 +285,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -304,7 +304,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -370,7 +370,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -389,7 +389,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         await this.waitForPendingUnsubscribe(url, messageHash);
@@ -405,7 +405,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -421,7 +421,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -464,7 +464,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 defaultDex = dexName;
             }
         }
-        object paramsOmitted = ((defaultDex != null)) ? this.omit(parameters, "dex") : parameters;
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((defaultDex != null)) ? this.omit(parameters, "dex") : parameters));
         if ((defaultDex != null))
         {
             messageHash = ("tickers:" + defaultDex);
@@ -490,7 +490,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -522,7 +522,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("watchMyTrades", parameters), 0);
@@ -532,10 +532,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbolResolved != null))
         {
-            messageHash = ("myTrades:" + (symbolResolved));
+            messageHash = ("myTrades:" + symbolResolved);
         }
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -574,7 +574,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidations(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -592,7 +592,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters), 0);
@@ -647,7 +647,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -889,7 +889,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -904,7 +904,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -927,7 +927,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -943,7 +943,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -996,7 +996,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         client.resolve(trades, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchMyTrades
@@ -1077,7 +1077,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1093,7 +1093,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", timeframeVar },
             } },
         };
@@ -1119,7 +1119,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1135,7 +1135,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", (this.safeBool(market, "swap", false) == true) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", timeframeVar },
             } },
         };
@@ -1213,7 +1213,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1486,7 +1486,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1594,7 +1594,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} status of the unwatch request
      */
-    public async override Task<object> unWatchPositions(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1632,7 +1632,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1648,7 +1648,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             market = this.market(symbol);
             messageHash = ("order:" + this.safeString(market, "symbol", ""));
         }
-        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1690,7 +1690,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1812,6 +1812,18 @@ public partial class hyperliquid : ccxt.hyperliquid
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return ((bool?)((object)(true)));
             }
+            if ((ret_msg?.IndexOf("Already unsubscribed", StringComparison.Ordinal) ?? -1) >= 0)
+            {
+                // the requested state is already reached, so the unWatch call resolves through the
+                // regular unsubscription handler, the subscription is echoed only inside the text
+                int subscriptionStart = (ret_msg?.IndexOf("{", StringComparison.Ordinal) ?? -1);
+                object subscription = this.parseJson(((ret_msg == null) ? null : ret_msg.Substring(Math.Max(Math.Min((subscriptionStart < 0 ? ret_msg.Length + (subscriptionStart) : subscriptionStart), ret_msg.Length), 0))));
+                if ((subscription != null))
+                {
+                    this.handleUnsubscription(client, subscription);
+                    return ((bool?)((object)(true)));
+                }
+            }
             var error = new ExchangeError(((this.id + " ") + ret_msg));
             client.reject(error);
             return ((bool?)((object)(true)));
@@ -1894,7 +1906,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleOrderBookUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleOrderBookUnsubscription(WebSocketClient client, object subscription)
     {
         //
         //        "subscription":{
@@ -1916,7 +1928,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTradesUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleTradesUnsubscription(WebSocketClient client, object subscription)
     {
         //
         string? coin = this.safeString(subscription, "coin");
@@ -1931,7 +1943,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTickersUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleTickersUnsubscription(WebSocketClient client, object subscription)
     {
         //
         string subMessageHash = "tickers";
@@ -1944,7 +1956,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTickerUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleTickerUnsubscription(WebSocketClient client, object subscription)
     {
         //
         string? coin = this.safeString(subscription, "coin");
@@ -1959,7 +1971,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleOHLCVUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleOHLCVUnsubscription(WebSocketClient client, object subscription)
     {
         string? coin = this.safeString(subscription, "coin");
         string? marketId = this.coinToMarketId(coin);
@@ -1978,7 +1990,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleOrderUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleOrderUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "order";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -2000,7 +2012,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanCache(topicStructure);
     }
 
-    public virtual void handleMyTradesUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleMyTradesUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "myTrades";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -2025,7 +2037,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanCache(topicStructure);
     }
 
-    public virtual void handlePositionsUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handlePositionsUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "clearinghouseState";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -2041,7 +2053,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleSpotBalanceUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
+    public virtual void handleSpotBalanceUnsubscription(WebSocketClient client, object subscription)
     {
         string subHash = "spotState";
         string unSubHash = ("unsubscribe:" + subHash);
@@ -2083,35 +2095,40 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (method == "unsubscribe")
         {
             IDictionary<string, object> subscription = this.safeDict(data, "subscription", new Dictionary<string, object>() {});
-            string? type = this.safeString(subscription, "type");
-            if (type == "l2Book")
-            {
-                this.handleOrderBookUnsubscription(client, subscription);
-            } else if (type == "trades")
-            {
-                this.handleTradesUnsubscription(client, subscription);
-            } else if (type == "candle")
-            {
-                this.handleOHLCVUnsubscription(client, subscription);
-            } else if (type == "orderUpdates")
-            {
-                this.handleOrderUnsubscription(client, subscription);
-            } else if (type == "userFills")
-            {
-                this.handleMyTradesUnsubscription(client, subscription);
-            } else if (type == "clearinghouseState")
-            {
-                this.handlePositionsUnsubscription(client, subscription);
-            } else if (type == "spotState")
-            {
-                this.handleSpotBalanceUnsubscription(client, subscription);
-            } else if ((type == "activeAssetCtx") || (type == "activeSpotAssetCtx"))
-            {
-                this.handleTickerUnsubscription(client, subscription);
-            } else if (type == "allMids")
-            {
-                this.handleTickersUnsubscription(client, subscription);
-            }
+            this.handleUnsubscription(client, subscription);
+        }
+    }
+
+    public virtual void handleUnsubscription(WebSocketClient client, object subscription)
+    {
+        string? type = this.safeString(subscription, "type");
+        if (type == "l2Book")
+        {
+            this.handleOrderBookUnsubscription(client, subscription);
+        } else if (type == "trades")
+        {
+            this.handleTradesUnsubscription(client, subscription);
+        } else if (type == "candle")
+        {
+            this.handleOHLCVUnsubscription(client, subscription);
+        } else if (type == "orderUpdates")
+        {
+            this.handleOrderUnsubscription(client, subscription);
+        } else if (type == "userFills")
+        {
+            this.handleMyTradesUnsubscription(client, subscription);
+        } else if (type == "clearinghouseState")
+        {
+            this.handlePositionsUnsubscription(client, subscription);
+        } else if (type == "spotState")
+        {
+            this.handleSpotBalanceUnsubscription(client, subscription);
+        } else if ((type == "activeAssetCtx") || (type == "activeSpotAssetCtx"))
+        {
+            this.handleTickerUnsubscription(client, subscription);
+        } else if (type == "allMids")
+        {
+            this.handleTickersUnsubscription(client, subscription);
         }
     }
 

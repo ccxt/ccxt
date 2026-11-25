@@ -29,8 +29,8 @@ public class TestFetchOrderBooks extends BaseTest {
         Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol)), (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
         List<Object> orderBookKeys = new ArrayList<Object>(((Map<String, Object>)orderBooks).keySet());
-        Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
-        for (var i = 0; i < ((List<?>)orderBookKeys).size(); i++)
+        Assert(orderBookKeys.size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
+        for (var i = 0; i < orderBookKeys.size(); i++)
         {
             Object symbolInner = (orderBookKeys == null || i < 0 || i >= orderBookKeys.size() ? null : orderBookKeys.get(i));
             TestOrderBook.testOrderBook(exchange, skippedProperties, method, Helpers.GetValue(orderBooks, symbolInner), symbolInner);

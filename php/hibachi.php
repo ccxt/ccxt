@@ -379,7 +379,7 @@ class hibachi extends Exchange {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        $rows = $this->safe_list($response, 'futureContracts');
+        $rows = $this->safe_list($response, 'futureContracts', array());
         return $this->parse_markets($rows);
     }
 
@@ -1015,9 +1015,7 @@ class hibachi extends Exchange {
         $market = $this->market($symbol);
         $takerFee = $this->safe_number($market, 'taker', 0);
         $makerFee = $this->safe_number($market, 'maker', 0);
-        $takerFeeValue = ($takerFee === null) ? 0 : $takerFee;
-        $makerFeeValue = ($makerFee === null) ? 0 : $makerFee;
-        $feeRate = $this->parse_number(Precise::string_max($this->number_to_string($takerFeeValue), $this->number_to_string($makerFeeValue)));
+        $feeRate = $this->parse_number(Precise::string_max($this->number_to_string($takerFee), $this->number_to_string($makerFee)));
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
         $signature = $this->sign_message($message, $this->privateKey);
         $request = array(
@@ -1775,11 +1773,11 @@ class hibachi extends Exchange {
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
-            'entryPrice' => $this->safe_string($position, 'average_entry_price'),
+            'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
-            'notional' => $this->safe_string($position, 'notionalValue'),
+            'notional' => $this->safe_number($position, 'notionalValue'),
             'collateral' => null,
-            'unrealizedPnl' => $unrealizedPnl,
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -1911,7 +1909,7 @@ class hibachi extends Exchange {
         }
         return $this->safe_ledger_entry(array(
             'id' => $this->safe_string($item, 'id'),
-            'currency' => $this->currency('USDT'),
+            'currency' => 'USDT',
             'account' => $this->number_to_string($this->accountId),
             'referenceAccount' => $referenceAccount,
             'referenceId' => $referenceId,

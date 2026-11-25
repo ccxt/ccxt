@@ -787,9 +787,9 @@ class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             $decimalPart = $this->safe_string($priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            $leadingZeros = $this->parse_to_int(0);
+            $leadingZeros = 0;
             while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
-                $leadingZeros = $this->parse_to_int($leadingZeros + 1);
+                $leadingZeros = $leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             $pricePrecision = $leadingZeros . $significantDigits;
@@ -870,6 +870,15 @@ class hyperliquid extends Exchange {
         $second = $this->safe_list($response, 1, array());
         $meta = $this->safe_list($first, 'universe', array());
         $tokens = $this->safe_list($first, 'tokens', array());
+        // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        $tokensByIndex = array();
+        for ($i = 0; $i < count($tokens); $i++) {
+            $token = $this->safe_dict($tokens, $i, array());
+            $tokenIndex = $this->safe_string($token, 'index');
+            if ($tokenIndex !== null) {
+                $tokensByIndex[$tokenIndex] = $token;
+            }
+        }
         $markets = array();
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
@@ -887,10 +896,10 @@ class hyperliquid extends Exchange {
             $taker = $this->safe_number($fees, 'taker');
             $maker = $this->safe_number($fees, 'maker');
             $tokensPos = $this->safe_list($market, 'tokens', array());
-            $baseTokenPos = $this->safe_integer($tokensPos, 0);
-            $quoteTokenPos = $this->safe_integer($tokensPos, 1);
-            $baseTokenInfo = $this->safe_dict($tokens, $baseTokenPos, array());
-            $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
+            $baseTokenIndex = $this->safe_string($tokensPos, 0);
+            $quoteTokenIndex = $this->safe_string($tokensPos, 1);
+            $baseTokenInfo = $this->safe_dict($tokensByIndex, $baseTokenIndex, array());
+            $quoteTokenInfo = $this->safe_dict($tokensByIndex, $quoteTokenIndex, array());
             $baseName = $this->safe_string($baseTokenInfo, 'name');
             $quoteId = $this->safe_string($quoteTokenInfo, 'name');
             if ($baseName === null || $quoteId === null) {
@@ -1411,7 +1420,7 @@ class hyperliquid extends Exchange {
         return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //     {
         //         "maxLeverage": "50",
@@ -3613,6 +3622,7 @@ class hyperliquid extends Exchange {
             'canceled' => 'canceled',
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
+            'scheduledCancel' => 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         );
         if (str_ends_with($status, 'Rejected')) {
             return 'rejected';
@@ -4110,11 +4120,7 @@ class hyperliquid extends Exchange {
         );
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if ($vaultAddress !== null) {
-            if (str_starts_with($vaultAddress, '0x')) {
-                $vaultAddress = str_replace('0x', '', $vaultAddress);
-            }
-        }
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -4520,7 +4526,8 @@ class hyperliquid extends Exchange {
                 'type' => 'vaultTransfer',
                 'vaultAddress' => '0x' . $vaultAddress,
                 'isDeposit' => false,
-                'usd' => $amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd' => $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000')),
             );
             $sig = $this->sign_l1_action($action, $nonce);
         } else {
@@ -5282,12 +5289,11 @@ class hyperliquid extends Exchange {
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
         $isPost = ($method === 'POST');
-        $postHeaders = array(
-            'Content-Type' => 'application/json',
-        );
         $requestHeaders = null;
         if ($isPost) {
-            $requestHeaders = $postHeaders;
+            $requestHeaders = array(
+                'Content-Type' => 'application/json',
+            );
         }
         $requestBody = null;
         if ($isPost) {

@@ -8,11 +8,14 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.util.Separators;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -30,13 +33,16 @@ import io.github.ccxt.Version;
 
 class PrettyPrinter {
 
-    private static final Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
+    // "key": value spacing and one array element per line
+    private static final ObjectWriter writer = new ObjectMapper()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .writer(new DefaultPrettyPrinter(Separators.createDefaultInstance()
+                    .withObjectFieldValueSpacing(Separators.Spacing.AFTER))
+                    .withArrayIndenter(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE));
 
     static void prettyPrintData(Object data) {
         try {
-            String json = gson.toJson(data);
+            String json = writer.writeValueAsString(data);
             System.out.println(json);
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,21 +119,38 @@ public class Main {
     public static void setCredentials(BaseExchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
         var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
-        var keysJsonPath = basePath + prefix + "keys.json";
-
-//        System.out.perintln("Looking for keys.json at: " + keysJsonPath);
+        // later files override earlier ones: keys.local.json replaces whole top-level exchange
+        // entries of keys.json (shallow), matching cli/ts/helpers.ts and cs/cli/Program.cs LoadSettings
+        String[] keysFileNames = { "keys.json", "keys.local.json" };
 
         Map<String, Object> keysJsonContent = null;
-        if (FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
+        for (String keysFileName : keysFileNames) {
+            var keysJsonPath = basePath + prefix + keysFileName;
+            if (!FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
+                continue;
+            }
             System.out.println("Loading credentials from: " + keysJsonPath);
-//            var content = FileUtils.readFileAsString(keysJsonPath);
             String content = new String(Files.readAllBytes(Paths.get(keysJsonPath)));
-
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                keysJsonContent = mapper.readValue(content, Map.class);
+                Map<String, Object> fileContent = mapper.readValue(content, Map.class);
+                if (keysJsonContent == null) {
+                    keysJsonContent = new java.util.LinkedHashMap<>();
+                }
+                keysJsonContent.putAll(fileContent);
             } catch (Exception e) {
-                System.out.println("Error parsing keys.json: " + e.getMessage());
+                System.out.println("Error parsing " + keysFileName + ": " + e.getMessage());
+            }
+        }
+
+        // apply per-exchange "options" (non-secret config, e.g. defaultType) from keys files
+        if (keysJsonContent != null && keysJsonContent.get(instance.id) instanceof Map) {
+            Map<String, Object> exchangeConfig = (Map<String, Object>) keysJsonContent.get(instance.id);
+            Object fileOptions = exchangeConfig.get("options");
+            if (fileOptions instanceof Map) {
+                System.out.println("Setting options from keys files: " + instance.id + ".options");
+                // deep-merge here, extendExchangeOptions only does a shallow extend
+                instance.extendExchangeOptions(deepExtend(instance.options, (Map<String, Object>) fileOptions));
             }
         }
 
@@ -149,7 +172,7 @@ public class Main {
                 Map<String, Object> instanceCredentials = (Map<String, Object>)keysJsonContent.get(instanceIdKey);
                 if (instanceCredentials.containsKey(key)) {
                     credentialValue = instanceCredentials.get(key).toString();
-                    System.out.println("Setting credential from keys.json: " + instanceIdKey + "." + key);
+                    System.out.println("Setting credential from keys .json: " + instanceIdKey + "." + key);
                     setProperty(instance, key, credentialValue);
                     continue;
                 }
@@ -166,6 +189,21 @@ public class Main {
                 setProperty(instance, key, credentialValue);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> deepExtend(Map<String, Object> target, Map<String, Object> source) {
+        Map<String, Object> result = new java.util.LinkedHashMap<>(target);
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            Object existing = result.get(entry.getKey());
+            Object incoming = entry.getValue();
+            if (existing instanceof Map && incoming instanceof Map) {
+                result.put(entry.getKey(), deepExtend((Map<String, Object>) existing, (Map<String, Object>) incoming));
+            } else {
+                result.put(entry.getKey(), incoming);
+            }
+        }
+        return result;
     }
 
     private static void setProperty(BaseExchange instance, String key, String value)

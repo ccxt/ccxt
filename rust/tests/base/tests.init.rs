@@ -20,6 +20,7 @@ pub async fn baseTestsInit() {
     testDecimalToPrecision();
     testCapitalize();
     testIncrementingNonce();
+    testArraySlice();
     testIsDictionary();
     testNumberToString();
     testPrecise();
@@ -69,4 +70,5 @@ pub async fn baseTestsInit() {
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();
+    testModPow();
 }

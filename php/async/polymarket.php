@@ -1085,7 +1085,7 @@ class polymarket extends Exchange {
         return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "instrument_id": 1,
@@ -2763,11 +2763,11 @@ class polymarket extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $sVal = $signature['s'];
@@ -2775,7 +2775,7 @@ class polymarket extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 

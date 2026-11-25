@@ -59,6 +59,7 @@ declare abstract class Exchange extends _Exchange {
     publicGetPublicVipInterestRateLoanQuota(params?: {}): Promise<Dict>;
     publicGetPublicMmInstrumentTypes(params?: {}): Promise<Dict>;
     publicGetPublicDeltaHedgeCurrencies(params?: {}): Promise<Dict>;
+    publicGetPublicCorporateActions(params?: {}): Promise<Dict>;
     publicGetRubikStatTradingDataSupportCoin(params?: {}): Promise<Dict>;
     publicGetRubikStatContractsOpenInterestHistory(params?: {}): Promise<Dict>;
     publicGetRubikStatTakerVolume(params?: {}): Promise<Dict>;
@@ -146,6 +147,7 @@ declare abstract class Exchange extends _Exchange {
     privateGetAssetDepositHistory(params?: {}): Promise<Dict>;
     privateGetAssetWithdrawalHistory(params?: {}): Promise<Dict>;
     privateGetAssetDepositWithdrawStatus(params?: {}): Promise<Dict>;
+    privateGetAssetTravelRuleGetLocked(params?: {}): Promise<Dict>;
     privateGetAssetMonthlyStatement(params?: {}): Promise<Dict>;
     privateGetAssetConvertCurrencies(params?: {}): Promise<Dict>;
     privateGetAssetConvertCurrencyPair(params?: {}): Promise<Dict>;
@@ -339,6 +341,7 @@ declare abstract class Exchange extends _Exchange {
     privatePostAssetWithdrawal(params?: {}): Promise<Dict>;
     privatePostAssetWithdrawalLightning(params?: {}): Promise<Dict>;
     privatePostAssetCancelWithdrawal(params?: {}): Promise<Dict>;
+    privatePostAssetTravelRuleUnlock(params?: {}): Promise<Dict>;
     privatePostAssetConvertDustAssets(params?: {}): Promise<Dict>;
     privatePostAssetMonthlyStatement(params?: {}): Promise<Dict>;
     privatePostAssetConvertEstimateQuote(params?: {}): Promise<Dict>;

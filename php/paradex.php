@@ -15,7 +15,9 @@ class paradex extends Exchange {
             'name' => 'Paradex',
             'countries' => array(),
             'version' => 'v1',
-            'rateLimit' => 50,
+            // public calls are limited to 1500 per minute per ip, which also caps every private call from the
+            // same ip, so 25 per second is the base rate, see https://docs.paradex.trade/api/general-information/rate-limits/api
+            'rateLimit' => 40,
             'certified' => false,
             'pro' => true,
             'dex' => true,
@@ -25,7 +27,7 @@ class paradex extends Exchange {
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -83,6 +85,8 @@ class paradex extends Exchange {
                 'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => true,
+                'fetchOptionChain' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -179,50 +183,50 @@ class paradex extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'account' => array( 'cost' => 1 ),
-                        'account/compliance' => array( 'cost' => 1 ),
-                        'account/history' => array( 'cost' => 1 ),
-                        'account/info' => array( 'cost' => 1 ),
-                        'account/margin' => array( 'cost' => 1 ),
-                        'account/profile' => array( 'cost' => 1 ),
-                        'account/settings' => array( 'cost' => 1 ),
-                        'account/subaccounts' => array( 'cost' => 1 ),
-                        'account/summary' => array( 'cost' => 1 ),
-                        'balance' => array( 'cost' => 1 ),
-                        'fills' => array( 'cost' => 1 ),
-                        'funding/payments' => array( 'cost' => 1 ),
-                        'positions' => array( 'cost' => 1 ),
-                        'tradebusts' => array( 'cost' => 1 ),
-                        'transactions' => array( 'cost' => 1 ),
-                        'account/keys/subkeys' => array( 'cost' => 1 ),
-                        'account/keys/subkeys/{public_key}' => array( 'cost' => 1 ),
-                        'account/tokens' => array( 'cost' => 1 ),
-                        'algo/orders' => array( 'cost' => 1 ),
-                        'algo/orders-history' => array( 'cost' => 1 ),
-                        'algo/orders/{algo_id}' => array( 'cost' => 1 ),
-                        'block-trades' => array( 'cost' => 1 ),
-                        'block-trades/{block_trade_id}' => array( 'cost' => 1 ),
-                        'block-trades/{block_trade_id}/offers' => array( 'cost' => 1 ),
-                        'block-trades/{block_trade_id}/offers/{offer_id}' => array( 'cost' => 1 ),
-                        'liquidations' => array( 'cost' => 1 ),
-                        'orders' => array( 'cost' => 1 ),
-                        'orders-history' => array( 'cost' => 1 ),
-                        'orders/by_client_id/{client_id}' => array( 'cost' => 1 ),
-                        'orders/{order_id}' => array( 'cost' => 1 ),
-                        'referrals/qr-code' => array( 'cost' => 1 ),
-                        'referrals/summary' => array( 'cost' => 1 ),
-                        'rfqs' => array( 'cost' => 1 ),
-                        'rfqs/drafts' => array( 'cost' => 1 ),
-                        'rfqs/markets' => array( 'cost' => 1 ),
-                        'rfqs/{rfq_id}/bbo' => array( 'cost' => 1 ),
-                        'staking/balance/history' => array( 'cost' => 1 ),
-                        'staking/history' => array( 'cost' => 1 ),
-                        'staking/summary' => array( 'cost' => 1 ),
-                        'transfers' => array( 'cost' => 1 ),
-                        'vaults/account-summary' => array( 'cost' => 1 ),
-                        'vaults/mine' => array( 'cost' => 1 ),
-                        'xp/account-balance' => array( 'cost' => 1 ),
-                        'xp/transfers' => array( 'cost' => 1 ),
+                        'account' => array( 'cost' => 2.5 ),
+                        'account/compliance' => array( 'cost' => 2.5 ),
+                        'account/history' => array( 'cost' => 2.5 ),
+                        'account/info' => array( 'cost' => 2.5 ),
+                        'account/margin' => array( 'cost' => 2.5 ),
+                        'account/profile' => array( 'cost' => 2.5 ),
+                        'account/settings' => array( 'cost' => 2.5 ),
+                        'account/subaccounts' => array( 'cost' => 2.5 ),
+                        'account/summary' => array( 'cost' => 2.5 ),
+                        'balance' => array( 'cost' => 2.5 ),
+                        'fills' => array( 'cost' => 2.5 ),
+                        'funding/payments' => array( 'cost' => 2.5 ),
+                        'positions' => array( 'cost' => 2.5 ),
+                        'tradebusts' => array( 'cost' => 2.5 ),
+                        'transactions' => array( 'cost' => 2.5 ),
+                        'account/keys/subkeys' => array( 'cost' => 2.5 ),
+                        'account/keys/subkeys/{public_key}' => array( 'cost' => 2.5 ),
+                        'account/tokens' => array( 'cost' => 2.5 ),
+                        'algo/orders' => array( 'cost' => 2.5 ),
+                        'algo/orders-history' => array( 'cost' => 2.5 ),
+                        'algo/orders/{algo_id}' => array( 'cost' => 2.5 ),
+                        'block-trades' => array( 'cost' => 2.5 ),
+                        'block-trades/{block_trade_id}' => array( 'cost' => 2.5 ),
+                        'block-trades/{block_trade_id}/offers' => array( 'cost' => 2.5 ),
+                        'block-trades/{block_trade_id}/offers/{offer_id}' => array( 'cost' => 2.5 ),
+                        'liquidations' => array( 'cost' => 2.5 ),
+                        'orders' => array( 'cost' => 2.5 ),
+                        'orders-history' => array( 'cost' => 2.5 ),
+                        'orders/by_client_id/{client_id}' => array( 'cost' => 2.5 ),
+                        'orders/{order_id}' => array( 'cost' => 2.5 ),
+                        'referrals/qr-code' => array( 'cost' => 2.5 ),
+                        'referrals/summary' => array( 'cost' => 2.5 ),
+                        'rfqs' => array( 'cost' => 2.5 ),
+                        'rfqs/drafts' => array( 'cost' => 2.5 ),
+                        'rfqs/markets' => array( 'cost' => 2.5 ),
+                        'rfqs/{rfq_id}/bbo' => array( 'cost' => 2.5 ),
+                        'staking/balance/history' => array( 'cost' => 2.5 ),
+                        'staking/history' => array( 'cost' => 2.5 ),
+                        'staking/summary' => array( 'cost' => 2.5 ),
+                        'transfers' => array( 'cost' => 2.5 ),
+                        'vaults/account-summary' => array( 'cost' => 2.5 ),
+                        'vaults/mine' => array( 'cost' => 2.5 ),
+                        'xp/account-balance' => array( 'cost' => 2.5 ),
+                        'xp/transfers' => array( 'cost' => 2.5 ),
                         // 'points_data/{market}/{program}': 1,
                     ),
                     'post' => array(
@@ -243,19 +247,19 @@ class paradex extends Exchange {
                         'account/keys/subkeys' => array( 'cost' => 1 ),
                         'account/tokens' => array( 'cost' => 1 ),
                         'algo/orders' => array( 'cost' => 1 ),
-                        'auth' => array( 'cost' => 1 ),
+                        'auth' => array( 'cost' => 2.5 ),
                         'block-trades' => array( 'cost' => 1 ),
                         'block-trades/{block_trade_id}/execute' => array( 'cost' => 1 ),
                         'block-trades/{block_trade_id}/offers' => array( 'cost' => 1 ),
                         'block-trades/{block_trade_id}/offers/{offer_id}/execute' => array( 'cost' => 1 ),
-                        'onboarding' => array( 'cost' => 1 ),
+                        'onboarding' => array( 'cost' => 2.5 ),
                         'orders' => array( 'cost' => 1 ),
                         'orders/batch' => array( 'cost' => 1 ),
                         'rfqs' => array( 'cost' => 1 ),
                         'rfqs/drafts' => array( 'cost' => 1 ),
                         'rfqs/{rfq_id}/execute' => array( 'cost' => 1 ),
-                        'v2/auth' => array( 'cost' => 1 ),
-                        'v2/onboarding' => array( 'cost' => 1 ),
+                        'v2/auth' => array( 'cost' => 2.5 ),
+                        'v2/onboarding' => array( 'cost' => 2.5 ),
                         'vaults' => array( 'cost' => 1 ),
                         'xp/transfer' => array( 'cost' => 1 ),
                         // 'account/profile/max_slippage': 1,
@@ -282,14 +286,19 @@ class paradex extends Exchange {
                     ),
                 ),
             ),
+            // the defaults of the api fee schedule, every market carries its own in fee_config
             'fees' => array(
                 'swap' => array(
                     'taker' => $this->parse_number('0.0002'),
-                    'maker' => $this->parse_number('0.0002'),
+                    'maker' => $this->parse_number('0'),
                 ),
                 'spot' => array(
                     'taker' => $this->parse_number('0.0002'),
-                    'maker' => $this->parse_number('0.0002'),
+                    'maker' => $this->parse_number('0'),
+                ),
+                'option' => array(
+                    'taker' => $this->parse_number('0.0001'),
+                    'maker' => $this->parse_number('0.0001'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -300,44 +309,63 @@ class paradex extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'VALIDATION_ERROR' => '\\ccxt\\AuthenticationError',
-                    'BINDING_ERROR' => '\\ccxt\\OperationRejected',
+                    'VALIDATION_ERROR' => '\\ccxt\\BadRequest',
+                    'BINDING_ERROR' => '\\ccxt\\BadRequest',
                     'INTERNAL_ERROR' => '\\ccxt\\ExchangeError',
                     'NOT_FOUND' => '\\ccxt\\BadRequest',
-                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeError',
+                    'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable',
                     'INVALID_REQUEST_PARAMETER' => '\\ccxt\\BadRequest',
-                    'ORDER_ID_NOT_FOUND' => '\\ccxt\\InvalidOrder',
+                    'ORDER_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_IS_CLOSED' => '\\ccxt\\InvalidOrder',
-                    'ORDER_IS_NOT_OPEN_YET' => '\\ccxt\\InvalidOrder',
-                    'CLIENT_ORDER_ID_NOT_FOUND' => '\\ccxt\\InvalidOrder',
-                    'DUPLICATED_CLIENT_ID' => '\\ccxt\\InvalidOrder',
-                    'INVALID_PRICE_PRECISION' => '\\ccxt\\OperationRejected',
-                    'INVALID_SYMBOL' => '\\ccxt\\OperationRejected',
-                    'INVALID_TOKEN' => '\\ccxt\\OperationRejected',
+                    'ORDER_IS_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                    'INVALID_PRICE_PRECISION' => '\\ccxt\\InvalidOrder',
+                    'INVALID_ORDER_SIZE' => '\\ccxt\\InvalidOrder',
+                    'CLIENT_ORDER_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'ALGO_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'DUPLICATED_CLIENT_ID' => '\\ccxt\\DuplicateOrderId',
+                    'INVALID_SYMBOL' => '\\ccxt\\BadSymbol',
+                    'INVALID_TOKEN' => '\\ccxt\\AuthenticationError',
+                    'INVALID_TOKEN_SCOPE' => '\\ccxt\\PermissionDenied',
                     'INVALID_ETHEREUM_ADDRESS' => '\\ccxt\\OperationRejected',
-                    'INVALID_ETHEREUM_SIGNATURE' => '\\ccxt\\OperationRejected',
+                    'INVALID_ETHEREUM_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                    'INVALID_EVM_SIGNATURE' => '\\ccxt\\AuthenticationError',
                     'INVALID_STARKNET_ADDRESS' => '\\ccxt\\OperationRejected',
-                    'INVALID_STARKNET_SIGNATURE' => '\\ccxt\\OperationRejected',
+                    'INVALID_STARKNET_SIGNATURE' => '\\ccxt\\AuthenticationError',
                     'STARKNET_SIGNATURE_VERIFICATION_FAILED' => '\\ccxt\\AuthenticationError',
+                    'EVM_SIGNATURE_VERIFICATION_FAILED' => '\\ccxt\\AuthenticationError',
+                    'INVALID_SUBKEY' => '\\ccxt\\AuthenticationError',
+                    'SUBKEY_REVOKED' => '\\ccxt\\AuthenticationError',
                     'BAD_STARKNET_REQUEST' => '\\ccxt\\BadRequest',
                     'ETHEREUM_SIGNER_MISMATCH' => '\\ccxt\\BadRequest',
                     'ETHEREUM_HASH_MISMATCH' => '\\ccxt\\BadRequest',
-                    'NOT_ONBOARDED' => '\\ccxt\\BadRequest',
+                    'NOT_ONBOARDED' => '\\ccxt\\AccountNotEnabled',
                     'INVALID_TIMESTAMP' => '\\ccxt\\BadRequest',
-                    'INVALID_SIGNATURE_EXPIRATION' => '\\ccxt\\AuthenticationError',
+                    'INVALID_BLOCK_EXPIRATION' => '\\ccxt\\AuthenticationError',
                     'ACCOUNT_NOT_FOUND' => '\\ccxt\\AuthenticationError',
                     'INVALID_ORDER_SIGNATURE' => '\\ccxt\\AuthenticationError',
                     'PUBLIC_KEY_INVALID' => '\\ccxt\\BadRequest',
                     'UNAUTHORIZED_ETHEREUM_ADDRESS' => '\\ccxt\\BadRequest',
+                    'UNAUTHORIZED_ERROR' => '\\ccxt\\PermissionDenied',
+                    'NO_ACCESS_TO_MARKET' => '\\ccxt\\PermissionDenied',
+                    'IP_NOT_ALLOWED' => '\\ccxt\\PermissionDenied',
+                    'RPI_ACCOUNT_NOT_WHITELISTED' => '\\ccxt\\PermissionDenied',
                     'ETHEREUM_ADDRESS_ALREADY_ONBOARDED' => '\\ccxt\\BadRequest',
-                    'MARKET_NOT_FOUND' => '\\ccxt\\BadRequest',
+                    'MARKET_NOT_FOUND' => '\\ccxt\\BadSymbol',
                     'ALLOWLIST_ENTRY_NOT_FOUND' => '\\ccxt\\BadRequest',
                     'USERNAME_IN_USE' => '\\ccxt\\AuthenticationError',
                     'GEO_IP_BLOCK' => '\\ccxt\\PermissionDenied',
-                    'ETHEREUM_ADDRESS_BLOCKED' => '\\ccxt\\PermissionDenied',
+                    'ETHEREUM_ADDRESS_BLOCKED' => '\\ccxt\\AccountSuspended',
                     'PROGRAM_NOT_FOUND' => '\\ccxt\\BadRequest',
                     'INVALID_DASHBOARD' => '\\ccxt\\OperationRejected',
                     'MARKET_NOT_OPEN' => '\\ccxt\\BadRequest',
+                    'SYSTEM_STATUS_CANCEL_ONLY' => '\\ccxt\\OnMaintenance',
+                    'SYSTEM_STATUS_POST_ONLY' => '\\ccxt\\OperationRejected',
+                    'MMP_CONFIG_INVALID' => '\\ccxt\\OperationRejected',
+                    'MMP_NOT_ENABLED' => '\\ccxt\\OperationRejected',
+                    'MMP_NOT_CONFIGURED' => '\\ccxt\\OperationRejected',
+                    'MMP_MIN_FREEZE_NOT_ELAPSED' => '\\ccxt\\OperationRejected',
+                    'ONBOARDING_RATE_LIMITED' => '\\ccxt\\RateLimitExceeded',
+                    'RFQ_CREATE_BUDGET_EXCEEDED' => '\\ccxt\\RateLimitExceeded',
                     'INVALID_REFERRAL_CODE' => '\\ccxt\\OperationRejected',
                     'PARENT_ADDRESS_ALREADY_ONBOARDED' => '\\ccxt\\BadRequest',
                     'INVALID_PARENT_ACCOUNT' => '\\ccxt\\OperationRejected',
@@ -362,6 +390,9 @@ class paradex extends Exchange {
                     '42901' => '\\ccxt\\RateLimitExceeded', // Rate limited
                 ),
                 'broad' => array(
+                    // INVALID_REQUEST_PARAMETER is shared by every validation failure, its message tells them apart
+                    'must be a multiple of' => '\\ccxt\\InvalidOrder',
+                    'market not found' => '\\ccxt\\BadSymbol',
                     'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
                 ),
             ),
@@ -371,6 +402,10 @@ class paradex extends Exchange {
             'options' => array(
                 'paradexAccount' => null, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker' => 'CCXT',
+                'fetchMarkets' => array(
+                    // the venue lists thousands of dated options, drop 'option' to load perpetuals and spot only
+                    'types' => array( 'swap', 'spot', 'option' ),
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -388,10 +423,11 @@ class paradex extends Exchange {
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true,
-                        'triggerDirection' => true, // todo
+                        // a stop order fires on the side of the trigger price, there is no direction to choose
+                        'triggerDirection' => false,
                         'triggerPriceType' => null,
-                        'stopLossPrice' => false, // todo
-                        'takeProfitPrice' => false, // todo
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
                             'IOC' => true,
@@ -404,17 +440,18 @@ class paradex extends Exchange {
                         'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
-                        'selfTradePrevention' => true, // todo
+                        // the venue takes EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH as the raw stp param, the unified param is not mapped
+                        'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
                     'createOrders' => array(
-                        'max' => 10,
+                        'max' => 10, // https://docs.paradex.trade/api/prod/orders/batch
                     ),
                     'fetchMyTrades' => array(
                         'marginMode' => false,
-                        'limit' => 100, // todo
-                        'daysBack' => 100000, // todo
-                        'untilDays' => 100000, // todo
+                        'limit' => 5000,
+                        'daysBack' => null,
+                        'untilDays' => null,
                         'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
@@ -425,23 +462,23 @@ class paradex extends Exchange {
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
-                        'limit' => 100, // todo
+                        'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
                     'fetchOrders' => array(
                         'marginMode' => false,
-                        'limit' => 100,
-                        'daysBack' => 100000, // todo
-                        'untilDays' => 100000, // todo
+                        'limit' => 5000,
+                        'daysBack' => null,
+                        'untilDays' => null,
                         'trigger' => false,
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
-                    'fetchClosedOrders' => null, // todo
+                    'fetchClosedOrders' => null,
                     'fetchOHLCV' => array(
-                        'limit' => 1000, // todo by from/to
+                        'limit' => 1000,
                     ),
                 ),
                 'swap' => array(
@@ -452,6 +489,13 @@ class paradex extends Exchange {
                 ),
                 'future' => array(
                     'linear' => null,
+                    'inverse' => null,
+                ),
+                'option' => array(
+                    // dated options settle in USDC and take the same order types as perpetuals
+                    'linear' => array(
+                        'extends' => 'forSwap',
+                    ),
                     'inverse' => null,
                 ),
             ),
@@ -508,9 +552,19 @@ class paradex extends Exchange {
          * @see https://docs.paradex.trade/api/prod/markets/get-markets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]|string} [$params->types] the market $types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
          * @return {array[]} an array of objects representing market $data
          */
-        $response = $this->publicGetMarkets($params);
+        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets', array());
+        // the types come from params or the option, as a list or a comma separated string such as 'swap,spot'
+        $typesSource = (is_array($params) && array_key_exists('types' ?? '', $params)) ? $params : $fetchMarketsOptions;
+        $types = $this->safe_list($typesSource, 'types');
+        if ($types === null) {
+            $typesString = $this->safe_string($typesSource, 'types', 'swap,spot,option');
+            $types = explode(',', $typesString);
+        }
+        $request = $this->omit($params, 'types');
+        $response = $this->publicGetMarkets($request);
         //
         //     {
         //         "results": [
@@ -544,8 +598,30 @@ class paradex extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_list($response, 'results');
-        return $this->parse_markets($data);
+        $data = $this->safe_list($response, 'results', array());
+        // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
+        $assetKinds = array();
+        for ($i = 0; $i < count($types); $i++) {
+            $marketType = $types[$i];
+            if ($marketType === 'swap') {
+                $assetKinds['PERP'] = true;
+            } elseif ($marketType === 'spot') {
+                $assetKinds['SPOT'] = true;
+            } elseif ($marketType === 'option') {
+                $assetKinds['OPTION'] = true;
+                $assetKinds['PERP_OPTION'] = true;
+            } else {
+                throw new BadRequest($this->id . ' fetchMarkets() types must be any of swap, spot and option, got ' . $marketType);
+            }
+        }
+        $wanted = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $assetKind = $this->safe_string($data[$i], 'asset_kind');
+            if ($this->safe_bool($assetKinds, $assetKind, false)) {
+                $wanted[] = $data[$i];
+            }
+        }
+        return $this->parse_markets($wanted);
     }
 
     public function parse_market(array $market): array {
@@ -675,8 +751,6 @@ class paradex extends Exchange {
         $expiry = $this->safe_integer($market, 'expiry_at');
         $optionType = $this->safe_string($market, 'option_type');
         $strikePrice = $this->safe_string($market, 'strike_price');
-        $takerFee = $this->parse_number('0.0003');
-        $makerFee = $this->parse_number('-0.00005');
         if ($isOption) {
             $optionTypeSuffix = ($optionType === 'CALL') ? 'C' : 'P';
             $deliveryValue = '';
@@ -686,11 +760,25 @@ class paradex extends Exchange {
             if ($strikePrice !== null) {
                 $symbol = $symbol . '-' . $deliveryValue . $strikePrice . '-' . $optionTypeSuffix;
             }
-            $makerFee = $this->parse_number('0.0003');
         } else {
             $expiry = null;
         }
         $expireDatetime = ($expiry === 0) ? null : $this->iso8601($expiry);
+        // the fee an api order pays, the market falls back to the default schedule of its type
+        $apiFee = $this->safe_dict($this->safe_dict($market, 'fee_config', array()), 'api_fee', array());
+        $defaultFees = $this->safe_dict($this->fees, $type, array());
+        $makerFee = $this->safe_number($this->safe_dict($apiFee, 'maker_fee', array()), 'fee', $this->safe_number($defaultFees, 'maker'));
+        $takerFee = $this->safe_number($this->safe_dict($apiFee, 'taker_fee', array()), 'fee', $this->safe_number($defaultFees, 'taker'));
+        // an rfq only market takes block trades and rejects orders on the book
+        $openAt = $this->safe_integer($market, 'open_at');
+        $tradingMode = $this->safe_string($market, 'trading_mode');
+        $active = null;
+        if (($tradingMode !== null) || ($openAt !== null)) {
+            $now = $this->milliseconds();
+            $isOpen = ($openAt === null) || ($openAt <= $now);
+            $isLive = ($expiry === null) || ($expiry === 0) || ($expiry > $now);
+            $active = ($tradingMode !== 'RFQ_ONLY') && $isOpen && $isLive;
+        }
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -706,7 +794,7 @@ class paradex extends Exchange {
             'swap' => $isSwap,
             'future' => false,
             'option' => $isOption,
-            'active' => $this->safe_bool($market, 'enableTrading'),
+            'active' => $active,
             'contract' => !$isSpot,
             'linear' => ($isSpot) ? null : true,
             'inverse' => ($isSpot) ? null : false,
@@ -739,9 +827,128 @@ class paradex extends Exchange {
                     'max' => null,
                 ),
             ),
-            'created' => null,
+            'created' => $openAt,
             'info' => $market,
         ));
+    }
+
+    public function create_expired_option_market(string $symbol): array {
+        //
+        // an option leaves the market list once it expires, while fills, orders and positions still name it
+        //
+        //     id      NEAR-USD-30OCT26-5_6-C
+        //     symbol  NEAR/USD:USDC-261030-5.6-C
+        //
+        $parts = explode('-', $symbol);
+        $partsLength = count($parts);
+        $base = null;
+        $quote = null;
+        $settle = null;
+        $expiryDate = null;
+        $strike = null;
+        $optionType = null;
+        if (mb_strpos($symbol, '/') > -1) {
+            if ($partsLength !== 4) {
+                throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
+            }
+            $pair = $parts[0];
+            $pairParts = explode('/', $pair);
+            $base = $this->safe_string($pairParts, 0);
+            $quoteAndSettle = $this->safe_string($pairParts, 1, '');
+            $quoteParts = explode(':', $quoteAndSettle);
+            $quote = $this->safe_string($quoteParts, 0);
+            $settle = $this->safe_string($quoteParts, 1, $quote);
+            $expiryDate = $this->safe_string($parts, 1);
+            $strike = $this->safe_string($parts, 2);
+            $optionType = $this->safe_string($parts, 3);
+        } else {
+            if ($partsLength !== 5) {
+                throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
+            }
+            $base = $this->safe_string($parts, 0);
+            $quote = $this->safe_string($parts, 1);
+            $settle = 'USDC'; // every option on the venue settles in USDC
+            $expiryDate = $this->convert_market_id_expire_date($this->safe_string($parts, 2));
+            $strikeId = $parts[3];
+            $strike = str_replace('_', '.', $strikeId);
+            $optionType = $this->safe_string($parts, 4);
+        }
+        // the id carries the day without a leading zero, 6NOV26
+        $idDate = $this->convert_expire_date_to_market_id_date($expiryDate);
+        if (str_starts_with($idDate, '0')) {
+            $idDate = mb_substr($idDate, 1);
+        }
+        // the id names the expiry day only, the hour depends on the underlying
+        $datetime = $this->convert_expire_date($expiryDate);
+        $timestamp = $this->parse8601($datetime);
+        $active = null;
+        if (($timestamp !== null) && ($this->sum($timestamp, 86400000) <= $this->milliseconds())) {
+            $active = false;
+        }
+        $strikeInId = '';
+        if ($strike !== null) {
+            $strikeInId = str_replace('.', '_', $strike);
+        }
+        return array(
+            'id' => $base . '-' . $quote . '-' . $idDate . '-' . $strikeInId . '-' . $optionType,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiryDate . '-' . $strike . '-' . $optionType,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settleId' => $settle,
+            'active' => $active,
+            'type' => 'option',
+            'subType' => 'linear',
+            'linear' => true,
+            'inverse' => false,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => true,
+            'margin' => false,
+            'contract' => true,
+            'contractSize' => $this->parse_number('1'),
+            'expiry' => $timestamp,
+            'expiryDatetime' => $datetime,
+            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'strike' => $this->parse_number($strike),
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
+    }
+
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
+        // a dated option id has five parts, BTC-USD-29MAY26-80000-C
+        if (($marketId !== null) && (mb_strpos($marketId, '/') === false) && (str_ends_with($marketId, '-C') || str_ends_with($marketId, '-P'))) {
+            $isKnown = ($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id));
+            if (!$isKnown) {
+                $marketIdParts = explode('-', $marketId);
+                $marketIdPartsLength = count($marketIdParts);
+                if ($marketIdPartsLength === 5) {
+                    return $this->create_expired_option_market($marketId);
+                }
+            }
+        }
+        return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
@@ -858,9 +1065,11 @@ class paradex extends Exchange {
         //     }
         //
         $fees = $this->safe_list($response, 'results', array());
+        // markets left out by options.fetchMarkets.types are skipped
+        $loadedFees = $this->filter_loaded_summaries($fees);
         $result = array();
-        for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
+        for ($i = 0; $i < count($loadedFees); $i++) {
+            $fee = $this->parse_trading_fee($loadedFees[$i]);
             $symbol = $fee['symbol'];
             $result[$symbol] = $fee;
         }
@@ -880,10 +1089,16 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->price] "last", "mark", "index" (sent as "underlying"), default is "last"
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
+        }
+        $maxLimit = 1000; // exchange has undocumented limit slightly above, but this is reliable limit
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -891,22 +1106,24 @@ class paradex extends Exchange {
             'symbol' => $market['id'],
         );
         $duration = $this->parse_timeframe($timeframe);
-        $price = $this->safe_string($params, 'price');
+        $price = $this->safe_string($paramsPaginate, 'price');
         if ($price !== null) {
             // the exchange names the index price "underlying" and rejects "index"
             $request['price_kind'] = ($price === 'index') ? 'underlying' : $price;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
-        $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
+        $hasEnd = (is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil));
         $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
         $windowLength = $this->parse_to_int($duration * ($this->parse_to_int($limitResolved) + 1) * 1000);
         if ($since !== null) {
             $requestUntil['start_at'] = $since;
-            if (!$hasEnd) {
-                $sinceInt = $this->parse_to_int($since);
-                $requestUntil['end_at'] = $sinceInt . $windowLength - 1;
+            // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
+            $windowEnd = $this->sum($this->parse_to_int($since), $windowLength - 1);
+            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
+            if (!$hasEnd || ($endAt > $windowEnd)) {
+                $requestUntil['end_at'] = $windowEnd;
             }
         } else {
             $endAtRaw = $this->safe_integer($requestUntil, 'end_at', $this->milliseconds());
@@ -969,7 +1186,7 @@ class paradex extends Exchange {
         }
         $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
-            'market' => 'ALL',
+            'market' => $this->summary_market_id($symbolsNormalized),
         );
         $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
@@ -994,7 +1211,54 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        return $this->parse_tickers($data, $symbolsNormalized);
+        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data) : $data;
+        return $this->parse_tickers($rows, $symbolsNormalized);
+    }
+
+    public function summary_market_id(?array $symbols = null): string {
+        /**
+         * @ignore
+         * the market a markets/summary request asks for, the endpoint takes one market id or ALL, which answers for every market on the venue in megabytes, so a single symbol is asked for by name
+         * @param {string[]|null} $symbols unified market $symbols
+         * @return {string} the market id, or ALL
+         */
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                return $this->market($symbols[0])['id'];
+            }
+        }
+        return 'ALL';
+    }
+
+    public function filter_loaded_summaries(array $summaries, ?string $marketType = null): array {
+        /**
+         * @ignore
+         * keeps the markets or markets/summary rows of loaded markets, the endpoints also answer for the USDC collateral and for $market types left out by options.fetchMarkets.types
+         * @param {array[]} $summaries the results of markets or markets/summary
+         * @param {string} [$marketType] keep this $market type only
+         * @return {array[]} the rows of loaded markets
+         */
+        $result = array();
+        $marketsById = $this->markets_by_id;
+        if ($marketsById === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($summaries); $i++) {
+            $summary = $summaries[$i];
+            $marketId = $this->safe_string($summary, 'symbol');
+            if (($marketId !== null) && (is_array($marketsById) && array_key_exists($marketId ?? '', $marketsById))) {
+                if ($marketType === null) {
+                    $result[] = $summary;
+                } else {
+                    $market = $this->safe_market($marketId);
+                    if ($market['type'] === $marketType) {
+                        $result[] = $summary;
+                    }
+                }
+            }
+        }
+        return $result;
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -1075,9 +1339,9 @@ class paradex extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => $this->safe_string($ticker, 'bid'),
-            'bidVolume' => null,
+            'bidVolume' => $this->safe_string($ticker, 'bid_size'),
             'ask' => $this->safe_string($ticker, 'ask'),
-            'askVolume' => null,
+            'askVolume' => $this->safe_string($ticker, 'ask_size'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -1089,6 +1353,7 @@ class paradex extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($ticker, 'volume_24h'),
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'underlying_price'),
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -1107,22 +1372,14 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        // the endpoint takes one market id, and ALL answers for every product on
-        // the venue: a single symbol is asked for by name, which is 544 bytes
-        // against 1.6 MB
-        $target = 'ALL';
-        if ($symbolsNormalized !== null) {
-            $symbolsLength = count($symbolsNormalized);
-            if ($symbolsLength === 1) {
-                $target = $this->market($symbolsNormalized[0])['id'];
-            }
-        }
         $request = array(
-            'market' => $target,
+            'market' => $this->summary_market_id($symbolsNormalized),
         );
         $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         $data = $this->safe_list($response, 'results', array());
-        return $this->parse_funding_rates($data, $symbolsNormalized);
+        // only a perpetual funds, the other rows are dropped before they are parsed
+        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($data, 'swap') : $data;
+        return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): array {
@@ -1147,7 +1404,7 @@ class paradex extends Exchange {
         return $rate;
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -1211,8 +1468,9 @@ class paradex extends Exchange {
          * @see https://docs.paradex.trade/api/prod/markets/get-$orderbook
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return, up to 100 per side, default is 20
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->price_tick] aggregate the levels to this price increment, one of the values the $market allows
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -1220,6 +1478,9 @@ class paradex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array( 'market' => $market['id'] );
+        if ($limit !== null) {
+            $request['depth'] = min($limit, 100);
+        }
         $response = $this->publicGetOrderbookMarket($this->extend($request, $params));
         //
         //     {
@@ -1240,9 +1501,6 @@ class paradex extends Exchange {
         //         ]
         //     }
         //
-        if ($limit !== null) {
-            $request['depth'] = $limit;
-        }
         $timestamp = $this->safe_integer($response, 'last_updated_at');
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'seq_no');
@@ -1646,6 +1904,20 @@ class paradex extends Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'avg_fill_price'));
         $remaining = $this->omit_zero($this->safe_string($order, 'remaining_size'));
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'trigger_price'));
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if ($orderType !== null) {
+            if (mb_strpos($orderType, 'STOP_LOSS') !== false) {
+                $stopLossPrice = $triggerPrice;
+            } elseif (mb_strpos($orderType, 'TAKE_PROFIT') !== false) {
+                $takeProfitPrice = $triggerPrice;
+            }
+        }
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'instruction'));
+        $postOnly = null;
+        if ($timeInForce !== null) {
+            $postOnly = ($timeInForce === 'PO');
+        }
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags');
         $reduceOnly = null;
@@ -1662,14 +1934,14 @@ class paradex extends Exchange {
             'status' => $this->parse_order_status($status),
             'symbol' => $symbol,
             'type' => $this->parse_order_type($orderType),
-            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'instruction')),
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
             'triggerPrice' => $triggerPrice,
-            'takeProfitPrice' => null,
-            'stopLossPrice' => null,
+            'takeProfitPrice' => $takeProfitPrice,
+            'stopLossPrice' => $stopLossPrice,
             'average' => $average,
             'amount' => $amount,
             'filled' => null,
@@ -1689,6 +1961,7 @@ class paradex extends Exchange {
             'IOC' => 'IOC',
             'GTC' => 'GTC',
             'POST_ONLY' => 'PO',
+            'RPI' => 'PO', // retail price improvement orders only rest on the book, the raw instruction stays in info
         );
         return $this->safe_string($timeInForces, $timeInForce);
     }
@@ -1712,12 +1985,31 @@ class paradex extends Exchange {
             'MARKET' => 'market',
             'STOP_LIMIT' => 'limit',
             'STOP_MARKET' => 'market',
+            'STOP_LOSS_LIMIT' => 'limit',
+            'STOP_LOSS_MARKET' => 'market',
+            'TAKE_PROFIT_LIMIT' => 'limit',
+            'TAKE_PROFIT_MARKET' => 'market',
         );
         return $this->safe_string_lower($types, $type, $type);
     }
 
     public function scale_number(?string $num): ?string {
         return Precise::string_mul($num, '100000000');
+    }
+
+    public function encode_time_in_force(?string $timeInForce): ?string {
+        $timeInForces = array(
+            'GTC' => 'GTC',
+            'IOC' => 'IOC',
+            'PO' => 'POST_ONLY',
+            'POST_ONLY' => 'POST_ONLY',
+            'RPI' => 'RPI',
+        );
+        $instruction = $this->safe_string($timeInForces, $timeInForce);
+        if ($instruction === null) {
+            throw new NotSupported($this->id . ' createOrder() does not support timeInForce ' . $timeInForce . ', supported values are GTC, IOC, PO and RPI');
+        }
+        return $instruction;
     }
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -1735,7 +2027,6 @@ class paradex extends Exchange {
             'market' => $market['id'],
             'side' => $orderSide,
             'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
-            'instruction' => 'GTC',
         );
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
@@ -1746,55 +2037,57 @@ class paradex extends Exchange {
         $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $params);
-        if (!$isMarket) {
-            if ($postOnly) {
-                $request['instruction'] = 'POST_ONLY';
-            } elseif ($timeInForce === 'IOC') {
-                $request['instruction'] = 'IOC';
+        $instruction = 'GTC';
+        if ($timeInForce !== null) {
+            $instruction = $this->encode_time_in_force($timeInForce);
+        }
+        if ($postOnly && ($instruction !== 'RPI')) {
+            $instruction = 'POST_ONLY';
+        }
+        if (($instruction === 'POST_ONLY') || ($instruction === 'RPI')) {
+            // both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if ($isMarket) {
+                throw new InvalidOrder($this->id . ' createOrder() market orders cannot be post only or RPI');
+            }
+            if ($isStopOrder) {
+                throw new InvalidOrder($this->id . ' createOrder() trigger, stop loss and take profit orders cannot be post only or RPI');
             }
         }
-        if ($price !== null) {
+        $request['instruction'] = $instruction;
+        // the exchange requires the price to be omitted for every market order type
+        if (($price !== null) && !$isMarket) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
         }
+        list($recvWindow, $paramsRecvWindow) = $this->handle_option_and_params_2($params, 'createOrder', 'recvWindow', 'recv_window');
+        if ($recvWindow !== null) {
+            $request['recv_window'] = $this->parse_to_int($recvWindow);
+        }
+        $isTakeProfitOrStopLoss = $isStopLossOrder || $isTakeProfitOrder;
         $sizeString = '0';
+        // a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if (!$isTakeProfitOrStopLoss || (($amount !== null) && ($amount > 0))) {
+            $sizeString = $this->amount_to_precision($symbol, $amount);
+        }
         $stopPrice = null;
         if ($isStopOrder) {
-            // flags: Reduce_Only must be provided for TPSL orders.
-            if ($isMarket) {
-                if ($isStopLossOrder) {
-                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                    $reduceOnly = true;
-                    $request['type'] = 'STOP_LOSS_MARKET';
-                } elseif ($isTakeProfitOrder) {
-                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $reduceOnly = true;
-                    $request['type'] = 'TAKE_PROFIT_MARKET';
-                } else {
-                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
-                    $sizeString = $this->amount_to_precision($symbol, $amount);
-                    $request['type'] = 'STOP_MARKET';
-                }
-            } else {
-                if ($isStopLossOrder) {
-                    $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
-                    $reduceOnly = true;
-                    $request['type'] = 'STOP_LOSS_LIMIT';
-                } elseif ($isTakeProfitOrder) {
-                    $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $reduceOnly = true;
-                    $request['type'] = 'TAKE_PROFIT_LIMIT';
-                } else {
-                    $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
-                    $sizeString = $this->amount_to_precision($symbol, $amount);
-                    $request['type'] = 'STOP_LIMIT';
-                }
+            if ($isTakeProfitOrStopLoss) {
+                // flags: Reduce_Only must be provided for TPSL orders.
+                $reduceOnly = true;
             }
-        } else {
-            $sizeString = $this->amount_to_precision($symbol, $amount);
+            if ($isStopLossOrder) {
+                $stopPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                $request['type'] = ($isMarket) ? 'STOP_LOSS_MARKET' : 'STOP_LOSS_LIMIT';
+            } elseif ($isTakeProfitOrder) {
+                $stopPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                $request['type'] = ($isMarket) ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            } else {
+                $stopPrice = $this->price_to_precision($symbol, $triggerPrice);
+                $request['type'] = ($isMarket) ? 'STOP_MARKET' : 'STOP_LIMIT';
+            }
         }
         if ($stopPrice !== null) {
             $request['trigger_price'] = $stopPrice;
@@ -1805,20 +2098,20 @@ class paradex extends Exchange {
                 'REDUCE_ONLY',
             );
         }
-        $paramsOmitted = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $paramsOmitted = $this->omit($paramsRecvWindow, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         return $this->extend($request, $paramsOmitted);
     }
 
     public function sign_order_request(array $request, bool $modify = false): array {
         $account = $this->retrieve_account();
-        $now = $this->parse_to_int($this->nonce());
+        $now = $this->milliseconds();
         $orderType = $this->safe_string($request, 'type');
         if ($orderType === null) {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
         }
         $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
         $orderReq = array(
-            'timestamp' => $now * 1000,
+            'timestamp' => $now,
             'market' => $this->string_to_base16($this->safe_string($request, 'market')),
             'side' => ($this->safe_string($request, 'side') === 'BUY') ? '1' : '2',
             'orderType' => $this->string_to_base16($this->safe_string($request, 'type')),
@@ -1869,12 +2162,13 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] alias for triggerPrice
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
-         * @param {float} [$params->stopLossPrice] the $price that a stop loss $order is triggered at
-         * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at
-         * @param {string} [$params->timeInForce] "GTC", "IOC", or "POST_ONLY"
+         * @param {float} [$params->stopLossPrice] the $price that a stop loss $order is triggered at, an $amount of 0 closes the whole position
+         * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at, an $amount of 0 closes the whole position
+         * @param {string} [$params->timeInForce] "GTC", "IOC", "PO" or "RPI" (retail $price improvement), "FOK" and "GTD" are not supported
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
          * @param {string} [$params->clientOrderId] a unique id for the $order
+         * @param {int} [$params->recvWindow] the number of milliseconds after the signature timestamp the $order is accepted for, the exchange applies its own default when omitted
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->authenticate_rest();
@@ -1928,17 +2222,20 @@ class paradex extends Exchange {
          * @param {string} $type 'limit' or a TPSL order $type
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] alias for triggerPrice
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] the $price a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] the $price a take profit order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument');
         }
-        if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument');
+        $isMarket = ($type !== null) && (strtoupper($type) === 'MARKET');
+        if (($price === null) && !$isMarket) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a price argument for limit orders');
         }
         $this->authenticate_rest();
         if ($this->markets === null) {
@@ -1946,7 +2243,7 @@ class paradex extends Exchange {
         }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $request = $this->omit($request, array( 'instruction', 'client_id', 'flags' ));
+        $request = $this->omit($request, array( 'instruction', 'client_id', 'flags', 'recv_window' ));
         $request['order_id'] = $id;
         $request['id'] = $id;
         $request = $this->sign_order_request($request, true);
@@ -2110,7 +2407,7 @@ class paradex extends Exchange {
         }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $paramsOmitted = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
-        $hasOrderIds = (gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids)));
+        $hasOrderIds = ($ids !== null);
         $hasClientOrderIds = ($clientOrderIds !== null) && ((gettype($clientOrderIds) === 'array' && array_keys($clientOrderIds) === array_keys(array_keys($clientOrderIds))));
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
@@ -2510,7 +2807,7 @@ class paradex extends Exchange {
 
     public function fetch_position(string $symbol, $params = array()): array {
         /**
-         * fetch data on an open position
+         * fetch $data on a single position, a closed one included
          *
          * @see https://docs.paradex.trade/api/prod/account/get-$positions
          *
@@ -2523,7 +2820,16 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $positions = $this->fetch_positions(array( $market['symbol'] ), $params);
+        $response = $this->privateGetPositions($params);
+        $data = $this->safe_list($response, 'results', array());
+        // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        $matching = array();
+        for ($i = 0; $i < count($data); $i++) {
+            if ($this->safe_string($data[$i], 'market') === $market['id']) {
+                $matching[] = $data[$i];
+            }
+        }
+        $positions = $this->parse_positions($matching, array( $market['symbol'] ));
         return $this->safe_dict($positions, 0, array());
     }
 
@@ -2535,14 +2841,14 @@ class paradex extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $this->authenticate_rest();
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $response = $this->privateGetPositions();
+        $response = $this->privateGetPositions($params);
         //
         //     {
         //         "results": [
@@ -2571,7 +2877,17 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        return $this->parse_positions($data, $symbolsNormalized);
+        // the endpoint keeps returning a market's position after it is closed, with a size of 0
+        $openPositions = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $position = $data[$i];
+            $status = $this->safe_string($position, 'status');
+            $size = $this->safe_string($position, 'size');
+            if (($status !== 'CLOSED') && !Precise::string_eq($size, '0')) {
+                $openPositions[] = $position;
+            }
+        }
+        return $this->parse_positions($openPositions, $symbolsNormalized);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2617,6 +2933,7 @@ class paradex extends Exchange {
             'notional' => $this->parse_number($notionalString),
             'collateral' => null, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
+            'realizedPnl' => $this->safe_number($position, 'realized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -2631,7 +2948,7 @@ class paradex extends Exchange {
             'leverage' => $this->safe_number($position, 'leverage'),
             'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
-            'marginMode' => null,
+            'marginMode' => 'cross', // isolated margin positions live on their own sub-account
             'percentage' => null,
         ));
     }
@@ -2721,8 +3038,13 @@ class paradex extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchDeposits', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $paramsPaginate, 'next', 'cursor', null, 100);
+            // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            $transactions = $this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, null, $this->extend($paramsPaginate, array( 'allKinds' => true )), 'next', 'cursor', null, 100);
+            $transactionsOfKind = $this->filter_transactions_by_kind($transactions, 'DEPOSIT');
+            return $this->filter_by_since_limit($transactionsOfKind, $since, $limit);
         }
+        $allKinds = $this->safe_bool($paramsPaginate, 'allKinds', false);
+        $paramsKinds = $this->omit($paramsPaginate, 'allKinds');
         $request = array();
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -2730,7 +3052,7 @@ class paradex extends Exchange {
         if ($since !== null) {
             $request['start_at'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsKinds);
         $response = $this->privateGetTransfers($this->extend($requestUntil, $paramsUntil));
         //
         //     {
@@ -2754,10 +3076,15 @@ class paradex extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'results', array());
+        // the cursor pagination reads the next page cursor from the parsed entries
+        $next = $this->safe_string($response, 'next');
+        for ($i = 0; $i < count($rows); $i++) {
+            $rows[$i]['next'] = $next;
+        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
-            if ($this->safe_string($row, 'kind') === 'DEPOSIT') {
+            if ($allKinds || ($this->safe_string($row, 'kind') === 'DEPOSIT')) {
                 $deposits[] = $row;
             }
         }
@@ -2784,8 +3111,13 @@ class paradex extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchWithdrawals', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $paramsPaginate, 'next', 'cursor', null, 100);
+            // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            $transactions = $this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, null, $this->extend($paramsPaginate, array( 'allKinds' => true )), 'next', 'cursor', null, 100);
+            $transactionsOfKind = $this->filter_transactions_by_kind($transactions, 'WITHDRAWAL');
+            return $this->filter_by_since_limit($transactionsOfKind, $since, $limit);
         }
+        $allKinds = $this->safe_bool($paramsPaginate, 'allKinds', false);
+        $paramsKinds = $this->omit($paramsPaginate, 'allKinds');
         $request = array();
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -2793,7 +3125,7 @@ class paradex extends Exchange {
         if ($since !== null) {
             $request['start_at'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsKinds);
         $response = $this->privateGetTransfers($this->extend($requestUntil, $paramsUntil));
         //
         //     {
@@ -2817,10 +3149,15 @@ class paradex extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'results', array());
+        // the cursor pagination reads the next page cursor from the parsed entries
+        $next = $this->safe_string($response, 'next');
+        for ($i = 0; $i < count($rows); $i++) {
+            $rows[$i]['next'] = $next;
+        }
         $deposits = array();
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
-            if ($this->safe_string($row, 'kind') === 'WITHDRAWAL') {
+            if ($allKinds || ($this->safe_string($row, 'kind') === 'WITHDRAWAL')) {
                 $deposits[] = $row;
             }
         }
@@ -2884,6 +3221,11 @@ class paradex extends Exchange {
         //     }
         //
         $rows = $this->safe_list($response, 'results', array());
+        // the cursor pagination reads the next page cursor from the parsed entries
+        $next = $this->safe_string($response, 'next');
+        for ($i = 0; $i < count($rows); $i++) {
+            $rows[$i]['next'] = $next;
+        }
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
@@ -2982,6 +3324,17 @@ class paradex extends Exchange {
         );
     }
 
+    public function filter_transactions_by_kind(array $transactions, string $kind): array {
+        $result = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $info = $this->safe_dict($transactions[$i], 'info');
+            if ($this->safe_string($info, 'kind') === $kind) {
+                $result[] = $transactions[$i];
+            }
+        }
+        return $result;
+    }
+
     public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
@@ -3047,7 +3400,7 @@ class paradex extends Exchange {
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->leverage] the rate of $leverage
+         * @param {float} [$params->leverage] the rate of $leverage, the current $leverage of the $market is kept when omitted
          * @return {array} response from the exchange
          */
         $this->check_required_argument('setMarginMode', $symbol, 'symbol');
@@ -3056,11 +3409,19 @@ class paradex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $leverage = 1;
-        list($leverageOption, $paramsLeverage) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', $leverage);
+        list($leverageOption, $paramsLeverage) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
+        $leverage = $leverageOption;
+        if ($leverage === null) {
+            // the endpoint always sets the leverage too, keep the current one instead of resetting it
+            $currentLeverage = $this->fetch_leverage($symbol);
+            $leverage = $this->safe_integer($currentLeverage, 'longLeverage');
+            if ($leverage === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a params.leverage argument, the current leverage of ' . $market['symbol'] . ' could not be fetched');
+            }
+        }
         $request = array(
             'market' => $market['id'],
-            'leverage' => $leverageOption,
+            'leverage' => $leverage,
             'margin_type' => $this->encode_margin_mode($marginMode),
         );
         return $this->privatePostAccountMarginMarket($this->extend($request, $paramsLeverage));
@@ -3212,7 +3573,7 @@ class paradex extends Exchange {
          *
          * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
          *
-         * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the option markets to fetch greeks for, all options are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
@@ -3221,7 +3582,7 @@ class paradex extends Exchange {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         $request = array(
-            'market' => 'ALL',
+            'market' => $this->summary_market_id($symbolsNormalized),
         );
         $response = $this->publicGetMarketsSummary($this->extend($request, $params));
         //
@@ -3259,7 +3620,9 @@ class paradex extends Exchange {
         //     }
         //
         $results = $this->safe_list($response, 'results', array());
-        return $this->parse_all_greeks($results, $symbolsNormalized);
+        // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
+        $rows = ($request['market'] === 'ALL') ? $this->filter_loaded_summaries($results, 'option') : $results;
+        return $this->parse_all_greeks($rows, $symbolsNormalized);
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -3304,13 +3667,13 @@ class paradex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'delta' => $this->safe_number($greeksData, 'delta'),
             'gamma' => $this->safe_number($greeksData, 'gamma'),
-            'theta' => null,
+            'theta' => $this->safe_number($greeksData, 'theta'),
             'vega' => $this->safe_number($greeksData, 'vega'),
             'rho' => $this->safe_number($greeksData, 'rho'),
             'vanna' => $this->safe_number($greeksData, 'vanna'),
             'volga' => $this->safe_number($greeksData, 'volga'),
-            'bidSize' => null,
-            'askSize' => null,
+            'bidSize' => $this->safe_number($greeks, 'bid_size'),
+            'askSize' => $this->safe_number($greeks, 'ask_size'),
             'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
             'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
             'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
@@ -3320,6 +3683,152 @@ class paradex extends Exchange {
             'lastPrice' => $this->safe_number($greeks, 'last_traded_price'),
             'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
             'info' => $greeks,
+        );
+    }
+
+    public function fetch_option(string $symbol, $params = array()): array {
+        /**
+         * fetches option $data that is commonly found in an option $chain
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=option-$chain-structure option $chain structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        if ($market['option'] !== true) {
+            throw new BadSymbol($this->id . ' fetchOption() supports option markets only');
+        }
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-25JUN27-86000-C",
+        //                 "mark_price": "10200.41688775",
+        //                 "mark_iv": "0.38613775",
+        //                 "delta": "0.56444713",
+        //                 "greeks": { "delta": "0.5644471336358705", "gamma": "0.000015727298531837943", "vega": "278.58404031445025", "theta": "-28.10779287090323", "rho": "-70.27668935000763", "vanna": "-0.0018540944752723594", "volga": "-0.1676414184328563" },
+        //                 "last_traded_price": "",
+        //                 "bid": "9724.82",
+        //                 "bid_size": "1",
+        //                 "bid_iv": "0.36986",
+        //                 "ask": "10717.12",
+        //                 "ask_size": "1",
+        //                 "ask_iv": "0.4054928",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "0",
+        //                 "created_at": 1792183389215,
+        //                 "underlying_price": "81598.69900987",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "",
+        //                 "price_change_rate_24h": "-0.047715",
+        //                 "future_funding_rate": "0.00009503",
+        //                 "forward_rate": "0.05324806",
+        //                 "risk_free_rate": "0"
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'results', array());
+        $chain = $this->safe_dict($data, 0, array());
+        return $this->parse_option($chain, null, $market);
+    }
+
+    public function fetch_option_chain(string $code, $params = array()): array {
+        /**
+         * fetches $data for an underlying asset that is commonly found in an option chain
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+         *
+         * @param {string} $code base currency to fetch an option chain for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=option-chain-structure option chain structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        // the summary takes one market or all of them, so the chain is cut from the whole venue
+        $request = array(
+            'market' => 'ALL',
+        );
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
+        $data = $this->safe_list($response, 'results', array());
+        $result = array();
+        $prefix = $code . '-';
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol', '');
+            // the id starts with the base, so the other underlyings are skipped before the market is resolved
+            if (str_starts_with($marketId, $prefix)) {
+                // options left out by options.fetchMarkets.types are rebuilt from their id
+                $market = $this->safe_market($marketId);
+                if ($market['option'] === true) {
+                    $result[$market['symbol']] = $this->parse_option($entry, null, $market);
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol": "BTC-USD-25JUN27-86000-C",
+        //         "mark_price": "10200.41688775",
+        //         "mark_iv": "0.38613775",
+        //         "last_traded_price": "",
+        //         "bid": "9724.82",
+        //         "bid_size": "1",
+        //         "bid_iv": "0.36986",
+        //         "ask": "10717.12",
+        //         "ask_size": "1",
+        //         "ask_iv": "0.4054928",
+        //         "volume_24h": "0",
+        //         "created_at": 1792183389215,
+        //         "underlying_price": "81598.69900987",
+        //         "open_interest": "0",
+        //         "price_change_rate_24h": "-0.047715"
+        //     }
+        //
+        $marketId = $this->safe_string($chain, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market, null, 'option');
+        $timestamp = $this->safe_integer($chain, 'created_at');
+        $bid = $this->safe_string($chain, 'bid');
+        $ask = $this->safe_string($chain, 'ask');
+        $mid = null;
+        if (($bid !== null) && ($ask !== null)) {
+            $mid = Precise::string_div(Precise::string_add($bid, $ask), '2');
+        }
+        $percentage = $this->safe_string($chain, 'price_change_rate_24h');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
+        return array(
+            'info' => $chain,
+            'currency' => $marketResolved['base'],
+            'symbol' => $marketResolved['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'impliedVolatility' => $this->safe_number($chain, 'mark_iv'),
+            'openInterest' => $this->safe_number($chain, 'open_interest'),
+            'bidPrice' => $this->parse_number($bid),
+            'askPrice' => $this->parse_number($ask),
+            'midPrice' => $this->parse_number($mid),
+            'markPrice' => $this->safe_number($chain, 'mark_price'),
+            'lastPrice' => $this->safe_number($chain, 'last_traded_price'),
+            'underlyingPrice' => $this->safe_number($chain, 'underlying_price'),
+            'change' => null,
+            'percentage' => $this->parse_number($percentage),
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_number($chain, 'volume_24h'),
         );
     }
 
@@ -3333,7 +3842,7 @@ class paradex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->cursor] returns the next paginated page
+         * @param {string} [$params->cursor] returns the $next paginated page
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
@@ -3381,6 +3890,11 @@ class paradex extends Exchange {
         // }
         //
         $results = $this->safe_list($response, 'results', array());
+        // the cursor pagination reads the next page cursor from the parsed entries
+        $next = $this->safe_string($response, 'next');
+        for ($i = 0; $i < count($results); $i++) {
+            $results[$i]['next'] = $next;
+        }
         return $this->parse_incomes($results, $market, $since, $limit);
     }
 
@@ -3421,6 +3935,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of funding $rate structures
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times, back from until (default now) to $since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
@@ -3429,24 +3944,46 @@ class paradex extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        $rowSpacing = 5000; // the venue records a funding rate observation every five seconds
+        if ($paginate) {
+            if ($since === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a since argument when paginate is true');
+            }
+            // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
+            // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
+            list($paginationCalls, $paramsCalls) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
+            $endAt = $this->safe_integer($paramsCalls, 'until');
+            if ($endAt === null) {
+                $endAt = min($this->milliseconds(), $this->sum($since, $paginationCalls * 5000 * $rowSpacing));
+            }
+            $paramsEndAt = $this->extend($this->omit($paramsPaginate, 'until'), array( 'end_at' => $endAt ));
+            // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
+            $pages = $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, null, $paramsEndAt, 'next', 'cursor', null, 5000);
+            $sortedPages = $this->sort_by($pages, 'timestamp');
+            return $this->filter_by_since_limit($sortedPages, $since, $limit);
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
         );
+        $pageSize = 1000;
         if ($limit !== null) {
-            $request['page_size'] = min($limit, 5000); // api maximum 5000
-        } else {
-            $request['page_size'] = 1000; // max is 5000
+            $pageSize = min($limit, 5000); // api maximum 5000
         }
+        $request['page_size'] = $pageSize;
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
         if ($since !== null) {
-            $request['start_at'] = $since;
+            $requestUntil['start_at'] = $since;
+            // a page holds the newest rows of its range, so a range wider than one page would return the latest
+            // rows and skip since, the range is cut to one page of rows from since
+            $windowEnd = $this->sum($since, $pageSize * $rowSpacing);
+            $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
+            if (!(is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil)) || ($endAt > $windowEnd)) {
+                $requestUntil['end_at'] = $windowEnd;
+            }
         }
-        $until = $this->safe_integer($params, 'until');
-        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
-        if ($until !== null) {
-            $request['end_at'] = $until;
-        }
-        $response = $this->publicGetFundingData($this->extend($request, $paramsOmitted));
+        $response = $this->publicGetFundingData($this->extend($requestUntil, $paramsUntil));
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3465,12 +4002,16 @@ class paradex extends Exchange {
         // }
         //
         // every row is one observation of a rate quoted for a whole funding period,
-        // not a settled payment: paradex recomputes it each second and accrues it
-        // into funding_index, so the series cannot be summed
+        // not a settled payment: paradex accrues it into funding_index each second
+        // and records an observation every five seconds, so the series cannot be summed
         $results = $this->safe_list($response, 'results', array());
+        $next = $this->safe_string($response, 'next');
         $rates = array();
         for ($i = 0; $i < count($results); $i++) {
             $rate = $results[$i];
+            if ($next !== null) {
+                $rate['next'] = $next; // the cursor helper reads it from info, the last page has none
+            }
             $timestamp = $this->safe_integer($rate, 'created_at');
             $datetime = $this->iso8601($timestamp);
             $rates[] = array(
@@ -3568,7 +4109,18 @@ class paradex extends Exchange {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
         $errorCode = $this->safe_string($response, 'error');
+        $message = $this->safe_string($response, 'message');
         if (($errorCode === null) && ($code === 400)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
@@ -3583,16 +4135,27 @@ class paradex extends Exchange {
                 $batchErrorCode = $this->safe_string($batchErrors[$i], 'error');
                 if ($batchErrorCode !== null) {
                     $errorCode = $batchErrorCode;
+                    $message = $this->safe_string($batchErrors[$i], 'message');
                     break;
                 }
             }
         }
-        if ($errorCode !== null) {
-            $feedback = $this->id . ' ' . $body;
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-            throw new ExchangeError($feedback); // unknown message
+        $feedback = $this->id . ' ' . $body;
+        if ($errorCode === null) {
+            if (($code >= 400) && ($message !== null)) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            }
+            return null; // fallback to default error handler
         }
-        return null;
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if (($errorCode === 'INVALID_REQUEST_PARAMETER') && ($message !== null)) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if ((mb_strpos($message, 'market') === 0) && (mb_strpos($message, 'does not exist') !== false)) {
+                throw new BadSymbol($feedback);
+            }
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+        }
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        throw new ExchangeError($feedback); // unknown message
     }
 }

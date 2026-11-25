@@ -382,7 +382,7 @@ class hibachi extends hibachi$1["default"] {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        const rows = this.safeList(response, 'futureContracts');
+        const rows = this.safeList(response, 'futureContracts', []);
         return this.parseMarkets(rows);
     }
     hardcodedCurrencies() {
@@ -1011,9 +1011,7 @@ class hibachi extends hibachi$1["default"] {
         const market = this.market(symbol);
         const takerFee = this.safeNumber(market, 'taker', 0);
         const makerFee = this.safeNumber(market, 'maker', 0);
-        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
-        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1752,11 +1750,11 @@ class hibachi extends hibachi$1["default"] {
             'info': position,
             'id': undefined,
             'symbol': symbol,
-            'entryPrice': this.safeString(position, 'average_entry_price'),
+            'entryPrice': this.safeNumber(position, 'average_entry_price'),
             'markPrice': undefined,
-            'notional': this.safeString(position, 'notionalValue'),
+            'notional': this.safeNumber(position, 'notionalValue'),
             'collateral': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
@@ -1886,7 +1884,7 @@ class hibachi extends hibachi$1["default"] {
         }
         return this.safeLedgerEntry({
             'id': this.safeString(item, 'id'),
-            'currency': this.currency('USDT'),
+            'currency': 'USDT',
             'account': this.numberToString(this.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,

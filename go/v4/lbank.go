@@ -690,8 +690,8 @@ func (this *Lbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		panic(r.Err)
 	}
 	var resolvedMarkets []any = ListTyped(r.Value)
-	var spotMarkets any = this.SafeValue(resolvedMarkets, 0)
-	var swapMarkets any = this.SafeValue(resolvedMarkets, 1)
+	var spotMarkets []any = SafeListTypedDefault(resolvedMarkets, 0, []any{})
+	var swapMarkets []any = SafeListTypedDefault(resolvedMarkets, 1, []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, swapMarkets))}
 	return nil
@@ -727,10 +727,10 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         "ts": 1691560288484
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = strings.Split(*marketId, "_")
 		var baseId *string = SafeStringPtr(parts[0])
@@ -847,10 +847,10 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         "success": true
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var settleId *string = this.SafeString(market, "clearCurrency")
@@ -1202,12 +1202,12 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 60
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 60
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1371,12 +1371,12 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
-		var feeCurr *string = func() *string {
-			if side != nil && *side == "buy" {
-				return this.SafeString(market, "base")
-			}
-			return this.SafeString(market, "quote")
-		}()
+		var feeCurr *string
+		if side != nil && *side == "buy" {
+			feeCurr = this.SafeString(market, "base")
+		} else {
+			feeCurr = this.SafeString(market, "quote")
+		}
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurr,
@@ -1441,7 +1441,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		request["time"] = since
 	}
 	if limit != nil {
-		request["size"] = mathMin(limit, 600)
+		request["size"] = min(*limit, 600)
 	} else {
 		request["size"] = 600 // max
 	}
@@ -1554,7 +1554,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		sinceResolved = since
 		parsedSince = this.ParseToInt(float64(*since) / 1000)
 	}
-	var parsedLimit any = mathMin(limitResolved+1, 2000) // max 2000;
+	var parsedLimit any = min(limitResolved+1, 2000) // max 2000;
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2170,7 +2170,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	var clientOrderId *string = this.SafeString2(params, "custom_id", "clientOrderId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var paramsRequest any = this.Omit(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
+	var paramsRequest map[string]any = this.OmitDict(params, []any{"custom_id", "clientOrderId", "timeInForce", "postOnly"})
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2201,7 +2201,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequest, "cost")
-			paramsRequest = this.Omit(paramsRequest, "cost")
+			paramsRequest = this.OmitDict(paramsRequest, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -2226,7 +2226,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPrivatePostSupplementCreateOrder")
 	var method *string = this.SafeString(paramsRequest, "method", defaultMethod)
-	var paramsOmitted any = this.Omit(paramsRequest, "method")
+	var paramsOmitted map[string]any = this.OmitDict(paramsRequest, "method")
 	var response map[string]any = nil
 	if method != nil && *method == "spotPrivatePostCreateOrder" {
 
@@ -2719,12 +2719,12 @@ func (this *Lbank) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"current_page": 1,
@@ -2808,12 +2808,12 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"current_page": 1,
@@ -2869,12 +2869,12 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lbank) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lbank) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Lbank) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4127,7 +4127,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			signatureMethod = "HmacSHA256"
 		}
-		var finalSig any = signatureMethod // java req
+		var finalSig string = signatureMethod // java req
 		var auth string = this.Rawencode(this.Keysort(this.Extend(map[string]any{
 			"echostr":          echostr,
 			"signature_method": finalSig,
@@ -4177,12 +4177,12 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 }
 func (this *Lbank) ConvertSecretToPem(secret string) string {
-	var secretLength int = len(secret)
+	var secretLength int64 = int64(len(secret)) - 0
 	var fullLines int64 = this.ParseToInt(float64(secretLength) / 64)
 	var pem string = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
 	for i := 0; int64(i) <= fullLines; i++ {
 		var start int64 = int64(i) * 64
-		var end int64 = this.Sum(start, 64).(int64)
+		var end int64 = start + 64
 		pem += Slice(this.Secret, start, end) + "\n" // eslint-disable-line
 	}
 	return pem + "-----END PRIVATE KEY-----"

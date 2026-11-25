@@ -372,10 +372,10 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
             List<String> marketIds = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, marketId, (Object) null);
+                Map<String, Object> market = this.safeDict(markets, marketId, null);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
@@ -397,17 +397,17 @@ public class Blockchaincom extends BlockchaincomApi
                 // price precision
                 String minPriceIncrementString = this.safeString(market, "min_price_increment");
                 String minPriceIncrementScaleString = this.safeString(market, "min_price_increment_scale");
-                String minPriceScalePrecisionString = (String) this.parsePrecision(minPriceIncrementScaleString);
+                String minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
                 String pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
                 // amount precision
                 String lotSizeString = this.safeString(market, "lot_size");
                 String lotSizeScaleString = this.safeString(market, "lot_size_scale");
-                String lotSizeScalePrecisionString = (String) this.parsePrecision(lotSizeScaleString);
+                String lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
                 String amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
                 // minimum order size
                 String minOrderSizeString = this.safeString(market, "min_order_size");
                 String minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
-                String minOrderSizeScalePrecisionString = (String) this.parsePrecision(minOrderSizeScaleString);
+                String minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
                 String minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
                 Double minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
@@ -416,7 +416,7 @@ public class Blockchaincom extends BlockchaincomApi
                 if (!java.util.Objects.equals(maxOrderSizeRaw, "0"))
                 {
                     String maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
-                    String maxOrderSizeScalePrecisionString = (String) this.parsePrecision(maxOrderSizeScaleString);
+                    String maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
                     String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
@@ -748,7 +748,7 @@ public class Blockchaincom extends BlockchaincomApi
             request.put("side", ((String)side).toUpperCase());
             request.put("orderQty", this.amountToPrecision(symbol, amount));
             request.put("clOrdId", clientOrderId);
-            Object triggerPrice = this.safeValueN(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            String triggerPrice = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             if (java.util.Objects.equals(uppercaseOrderType, "STOP") || java.util.Objects.equals(uppercaseOrderType, "STOPLIMIT"))
             {
@@ -885,7 +885,7 @@ public class Blockchaincom extends BlockchaincomApi
             Double takerFee = this.safeNumber(response, "takerRate", (Object) null);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -1436,7 +1436,7 @@ public class Blockchaincom extends BlockchaincomApi
             //         ]
             //     }
             //
-            List<Object> balances = (List<Object>) this.safeList(response, accountName, (Object) null);
+            List<Object> balances = this.safeList(response, accountName, null);
             if (java.util.Objects.equals(balances, null))
             {
                 throw new ExchangeError((((this.id + " fetchBalance() could not find the \"") + accountName) + "\" account")) ;
@@ -1444,9 +1444,9 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            for (var i = 0; i < balances.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> entry = this.safeDict(balances, i, null);
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();

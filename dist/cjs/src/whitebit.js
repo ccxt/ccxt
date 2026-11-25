@@ -458,6 +458,7 @@ class whitebit extends whitebit$1["default"] {
                     'limit must be less than or equal to': errors.BadRequest,
                     'The Price should be less than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to': errors.InvalidOrder, // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of': errors.InvalidOrder, // {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized': errors.PermissionDenied, // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': errors.InvalidOrder, // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step': errors.InvalidOrder, // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -495,10 +496,14 @@ class whitebit extends whitebit$1["default"] {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -529,7 +534,6 @@ class whitebit extends whitebit$1["default"] {
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
         const margin = isCollateral && !swap;
         let contract = false;
-        const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -576,8 +580,8 @@ class whitebit extends whitebit$1["default"] {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
+                'amount': this.safeNumber(market, 'stepSize'),
+                'price': this.safeNumber(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -917,7 +921,7 @@ class whitebit extends whitebit$1["default"] {
             const entry = currencyIds[i];
             const splitEntry = entry.split(' ');
             const currencyId = splitEntry[0];
-            const feeInfo = this.safeValue(response, entry);
+            const feeInfo = this.safeDict(response, entry);
             const code = this.safeCurrencyCode(currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray(code, codesValue)))) {
                 const depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
@@ -939,7 +943,7 @@ class whitebit extends whitebit$1["default"] {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
+                    const networkLength = networkId.length - 0;
                     const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
                     if (networkCode !== undefined) {
                         depositWithdrawFees[code]['networks'][networkCode] = {
@@ -1075,11 +1079,10 @@ class whitebit extends whitebit$1["default"] {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        const markets = this.markets;
-        const marketIds = Object.keys(markets);
+        const marketIds = Object.keys(this.markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(this.markets, marketId);
             const marketSymbol = this.safeString(market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -1879,6 +1882,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1892,14 +1896,33 @@ class whitebit extends whitebit$1["default"] {
         };
         const cappedLimit = ((limit === undefined) || (limit > 1440)) ? 1440 : limit;
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
-        if (since !== undefined) {
-            const start = this.parseToInt(since / 1000);
-            request['start'] = start;
+        const until = this.safeInteger(params, 'until');
+        const paramsOmitted = this.omit(params, 'until');
+        if ((since !== undefined) || (until !== undefined)) {
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
+            const duration = this.parseTimeframe(timeframe);
+            let endTime = undefined;
+            if (until !== undefined) {
+                endTime = this.sum(this.parseToInt(until / 1000), duration);
+            }
+            if (since !== undefined) {
+                const start = this.parseToInt(since / 1000);
+                request['start'] = start;
+                const rangeEnd = this.sum(start, duration * cappedLimit);
+                if ((endTime === undefined) || (rangeEnd < endTime)) {
+                    endTime = rangeEnd;
+                }
+            }
+            if ((endTime !== undefined) && (this.sum(endTime, duration) < this.seconds())) {
+                request['end'] = endTime;
+            }
         }
-        if ((since !== undefined) || (limit !== undefined)) {
+        if ((since !== undefined) || (until !== undefined) || (limit !== undefined)) {
             request['limit'] = cappedLimit;
         }
-        const response = await this.v1PublicGetKline(this.extend(request, params));
+        const response = await this.v1PublicGetKline(this.extend(request, paramsOmitted));
         //
         //     {
         //         "success":true,
@@ -2873,7 +2896,7 @@ class whitebit extends whitebit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires an amount when the ticker is fiat');
             }
             request['amount'] = amount;
-            const uniqueId = this.safeValue(params, 'uniqueId');
+            const uniqueId = this.safeString(params, 'uniqueId');
             if (uniqueId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
@@ -3130,7 +3153,7 @@ class whitebit extends whitebit$1["default"] {
             request['memo'] = tag;
         }
         if (this.isFiat(code)) {
-            const provider = this.safeValue(paramsWithdrawTag, 'provider');
+            const provider = this.safeString(paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -4175,7 +4198,7 @@ class whitebit extends whitebit$1["default"] {
         const maxLimit = 100;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -4187,7 +4210,7 @@ class whitebit extends whitebit$1["default"] {
         if (since !== undefined) {
             request['startDate'] = Math.round(since / 1000);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
@@ -4227,7 +4250,7 @@ class whitebit extends whitebit$1["default"] {
         const publicHeaders = {};
         publicHeaders['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.safeValue(this.urls['api'], version), accessibility);
+        const apiUrl = this.safeString(this.safeDict(this.urls['api'], version), accessibility);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4261,11 +4284,7 @@ class whitebit extends whitebit$1["default"] {
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders = publicHeaders;
-        if (isPrivate) {
-            requestHeaders = privateHeaders;
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (isPrivate) ? privateHeaders : publicHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {

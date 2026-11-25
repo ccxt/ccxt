@@ -24,7 +24,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 
 use futures::{SinkExt, StreamExt};
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use tokio::sync::{mpsc, watch};
 use tokio_tungstenite::tungstenite::Message;
 
@@ -179,7 +179,7 @@ where
     }
 }
 
-static WS_CLIENTS_TX: Lazy<mpsc::UnboundedSender<ClientJob>> = Lazy::new(|| {
+static WS_CLIENTS_TX: LazyLock<mpsc::UnboundedSender<ClientJob>> = LazyLock::new(|| {
     let (tx, mut rx) = mpsc::unbounded_channel::<ClientJob>();
     std::thread::Builder::new()
         .name("ccxt-ws-clients".to_string())
@@ -689,10 +689,69 @@ fn upgrade_request(
     Ok(request)
 }
 
+/// Accepts any server certificate for any hostname, `validateServerSsl = false`.
+/// Handshake signatures are still checked so the session keys are real.
+#[derive(Debug)]
+struct AcceptAnyServerCert(Arc<rustls::crypto::CryptoProvider>);
+
+impl rustls::client::danger::ServerCertVerifier for AcceptAnyServerCert {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+        _server_name: &rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.0.signature_verification_algorithms)
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &rustls::pki_types::CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.0.signature_verification_algorithms)
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        self.0.signature_verification_algorithms.supported_schemes()
+    }
+}
+
+/// `None` keeps tungstenite's default (webpki roots, full verification).
+fn tls_connector(validate_server_ssl: bool) -> Result<Option<tokio_tungstenite::Connector>, String> {
+    if validate_server_ssl {
+        return Ok(None);
+    }
+    static INSECURE: LazyLock<Result<Arc<rustls::ClientConfig>, String>> = LazyLock::new(|| {
+        let provider = Arc::new(rustls::crypto::ring::default_provider());
+        let config = rustls::ClientConfig::builder_with_provider(provider.clone())
+            .with_safe_default_protocol_versions()
+            .map_err(|e| format!("[NetworkError] ws tls config: {e}"))?
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(AcceptAnyServerCert(provider)))
+            .with_no_client_auth();
+        Ok(Arc::new(config))
+    });
+    INSECURE.clone().map(|config| Some(tokio_tungstenite::Connector::Rustls(config)))
+}
+
 async fn connect_via_proxy(
     url: &str,
     headers: &[(String, String)],
     proxy: &str,
+    connector: Option<tokio_tungstenite::Connector>,
 ) -> Result<tokio_tungstenite::WebSocketStream<
         tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, String> {
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -732,7 +791,7 @@ async fn connect_via_proxy(
     if !first.contains(" 200") {
         return Err(format!("[NetworkError] ws proxy {proxy} refused CONNECT: {first}"));
     }
-    let (ws, _resp) = tokio_tungstenite::client_async_tls(upgrade_request(url, headers)?, stream)
+    let (ws, _resp) = tokio_tungstenite::client_async_tls_with_config(upgrade_request(url, headers)?, stream, None, connector)
         .await
         .map_err(|e| format!("[NetworkError] ws connect {url} via {proxy}: {e}"))?;
     Ok(ws)
@@ -748,6 +807,18 @@ pub async fn ensure_client_with_headers(
     headers: &[(String, String)],
     proxy: Option<String>,
     decompress_binary: bool,
+) -> Result<Arc<ClientState>, String> {
+    ensure_client_with_options(url, headers, proxy, decompress_binary, true).await
+}
+
+/// `ensure_client_with_headers` plus `validateServerSsl`. Clients are shared per
+/// url, so the flag applies when this call is the one that opens the socket.
+pub async fn ensure_client_with_options(
+    url: &str,
+    headers: &[(String, String)],
+    proxy: Option<String>,
+    decompress_binary: bool,
+    validate_server_ssl: bool,
 ) -> Result<Arc<ClientState>, String> {
     let state = ensure_slot(url);
     // The store elects exactly one dialer per slot; a caller that loses the
@@ -774,15 +845,18 @@ pub async fn ensure_client_with_headers(
             }
         }
     }
-    let dialled = match proxy.as_deref().filter(|p| !p.is_empty()) {
-        Some(p) => connect_via_proxy(url, headers, p).await,
-        None => match upgrade_request(url, headers) {
-            Ok(req) => tokio_tungstenite::connect_async(req)
-                .await
-                .map(|(ws, _resp)| ws)
-                .map_err(|e| format!("[NetworkError] ws connect {url}: {e}")),
-            Err(e) => Err(e),
+    let dialled = match tls_connector(validate_server_ssl) {
+        Ok(connector) => match proxy.as_deref().filter(|p| !p.is_empty()) {
+            Some(p) => connect_via_proxy(url, headers, p, connector).await,
+            None => match upgrade_request(url, headers) {
+                Ok(req) => tokio_tungstenite::connect_async_tls_with_config(req, None, false, connector)
+                    .await
+                    .map(|(ws, _resp)| ws)
+                    .map_err(|e| format!("[NetworkError] ws connect {url}: {e}")),
+                Err(e) => Err(e),
+            },
         },
+        Err(e) => Err(e),
     };
     let ws = match dialled {
         Ok(ws) => ws,
@@ -1028,8 +1102,8 @@ impl ClientHandle {
     /// The `Value` handle the untyped generated handlers take.
     pub fn as_value(&self) -> Value { self.value.clone() }
 
-    pub fn resolve(&self, args: &[Value]) -> Value { value_resolve(&self.value, args) }
-    pub fn reject(&self, args: &[Value]) -> Value { value_reject(&self.value, args) }
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }
     pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
     pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
     pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
@@ -1039,45 +1113,46 @@ impl ClientHandle {
 
     /// `delete client.subscriptions[key]`: drops the live client's entry and
     /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
-    pub fn remove_subscription(&mut self, key: &Value) {
-        if let (Value::Dict(m), Value::Str(k)) = (&mut self.subscriptions, key) {
+    pub fn remove_subscription<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let (Value::Dict(m), Some(k)) = (&mut self.subscriptions, key.into()) {
             crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k.as_ref());
+            Arc::make_mut(m).shift_remove(k);
         }
     }
 
     /// `client.subscriptions[key] = val`: writes the live client and the
     /// handle's snapshot (what `add_element_to_object(&mut subscriptions, ..)` did).
-    pub fn add_subscription(&mut self, key: &Value, val: Value) {
-        match (&mut self.subscriptions, key) {
+    /// ral-51s: the key is `impl ValueKey` (a boxed `&Value`, or a typed `&str` / `Option<&str>` boxed to the same key).
+    pub fn add_subscription(&mut self, key: impl crate::value::ValueKey, val: Value) {
+        key.with_key(|key| match (&mut self.subscriptions, key) {
             (Value::Dict(m), Value::Str(k)) => {
                 crate::value::try_ws_subs_write(m, k, &val);
                 Arc::make_mut(m).insert(k.to_string(), val);
             }
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
-        }
+        })
     }
     /// `key in client.subscriptions`, read from the handle's snapshot.
-    pub fn has_subscription(&self, key: &Value) -> bool { crate::runtime::in_op(&self.subscriptions, key) }
+    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
     /// `client.subscriptions[key]` (Null when absent).
-    pub fn get_subscription(&self, key: &Value) -> Value { crate::get_value(&self.subscriptions, key) }
+    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.subscriptions, key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
     }
     /// `key in client.futures`, read from the handle's snapshot.
-    pub fn has_future(&self, key: &Value) -> bool { crate::runtime::in_op(&self.futures, key) }
+    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future(&self, key: &Value) -> Value { crate::get_value(&self.futures, key) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(&self.futures, key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
     }
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.value.future(args)
+    pub fn future(&self, hash: impl Into<Value>) -> Flight {
+        self.value.future(hash)
     }
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.value.reusable_future(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> Flight {
+        self.value.reusable_future(hash)
     }
 }
 
@@ -1091,20 +1166,65 @@ pub fn begin_flight(url: &str, hash: &str) -> bool {
 
 
 /// The `Value` a `client.future ()` / `client.reusableFuture ()` call hands
-/// back: enough to find the flight again (its client's url + the hash). TS
-/// returns a real Future object; a `Value` can't hold one, so the port returns
-/// a handle and `ws_await_flight` does the awaiting.
+/// back: enough to find the flight again (its client's url + the hash).
 pub fn flight_handle(url: &str, hash: &str, led: bool) -> Value {
-    let mut m = indexmap::IndexMap::new();
-    m.insert("url".to_string(), Value::Str(url.to_string().into()));
-    m.insert("__ws_flight_hash".to_string(), Value::Str(hash.to_string().into()));
-    // Whether the call that produced this handle opened the flight. A leader
-    // settles its own flight (and TS's `await future` resolves the instant it
-    // does), so it must never block on itself — including when the venue
-    // decides, after taking the lead, that there is no work to do because it
-    // is already subscribed (bitget's `authenticate`).
-    m.insert("__ws_flight_led".to_string(), Value::Bool(led));
-    Value::Map(m)
+    Value::from(Flight { url: Some(url.to_string()), hash: Some(hash.to_string()), led, entry: false })
+}
+
+/// A single-flight handle: what `client.future ()` / `client.reusableFuture ()` open (`entry` false) and what a
+/// `client.futures[hash]` read names (`entry` true). Await it with `ws_await_flight`; only an entry settles its
+/// hash through `resolve` / `reject`. A handle without a url or a hash names no flight.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Flight {
+    pub url: Option<String>,
+    pub hash: Option<String>,
+    pub led: bool,
+    pub entry: bool,
+}
+
+impl Flight {
+    /// Settles through the same routing as the boxed handle (an entry settles its own hash).
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_resolve(&Value::from(self), value.into(), hash.into())
+    }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        value_reject(&Value::from(self), err.into(), hash.into())
+    }
+}
+
+/// The handle shape untyped code reads: `{url, __ws_flight_hash, __ws_flight_led}` or `{url, __ws_future_hash}`.
+impl From<&Flight> for Value {
+    fn from(f: &Flight) -> Value {
+        let (url, hash) = match (f.url.as_deref(), f.hash.as_deref()) {
+            (Some(u), Some(h)) => (u, h),
+            (_, h) => return Value::from(h),
+        };
+        let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), Value::from(url));
+        if f.entry {
+            m.insert("__ws_future_hash".to_string(), Value::from(hash));
+        } else {
+            m.insert("__ws_flight_hash".to_string(), Value::from(hash));
+            m.insert("__ws_flight_led".to_string(), Value::Bool(f.led));
+        }
+        Value::Map(m)
+    }
+}
+
+impl From<Flight> for Value {
+    fn from(f: Flight) -> Value { Value::from(&f) }
+}
+
+impl From<&Value> for Flight {
+    fn from(v: &Value) -> Flight {
+        let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
+        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
+    }
+}
+
+impl From<&Flight> for Flight {
+    fn from(f: &Flight) -> Flight { Flight { url: f.url.as_deref().map(str::to_owned), hash: f.hash.as_deref().map(str::to_owned), led: f.led, entry: f.entry } }
 }
 
 /// The hash a flight handle refers to. Accepts the `futures_value ()` handle
@@ -1124,8 +1244,9 @@ fn flight_hash_of(handle: &Value) -> Option<String> {
 /// Returns the resolved value; a rejected flight panics with the error, which
 /// is how the port rethrows (the drive loop does the same with `take_settled`).
 /// A handle that names no flight returns `Value::Null` rather than hanging.
-pub async fn ws_await_flight(handle: &Value) -> Value {
-    let (url, hash) = match (url_of(handle), flight_hash_of(handle)) {
+pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
+    let handle: Flight = handle.into();
+    let (url, hash) = match (handle.url, handle.hash) {
         (Some(u), Some(h)) => (u, h),
         _ => return Value::Null,
     };
@@ -1138,10 +1259,7 @@ pub async fn ws_await_flight(handle: &Value) -> Value {
     // reaches its trailing await, so take the value and go. Waiting here would
     // deadlock the (common) case where the venue took the lead and then found
     // it had nothing to do.
-    let led = matches!(
-        crate::get_value(handle, &Value::Str("__ws_flight_led".into())),
-        Value::Bool(true)
-    );
+    let led = handle.led;
     if led || !client.flight_is_open(&hash) {
         return match settled {
             Some(Ok(v)) => v,
@@ -1201,16 +1319,21 @@ pub fn url_of(client: &Value) -> Option<String> {
     }
 }
 
-fn hash_str(v: &Value) -> Option<String> {
-    match v {
-        Value::Str(s) => Some(s.to_string()),
-        _ => None,
+/// `k in client.subscriptions|futures` on the handle's snapshot (a non-string key is never present).
+fn handle_has(map: &Value, key: Option<&str>) -> bool {
+    matches!((map, key), (Value::Dict(m), Some(k)) if m.contains_key(k))
+}
+
+/// `client.subscriptions|futures[k]` on the handle's snapshot (Null when absent).
+fn handle_get(map: &Value, key: Option<&str>) -> Value {
+    match key {
+        Some(k) => crate::get_value(map, &Value::from(k)),
+        None => Value::Null,
     }
 }
 
 /// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
-pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
-    let value = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].resolve(value)` — the future handle carries its own
     // hash, so there is no second arg. Resolve that hash.
     if let Some(hash) = future_hash_of(client) {
@@ -1219,9 +1342,9 @@ pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
         }
         return value;
     }
-    if let (Some(url), Some(hash)) = (url_of(client), args.get(1).and_then(hash_str)) {
+    if let (Some(url), Some(hash)) = (url_of(client), hash) {
         if let Some(c) = get_client(&url) {
-            c.resolve(&hash, value.clone());
+            c.resolve(hash, value.clone());
         }
     }
     value
@@ -1236,8 +1359,7 @@ fn future_hash_of(client: &Value) -> Option<String> {
 }
 
 /// `client.reject(error, messageHash)` routed by URL.
-pub fn value_reject(client: &Value, args: &[Value]) -> Value {
-    let err = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_reject(client: &Value, err: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].reject(error)` — future handle carries its own hash.
     if let Some(hash) = future_hash_of(client) {
         if let Some(url) = url_of(client) {
@@ -1247,8 +1369,8 @@ pub fn value_reject(client: &Value, args: &[Value]) -> Value {
     }
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            match args.get(1).and_then(hash_str) {
-                Some(hash) => c.reject(&hash, err.clone()),
+            match hash {
+                Some(hash) => c.reject(hash, err.clone()),
                 // reject with no hash → reject every pending future.
                 None => c.reject_pending_futures(err.clone()),
             }
@@ -1301,6 +1423,23 @@ pub fn value_on_pong(client: &Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ral-51s: a typed `&str` / `Option<&str>` key writes the same entry the boxed `&Value` key wrote
+    #[test]
+    fn add_subscription_str_key_matches_the_boxed_key() {
+        let mut boxed = ClientHandle::from_value(Value::Null);
+        boxed.subscriptions = Value::Map(Default::default());
+        let mut typed = ClientHandle::from_value(Value::Null);
+        typed.subscriptions = Value::Map(Default::default());
+        let key = String::from("unsubscribe:7");
+        boxed.add_subscription(&Value::from(key.as_str()), Value::Bool(true));
+        typed.add_subscription(key.as_str(), Value::Bool(true));
+        assert_eq!(boxed.subscriptions, typed.subscriptions);
+        assert!(typed.has_subscription(key.as_str()));
+        boxed.add_subscription(&Value::Null, Value::Int(1));
+        typed.add_subscription(None::<&str>, Value::Int(1));
+        assert_eq!(boxed.subscriptions, typed.subscriptions);
+    }
     use tokio_tungstenite::tungstenite::Message as WsMessage;
 
     // A minimal mock exchange WS server: accepts one connection, waits for a
@@ -1461,7 +1600,7 @@ mod tests {
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
                         let last = crate::get_value(&message, &Value::Str("last".into()));
                         // `client.resolve(value, messageHash)` — routes to the registry.
-                        client.resolve(&[last, Value::Str("ticker".into())]);
+                        client.resolve(last, "ticker");
                         Value::Null
                     }
                     _ => self.call_dynamic_base(method, args).await,
@@ -1481,13 +1620,11 @@ mod tests {
         // dispatch each to handle_message, return once "ticker" resolves.
         let result = ExchangeRuntime::watch(
             &mut core,
-            Value::Str(url.clone().into()),
-            Value::Str("ticker".into()),
-            &[
-                Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
-                Value::Str("ticker".into()),
-                Value::Null,
-            ],
+            url.as_str(),
+            "ticker",
+            Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
+            "ticker",
+            Value::Null,
         )
         .await;
         // First streamed ticker.

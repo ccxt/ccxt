@@ -8,9 +8,11 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class coinbase extends \ccxt\async\coinbase {
     public function describe(): array {
@@ -28,7 +30,7 @@ class coinbase extends \ccxt\async\coinbase {
                 'fetchTradesWs' => false,
                 'watchBalance' => false,
                 'watchMyTrades' => false,
-                'watchOHLCV' => false,
+                'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -554,6 +556,96 @@ class coinbase extends \ccxt\async\coinbase {
             'baseVolume' => $this->safe_string($ticker, 'volume_24_h'),
             'quoteVolume' => null,
         ));
+    }
+
+    public function watch_ohlcv(string $symbol, string $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and volume of a market
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents, only 5m is supported
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        if ($timeframe !== '5m') {
+            throw new NotSupported($this->id . ' watchOHLCV() only supports the 5m timeframe');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolValue = $this->symbol($symbol);
+        $name = 'candles';
+        $ohlcv = Async\await($this->subscribe($name, false, $symbolValue, $params));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+    }
+
+    public function handle_ohlcv(Client $client, mixed $message) {
+        //
+        //     {
+        //         "channel": "candles",
+        //         "timestamp": "2023-06-09T20:19:35.39625135Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //             {
+        //                 "type": "snapshot",
+        //                 "candles": [
+        //                     {
+        //                         "start": "1688998200",
+        //                         "high": "1867.72",
+        //                         "low": "1865.63",
+        //                         "open": "1867.38",
+        //                         "close": "1866.81",
+        //                         "volume": "0.20269406",
+        //                         "product_id": "ETH-USD"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        $events = $this->safe_list($message, 'events', array());
+        $timeframe = '5m';
+        for ($i = 0; $i < count($events); $i++) {
+            $event = $events[$i];
+            $candles = $this->safe_list($event, 'candles', array());
+            for ($j = 0; $j < count($candles); $j++) {
+                $candle = $candles[$j];
+                $marketId = $this->safe_string($candle, 'product_id');
+                $market = $this->safe_market($marketId);
+                $symbol = $market['symbol'];
+                $parsed = array(
+                    $this->safe_timestamp($candle, 'start'),
+                    $this->safe_number($candle, 'open'),
+                    $this->safe_number($candle, 'high'),
+                    $this->safe_number($candle, 'low'),
+                    $this->safe_number($candle, 'close'),
+                    $this->safe_number($candle, 'volume'),
+                );
+                $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+                $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+                if ($stored === null) {
+                    $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+                    $stored = new ArrayCacheByTimestamp($limit);
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
+                $stored->append($parsed);
+                $messageHash = 'candles::' . $symbol;
+                $client->resolve($stored, $messageHash);
+                $this->try_resolve_usdc($client, $messageHash, $stored);
+            }
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1102,6 +1194,7 @@ class coinbase extends \ccxt\async\coinbase {
             'subscriptions' => array($this, 'handle_subscription_status'),
             'ticker' => array($this, 'handle_tickers'),
             'ticker_batch' => array($this, 'handle_tickers'),
+            'candles' => array($this, 'handle_ohlcv'),
             'market_trades' => array($this, 'handle_trade'),
             'user' => array($this, 'handle_order'),
             'l2_data' => array($this, 'handle_order_book'),

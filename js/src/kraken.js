@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/kraken.js';
-import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
+import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 ;
@@ -572,6 +572,7 @@ export default class kraken extends Exchange {
                     ':IInsufficient funds': InsufficientFunds,
                     ':Cancel pending': CancelPending,
                     ':Rate limit exceeded': RateLimitExceeded,
+                    'trading restricted for': RestrictedLocation, // {"error":["EAccount:Invalid permissions:EUR/JPY trading restricted for AE."]}
                 },
             },
         });
@@ -1825,7 +1826,7 @@ export default class kraken extends Exchange {
     findMarketByAltnameOrId(id) {
         const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
-            return marketsByAltname[id];
+            return this.safeDict(marketsByAltname, id);
         }
         else {
             return this.safeMarket(id);
@@ -1844,7 +1845,7 @@ export default class kraken extends Exchange {
     }
     getDelistedMarketById(id) {
         if (id === undefined) {
-            return id;
+            return undefined;
         }
         let market = this.safeDict(this.options['delistedMarketsById'], id);
         if (market !== undefined) {
@@ -1854,7 +1855,7 @@ export default class kraken extends Exchange {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        const idLength = id.length;
+        const idLength = id.length - 0;
         if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;

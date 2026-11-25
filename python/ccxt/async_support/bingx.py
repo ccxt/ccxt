@@ -655,6 +655,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100490': BadSymbol,  # spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest,  # {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest,  # {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol,  # trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -719,7 +720,7 @@ class bingx(Exchange, ImplicitAPI):
                         'triggerPriceType': {
                             'last': True,
                             'mark': True,
-                            'index': True,
+                            'index': False,
                         },
                         'triggerDirection': False,
                         'stopLossPrice': True,
@@ -728,7 +729,7 @@ class bingx(Exchange, ImplicitAPI):
                             'triggerPriceType': {
                                 'last': True,
                                 'mark': True,
-                                'index': True,
+                                'index': False,
                             },
                             'price': True,
                         },
@@ -1224,7 +1225,9 @@ class bingx(Exchange, ImplicitAPI):
         maxLimit = 1000 if (self.safe_bool(market, 'inverse', False)) else 1440
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            # klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            paginationLimit = maxLimit if (timeframe == '1m') else 1000
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit)
         request = {
             'symbol': market['id'],
         }
@@ -1237,7 +1240,12 @@ class bingx(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'endTime')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         if until is not None:
-            request['endTime'] = until
+            endTime = until
+            if since is not None:
+                # the exchange aligns the window to endTime, so keep it within limit candles of since
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTime = min(until, self.sum(since, duration * requestLimit))
+            request['endTime'] = endTime
         elif (self.safe_bool(market, 'inverse', False)) and (since is not None):
             duration = self.parse_timeframe(timeframe) * 1000
             request['endTime'] = self.sum(since, duration * requestLimit)
@@ -1531,7 +1539,9 @@ class bingx(Exchange, ImplicitAPI):
             time = self.parse8601(datetimeId)
         if time == 0:
             time = None
-        cost = self.safe_string(trade, 'quoteQty')
+        # Spot execution reports distinguish the last fill from the original order's p/q.
+        isSpotExecution = (self.safe_string(trade, 'e') == 'executionReport') and (self.safe_string(trade, 'x') == 'TRADE')
+        cost = self.safe_string(trade, 'Y') if isSpotExecution else self.safe_string(trade, 'quoteQty')
         # const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         currencyId = self.safe_string_n(trade, ['currency', 'N', 'commissionAsset'])
         currencyCode = self.safe_currency_code(currencyId)
@@ -1553,12 +1563,12 @@ class bingx(Exchange, ImplicitAPI):
         isMaker = self.safe_bool(trade, 'isMaker')
         if isMaker is not None:
             takeOrMaker = 'maker' if isMaker else 'taker'
-        amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
+        amount = self.safe_string(trade, 'l') if isSpotExecution else self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and (self.safe_bool(market, 'swap', False)) and ('volume' in trade):
             # Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             # safeTrade applies contractSize when calculating inverse cost.
             amount = self.safe_string(trade, 'volume')
-        price = self.safe_string_n(trade, ['price', 'p', 'tradePrice'])
+        price = self.safe_string(trade, 'L') if isSpotExecution else self.safe_string_n(trade, ['price', 'p', 'tradePrice'])
         if (market is not None) and (self.safe_bool(market, 'linear', False)) and (self.safe_string(trade, 'x') == 'TRADE'):
             lastAmount = self.safe_string(trade, 'l')
             lastPrice = self.safe_string(trade, 'L')
@@ -1771,7 +1781,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -2077,7 +2087,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response: dict
         if self.safe_bool(market, 'spot', False):
-            response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            response = await self.spotV2PublicGetQuoteTicker(self.extend(request, params))
         else:
             if self.safe_bool(market, 'inverse', False):
                 response = await self.cswapV1PublicGetMarketTicker(self.extend(request, params))
@@ -2180,7 +2190,7 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('fetchTickers', market, paramsMarketType)
         response: dict
         if type == 'spot':
-            response = await self.spotV1PublicGetTicker24hr(paramsSubType)
+            response = await self.spotV2PublicGetQuoteTicker(paramsSubType)
         else:
             if subType == 'inverse':
                 response = await self.cswapV1PublicGetMarketTicker(paramsSubType)
@@ -3203,6 +3213,9 @@ class bingx(Exchange, ImplicitAPI):
             reduceOnlyParam = self.safe_bool(paramsTakeProfit, 'reduceOnly', False)
             # stop loss / take profit price orders are always reduce only
             reduceOnly = reduceOnlyParam or (not isTriggerOrder and (isStopLossPriceOrder or isTakeProfitPriceOrder))
+            triggerPriceType = self.safe_string_2(paramsTakeProfit, 'triggerPriceType', 'workingType')
+            if triggerPriceType is not None:
+                request['workingType'] = self.encode_trigger_price_type(triggerPriceType)
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (typeValue == 'TRIGGER_MARKET'):
@@ -3238,14 +3251,15 @@ class bingx(Exchange, ImplicitAPI):
                 stringifiedAmount = self.number_to_string(amount)
                 if hasStopLoss:
                     slTriggerPrice = self.safe_string_2(stopLossDict, 'triggerPrice', 'stopPrice')
-                    slWorkingType = self.safe_string(stopLossDict, 'workingType', 'MARK_PRICE')
-                    slType = self.safe_string(stopLossDict, 'type', 'STOP_MARKET')
+                    slWorkingType = self.safe_string_2(stopLossDict, 'triggerPriceType', 'workingType', 'MARK_PRICE')
+                    slPrice = self.safe_string(stopLossDict, 'price')
+                    slDefaultType = 'STOP' if (slPrice is not None) else 'STOP_MARKET'
+                    slType = self.safe_string(stopLossDict, 'type', slDefaultType)
                     slRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, slTriggerPrice)),
-                        'workingType': slWorkingType,
+                        'workingType': self.encode_trigger_price_type(slWorkingType),
                         'type': slType,
                     }
-                    slPrice = self.safe_string(stopLossDict, 'price')
                     if slPrice is not None:
                         slRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
                     slQuantity = self.safe_string(stopLossDict, 'quantity', stringifiedAmount)
@@ -3256,16 +3270,17 @@ class bingx(Exchange, ImplicitAPI):
                     request['stopLoss'] = self.json(slRequest)
                 if hasTakeProfit:
                     tkTriggerPrice = self.safe_string_2(takeProfitDict, 'triggerPrice', 'stopPrice')
-                    tkWorkingType = self.safe_string(takeProfitDict, 'workingType', 'MARK_PRICE')
-                    tpType = self.safe_string(takeProfitDict, 'type', 'TAKE_PROFIT_MARKET')
+                    tkWorkingType = self.safe_string_2(takeProfitDict, 'triggerPriceType', 'workingType', 'MARK_PRICE')
+                    tpPrice = self.safe_string(takeProfitDict, 'price')
+                    tpDefaultType = 'TAKE_PROFIT' if (tpPrice is not None) else 'TAKE_PROFIT_MARKET'
+                    tpType = self.safe_string(takeProfitDict, 'type', tpDefaultType)
                     tpRequest = {
                         'stopPrice': self.parse_to_numeric(self.price_to_precision(symbol, tkTriggerPrice)),
-                        'workingType': tkWorkingType,
+                        'workingType': self.encode_trigger_price_type(tkWorkingType),
                         'type': tpType,
                     }
-                    slPrice = self.safe_string(takeProfitDict, 'price')
-                    if slPrice is not None:
-                        tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, slPrice))
+                    if tpPrice is not None:
+                        tpRequest['price'] = self.parse_to_numeric(self.price_to_precision(symbol, tpPrice))
                     tkQuantity = self.safe_string(takeProfitDict, 'quantity', stringifiedAmount)
                     tkQuantityRequest = self.parse_to_numeric(tkQuantity)
                     if not self.safe_bool(market, 'inverse', False):
@@ -3291,8 +3306,15 @@ class bingx(Exchange, ImplicitAPI):
                 if not self.safe_bool(market, 'inverse', False):
                     amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
                 request['quantity'] = amountReq  # precision not available for inverse contracts
-        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty'])
+        paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty', 'triggerPriceType', 'workingType'])
         return self.extend(request, paramsRequest)
+
+    def encode_trigger_price_type(self, triggerPriceType: Str):
+        types = {
+            'last': 'CONTRACT_PRICE',
+            'mark': 'MARK_PRICE',
+        }
+        return self.safe_string(types, triggerPriceType, triggerPriceType)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -3323,8 +3345,13 @@ class bingx(Exchange, ImplicitAPI):
         :param float [params.trailingTriggerPrice]: *swap only* the price to activate a trailing order at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
+        :param float [params.takeProfit.price]: *swap only* limit price of the attached take profit order, omit for a market take profit
+        :param str [params.takeProfit.triggerPriceType]: *swap only* 'mark' or 'last'
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
+        :param float [params.stopLoss.price]: *swap only* limit price of the attached stop loss order, omit for a market stop loss
+        :param str [params.stopLoss.triggerPriceType]: *swap only* 'mark' or 'last'
+        :param str [params.triggerPriceType]: *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against
         :param boolean [params.test]: *linear swap only* whether to use the test endpoint or not, default is False
         :param str [params.positionSide]: *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
@@ -3854,7 +3881,6 @@ class bingx(Exchange, ImplicitAPI):
         #         "workingType": ""
         #     }
         #
-        info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
         orderData = newOrder if (newOrder is not None) else order
         positionSide = self.safe_string_2(orderData, 'positionSide', 'ps')
@@ -3913,7 +3939,7 @@ class bingx(Exchange, ImplicitAPI):
                 takeProfitPrice = stopPrice
                 triggerPrice = None
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string_n(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': self.safe_string_n(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, marketResolved, '-', marketType),
@@ -4989,6 +5015,15 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
+            if not isTwapOrder:
+                if limit is not None:
+                    request['limit'] = min(limit, 1000)
+                if since is not None:
+                    request['startTime'] = since
+                until = self.safe_integer(paramsOmitted, 'until')
+                if until is not None:
+                    request['endTime'] = until
+                    paramsOmitted = self.omit(paramsOmitted, 'until')
             if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit
@@ -5301,7 +5336,7 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
@@ -5625,12 +5660,36 @@ class bingx(Exchange, ImplicitAPI):
             return await self.swapV2PrivatePostTradeMarginType(self.extend(request, paramsSubType))
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        add margin
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 1,
         }
         return await self.set_margin(symbol, amount, self.extend(request, params))
 
     async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 2,
         }
@@ -5641,10 +5700,12 @@ class bingx(Exchange, ImplicitAPI):
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
 
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
@@ -5655,12 +5716,24 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        positionSide = self.safe_string(params, 'positionSide')
+        if (market['inverse'] is True) and (positionSide is None):
+            raise ArgumentsRequired(self.id + ' setMargin() requires a positionSide parameter for Coin-M markets')
+        amountString = None
+        if market['inverse'] is True:
+            amountString = self.currency_to_precision(market['settle'], amount)
+        else:
+            amountString = self.amount_to_precision(market['symbol'], amount)
         request = {
             'symbol': market['id'],
-            'amount': self.amount_to_precision(market['symbol'], amount),
+            'amount': amountString,
             'type': type,
         }
-        response = await self.swapV2PrivatePostTradePositionMargin(self.extend(request, params))
+        response: dict
+        if market['inverse'] is True:
+            response = await self.cswapV1PrivatePostTradePositionMargin(self.extend(request, params))
+        else:
+            response = await self.swapV2PrivatePostTradePositionMargin(self.extend(request, params))
         #
         #    {
         #        "code": 0,
@@ -5669,7 +5742,15 @@ class bingx(Exchange, ImplicitAPI):
         #        "type": 1
         #    }
         #
-        return self.parse_margin_modification(response, market)
+        responseData = response
+        if market['inverse'] is True:
+            responseData = self.extend({
+                'amount': amountString,
+                'type': type,
+            }, self.safe_dict(response, 'data', {}))
+        result = self.parse_margin_modification(responseData, market)
+        result['info'] = response
+        return result
 
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
@@ -5867,7 +5948,7 @@ class bingx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is None
-        :param str params['trandingUnit']: COIN(directly represent assets such and ETH) or CONT(represents the number of contract sheets)
+        :param str [params.tradingUnit]: COIN(default, base currency amount) or CONT(number of contract sheets)
         :param str params['orderId']: the order id required for inverse swap
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
@@ -5967,7 +6048,7 @@ class bingx(Exchange, ImplicitAPI):
                 #     }
                 #
             else:
-                tradingUnit = self.safe_string_upper(paramsUntil, 'tradingUnit', 'CONT')
+                tradingUnit = self.safe_string_upper(paramsUntil, 'tradingUnit', 'COIN')
                 paramsTrades = self.omit(paramsUntil, 'tradingUnit')
                 request['tradingUnit'] = tradingUnit
                 response = await self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, paramsTrades))
@@ -6024,7 +6105,7 @@ class bingx(Exchange, ImplicitAPI):
                 }
                 if networksLength == 1:
                     result['withdraw'] = {
-                        'fee': self.safe_number(network, 'withdrawFee'),
+                        'fee': self.safe_number(network, 'fee'),
                         'percentage': False,
                     }
         return result
@@ -6746,7 +6827,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommissionRate'),
             'taker': self.safe_number(fee, 'takerCommissionRate'),
-            'percentage': False,
+            'percentage': True,
             'tierBased': False,
         }
 
@@ -6909,9 +6990,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody
-        headersResult = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def nonce(self) -> int:
         return self.milliseconds()

@@ -41,6 +41,8 @@
 * [setLeverage](#setleverage)
 * [fetchGreeks](#fetchgreeks)
 * [fetchAllGreeks](#fetchallgreeks)
+* [fetchOption](#fetchoption)
+* [fetchOptionChain](#fetchoptionchain)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 
@@ -49,7 +51,6 @@
 ### paradex{docsify-ignore}
 Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
 or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
-
 
 
 ```javascript
@@ -110,6 +111,7 @@ retrieves data on all markets for paradex
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.types | <code>Array&lt;string&gt;</code>, <code>string</code> | No | the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them |
 
 
 ```javascript
@@ -177,6 +179,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.price | <code>string</code> | No | "last", "mark", "index" (sent as "underlying"), default is "last" |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
@@ -281,8 +284,9 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, up to 100 per side, default is 20 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price_tick | <code>string</code> | No | aggregate the levels to this price increment, one of the values the market allows |
 
 
 ```javascript
@@ -356,12 +360,13 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
-| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at |
-| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at |
-| params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "POST_ONLY" |
+| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at, an amount of 0 closes the whole position |
+| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at, an amount of 0 closes the whole position |
+| params.timeInForce | <code>string</code> | No | "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported |
 | params.postOnly | <code>bool</code> | No | true or false |
 | params.reduceOnly | <code>bool</code> | No | Ensures that the executed order does not flip the opened position. |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
+| params.recvWindow | <code>int</code> | No | the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted |
 
 
 ```javascript
@@ -386,14 +391,16 @@ edit an open limit order or TPSL order
 | type | <code>string</code> | Yes | 'limit' or a TPSL order type |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.stopLossPrice | <code>float</code> | No | the price a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | the price a take profit order is triggered at |
 
 
 ```javascript
-paradex.editOrder (id, symbol, type, side, amount, price, params?)
+paradex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -613,7 +620,7 @@ paradex.fetchMyTrades (symbol, since?, limit?, params?)
 <a name="fetchPosition" id="fetchposition"></a>
 
 ### fetchPosition{docsify-ignore}
-fetch data on an open position
+fetch data on a single position, a closed one included
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
@@ -787,7 +794,7 @@ set margin mode to 'cross' or 'isolated'
 | marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.leverage | <code>float</code> | No | the rate of leverage |
+| params.leverage | <code>float</code> | No | the rate of leverage, the current leverage of the market is kept when omitted |
 
 
 ```javascript
@@ -872,12 +879,54 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch greeks for, all markets are returned if not assigned |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the option markets to fetch greeks for, all options are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
 paradex.fetchAllGreeks (symbols?, params?)
+```
+
+
+<a name="fetchOption" id="fetchoption"></a>
+
+### fetchOption{docsify-ignore}
+fetches option data that is commonly found in an option chain
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchOption (symbol, params?)
+```
+
+
+<a name="fetchOptionChain" id="fetchoptionchain"></a>
+
+### fetchOptionChain{docsify-ignore}
+fetches data for an underlying asset that is commonly found in an option chain
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | base currency to fetch an option chain for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchOptionChain (code, params?)
 ```
 
 
@@ -924,6 +973,7 @@ fetches historical funding rate prices
 | limit | <code>int</code> | No | the maximum amount of funding rate structures |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times, back from until (default now) to since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript

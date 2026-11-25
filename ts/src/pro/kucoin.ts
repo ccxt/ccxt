@@ -5,7 +5,7 @@ import kucoinRest from '../kucoin.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -96,7 +96,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}) {
+    async negotiate (privateChannel: boolean, isFuturesMethod: boolean = false, params: Dict = {}): Promise<string> {
         let connectId: Str = 'public';
         if (privateChannel) {
             connectId = 'private';
@@ -105,7 +105,7 @@ export default class kucoin extends kucoinRest {
             connectId += 'Futures';
         }
         const urls = this.safeDict (this.options, 'urls', {});
-        let future = this.safeValue (urls, connectId);
+        let future: Promise<string> = this.safeValue (urls, connectId);
         if (future !== undefined) {
             return await future;
         }
@@ -172,7 +172,7 @@ export default class kucoin extends kucoinRest {
         return undefined;
     }
 
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -781,7 +781,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    async watchMultiHelper (methodName: string, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async watchMultiHelper (methodName: string, channelName: string, isFuturesChannel: boolean, symbols: Strings = undefined, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2946,7 +2946,7 @@ export default class kucoin extends kucoinRest {
         this.setPositionsCache (client, utaOption);
         const fetchPositionSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         if ((fetchPositionSnapshot === true) && (awaitPositionSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
@@ -2966,8 +2966,7 @@ export default class kucoin extends kucoinRest {
         if (this.positions === undefined) {
             return undefined;
         }
-        const cache = this.positions.hashmap;
-        const symbolCache = this.safeDict (cache, symbol, {});
+        const symbolCache = this.safeDict (this.positions.hashmap, symbol, {});
         const values = Object.values (symbolCache);
         return this.safeDict (values, 0);
     }
@@ -2991,7 +2990,7 @@ export default class kucoin extends kucoinRest {
     async loadPositionsSnapshot (client: Client, messageHash: string, uta: boolean) {
         const positions = await this.fetchPositions (undefined, { 'uta': uta });
         this.positions = new ArrayCacheBySymbolById ();
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -3021,7 +3020,7 @@ export default class kucoin extends kucoinRest {
     async loadPositionSnapshot (client: Client, messageHash: string, symbol: string) {
         const position = await this.fetchPosition (symbol);
         this.positions = new ArrayCacheBySymbolById ();
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         cache.append (position);
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
@@ -3128,7 +3127,7 @@ export default class kucoin extends kucoinRest {
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '');
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         const currentPosition = this.getCurrentPosition (symbol);
         const messageHash = 'position:' + symbol;
         const data = this.safeDict (message, 'data', {});
@@ -3141,7 +3140,10 @@ export default class kucoin extends kucoinRest {
             }
         }
         const position = this.extend (currentPosition, newPosition);
-        cache.append (position);
+        // the cache exists once watchPosition(s) set it up
+        if (cache !== undefined) {
+            cache.append (position);
+        }
         client.resolve (position, messageHash);
     }
 
@@ -3177,7 +3179,7 @@ export default class kucoin extends kucoinRest {
         const data = this.safeDict (message, 'd', {});
         const marketId = this.safeString (data, 's');
         const symbol = this.safeSymbol (marketId);
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         const currentPosition = this.getCurrentPosition (symbol);
         const newPosition: Dict = this.parseWsUtaPosition (data);
         const keys = Object.keys (newPosition);

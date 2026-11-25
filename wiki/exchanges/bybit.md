@@ -95,6 +95,7 @@
 * [unWatchTickers](#unwatchtickers)
 * [unWatchTicker](#unwatchticker)
 * [watchBidsAsks](#watchbidsasks)
+* [unWatchBidsAsks](#unwatchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
 * [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
@@ -122,7 +123,6 @@
 enables or disables demo trading mode
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-
 **See**: https://bybit-exchange.github.io/docs/v5/demo  
 
 | Param | Type | Required | Description |
@@ -2330,6 +2330,27 @@ watches best bid & ask for symbols
 
 ```javascript
 bybit.watchBidsAsks (symbols, params?)
+```
+
+
+<a name="unWatchBidsAsks" id="unwatchbidsasks"></a>
+
+### unWatchBidsAsks{docsify-ignore}
+unWatches best bid & ask for symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.unWatchBidsAsks (symbols, params?)
 ```
 
 

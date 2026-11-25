@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Currency, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
+import type { Balances, Bool, Currency, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, NullableDict, FeeString, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -136,12 +136,12 @@ export default class htx extends htxRest {
         });
     }
 
-    requestId (): string {
+    requestId (): int {
         this.lockId ();
         const requestId: number = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         this.unlockId ();
-        return requestId.toString ();
+        return requestId;
     }
 
     /**
@@ -622,15 +622,15 @@ export default class htx extends htxRest {
         const attempts = this.safeInteger (subscription, 'numAttempts', 0);
         const market = this.market (symbol);
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'req': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         // this is a temporary subscription by a specific requestId
         // it has a very short lifetime until the snapshot is received over ws
         const snapshotSubscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -640,7 +640,7 @@ export default class htx extends htxRest {
             'method': this.handleOrderBookSnapshot,
         };
         try {
-            const orderbook: WsOrderBook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+            const orderbook: WsOrderBook = await this.watch (url, requestId.toString (), request, requestId.toString (), snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
             if (messageHash !== undefined) {
@@ -1651,12 +1651,13 @@ export default class htx extends htxRest {
         const swap = (type === 'swap');
         const future = (type === 'future');
         const isV5Linear = (linear && (swap || future));
-        const isLinear = (subType === 'linear');
-        const url = this.getUrlByMarketType (type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
         let channel: Str = 'positions.*';
+        // one positions cache per margin mode: linear, inverse and futures symbols never collide
+        let cacheKey = 'isolated';
         if (marginMode === 'cross') {
             channel = 'positions_cross.*';
+            cacheKey = 'cross';
         }
         if (isV5Linear) {
             let v5Market: Market = undefined;
@@ -1675,7 +1676,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.safeValue (this.safeValue (this.positions, url), marginMode), symbolsNormalized, since, limit, false);
+        return this.filterBySymbolsSinceLimit (this.safeValue (this.positionsByType, cacheKey), symbolsNormalized, since, limit, false);
     }
 
     handlePositions (client: Client, message: Dict) {
@@ -1758,20 +1759,12 @@ export default class htx extends htxRest {
         //         ]
         //     }
         //
-        const url = client.url;
         const topic = this.safeString (message, 'topic', '');
-        let defaultMarginMode: Str = 'isolated';
+        let defaultMarginMode: string = 'isolated';
         if (topic === 'positions_cross') {
             defaultMarginMode = 'cross';
         }
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        const clientPositions = this.safeDict (this.positions, url);
-        if (clientPositions === undefined) {
-            this.positions[url] = {};
-        }
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         if (this.isEmpty (rawPositions)) {
             const prefixes = [ 'cross:positions', 'isolated:positions' ];
             for (let i = 0; i < prefixes.length; i++) {
@@ -1794,10 +1787,10 @@ export default class htx extends htxRest {
             if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
                 marginMode = defaultMarginMode;
             }
-            let cache = this.safeValue (this.positions[url], marginMode);
+            let cache = this.safeValue (this.positionsByType, marginMode);
             if (cache === undefined) {
                 cache = new ArrayCacheBySymbolBySide ();
-                this.positions[url][marginMode] = cache;
+                this.positionsByType[marginMode] = cache;
             }
             newPositions.push (position);
             positionsByMarginMode[marginMode] = this.safeList (positionsByMarginMode, marginMode, []);
@@ -2910,13 +2903,13 @@ export default class htx extends htxRest {
     }
 
     async subscribePublic (url: Str, symbol: Str, messageHash: Str, method: any = undefined, params: Dict = {}) {
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -2928,10 +2921,10 @@ export default class htx extends htxRest {
     }
 
     async unsubscribePublic (market: Market, subMessageHash: string, topic: string, params: Dict = {}) {
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const request: Dict = {
             'unsub': subMessageHash,
-            'id': requestId,
+            'id': requestId.toString (),
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
         const isFeed = (topic === 'orderbook');
@@ -2941,7 +2934,7 @@ export default class htx extends htxRest {
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, isFeed);
         const subscription: Dict = {
             'unsubscribe': true,
-            'id': requestId,
+            'id': requestId.toString (),
             'subMessageHashes': [ subMessageHash ],
             'messageHashes': [ messageHash ],
             'symbols': [ market['symbol'] ],
@@ -2956,9 +2949,9 @@ export default class htx extends htxRest {
     }
 
     async subscribePrivate (channel: Str, messageHash: Str, type: Str, subtype: Str, params: Dict = {}, subscriptionParams: Dict = {}) {
-        const requestId = this.requestId ();
+        const requestId: int = this.requestId ();
         const subscription: Dict = {
-            'id': requestId,
+            'id': requestId.toString (),
             'messageHash': messageHash,
             'params': params,
         };
@@ -2973,7 +2966,7 @@ export default class htx extends htxRest {
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId,
+                'cid': requestId.toString (),
             };
         }
         const isLinear = subtype === 'linear';
@@ -3056,9 +3049,9 @@ export default class htx extends htxRest {
                     'Signature': signature,
                 };
             }
-            const requestId = this.requestId ();
+            const requestId: int = this.requestId ();
             const subscription: Dict = {
-                'id': requestId,
+                'id': requestId.toString (),
                 'messageHash': messageHash,
                 'params': params,
             };

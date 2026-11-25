@@ -626,7 +626,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<Int64> FetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.traderPrivateGetV2Clock(parameters);
@@ -654,7 +654,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -808,7 +808,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -823,7 +823,7 @@ public partial class alpaca : Exchange
             { "symbols", marketId },
             { "loc", loc },
         };
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"loc", "method"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"loc", "method"});
         List<object> symbolTrades = null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades")
         {
@@ -896,7 +896,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -972,7 +972,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -986,8 +986,8 @@ public partial class alpaca : Exchange
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         bool? paginate = false;
-        object query = null;
-        (bool?, object) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        IDictionary<string, object> query = null;
+        (bool?, IDictionary<string, object>) paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.Item1;
         query = paginatequeryVariable.Item2;
         (Int64?, object) paginationCallsqueryPaginationVariable = this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10);
@@ -1131,7 +1131,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1154,7 +1154,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1171,7 +1171,7 @@ public partial class alpaca : Exchange
             { "symbols", String.Join(",", ids.ToArray()) },
             { "loc", loc },
         };
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "loc"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "loc");
         Dictionary<string, object> response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1274,8 +1274,7 @@ public partial class alpaca : Exchange
         string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
-        string? clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
-        return clientOrderId;
+        return this.safeString(parameters, "clientOrderId", defaultClientId);
     }
 
     /**
@@ -1289,7 +1288,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateMarketOrderWithCost(string symbol, string side, double cost, object parameters = null)
+    public async override Task<ccxt.Order> CreateMarketOrderWithCost(string symbol, string side, double cost, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1312,7 +1311,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
+    public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1335,7 +1334,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateMarketSellOrderWithCost(string symbol, double cost, object parameters = null)
+    public async override Task<ccxt.Order> CreateMarketSellOrderWithCost(string symbol, double cost, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1364,7 +1363,7 @@ public partial class alpaca : Exchange
      * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1404,10 +1403,10 @@ public partial class alpaca : Exchange
         {
             request["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
-        (string?, object) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
+        IDictionary<string, object> paramsCost = ((cost != null)) ? this.omit(parameters, "cost") : parameters;
+        (string?, IDictionary<string, object>) defaultTIFparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsCost, "createOrder", "timeInForce");
         string? defaultTIF = defaultTIFparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)defaultTIFparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (defaultTIFparamsTimeInForceVariable.Item2);
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request["time_in_force"] = ((defaultTIF != null)) ? defaultTIF.ToLower() : defaultTIF;
         Dictionary<string, object> paramsOmitted = this.omit(paramsTimeInForce, new List<object>() {"timeInForce", "triggerPrice"});
@@ -1462,7 +1461,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1487,7 +1486,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1514,7 +1513,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1543,7 +1542,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1564,7 +1563,7 @@ public partial class alpaca : Exchange
         {
             request["until"] = this.iso8601(until);
         }
-        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+        IDictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((since != null))
         {
             request["after"] = this.iso8601(since);
@@ -1636,7 +1635,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1658,7 +1657,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.direction] the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1684,7 +1683,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1708,14 +1707,14 @@ public partial class alpaca : Exchange
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        object paramsTrigger = ((triggerPrice != null)) ? this.omit(parameters, "triggerPrice") : parameters;
+        IDictionary<string, object> paramsTrigger = ((triggerPrice != null)) ? this.omit(parameters, "triggerPrice") : parameters;
         if ((price != null))
         {
             request["limit_price"] = this.priceToPrecision(symbol, price);
         }
-        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
+        (string?, IDictionary<string, object>) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc");
         string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        IDictionary<string, object> paramsTimeInForce = (timeInForceparamsTimeInForceVariable.Item2);
         if ((timeInForce != null))
         {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
@@ -1865,7 +1864,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1885,7 +1884,7 @@ public partial class alpaca : Exchange
         {
             request["until"] = this.iso8601(until);
         }
-        object paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
+        IDictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(parameters, "until") : parameters;
         if ((since != null))
         {
             request["after"] = this.iso8601(since);
@@ -1920,7 +1919,7 @@ public partial class alpaca : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchTrades
@@ -1993,7 +1992,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2050,7 +2049,7 @@ public partial class alpaca : Exchange
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
@@ -2062,12 +2061,9 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string addressValue = address;
         string? tagSuffix = this.safeString(parameters, "tag", "");
-        if (tagSuffix != "")
-        {
-            addressValue = ((address + ":") + tagSuffix);
-        }
+        string taggedAddress = ((address + ":") + tagSuffix);
+        string addressValue = (tagSuffix != "") ? taggedAddress : address;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", addressValue },
@@ -2206,7 +2202,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("BOTH", code, since, limit, parameters));
@@ -2224,7 +2220,7 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("INCOMING", code, since, limit, parameters));
@@ -2242,14 +2238,14 @@ public partial class alpaca : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> transactions = ccxt.BaseExchange.FromTransactionList(await this.FetchTransactionsHelper("OUTGOING", code, since, limit, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.toArray(transactions));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2400,7 +2396,7 @@ public partial class alpaca : Exchange
      * the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
      * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2562,9 +2558,9 @@ public partial class alpaca : Exchange
             headersValue["APCA-API-KEY-ID"] = this.apiKey;
             headersValue["APCA-API-SECRET-KEY"] = this.secret;
         }
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.extractParams(path)));
         string? bodyJson = null;
-        if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+        if ((new List<object>(query.Keys)).Count > 0)
         {
             if (((method == "GET")) || ((method == "DELETE")))
             {

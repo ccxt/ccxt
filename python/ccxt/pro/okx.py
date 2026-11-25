@@ -44,6 +44,8 @@ class okx(ccxt.async_support.okx):
                 'watchFundingRates': True,
                 'unWatchTicker': True,
                 'unWatchTickers': True,
+                'unWatchMarkPrice': True,
+                'unWatchMarkPrices': True,
                 'unWatchOHLCV': True,
                 'unWatchOHLCVForSymbols': True,
                 'unWatchOrderBook': True,
@@ -174,7 +176,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHashResolved, request, messageHashResolved)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
@@ -187,7 +189,7 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -272,14 +274,14 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(channel, access)
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches from the stream channel
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.un_watch_trades_for_symbols([symbol], params)
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -437,7 +439,7 @@ class okx(ccxt.async_support.okx):
         ticker = await self.watch_tickers([symbolValue], paramsChannel)
         return self.safe_value(ticker, symbolValue)
 
-    def un_watch_ticker(self, symbol: str, params={}) -> object:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
@@ -448,7 +450,7 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_tickers([symbol], params)
+        return await self.un_watch_tickers([symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -509,6 +511,52 @@ class okx(ccxt.async_support.okx):
         if self.newUpdates:
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
+
+    async def un_watch_mark_price(self, symbol: str, params: dict = {}) -> object:
+        """
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+
+        unWatches a mark price
+        :param str symbol: unified symbol of the market to stop watching the mark price for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to unsubscribe from, mark-price by default
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        return await self.un_watch_mark_prices([symbol], params)
+
+    async def un_watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+
+        unWatches mark prices
+        :param str[] [symbols]: unified symbols of the markets to stop watching the mark price for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to unsubscribe from, mark-price by default
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        channel = self.handle_option_string_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')[0]
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
+            messageHashes.append('unsubscribe:mark-price:' + symbol)
+            marketId = self.market_id(symbol)
+            topic = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+        request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = self.get_url(channel, 'public')
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
     async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
@@ -1005,7 +1053,7 @@ class okx(ccxt.async_support.okx):
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> object:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1016,7 +1064,7 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params: dict = {}):
         """
@@ -1144,7 +1192,7 @@ class okx(ccxt.async_support.okx):
             messageHashForMulti = 'multi:' + channel + ':' + symbol
             client.resolve([symbol, timeframe, stored], messageHashForMulti)
 
-    def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
@@ -1160,7 +1208,7 @@ class okx(ccxt.async_support.okx):
         # channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
         # books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         #
-        return self.watch_order_book_for_symbols([symbol], limit, params)
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -1274,7 +1322,7 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(depth, 'public')
         return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
-    def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
@@ -1286,7 +1334,7 @@ class okx(ccxt.async_support.okx):
         :param str [params.depth]: okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.un_watch_order_book_for_symbols([symbol], params)
+        return await self.un_watch_order_book_for_symbols([symbol], params)
 
     def handle_delta(self, bookside: object, delta: object):
         #
@@ -2094,11 +2142,11 @@ class okx(ccxt.async_support.okx):
                 symbolMessageHash = messageHash + '::' + tradeSymbols[i]
                 client.resolve(self.myTrades, symbolMessageHash)
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
+        # millisecond timestamp plus 3 random digits stays a safe integer
         ts = str(self.milliseconds())
-        randomNumber = self.rand_number(4)
-        randomPart = str(randomNumber)
-        return ts + randomPart
+        randomPart = str(self.rand_number(3))
+        return self.parse_to_int(ts + randomPart)
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2119,7 +2167,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         op, paramsOp = self.handle_option_string_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, paramsOp)
         market = self.market(symbol)
@@ -2191,7 +2239,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         op, paramsOp = self.handle_option_string_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, paramsOp)
         market = self.market(symbol)
@@ -2224,7 +2272,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         paramsOmitted = self.omit(params, ['clientOrderId', 'clOrdId'])
         market = self.market(symbol)
@@ -2263,7 +2311,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         args = []
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')
@@ -2301,7 +2349,7 @@ class okx(ccxt.async_support.okx):
         if market['type'] != 'option':
             raise BadRequest(self.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         request = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -2561,6 +2609,13 @@ class okx(ccxt.async_support.okx):
         if symbol in self.tickers:
             del self.tickers[symbol]
 
+    def handle_unsubscription_mark_price(self, client: Client, symbol: str, channel: str):
+        subMessageHash = channel + '::' + symbol
+        messageHash = 'unsubscribe:mark-price:' + symbol
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+
     def handle_unsubscription(self, client: Client, message: dict):
         #
         # {
@@ -2584,6 +2639,8 @@ class okx(ccxt.async_support.okx):
             self.handle_un_subscription_trades(client, symbol, channel)
         elif channel.startswith('bbo') or channel.startswith('book'):
             self.handle_unsubscription_order_book(client, symbol, channel)
+        elif channel == 'mark-price':
+            self.handle_unsubscription_mark_price(client, symbol, channel)
         elif channel.find('tickers') > -1:
             self.handle_unsubscription_ticker(client, symbol, channel)
         elif channel.startswith('candle'):

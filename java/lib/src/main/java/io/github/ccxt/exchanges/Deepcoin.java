@@ -552,19 +552,18 @@ public class Deepcoin extends DeepcoinApi
         String instType = this.safeString(parameters, "instType");
         Map<String, Object> paramsOmitted = this.omit(parameters, "instType");
         String type = this.safeString(paramsOmitted, "type");
-        Map<String, Object> paramsExtended = paramsOmitted;
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("type", instType);
-            paramsExtended = this.extend(paramsOmitted, mapLiteral1);
+            return super.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, mapLiteral1), defaultValue);
         }
-        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
 
     public String convertToInstrumentType(String type)
     {
-        Map<String, Object> exchangeTypes = (Map<String, Object>) this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
+        Map<String, Object> exchangeTypes = this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -582,7 +581,7 @@ public class Deepcoin extends DeepcoinApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> types = new ArrayList<Object>(Arrays.asList("spot", "swap"));
-            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
+            Map<String, Object> fetchMarketsOption = this.safeDict(this.options, "fetchMarkets", null);
             if (!java.util.Objects.equals(fetchMarketsOption, null))
             {
                 types = (List<Object>) this.safeList(fetchMarketsOption, "types", types);
@@ -592,14 +591,14 @@ public class Deepcoin extends DeepcoinApi
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)types).size(); i++)
+            for (var i = 0; i < types.size(); i++)
             {
                 ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i), parameters));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < ((List<?>)responses).size(); i++)
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            for (var i = 0; i < responses.size(); i++)
             {
-                result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
             return result;
         });
@@ -644,7 +643,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> dataResponse = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> dataResponse = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(dataResponse);
         });
 
@@ -784,14 +783,14 @@ public class Deepcoin extends DeepcoinApi
             yield j39v3; } })));
     }
 
-    public Object setMarkets(Object markets, Object currencies)
+    public Map<String, Object> setMarkets(Object markets, Object currencies)
     {
-        Object result = super.setMarkets(markets, currencies);
-        List<String> symbols = new ArrayList<String>(((Map<String, Object>)result).keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        Map<String, Object> result = super.setMarkets(markets, currencies);
+        List<String> symbols = new ArrayList<String>(result.keySet());
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Map<String, Object> market = (Map<String, Object>) this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> market = this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
             Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
             if (Boolean.TRUE.equals(isSwap))
             {
@@ -825,7 +824,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 400 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 400 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
                 put( "sz", limitResolved );
@@ -847,7 +846,7 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrderBook(data, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
@@ -911,7 +910,11 @@ public class Deepcoin extends DeepcoinApi
                 request.put("after", until);
             }
             Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
-            List<Object> keysToOmit = ((Boolean.TRUE.equals(calculateUntil))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
+            List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("price", "until"));
+            if (Boolean.TRUE.equals(calculateUntil))
+            {
+                ((List<Object>)keysToOmit).add("calculateUntil");
+            }
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
             if (Boolean.TRUE.equals(calculateUntil))
             {
@@ -967,7 +970,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1000,7 +1003,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "instType", Deepcoin.this.convertToInstrumentType(marketType) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, paramsMarketType))).join();
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -1101,7 +1104,7 @@ public class Deepcoin extends DeepcoinApi
             String productGroup = this.getProductGroupFromMarket(market);
             request.put("productGroup", productGroup);
             Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1252,10 +1255,10 @@ public class Deepcoin extends DeepcoinApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        List<Object> balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String symbol = this.safeString(balance, "ccy");
             String code = this.safeCurrencyCode(symbol, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1318,8 +1321,8 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
             Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }};
@@ -1379,8 +1382,8 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
             Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }};
@@ -1473,8 +1476,8 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object code = (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
-            Map<String, Object> currency = this.currency((String) (code));
+            String code = (String) (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
+            Map<String, Object> currency = this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_id", currency.get("id") );
                 put( "lang", "en" );
@@ -1506,8 +1509,8 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> additionalParams = new HashMap<String, Object>() {{
                 put( "currency", code );
             }};
@@ -1536,7 +1539,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String network = this.safeString(parameters, "network");
-            Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
+            Map<String, Object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
             String defaultNetwork = this.safeString(defaultNetworks, code);
             if ((java.util.Objects.equals(network, null)) || (java.util.Objects.equals(network, "")))
             {
@@ -1548,7 +1551,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();
-            Integer length = ((List<?>)addressess).size();
+            Integer length = addressess.size();
             Object index = 0;
             if ((!java.util.Objects.equals(network, null)) && ((length != null && length > 1)))
             {
@@ -1675,7 +1678,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -1774,7 +1777,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1795,9 +1798,9 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> transfer = (Map<String, Object>) this.parseTransfer(data, currency);
-            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Boolean.TRUE.equals(fillResponseFromRequest))
             {
@@ -1902,7 +1905,7 @@ public class Deepcoin extends DeepcoinApi
                 //
                 response = (this.privatePostDeepcoinTradeOrder(request)).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1991,14 +1994,14 @@ public class Deepcoin extends DeepcoinApi
             request.put("clOrdId", clientOrderId);
             ((List<Object>)keysToOmit).add("clientOrderId");
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(paramsOrderType, "stopLoss", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLoss = this.safeDict(paramsOrderType, "stopLoss", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLoss, "triggerPrice");
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
             ((List<Object>)keysToOmit).add("stopLoss");
             request.put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
         }
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(paramsOrderType, "takeProfit", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfit = this.safeDict(paramsOrderType, "takeProfit", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -2176,19 +2179,17 @@ public class Deepcoin extends DeepcoinApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        String typePostOnly = type;
-        if (Boolean.TRUE.equals(postOnly))
-        {
-            typePostOnly = "post_only";
-        }
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
-        String typeValue = typePostOnly;
         if (java.util.Objects.equals(timeInForce, "IOC"))
         {
-            typeValue = "ioc";
+            return new ArrayList<Object>(Arrays.asList("ioc", paramsOmitted));
         }
-        return new ArrayList<Object>(Arrays.asList(typeValue, paramsOmitted));
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            return new ArrayList<Object>(Arrays.asList("post_only", paramsOmitted));
+        }
+        return new ArrayList<Object>(Arrays.asList(type, paramsOmitted));
     }
 
     /**
@@ -2333,8 +2334,8 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
         });
 
@@ -2369,13 +2370,13 @@ public class Deepcoin extends DeepcoinApi
                 put( "ordId", id );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer length = ((List<?>)data).size();
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Integer length = data.size();
             if (java.util.Objects.equals(length, 0))
             {
                 throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
             }
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
         });
 
@@ -2523,7 +2524,7 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privateGetDeepcoinTradeOrdersHistory(this.extend(request, paramsMarketType))).join();
             }
             // todo handle with since, until and pagination
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2713,7 +2714,7 @@ public class Deepcoin extends DeepcoinApi
                 //
                 response = (this.privateGetDeepcoinTradeV2OrdersPending(this.extend(request, parameters))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
@@ -2760,7 +2761,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 response = (this.privatePostDeepcoinTradeCancelOrder(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2810,7 +2811,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "IsMergeMode", isMergedMode );
             }};
             Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, paramsMerged))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2900,7 +2901,7 @@ public class Deepcoin extends DeepcoinApi
                 }
                 response = (this.privatePostDeepcoinTradeReplaceOrder(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
@@ -2937,7 +2938,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "OrderSysIDs", ids );
             }};
             Map<String, Object> response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3127,7 +3128,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "instId", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3191,7 +3192,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3393,8 +3394,8 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rates, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -3442,9 +3443,9 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> entry = this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -3538,8 +3539,8 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -3652,7 +3653,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3718,7 +3719,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> market = this.market(symbol);
             String productGroup = this.getProductGroupFromMarket(market);
             String positionId = this.safeString(parameters, "positionId");
-            List<Object> positionIds = (List<Object>) this.safeList(parameters, "positionIds", (Object) null);
+            List<Object> positionIds = this.safeList(parameters, "positionIds", null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
                 put( "productGroup", productGroup );
@@ -3736,7 +3737,7 @@ public class Deepcoin extends DeepcoinApi
                 Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(positionId, null)))) ? this.omit(parameters, "positionId") : parameters;
                 response = (this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, paramsOmitted))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3801,7 +3802,7 @@ public class Deepcoin extends DeepcoinApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String msg = this.safeString(response, "msg");
         String messageCode = this.safeString(response, "code");
         String sCode = this.safeString(data, "sCode");
@@ -3811,12 +3812,12 @@ public class Deepcoin extends DeepcoinApi
         {
             msg = sMsg;
         }
-        List<Object> errorList = (List<Object>) this.safeList(data, "errorList", (Object) null);
+        List<Object> errorList = this.safeList(data, "errorList", null);
         if (!java.util.Objects.equals(errorList, null))
         {
-            for (var i = 0; i < ((List<?>)errorList).size(); i++)
+            for (var i = 0; i < errorList.size(); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
                 errorCode = this.safeString(entry, "errorCode");
             }
         }
@@ -3839,7 +3840,7 @@ public class Deepcoin extends DeepcoinApi
             throw new ExchangeError(feedback) ;
         } else
         {
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             if ((data.containsKey("list")) && (java.util.Objects.equals(list, null)))
             {
                 throw new NullResponse(feedback) ;

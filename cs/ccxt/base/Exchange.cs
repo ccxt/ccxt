@@ -36,6 +36,10 @@ public partial class BaseExchange
     private void initHttpClient()
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        if (!this.validateServerSsl)
+        {
+            handler.ServerCertificateCustomValidationCallback = (request, certificate, chain, errors) => true;
+        }
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
@@ -550,7 +554,7 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, IDictionary<string, object> parameters = null)
     {
         if (!reload && this.markets != null)
         {
@@ -574,11 +578,10 @@ public partial class BaseExchange
         return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, IDictionary<string, object> parameters2 = null)
     {
         var reload = reload2 == true;
-        parameters2 ??= new dict();
-        var parameters = (dict)parameters2;
+        var parameters = parameters2 ?? new dict();
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
         {
             this.reloadingMarkets = true;
@@ -592,33 +595,33 @@ public partial class BaseExchange
         return marketsLoading;
     }
 
-    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(IDictionary<string, object> parameters = null)
     {
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
-    public async Task<Currencies> FetchCurrencies(object parameters = null)
+    public async Task<Currencies> FetchCurrencies(IDictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrencies(parameters);
         return new Currencies(res);
     }
 
-    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(IDictionary<string, object> parameters = null)
     {
         return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
-    public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(IDictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
         return new Currencies(res);
@@ -781,6 +784,8 @@ public partial class BaseExchange
 
     public async Task Close(bool cleanInstanceCache = false)
     {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose();
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();
@@ -1348,9 +1353,17 @@ public partial class BaseExchange
     {
         var length = Convert.ToInt32(length2);
         var bytes = new byte[length];
-        var rng = new Random();
-        rng.NextBytes(bytes);
-        return Convert.ToBase64String(bytes);
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(bytes);
+        }
+        // hex, same as ts/php (callers like interactivebrokers prefix it with '0x' and parse it as a number)
+        var sb = new StringBuilder(length * 2);
+        foreach (var b in bytes)
+        {
+            sb.Append(b.ToString("x2"));
+        }
+        return sb.ToString();
     }
 
     public void extendExchangeOptions(object options2)
@@ -1363,6 +1376,106 @@ public partial class BaseExchange
     public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
+    }
+
+    // reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+    public string readDhParam(object path)
+    {
+        var pem = this.readFile(path);
+        var der = Convert.FromBase64String(Regex.Replace(pem, @"-----[^-]+-----|\s", ""));
+        var pos = 0;
+        Func<int> readByte = () =>
+        {
+            if (pos >= der.Length)
+            {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            return der[pos++];
+        };
+        Func<int> readLen = () =>
+        {
+            var len = readByte();
+            if ((len & 0x80) != 0)
+            {
+                var n = len & 0x7f;
+                len = 0;
+                for (var i = 0; i < n; i++)
+                {
+                    len = (len << 8) | readByte();
+                }
+            }
+            return len;
+        };
+        Func<string> readInt = () =>
+        {
+            if (readByte() != 0x02)
+            {
+                throw new ExchangeError(this.id + " readDhParam() expected INTEGER while reading DH_param file");
+            }
+            var len = readLen();
+            if (pos + len > der.Length)
+            {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            var sb = new StringBuilder(len * 2);
+            for (var i = pos; i < pos + len; i++)
+            {
+                sb.Append(der[i].ToString("x2"));
+            }
+            pos += len;
+            var hex = sb.ToString();
+            return hex.StartsWith("00") ? hex.Substring(2) : hex; // strip sign byte
+        };
+        if (readByte() != 0x30)
+        {
+            throw new ExchangeError(this.id + " readDhParam() expected SEQUENCE while reading DH_param file");
+        }
+        readLen();
+        var prime = readInt();
+        readInt(); // generator
+        return prime;
+    }
+
+    private static BigInteger toUnsignedBigInteger(object value)
+    {
+        if (value is BigInteger bi)
+        {
+            return bi;
+        }
+        if (value is string str)
+        {
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // leading zero keeps BigInteger.Parse from reading the top bit as a sign
+                return BigInteger.Parse("0" + str.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+            return BigInteger.Parse(str, CultureInfo.InvariantCulture);
+        }
+        return new BigInteger(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+    }
+
+    public BigInteger modPow(object b, object exponent, object modulus)
+    {
+        return BigInteger.ModPow(toUnsignedBigInteger(b), toUnsignedBigInteger(exponent), toUnsignedBigInteger(modulus));
+    }
+
+    // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+    public byte[] bigToBytes(object value)
+    {
+        var hex = toUnsignedBigInteger(value).ToString("x").TrimStart('0');
+        if (hex.Length == 0)
+        {
+            hex = "0";
+        }
+        if ((hex.Length % 2) == 1)
+        {
+            hex = "0" + hex;
+        }
+        if (Convert.ToInt32(hex.Substring(0, 1), 16) >= 8)
+        {
+            hex = "00" + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary(hex);
     }
 
     // a present option value of another type is a user error: throw instead of coercing

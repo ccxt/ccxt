@@ -613,7 +613,7 @@ class coinmate extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $market = $this->market($keys[$i]);
-            $ticker = $this->parse_ticker($this->safe_value($data, $keys[$i]), $market);
+            $ticker = $this->parse_ticker($this->safe_dict($data, $keys[$i], array()), $market);
             $result[$market['symbol']] = $ticker;
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
@@ -646,12 +646,12 @@ class coinmate extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'vwap' => null,
             'askVolume' => null,
-            'open' => null,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => null,
+            'percentage' => $this->safe_number($ticker, 'change'),
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'amount'),
             'quoteVolume' => null,

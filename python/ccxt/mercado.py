@@ -465,12 +465,17 @@ class mercado(Exchange, ImplicitAPI):
         side = self.safe_string(trade, 'type')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'amount', 'quantity')
-        feeCost = self.safe_string(trade, 'fee_rate')
+        # fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        feeRate = self.safe_string(trade, 'fee_rate')
         fee = None
-        if feeCost is not None:
+        if (feeRate is not None) and (side is not None):
+            rate = Precise.string_div(feeRate, '100')
+            isBuy = (side == 'buy')
+            feeBase = amount if (isBuy) else Precise.string_mul(amount, price)
             fee = {
-                'cost': feeCost,
-                'currency': None,
+                'cost': Precise.string_mul(feeBase, rate),
+                'currency': marketResolved['base'] if (isBuy) else marketResolved['quote'],
+                'rate': rate,
             }
         return self.safe_trade({
             'id': id,
@@ -574,8 +579,7 @@ class mercado(Exchange, ImplicitAPI):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
                 amountString = self.number_to_string(amount)
                 priceString = self.number_to_string(price)
-                cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
-                request['cost'] = self.price_to_precision(market['symbol'], cost)
+                request['cost'] = self.price_to_precision(market['symbol'], self.parse_to_numeric(Precise.string_mul(amountString, priceString)))
                 response = self.privatePostPlaceMarketBuyOrder(self.extend(request, params))
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
@@ -583,7 +587,7 @@ class mercado(Exchange, ImplicitAPI):
         # TODO: replace this with a call to parseOrder for unification
         return self.safe_order({
             'info': response,
-            'id': self.safe_string(self.safe_value(self.safe_value(response, 'response_data'), 'order'), 'order_id'),
+            'id': self.safe_string(self.safe_dict(self.safe_dict(response, 'response_data'), 'order'), 'order_id'),
         }, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -684,7 +688,11 @@ class mercado(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
-        rawTrades = self.safe_list(order, 'operations', [])
+        operations = self.safe_list(order, 'operations', [])
+        rawTrades = []
+        for i in range(0, len(operations)):
+            # operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.append(self.extend(operations[i], {'type': side}))
         symbol = marketResolved['symbol']
         return self.safe_order({
             'info': order,
@@ -942,7 +950,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: list[Order]) -> list[Trade]:
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_list(self.safe_value(orders, i), 'trades', [])
+            trades = self.safe_list(self.safe_dict(orders, i), 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result
@@ -996,7 +1004,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         #     {"status":503,"message":"Maintenancing, try again later","result":null}
         #
-        errorMessage = self.safe_value(response, 'error_message')
+        errorMessage = self.safe_string(response, 'error_message')
         if errorMessage is not None:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return None

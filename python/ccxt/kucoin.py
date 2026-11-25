@@ -772,6 +772,7 @@ class kucoin(Exchange, ImplicitAPI):
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
+                    '400304': PermissionDenied,  # {"msg":"To enjoy the full range of our products and services, log in to your master account and complete the identity verification process.","code":"400304"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress,  # { "code": "260220", "msg": "deposit.address.not.exists" }
                     '600100': InsufficientFunds,  # {"msg":"Funds below the minimum requirement.","code":"600100"}
@@ -1646,7 +1647,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
-        fetchTickersFees = None
+        fetchTickersFees = True
         paramsRequest = None
         fetchTickersFees, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchTickersFees', True)
         uta = False
@@ -4608,8 +4609,7 @@ class kucoin(Exchange, ImplicitAPI):
         #           },
         # }
         #
-        data = self.safe_dict(response, 'data', {})
-        data = self.safe_list(data, 'data', [])
+        data = self.safe_list(self.safe_dict(response, 'data', {}), 'data', [])
         return self.parse_orders(data)
 
     def create_contract_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
@@ -9597,7 +9597,7 @@ class kucoin(Exchange, ImplicitAPI):
                 rates.append(entry)
         return self.parse_funding_rates(rates, symbolsNormalized)
 
-    def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, data: dict, market: Market = None) -> FundingRate:
         # uta
         #     {
         #         "symbol": ".ETHUSDTMFPI8H",
@@ -10382,9 +10382,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'symbol': self.safe_string(market, 'id'),
                 'clientOid': self.safe_string(clientOrderIds, i),
             })
-        idsList = self.to_array(ids)
-        for i in range(0, len(idsList)):
-            orderId = self.safe_string(idsList, i)
+        for i in range(0, len(ids)):
+            orderId = self.safe_string(ids, i)
             if uta:
                 ordersRequests.append({
                     'orderId': orderId,
@@ -11143,7 +11142,7 @@ class kucoin(Exchange, ImplicitAPI):
             partner = self.safe_dict(self.options, 'partner', {})
             isUtaFuturePrivate = isUtaPrivate and (tradeType == 'FUTURES')
             isFuturePartner = isFuturePrivate or isUtaFuturePrivate
-            partner = self.safe_value(partner, 'future', partner) if isFuturePartner else self.safe_value(partner, 'spot', partner)
+            partner = self.safe_dict(partner, 'future', partner) if isFuturePartner else self.safe_dict(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
             partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):

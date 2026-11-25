@@ -527,10 +527,10 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var id *string = this.SafeString(market, "name")
 		var baseId *string = this.SafeString(market, "firstCurrency")
 		var quoteId *string = this.SafeString(market, "secondCurrency")
@@ -828,7 +828,7 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = this.Market(keys[i])
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(data, keys[i]), market))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(data, keys[i], map[string]any{}), market))
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
@@ -864,12 +864,12 @@ func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"ask":           this.SafeNumber(ticker, "ask"),
 		"vwap":          nil,
 		"askVolume":     nil,
-		"open":          nil,
+		"open":          this.SafeNumber(ticker, "open"),
 		"close":         last,
 		"last":          last,
 		"previousClose": nil,
 		"change":        nil,
-		"percentage":    nil,
+		"percentage":    this.SafeNumber(ticker, "change"),
 		"average":       nil,
 		"baseVolume":    this.SafeNumber(ticker, "amount"),
 		"quoteVolume":   nil,
@@ -1212,12 +1212,12 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			panic(r.Err)
 		}
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"limit": limitResolved,
 	}
@@ -1791,12 +1791,12 @@ func (this *Coinmate) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinmate) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinmate) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinmate) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinmate) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	//   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}

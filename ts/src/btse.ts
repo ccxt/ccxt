@@ -1480,7 +1480,7 @@ export default class btse extends Exchange {
         return this.parseFundingRates (rows, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // ticker/24hr contract rows
         //     {
@@ -2531,7 +2531,7 @@ export default class btse extends Exchange {
             request['symbol'] = this.futuresRequestId (this.market (symbol));
             response = await this.privateDeleteFuturesApiV23Order (this.extend (request, paramsMarketType));
         }
-        return this.parseOrders (response, market);
+        return this.parseOrders (this.toArray (response), market);
     }
 
     /**
@@ -3725,14 +3725,14 @@ export default class btse extends Exchange {
             const row = this.safeDict (rows, i);
             const status = this.safeString (row, 'status');
             if (status !== undefined) {
-                let message = this.safeString (row, 'message');
-                const embedded = this.parseJson (message);
+                let rowMessage = this.safeString (row, 'message');
+                const embedded = this.parseJson (rowMessage);
                 if (embedded !== undefined) {
-                    message = this.safeString (embedded, 'default_msg', message);
+                    rowMessage = this.safeString (embedded, 'default_msg', rowMessage);
                 }
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
-                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], rowMessage, feedback);
             }
         }
         return undefined;
@@ -3792,7 +3792,7 @@ export default class btse extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    futuresRequestId (market: Dict) {
+    futuresRequestId (market: Market) {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well

@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { BadRequest, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -57,7 +57,7 @@ export default class lbank extends lbankRest {
         });
     }
 
-    requestId (): number {
+    requestId (): int {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'requestId', 0);
         const newValue = this.sum (previousValue, 1);
@@ -273,7 +273,28 @@ export default class lbank extends lbankRest {
         const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
         const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
         const records = this.safeList (message, 'records');
-        if (records !== undefined) {  // from request
+        let timeframeId = '';
+        let messageHash = '';
+        if (records !== undefined) {
+            timeframeId = this.safeString (message, 'kbar', '');
+            messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
+        } else {  // from subscription
+            timeframeId = this.safeString (this.safeDict (message, 'kbar', {}), 'slot', '');
+            messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            if (!(messageHash in client.subscriptions)) {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
+        }
+        const timeframe = this.findTimeframe (timeframeId, timeframes);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe as string] = stored;
+        }
+        if (records !== undefined) {
             const rawOHLCV = this.safeList (records, 0, []);
             const parsed = [
                 this.safeInteger (rawOHLCV, 0),
@@ -283,22 +304,9 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 4),
                 this.safeNumber (rawOHLCV, 5),
             ];
-            const timeframeId = this.safeString (message, 'kbar', '');
-            const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
-            }
             stored.append (parsed);
-            const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
-            client.resolve (stored, messageHash);
-        } else {  // from subscription
+        } else {
             const rawOHLCV = this.safeDict (message, 'kbar', {});
-            const timeframeId = this.safeString (rawOHLCV, 'slot', '');
             const datetime = this.safeString (rawOHLCV, 't');
             const parsed = [
                 this.parse8601 (datetime),
@@ -308,23 +316,9 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 'c'),
                 this.safeNumber (rawOHLCV, 'v'),
             ];
-            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
-            if (!(messageHash in client.subscriptions)) {
-                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
-                return;
-            }
-            const timeframe = this.findTimeframe (timeframeId, timeframes);
-            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
-            this.ohlcvs[symbol] = ohlcvsForSymbol;
-            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                ohlcvsForSymbol[timeframe as string] = stored;
-            }
             stored.append (parsed);
-            client.resolve (stored, messageHash);
         }
+        client.resolve (stored, messageHash);
     }
 
     /**
@@ -673,21 +667,20 @@ export default class lbank extends lbankRest {
         const key = await this.authenticate (params);
         const url = this.urls['api']['ws'];
         let messageHash: Str = undefined;
-        let pair = 'all';
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
+        const message: Dict = {
+            'action': 'subscribe',
+            'subscribe': 'orderUpdate',
+            'subscribeKey': key,
+            'pair': 'all',
+        };
         if (symbol === undefined) {
             messageHash = 'orders:all';
         } else {
             const market = this.market (symbol);
             messageHash = 'orders:' + market['symbol'];
-            pair = market['id'] as string;
+            message['pair'] = market['id'];
         }
-        const message: Dict = {
-            'action': 'subscribe',
-            'subscribe': 'orderUpdate',
-            'subscribeKey': key,
-            'pair': pair,
-        };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limit, true);
@@ -1000,7 +993,7 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
-        const orderBook = this.safeValue (message, 'depth', message);
+        const orderBook = this.safeDict (message, 'depth', message);
         const datetime = this.safeString (message, 'TS');
         const timestamp = this.parse8601 (datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);

@@ -990,7 +990,7 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < GetArrayLength(orderbook); i++ {
-		var level any = this.SafeValue(orderbook, i)
+		var level []any = SafeListTyped(orderbook, i)
 		var newTimestamp *int64 = this.SafeInteger(level, 2)
 		if (newTimestamp != nil) && ((latestTimestamp == nil) || (*newTimestamp > *latestTimestamp)) {
 			latestTimestamp = newTimestamp
@@ -1046,12 +1046,12 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}() // default 100
+	var limitValue int64
+	if limit == nil {
+		limitValue = 100
+	} else {
+		limitValue = *limit
+	} // default 100
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1210,6 +1210,7 @@ func (this *Ndax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
+
 	//
 	//     [
 	//         {
@@ -1225,9 +1226,7 @@ func (this *Ndax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	//         }
 	//     ]
 	//
-	var tickers map[string]any = this.ParseTickers(response)
-
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(this.ParseTickers(response), "symbol", symbolsNormalized))}
 	return nil
 }
 
@@ -2443,12 +2442,12 @@ func (this *Ndax) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Ndax) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Ndax) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Ndax) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Ndax) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3388,7 +3387,7 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transac
 			typeVar = "withdrawal"
 		}
 	}
-	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
+	var templateForm any = this.ParseJson(this.SafeString2(transaction, "TemplateForm", "DepositInfo"))
 	var updated *int64 = this.SafeInteger(transaction, "LastUpdateTimeStamp")
 	if templateForm != nil {
 		updated = this.SafeInteger(templateForm, "LastUpdated", updated)

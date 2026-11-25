@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-base"
-version = "4.5.92"
+version = "4.5.94"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – untyped engine (runtime, Value, REST/prediction Cores, WS infra)"
 license = "MIT"
@@ -35,7 +35,7 @@ default = []
 # single Core instead of all 200+.
 transpiled-base = ["engine", "all-exchanges", "all-prediction"]
 engine = ["ccxt-common/engine"]
-# One feature per transpiled Core, emitted by build/generateRustWrappers.ts; a
+# One feature per transpiled Core, emitted by build/rustTranspiler.ts; a
 # derived venue lists its parent so the parent Core compiles too. Prediction
 # Cores are prefixed `prediction-` because their ids overlap the REST venues.
 # BEGIN GENERATED FEATURES
@@ -51,6 +51,7 @@ binanceus = ["binance"]
 binanceusdm = ["binance"]
 bingx = []
 bit2c = []
+bit2me = []
 bitbank = []
 bitbns = []
 bitfinex = []
@@ -106,6 +107,7 @@ htx = []
 hyperliquid = []
 independentreserve = []
 indodax = []
+interactivebrokers = []
 kraken = []
 krakenfutures = []
 kucoin = []
@@ -151,16 +153,16 @@ prediction-opinion = []
 prediction-polymarket = []
 prediction-predictfun = []
 prediction-sxbet = []
-all-exchanges = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "polymarket", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
+all-exchanges = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "binancecoinm", "binanceus", "binanceusdm", "bingx", "bit2c", "bit2me", "bitbank", "bitbns", "bitfinex", "bitflyer", "bitget", "bithumb", "bitopro", "bitrue", "bitso", "bitstamp", "bitteam", "bittrade", "bitvavo", "blockchaincom", "blofin", "btcbox", "btcmarkets", "btcturk", "btse", "bullish", "bybit", "bybiteu", "bybitid", "cex", "coinbase", "coinbaseexchange", "coinbaseinternational", "coincheck", "coinmate", "coinone", "coinsph", "coinspot", "cryptocom", "cryptomus", "deepcoin", "delta", "deribit", "derive", "digifinex", "dydx", "extended", "fmfwio", "foxbit", "gate", "gateeu", "gemini", "grvt", "hashkey", "hibachi", "hitbtc", "hollaex", "htx", "hyperliquid", "independentreserve", "indodax", "interactivebrokers", "kraken", "krakenfutures", "kucoin", "kucoinfutures", "latoken", "lbank", "lighter", "luno", "mercado", "mexc", "modetrade", "mudrex", "myokx", "nado", "ndax", "okx", "okxus", "onetrading", "p2b", "pacifica", "paradex", "paymium", "phemex", "poloniex", "polymarket", "revolutx", "tokocrypto", "toobit", "upbit", "weex", "whitebit", "woo", "woofipro", "xt", "zaif", "zebpay"]
 all-prediction = ["prediction-binance", "prediction-hyperliquid", "prediction-kalshi", "prediction-limitless", "prediction-myriad", "prediction-opinion", "prediction-polymarket", "prediction-predictfun", "prediction-sxbet"]
 # END GENERATED FEATURES
 
 [dependencies]
-ccxt-common = { path = "../ccxt-common", version = "4.5.92" }
+ccxt-common = { path = "../ccxt-common", version = "4.5.94" }
 indexmap = { version = "2", features = ["serde"] }
 futures = "0.3"
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["rt", "macros"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 

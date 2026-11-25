@@ -11,7 +11,7 @@ import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { applyJavaImports } from './javaUtilImports.js';
-import { goPredictionEndpointBody, goPredictionNeedsCcxtImport } from './go-pred-endpoint.js';
+import { goPredictionEndpointBody, goPredictionNeedsCcxtImport, goPredictionListArgEndpoints } from './go-pred-endpoint.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -1024,11 +1024,12 @@ function goEndpointBody (method: string, resolvable: any, callEndpoint: string, 
     const paths: string[] = resolvable.paths || []
     // the api argument is always the []string of walked path levels
     const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
-    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
+    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{"cost": float64(${resolvable.goCost})}`
+    // dispatch through RequestAsync (like this.request in ts) so a venue's request () override runs
     if (element === 'any') {
-        return `\treturn this.Fetch2Async(${call})`
+        return `\treturn this.RequestAsync(${call})`
     }
-    return `\treturn ${pkgPrefix}Fetch2Result[${element}](this, ${call})`
+    return `\treturn ${pkgPrefix}EndpointTyped[${element}](this.RequestAsync(${call}))`
 }
 
 function createImplicitMethodsGo(){
@@ -1065,7 +1066,7 @@ function createImplicitMethodsGo(){
         // into that package)
         const pkgPrefix = isPrediction ? 'ccxt.' : '';
         // A derived exchange's core embeds its parent's core in Go
-        // (`type BinanceusCore struct { BinanceCore }`), so every endpoint the parent
+        // (`type Binanceus struct { Binance }`), so every endpoint the parent
         // already declares is promoted onto the child receiver. Re-emitting those
         // stubs on the child adds nothing but duplication, so only emit the endpoints
         // the child actually adds. The lookup stays inside the current pass because
@@ -1078,6 +1079,7 @@ function createImplicitMethodsGo(){
             }
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
+        const listArgEndpoints = isPrediction ? goPredictionListArgEndpoints ([ path.join (ROOT, 'ts/src/prediction', exchange + '.ts') ]) : new Set<string> ();
         const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
         const methods = ownMethodNames.map(method => {
             const own = resolvable.get (method);
@@ -1085,7 +1087,7 @@ function createImplicitMethodsGo(){
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
                 `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan ${goChannelType (element, pkgPrefix)} {`,
-                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
+                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element), listArgEndpoints.has (method)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
                 `}`,
                 ``,
             ].join('\n')
@@ -1245,9 +1247,9 @@ function createGoHeader(exchange: Exchange, parent: string){
 
 function createRustHeader(exchange: Exchange, parent: string){
     // Two-line preamble + import block. Each Rust api file lives next to
-    // its `<id>.rs` sibling and adds `impl <CapitalizedId>Core` methods.
+    // its `<id>.rs` sibling and adds `impl <CapitalizedId>` methods.
     const id = exchange.id;
-    const coreName = capitalize(id) + 'Core';
+    const coreName = capitalize(id);
     const header = [
         getPreamble(),
         '#![allow(non_snake_case, unused, dead_code, clippy::all)]',

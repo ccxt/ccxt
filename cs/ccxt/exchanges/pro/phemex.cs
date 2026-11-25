@@ -19,6 +19,8 @@ public partial class phemex : ccxt.phemex
                 { "watchOrders", true },
                 { "watchOrderBook", true },
                 { "watchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
                 { "watchPositions", null },
                 { "watchOrderBookForSymbols", false },
                 { "watchTradesForSymbols", false },
@@ -334,7 +336,7 @@ public partial class phemex : ccxt.phemex
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -432,7 +434,7 @@ public partial class phemex : ccxt.phemex
             }
             this.balance = this.safeBalance(this.balance);
         }
-        object messageHash = add(type, ":balance");
+        string? messageHash = ((string)(add(type, ":balance")));
         client.resolve(this.balance, messageHash);
     }
 
@@ -557,7 +559,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -656,7 +658,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -705,7 +707,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -750,7 +752,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -786,6 +788,126 @@ public partial class phemex : ccxt.phemex
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+    }
+
+    public async virtual Task<object> unSubscribePublic(object method, object subMessageHash, object marketParams, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        Int64 requestId = this.requestId();
+        string messageHash = ("unsubscribe:" + (subMessageHash));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", method },
+            { "id", requestId },
+            { "params", marketParams },
+        };
+        Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
+            { "id", requestId },
+            { "unsubscribe", true },
+            { "subMessageHash", subMessageHash },
+            { "messageHash", messageHash },
+        });
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, unsubscription);
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string name = "trade";
+        if (isUsdtSwap)
+        {
+            name = "trade_p";
+        }
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "trades" },
+            { "symbols", new List<object>() {symbolValue} },
+        };
+        return await this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new List<object>() {(market.ContainsKey("id") ? market["id"] : null)}, subscription, parameters);
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+     * @param {string} symbol unified symbol of the market to unwatch the candles for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string name = "kline";
+        if (isUsdtSwap)
+        {
+            name = "kline_p";
+        }
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "ohlcv" },
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbolValue, timeframeVar}} },
+        };
+        // phemex drops only the given interval when it is sent along with the symbol
+        List<object> marketParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)};
+        return await this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + (timeframeVar)) + ":") + symbolValue), marketParams, subscription, parameters);
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        string? id = this.safeString(message, "id");
+        List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+        for (int i = 0; i < subscriptionHashes.Count; i++)
+        {
+            string? subscriptionHash = ((string)subscriptionHashes[i]);
+            object subscription = (client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null);
+            bool? isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
+            string? subscriptionId = this.safeString(subscription, "id");
+            if ((isUnSubscription == true) && ((subscriptionId != null)) && ((subscriptionId == id)))
+            {
+                string? subMessageHash = this.safeString(subscription, "subMessageHash");
+                string? messageHash = this.safeString(subscription, "messageHash");
+                IDictionary<string, object> error = this.safeDict(message, "error");
+                if ((error != null))
+                {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
+                    client.reject(new ExchangeError(((this.id + " ") + this.json(error))), subscriptionHash);
+                    return;
+                }
+                this.cleanUnsubscription(client, subMessageHash, messageHash);
+                this.cleanCache(subscription);
+                return;
+            }
+        }
     }
 
     public virtual void customHandleDelta(object bookside, object delta, IDictionary<string, object>? market = null)
@@ -900,7 +1022,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -909,7 +1031,7 @@ public partial class phemex : ccxt.phemex
         }
         IDictionary<string, object> market = null;
         string messageHash = "trades:";
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -943,7 +1065,7 @@ public partial class phemex : ccxt.phemex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1095,7 +1217,7 @@ public partial class phemex : ccxt.phemex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1104,7 +1226,7 @@ public partial class phemex : ccxt.phemex
         }
         string messageHash = "orders:";
         IDictionary<string, object> market = null;
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             market = this.market(symbol);
@@ -1138,7 +1260,7 @@ public partial class phemex : ccxt.phemex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message)
@@ -1316,7 +1438,7 @@ public partial class phemex : ccxt.phemex
             trades = this.safeList(message, "fills", new List<object>() {});
             for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
-                object rawOrder = orders[i];
+                IDictionary<string, object> rawOrder = ((IDictionary<string, object>)orders[i]);
                 ccxt.Order parsedOrder = this.parseOrder(rawOrder);
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
@@ -1658,6 +1780,11 @@ public partial class phemex : ccxt.phemex
                 return;
             }
         }
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("result"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
+        {
+            this.handleUnSubscription(client, message);
+            return;
+        }
         string? methodName = this.safeString(message, "method", "");
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h"))) || ((methodName?.IndexOf("perp_market24h_pack_p", StringComparison.Ordinal) ?? -1) >= 0))
         {
@@ -1725,7 +1852,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public async virtual Task<object> subscribePrivate(object type, object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePrivate(object type, object messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1736,7 +1863,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.seconds();
         bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "settle"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "settle");
         string channel = "aop.subscribe";
         if ((type is "spot"))
         {

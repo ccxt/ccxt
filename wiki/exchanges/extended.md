@@ -62,7 +62,11 @@ retrieves data on all markets for extended
 **Kind**: instance method of [<code>extended</code>](#extended)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://api.docs.extended.exchange/#get-markets  
+**See**
+
+- https://api.docs.extended.exchange/#get-markets
+- https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -94,12 +94,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
-    public function private_get_recentorders($params = array()) {
-        return $this->request('recentorders', array('private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
     public function private_get_fills($params = array()) {
         return $this->request('fills', array('private'), 'GET', $params, array("cost" => 1));
     }
@@ -420,12 +414,6 @@ abstract class krakenfutures extends \ccxt\Exchange {
      */
     public function privateGetOpenorders($params = array()) {
         return $this->request('openorders', array('private'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    public function privateGetRecentorders($params = array()) {
-        return $this->request('recentorders', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

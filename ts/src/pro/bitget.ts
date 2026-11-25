@@ -173,8 +173,8 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return this.unWatchChannel (symbol, 'ticker', 'ticker', 'watchTicker', params);
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchChannel (symbol, 'ticker', 'ticker', 'watchTicker', params);
     }
 
     /**
@@ -692,8 +692,7 @@ export default class bitget extends bitgetRest {
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = this.safeString (market, 'symbol', '');
-        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
-        this.ohlcvs[symbol] = symbolOhlcvs;
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         let interval = this.safeString (arg, 'interval');
         let isUta: Bool = undefined;
@@ -708,11 +707,11 @@ export default class bitget extends bitgetRest {
         if (timeframe === undefined) {
             return;
         }
-        let stored = this.safeValue (symbolOhlcvs, timeframe);
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            symbolOhlcvs[timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = stored;
         }
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -787,8 +786,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -895,7 +894,8 @@ export default class bitget extends bitgetRest {
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
             channel += limit.toString ();
-            incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = (limit === 50);
         }
         const topics: Dict[] = [];
         const messageHashes: string[] = [];
@@ -997,7 +997,7 @@ export default class bitget extends bitgetRest {
             return;
         }
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
-        const incrementalBook = (channel === 'books');
+        const incrementalBook = ((channel === 'books') || (channel === 'books50'));
         if (incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {
@@ -1112,8 +1112,8 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -1543,14 +1543,11 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const action = this.safeString (message, 'action');
-        if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType] = new ArrayCacheBySymbolBySide ();
+        if (!(instType in this.positionsByType) || (action === 'snapshot')) {
+            this.positionsByType[instType] = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions[instType];
+        const cache = this.positionsByType[instType];
         const rawPositions: Dict[] = this.safeList (message, 'data', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
@@ -1646,7 +1643,7 @@ export default class bitget extends bitgetRest {
         const percentage = Precise.stringMul (percentageDecimal, '100');
         let contractSize: Num = undefined;
         if (market !== undefined) {
-            contractSize = market['contractSize'];
+            contractSize = this.safeNumber (market, 'contractSize');
         }
         return this.safePosition ({
             'info': position,
@@ -1883,7 +1880,7 @@ export default class bitget extends bitgetRest {
         } else {
             marketType = 'contract';
         }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
         const category = this.safeStringLower (first, 'category', instType);
         const isLinearSwap = (category === 'usdt-futures');

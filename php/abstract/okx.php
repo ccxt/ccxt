@@ -358,6 +358,12 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_public_corporate_actions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_rubik_stat_trading_data_support_coin($params = array()) {
         return $this->request('rubik/stat/trading-data/support-coin', array('public'), 'GET', $params, array("cost" => 4));
     }
@@ -876,6 +882,12 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function private_get_asset_deposit_withdraw_status($params = array()) {
         return $this->request('asset/deposit-withdraw-status', array('private'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_asset_travel_rule_get_locked($params = array()) {
+        return $this->request('asset/travel-rule/get-locked', array('private'), 'GET', $params, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>
@@ -2038,6 +2050,12 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_asset_travel_rule_unlock($params = array()) {
+        return $this->request('asset/travel-rule/unlock', array('private'), 'POST', $params, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_asset_convert_dust_assets($params = array()) {
         return $this->request('asset/convert-dust-assets', array('private'), 'POST', $params, array("cost" => 10));
     }
@@ -3178,6 +3196,12 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function publicGetPublicCorporateActions($params = array()) {
+        return $this->request('public/corporate-actions', array('public'), 'GET', $params, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function publicGetRubikStatTradingDataSupportCoin($params = array()) {
         return $this->request('rubik/stat/trading-data/support-coin', array('public'), 'GET', $params, array("cost" => 4));
     }
@@ -3696,6 +3720,12 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function privateGetAssetDepositWithdrawStatus($params = array()) {
         return $this->request('asset/deposit-withdraw-status', array('private'), 'GET', $params, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAssetTravelRuleGetLocked($params = array()) {
+        return $this->request('asset/travel-rule/get-locked', array('private'), 'GET', $params, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>
@@ -4854,6 +4884,12 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function privatePostAssetCancelWithdrawal($params = array()) {
         return $this->request('asset/cancel-withdrawal', array('private'), 'POST', $params, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostAssetTravelRuleUnlock($params = array()) {
+        return $this->request('asset/travel-rule/unlock', array('private'), 'POST', $params, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>

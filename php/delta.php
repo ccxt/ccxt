@@ -345,9 +345,10 @@ class delta extends Exchange {
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $hasSlash = mb_strpos($symbol, '/') > -1;
-        $partSource = $hasSlash ? $symbolBase : $optionParts;
-        $baseIndex = $hasSlash ? 0 : 1;
-        $base = $this->safe_string($partSource, $baseIndex, '');
+        $base = $this->safe_string($optionParts, 1, '');
+        if ($hasSlash) {
+            $base = $this->safe_string($symbolBase, 0, '');
+        }
         $optionType = $this->safe_string($optionParts, $hasSlash ? 3 : 0, '');
         $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3, '');
         $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
@@ -1962,7 +1963,7 @@ class delta extends Exchange {
         }
         $marketId = $this->safe_string($order, 'product_id');
         $marketsByNumericId = $this->safe_dict($this->options, 'marketsByNumericId', array());
-        $marketValue = $this->safe_value($marketsByNumericId, $marketId, $market);
+        $marketValue = $this->safe_dict($marketsByNumericId, $marketId, $market);
         $symbol = null;
         if ($marketValue === null) {
             $symbol = $marketId;
@@ -2806,7 +2807,7 @@ class delta extends Exchange {
         return $this->parse_funding_rates($rates, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "close": 30600.5,

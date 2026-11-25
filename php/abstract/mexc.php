@@ -260,7 +260,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('margin/loan', array('spot', 'private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function spot_private_get_margin_allorders($params = array()) {
         return $this->request('margin/allOrders', array('spot', 'private'), 'GET', $params, array("cost" => 1));
@@ -554,7 +554,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('order', array('spot', 'private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function spot_private_delete_openorders($params = array()) {
         return $this->request('openOrders', array('spot', 'private'), 'DELETE', $params, array("cost" => 1));
@@ -1700,7 +1700,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('margin/loan', array('spot', 'private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function spotPrivateGetMarginAllOrders($params = array()) {
         return $this->request('margin/allOrders', array('spot', 'private'), 'GET', $params, array("cost" => 1));
@@ -1994,7 +1994,7 @@ abstract class mexc extends \ccxt\Exchange {
         return $this->request('order', array('spot', 'private'), 'DELETE', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function spotPrivateDeleteOpenOrders($params = array()) {
         return $this->request('openOrders', array('spot', 'private'), 'DELETE', $params, array("cost" => 1));

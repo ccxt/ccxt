@@ -108,12 +108,12 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	// base & quote volumes
 	//
-	var baseVolume any = exchange.OmitZero(exchange.SafeString(entry, "baseVolume"))
-	var quoteVolume any = exchange.OmitZero(exchange.SafeString(entry, "quoteVolume"))
-	var high any = exchange.OmitZero(exchange.SafeString(entry, "high"))
-	var low any = exchange.OmitZero(exchange.SafeString(entry, "low"))
-	var open any = exchange.OmitZero(exchange.SafeString(entry, "open"))
-	var close any = exchange.OmitZero(exchange.SafeString(entry, "close"))
+	var baseVolume *string = exchange.OmitZero(exchange.SafeString(entry, "baseVolume"))
+	var quoteVolume *string = exchange.OmitZero(exchange.SafeString(entry, "quoteVolume"))
+	var high *string = exchange.OmitZero(exchange.SafeString(entry, "high"))
+	var low *string = exchange.OmitZero(exchange.SafeString(entry, "low"))
+	var open *string = exchange.OmitZero(exchange.SafeString(entry, "open"))
+	var close *string = exchange.OmitZero(exchange.SafeString(entry, "close"))
 	if !(InOp(skippedProperties, "compareQuoteVolumeBaseVolume")) {
 		// Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
 		// skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
@@ -237,7 +237,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		var medianPrice *string = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
 		var medianHigh *string = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
-		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
+		var lastPriceIsBetween bool = ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh)
+		Assert(lastPriceIsBetween, Add("last price should be within 1% of the bid/ask median price", logText))
 	}
 	var percentage any = ccxt.DerefScalar(exchange.SafeString(entry, "percentage"))
 	var change any = ccxt.DerefScalar(exchange.SafeString(entry, "change"))

@@ -269,14 +269,14 @@ public class Sxbet extends SxbetApi
 
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
             Long userLimit = this.safeInteger(parameters, "limit");
-            Object rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
+            List<Object> rawMarkets = (this.fetchRawMarketsPaged(rest, userLimit)).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+            Integer rawMarketsLength = rawMarkets.size();
             for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
-                ((List<Object>)markets).add(this.parseSxbetMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i)))));
+                ((List<Object>)markets).add(this.parseSxbetMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)))));
             }
-            Integer marketsLength = ((List<?>)markets).size();
+            Integer marketsLength = markets.size();
             if ((!java.util.Objects.equals(userLimit, null)) && ((marketsLength != null && (userLimit == null || marketsLength > userLimit))))
             {
                 return this.arraySlice(markets, 0, userLimit);
@@ -295,7 +295,7 @@ public class Sxbet extends SxbetApi
      * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
      * @returns {object[]} the raw (unparsed) sx.bet market objects
      */
-    public CompletableFuture<Object> fetchRawMarketsPaged(Map<String, Object> extra, Long userLimit)
+    public CompletableFuture<List<Object>> fetchRawMarketsPaged(Map<String, Object> extra, Long userLimit)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -307,7 +307,7 @@ public class Sxbet extends SxbetApi
                 put( "limit", userLimit );
             }}, "limit");
             String paginationKey = null;
-            Long page = this.parseToInt(0);
+            long page = 0;
             while (true)
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -318,17 +318,17 @@ public class Sxbet extends SxbetApi
                     request.put("paginationKey", paginationKey);
                 }
                 Map<String, Object> response = (this.sxbetPublicGetMarketsActive(this.extend(request, extra))).join();
-                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                List<Object> pageMarkets = (List<Object>) this.safeList(result, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer pageMarketsLength = ((List<?>)pageMarkets).size();
+                Map<String, Object> result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                List<Object> pageMarkets = this.safeList(result, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer pageMarketsLength = pageMarkets.size();
                 for (var i = 0; (pageMarketsLength != null && i < pageMarketsLength); i++)
                 {
                     ((List<Object>)rawMarkets).add((pageMarkets == null || i < 0 || i >= pageMarkets.size() ? null : pageMarkets.get(i)));
                 }
                 paginationKey = this.safeString(result, "nextKey");
-                page = this.parseToInt((page + 1L));
-                Long collectedLength = this.parseToInt(((List<?>)rawMarkets).size());
-                if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || ((maxPages == null || (page != null && page >= maxPages))) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(collectCap, null)) && ((collectCap == null || (collectedLength != null && collectedLength >= collectCap)))))
+                page = (page + 1L);
+                Long collectedLength = this.parseToInt(rawMarkets.size());
+                if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || ((maxPages == null || page >= maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(collectCap, null)) && ((collectCap == null || (collectedLength != null && collectedLength >= collectCap)))))
                 {
                     break;
                 }
@@ -419,10 +419,10 @@ public class Sxbet extends SxbetApi
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(outcomeOneName, outcomeTwoName));
         List<String> outcomeIds = new ArrayList<String>(Arrays.asList(marketHash, (marketHash + "-2")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
+        for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
+            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
             j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
@@ -525,8 +525,8 @@ public class Sxbet extends SxbetApi
             String leagueId = this.safeString(parameters, "leagueId");
             String sportId = this.safeString(parameters, "sportId");
             List<Object> queries = this.parseSearchQueries(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
-            List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Integer tagsLength = ((List<?>)tags).size();
+            List<Object> tags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            Integer tagsLength = tags.size();
             for (var i = 0; (tagsLength != null && i < tagsLength); i++)
             {
                 ((List<Object>)queries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
@@ -557,7 +557,7 @@ public class Sxbet extends SxbetApi
                 // bound, then filter client-side (the venue's /search covers team names only)
                 rawMarkets = (this.fetchRawMarketsPaged(((Map<String, Object>) (switch ((Object) (rest)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), (Long) null)).join();
             }
-            Integer queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = queries.size();
             if ((queriesLength != null && queriesLength > 0))
             {
                 List<Object> filtered = new ArrayList<Object>(Arrays.asList());
@@ -594,13 +594,13 @@ public class Sxbet extends SxbetApi
                 this.markets = this.createSafeDictionary();
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer orderLength = ((List<?>)order).size();
+            Integer orderLength = order.size();
             for (var i = 0; (orderLength != null && i < orderLength); i++)
             {
                 String fixtureId = (order == null || i < 0 || i >= order.size() ? null : order.get(i));
                 Map<String, Object> eventVar = this.parseEvent(fixtureId, (grouped == null || fixtureId == null ? null : grouped.get(fixtureId)));
-                List<Object> evMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer evMarketsLength = ((List<?>)evMarkets).size();
+                List<Object> evMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
+                Integer evMarketsLength = evMarkets.size();
                 for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
                 {
                     Object m = (evMarkets == null || j < 0 || j >= evMarkets.size() ? null : evMarkets.get(j));
@@ -630,12 +630,12 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
+            List<Object> rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
                 put( "sportXeventId", id );
             }}, parameters), (Long) null)).join();
             // enforce the fixture scope client-side — see filterRawMarketsByFixture
             rawMarkets = this.filterRawMarketsByFixture(rawMarkets, (String) (id));
-            Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+            Integer rawMarketsLength = rawMarkets.size();
             if (java.util.Objects.equals(rawMarketsLength, 0))
             {
                 throw new BadSymbol(((this.id + " fetchEvent() could not find an active fixture ") + id)) ;
@@ -668,7 +668,7 @@ public class Sxbet extends SxbetApi
             {
                 continue;
             }
-            for (var fi = 0; fi < ((List<?>)fields).size(); fi++)
+            for (var fi = 0; fi < fields.size(); fi++)
             {
                 String field = (fields == null || fi < 0 || fi >= fields.size() ? null : fields.get(fi));
                 if (java.util.Objects.equals(field, null))
@@ -705,8 +705,8 @@ public class Sxbet extends SxbetApi
         Integer rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
-            Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
-            Map<String, Object> parsed = this.parseSxbetMarket((Map<String, Object>) (raw));
+            Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
+            Map<String, Object> parsed = this.parseSxbetMarket(raw);
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseEvent() could not resolve parsed market")) ;
@@ -783,16 +783,16 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cached = (Map<String, Object>) this.safeDict(this.options, "sxObv3Metadata", (Object) null);
+            Map<String, Object> cached = this.safeDict(this.options, "sxObv3Metadata", null);
             if (!java.util.Objects.equals(cached, null))
             {
                 return cached;
             }
             Map<String, Object> response = (this.sxbetPublicGetMetadataObv3(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             this.options.put("sxObv3Metadata", data);
             return data;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -838,10 +838,10 @@ public class Sxbet extends SxbetApi
         Map<String,Object> signature = ecdsa((digest == null ? null : ((String)digest).substring(Math.max(((String)digest).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
-        Object rRaw = signature.get("r");
-        Object sRaw = signature.get("s");
-        String r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        String s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        String rRaw = (String) signature.get("r");
+        String sRaw = (String) signature.get("s");
+        String r = (rRaw.length() >= 64 ? rRaw.substring(rRaw.length() - 64) : String.format("%" + (64 - rRaw.length()) + "s", "").replace(' ', '0') + rRaw);
+        String s = (sRaw.length() >= 64 ? sRaw.substring(sRaw.length() - 64) : String.format("%" + (64 - sRaw.length()) + "s", "").replace(' ', '0') + sRaw);
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + r) + s) + v);
     }
@@ -869,10 +869,10 @@ public class Sxbet extends SxbetApi
             // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
             String lengthHex = (hex == null ? null : ((String)hex).substring(Math.min(64, ((String)hex).length()), Math.min(128, ((String)hex).length())));
             Long length = this.parseToInt(this.hexToInt(lengthHex));
-            Long dataEnd = (Long) this.sum(128, (length * 2L));
-            String dataHex = Helpers.slice(hex, 128, dataEnd);
+            Long dataEnd = (128L + (length * 2L));
+            String dataHex = (hex == null ? null : hex.substring((int) Math.min(Math.min(128, hex.length()), Math.min(dataEnd < 0 ? hex.length() + dataEnd : dataEnd, hex.length())), (int) Math.min(dataEnd < 0 ? hex.length() + dataEnd : dataEnd, hex.length())));
             return this.decode(this.base16ToBinary(dataHex));
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -889,11 +889,11 @@ public class Sxbet extends SxbetApi
         String digits = "0123456789abcdef";
         String lowerHex = ((String)hex).toLowerCase();
         Integer hexLength = lowerHex.length();
-        Long result = this.parseToInt(0);
+        Long result = 0L;
         for (var i = 0; (hexLength != null && i < hexLength); i++)
         {
-            Object ch = (lowerHex == null || i < 0 || i >= lowerHex.length() ? null : String.valueOf(lowerHex.charAt(i)));
-            Long digitValue = this.parseToInt(((String)digits).indexOf(((String)ch)));
+            String ch = (String) (lowerHex == null || i < 0 || i >= lowerHex.length() ? null : String.valueOf(lowerHex.charAt(i)));
+            Long digitValue = this.parseToInt(((String)digits).indexOf(ch));
             Long shifted = (result * 16L);
             result = this.parseToInt(this.sum(shifted, digitValue));
         }
@@ -961,7 +961,7 @@ public class Sxbet extends SxbetApi
                 }
             }
             Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
-            Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
+            Map<String, Object> activeAsset = this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             Long chainId = this.safeInteger(obv3, "chainId");
             String usdcAddress = this.safeString(activeAsset, "baseToken");
             // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
@@ -978,8 +978,8 @@ public class Sxbet extends SxbetApi
             {
                 throw new BadRequest((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
             }
-            Map<String, Object> chains = (Map<String, Object>) this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
-            Map<String, Object> chainConfig = (Map<String, Object>) this.safeDict(chains, this.numberToString(chainId), new HashMap<String, Object>() {{}});
+            Map<String, Object> chains = this.safeDict(this.options, "chains", new HashMap<String, Object>() {{}});
+            Map<String, Object> chainConfig = this.safeDict(chains, this.numberToString(chainId), new HashMap<String, Object>() {{}});
             String rpcUrl = this.safeString(paramsSpender, "rpcUrl", this.safeString(chainConfig, "rpcUrl"));
             if (java.util.Objects.equals(rpcUrl, null))
             {
@@ -991,7 +991,7 @@ public class Sxbet extends SxbetApi
             mapLiteral5.put("to", tokenAddress);
             mapLiteral5.put("data", nonceCallData);
             Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral5, "latest")))).join();
-            Object nonceHex = this.hexToRlpBytes((String) (nonceResult));
+            String nonceHex = this.hexToRlpBytes((String) (nonceResult));
             String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt((String) (nonceHex)));
             String tokenName = (this.fetchErc20Name((String) (rpcUrl), (String) (tokenAddress))).join();
             Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
@@ -1026,7 +1026,7 @@ public class Sxbet extends SxbetApi
             messageData.put("value", value);
             messageData.put("nonce", nonce);
             messageData.put("deadline", deadline);
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String signature = this.signDigest((String) (digest), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1038,7 +1038,7 @@ public class Sxbet extends SxbetApi
             request.put("signature", signature);
             Map<String, Object> rest = this.omit(paramsSpender, new ArrayList<Object>(Arrays.asList("amount", "tokenAddress", "deadline", "rpcUrl")));
             Map<String, Object> response = (this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", Sxbet.this.safeString(data, "sessionId") );
@@ -1101,12 +1101,12 @@ public class Sxbet extends SxbetApi
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
             // matches the normalize-to-one-book convention used by other prediction venues
-            Object isMakerBettingOutcomeOne = ((Boolean.TRUE.equals(isBuy))) ? isOutcomeOne : !Boolean.TRUE.equals(isOutcomeOne);
+            Boolean isMakerBettingOutcomeOne = ((Boolean.TRUE.equals(isBuy))) ? isOutcomeOne : !Boolean.TRUE.equals(isOutcomeOne);
             String priceStr = this.numberToString(price);
             String probability = ((Boolean.TRUE.equals(isBuy))) ? priceStr : Precise.stringSub("1", priceStr);
             Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
-            Map<String, Object> domain = (Map<String, Object>) this.safeDict(obv3, "domain", new HashMap<String, Object>() {{}});
-            Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
+            Map<String, Object> domain = this.safeDict(obv3, "domain", new HashMap<String, Object>() {{}});
+            Map<String, Object> activeAsset = this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             String baseToken = this.safeString(activeAsset, "baseToken");
             String oddsLadderStepSize = this.numberToString(this.safeInteger(obv3, "oddsLadderStepSize", 125));
             Object roundedProbability = this.roundOddsToLadder(probability, (String) (oddsLadderStepSize));
@@ -1175,7 +1175,7 @@ public class Sxbet extends SxbetApi
                 put( "maker", maker );
                 put( "isMakerBettingOutcomeOne", isMakerBettingOutcomeOne );
             }};
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String orderSignature = this.signDigest((String) (digest), (String) (this.privateKey));
             Map<String, Object> orderItem = new HashMap<String, Object>();
@@ -1213,9 +1213,9 @@ public class Sxbet extends SxbetApi
                 put( "waitForOutcome", waitForOutcome );
             }};
             Map<String, Object> response = (this.sxbetPrivatePostOrdersV3(this.extend(request, rest))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> results = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> results = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
             String status = this.safeStringUpper(first, "status");
             if (java.util.Objects.equals(status, "FAILED"))
             {
@@ -1228,7 +1228,7 @@ public class Sxbet extends SxbetApi
             //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
             // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
             // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
-            Map<String, Object> matchOutcome = (Map<String, Object>) this.safeDict(first, "outcome", (Object) null);
+            Map<String, Object> matchOutcome = this.safeDict(first, "outcome", null);
             String usdcDecimals = "1000000";
             Double filled = null;
             Double remaining = null;
@@ -1300,12 +1300,12 @@ public class Sxbet extends SxbetApi
      */
     public List<Object> parseSxbetCancelResponse(Map<String, Object> response)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         // by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
         // report 'cancelledSubmitted' instead - treat both like cancelled
         List<Object> cancelled = (List<Object>) this.safeList2(data, "cancelled", "cancelledSubmitted", new ArrayList<Object>(Arrays.asList()));
-        Integer cancelledLength = ((List<?>)cancelled).size();
+        Integer cancelledLength = cancelled.size();
         for (var i = 0; (cancelledLength != null && i < cancelledLength); i++)
         {
             ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
@@ -1314,8 +1314,8 @@ public class Sxbet extends SxbetApi
                 j39v4.put("info", response);
                 yield j39v4; } }), (Object) null));
         }
-        List<Object> notCancelled = (List<Object>) this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
-        Integer notCancelledLength = ((List<?>)notCancelled).size();
+        List<Object> notCancelled = this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
+        Integer notCancelledLength = notCancelled.size();
         for (var i = 0; (notCancelledLength != null && i < notCancelledLength); i++)
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
@@ -1325,8 +1325,8 @@ public class Sxbet extends SxbetApi
                 j39v3.put("info", response);
                 yield j39v3; } }), (Object) null));
         }
-        List<Object> unconfirmed = (List<Object>) this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
-        Integer unconfirmedLength = ((List<?>)unconfirmed).size();
+        List<Object> unconfirmed = this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
+        Integer unconfirmedLength = unconfirmed.size();
         for (var i = 0; (unconfirmedLength != null && i < unconfirmedLength); i++)
         {
             ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
@@ -1361,7 +1361,7 @@ public class Sxbet extends SxbetApi
             }};
             Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
             List<Object> orders = this.parseSxbetCancelResponse(response);
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
+            Map<String, Object> first = this.safeDict(orders, 0, null);
             return first;
         }).thenApply(PredictionOrder::new);
 
@@ -1494,7 +1494,7 @@ public class Sxbet extends SxbetApi
      * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public Object parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
+    public Map<String, Object> parsePredictionOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //     {
@@ -1525,7 +1525,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome(outcomeId, market);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String percentageOdds = this.safeString(order, "percentageOdds");
@@ -1622,20 +1622,20 @@ public class Sxbet extends SxbetApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash"));
+                request.put("marketHash", this.safeString(outcomeObj.get("info"), "marketHash"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rawOrders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rawOrders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionOrders(rawOrders, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
@@ -1691,7 +1691,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("orderId", id);
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> row = (Map<String, Object>) this.safeDict(data, "order", data);
             return this.parsePredictionOrder(row, outcomeObj);
         }).thenApply(PredictionOrder::new);
@@ -1728,10 +1728,10 @@ public class Sxbet extends SxbetApi
                 request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPublicGetTradesV3Public(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            Integer rawTradesLength = ((List<?>)rawTrades).size();
+            Integer rawTradesLength = rawTrades.size();
             for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
             {
                 ((List<Object>)trades).add(this.parseSxbetV3PublicTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)))));
@@ -1762,7 +1762,7 @@ public class Sxbet extends SxbetApi
 
             this.checkRequiredCredentials(true);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1779,10 +1779,10 @@ public class Sxbet extends SxbetApi
                 request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetFillsV3(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rawFills = (List<Object>) this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rawFills = this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            Integer rawFillsLength = ((List<?>)rawFills).size();
+            Integer rawFillsLength = rawFills.size();
             for (var i = 0; (rawFillsLength != null && i < rawFillsLength); i++)
             {
                 ((List<Object>)trades).add(this.parseSxbetV3Fill((Map<String, Object>) ((rawFills == null || i < 0 || i >= rawFills.size() ? null : rawFills.get(i))), (Map<String, Object>) null));
@@ -1829,7 +1829,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
+        Map<String, Object> outcomeObj = this.safeOutcome(outcomeId, market);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String fillOdds = this.safeString(fill, "fillOdds");
@@ -1878,7 +1878,7 @@ public class Sxbet extends SxbetApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
-            Map<String, Object> activeAsset = (Map<String, Object>) this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
+            Map<String, Object> activeAsset = this.safeDict(obv3, "activeAsset", new HashMap<String, Object>() {{}});
             String usdcAddress = this.safeStringLower(activeAsset, "baseToken", "");
             Map<String, Object> response = (this.sxbetPrivateGetUserBalanceV3(parameters)).join();
             //
@@ -1888,16 +1888,16 @@ public class Sxbet extends SxbetApi
             //         "availableAmount": "0", "pendingAvailableAmount": "0",
             //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> balances = (List<Object>) this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> balances = this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
             String usdcDecimals = "1000000";
-            Integer balancesLength = ((List<?>)balances).size();
+            Integer balancesLength = balances.size();
             for (var i = 0; (balancesLength != null && i < balancesLength); i++)
             {
-                Map<String, Object> row = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+                Map<String, Object> row = this.safeDict(balances, i, null);
                 String tokenAddress = this.safeStringLower(row, "tokenAddress", "");
                 // every sxbet market is denominated in the active base token, surfaced under 'USDC';
                 // rows of any other token keep their contract address for the code
@@ -1935,15 +1935,15 @@ public class Sxbet extends SxbetApi
 
             this.checkRequiredCredentials(true);
             // copy to a plain list so the transpilers and the strict null checks see one shape
-            Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
-            Integer outcomesLength = ((List<?>)outcomesList).size();
+            List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+            Integer outcomesLength = outcomesList.size();
             Map<String, Object> wantedMarkets = new HashMap<String, Object>() {{}};
             if ((outcomesLength != null && outcomesLength > 0))
             {
                 (this.loadOutcomes(outcomesList, false, new HashMap<String, Object>() {{}})).join();
                 for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
                 {
-                    Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+                    Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
                     String hash = this.safeString(outcomeObj.get("info"), "marketHash", "");
                     wantedMarkets.put(hash, true);
                 }
@@ -1955,13 +1955,13 @@ public class Sxbet extends SxbetApi
             }};
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("status")));
             Map<String, Object> response = (this.sxbetPrivateGetPositionsV3(this.extend(request, rest))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer rawPositionsLength = ((List<?>)rawPositions).size();
+            Integer rawPositionsLength = rawPositions.size();
             for (var i = 0; (rawPositionsLength != null && i < rawPositionsLength); i++)
             {
-                Object raw = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+                Map<String, Object> raw = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
                 String marketHash = this.safeString(raw, "marketHash", "");
                 if ((outcomesLength != null && outcomesLength > 0))
                 {
@@ -1970,7 +1970,7 @@ public class Sxbet extends SxbetApi
                         continue;
                     }
                 }
-                ((List<Object>)result).add(this.parseSxbetV3Position((Map<String, Object>) (raw)));
+                ((List<Object>)result).add(this.parseSxbetV3Position(raw));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
@@ -2007,10 +2007,10 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome(outcomeId, (Map<String, Object>) null);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
-        Map<String, Object> odds = (Map<String, Object>) this.safeDict(raw, "odds", new HashMap<String, Object>() {{}});
+        Map<String, Object> odds = this.safeDict(raw, "odds", new HashMap<String, Object>() {{}});
         String ownOdds = null;
         if (Boolean.TRUE.equals(isOutcomeOneMaxWin))
         {
@@ -2061,12 +2061,12 @@ public class Sxbet extends SxbetApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "SETTLED" );
             }};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", ""));
+                request.put("marketHash", this.safeString(outcomeObj.get("info"), "marketHash", ""));
             }
             String wantedOutcomeId = this.safeString(outcomeObj, "outcomeId");
             if (!java.util.Objects.equals(since, null))
@@ -2080,10 +2080,10 @@ public class Sxbet extends SxbetApi
                 request.put("perPage", this.clampSxbetPerPage(limit));
             }
             Map<String, Object> response = (this.sxbetPrivateGetTradesV3(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer rawTradesLength = ((List<?>)rawTrades).size();
+            Integer rawTradesLength = rawTrades.size();
             for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
             {
                 Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), (Map<String, Object>) null);
@@ -2130,8 +2130,8 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), ((Object)market));
-        Map<String, Object> settlement = (Map<String, Object>) this.safeDict(trade, "settlement", new HashMap<String, Object>() {{}});
+        Map<String, Object> outcomeObj = this.safeOutcome(outcomeId, market);
+        Map<String, Object> settlement = this.safeDict(trade, "settlement", new HashMap<String, Object>() {{}});
         Long winner = this.safeInteger(settlement, "outcome");
         Boolean isVoid = ((winner != null && winner == 0));
         Object heldNumber = ((Boolean.TRUE.equals(isBettingOutcomeOne))) ? 1 : 2;
@@ -2147,7 +2147,7 @@ public class Sxbet extends SxbetApi
             resultLabel = "VOID";
         } else if (!java.util.Objects.equals(winner, null))
         {
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String labelKey = "outcomeTwoName";
             if ((winner != null && winner == 1))
             {
@@ -2250,7 +2250,7 @@ public class Sxbet extends SxbetApi
                 put( "marketHashes", String.join(",", (List<String>)marketHashes) );
             }};
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeList(data, "bestOdds", new ArrayList<Object>(Arrays.asList()));
         });
 
@@ -2267,10 +2267,10 @@ public class Sxbet extends SxbetApi
     public Map<String, Object> parseSxbetSnapshotBestOdds(Map<String, Object> snapshot)
     {
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-        List<Object> oneLevels = (List<Object>) this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
-        List<Object> twoLevels = (List<Object>) this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> bestOne = (Map<String, Object>) this.safeDict(oneLevels, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> bestTwo = (Map<String, Object>) this.safeDict(twoLevels, 0, new HashMap<String, Object>() {{}});
+        List<Object> oneLevels = this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
+        List<Object> twoLevels = this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> bestOne = this.safeDict(oneLevels, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> bestTwo = this.safeDict(twoLevels, 0, new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "marketHash", Sxbet.this.safeString(snapshot, "marketHash") );
             put( "outcomeOne", new HashMap<String, Object>() {{
@@ -2319,7 +2319,7 @@ public class Sxbet extends SxbetApi
             // the batched route is apiKey-authenticated, so fall back to the public per-market
             // snapshots when the instance carries no credentials
             Map<String, Object> rowsByHash = new HashMap<String, Object>() {{}};
-            Integer hashesLength = ((List<?>)hashesOrder).size();
+            Integer hashesLength = hashesOrder.size();
             Boolean hasApiKey = !this.isEmptyString(this.apiKey);
             if (!Boolean.TRUE.equals(hasApiKey))
             {
@@ -2380,7 +2380,7 @@ public class Sxbet extends SxbetApi
         {
             Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
             String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
-            Map<String, Object> raw = (Map<String, Object>) this.safeDict(rowsByHash, marketHash, (Object) null);
+            Map<String, Object> raw = this.safeDict(rowsByHash, marketHash, null);
             if (java.util.Objects.equals(raw, null))
             {
                 continue;
@@ -2414,13 +2414,12 @@ public class Sxbet extends SxbetApi
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        Object marketAny = ((Object)market);
-        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
+        Map<String, Object> outcomeObj = this.safeOutcome(this.safeString(market, "outcome"), market);
         String outcomeId = this.safeString(outcomeObj, "outcomeId");
         String marketHash = this.safeString(raw, "marketHash");
         Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
-        Map<String, Object> outcomeOneOdds = (Map<String, Object>) this.safeDict(raw, "outcomeOne", new HashMap<String, Object>() {{}});
-        Map<String, Object> outcomeTwoOdds = (Map<String, Object>) this.safeDict(raw, "outcomeTwo", new HashMap<String, Object>() {{}});
+        Map<String, Object> outcomeOneOdds = this.safeDict(raw, "outcomeOne", new HashMap<String, Object>() {{}});
+        Map<String, Object> outcomeTwoOdds = this.safeDict(raw, "outcomeTwo", new HashMap<String, Object>() {{}});
         Map<String, Object> ownOdds = outcomeTwoOdds;
         if (Boolean.TRUE.equals(isOutcomeOne))
         {
@@ -2495,18 +2494,18 @@ public class Sxbet extends SxbetApi
                 put( "marketHash", marketHash );
             }};
             Map<String, Object> response = (this.sxbetPublicGetOrderbookV3Snapshot(this.extend(request, parameters))).join();
-            Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> snapshot = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> sides = this.parseSxbetV3BookSides(snapshot, isOutcomeOne);
-            List<Object> sortedBids = (List<Object>) this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
-            List<Object> sortedAsks = (List<Object>) this.safeList(sides, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sortedBids = this.safeList(sides, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> sortedAsks = this.safeList(sides, "asks", new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(limit, null))
             {
-                Integer bidsLength = ((List<?>)sortedBids).size();
+                Integer bidsLength = sortedBids.size();
                 if ((bidsLength != null && limit < bidsLength))
                 {
                     sortedBids = this.arraySlice(sortedBids, 0, limit);
                 }
-                Integer asksLength = ((List<?>)sortedAsks).size();
+                Integer asksLength = sortedAsks.size();
                 if ((asksLength != null && limit < asksLength))
                 {
                     sortedAsks = this.arraySlice(sortedAsks, 0, limit);
@@ -2538,13 +2537,13 @@ public class Sxbet extends SxbetApi
     {
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
-        Object ownLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
-        Object oppositeLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
+        List<Object> ownLevels = (List<Object>) (((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())));
+        List<Object> oppositeLevels = (List<Object>) (((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
-        Integer ownLevelsLength = ((List<?>)ownLevels).size();
+        Integer ownLevelsLength = ownLevels.size();
         for (var i = 0; (ownLevelsLength != null && i < ownLevelsLength); i++)
         {
-            Map<String, Object> level = (Map<String, Object>) this.safeDict(ownLevels, i, (Object) null);
+            Map<String, Object> level = this.safeDict(ownLevels, i, null);
             String percentageOdds = this.safeString(level, "percentageOdds");
             String size = this.safeString(level, "size", "0");
             Double price = this.parseNumber(Precise.stringDiv(percentageOdds, oneDenom));
@@ -2552,10 +2551,10 @@ public class Sxbet extends SxbetApi
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
-        Integer oppositeLevelsLength = ((List<?>)oppositeLevels).size();
+        Integer oppositeLevelsLength = oppositeLevels.size();
         for (var i = 0; (oppositeLevelsLength != null && i < oppositeLevelsLength); i++)
         {
-            Map<String, Object> level = (Map<String, Object>) this.safeDict(oppositeLevels, i, (Object) null);
+            Map<String, Object> level = this.safeDict(oppositeLevels, i, null);
             String percentageOdds = this.safeString(level, "percentageOdds");
             String size = this.safeString(level, "size", "0");
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2581,8 +2580,8 @@ public class Sxbet extends SxbetApi
 
     public Long requestId(String url)
     {
-        Object existing = this.safeValue(this.options, "requestId");
-        if (java.util.Objects.equals(existing, null))
+        boolean existing = (this.safeValue(this.options, "requestId")) != null;
+        if (!existing)
         {
             this.options.put("requestId", this.createSafeDictionary());
         }
@@ -2632,9 +2631,9 @@ public class Sxbet extends SxbetApi
                 throw new ArgumentsRequired((this.id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header")) ;
             }
             Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -2647,8 +2646,8 @@ public class Sxbet extends SxbetApi
             // per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
             // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
             Client client = this.client(url);
-            Object connectSent = this.safeValue(client.subscriptions, "connect");
-            if (java.util.Objects.equals(connectSent, null))
+            boolean connectSent = (this.safeValue(client.subscriptions, "connect")) != null;
+            if (!connectSent)
             {
                 this.options.put("wsConnected", false);
                 String token = (this.fetchSxbetRealtimeToken()).join();
@@ -2710,7 +2709,7 @@ public class Sxbet extends SxbetApi
     public void handleTextMessage(Client client, Object message)
     {
         List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
-        Integer linesLength = ((List<?>)lines).size();
+        Integer linesLength = lines.size();
         for (var i = 0; (linesLength != null && i < linesLength); i++)
         {
             String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
@@ -2732,16 +2731,16 @@ public class Sxbet extends SxbetApi
     public void handleCentrifugoFrame(Client client, Map<String, Object> msg)
     {
         List<String> keys = new ArrayList<String>(msg.keySet());
-        Integer keysLength = ((List<?>)keys).size();
+        Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             this.spawn(() -> { try { this.pong(client, msg); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
         }
         String requestIdString = this.safeString(msg, "id");
-        Map<String, Object> pendingRequests = (Map<String, Object>) this.safeDict(this.options, "wsPendingRequests", new HashMap<String, Object>() {{}});
-        Map<String, Object> pendingEntry = (Map<String, Object>) this.safeDict(pendingRequests, requestIdString, (Object) null);
-        Map<String, Object> errorReply = (Map<String, Object>) this.safeDict(msg, "error", (Object) null);
+        Map<String, Object> pendingRequests = this.safeDict(this.options, "wsPendingRequests", new HashMap<String, Object>() {{}});
+        Map<String, Object> pendingEntry = this.safeDict(pendingRequests, requestIdString, null);
+        Map<String, Object> errorReply = this.safeDict(msg, "error", null);
         if (!java.util.Objects.equals(errorReply, null))
         {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -2775,7 +2774,7 @@ public class Sxbet extends SxbetApi
             // a successful command ack - the tracked request has served its purpose
             this.options.put("wsPendingRequests", this.omit(pendingRequests, requestIdString));
         }
-        Map<String, Object> connectReply = (Map<String, Object>) this.safeDict(msg, "connect", (Object) null);
+        Map<String, Object> connectReply = this.safeDict(msg, "connect", null);
         if (!java.util.Objects.equals(connectReply, null))
         {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
@@ -2783,7 +2782,7 @@ public class Sxbet extends SxbetApi
             client.resolve(true, "centrifugoConnected");
             return;
         }
-        Map<String, Object> push = (Map<String, Object>) this.safeDict(msg, "push", (Object) null);
+        Map<String, Object> push = this.safeDict(msg, "push", null);
         if (java.util.Objects.equals(push, null))
         {
             return;
@@ -2793,17 +2792,17 @@ public class Sxbet extends SxbetApi
         {
             return;
         }
-        Map<String, Object> pub = (Map<String, Object>) this.safeDict(push, "pub", new HashMap<String, Object>() {{}});
+        Map<String, Object> pub = this.safeDict(push, "pub", new HashMap<String, Object>() {{}});
         Object data = this.safeValue(pub, "data");
         if (java.util.Objects.equals(data, null))
         {
             return;
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
-            rows = data;
+            rows = (List<Object>) data;
         } else
         {
             rows = new ArrayList<Object>(Arrays.asList(data));
@@ -2913,10 +2912,10 @@ public class Sxbet extends SxbetApi
             return refreshed;
         }
         this.setWsOption("wsBookVersions", (String) (marketHash), version);
-        Map<String, Object> watchedBooks = (Map<String, Object>) this.safeDict(this.options, "wsWatchedBooks", new HashMap<String, Object>() {{}});
+        Map<String, Object> watchedBooks = this.safeDict(this.options, "wsWatchedBooks", new HashMap<String, Object>() {{}});
         List<String> watchedSyms = new ArrayList<String>(watchedBooks.keySet());
         Long timestamp = this.milliseconds();
-        Integer watchedSymsLength = ((List<?>)watchedSyms).size();
+        Integer watchedSymsLength = watchedSyms.size();
         for (var i = 0; (watchedSymsLength != null && i < watchedSymsLength); i++)
         {
             String sym = (watchedSyms == null || i < 0 || i >= watchedSyms.size() ? null : watchedSyms.get(i));
@@ -2961,7 +2960,7 @@ public class Sxbet extends SxbetApi
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
             List<Object> refreshed = (List<Object>) this.applySxbetWsSnapshot((Map<String, Object>) ((rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i))));
-            Integer refreshedLength = ((List<?>)refreshed).size();
+            Integer refreshedLength = refreshed.size();
             for (var j = 0; (refreshedLength != null && j < refreshedLength); j++)
             {
                 Object sym = (refreshed == null || j < 0 || j >= refreshed.size() ? null : refreshed.get(j));
@@ -2995,7 +2994,7 @@ public class Sxbet extends SxbetApi
             Client client = this.client(url);
             String channel = "best_odds_v3:global";
             Boolean hydrated = false;
-            if (java.util.Objects.equals(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, (Object) null), null))
+            if (java.util.Objects.equals(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, null), null))
             {
                 // hydrate from the REST snapshot so the first call does not hang until the
                 // market's next top-of-book change - the channel is global, so the seed must fire
@@ -3017,7 +3016,7 @@ public class Sxbet extends SxbetApi
             Object future = this.watch(url, messageHash, subscribeMsg, channel, null);
             if (Boolean.TRUE.equals(hydrated))
             {
-                client.resolve(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, (Object) null), messageHash);
+                client.resolve(this.safeDict(this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}}), sym, null), messageHash);
             }
             Object tickerResult = ((io.github.ccxt.ws.Future)future).getFuture().join();
             return tickerResult;
@@ -3034,12 +3033,12 @@ public class Sxbet extends SxbetApi
         //         "outcomeTwo": null
         //     }
         //
-        Map<String, Object> watchedTickers = (Map<String, Object>) this.safeDict(this.options, "wsWatchedTickers", new HashMap<String, Object>() {{}});
+        Map<String, Object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers", new HashMap<String, Object>() {{}});
         List<String> watchedSyms = new ArrayList<String>(watchedTickers.keySet());
         Integer rowsLength = ((List<?>)rows).size();
         for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
+            Map<String, Object> entry = this.safeDict(rows, i, null);
             String marketHash = this.safeString(entry, "marketHash");
             if (java.util.Objects.equals(marketHash, null))
             {
@@ -3047,8 +3046,8 @@ public class Sxbet extends SxbetApi
             }
             // every publication carries BOTH sides (null = no resting liquidity), so the legacy
             // best-odds shape rebuilds directly without any merge cache
-            Map<String, Object> bestOne = (Map<String, Object>) this.safeDict(entry, "outcomeOne", new HashMap<String, Object>() {{}});
-            Map<String, Object> bestTwo = (Map<String, Object>) this.safeDict(entry, "outcomeTwo", new HashMap<String, Object>() {{}});
+            Map<String, Object> bestOne = this.safeDict(entry, "outcomeOne", new HashMap<String, Object>() {{}});
+            Map<String, Object> bestTwo = this.safeDict(entry, "outcomeTwo", new HashMap<String, Object>() {{}});
             Map<String, Object> raw = new HashMap<String, Object>();
             raw.put("marketHash", marketHash);
             raw.put("outcomeOne", new HashMap<String, Object>() {{
@@ -3057,7 +3056,7 @@ public class Sxbet extends SxbetApi
             raw.put("outcomeTwo", new HashMap<String, Object>() {{
                     put( "percentageOdds", Sxbet.this.safeString(bestTwo, "percentageOdds") );
                 }});
-            Integer watchedSymsLength = ((List<?>)watchedSyms).size();
+            Integer watchedSymsLength = watchedSyms.size();
             for (var j = 0; (watchedSymsLength != null && j < watchedSymsLength); j++)
             {
                 String sym = (watchedSyms == null || j < 0 || j >= watchedSyms.size() ? null : watchedSyms.get(j));
@@ -3119,7 +3118,7 @@ public class Sxbet extends SxbetApi
         {
             outcomeId = ((marketHash + "-2"));
         }
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (outcomeId), (Object) null);
+        Map<String, Object> outcomeObj = this.safeOutcome(outcomeId, (Map<String, Object>) null);
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
         String odds = this.safeString(trade, "weightedAverageOdds");
@@ -3288,7 +3287,7 @@ public class Sxbet extends SxbetApi
         {
             Object rawRow = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
             Object row = this.safeDict(rawRow, "order", rawRow);
-            Object order = this.parsePredictionOrder((Map<String, Object>) (row), (Map<String, Object>) null);
+            Map<String, Object> order = this.parsePredictionOrder((Map<String, Object>) (row), (Map<String, Object>) null);
             if (java.util.Objects.equals(this.orders, null))
             {
                 Long cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -3360,8 +3359,8 @@ public class Sxbet extends SxbetApi
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
-        Object baseUrls = this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("sxbet")));
+        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
+        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("sxbet")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};

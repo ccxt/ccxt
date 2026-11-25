@@ -143,12 +143,12 @@ class htx(ccxt.async_support.htx):
             },
         })
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         self.unlock_id()
-        return str(requestId)
+        return requestId
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -586,12 +586,12 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'req': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         # this is a temporary subscription by a specific requestId
         # it has a very short lifetime until the snapshot is received over ws
         snapshotSubscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbol,
             'limit': limit,
@@ -601,7 +601,7 @@ class htx(ccxt.async_support.htx):
             'method': self.handle_order_book_snapshot,
         }
         try:
-            orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
+            orderbook = await self.watch(url, str(requestId), request, str(requestId), snapshotSubscription)
             return orderbook.limit()
         except Exception as e:
             if messageHash is not None:
@@ -1549,12 +1549,13 @@ class htx(ccxt.async_support.htx):
         swap = (type == 'swap')
         future = (type == 'future')
         isV5Linear = (linear and (swap or future))
-        isLinear = (subType == 'linear')
-        url = self.get_url_by_market_type(type, isLinear, True, False, isV5Linear)
         messageHash = marginMode + ':positions' + messageHash
         channel = 'positions.*'
+        # one positions cache per margin mode: linear, inverse and futures symbols never collide
+        cacheKey = 'isolated'
         if marginMode == 'cross':
             channel = 'positions_cross.*'
+            cacheKey = 'cross'
         if isV5Linear:
             v5Market = None
             if (symbolsNormalized is not None) and (len(symbolsNormalized) == 1):
@@ -1569,7 +1570,7 @@ class htx(ccxt.async_support.htx):
         newPositions = await self.subscribe_private(channel, messageHash, type, subType, paramsRequest, subscriptionParams)
         if self.newUpdates:
             return newPositions
-        return self.filter_by_symbols_since_limit(self.safe_value(self.safe_value(self.positions, url), marginMode), symbolsNormalized, since, limit, False)
+        return self.filter_by_symbols_since_limit(self.safe_value(self.positionsByType, cacheKey), symbolsNormalized, since, limit, False)
 
     def handle_positions(self, client: Client, message: dict):
         #
@@ -1651,16 +1652,10 @@ class htx(ccxt.async_support.htx):
         #         ]
         #     }
         #
-        url = client.url
         topic = self.safe_string(message, 'topic', '')
         defaultMarginMode = 'isolated'
         if topic == 'positions_cross':
             defaultMarginMode = 'cross'
-        if self.positions is None:
-            self.positions = {}
-        clientPositions = self.safe_dict(self.positions, url)
-        if clientPositions is None:
-            self.positions[url] = {}
         rawPositions = self.safe_list(message, 'data', [])
         if self.is_empty(rawPositions):
             prefixes = ['cross:positions', 'isolated:positions']
@@ -1680,10 +1675,10 @@ class htx(ccxt.async_support.htx):
             marginMode = self.safe_string_lower(position, 'marginMode', defaultMarginMode)
             if (marginMode != 'cross') and (marginMode != 'isolated'):
                 marginMode = defaultMarginMode
-            cache = self.safe_value(self.positions[url], marginMode)
+            cache = self.safe_value(self.positionsByType, marginMode)
             if cache is None:
                 cache = ArrayCacheBySymbolBySide()
-                self.positions[url][marginMode] = cache
+                self.positionsByType[marginMode] = cache
             newPositions.append(position)
             positionsByMarginMode[marginMode] = self.safe_list(positionsByMarginMode, marginMode, [])
             positionsByMarginMode[marginMode].append(position)
@@ -2687,10 +2682,10 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'sub': messageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'symbol': symbol,
             'params': params,
@@ -2703,7 +2698,7 @@ class htx(ccxt.async_support.htx):
         requestId = self.request_id()
         request = {
             'unsub': subMessageHash,
-            'id': requestId,
+            'id': str(requestId),
         }
         messageHash = 'unsubscribe::' + subMessageHash
         isFeed = (topic == 'orderbook')
@@ -2712,7 +2707,7 @@ class htx(ccxt.async_support.htx):
         url = self.get_url_by_market_type(market['type'], market['linear'], False, isFeed)
         subscription = {
             'unsubscribe': True,
-            'id': requestId,
+            'id': str(requestId),
             'subMessageHashes': [subMessageHash],
             'messageHashes': [messageHash],
             'symbols': [market['symbol']],
@@ -2727,7 +2722,7 @@ class htx(ccxt.async_support.htx):
     async def subscribe_private(self, channel: Str, messageHash: Str, type: Str, subtype: Str, params: dict = {}, subscriptionParams: dict = {}):
         requestId = self.request_id()
         subscription = {
-            'id': requestId,
+            'id': str(requestId),
             'messageHash': messageHash,
             'params': params,
         }
@@ -2742,7 +2737,7 @@ class htx(ccxt.async_support.htx):
             request = {
                 'op': 'sub',
                 'topic': channel,
-                'cid': requestId,
+                'cid': str(requestId),
             }
         isLinear = subtype == 'linear'
         isV5 = self.safe_bool(subscriptionParams, 'isV5', False)
@@ -2821,7 +2816,7 @@ class htx(ccxt.async_support.htx):
                 }
             requestId = self.request_id()
             subscription = {
-                'id': requestId,
+                'id': str(requestId),
                 'messageHash': messageHash,
                 'params': params,
             }

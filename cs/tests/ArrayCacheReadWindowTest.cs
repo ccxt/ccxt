@@ -34,7 +34,7 @@ public partial class BaseTest
             return Task.FromResult<object>(true);
         }
 
-        public override IList<object> filterBySymbolSinceLimit(object array, object symbol = null, object since = null, object limit = null, bool? tail = null)
+        public override IList<object> filterBySymbolSinceLimit(IList<object> array, object symbol = null, object since = null, object limit = null, bool? tail = null)
         {
             var action = BeforeFilter;
             BeforeFilter = null;
@@ -68,13 +68,13 @@ public partial class BaseTest
             return Task.FromResult<IDictionary<string, object>>(new Dictionary<string, object>() { { "outcome", outcomeSymbol } });
         }
 
-        public override Task<object> subscribeUserChannel(string? messageHash, object parameters = null)
+        public override Task<object> subscribeUserChannel(string? messageHash, IDictionary<string, object> parameters = null)
         {
             // A resolved subscription supplies the cache without opening a socket.
             return Task.FromResult<object>(Cache);
         }
 
-        public override IList<object> filterByOutcomeSinceLimit(object array, object outcome = null, object since = null, object limit = null, bool? tail = null)
+        public override IList<object> filterByOutcomeSinceLimit(IList<object> array, object outcome = null, object since = null, object limit = null, bool? tail = null)
         {
             var action = BeforeFilter;
             BeforeFilter = null;
@@ -387,7 +387,7 @@ public partial class BaseTest
         Assert(Convert.ToInt64(nextBtc["limit"]) == 1, "next symbol read must exclude already counted updates");
         Assert(Convert.ToInt64(nextAll["limit"]) == 2, "next global read must retain both new updates");
         Assert(Convert.ToInt64(eth["limit"]) == 1, "explicit limit must be preserved");
-        var filtered = exchange.filterBySymbolSinceLimit(eth["data"], "ETH/USDT", 3, eth["limit"], true);
+        var filtered = exchange.filterBySymbolSinceLimit((IList<object>)eth["data"], "ETH/USDT", 3, eth["limit"], true);
         Assert(filtered.Count == 1 && (string)((IDictionary<string, object>)filtered[0])["id"] == "b2", "since/symbol filtering must apply to the captured rows");
         cache.clear();
         Assert(((IList<object>)nextAll["data"]).Count == 4, "clear must not change a captured row list");
@@ -415,7 +415,7 @@ public partial class BaseTest
         Assert(Convert.ToInt64(order["timestamp"]) == 3, "returned keyed rows must remain live references");
         var next = exchange.getCacheRead(orders, "BTC/USDT");
         Assert(Convert.ToInt64(next["limit"]) == 1, "updating an existing ID must start the next window");
-        var filtered = exchange.filterBySymbolSinceLimit(next["data"], "BTC/USDT", null, next["limit"], true);
+        var filtered = exchange.filterBySymbolSinceLimit((IList<object>)next["data"], "BTC/USDT", null, next["limit"], true);
         Assert(filtered.Count == 1 && ReferenceEquals(filtered[0], order), "updated order must be returned once in the next read");
 
         var candles = new ArrayCacheByTimestamp(3);

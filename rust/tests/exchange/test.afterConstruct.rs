@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> Value {
     if !(in_op(&skippedProperties, &Value::Str("networks".into()))) {
-        testOptionsNetworks(exchange.clone(), skippedProperties.clone());
+        testOptionsNetworks(exchange.clone(), skippedProperties);
     }
     return Value::Bool(true);
 
@@ -38,40 +38,37 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("options".into())), Value::Dict(__d) if __d.contains_key("networksById"))))));
         assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&get_value(&exchange, &Value::Str("options".into())), &Value::Str("networksById".into()))))));
         //
-        let mut networkCodes: Value = object_keys(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
+        let mut networkCodes: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
         // 3) ensure that the same network-id is not assigned to multiple networkCodes
         let mut collectedNetworkIds: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1548: bool = true;
-            while { if !__for_first_1548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1548 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkCode: Value = networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                        let mut i: i64 = 0;
+            let mut __for_first_1617: bool = true;
+            while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (networkCodes.len() as i64) } {
+            let mut networkCode: Value = networkCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
-            if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
+            if !exchange.in_array(networkCode, allowedUnifiedAliases.clone()) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkId.clone(), collectedNetworkIds.clone()))))));
             }
-            append_to_array(&mut collectedNetworkIds, networkId.clone());
+            append_to_array(&mut collectedNetworkIds, networkId);
         }
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
         let mut collectedNetworkCodes: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1549: bool = true;
-            while { if !__for_first_1549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1549 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkCodeLower: Value = ((networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                        let mut i: i64 = 0;
+            let mut __for_first_1618: bool = true;
+            while { if !__for_first_1618 { i += 1; } __for_first_1618 = false; i < (networkCodes.len() as i64) } {
+            let mut networkCodeLower: Value = ((networkCodes.get(i as usize).cloned().unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
-            append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
+            append_to_array(&mut collectedNetworkCodes, networkCodeLower);
         }
         }
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1550: bool = true;
-            while { if !__for_first_1550 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1550 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkCode: Value = networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                        let mut i: i64 = 0;
+            let mut __for_first_1619: bool = true;
+            while { if !__for_first_1619 { i += 1; } __for_first_1619 = false; i < (networkCodes.len() as i64) } {
+            let mut networkCode: Value = networkCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             // check networkCodeToId
             let mut networkIdConverted: Value = exchange.network_code_to_id(networkCode.clone(), &[]);
@@ -79,10 +76,10 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             // ensure it exists in networksById
             assert!(ccxt::runtime::is_true(&((in_op(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId)))));
             // ensure networkCode matches for networksById (however, it only works if one mapping is set)
-            if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
+            if !exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone()) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId), &networkCode)))));
                 // check networkIdToCode conversion back
-                let mut networkCodeConverted: Value = exchange.network_id_to_code(&[networkId.clone()]);
+                let mut networkCodeConverted: Value = Value::from(exchange.network_id_to_code(&[networkId.clone()]));
                 assert!(ccxt::runtime::is_true(&((networkCode.as_str() == networkCodeConverted.as_str()))));
             }
         }

@@ -10,7 +10,8 @@ import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { csharpTupleReturns } from './csharp-local-types.js'
-import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js'
+import { PARAMETERS_ARG_TYPED_METHODS, PARSE_CURRENCY_IDICT_PARAMS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -1974,7 +1975,7 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     // / IDictionary / an admitted name's own `market`, fixed point over both lists; body uses are dict uses).
     'CreateSpotOrder', 'CreateSwapOrder', 'checkContractMarket', 'createOrderRequest',
     'createPublicRequest', 'createSpotOrderRequest', 'customHandleDelta', 'customHandleDeltas',
-    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'findOutcomeInMarket',
+    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'fetchMyTradesFromTransactions', 'findOutcomeInMarket',
     'futuresRequestId', 'getBybitType', 'getDexFromHip3Symbol', 'getGen2MarketId', 'getInstType',
     'getMarketIdByType', 'getMarketType', 'getOrderChannelAndMessageHash',
     'getProductGroupFromMarket', 'getTypeByMarket', 'getUrlByMarket',
@@ -2265,13 +2266,22 @@ function csharpDeclaredUniqueMethods (): string[] {
                 if (entry.name !== 'node_modules') walk (full)
                 continue
             }
-            for (const m of entry.name.endsWith ('.ts') ? fs.readFileSync (full, 'utf8').matchAll (declaration) : []) {
+            const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined
+            for (const m of text !== undefined ? text.matchAll (declaration) : []) {
                 counts.set (m[2], (counts.get (m[2]) ?? 0) + 1)
                 if (m[3] && !/\b(async|override)\b/.test (m[1]) && !/^Promise\b/.test (m[3]) && !/[\\/](base|test)[\\/]/.test (full)) annotated.add (m[2])
             }
         }
     }
-    try { walk (resolve (__dirname, '..', 'ts', 'src')) } catch (e) { annotated.clear () }
+    const root = resolve (__dirname, '..', 'ts', 'src')
+    try {
+        walk (root)
+    } catch (e) {
+        annotated.clear () // no corpus: nothing proves
+        if (fs.existsSync (root)) {
+            throw e
+        }
+    }
     return [ ...annotated ].filter ((name) => counts.get (name) === 1).sort ()
 }
 
@@ -4652,12 +4662,24 @@ class NewTranspiler {
     // are invariant on parameter types), so base / venue / ws / prediction stay in sync.
     retypeParseMarketParams (content: string): string {
         const typed = Object.keys (PARSE_MARKET_IDICT_PARAMS);
-        if (!PARSE_MARKET_PARAM_DICTS.concat (typed).some (name => content.includes (name + '('))) {
+        const typedCurrency = Object.keys (PARSE_CURRENCY_IDICT_PARAMS);
+        if (!PARSE_MARKET_PARAM_DICTS.concat (typed, typedCurrency).some (name => content.includes (name + '('))) {
             return content;
         }
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = PARSE_MARKET_SIG_RE.exec (lines[i]);
+            if (sig !== null && typedCurrency.indexOf (sig[5]) !== -1) {
+                // ral-90c1: `object currency` (parseConversion: fromCurrency / toCurrency) -> IDictionary,
+                // same shadow rule; lines are not advanced, so a name in both tables is retyped by both
+                const params = this.splitCsharpParams (sig[6]);
+                for (const at of ([] as number[]).concat (PARSE_CURRENCY_IDICT_PARAMS[sig[5]])) {
+                    const slot = (params[at] ?? '').trim ().split ('=')[0].trim ().split (/\s+/).pop ();
+                    if ([ 'currency', 'fromCurrency', 'toCurrency' ].includes (slot)) {
+                        this.retypeParseMarketParamShadowed (lines, i, sig[1], slot);
+                    }
+                }
+            }
             if (sig !== null && typed.indexOf (sig[5]) !== -1) {
                 i = this.retypeParseMarketParamShadowed (lines, i, sig[1]);
                 continue;
@@ -4674,7 +4696,7 @@ class NewTranspiler {
     // PARSE_MARKET_IDICT_PARAMS: retype `object market`; a body writing anything but null or a
     // market-row core keeps the object slot as `object marketVar = market;` (the printer's reads
     // agree: build/csharp-local-types.js#parseMarketParamType). Returns the body's last line.
-    retypeParseMarketParamShadowed (lines: string[], i: number, indent: string): number {
+    retypeParseMarketParamShadowed (lines: string[], i: number, indent: string, slot = 'market'): number {
         let bodyStart = i + 1;
         while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
             bodyStart++;
@@ -4683,17 +4705,20 @@ class NewTranspiler {
         for (let j = bodyStart + 1; j < lines.length; j++) {
             if (lines[j] === indent + '}') { bodyEnd = j; break; }
         }
-        lines[i] = lines[i].replace (PARSE_MARKET_PARAM_RE, '$1IDictionary<string, object>$2')
-                           .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
-        const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (/(?<![\w.])market\s*(?:\?\?)?=(?!=)[^;]*;|(?<![\w])(?:ref|out)\s+market(?![\w])/g) ?? [];
-        const rowWrite = /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/;
+        const paramRe = (slot === 'market') ? PARSE_MARKET_PARAM_RE : new RegExp ('([(,]\\s*)object(\\s+' + slot + '\\s*=\\s*null)(?=[,)])', 'g');
+        const requiredRe = (slot === 'market') ? PARSE_MARKET_PARAM_REQUIRED_RE : new RegExp ('([(,]\\s*)object(\\s+' + slot + ')(?=[,)])', 'g');
+        lines[i] = lines[i].replace (paramRe, '$1IDictionary<string, object>$2')
+                           .replace (requiredRe, '$1IDictionary<string, object>$2');
+        const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (new RegExp ('(?<![\\w.])' + slot + '\\s*(?:\\?\\?)?=(?!=)[^;]*;|(?<![\\w])(?:ref|out)\\s+' + slot + '(?![\\w])', 'g')) ?? [];
+        const rowWrite = (slot === 'market') ? /^market\s*=\s*(?:null|this\.(?:market|safeMarket)\([^;]*\));$/
+            : new RegExp ('^' + slot + '\\s*=\\s*(?:null|this\\.(?:currency|safeCurrency)\\([^;]*\\));$');
         if (writes.every ((w) => rowWrite.test (w))) {
             return bodyEnd;
         }
         for (let k = bodyStart + 1; k < bodyEnd; k++) {
-            lines[k] = this.renameLocalInBody (lines[k], 'market', 'marketVar');
+            lines[k] = this.renameLocalInBody (lines[k], slot, slot + 'Var');
         }
-        lines[bodyStart] = lines[bodyStart] + '\n' + indent + '    object marketVar = market;';
+        lines[bodyStart] = lines[bodyStart] + '\n' + indent + '    object ' + slot + 'Var = ' + slot + ';';
         return bodyEnd;
     }
 
@@ -8442,7 +8467,7 @@ class NewTranspiler {
             // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
             // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
             [ /BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)' ],
-            [ /BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))' ],
+            [ /BaseExchange exchange = this\.initOfflineExchange\(("[a-z0-9]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))' ],
             [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
             // noImplicitAny bags: keep object so safeValue assignments typecheck
@@ -8641,9 +8666,67 @@ class NewTranspiler {
     }
 }
 
+// ral-84c3 snippet checks: a row element local is typed only when a literal-key write makes a use native
+function rowWriteElementSnippetChecks84c3 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const check = (name: string, body: string, expected: string[], forbidden: string[]) => {
+        const src = 'type Dict = { [key: string]: any };\nclass Test {\n safeString (o, k, d = undefined): string { return d; }\n' + body + '\n}';
+        const out: string = (transpiler as any).transpileCSharp (src).content;
+        for (const e of expected) { if (!out.includes (e)) { problems.push (`84c3 row write: ${name}: missing ${e}`); } }
+        for (const f of forbidden) { if (out.includes (f)) { problems.push (`84c3 row write: ${name}: has ${f}`); } }
+    };
+    check ('literal-key write is native', 'f (data: Dict[], c) { const first = data[0]; first["next"] = c; return data; }',
+        [ 'IDictionary<string, object> first = ((IDictionary<string, object>)', 'first["next"] = c;' ], [ 'object first', '((IDictionary<string,object>)first)' ]);
+    check ('safe-read-only local keeps object', 'g (data: Dict[]) { const entry = data[0]; return this.safeString (entry, "a"); }', [ 'object entry = ' ], [ 'IDictionary<string, object> entry' ]);
+    check ('identifier-key write keeps object', 'h (data: Dict[], k: string) { const row = data[0]; row[k] = 1; return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('in-tested local keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { row["a"] = 2; } return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('market name keeps object', 'm (data: Dict[]) { const market = data[0]; market["a"] = 1; return data; }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('use-proven dict element of an any list', 'r (data: any[], c) { const last = data[data.length - 1]; last["next"] = c; data[data.length - 1] = last; return data; }',
+        [ 'IDictionary<string, object> last = ((IDictionary<string, object>)', 'last["next"] = c;' ], [ 'object last', '((IDictionary<string,object>)last)' ]);
+    check ('use-proven list element of an any list', 's (rows: any[], v) { const row = rows[0]; row.push (v); return rows; }',
+        [ 'IList<object> row = ((IList<object>)', 'row.Add(v);' ], [ 'object row', '((IList<object>)row)' ]);
+    check ('conditional write does not prove the box', 't (rows: any[], v, f) { const row = rows[0]; if (f) { row["a"] = v; } return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('statement before the write does not prove the box', 'u (rows: any[], v) { const row = rows[0]; this.safeString (v, "a"); row["a"] = v; return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('87c3 sibling-bound string list element', 'p (f, a: Dict, b: Dict) { if (f) { const ks = Object.keys (a); for (let i = 0; i < ks.length; i++) { const k = ks[i]; delete a[k]; } } else { const ks = Object.keys (b); for (let i = 0; i < ks.length; i++) { const k2 = ks[i]; delete b[k2]; } } }',
+        [ 'string? k = ((string)', 'string? k2 = ((string)' ], [ 'object k ', 'object k2' ]);
+    check ('87c3 sibling-bound pushed list keeps object', 'q (f, a: Dict) { if (f) { const ks = Object.keys (a); ks.push (1); const k = ks[0]; return k; } else { const ks = Object.keys (a); return ks; } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('87c3 length-alias bounded keys element', 'v (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'string k = ((string)' ], [ 'object k = ' ]);
+    check ('87c3 length alias with a moved index keeps object', 'w (a: Dict) { const ks = Object.keys (a); const n = ks.length; let r = 0; for (let i = 0; i < n; i++) { i = i + 1; const k = ks[i]; r = k + "=" + a[k]; } return r; }',
+        [ 'object k = ' ], [ 'string k = ' ]);
+    check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('90c3 keyed string-list element read by in / delete', 'x (s: Dict, d: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; if (k in d) { delete d[k]; } } }',
+        [ 'string? k = ((string)hs[i])' ], [ 'object k = ' ]);
+    check ('90c3 keyed list with a non-string writer keeps object', 'y (s: Dict, d: Dict, h: any[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; if (k in d) { delete d[k]; } } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('90c3 keyed string-list element passed only to an object call keeps object', 'z (s: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const hs = this.safeList (s, "hs", []); for (let i = 0; i < hs.length; i++) { const k = hs[i]; this.safeString (s, k); } }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('90c3 character of a string local read by indexOf', 'hx (hex: string) { const digits = "0123456789abcdef"; const lower = hex.toLowerCase (); let r = 0; for (let i = 0; i < lower.length; i++) { const ch = lower[i]; r = r + digits.indexOf (ch); } return r; }',
+        [ 'string? ch = ((string)' ], [ 'object ch = ' ]);
+    check ('string-list element read as the key of a declared dictionary', 'kr (s: Dict, h: string[]) { const r = { "hs": h }; s["r"] = r; const d = {}; const hs = this.safeList (s, "hs", []); let n = 0; for (let i = 0; i < hs.length; i++) { const k = hs[i]; n = d[k]; } return n; }',
+        [ 'string? k = ((string)hs[i])', 'd.ContainsKey(k)' ], [ 'object k = ' ]);
+    check ('Object.keys element compared to a literal while the list goes to a reader', 'nk (n: Dict) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k === "ERC20") { return k; } } return this.safeString (ks, 0); }',
+        [ 'string? k = ((string)ks[i])', 'k == \"ERC20\"' ], [ 'object k = ' ]);
+    check ('Object.keys element only tested by in on an untyped dict keeps object', 'nu (n: Dict, m) { const ks = Object.keys (n); for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k in m) { return 1; } } return this.safeString (ks, 0); }',
+        [ 'object k = ' ], [ 'string? k = ' ]);
+    check ('list element whose next statement is its string-method receiver', 'tq (tags) { const out: string[] = []; for (let i = 0; i < tags.length; i++) { const t = tags[i]; out.push (t.replaceAll ("-", " ")); } return out; }',
+        [ 'string? t = ((string)', 't.Replace(' ], [ 'object t = ', '((string)t)' ]);
+    check ('list element used as a receiver only behind a test keeps object', 'tr (tags, c) { const t = tags[0]; if (c) { return t.toUpperCase (); } return c; }',
+        [ 'object t = ' ], [ 'string? t = ' ]);
+    check ('guarded Int64? difference initialiser is declared Int64?', 'safeInteger (o, k, d = undefined): number { return d; }\n ra (o: Dict, m: number) { const e = this.safeInteger (o, "e"); if (e === undefined) { return 1; } const r = e - 5; if (m < r) { return 2; } return 3; }',
+        [ 'Int64? r = (e - 5);' ], [ 'object r = ' ]);
+    check ('nested guarded Int64? difference', 'safeInteger (o, k, d = undefined): number { return d; }\n rn (o: Dict, t: number) { const e = this.safeInteger (o, "e"); if (e !== undefined) { const r = e - 7 - 60000; if (r > 0) { return r; } } return 3; }',
+        [ 'Int64? r = ((e - 7) - 60000);' ], [ 'object r = ', 'subtract(' ]);
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...nullSeedChecks93c4 (), ...copyLocalSnippetChecks87c5 (), ...readerSeedElementWriteChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9273,6 +9356,8 @@ function methodNameType (region, name: string, line: number): string | undefined
 // `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
 // nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
 function marketBoolRead (region, arg: string, line: number): string | undefined {
+    // `((m.ContainsKey("k") ? m["k"] : null))`: drop source parentheses that wrap the whole read
+    while (arg.startsWith ('((') && arg.endsWith ('))') && NATIVE_MARKET_KEY_READ_RE.test (arg.slice (1, -1))) arg = arg.slice (1, -1);
     const m = NATIVE_MARKET_KEY_READ_RE.exec (arg);
     if ((m === null) || ((m[1] !== undefined) && (m[1] !== m[2])) || !MARKET_ROW_BOOL_KEYS.includes (m[3])) return undefined;
     const name = m[2];
@@ -9395,6 +9480,111 @@ export function csharpNativeEmissionSelfTest (): string[] {
             'f (o) { let n = 0; n += 1; n = this.safeInteger (o, "x"); return n > 0; }', 'object n = 0;');
         check ('counter += double keeps object',
             'f (o) { let n = 0; n += 1.5; return n > 0; }', 'object n = 0;');
+        // 77c2: conditional initialisers whose arms both have a proven C# type
+        const omitHost = 'omit (o, k) { return o; }\n extend (a, b) { return a; }\n safeString (o, k, d = undefined): string { return d; }\n';
+        check ('77c2 c ? this.omit (params, k) : params -> IDictionary',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const u = this.safeString (params, "until"); const p = (u !== undefined) ? this.omit (params, [ "until" ]) : params; return this.extend ({}, p); }',
+            'IDictionary<string, object> p = ((IDictionary<string, object>)(((u != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters));');
+        check ('77c2 omit ternary on a written params keeps object',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { params = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : params; return p; }',
+            'object p = ');
+        // stack-77c: with 77c1 (fetchLedger's params bag is IDictionary) and 77c5 (copies/extend of a typed bag)
+        // `q` is a proven Dictionary, so this arm pair is now typed; the untyped-other-local guard is the next case.
+        check ('77c2 omit ternary over another local keeps object',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const q = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : q; return p; }',
+            'Dictionary<string, object> q = this.extend(parameters, ');
+        check ('77c2 omit ternary over an untyped local keeps object (stack-77c)',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const q = code; const p = (code !== undefined) ? this.omit (params, "x") : q; return p; }',
+            'object p = ');
+        // stack-77c: 77c5's core-parameter copy rule answers first with the core `string` type of `symbol`
+        check ('77c2 c ? "lit" : <string parameter> -> string?',
+            'async fetchTicker (symbol: string, params = {}) { const s = (symbol === undefined) ? "BTC/USDT" : symbol; return s; }',
+            'string s = ((symbol == null)) ? "BTC/USDT" : symbol;', 'object s = ');
+        check ('77c2 c ? this.omit (<Dictionary local>, k) : <same local> -> Dictionary',
+            omitHost + ' f (o) { const d = this.extend (o, {}); const p = (o !== undefined) ? this.omit (d, "x") : d; return p; }',
+            'Dictionary<string, object> p = ((o != null)) ? this.omit(d, "x") : d;');
+        check ('77c2 c ? "lit" : <untyped parameter> keeps object',
+            'f (x) { const s = (x === undefined) ? "BTC/USDT" : x; return s; }',
+            'object s = ');
+        // 84c2: conditional initialisers over cast-proven arms / the printer's null-guard concat
+        const cacheBody = 'handleOrder (client, message, isTrigger) { if (this.orders === undefined) { this.orders = new ArrayCacheBySymbolById (10); this.triggerOrders = new ArrayCacheBySymbolById (10); } const stored = isTrigger ? this.triggerOrders : this.orders; stored.append (message); client.resolve (stored, \'x\'); }';
+        check ('84c2 c ? this.triggerOrders : this.orders -> ArrayCache with a native append',
+            cacheBody, 'ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(isTrue(isTrigger) ? this.triggerOrders : this.orders));', 'object stored = ');
+        check ('84c2 triggerOrders written with a non-cache value keeps object',
+            cacheBody.replace ('client.resolve', 'this.triggerOrders = message; client.resolve'), 'object stored = ');
+        check ('84c2 null-guard concat over a string-or-null local -> string?',
+            'f (o, d: string) { let m = undefined; if (o) { m = \'x\'; } const md = m + d; return md; }',
+            'string? md = (m == null ? null : m + (string)(object)(d));', 'object md = ');
+        check ('84c2 c ? <int literal> : <native Int64 Math.Min> -> Int64 with no cast',
+            'async fetchOHLCV (symbol: string, timeframe = \'1m\', since: Int = undefined, limit: Int = undefined, params = {}) { const request = {}; const n = (limit === undefined) ? 100 : Math.min (limit, 1000); request[\'limit\'] = n; const d = n * 60; return d; }',
+            'Int64 n = ((limit == null)) ? 100 : Math.Min(limit.Value, 1000);', 'object n = ');
+        check ('84c2 c ? <int literal> : <mathMin helper> keeps object',
+            'f (limit: Int = undefined) { const n = (limit === undefined) ? 100 : Math.min (limit, 1000); return n; }',
+            'object n = ((limit == null)) ? 100 : mathMin(limit, 1000);');
+        const rowHost = 'safeMarket (id, m = undefined, d = undefined, t = undefined): MarketInterface { return m; }\n safeBool (o, k, d = undefined): boolean { return d; }\n';
+        check ('84c2 c ? market[quote] : market[base] read as a key -> string?',
+            rowHost + ' f (marketId, balances: Dict) { const market = this.safeMarket (marketId, undefined, undefined, \'contract\'); const code = (this.safeBool (market, \'linear\', false)) ? market[\'quote\'] : market[\'base\']; if (code in balances) { return balances[code]; } return code; }',
+            'string? code = ((string)((this.safeBool(market, "linear", false) == true) ? ', 'object code = ');
+        check ('84c2 c ? market[quote] : market[base] never a key keeps object',
+            rowHost + ' f (marketId) { const market = this.safeMarket (marketId, undefined, undefined, \'contract\'); const code = (this.safeBool (market, \'linear\', false)) ? market[\'quote\'] : market[\'base\']; return { \'code\': code }; }',
+            'object code = ');
+        // 87c2 R1: a literal-key element read whose first write is an unconditional push -> IList<object>
+        check ('87c2 literal-key read pushed in its block -> IList with a native Add',
+            'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; groupMarkets.push (m); eventGroup[\'markets\'] = groupMarkets; }',
+            'groupMarkets.Add(m);', 'object groupMarkets = ');
+        check ('87c2 literal-key read pushed only inside a branch keeps object',
+            'f (eventGroup: Dict, m) { const groupMarkets = eventGroup[\'markets\']; if (m) { groupMarkets.push (m); } return groupMarkets; }',
+            'object groupMarkets = ');
+        // 90c2 R2: arms are parameters the printed signature names IList<object>; R3/R4: element reads of local literal maps
+        // (R2 needs the printed IList<object> signature, which only the corpus run records: gated on the farm)
+        check ('90c2 c ? <object param> : <object param> keeps object',
+            'f (xs, zs, m) { const ys = (m === undefined) ? zs : xs; return ys.length; }',
+            'object ys = ');
+        check ('90c2 read of a local string-literal map used as a key -> string?',
+            'f (has: Dict, k) { const fb: Dict = { \'a\': \'b\' }; const s = fb[k]; if (s in has) { has[k] = has[s]; } }',
+            'string? s = ((string)(', 'object s = ');
+        check ('90c2 read of a local string-literal map never used as a key keeps object',
+            'f (k) { const fb: Dict = { \'a\': \'b\' }; const s = fb[k]; return s; }',
+            'object s = ');
+        check ('90c2 read of a local list-literal map with write-back -> List with a native element write',
+            'safeValue (o, k) { return o; }\n f (n: number, p: number) { const cs = {}; const k = n.toString (); if (!(k in cs)) { cs[k] = [ p, p ]; } else { const c = cs[k]; c[1] = p; cs[k] = c; } return this.safeValue (cs, k); }',
+            'c[Convert.ToInt32(1)] = p;', 'object c = ');
+        // conditional initialisers handed to typed consumers: a typed-dict string arm into a string slot; a string-tested arm
+        check ('c ? dict[code] : undefined handed to a string parameter -> string? with no call-site cast',
+            'filterByCurrencySinceLimit (a, code: Str = undefined, s = undefined, l = undefined) { return a; }\n f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return this.filterByCurrencySinceLimit (rows, code, 1, 2); }',
+            'string? code = ((string)(', 'object code = ((');
+        check ('c ? dict[code] : undefined never handed to a string parameter keeps object',
+            'f (rows, m) { const c = { \'code\': \'BTC\' }; const code = (m !== undefined) ? c[\'code\'] : undefined; return { \'code\': code }; }',
+            'object code = ');
+        check ('p.endsWith (x) ? p.slice (..) : p read by a string method -> string?',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return u.toLowerCase (); }',
+            'string? u = ((string)(', 'object u = ');
+        check ('p.endsWith (x) ? p.slice (..) : p never read by a string method keeps object',
+            'f (p) { const u = p.endsWith (\'utc\') ? p.slice (0, -3) : p; return { \'u\': u }; }',
+            'object u = ');
+        check ('c ? lit : <unwritten Str param> compared to literals -> string? with native ==',
+            'f (type: Str, postOnly) { let t: Str = postOnly ? \'post_only\' : type; if (postOnly) { t = \'ioc\'; } if (t === \'limit\' || t === \'ioc\') { return 1; } return 0; }',
+            'string? t = ((string)(', 'object t = ');
+        // (venue sources only, the in-memory snippet tier keeps object: the positive case is proven on the farm)
+        check ('dict[lit] read as a string receiver outside a venue source keeps object',
+            'f (d: Dict, k): string { const u = d[\'stock\']; if (k) { return u.replace (\'/ws\', \'/stream\'); } return u; }',
+            'object u = ');
+        check ('dict[lit] read also stored in a map keeps object',
+            'f (d: Dict, k) { const u = d[\'stock\']; const r = u.replace (\'/ws\', \'/stream\'); return { \'u\': u, \'r\': r }; }',
+            'object u = ');
+        check ('c ? lit : <written Str param> keeps object',
+            'f (type: Str, postOnly) { type = \'x\'; let t: Str = postOnly ? \'post_only\' : type; if (t === \'limit\') { return 1; } return 0; }',
+            'object t = ');
+        // conditional of a literal and a typed string local, read only as a guarded `+` left operand
+        check ('c ? lit : <string? local> read only as a + left -> string? with no object box at the read',
+            'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return t; }',
+            'string? m = isTrue(c) ? ', 'object m = ');
+        check ('c ? lit : <string? local> also stored in a map keeps object',
+            'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return { \'m\': m, \'t\': t }; }',
+            'object m = ');
+        check ('the guarded concat over that local needs no declaration cast',
+            'safeString (o, k, d = undefined) { return d; }\n f (c, o) { const s = this.safeString (o, \'k\'); const m = c ? \'/a\' : s; const t = m + \':\' + o; return t; }',
+            'string? t = (m == null ? null : ', 'string? t = ((string)(');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
@@ -12595,5 +12785,309 @@ export function tupleSlotReadSnippetChecks (): string[] {
     check ('slot 1 keeps helper', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);');
     check ('other producer keeps helper', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);');
     if (csharpTupleSlotRead (false, wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) !== wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) problems.push ('tuple-slot: fired in a non-final pass');
+    return problems;
+}
+
+// 77c4 (run from the --self-test path): a null-seeded local whose writes are all element 1 of the
+// params-tuple helpers (base handle*AndParams, the awaited bitget handleUTAAndParams) and self omits
+// is declared IDictionary<string, object>; every slot read takes the exact cast back
+export function nullSeedParamsSlotChecks (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const method = (file: string, name: string) => {
+        const out: string = (transpiler as any).transpileCSharpByPath (file).content;
+        const start = out.indexOf (' ' + name + '(');
+        return (start < 0) ? '' : out.slice (start, out.indexOf ('\n    }\n', start));
+    };
+    const expect = (label: string, body: string, wanted: string[]) => {
+        for (const w of wanted) {
+            if (!body.includes (w)) problems.push (`null-seed params slot: ${label}: missing ${w}`);
+        }
+    };
+    expect ('binance fetchOrder (base element 1)', method ('./ts/src/binance.ts', 'fetchOrder'), [
+        'IDictionary<string, object> paramsStock = null;',
+        'paramsStock = (IDictionary<string, object>)stockparamsStockVariable[1];',
+        'paramsStock = (IDictionary<string, object>)typeparamsStockVariable[1];',
+        'paramsStock = this.omit(paramsStock, ',
+    ]);
+    expect ('bitget fetchMarketLeverageTiers (awaited venue tuple)', method ('./ts/src/bitget.ts', 'fetchMarketLeverageTiers'), [
+        'IDictionary<string, object> paramsMarginMode = null;',
+        'paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];',
+    ]);
+    return problems;
+}
+
+// 77c5 snippet checks (part of `csharpTranspiler.ts --self-test`): copies of a typed local / core
+// parameter and the omit writes of such copies name the source's type; an untyped source keeps object
+export function copyLocalSnippetChecks77c5 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Dict = { [key: string]: any }; type Int = number; type Str = string | undefined;\nclass Test {\n omit (o, k): Dict { return o; }\n safeString (o, k, d = undefined): Str { return d; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`77c5 copy locals: ${name}: ${out.replace (/\n/g, ' | ').slice (0, 300)}`); }
+    };
+    check ('dict copy with an omit write', 'f (o) { const d = {}; let q = d; if (o) { q = this.omit (d, "x"); } return this.safeString (q, "a"); }', 'Dictionary<string, object> q = d;');
+    check ('core Int64? parameter copy', 'async fetchOHLCV (symbol: string, timeframe = "1m", since: Int = undefined, limit: Int = undefined, params = {}) { const start = since; return start; }', 'Int64? start = since;');
+    check ('omit of an object receiver keeps object', 'f (o) { let q = o; if (o) { q = this.omit (o, "x"); } return this.safeString (q, "a"); }', 'object q = o;');
+    return problems;
+}
+
+// 77c7: `this.<base helper / venue builder>(...)` locals typed from the callee's own C# signature
+// (build/csharp-local-types.js, block "77c7"); each case fails on the parent, each keep holds there
+export function helperReturnLocalsSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const print = (body: string) => (transpiler as any).transpileCSharp ('type Dict = any; class Test {\n binaryLength (b) { return 0; }\n packb (d) { return d; }\n randomBytes (n) { return \'\'; }\n hash (a, b, c) { return a; }\n' + body + '\n}').content as string;
+    const cases: [string, string, string][] = [
+        [ 'binaryLength -> int', 'f (m) { const n = this.binaryLength (m); return this.hash (m, n, 1); }', 'int n = this.binaryLength(m);' ],
+        [ 'packb -> byte[]', 'f (a) { const d = this.packb (a); return this.hash (d, 1, 1); }', 'byte[] d = this.packb(a);' ],
+        [ 'randomBytes -> string', 'f () { const n = this.randomBytes (16); return this.hash (n, 1, 1); }', 'string n = this.randomBytes(16);' ],
+        [ 'per-declaration Sig builder', 'signUserSignedAction (t: Dict, m: Dict): Dict { const signature = { \'r\': 1 }; return signature; }\n buildSendAssetSig (m: Dict): Dict { return this.signUserSignedAction ({}, m); }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }', 'Dictionary<string, object> sig = this.buildSendAssetSig(p);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = print (body);
+        if (!out.includes (expected)) problems.push (`77c7 helper-return locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // a Sig builder whose return path is not a proven dict keeps object, and so does its caller
+    const kept = print ('buildSendAssetSig (m: Dict): Dict { return m; }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }');
+    if (!kept.includes ('object sig = this.buildSendAssetSig(p);')) problems.push (`77c7 helper-return locals: unproven builder retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// 84c5: copies of typed parameters and their extend / omit results (build/csharp-local-types.js,
+// block "84c5"); each case fails on the parent, each keep holds there
+export function copyLocalSnippetChecks84c5 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { dictParamsMethods: [ 'fetchBalance' ], parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Dict = { [key: string]: any }; type Int = number; type Str = string | undefined;\nclass Test {\n omit (o, k): Dict { return o; }\n extend (a, b = undefined): Dict { return a; }\n safeString (o, k, d = undefined): Str { return d; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`84c5 copy locals: ${name}: ${out.replace (/\n/g, ' | ').slice (0, 300)}`); }
+    };
+    check ('copy of the typed params bag with an omit write', 'async fetchBalance (params = {}) { let q = params; if (q) { q = this.omit (q, "x"); } return this.safeString (q, "a"); }', 'IDictionary<string, object> q = parameters;');
+    check ('copy of the typed params bag with an element write', 'async fetchBalance (params = {}) { const q = params; q["a"] = 1; return q; }', 'IDictionary<string, object> q = parameters;');
+    check ('copy of the typed params bag with only helper uses keeps object', 'async fetchBalance (params = {}) { let q = params; q = this.omit (params, "x"); return this.extend ({}, q); }', 'object q = parameters;');
+    check ('params bag of an unlisted method keeps object', 'async fooBar (params = {}) { let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
+    check ('R3 keeps a plain Dictionary omit result Dictionary', 'async fetchBalance (params = {}) { const q = this.omit ({}, "x"); return this.extend ({}, q); }', 'Dictionary<string, object> q = this.omit(');
+    // R2 (slot-1 writes into a typed bag copy) proves through the base Exchange.ts / ts/src corpus tables
+    // (nullSeedElement1Call / tupleDictSlotCall), which an in-memory snippet cannot reach: farm-gated only.
+    check ('written params bag keeps object', 'async fetchBalance (params = {}) { params = this.omit (params, "y"); let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
+    return problems;
+}
+
+// ral-84c7: locals initialised by a helper whose result is a non-null string print `string` and
+// their `+` reads print the native concatenation (no null-guarded object concat)
+export function nonNullStringCallSnippetChecks84c7 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const print = (body: string) => (transpiler as any).transpileCSharp ('class Test {\n binaryToBase16 (b) { return \'\'; }\n hash (a, b, c) { return a; }\n' + body + '\n}').content as string;
+    const cases: [string, string, string][] = [
+        [ 'binaryToBase16 -> string', 'f (m) { const h = this.binaryToBase16 (m); const d = h + \'00\'; return this.hash (d, 1, 1); }', 'string d = (h + \"00\");' ],
+        [ 'same-file literal-concat helper', 'chan (id: string, deltas: boolean = false): string { if (deltas) { return \'book.\' + id + \'.d\'; } return \'book.\' + id; }\n g (id) { const c = this.chan (id, true); const k = c + \':requested\'; return this.hash (k, 1, 1); }', 'string c = this.chan(id, true);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = print (body);
+        if (!out.includes (expected)) problems.push (`84c7 non-null string call locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // ral-84c7 R2: pass-through helpers keep the argument's collection type
+    const passThrough = (transpiler as any).transpileCSharp ('class Test {\n clone (o) { return o; }\n requireValue (v, m) { return v; }\n hash (a, b, c) { return a; }\n'
+        + ' f (p) { const position = { \'a\': 1 }; const s = this.clone (position); s[\'side\'] = \'short\'; const r = this.requireValue (position, \'m\'); r[\'x\'] = 1; return this.hash (s, r, 1); }\n}').content as string;
+    if (!passThrough.includes ('Dictionary<string, object> s = ((Dictionary<string, object>)this.clone(position));')) problems.push (`84c7 pass-through clone: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
+    if (!passThrough.includes ('Dictionary<string, object> r = ((Dictionary<string, object>)this.requireValue(position, "m"));')) problems.push (`84c7 pass-through requireValue: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
+    // a helper with a non-literal return path keeps object
+    const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
+    if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-87c7: the clock string seeding a guarded `+` chain takes the non-null `string`, so the chain local is native too
+    const signed = print ('sign (method, path) { const ts = this.numberToString (this.milliseconds ()); let auth = ts + method + path; if (path) { auth = auth + \'?\'; } return this.hash (auth, 1, 1); }');
+    for (const expected of [ 'string ts = callDynamically(this, "numberToString"', 'string auth = ((ts + method) + (path));', 'auth = (auth + "?");' ]) {
+        if (!signed.includes (expected)) problems.push (`87c7 clock-string seed of a guarded concat: ${expected}: ${signed.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // ral-87c7 R2: an Int64 sum bound clamped by an int length and read only by comparisons
+    const chunked = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+        + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; const out = []; while (start < n) { let end = this.sum (start, size); if (end > n) { end = n; } for (let i = start; i < end; i++) { out.push (ids[i]); } start = this.sum (start, size); } return out; }\n}').content as string;
+    for (const expected of [ 'Int64 end = this.sum(start, size);', 'if (end > n)' ]) {
+        if (!chunked.includes (expected)) problems.push (`87c7 Int64 sum bound: ${expected}: ${chunked.replace (/\n/g, ' | ').slice (-500)}`);
+    }
+    const escaped = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('class Test {\n sum (a, b) { return a; }\n safeInteger (o, k, d = undefined) { return d; }\n'
+        + ' f (ids: string[]) { const n = ids.length; const size = this.safeInteger ({}, \'x\', 50); let start = 0; let end = this.sum (start, size); if (end > n) { end = n; } return [ start, end ]; }\n}').content as string;
+    if (!escaped.includes ('object end = this.sum(start, size);')) problems.push (`87c7 Int64 sum bound: escaping read retyped: ${escaped.replace (/\n/g, ' | ').slice (-500)}`);
+    // ral-87c7 R3: element read of a local map whose every element write is a list
+    const bucketBody = (tail: string) => 'class Test {\n safeList (o, k, d = undefined) { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (keys: string[], rows: string[]) { const byKey = {}; for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; }' + tail + ' }\n}';
+    const bucket = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (bucketBody (' const out = []; for (let i = 0; i < keys.length; i++) { const grouped = byKey[keys[i]]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); } } return out;')).content as string;
+    // ral-90c7: the bucket map itself is Dictionary<string, List<object>>, so a string-keyed read needs no cast back
+    const typedBucket = (tail: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string } }).transpileCSharp ('type Str = string | undefined;\nclass Test {\n safeList (o, k, d = undefined) { return d; }\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (rows) { const byKey = {}; for (let i = 0; i < rows.length; i++) { const k = this.safeString (rows[i], \'id\'); if (k === undefined) { continue; } if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; } const out = []; for (let i = 0; i < rows.length; i++) { const m = this.safeString (rows[i], \'id\');' + tail + ' } return out; }\n}').content as string;
+    const typed = typedBucket (' if ((m === undefined) || !(m in byKey)) { continue; } const grouped = byKey[m]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); }');
+    for (const expected of [ 'Dictionary<string, List<object>> byKey = new Dictionary<string, List<object>>() {};', 'List<object> grouped = (m != null && byKey.ContainsKey(m) ? byKey[m] : null);', 'byKey[(string)k] = g;' ]) {
+        if (!typed.includes (expected)) problems.push (`90c7 list-bucket map value type: ${expected}: ${typed.replace (/\n/g, ' | ').slice (-700)}`);
+    }
+    if (typed.includes ('((List<object>)') || typed.includes ('((IDictionary<string,object>)byKey)')) problems.push (`90c7 list-bucket map value type: cast kept: ${typed.replace (/\n/g, ' | ').slice (-700)}`);
+    // a map with an element read that is not a local's initializer keeps Dictionary<string, object>
+    const escapedMap = typedBucket (' const grouped = byKey[m]; out.push (grouped.length); out.push (byKey[m]);');
+    if (escapedMap.includes ('List<object>> byKey')) problems.push (`90c7 list-bucket map value type: other element read retyped the map: ${escapedMap.replace (/\n/g, ' | ').slice (-700)}`);
+    // ral-92c7: a self padStart write keeps the non-null string; a hex string also passed to calls is typed by its .length read
+    const bare = (body: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string } }).transpileCSharp ('class Test {\n hash (a, b, c) { return a; }\n read (h, o) { return o; }\n' + body + '\n}').content;
+    const padded = bare ('g (fee) { let h = this.intToBase16 (fee); h = h.padStart (24, \'0\'); const p = h + \'00\'; return this.hash (p, 1, 1); }');
+    if (!padded.includes ('string h = ') || !padded.includes ('string p = (h + "00");')) problems.push (`92c7 self padStart write: ${padded.replace (/\n/g, ' | ').slice (-400)}`);
+    const frame = bare ('g (m) { const h = this.binaryToBase16 (m); const n = h.length / 2; return this.read (h, n); }');
+    if (!frame.includes ('string h = ') || !frame.includes ('h?.Length') || frame.includes ('((string)h)')) problems.push (`92c7 string-receiver call argument: ${frame.replace (/\n/g, ' | ').slice (-400)}`);
+    const argOnly = bare ('g (m) { const h = this.binaryToBase16 (m); return this.read (h, 1); }');
+    if (!argOnly.includes ('object h = ')) problems.push (`92c7 string-receiver call argument: argument-only local retyped: ${argOnly.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-92c7 R4: a JSON.parse result whose first use (the next statement) needs a map is declared Dictionary
+    const parsedMap = bare ('g (t, a) { const w = JSON.parse (t); w[\'x\'] = a; if (\'m\' in w) { w[\'m\'] = a; } return this.hash (w, 1, 1); }');
+    if (!parsedMap.includes ('Dictionary<string, object> w = ((Dictionary<string, object>)') || parsedMap.includes ('((IDictionary<string,object>)w)')) problems.push (`92c7 JSON.parse map local: ${parsedMap.replace (/\n/g, ' | ').slice (-400)}`);
+    const parsedLater = bare ('g (t, a) { const w = JSON.parse (t); const n = this.hash (a, 1, 1); w[\'x\'] = n; return w; }');
+    if (!parsedLater.includes ('object w = ')) problems.push (`92c7 JSON.parse map local: map use not next retyped: ${parsedLater.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-93c7: a helper declared once whose every return is an object literal, read as x[k]
+    const req = (use: string) => bare ('unsubscribeRequest (c) { return { \'id\': c, \'method\': \'unsubscribe\' }; }\n g (c) { const u = this.unsubscribeRequest (c); ' + use + ' }');
+    const literalDict = req ('return u[\'id\'];');
+    if (!literalDict.includes ('Dictionary<string, object> u = ((Dictionary<string, object>)') || literalDict.includes ('getValue(u')) problems.push (`93c7 literal dict helper result: ${literalDict.replace (/\n/g, ' | ').slice (-400)}`);
+    const literalPassed = req ('return this.hash (u, 1, 1);');
+    if (!literalPassed.includes ('object u = ')) problems.push (`93c7 literal dict helper result: hand-off only retyped: ${literalPassed.replace (/\n/g, ' | ').slice (-400)}`);
+    // ral-93c7 R3: `const c = this.currencies` read only by key reads the hand-written currenciesDict view
+    const view = bare ('g (code) { const c = this.currencies; if (code in c) { return c[code]; } return undefined; }');
+    if (!view.includes ('IDictionary<string, object> c = this.currenciesDict;')) problems.push (`93c7 currencies view local: ${view.replace (/\n/g, ' | ').slice (-400)}`);
+    const viewPassed = bare ('g (code) { const c = this.currencies; return this.hash (c, code, 1); }');
+    if (!viewPassed.includes ('object c = ')) problems.push (`93c7 currencies view local: hand-off retyped: ${viewPassed.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// 87c4 snippet checks (part of `csharpTranspiler.ts --self-test`): a `let x: Str = undefined` read as a string
+// receiver is declared `string?`, its same-file string-call write needs no cast and the receiver prints natively;
+// a seed with no string-receiver use keeps object
+export function nullSeedNativeStringChecks87c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    const out = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } if (x !== undefined) { return x.toLowerCase (); } return x; }');
+    if (!out.includes ('string? x = null;') || out.includes ('((string)x)')) problems.push (`87c4 null-seed native string: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    const kept = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return x; }');
+    if (!kept.includes ('object x = null;')) problems.push (`87c4 null-seed native string: seed with no string use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a null seed written by `this.sum (a, b)` over integer operands and read by `<` is Int64? (needs the corpus' typed until/since)
+    const whitebit: string = emit.transpileCSharpByPath ('./ts/src/whitebit.ts').content;
+    const start = whitebit.indexOf (' fetchOHLCV(');
+    const body = (start < 0) ? '' : whitebit.slice (start, whitebit.indexOf ('\n    }\n', start));
+    if (!body.includes ('Int64? endTime = null;')) problems.push ('87c4 R2 null-seed sum write: whitebit fetchOHLCV endTime not Int64?');
+    // R4: `let p = undefined; p = this.safeDict (o, 1, {}); … p = this.omit (p, k)` is IDictionary, so the omit binds the dict overload
+    const r4 = print ('safeDict (o, k, d = undefined) { return d; }\n omit (o, k) { return o; }\n f (o) { let p = undefined; p = this.safeDict (o, 1, {}); if (o) { p = this.omit (p, \'a\'); } return p; }');
+    if (!r4.includes ('IDictionary<string, object> p = null;')) problems.push (`87c4 R4 null-seed self-omit: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// ral-90c4 snippet checks (part of `csharpTranspiler.ts --self-test`)
+export function nullSeedChecks90c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    // R1: a `Str` null seed read as the LEFT of `+` keeps the printer's guarded concat, typed string?, no ((object)..) box
+    const r1 = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = \'p\'; } x += \'?\' + a; return x; }');
+    if (!r1.includes ('string? x = null;') || r1.includes ('((object)(x == null')) problems.push (`90c4 R1 null-seed guarded concat: ${r1.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a `typeof r === 'string'` const alias guards the copy `x = r` like the direct test, so the receiver prints natively
+    const r2 = print ('f (r) { let x: Str = undefined; const isString = (typeof r === \'string\'); if (isString) { x = r; } else { x = this.signed (\'a\'); } const u = (x as string).toUpperCase (); return u; }');
+    if (!r2.includes ('string? x = null;') || !r2.includes ('x = ((string)r);')) problems.push (`90c4 R2 typeof alias copy: ${r2.replace (/\n/g, ' | ').slice (-400)}`);
+    // R4: a concat write whose left leaf is a typed string local, into a seed compared with a string literal: native ==
+    const r4 = print ('safeString (o, k, d = undefined): Str { return d; }\n f (o) { let x: Str = undefined; const a = this.safeString (o, 4); const b = this.safeString (o, 5); if (a === \'limit\') { x = a; } else { x = a + \' \' + b; } if (x === \'stop loss\') { return 1; } return 0; }');
+    if (!r4.includes ('string? x = null;') || !r4.includes ('x == "stop loss"')) problems.push (`90c4 R4 concat write: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// ral-87c5 R1: a copy of a typed string local whose `+` reads are left operands prints `string?` and
+// keeps the printer's null-guarded concatenation, minus the `((object)…)` box
+export function copyLocalSnippetChecks87c5 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
+    const print = (body: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (pre + body + '\n}').content as string;
+    const out = print ('f (o) { const orderType = this.safeString (o, \'t\'); const q = orderType; const z = q + \'.x\'; const y = q + \'.y\'; return this.hash (z, y, 1); }');
+    if (!out.includes ('string? q = orderType;')) problems.push (`87c5 string copy: not typed: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    if (!out.includes ('string? z = ((string)(q == null ? null : q + ".x"));')) problems.push (`87c5 string copy: guarded read not native: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a Dictionary omit result later written from an IDictionary reader and through omit itself
+    const widened = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (o) { let p = this.omit ({}, \'a\'); if (o) { p = this.safeDict (o, \'b\'); } p = this.omit (p, \'c\'); return this.hash (p, 1, 1); }\n}').content as string;
+    if (!widened.includes ('IDictionary<string, object> p = this.omit(')) problems.push (`87c5 R2 dictionary widening: ${widened.replace (/\n/g, ' | ').slice (-400)}`);
+    // R3: self-concat writes `x = x + r` keep the guarded form, now without the box
+    const selfWrite = print ('f (o, e) { const id = this.safeString (o, \'i\'); let s = id; if (e) { s = s + \'-\' + e; } const k = s + \':\'; return this.hash (k, 1, 1); }');
+    if (!selfWrite.includes ('string? s = id;') || !selfWrite.includes ('s = (s == null ? null : s + "-" + ')) problems.push (`87c5 R3 string self write: ${selfWrite.replace (/\n/g, ' | ').slice (-400)}`);
+    // a copy of an untyped value keeps object
+    const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
+    if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// null-seed consumer checks (part of `csharpTranspiler.ts --self-test`)
+export function nullSeedChecks92c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n signed (a: Str): Str { if (a === undefined) { return undefined; } return \'-\' + a; }\n currency (c) { return {}; }\n';
+    const print = (body: string) => emit.transpileCSharp (pre + body + '\n}').content;
+    // a Str seed compared with a non-numeric string literal prints the native != on string?
+    const lit = print ('f (o, a: Str) { let x: Str = undefined; if (o) { x = this.signed (a); } return (x !== \'\') ? 1 : 0; }');
+    if (!lit.includes ('string? x = null;') || !lit.includes ('(x != "")')) problems.push (`literal-compare seed: ${lit.replace (/\n/g, ' | ').slice (-400)}`);
+    // the currency-row id read is a string write: the receiver call prints natively
+    const row = print ('f (code: Str, n: Str) { const currency = this.currency (code); let id: Str = undefined; if (n === undefined) { id = currency[\'id\']; } return id.toUpperCase (); }');
+    if (!row.includes ('string? id = null;') || !row.includes ('id.ToUpper()')) problems.push (`currency-row id write: ${row.replace (/\n/g, ' | ').slice (-400)}`);
+    // slot 0 of hyperliquid isUnifiedEnabled is its bool? local: a seed compared `=== true` prints native ==
+    const hl: string = (transpiler as unknown as { transpileCSharpByPath (file: string): { content: string } }).transpileCSharpByPath ('./ts/src/hyperliquid.ts').content;
+    const t0 = hl.search (/ transfer\(/i);
+    const tb = (t0 < 0) ? '' : hl.slice (t0, hl.indexOf ('\n    }\n', t0));
+    if (!tb.includes ('bool? isUnified = null;') || !tb.includes ('(isUnified == true)')) problems.push ('hyperliquid transfer isUnified not bool? / native ==');
+    // a ws url seed written from `wsUrls['public']` (wsUrls = this.safeDict (this.urls['api'], 'ws', {})) and read `url as string`
+    const wsu = print ('describe () { return { \'urls\': { \'api\': { \'ws\': { \'public\': \'wss://a\', \'private\': \'wss://b\' } } } }; }\n safeDict (o, k, d = undefined) { return d; }\n watch (u: string) { return u; }\n f (o) { const wsUrls = this.safeDict (this.urls[\'api\'], \'ws\', {}); let url: Str = undefined; if (o) { url = wsUrls[\'public\']; } else { url = wsUrls[\'private\']; } return this.watch (url as string); }');
+    if (!wsu.includes ('string? url = null;') || !wsu.includes ('url = ((string)(wsUrls')) problems.push (`ws url element write: ${wsu.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+export function nullSeedChecks93c4 (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    // `const c = x; x = (c === undefined) ? {} : c`: the const copy is the self arm, so the dict seed stays typed
+    const src = 'type NullableDict = { [key: string]: unknown } | undefined;\nclass Test {\n f (o, b: string) { let h: NullableDict = undefined; if (o) { h = { \'a\': 1 }; } const c = h; h = (c === undefined) ? {} : c; h[\'r\'] = b; return h; }\n}';
+    const out = emit.transpileCSharp (src).content;
+    if (!out.includes ('Dictionary<string, object> h = null;') || !out.includes ('h["r"] = b;')) problems.push (`const-copy self ternary: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// a safeString seed rewritten from an element of its own split keeps `string?` (part of `--self-test`)
+export function readerSeedElementWriteChecks (): string[] {
+    const problems: string[] = [];
+    const config = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const emit = transpiler as unknown as { transpileCSharp (src: string): { content: string } };
+    const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
+    const out = emit.transpileCSharp (pre + 'f (o) { let t = this.safeString (o, \'w\'); if (t !== undefined) { const p = t.split (\'@\'); t = p[0]; } return this.hash (t, 1, 1); }\n}').content;
+    if (!out.includes ('string? t = this.safeString(') || !out.includes ('t.Split(') || !out.includes ('t = ((string)(p')) problems.push (`reader seed element write: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    const kept = emit.transpileCSharp (pre + 'f (o, r: string) { let t = this.safeString (o, \'w\'); const p = r.split (\'@\'); t = p[0]; return this.hash (t, 1, 1); }\n}').content;
+    if (!kept.includes ('object t = ')) problems.push (`reader seed element write without a native use retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
+    const callee = emit.transpileCSharp (pre + 'enc (t: Str): Str { return t; }\n p (t: Str, po: boolean) { let i = \'GTC\'; if (t !== undefined) { i = this.enc (t); } if (po && (i !== \'RPI\')) { i = \'POST_ONLY\'; } return i; }\n}').content;
+    if (!callee.includes ('string? i = "GTC";') || !callee.includes ('(i != "RPI")')) problems.push (`literal seed written from a string? method: ${callee.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

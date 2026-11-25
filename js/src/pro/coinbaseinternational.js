@@ -108,9 +108,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
-            return this.urls['api']['wsPrivate'];
+            return this.safeString(this.urls['api'], 'wsPrivate', '');
         }
-        return this.urls['api']['ws'];
+        else {
+            return this.safeString(this.urls['api'], 'ws', '');
+        }
     }
     ping(client) {
         const refreshAt = this.safeInteger(this.options, 'wsAuthRefreshAt');
@@ -517,7 +519,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const positions = this.parsePositions(rawPositions);
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
-            this.positions.append(positions[i]);
+            const position = positions[i];
+            if (position['side'] === undefined) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                position['side'] = 'long';
+                const shortPosition = this.clone(position);
+                shortPosition['side'] = 'short';
+                this.positions.append(shortPosition);
+            }
+            this.positions.append(position);
         }
         client.resolve(this.positions, channel);
     }
@@ -1290,7 +1300,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleDeltas(bookside, deltas) {
         const deltasLength = deltas.length;
         for (let i = 0; i < deltasLength; i++) {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
     handleErrorMessage(client, message) {
