@@ -1706,8 +1706,8 @@ func (this *BaseExchange) EncodeDydxTxForSigning(
 	chainId any,
 	account any,
 	authenticators any,
-	fee any) any {
-	return nil
+	fee any) (string, map[string]any) {
+	return "", nil
 }
 
 func (this *BaseExchange) EncodeDydxTxRaw(signDoc any, signature any) any {
