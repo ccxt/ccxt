@@ -1,6 +1,7 @@
 import { PostHog } from 'posthog-node';
 import { instrument } from '@posthog/mcp';
 import { SIGN_STEP_TOOL } from './browser-signing.js';
+import { log } from './logging.js';
 
 // Server-side MCP analytics through PostHog (@posthog/mcp). Hosted server only, and only when
 // POSTHOG_PROJECT_TOKEN is set. Nothing runs in the browser pages or widgets.
@@ -15,54 +16,37 @@ export function createPostHog (token: string | undefined, host: string | undefin
     if (token === undefined || token.trim () === '') {
         return undefined;
     }
-    return new PostHog (token.trim (), { 'host': (host !== undefined && host.trim () !== '') ? host.trim () : DEFAULT_HOST });
+    const client = new PostHog (token.trim (), {
+        'host': (host !== undefined && host.trim () !== '') ? host.trim () : DEFAULT_HOST,
+        // console trace of what is queued for PostHog: the event name and, for MCP events, the
+        // tool or resource and whether it failed. Never arguments or results.
+        'beforeSend': (event: any) => {
+            if (event !== null && event !== undefined) {
+                const properties = event.properties ?? {};
+                log ('info', 'posthog queued ' + String (event.event), {
+                    'tool': properties['$mcp_tool_name'], 'resource': properties['$mcp_resource_name'], 'isError': properties['$mcp_is_error'],
+                    'client': properties['$mcp_client_name'], 'distinctId': event.distinctId ?? event.distinct_id,
+                });
+            }
+            return event;
+        },
+    });
+    // …and of what PostHog answered: a batch it accepted, or why one failed
+    client.on ('flush', (messages: any) => {
+        log ('info', 'posthog delivered ' + (Array.isArray (messages) ? messages.length : 1) + ' event(s)');
+    });
+    client.on ('error', (error: any) => {
+        log ('warning', 'posthog delivery failed: ' + String (error?.message ?? error).slice (0, 300));
+    });
+    return client;
 }
 
-function scrub (value: any, depth = 0): any {
-    if (depth > 12 || value === null || typeof value !== 'object') {
-        return value;
-    }
-    if (Array.isArray (value)) {
-        return value.map ((entry) => scrub (entry, depth + 1));
-    }
-    const out: Record<string, any> = {};
-    for (const [ key, entry ] of Object.entries (value)) {
-        out[key] = SENSITIVE_KEYS.has (key.toLowerCase ()) ? REMOVED : scrub (entry, depth + 1);
-    }
-    return out;
-}
 
-// true when a captured value shows this call was one of the widget's signing steps
-function isSigningStep (properties: Record<string, any>): boolean {
-    if (properties['$mcp_tool_name'] === SIGN_STEP_TOOL) {
-        return true;
-    }
-    const text = JSON.stringify (properties['$mcp_parameters'] ?? null) ?? '';
-    return text.includes ('"signing"') || text.includes ('"' + SIGN_STEP_TOOL + '"');
-}
-
-// exported for tests: what is allowed to leave for PostHog
-export function redactEvent<T extends { properties?: Record<string, any> }> (event: T): T {
-    const properties = event.properties;
-    if (properties === undefined || properties === null) {
-        return event;
-    }
-    if (isSigningStep (properties)) {
-        // keep that the step happened and how it went; drop what went in and what came out
-        if ('$mcp_parameters' in properties) properties['$mcp_parameters'] = REMOVED;
-        if ('$mcp_response' in properties) properties['$mcp_response'] = REMOVED;
-    }
-    for (const name of [ '$mcp_parameters', '$mcp_response' ]) {
-        if (name in properties) properties[name] = scrub (properties[name]);
-    }
-    return event;
-}
-
-export function instrumentServer (server: unknown, posthog: PostHog): void {
+export function instrumentServer (server: unknown, posthog: PostHog): PostHog {
     instrument (server, posthog, {
         'context': false,
         'captureModel': false,
         'enableConversationId': false,
-        'beforeSend': (event) => redactEvent (event as any) as any,
     });
+    return posthog;
 }
