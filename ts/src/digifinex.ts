@@ -3530,7 +3530,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    parseBorrowRates (info: any[], codeKey: Str): Dict {
+    parseBorrowRates (info: any[], codeKey: string): Dict {
         //
         //     {
         //         "valuation_rate": 1,
