@@ -1339,6 +1339,8 @@ class ContainerOpProver {
             if (end < 0) return false;
             const rhs = containerOpParens (real.slice (rhsStart, end));
             if (rhs === 'None') continue;
+            // a fresh `group_by` map of plain lists carries no marker key
+            if (/^self\.group_by\(/.test (rhs) && containerOpClose (rhs, 'self.group_by'.length) === rhs.length - 1) { writes++; continue; }
             const sub = /^self\.safe_dict(?:_k)?_[to]\(&([a-z_][A-Za-z0-9_]*), (?:"[A-Za-z0-9_]+"|Value::Int\([a-z_][A-Za-z0-9_]*\))\)$/.exec (rhs);
             const cm = /^self\.call_method_[to]\("([a-z0-9_]+)", (&\[[^\]]*\])\)\.await$/.exec (rhs) ?? /^self\.([a-z0-9_]+)\((&\[[^\]]*\])\)\.await(?:\.unwrap_or_default\(\))?$/.exec (rhs);
             const ok = (cm !== null && containerOpIsEndpoint (`self.${cm[1]}(${cm[2]}).await`))
