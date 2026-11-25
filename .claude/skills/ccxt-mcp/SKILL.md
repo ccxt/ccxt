@@ -1,18 +1,29 @@
 ---
 name: ccxt-mcp
-description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading. Covers installing the server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
+description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading. Covers the hosted no-install server (https://docs.ccxt.com/mcp, public market data) and installing the local server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
 ---
 
 # CCXT MCP Server
 
-`ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
+`ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** (a read-only [hosted version](#hosted-server-no-install-public-data-only) needs no install) and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
 
 - npm: `ccxt-mcp` · runs via `npx -y ccxt-mcp` · source: https://github.com/ccxt/ccxt/tree/master/mcp
 - Full docs: https://docs.ccxt.com/docs/mcp
 
 Key property: **your API keys stay on your machine and the model never sees them.** Tools reference accounts by a name you choose; credentials are never tool parameters and never appear in results.
 
-## Install
+## Hosted server (no install, public data only)
+
+CCXT also runs a public, read-only MCP endpoint at `https://docs.ccxt.com/mcp` (Streamable HTTP, no sign-in, no API keys). Use it when the user only needs market data and does not want to install anything; use the local server below for balances, orders, positions or trading.
+
+- **Claude (web/desktop):** Customize > Connectors > Add > Add custom connector, URL `https://docs.ccxt.com/mcp`, **No sign-in**; or the prefilled link `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp`. It then also works in the Claude mobile apps.
+- **Claude Code:** `claude mcp add --transport http ccxt https://docs.ccxt.com/mcp`, or `/plugin marketplace add ccxt/ccxt` then `/plugin install ccxt@ccxt`.
+- **ChatGPT (web):** chatgpt.com/plugins > plus button > **Add custom MCP server** > the URL, **No authentication** > **Create as a plugin**. **ChatGPT desktop / Codex:** Settings > MCP servers > Add server > **Streamable HTTP**, or `[mcp_servers.ccxt]` `url = "https://docs.ccxt.com/mcp"` in `~/.codex/config.toml`.
+- **Cursor / VS Code:** `{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }` / `{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }`.
+
+What it offers: `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges (`list_exchanges` names them). `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED`: relay it and point the user to the local server. No trading, no `watch_*` streams, no prediction markets, no `params`, no `call_read_method`. It is shared and rate-limited: on `RATE_LIMITED` / `EXCHANGE_UNAVAILABLE` wait `retryAfterSeconds`, don't loop. Data may be cached for 1–2 s. Phase 1: signing in with exchange accounts is planned, not available. Details: https://docs.ccxt.com/docs/mcp#hosted-server-no-install
+
+## Install (local server)
 
 Requires Node.js ≥ 20. Pick the host:
 

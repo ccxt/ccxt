@@ -1,17 +1,27 @@
 # CCXT MCP Server
 
-CCXT ships an official **MCP (Model Context Protocol) server** so AI agents — Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, and any other MCP host — can access market data, account balances, and (when you explicitly enable it) trading across 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API.
+CCXT ships an official **MCP (Model Context Protocol) server** so AI agents — Claude, ChatGPT, Claude Code, Codex, Cursor, VS Code, Windsurf, and any other MCP host — can use the unified CCXT API. It comes in two forms that share one codebase:
 
-It runs **locally over stdio**: your API keys stay on your machine and are never visible to the AI model, which references accounts by name only. Nothing is hosted, and no keys transit any third‑party service.
+| | Hosted server | Local server |
+|---|---|---|
+| How | Add the URL `https://docs.ccxt.com/mcp` to your assistant | `npx -y ccxt-mcp` on your own computer (Node.js ≥ 20) |
+| Data | Public market data from a curated set of major exchanges, with interactive charts | Public data on 100+ exchanges and prediction markets, plus balances, orders, positions and opt‑in trading |
+| Keys | None accepted | Stay on your machine, never visible to the model |
+| Works in | Claude (web, desktop, mobile), ChatGPT, Claude Code, Codex, Cursor, VS Code and any host that can add a remote MCP server | Hosts that run local (stdio) MCP servers: Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, … |
 
 - npm package: [`ccxt-mcp`](https://www.npmjs.com/package/ccxt-mcp)
-- Source: [github.com/ccxt/ccxt/tree/master/mcp](https://github.com/ccxt/ccxt/tree/master/mcp)
+- Source: [github.com/ccxt/ccxt/tree/master/mcp](https://github.com/ccxt/ccxt/tree/master/mcp) (hosted server: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted))
+
+In Claude Code, for example, pick one:
 
 ```bash
-claude mcp add ccxt -- npx -y ccxt-mcp
+claude mcp add --transport http ccxt https://docs.ccxt.com/mcp   # hosted: public data, nothing to install
+claude mcp add ccxt -- npx -y ccxt-mcp                           # local: accounts and trading
 ```
 
 ## Security model (read this first)
+
+This section is about the **local** server, the only one that ever handles API keys. The [hosted server](#hosted-server-no-install) accepts no keys and has no accounts.
 
 Your API keys stay on your machine, and the model never sees them:
 
@@ -26,9 +36,141 @@ Recommended exchange‑side backstops (they hold even if your machine is comprom
 
 ## Install
 
+### Hosted server (no install)
+
+The hosted server is a public, read‑only MCP endpoint run by CCXT:
+
+```
+https://docs.ccxt.com/mcp
+```
+
+Add that URL to your assistant and ask for prices, order books, candles, trades or a chart. There is nothing to install, no sign‑in and no API key. It speaks MCP over Streamable HTTP and is stateless.
+
+**Status: phase 1.** Public market data only. Signing in to use your own exchange accounts through the hosted server is planned for a later phase. Until then, account data and trading need the [local server](#local-server).
+
+#### Claude (web and desktop)
+
+- **One click:** open [this link](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp). claude.ai opens the **Add custom connector** dialog with the name and URL filled in. Review them, then add the connector. The link only fills in the form; nothing is added until you confirm.
+- **By hand:** go to [Customize > Connectors](https://claude.ai/customize/connectors), select **Add**, then **Add custom connector**. Enter the name `CCXT` and the URL `https://docs.ccxt.com/mcp`, click **Continue**, choose **No sign-in** under **Authentication** (or keep the option marked **Detected**), then click **Add**.
+- Custom connectors work on the Free, Pro, Max, Ultra, Team and Enterprise plans. The Free plan allows one custom connector.
+- **Team and Enterprise:** an Owner adds the connector for the organization under [Organization settings > Connectors](https://claude.ai/admin-settings/connectors): **Add**, then **Custom**, then **Web** if asked. Members then find it in their connectors, labelled as custom. Owners can also use the [admin version of the prefilled link](https://claude.ai/admin-settings/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp).
+- Turn the connector on or off for a conversation from the **+** button in the chat, under **Connectors**.
+- Claude shows custom connectors as unverified services. CCXT is not listed in the Claude directory yet.
+
+Sources: [Add a connector that isn't in the directory](https://claude.com/docs/connectors/custom/add-unlisted), [install links](https://claude.com/docs/connectors/building/directory-vs-custom).
+
+#### Claude mobile
+
+A connector added on the web or desktop is available in your conversations on mobile too ([Claude docs](https://claude.com/docs/connectors/getting-started)). Add it on the web first. Adding a custom connector from inside the mobile app is not described in Claude's documentation. Claude's help center lists MCP Apps (the interactive views) as available in the Claude iOS and Android apps.
+
+#### Claude Code (hosted)
+
+```bash
+claude mcp add --transport http ccxt https://docs.ccxt.com/mcp
+```
+
+If you already use the local server under the name `ccxt`, give this one another name, such as `ccxt-hosted`.
+
+Or install the plugin, which adds the server plus a skill that teaches Claude how to use it:
+
+```
+/plugin marketplace add ccxt/ccxt
+/plugin install ccxt@ccxt
+```
+
+The same marketplace also has the local server's plugin, `ccxt-mcp@ccxt`. Claude Code is a terminal: it shows the text summaries, not the interactive views.
+
+#### ChatGPT (web)
+
+1. Go to [ChatGPT Plugins](https://chatgpt.com/plugins).
+2. Select the plus button, then **Add custom MCP server**.
+3. Enter the name `CCXT`. Under **Connection**, enter the **Server URL** `https://docs.ccxt.com/mcp`.
+4. Choose **No authentication**.
+5. Read the risk warning and select **I understand and want to continue**.
+6. Select **Create as a plugin**, then install the plugin from your personal plugins.
+7. In a conversation, type `@` and select the plugin.
+
+"Workspace permissions and security restrictions, including Lockdown, apply to adding and using custom MCP servers": on a business workspace, an admin may have to allow it. Once installed, the plugin is also available in the ChatGPT mobile app. ChatGPT renders the interactive views. Source: [Add custom MCP server](https://developers.openai.com/api/docs/guides/custom-mcp-server).
+
+#### ChatGPT desktop app, Codex CLI and the Codex IDE extension
+
+These three share one configuration ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)):
+
+- **ChatGPT desktop app:** open **Settings**, then **MCP servers**. Select **Add server**, enter the name `ccxt`, choose **Streamable HTTP** and enter `https://docs.ccxt.com/mcp`. Save, then select **Restart**.
+- **Codex IDE extension:** the gear menu, then **MCP servers**, then the same steps. Finish with **Restart extension**.
+- **Codex CLI:** add to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
+
+  ```toml
+  [mcp_servers.ccxt]
+  url = "https://docs.ccxt.com/mcp"
+  ```
+
+  Run `codex mcp list` to check it.
+
+This repository also has a plugin marketplace for ChatGPT desktop and Codex: `codex plugin marketplace add ccxt/ccxt` adds it, and the `ccxt` plugin then appears in the Plugins Directory. *Not yet tested with a real ChatGPT desktop or Codex install.* The ccxt repository is large; `--sparse .agents/plugins --sparse mcp/hosted/plugin` should limit the checkout to the files needed (also untested).
+
+#### Cursor (hosted)
+
+`~/.cursor/mcp.json` (every project) or `.cursor/mcp.json` (one project):
+
+```json
+{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }
+```
+
+#### VS Code (hosted)
+
+Run **MCP: Add Server** from the Command Palette, or add to `.vscode/mcp.json`:
+
+```json
+{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }
+```
+
+VS Code lists MCP Apps as "Interactive results (Experimental)".
+
+#### Gemini CLI
+
+```bash
+gemini mcp add --transport http ccxt https://docs.ccxt.com/mcp
+```
+
+#### Other hosts
+
+Any MCP host that can add a remote server over Streamable HTTP works. Use the URL `https://docs.ccxt.com/mcp`, with no headers and no authentication.
+
+#### What works on the hosted server
+
+- **Market data:** `list_exchanges` (which exchanges are served), `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`.
+- **Interactive views:** `show_chart`, `show_orderbook` and `show_tickers`. They render in hosts that support [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps), such as Claude and ChatGPT; other hosts get a text summary. [Tools](#tools) describes them.
+- **Exchanges:** a curated set of major exchanges. Ask the assistant to run `list_exchanges` for the current list. Every exchange is available on the local server.
+
+#### What does not
+
+- **Account data:** `get_balance`, `get_orders`, `get_positions` and `get_my_trades` are listed, but return `ACCOUNT_REQUIRED` with a pointer to the local server. They never reach an exchange.
+- **Trading and transfers:** not offered on the hosted server. Use the [local server](#local-server), where trading is opt‑in per account.
+- **Not on the hosted server:** WebSocket streams (`watch_*`), prediction markets, the best‑route tools, generic method calls (`call_read_method`, `call_implicit_get`) and free‑form exchange `params`.
+
+#### Limits
+
+- **Shared and rate‑limited.** Every request reaches the exchanges from CCXT's servers, so each client has a per‑minute budget, and each exchange has a bounded queue and a circuit breaker. When a limit is hit, the tool returns `RATE_LIMITED` or `EXCHANGE_UNAVAILABLE` with `retryAfterSeconds`. Wait that long before retrying. The current defaults are in [`mcp/hosted/src/config.ts`](https://github.com/ccxt/ccxt/blob/master/mcp/hosted/src/config.ts) and may change.
+- **Data freshness.** Identical requests are answered from a short‑lived cache: order books for 1 second, tickers and trades for 2 seconds, candles for a tenth of the candle length (between 2 and 60 seconds). Market lists are refreshed in the background every few hours.
+- **Time limit.** Each tool call has a deadline of about 20 seconds.
+- **Result size.** Results are capped and paginated to fit host limits, as on the local server.
+
+#### Privacy
+
+The hosted server receives the tool calls your assistant makes (tool names and arguments such as exchange, symbol and timeframe), never your conversation. It accepts no credentials. It records anonymous usage analytics and request logs in PostHog (EU region):
+
+- no IP addresses, only a code derived from them that changes daily;
+- no person profiles;
+- no market data it returns.
+
+With analytics on, each tool call can also carry a one‑line reason written by the assistant. The full list of what is recorded and what is not is in [`mcp/hosted/src/telemetry/README.md`](https://github.com/ccxt/ccxt/blob/master/mcp/hosted/src/telemetry/README.md). The local server sends CCXT nothing.
+
+### Local server
+
 Requires Node.js ≥ 20. The server runs with `npx -y ccxt-mcp` — no global install needed. Add it to your MCP host with one of the snippets below.
 
-### Claude Code
+#### Claude Code
 
 ```bash
 claude mcp add ccxt -- npx -y ccxt-mcp
@@ -40,7 +182,7 @@ Or per‑project via a committed `.mcp.json` (safe to commit — it contains no 
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### Claude Desktop
+#### Claude Desktop
 
 **Easiest — one‑click bundle:** download [`ccxt-mcp.mcpb`](https://github.com/ccxt/ccxt/releases/download/ccxt-mcp-latest/ccxt-mcp.mcpb) and open it (Settings → Extensions → drag it in, or double‑click). The installer shows a form where you can enter up to **three exchanges'** keys (and point at a config file for more); keys are stored in your OS keychain, never seen by the model.
 
@@ -54,7 +196,7 @@ curl -L -o ccxt-mcp.mcpb https://github.com/ccxt/ccxt/releases/download/ccxt-mcp
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### Cursor
+#### Cursor
 
 `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per project):
 
@@ -62,7 +204,7 @@ curl -L -o ccxt-mcp.mcpb https://github.com/ccxt/ccxt/releases/download/ccxt-mcp
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### VS Code
+#### VS Code
 
 `.vscode/mcp.json` — VS Code's `inputs` mechanism stores values in **encrypted secret storage**, the best option for keys among the JSON‑config hosts:
 
@@ -81,7 +223,7 @@ curl -L -o ccxt-mcp.mcpb https://github.com/ccxt/ccxt/releases/download/ccxt-mcp
 }
 ```
 
-### Windsurf
+#### Windsurf
 
 `~/.codeium/windsurf/mcp_config.json` — same `mcpServers` shape as Claude Desktop; `${env:VAR}` interpolation is supported.
 

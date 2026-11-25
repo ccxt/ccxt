@@ -1,0 +1,44 @@
+# The hosted CCXT MCP server on the docs.ccxt.com machine. From mcp/hosted:
+#   cp .env.example .env    # then edit; .env is never committed
+#   docker compose up -d --build
+# nginx on the host proxies https://docs.ccxt.com/mcp to 127.0.0.1:8080
+# (deploy/nginx-docs.ccxt.com.conf).
+name: ccxt-mcp
+
+services:
+  hosted:
+    build:
+      context: ..
+      dockerfile: hosted/Dockerfile
+      args:
+        BUILD_ID: ${BUILD_ID:-compose}
+    image: ccxt-mcp-hosted:${BUILD_ID:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # fixed by this deployment, whatever .env says: listen inside the container on 8080,
+      # and take the client address from nginx's X-Real-IP (the port is reachable only
+      # from the host, so only nginx can set it)
+      HOST: 0.0.0.0
+      PORT: "8080"
+      TRUSTED_PROXY: nginx-x-real-ip
+    ports:
+      # loopback only: the public entry point is nginx, never this port
+      - "127.0.0.1:8080:8080"
+    read_only: true # the bundle writes nothing; markets are kept in memory
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 2
+    pids_limit: 256
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # long enough for in-flight calls (20 s deadline) to finish: the server drains on SIGTERM
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: "5"

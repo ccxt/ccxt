@@ -109,6 +109,41 @@ export function isBenignStreamClose (reason: any): boolean {
         || /closed before the connection (is|was) established/i.test (message);
 }
 
+// An error that already knows its envelope: thrown by layers that sit between a tool and
+// the exchange (the hosted server's guarded exchange layer: full queues, an open circuit
+// breaker, a passed deadline) and mapped by run () as is. Without it those failures would
+// reach toErrorEnvelope as plain Errors and be reported as INTERNAL_ERROR ccxt-mcp bugs.
+export class ToolError extends Error {
+    code: string;
+    retryable: boolean;
+    hint: string;
+    retryAfterSeconds: number | undefined;
+
+    constructor (code: string, message: string, options: { retryable?: boolean, hint?: string, retryAfterSeconds?: number } = {}) {
+        super (message);
+        this.code = code;
+        this.retryable = options.retryable ?? false;
+        this.hint = options.hint ?? '';
+        this.retryAfterSeconds = options.retryAfterSeconds;
+    }
+
+    envelope (exchange?: string): Envelope {
+        const body: Record<string, any> = {
+            'code': this.code,
+            'message': this.message,
+            'retryable': this.retryable,
+            'hint': this.hint,
+        };
+        if (this.retryAfterSeconds !== undefined) {
+            body['retryAfterSeconds'] = this.retryAfterSeconds;
+        }
+        if (exchange !== undefined) {
+            body['exchange'] = exchange;
+        }
+        return { 'ok': false, 'error': body };
+    }
+}
+
 export interface ErrorContext {
     exchange?: string;
     account?: string;

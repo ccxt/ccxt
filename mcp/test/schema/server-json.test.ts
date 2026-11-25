@@ -53,6 +53,22 @@ test ('server.json version matches package.json', () => {
     }
 });
 
+// The registry does not check that a remote answers, and "a remote server MUST be publicly
+// accessible at its specified URL", so only the public hosted endpoint belongs here: never a
+// staging or localhost URL, and never headers (it is anonymous; a header would be a secret).
+// That every other manifest carries the same URL is pinned by hosted-plugin.test.ts.
+test ('server.json remotes list only the public hosted endpoint', () => {
+    const remotes = serverJson['remotes'] ?? [];
+    assert.equal (remotes.length, 1);
+    for (const remote of remotes) {
+        assert.equal (remote['type'], 'streamable-http');
+        assert.match (remote['url'], /^https:\/\/[^\s{}]+\/mcp$/);
+        assert.doesNotMatch (remote['url'], /localhost|127\.0\.0\.1|staging/);
+        assert.equal (remote['headers'], undefined);
+        assert.equal (remote['variables'], undefined);
+    }
+});
+
 test ('server.json mcpName matches the package that proves ownership', () => {
     const pkg = JSON.parse (fs.readFileSync (path.join (mcpRoot, 'package.json'), 'utf8'));
     assert.equal (serverJson['name'], pkg['mcpName']);

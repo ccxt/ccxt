@@ -1,11 +1,11 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "ccxt",
   "owner": {
     "name": "CCXT",
     "url": "https://ccxt.com"
   },
-  "description": "Official CCXT plugins for Claude Code — the CCXT MCP server bundled with its usage skill.",
+  "description": "Official CCXT plugins for Claude Code — the local CCXT MCP server (ccxt-mcp) and the hosted public market-data server (ccxt), each bundled with its usage skill.",
   "plugins": [
     {
       "name": "ccxt-mcp",
@@ -34,6 +34,34 @@
         "finance",
         "rest",
         "websocket"
+      ]
+    },
+    {
+      "name": "ccxt",
+      "source": "./mcp/hosted/plugin",
+      "displayName": "CCXT",
+      "description": "The hosted CCXT MCP server (https://docs.ccxt.com/mcp) plus a usage skill — read-only public market data and interactive charts from major crypto exchanges. No install, no API keys.",
+      "version": "0.1.0",
+      "author": {
+        "name": "CCXT",
+        "url": "https://ccxt.com"
+      },
+      "homepage": "https://docs.ccxt.com/docs/mcp",
+      "repository": "https://github.com/ccxt/ccxt",
+      "license": "MIT",
+      "category": "finance",
+      "keywords": [
+        "ccxt",
+        "crypto",
+        "cryptocurrency",
+        "exchange",
+        "market-data"
+      ],
+      "tags": [
+        "crypto",
+        "finance",
+        "market-data",
+        "remote"
       ]
     }
   ]

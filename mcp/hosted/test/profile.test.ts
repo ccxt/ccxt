@@ -1,0 +1,102 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
+import { buildServer } from '../../ts/factory.js';
+import { TOOL_ACCESS } from '../../ts/tools/access.js';
+import { HOSTED_TOOLS, HOSTED_INSTRUCTIONS, HostedToolProfile, LOCAL_SERVER_DOCS } from '../src/profile.js';
+import { createRuntime } from '../src/runtime.js';
+import { loadConfig } from '../src/config.js';
+import { recordingTelemetry } from './helpers/harness.js';
+import { createVenue } from './helpers/venue.js';
+
+// The hosted tool surface is a public contract: pinned here against DESIGN.md's table so a
+// tool added to the local server can never reach the public endpoint by accident.
+
+const here = path.dirname (fileURLToPath (import.meta.url));
+
+const PINNED = [
+    'describe_exchange', 'get_balance', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders',
+    'get_positions', 'get_tickers', 'get_trades', 'list_exchanges', 'search_markets',
+    'show_chart', 'show_orderbook', 'show_tickers',
+];
+
+async function hostedTools () {
+    const config = loadConfig ({ 'EXCHANGES': 'alpha,beta' }, 'test');
+    const runtime = createRuntime (config, createVenue ().module, recordingTelemetry ());
+    const { server } = buildServer (runtime.shared, { 'profile': new HostedToolProfile (), 'hosted': true, 'instructions': HOSTED_INSTRUCTIONS });
+    const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
+    await server.connect (serverTransport);
+    const client = new Client ({ 'name': 'profile-test', 'version': '0' }, { 'versionNegotiation': { 'mode': 'legacy' } });
+    await client.connect (clientTransport);
+    const { tools } = await client.listTools ();
+    await client.close ();
+    return tools;
+}
+
+test ('profile: the hosted tool list is pinned', async () => {
+    assert.deepEqual (Object.keys (HOSTED_TOOLS).sort (), PINNED);
+    const tools = await hostedTools ();
+    assert.deepEqual (tools.map ((tool) => tool.name).sort (), PINNED);
+});
+
+test ('profile: the pinned list matches the tool table in DESIGN.md', () => {
+    const design = fs.readFileSync (path.join (here, '..', 'DESIGN.md'), 'utf8');
+    const rows = design.split ('\n').filter ((line) => /^\| (Market data|Views|Account \(read\)) \|/.test (line));
+    const named = rows.flatMap ((row) => [ ...row.split ('|')[2].matchAll (/`([a-z_]+)`/g) ].map ((match) => match[1]));
+    assert.deepEqual (named.sort (), PINNED);
+});
+
+test ('profile: only public and account classes; no write, funds, stream, executor, routing or meta tool', () => {
+    for (const tool of PINNED) {
+        assert.ok ([ 'public', 'account' ].includes (TOOL_ACCESS[tool]), tool);
+    }
+    const profile = new HostedToolProfile ();
+    for (const [ tool, access ] of Object.entries (TOOL_ACCESS)) {
+        assert.equal (profile.allows (tool, access), PINNED.includes (tool), tool);
+    }
+    // a public tool that is not on the list stays off (search_events is public, prediction-only)
+    assert.equal (profile.allows ('search_events', 'public'), false);
+});
+
+test ('profile: no hosted definition points at a tool, argument or feature that does not exist here', async () => {
+    const tools = await hostedTools ();
+    // property keys, not values: "prediction" stays a valid value of the shared marketType enum
+    const text = JSON.stringify (tools);
+    for (const absent of [ 'describe_method', 'search_events', 'call_read_method', 'call_implicit_get', 'list_accounts', 'get_safety_status', 'watch_', 'fetch_route', 'create_order', 'params.', '"params":', '"reload":', '"prediction":', 'prediction-market' ]) {
+        assert.ok (!text.includes (absent), 'hosted tool definitions mention ' + absent);
+    }
+    for (const tool of tools) {
+        assert.equal (tool.name.length <= 64, true);
+        assert.match (tool.name, /^[A-Za-z0-9_.-]+$/);
+        if (HOSTED_TOOLS[tool.name] === 'account') {
+            assert.match (tool.description ?? '', /^Not available on this hosted server/);
+            assert.equal (tool.annotations?.readOnlyHint, true);
+        }
+    }
+});
+
+test ('profile: account tools keep the local input schemas, minus the arguments no hosted tool takes', async () => {
+    const tools = await hostedTools ();
+    const balance: any = tools.find ((tool) => tool.name === 'get_balance');
+    assert.deepEqual (Object.keys (balance.inputSchema.properties).sort (), [ 'account', 'marketType', 'nonzeroOnly' ]);
+    assert.deepEqual (balance.inputSchema.required, [ 'account' ]);
+});
+
+test ('profile: hosted instructions — first 512 characters stand alone', () => {
+    const opening = HOSTED_INSTRUCTIONS.split ('\n\n')[0];
+    assert.ok (opening.length <= 512, 'opening paragraph is ' + opening.length + ' characters');
+    for (const needle of [ 'list_exchanges', 'search_markets', 'get_tickers', 'show_chart', 'local CCXT MCP server', LOCAL_SERVER_DOCS, 'read-only' ]) {
+        assert.ok (opening.includes (needle), 'opening paragraph lacks ' + needle);
+    }
+    for (const absent of [ 'describe_method', 'call_read_method', 'watch_subscribe', 'list_accounts', 'create_order' ]) {
+        assert.ok (!HOSTED_INSTRUCTIONS.includes (absent), absent);
+    }
+});
+
+test ('profile: a reworded local description fails loudly instead of leaving a stale pointer', () => {
+    const profile = new HostedToolProfile ();
+    assert.throws (() => profile.adjust ('search_markets', { 'description': 'reworded', 'inputSchema': { 'shape': {}, 'omit': () => ({ 'strict': () => ({}) }) } }), /no longer contains/);
+});

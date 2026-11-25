@@ -1,0 +1,104 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ccxt",
+  "version": "0.1.0",
+  "description": "Public crypto market data from major exchanges through the hosted CCXT MCP server: prices, order books, candles, recent trades and market search, with interactive charts. Read-only; no install and no API keys.",
+  "author": {
+    "name": "CCXT",
+    "url": "https://ccxt.com"
+  },
+  "homepage": "https://docs.ccxt.com/docs/mcp",
+  "repository": "https://github.com/ccxt/ccxt",
+  "license": "MIT",
+  "keywords": [
+    "ccxt",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "market-data"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "CCXT",
+        "shortDescription": "Live crypto market data",
+        "longDescription": "CCXT is the open-source library that gives developers one API for many cryptocurrency exchanges. This plugin connects the assistant to the hosted CCXT server, which reads public market data from a curated set of major exchanges.\n\nWhat you can do:\n- Look up the latest price, 24h change and volume of a market, or compare it across exchanges.\n- See the order book: best bid and ask, spread and depth.\n- Get OHLCV candles and recent public trades.\n- Find the exact market symbol on an exchange, including perpetual swaps.\n- Open interactive views in the chat: a candlestick chart, an order-book depth view and a sortable price board.\n\nWho it is for: anyone who wants current exchange data in a conversation, such as traders checking a market, researchers and developers comparing venues.\n\nLimitations: the plugin is read-only and serves public data only. It does not place orders, move funds, read exchange accounts or balances, or give investment advice. No sign-in or API key is needed. Data comes from the exchanges' public APIs and may be a few seconds old.",
+        "developerName": "CCXT",
+        "category": "Finance",
+        "capabilities": [
+          "Read market data",
+          "Show charts"
+        ],
+        "websiteURL": "https://docs.ccxt.com/docs/mcp",
+        "supportURL": "https://github.com/ccxt/ccxt/issues",
+        "privacyPolicyURL": "https://docs.ccxt.com/docs/mcp-privacy",
+        "termsOfServiceURL": "https://docs.ccxt.com/docs/mcp-terms",
+        "defaultPrompt": [
+          "Show the BTC/USDT 4h chart on Kraken",
+          "Compare the ETH/USDT price on Coinbase, OKX and Kraken",
+          "Show the order book for SOL/USDT on OKX"
+        ],
+        "brandColor": "#0a0a0a",
+        "brandColorDark": "#fafafa",
+        "composerIcon": "./assets/icon.svg",
+        "composerIconDark": "./assets/icon-dark.svg",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Candlestick chart for one market",
+              "prompt": "Show the BTC/USDT 4h chart on Kraken.",
+              "tools_triggered": "show_chart",
+              "expected_behavior": "Renders an interactive candlestick and volume chart of BTC/USDT 4h candles from Kraken, and states the range, the latest close and the change over the period."
+            },
+            {
+              "description": "Latest price on several exchanges",
+              "prompt": "What is ETH/USDT trading at on Coinbase, OKX and Kraken right now?",
+              "tools_triggered": "get_tickers",
+              "expected_behavior": "Calls get_tickers once per exchange and reports the last price, bid and ask for ETH/USDT on each, naming the exchange next to every figure."
+            },
+            {
+              "description": "Order book depth",
+              "prompt": "Show the order book for SOL/USDT on OKX.",
+              "tools_triggered": "show_orderbook",
+              "expected_behavior": "Renders an order-book depth chart and bid/ask ladder for SOL/USDT on OKX, and states the best bid, best ask and spread."
+            },
+            {
+              "description": "Find a perpetual swap market",
+              "prompt": "Which BTC perpetual swaps settled in USDT does OKX list?",
+              "tools_triggered": "search_markets",
+              "expected_behavior": "Searches OKX swap markets with base BTC and settle USDT, and lists the unified symbols it returns (such as BTC/USDT:USDT) without inventing markets."
+            },
+            {
+              "description": "Price board for several coins",
+              "prompt": "Show a price board for BTC/USD, ETH/USD and SOL/USD on Kraken.",
+              "tools_triggered": "show_tickers",
+              "expected_behavior": "Renders a sortable price board of the three Kraken markets with last price, 24h change, high, low and volume, and names any symbol that returned no data."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Placing an order is not supported",
+              "prompt": "Buy 0.01 BTC on Kraken at market."
+            },
+            {
+              "description": "Moving funds is not supported",
+              "prompt": "Withdraw 100 USDT from my OKX account to this address: 0x0000000000000000000000000000000000000000."
+            },
+            {
+              "description": "Account data is not available on the hosted server",
+              "prompt": "Show my Coinbase balance."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products, process payments or execute trades."
+      },
+      "publication": {
+        "release_notes": "Initial release: read-only public market data from major exchanges, with interactive charts, order-book views and price boards."
+      }
+    }
+  }
+}

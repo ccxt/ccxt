@@ -4,7 +4,7 @@ import type { AuthInfo, InputRequiredResult } from '@modelcontextprotocol/server
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import type { AccountConfig } from '../types.js';
-import { toErrorEnvelope, type ErrorContext } from '../errors.js';
+import { toErrorEnvelope, ToolError, type ErrorContext } from '../errors.js';
 import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
@@ -109,8 +109,14 @@ export async function run (context: ErrorContext, fn: () => Promise<Envelope | U
         if (error instanceof ArgError) {
             return toContent ({ 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': error.message, 'retryable': false, 'hint': error.hint } });
         }
+        if (error instanceof ToolError) {
+            return toContent (error.envelope (context.exchange));
+        }
         if (error instanceof UnknownExchangeError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' } });
+            // the hosted server serves an allowlist, so "unknown" there usually means "not
+            // offered here" rather than a typo — say where the rest of ccxt is available
+            const hostedHint = (currentRequestScope ()?.hosted === true) ? ' — this hosted server offers a curated list of exchanges; every ccxt exchange is available through the local ccxt-mcp server (https://docs.ccxt.com/docs/mcp)' : '';
+            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' + hostedHint } });
         }
         if (error instanceof UnknownAccountError) {
             return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': error.hint || 'list configured accounts with list_accounts' } });

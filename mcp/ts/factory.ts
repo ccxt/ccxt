@@ -22,6 +22,12 @@ export interface SharedStateOptions {
     deadRetentionMs?: number; // how long errored streams stay listable/readable (tests inject a tiny value)
     router?: any; // an OrderRouter instance (tests inject one); defaults to one built from ccxtModule
     views?: ViewCatalog; // the rendered views (tests inject a modified catalog); defaults to ./ui
+    // A deployment's own exchange pools and journal. The hosted server passes guarded pools
+    // (allowlist, prewarmed memory-only markets, response cache, queues, breakers) and a journal
+    // that never touches the disk (its root filesystem is read-only and it has no writes to
+    // record). Default: ExchangePools over config + poolsDeps, and the on-disk Journal
+    pools?: any;
+    journal?: Journal;
 }
 
 // kept as the name callers and tests already use for createServer's options
@@ -34,7 +40,7 @@ export type CreateServerOptions = SharedStateOptions;
 export interface SharedState {
     ccxt: any;
     config: ResolvedConfig;
-    pools: ExchangePools;
+    pools: ExchangePools; // or the deployment's own pools (SharedStateOptions.pools)
     safety: Safety;
     journal: Journal;
     subscriptions: SubscriptionRegistry;
@@ -49,9 +55,9 @@ export interface SharedState {
 }
 
 export function createSharedState (options: SharedStateOptions): SharedState {
-    const journal = new Journal (options.journalDir);
+    const journal = options.journal ?? new Journal (options.journalDir);
     const safety = new Safety (journal);
-    const pools = new ExchangePools (options.config, options.poolsDeps);
+    const pools = options.pools ?? new ExchangePools (options.config, options.poolsDeps);
     const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions, options.deadRetentionMs);
     const toolProfile = new NamedToolProfile (options.config.settings.tools);
     // reported once per process, not once per built server
@@ -82,6 +88,9 @@ export interface BuildServerOptions {
     // when show_* results carry their view payload. mode defaults to CCXT_MCP_UI; whenUnknown
     // to "attach" on the hosted server and "omit" on stdio (see UiWhenUnknown in ./ui.ts)
     ui?: Partial<UiPolicy>;
+    // a deployment's own server instructions (the hosted server describes a narrower surface);
+    // defaults to SERVER_INSTRUCTIONS, trimmed to the named tool profile
+    instructions?: string;
 }
 
 // Builds one McpServer over the shared state. Cheap and side-effect free (no I/O, no
@@ -93,7 +102,7 @@ export function buildServer (shared: SharedState, options: BuildServerOptions = 
     const profile: ToolProfile = options.profile ?? shared.toolProfile;
     // the instructions are fixed at construction and must not promise a tool the profile
     // hides; a deployment with its own profile brings its own wording
-    const instructions = (profile instanceof NamedToolProfile) ? profileInstructions (SERVER_INSTRUCTIONS, profile) : SERVER_INSTRUCTIONS;
+    const instructions = options.instructions ?? ((profile instanceof NamedToolProfile) ? profileInstructions (SERVER_INSTRUCTIONS, profile) : SERVER_INSTRUCTIONS);
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': shared.version,

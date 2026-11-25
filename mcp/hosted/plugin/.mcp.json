@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ccxt": {
+      "type": "http",
+      "url": "https://docs.ccxt.com/mcp"
+    }
+  }
+}

@@ -4,6 +4,9 @@
   "description": "Official CCXT MCP server — unified access to 100+ cryptocurrency exchanges for AI agents via the Model Context Protocol",
   "main": "./js/server.js",
   "type": "module",
+  "workspaces": [
+    "hosted"
+  ],
   "mcpName": "io.github.ccxt/ccxt-mcp",
   "engines": {
     "node": ">=20.0.0"

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "ccxt",
+  "displayName": "CCXT",
+  "version": "0.1.0",
+  "description": "Public crypto market data from major exchanges through the hosted CCXT MCP server: prices, order books, candles, recent trades and market search, with interactive charts where the host renders MCP Apps. Read-only; no install and no API keys.",
+  "author": {
+    "name": "CCXT",
+    "url": "https://ccxt.com"
+  },
+  "homepage": "https://docs.ccxt.com/docs/mcp",
+  "repository": "https://github.com/ccxt/ccxt",
+  "license": "MIT",
+  "keywords": [
+    "ccxt",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "market-data"
+  ],
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://docs.ccxt.com/docs/mcp",
+  "supportUrl": "https://github.com/ccxt/ccxt/issues",
+  "privacyPolicyUrl": "https://docs.ccxt.com/docs/mcp-privacy",
+  "termsOfServiceUrl": "https://docs.ccxt.com/docs/mcp-terms"
+}

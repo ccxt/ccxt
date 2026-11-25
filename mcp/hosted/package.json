@@ -1,0 +1,37 @@
+{
+    "name": "ccxt-mcp-hosted",
+    "version": "0.1.0",
+    "private": true,
+    "description": "The hosted (public, stateless HTTP) CCXT MCP server served at https://docs.ccxt.com/mcp",
+    "type": "module",
+    "engines": {
+        "node": ">=22.22.0"
+    },
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "start": "node dist/server.mjs",
+        "dev": "node --import tsx src/main.ts",
+        "typecheck": "tsc --noEmit -p .",
+        "test": "node --import tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
+        "smoke": "node scripts/smoke.mjs",
+        "check-exchanges": "node scripts/check-exchanges.mjs"
+    },
+    "dependencies": {
+        "@hono/node-server": "^2.1.11",
+        "@modelcontextprotocol/hono": "^2.0.2",
+        "@modelcontextprotocol/server": "^2.4.0",
+        "@posthog/mcp": "1.7.0",
+        "ccxt": "^4.5.84",
+        "hono": "^4.13.22",
+        "posthog-node": "6.0.6",
+        "protobufjs": "^7.6.6",
+        "zod": "^4.6.7"
+    },
+    "devDependencies": {
+        "@modelcontextprotocol/client": "^2.4.0",
+        "@types/node": "^22.20.1",
+        "esbuild": "^0.28.1",
+        "tsx": "^4.20.0",
+        "typescript": "^5.8.0"
+    }
+}

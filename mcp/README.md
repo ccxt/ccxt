@@ -6,11 +6,13 @@ Connect AI agents (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, and a
 claude mcp add ccxt -- npx -y ccxt-mcp
 ```
 
+For public market data without installing anything, there is also a **hosted server** at `https://docs.ccxt.com/mcp`: see [Hosted server](#hosted-server-no-install). Everything else in this README is about the local server.
+
 ## Security model (read this first)
 
 Your API keys stay on your machine, and **the AI model never sees them**:
 
-- The server runs **locally over stdio**. Nothing is hosted; keys never transit any third-party service.
+- The server runs **locally over stdio**; keys never transit any third-party service. (The hosted server accepts no keys at all.)
 - Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main"). A credential-looking key pasted into free-form `params` (`apiKey`, `secret`, `password`, …) is refused before anything is sent to the exchange.
 - Keys leave the process only inside signed HTTPS requests to the exchange itself — the same as any trading bot.
 - Every tool result, error, and log line passes a **redaction filter** holding your loaded secret values (some exchanges echo signed URLs in error bodies — that path is closed). Raw request URLs/headers/bodies are never emitted. `verbose` is force-disabled.
@@ -23,9 +25,23 @@ One honest caveat: any local agent with filesystem access could read the config 
 
 ## Install
 
+### Hosted server (no install)
+
+`https://docs.ccxt.com/mcp` is a public, read-only, stateless MCP endpoint (Streamable HTTP) run by CCXT. No install, no sign-in, no API keys. Status: phase 1, public market data only; signing in with your own exchange accounts is planned for later.
+
+- **Claude (web, desktop):** [add it as a custom connector](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp) (prefilled link; you confirm), or Customize > Connectors > Add > Add custom connector, then choose **No sign-in**. A connector added there also works in the Claude mobile apps.
+- **Claude Code:** `claude mcp add --transport http ccxt https://docs.ccxt.com/mcp` (use another name if your local server is already called `ccxt`), or the plugin: `/plugin marketplace add ccxt/ccxt` then `/plugin install ccxt@ccxt`.
+- **ChatGPT (web):** [chatgpt.com/plugins](https://chatgpt.com/plugins) > plus button > **Add custom MCP server** > URL `https://docs.ccxt.com/mcp`, **No authentication** > **Create as a plugin**, then install it.
+- **ChatGPT desktop app / Codex:** Settings > MCP servers > Add server > **Streamable HTTP** > the URL; or in `~/.codex/config.toml`: `[mcp_servers.ccxt]` with `url = "https://docs.ccxt.com/mcp"`.
+- **Cursor / VS Code / Gemini CLI:** `{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }` in `~/.cursor/mcp.json`; `{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }` in `.vscode/mcp.json`; `gemini mcp add --transport http ccxt https://docs.ccxt.com/mcp`.
+
+It serves `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades` and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges. `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED` with a pointer to the local server. No trading, no WebSocket streams, no prediction markets, no free-form `params`. Requests are rate-limited per client and answered from a cache that is 1–2 s old for books and tickers. It records anonymous usage analytics without IP addresses ([what is recorded](https://github.com/ccxt/ccxt/blob/master/mcp/hosted/src/telemetry/README.md)). Full steps: [docs.ccxt.com/docs/mcp](https://docs.ccxt.com/docs/mcp#hosted-server-no-install). Source and deployment: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted).
+
+### Local server
+
 Requires Node.js ≥ 20 (since the move to MCP TypeScript SDK v2; earlier releases ran on Node 18). The npm package is `ccxt-mcp`; the server binary is `npx -y ccxt-mcp`. It speaks both the 2025 MCP handshake that today's hosts use and the 2026-07-28 revision, on the same stdio pipe.
 
-### Claude Code
+#### Claude Code
 
 ```bash
 claude mcp add ccxt -- npx -y ccxt-mcp
@@ -37,7 +53,7 @@ Or per-project via `.mcp.json` (safe to commit — no secrets):
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### Claude Desktop
+#### Claude Desktop
 
 Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
@@ -45,7 +61,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### Cursor
+#### Cursor
 
 `~/.cursor/mcp.json` (or `.cursor/mcp.json` per project):
 
@@ -53,7 +69,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
 ```
 
-### VS Code
+#### VS Code
 
 `.vscode/mcp.json` — VS Code's `inputs` mechanism stores values in **encrypted secret storage**, the best option for keys among the JSON-config hosts:
 
@@ -72,7 +88,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 }
 ```
 
-### Windsurf
+#### Windsurf
 
 `~/.codeium/windsurf/mcp_config.json` — same `mcpServers` shape as Claude Desktop; `${env:VAR}` interpolation is supported.
 
@@ -193,3 +209,5 @@ cd mcp && npm run ui:preview  # write a fake-host page that renders every view w
 ```
 
 See `DESIGN.md` for the architecture, the prior-art analysis this server is built on, and the decision log.
+
+The hosted (public HTTP) server lives in `hosted/`. It is an npm workspace of this package, so one `npm ci` here installs both, and it reuses these tool registrations. It is not part of the published `ccxt-mcp` package. See `hosted/README.md`.

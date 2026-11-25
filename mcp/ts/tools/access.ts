@@ -76,6 +76,11 @@ export interface ToolProfile {
     adjust?: (tool: string, config: any) => any;
     // what get_safety_status reports about the profile (defaults to name + no hidden tools)
     status?: () => Record<string, any>;
+    // optional replacement handler for an allowed tool: the tool keeps its name, annotations
+    // and input schema (so the tool list does not change) but this runs instead of the real
+    // handler. The hosted server answers account tools this way until sign-in exists. The
+    // credential check and the request scope still wrap the replacement
+    replace?: (tool: string, access: AccessClass) => ((args: any, request: any) => any) | undefined;
 }
 
 export const FULL_PROFILE: ToolProfile = Object.freeze ({
@@ -172,6 +177,7 @@ export function installRegistrationGuard (server: McpServer, ctx: ServerContext,
         if (profile.adjust !== undefined) {
             config = profile.adjust (name, config);
         }
+        const inner = profile.replace?.(name, access) ?? handler;
         const guarded = async (args: any, request: any) => {
             const keyPath = findCredentialKey (args);
             if (keyPath !== undefined) {
@@ -182,7 +188,7 @@ export function installRegistrationGuard (server: McpServer, ctx: ServerContext,
                 'hosted': ctx.hosted,
                 'authInfo': request?.http?.authInfo ?? ctx.authInfo,
             };
-            return runInRequestScope (scope, () => handler (args, request));
+            return runInRequestScope (scope, () => inner (args, request));
         };
         return register (name, config, guarded);
     };

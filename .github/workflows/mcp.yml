@@ -6,10 +6,12 @@ on:
     branches: [ main, master ]
     paths:
       - 'mcp/**'
+      - 'mcp/hosted/**'
       - '.github/workflows/mcp.yml'
   pull_request:
     paths:
       - 'mcp/**'
+      - 'mcp/hosted/**'
       - '.github/workflows/mcp.yml'
 
 # The ccxt-mcp sub-package is self-contained (its own package.json + lockfile) and its
@@ -34,3 +36,41 @@ jobs:
         run: npm test
       - name: Pack check (tarball contents)
         run: npm pack --dry-run
+
+  # The hosted server (mcp/hosted, an npm workspace of mcp/): typecheck, single-file bundle,
+  # offline tests (fake exchanges, real HTTP on loopback), a smoke of the bundle with the
+  # official MCP client, and the production image built and run read-only.
+  hosted:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # @posthog/mcp needs ^20.20 || >=22.22; production runs node:22
+          node-version: 22
+      - name: Install (root + hosted workspace)
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck -w hosted
+      - name: Build (dist/server.mjs, dist/check-exchanges.mjs)
+        run: npm run build -w hosted
+        env:
+          BUILD_ID: ${{ github.sha }}
+      - name: Test (protocol, HTTP limits, abuse, lifecycle, profile, telemetry)
+        run: npm test -w hosted
+      - name: Bundle smoke (start dist/server.mjs, healthz, tools/list in both protocol eras)
+        run: node hosted/scripts/smoke.mjs
+      - name: Docker build
+        run: docker build -f hosted/Dockerfile --build-arg BUILD_ID=${{ github.sha }} -t ccxt-mcp-hosted:ci .
+      - name: Docker run (read-only, non-root) + smoke
+        run: |
+          docker run -d --name hosted --read-only --cap-drop ALL --security-opt no-new-privileges \
+            -p 127.0.0.1:8080:8080 -e EXCHANGES=kraken ccxt-mcp-hosted:ci
+          node hosted/scripts/smoke.mjs --url http://127.0.0.1:8080/mcp
+          test "$(docker exec hosted id -u)" = "1000"
+          docker stop -t 30 hosted
+          test "$(docker inspect hosted --format '{{.State.ExitCode}}')" = "0"
+          docker logs hosted | tail -5

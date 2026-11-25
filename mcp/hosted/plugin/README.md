@@ -1,0 +1,43 @@
+# CCXT — hosted market-data plugin
+
+This plugin connects your assistant to the **hosted CCXT MCP server** at `https://docs.ccxt.com/mcp` and adds a skill that teaches the assistant how to use it. Nothing runs on your computer, and no exchange account or API key is needed.
+
+Ask for prices, order books, OHLCV candles, recent trades and market listings on a curated set of major cryptocurrency exchanges. In hosts that render [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps), the assistant can also show an interactive candlestick chart, an order-book depth view or a price board in the chat.
+
+The server is **read-only and public**. It does not place orders, move funds or read exchange accounts. For balances, orders, positions and opt-in trading, use the local CCXT MCP server (`ccxt-mcp` on npm), which keeps your API keys on your own machine: see the [CCXT MCP docs](https://docs.ccxt.com/docs/mcp).
+
+## Install
+
+- **Claude Code:**
+
+  ```
+  /plugin marketplace add ccxt/ccxt
+  /plugin install ccxt@ccxt
+  ```
+
+  Or add the server alone, without the skill: `claude mcp add --transport http ccxt https://docs.ccxt.com/mcp`.
+- **Claude (web, desktop, mobile):** add `https://docs.ccxt.com/mcp` as a custom connector.
+- **ChatGPT, Codex and other hosts:** see [Hosted server (no install)](https://docs.ccxt.com/docs/mcp#hosted-server-no-install) in the docs.
+
+## What is in this folder
+
+| File | Read by |
+|---|---|
+| `.claude-plugin/plugin.json`, `.mcp.json` | Claude (`"type": "http"`) |
+| `plugin.json`, `mcp.json` | OpenAI plugins: ChatGPT and Codex (Agent Plugins format, `"type": "streamable-http"`) |
+| `skills/ccxt/SKILL.md` | both |
+| `assets/` | directory listings (icon and logo) |
+
+Every manifest points at the same URL. `mcp/test/schema/hosted-plugin.test.ts` checks that, and the other invariants, in CI.
+
+## Privacy
+
+The server receives the tool calls your assistant makes: the tool name and arguments such as exchange ids, symbols and timeframes. It does not receive your conversation, and it accepts no credentials. It records anonymous usage analytics and request logs, without IP addresses and without the data it returns. With analytics on, each tool call can also carry a one-line reason written by the assistant, which may paraphrase your request. [Privacy](https://docs.ccxt.com/docs/mcp#privacy) in the docs describes what is recorded.
+
+## Support
+
+https://github.com/ccxt/ccxt/issues
+
+## License
+
+MIT. See `LICENSE`.
