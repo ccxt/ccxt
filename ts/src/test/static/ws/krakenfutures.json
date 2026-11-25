@@ -435,6 +435,137 @@
                 ],
                 "parsedResponse": true
             }
+        ],
+        "unWatchOrders": [
+            {
+                "description": "open_orders unsubscribe acknowledged after the challenge, the feed is account-wide",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "open_orders"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "challenge",
+                        "api_key": "key"
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "feed": "open_orders",
+                        "api_key": "key",
+                        "original_challenge": "226aee50-88fc-4618-a42a-34f7709570b2",
+                        "signed_challenge": "EQuFZE67S4IJGDEmqGCRzp031dbNHUGW+68sYyNilFyLVbf+iJi9kee+0BvKAfFENIeG6sTyrcJI8fAVPBn1yA=="
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "open_orders_verbose unsubscribe acknowledged after the challenge",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    null,
+                    {
+                        "verbose": true
+                    }
+                ],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "open_orders_verbose"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "challenge",
+                        "api_key": "key"
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "feed": "open_orders_verbose",
+                        "api_key": "key",
+                        "original_challenge": "226aee50-88fc-4618-a42a-34f7709570b2",
+                        "signed_challenge": "EQuFZE67S4IJGDEmqGCRzp031dbNHUGW+68sYyNilFyLVbf+iJi9kee+0BvKAfFENIeG6sTyrcJI8fAVPBn1yA=="
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchMyTrades": [
+            {
+                "description": "fills unsubscribe acknowledged after the challenge, the feed is account-wide",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "fills"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "challenge",
+                        "api_key": "key"
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "feed": "fills",
+                        "api_key": "key",
+                        "original_challenge": "226aee50-88fc-4618-a42a-34f7709570b2",
+                        "signed_challenge": "EQuFZE67S4IJGDEmqGCRzp031dbNHUGW+68sYyNilFyLVbf+iJi9kee+0BvKAfFENIeG6sTyrcJI8fAVPBn1yA=="
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchPositions": [
+            {
+                "description": "open_positions unsubscribe acknowledged after the challenge, the feed is account-wide",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://futures.kraken.com/ws/v1",
+                "messages": [
+                    {
+                        "event": "challenge",
+                        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
+                    },
+                    {
+                        "event": "unsubscribed",
+                        "feed": "open_positions"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "challenge",
+                        "api_key": "key"
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "feed": "open_positions",
+                        "api_key": "key",
+                        "original_challenge": "226aee50-88fc-4618-a42a-34f7709570b2",
+                        "signed_challenge": "EQuFZE67S4IJGDEmqGCRzp031dbNHUGW+68sYyNilFyLVbf+iJi9kee+0BvKAfFENIeG6sTyrcJI8fAVPBn1yA=="
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
