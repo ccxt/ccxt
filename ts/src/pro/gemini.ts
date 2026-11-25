@@ -1052,6 +1052,8 @@ export default class gemini extends geminiRest {
         //
         // the error names no channel, so the subscriptions that have not delivered any data yet
         // are dropped, otherwise a repeated watch call would wait forever without subscribing anew
+        const error = new ExchangeError (this.id + ' ' + this.json (message));
+        const rejectedHashes: string[] = [];
         const subscribeHashes = Object.keys (client.subscriptions);
         const subscribeHashesLength = subscribeHashes.length;
         for (let i = 0; i < subscribeHashesLength; i++) {
@@ -1059,20 +1061,35 @@ export default class gemini extends geminiRest {
             const subscription = this.safeDict (client.subscriptions, subscribeHash);
             const topic = this.safeString (subscription, 'topic');
             const symbol = this.safeString (subscription, 'symbol', '');
-            let received = true;
             if (topic === 'l2') {
-                received = (symbol in this.orderbooks);
+                if (!(symbol in this.orderbooks)) {
+                    delete client.subscriptions[subscribeHash];
+                    rejectedHashes.push ('orderbook:' + symbol);
+                    rejectedHashes.push ('trades:' + symbol);
+                }
             } else if (topic === 'ohlcv') {
                 const timeframe = this.safeString (subscription, 'timeframe', '');
                 const stored = this.safeDict (this.ohlcvs, symbol, {});
-                received = (timeframe in stored);
-            }
-            if (!received) {
-                delete client.subscriptions[subscribeHash];
+                if (!(timeframe in stored)) {
+                    delete client.subscriptions[subscribeHash];
+                    rejectedHashes.push (subscribeHash);
+                }
             }
         }
-        const error = new ExchangeError (this.id + ' ' + this.json (message));
-        client.reject (error);
+        const rejectedHashesLength = rejectedHashes.length;
+        if (rejectedHashesLength === 0) {
+            // nothing to blame, every pending call learns about the error
+            client.reject (error);
+            return;
+        }
+        // only the calls of the dropped subscriptions fail, healthy streams keep waiting for their data
+        for (let i = 0; i < rejectedHashesLength; i++) {
+            const rejectedHash = rejectedHashes[i];
+            // a rejection without a pending call would be stored and fail the next call instead
+            if (rejectedHash in client.futures) {
+                client.reject (error, rejectedHash);
+            }
+        }
     }
 
     override handleListMessage (client: Client, message: List) {
