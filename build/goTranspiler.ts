@@ -24,36 +24,21 @@ import { fileURLToPath } from 'url';
 // Struct returns for the Go row builders (parseTicker / safeTicker / ...), a post-print pass over every
 
 // from/to: boundary helpers when the row is not a map (default <T>FromMap / <T>ToMap)
-const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, to?: string }> = {
-    'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker', 'ParseTickerList' ] }, // bitfinex + coinbaseexchange list-row parsers
-    'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
-    'OHLCV': { 'names': [ 'ParseOHLCV', 'ParseWsOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
-    'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
-    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] },
-    'Transaction': { 'names': [ 'ParseTransaction', 'ParseTransactionRow' ] }, // bitfinex list-row parser
-    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] },
-    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] },
-    'TransferEntry': { 'names': [ 'ParseTransfer' ] },
-    'FundingRate': { 'names': [ 'ParseFundingRate' ] },
-    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] },
-    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] },
-    'Leverage': { 'names': [ 'ParseLeverage' ] },
-    'MarginMode': { 'names': [ 'ParseMarginMode' ] },
-    'Greeks': { 'names': [ 'ParseGreeks' ] },
-    'Option': { 'names': [ 'ParseOption' ] },
-    'Conversion': { 'names': [ 'ParseConversion' ] },
-    'BorrowInterest': { 'names': [ 'ParseBorrowInterest' ] },
-    'LongShortRatio': { 'names': [ 'ParseLongShortRatio' ] },
-    'FundingRateHistory': { 'names': [ 'ParseFundingRateHistory' ] },
-    'MarginModification': { 'names': [ 'ParseMarginModificationRow' ] }, // bitfinex list-row parser
-};
+const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, to?: string }> = Object.fromEntries ([
+    ...'DepositAddress FundingRate Leverage MarginMode Greeks Option Conversion BorrowInterest LongShortRatio FundingRateHistory'.split (' ').map ((t) => [ t, { 'names': [ 'Parse' + t ] } ]),
+    ...'Trade Order Position LedgerEntry OpenInterest'.split (' ').map ((t) => [ t, { 'names': [ 'Parse' + t, 'Safe' + t ] } ]),
+    [ "Ticker", {"names":["ParseTicker","SafeTicker","ParseContractTicker","ParseTickerList"]} ],
+    [ "OHLCV", {"names":["ParseOHLCV","ParseWsOHLCV"],"from":"OHLCVFromList","to":"OHLCVToList"} ],
+    [ "Transaction", {"names":["ParseTransaction","ParseTransactionRow"]} ],
+    [ "TransferEntry", {"names":["ParseTransfer"]} ],
+    [ "TradingFeeInterface", {"names":["ParseTradingFee"]} ],
+    [ "MarginModification", {"names":["ParseMarginModificationRow"]} ],
+]);
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
 function goStructBoxedReturn (name: string): string | undefined {
     const struct = NAME_TO_STRUCT.get (name);
-    if (struct === undefined) {
-        return undefined;
-    }
+    if (struct === undefined) { return undefined; }
     return (GO_STRUCT_RETURN_TYPES[struct].to === undefined) ? 'map[string]any' : '';
 }
 
@@ -61,19 +46,13 @@ const fromName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].from ?? (str
 const toName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].to ?? (struct + 'ToMap');
 
 const NAME_TO_STRUCT = new Map<string, string> ();
-for (const [ struct, spec ] of Object.entries (GO_STRUCT_RETURN_TYPES)) {
-    for (const name of spec.names) {
-        NAME_TO_STRUCT.set (name, struct);
-    }
-}
+for (const [ struct, spec ] of Object.entries (GO_STRUCT_RETURN_TYPES)) { for (const name of spec.names) { NAME_TO_STRUCT.set (name, struct); } }
 
 // true for chars outside string/rune literals and comments (1-entry cache)
 let codeMaskLastKey = '';
 let codeMaskLastOut: Uint8Array | null = null;
 function codeMask (s: string): Uint8Array {
-    if ((codeMaskLastOut !== null) && (codeMaskLastKey === s)) {
-        return codeMaskLastOut;
-    }
+    if ((codeMaskLastOut !== null) && (codeMaskLastKey === s)) { return codeMaskLastOut; }
     const len = s.length;
     const mask = new Uint8Array (len);
     let i = 0;
@@ -106,9 +85,7 @@ function codeMask (s: string): Uint8Array {
     return mask;
 }
 
-function matchClose (s: string, mask: Uint8Array, open: number): number {
-    return maskedScan (s, mask, open, (i, d) => !d && ')]}'.includes (s[i]));
-}
+function matchClose (s: string, mask: Uint8Array, open: number): number { return maskedScan (s, mask, open, (i, d) => !d && ')]}'.includes (s[i])); }
 
 // first code index `stop (i, depth)` accepts, depth taken through i; else -1
 function maskedScan (s: string, mask: Uint8Array, pos: number, stop: (i: number, d: number) => boolean): number {
@@ -129,15 +106,12 @@ function exprEnd (s: string, mask: Uint8Array, pos: number): number {
     return (end < 0) ? s.length : end;
 }
 
-
 const DECL_RE = /^func \(this \*\w+\) (\w+)\(/gm;
 const CALL_RE = /(?<![\w])((?:this|exchange|this\.base|this\.DerivedExchange|this\.Exchange|this\.BaseExchange)\.)(\w+)\(/g;
 
 function goStructReturnsPass (content: string): string {
     const names = [ ...NAME_TO_STRUCT.keys () ];
-    if (!names.some ((n) => content.includes (n + '('))) {
-        return content;
-    }
+    if (!names.some ((n) => content.includes (n + '('))) { return content; }
     const q = goChanQual (content);
     const mask = codeMask (content);
     type Edit = { at: number, del: number, text: string };
@@ -154,13 +128,9 @@ function goStructReturnsPass (content: string): string {
         const bodyOpen = content.indexOf ('{', parenClose);
         const retType = content.slice (parenClose + 1, bodyOpen).trim ();
         const applied = (retType === q + struct); // idempotent replay
-        if (!applied && retType !== 'map[string]any' && retType !== 'any') {
-            throw new Error ('go-struct-returns: ' + m[1] + ' returns ' + retType + ', expected map[string]any or any');
-        }
+        if (!applied && retType !== 'map[string]any' && retType !== 'any') { throw new Error ('go-struct-returns: ' + m[1] + ' returns ' + retType + ', expected map[string]any or any'); }
         const bodyClose = matchClose (content, mask, bodyOpen);
-        if (!applied) {
-            edits.push ({ 'at': parenClose + 1, 'del': bodyOpen - parenClose - 1, 'text': ' ' + q + struct + ' ' });
-        }
+        if (!applied) { edits.push ({ 'at': parenClose + 1, 'del': bodyOpen - parenClose - 1, 'text': ' ' + q + struct + ' ' }); }
         // nested func literals: their returns are not the method's
         const nested: [number, number][] = [];
         const litRe = /func\s*\(/g;
@@ -171,9 +141,7 @@ function goStructReturnsPass (content: string): string {
             const pc = matchClose (content, mask, lm.index + lm[0].length - 1);
             let j = pc + 1;
             while (j < bodyClose && content[j] !== '{' && content[j] !== '\n') j++;
-            if (content[j] === '{') {
-                nested.push ([ j, matchClose (content, mask, j) ]);
-            }
+            if (content[j] === '{') { nested.push ([ j, matchClose (content, mask, j) ]); }
         }
         const retRe = /\breturn\b/g;
         retRe.lastIndex = bodyOpen;
@@ -184,9 +152,7 @@ function goStructReturnsPass (content: string): string {
             while (content[start] === ' ') start++;
             const end = exprEnd (content, mask, start);
             const expr = content.slice (start, end).trimEnd ();
-            if (expr === '') {
-                throw new Error ('go-struct-returns: bare return in ' + m[1]);
-            }
+            if (expr === '') { throw new Error ('go-struct-returns: bare return in ' + m[1]); }
             const call = /^(?:this|this\.base|this\.DerivedExchange)\.(\w+)\(/.exec (expr);
             if (call !== null && NAME_TO_STRUCT.get (call[1]) === struct && matchClose (content, mask, start + call[0].length - 1) === start + expr.length - 1) {
                 identitySpans.add (start + call[0].length - call[1].length - 1);
@@ -218,13 +184,10 @@ function goStructReturnsPass (content: string): string {
         edits.push ({ 'at': m.index, 'del': 0, 'text': q + toName (struct) + '(' });
         edits.push ({ 'at': close + 1, 'del': 0, 'text': ')' });
     }
-    // apply front to back in O(N); at equal offsets openers before closers when building from right-to-left
-    // equals closers (`)`) AFTER openers when applied left-to-right? Wait: at same `at`:
-    // right-to-left applied `)` FIRST (pushing it right), then opener SECOND (inserting at `at` before `)`).
-    // So in final output order at equal `at`: opener comes BEFORE `)`!
-    if (edits.length === 0) {
-        return content;
-    }
+    // apply front to back in O(N); at equal offsets openers before closers when building from right-to-left equals closers (`)`) AFTER openers when applied
+    // left-to-right? Wait: at same `at`: right-to-left applied `)` FIRST (pushing it right), then opener SECOND (inserting at `at` before `)`). So in final
+    // output order at equal `at`: opener comes BEFORE `)`!
+    if (edits.length === 0) { return content; }
     edits.sort ((a, b) => (a.at - b.at) || ((a.text === ')' ? 1 : 0) - (b.text === ')' ? 1 : 0)));
     const parts: string[] = [];
     let cursor = 0;
@@ -250,12 +213,8 @@ function goStructReturnsSelfTest (): string[] {
     const want31 = 'package ccxt\n\nfunc (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {\n\treturn FundingRateFromMap(map[string]any{\n\t\t"info": contract,\n\t})\n}\nfunc (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {\n\treturn this.SafeOpenInterest(map[string]any{\n\t\t"info": interest,\n\t}, nil)\n}\nfunc (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {\n\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))\n}\nfunc (this *X) Fetch() any {\n\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))\n\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))\n}\n';
     for (const [ label, input, expected ] of [ [ 'U30 ', src2, want2 ], [ '', src, want ], [ 'Position ', posSrc, posWant ], [ 'U31 ', fundingOpenInterestSrc, want31 ] ]) {
         const got = goStructReturnsPass (input);
-        if (got !== expected) {
-            problems.push ('GOSTRUCT ' + label + 'self-test mismatch:\n' + got);
-        }
-        if (goStructReturnsPass (got) !== got) {
-            problems.push ('GOSTRUCT ' + label + 'not idempotent');
-        }
+        if (got !== expected) { problems.push ('GOSTRUCT ' + label + 'self-test mismatch:\n' + got); }
+        if (goStructReturnsPass (got) !== got) { problems.push ('GOSTRUCT ' + label + 'not idempotent'); }
     }
     // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct
     const chan = 'package ccxt\n\nfunc (this *X) f(ch chan AsyncResult[Order]) any {\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(this.ParseOrder(a), b))}\n\treturn nil\n}\n';
@@ -318,9 +277,7 @@ function goChanTable (): Map<string, string> {
         const raw = JSON.parse (fs.readFileSync (GO_CHAN_TABLE_FILE, 'utf8'));
         const entries: Record<string, string> = raw.endpoint ?? {};
         for (const method of Object.keys (entries)) {
-            if (/\?$/.test (entries[method]) && !/^(?:map\[|\[\]|\*)/.test (entries[method])) {
-                throw new Error ('GOCHAN: ' + method + ': nil sends need a nilable type (go-chan-tables.json)');
-            }
+            if (/\?$/.test (entries[method]) && !/^(?:map\[|\[\]|\*)/.test (entries[method])) { throw new Error ('GOCHAN: ' + method + ': nil sends need a nilable type (go-chan-tables.json)'); }
             table.set (method, entries[method]);
         }
         GO_CHAN_TABLE = table;
@@ -328,17 +285,12 @@ function goChanTable (): Map<string, string> {
     return GO_CHAN_TABLE;
 }
 
-
 // comments and string/rune/raw literals blanked to spaces, newlines kept (offsets match the input; LRU-cached)
 const GO_MASK_RE = /"(?:[^"\\]|\\[\s\S]?)*(?:"|$)|'(?:[^'\\]|\\[\s\S]?)*(?:'|$)|`[^`]*(?:`|$)/g;
 const GO_MASK_RE_MC = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:[^"\\]|\\[\s\S]?)*(?:"|$)|'(?:[^'\\]|\\[\s\S]?)*(?:'|$)|`[^`]*(?:`|$)/g;
 const goMaskCache: { key: string; mc: boolean; out: string }[] = [];
 function goMaskGoCode (content: string, maskComments = true): string {
-    for (let k = 0; k < goMaskCache.length; k++) {
-        if ((goMaskCache[k].key === content) && (goMaskCache[k].mc === maskComments)) {
-            return goMaskCache[k].out;
-        }
-    }
+    for (let k = 0; k < goMaskCache.length; k++) { if ((goMaskCache[k].key === content) && (goMaskCache[k].mc === maskComments)) { return goMaskCache[k].out; } }
     const out = content.replace (maskComments ? GO_MASK_RE_MC : GO_MASK_RE, (m) => ((m.indexOf ('\n') < 0) ? ' '.repeat (m.length) : m.replace (/[^\n]/g, ' ')));
     goMaskCache.unshift ({ 'key': content, 'mc': maskComments, 'out': out });
     if (goMaskCache.length > 16) { goMaskCache.pop (); }
@@ -357,9 +309,7 @@ function goChanScan (masked: string, start: number, stop: (i: number, d: number)
     for (let i = start; i < masked.length; i++) {
         const c = masked[i];
         depth += ('([{'.includes (c) ? 1 : 0) - (')]}'.includes (c) ? 1 : 0);
-        if (stop (i, depth)) {
-            return i;
-        }
+        if (stop (i, depth)) { return i; }
     }
     return -1;
 }
@@ -368,50 +318,29 @@ function goChanScan (masked: string, start: number, stop: (i: number, d: number)
 function goChanExprEnd (masked: string, start: number, atDepth = (d: number) => !d): number {
     let i = goChanScan (masked, start, (j, d) => (masked[j] === '\n') && atDepth (d));
     i = (i < 0) ? masked.length : i;
-    while ((i > start) && /\s/.test (masked[i - 1])) {
-        i--;
-    }
+    while ((i > start) && /\s/.test (masked[i - 1])) { i--; }
     return i;
 }
 
-function goChanQual (content: string): string {
-    return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
-}
+function goChanQual (content: string): string { return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.'; }
 
-// the Go type of a sent expression, or a reason it is unproven. Only duplicable forms are admitted,
-// because the send spells the value twice (Value and Raw).
+// the Go type of a sent expression, or a reason it is unproven. Only duplicable forms are admitted, because the send spells the value twice (Value and Raw).
 const GO_CHAN_SEND_RES = new Map<string, RegExp[]> ();
 function goChanSendType (expr: string, fnMasked: string, signature: string, ownCall: (name: string) => string | undefined = () => undefined): { type?: string, bind?: boolean, nil?: boolean, reason?: string } {
-    if (expr === 'nil') {
-        return { 'nil': true };
-    }
-    if (/^(?:true|false)$/.test (expr)) {
-        return { 'type': 'bool' };
-    }
-    if (/^"(?:[^"\\\n]|\\.)*"$/.test (expr)) {
-        return { 'type': 'string' };
-    }
+    if (expr === 'nil') { return { 'nil': true }; }
+    if (/^(?:true|false)$/.test (expr)) { return { 'type': 'bool' }; }
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (expr)) { return { 'type': 'string' }; }
     // the four BaseExchange market tables are `map[string]any` fields (go/v4/exchange.go)
-    if (/^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)$/.test (expr)) {
-        return { 'type': 'map[string]any' };
-    }
+    if (/^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)$/.test (expr)) { return { 'type': 'map[string]any' }; }
     const literal = /^(map\[string\]any|\[\]any|\[\]string)\{/.exec (expr);
-    if (literal !== null) {
-        return { 'type': literal[1], 'bind': true };
-    }
+    if (literal !== null) { return { 'type': literal[1], 'bind': true }; }
     const call = /^((?:ccxt\.)?[\w.]+)\(/.exec (expr);
-    if ((call !== null) && GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')] !== undefined) {
-        return { 'type': GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')], 'bind': true };
-    }
+    if ((call !== null) && GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')] !== undefined) { return { 'type': GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')], 'bind': true }; }
     // `this.M(..)` with M declared once on the same receiver in this file with a concrete return type
     const own = /^this\.(\w+)\(/.exec (expr);
     const ownType = (own !== null) ? ownCall (own[1]) : undefined;
-    if ((ownType !== undefined) && (goChanClose (expr, expr.indexOf ('(')) === expr.length)) {
-        return { 'type': ownType, 'bind': true };
-    }
-    if (!/^[A-Za-z_]\w*$/.test (expr)) {
-        return { 'reason': (call !== null) ? 'call-send' : 'expr-send' };
-    }
+    if ((ownType !== undefined) && (goChanClose (expr, expr.indexOf ('(')) === expr.length)) { return { 'type': ownType, 'bind': true }; }
+    if (!/^[A-Za-z_]\w*$/.test (expr)) { return { 'reason': (call !== null) ? 'call-send' : 'expr-send' }; }
     const name = expr;
     let re = GO_CHAN_SEND_RES.get (name);
     if (re === undefined) {
@@ -424,16 +353,10 @@ function goChanSendType (expr: string, fnMasked: string, signature: string, ownC
     const closureParam = re[3].test (fnMasked);
     // `var x, _ = e.(T)` (a comma-ok row read) declares x as T
     const commaOk = (decls.length === 0) ? re[4].exec (fnMasked) : null;
-    if ((commaOk !== null) && !param && !shortDecl && !closureParam) {
-        return { 'type': commaOk[1] };
-    }
-    if (shortDecl || closureParam || (decls.length + (param ? 1 : 0) !== 1)) {
-        return { 'reason': 'local-untyped' };
-    }
+    if ((commaOk !== null) && !param && !shortDecl && !closureParam) { return { 'type': commaOk[1] }; }
+    if (shortDecl || closureParam || (decls.length + (param ? 1 : 0) !== 1)) { return { 'reason': 'local-untyped' }; }
     const type = (param ? param[1] : decls[0].substring (5 + name.length)).trim ();
-    if ((type === 'any') || (type === 'interface{}') || /^\.\.\./.test (type)) {
-        return { 'reason': 'local-any' };
-    }
+    if ((type === 'any') || (type === 'interface{}') || /^\.\.\./.test (type)) { return { 'reason': 'local-any' }; }
     return { 'type': type };
 }
 
@@ -457,12 +380,8 @@ let GO_CHAN_BASE_RETURNS_TEST: Map<string, string> | undefined = undefined;
 
 // `<Struct>.<method>` -> concrete return, for BaseExchange / Exchange / PredictionExchange in go/v4/exchange*.go
 function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4')): Map<string, string> {
-    if (GO_CHAN_BASE_RETURNS_TEST !== undefined) {
-        return GO_CHAN_BASE_RETURNS_TEST;
-    }
-    if ((GO_CHAN_BASE_RETURNS !== undefined) && (GO_CHAN_BASE_RETURNS.epoch === GO_CHAN_BASE_EPOCH) && (GO_CHAN_BASE_RETURNS.dir === dir)) {
-        return GO_CHAN_BASE_RETURNS.map;
-    }
+    if (GO_CHAN_BASE_RETURNS_TEST !== undefined) { return GO_CHAN_BASE_RETURNS_TEST; }
+    if ((GO_CHAN_BASE_RETURNS !== undefined) && (GO_CHAN_BASE_RETURNS.epoch === GO_CHAN_BASE_EPOCH) && (GO_CHAN_BASE_RETURNS.dir === dir)) { return GO_CHAN_BASE_RETURNS.map; }
     const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => /^exchange.*\.go$/.test (f) && !f.endsWith ('_api.go')).sort () : [];
     const key = files.map ((f) => f + ':' + fs.statSync (path.join (dir, f)).mtimeMs).join ('|');
     if ((GO_CHAN_BASE_RETURNS === undefined) || (GO_CHAN_BASE_RETURNS.key !== key)) {
@@ -487,31 +406,19 @@ function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath
     return GO_CHAN_BASE_RETURNS.map;
 }
 
-function goChanSetBaseReturnsForTest (map: Map<string, string> | undefined) {
-    GO_CHAN_BASE_RETURNS_TEST = map;
-}
+function goChanSetBaseReturnsForTest (map: Map<string, string> | undefined) { GO_CHAN_BASE_RETURNS_TEST = map; }
 
 // `this.M` on R: R's own declaration in the file decides. Otherwise R must directly embed Exchange (package ccxt)
 // or ccxt.PredictionExchange; the promoted method is the shallowest declaration, which must have a concrete type.
 function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
     // struct-return names: every call site is boxed back (go-struct-returns), whatever disk says
     const boxed = goStructBoxedReturn (name);
-    if (boxed !== undefined) {
-        return (boxed === '') ? undefined : boxed;
-    }
-    if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) {
-        return goChanOwnReturn (masked, receiver, name);
-    }
+    if (boxed !== undefined) { return (boxed === '') ? undefined : boxed; }
+    if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) { return goChanOwnReturn (masked, receiver, name); }
     const embed = new RegExp ('^type ' + receiver + ' struct \\{\\n\\t((?:ccxt\\.)?\\w+)\\n', 'm').exec (masked);
     const own = /^package ccxt\s*$/m.test (masked);
     let chain: string[];
-    if (own && /^(?:BaseExchange|Exchange|PredictionExchange)$/.test (receiver)) {
-        chain = (receiver === 'BaseExchange') ? [ 'BaseExchange' ] : [ receiver, 'BaseExchange' ];
-    } else if (own && (embed !== null) && (embed[1] === 'Exchange')) {
-        chain = [ 'Exchange', 'BaseExchange' ];
-    } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) {
-        chain = [ 'PredictionExchange', 'BaseExchange' ];
-    } else {
+    if (own && /^(?:BaseExchange|Exchange|PredictionExchange)$/.test (receiver)) { chain = (receiver === 'BaseExchange') ? [ 'BaseExchange' ] : [ receiver, 'BaseExchange' ]; } else if (own && (embed !== null) && (embed[1] === 'Exchange')) { chain = [ 'Exchange', 'BaseExchange' ]; } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) { chain = [ 'PredictionExchange', 'BaseExchange' ]; } else {
         // pro venue `type R struct {\n\t*ccxt.V`: V's REST declaration decides, else V's promoted Exchange chain
         const venue = own ? null : new RegExp ('^type ' + receiver + ' struct \\{\\n\\t\\*ccxt\\.(\\w+)\\n', 'm').exec (masked);
         return (venue === null) ? undefined : goChanVenueReturn (venue[1], name);
@@ -519,9 +426,7 @@ function goChanMethodReturn (masked: string, receiver: string, name: string): st
     const map = goChanBaseReturns ();
     for (const s of chain) {
         const t = map.get (s + '.' + name);
-        if (t !== undefined) {
-            return (t === '') ? undefined : t;
-        }
+        if (t !== undefined) { return (t === '') ? undefined : t; }
     }
     return undefined;
 }
@@ -538,9 +443,7 @@ function goChanVenueReturn (venue: string, name: string): string | undefined {
 }
 const GO_CHAN_VENUE_MASKED = new Map<string, [ number, string ]> ();
 function goChanVenueMaskedReturn (masked: string, venue: string, name: string): string | undefined {
-    if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) {
-        return undefined;
-    }
+    if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) { return undefined; }
     return goChanMethodReturn (masked, venue, name);
 }
 
@@ -550,32 +453,18 @@ function goChanVenueMaskedReturn (masked: string, venue: string, name: string): 
 
 type GoErrStats = { [reason: string]: number };
 
-function goErrBump (stats: GoErrStats | undefined, reason: string) {
-    if (stats !== undefined) {
-        stats[reason] = (stats[reason] || 0) + 1;
-    }
-}
+function goErrBump (stats: GoErrStats | undefined, reason: string) { if (stats !== undefined) { stats[reason] = (stats[reason] || 0) + 1; } }
 
 // the received operand: a selector chain of calls / type assertions ending in a call; end index or -1
 function goErrOperandEnd (masked: string, start: number): number {
     let i = start;
     for (;;) {
         const id = /^[A-Za-z_]\w*/.exec (masked.substring (i, i + 200));
-        if (id === null) {
-            return -1;
-        }
+        if (id === null) { return -1; }
         i += id[0].length;
         for (;;) {
-            if (masked[i] === '(') {
-                i = goChanClose (masked, i);
-            } else if (masked.startsWith ('.(', i)) {
-                i = goChanClose (masked, i + 1);
-            } else {
-                break;
-            }
-            if (i < 0) {
-                return -1;
-            }
+            if (masked[i] === '(') { i = goChanClose (masked, i); } else if (masked.startsWith ('.(', i)) { i = goChanClose (masked, i + 1); } else { break; }
+            if (i < 0) { return -1; }
         }
         if ((masked[i] === '.') && /[A-Za-z_]/.test (masked[i + 1] || '')) {
             i++;
@@ -610,13 +499,7 @@ function goErrStatementStart (masked: string, at: number): boolean {
     const stack: string[] = [ 'B' ];
     for (let i = 0; i < at; i++) {
         const c = masked[i];
-        if ((c === '(') || (c === '[')) {
-            stack.push (c);
-        } else if (c === '{') {
-            stack.push (((masked[i - 1] === ' ') && (masked[i + 1] === '\n')) ? 'B' : 'C');
-        } else if ((c === ')') || (c === ']') || (c === '}')) {
-            stack.pop ();
-        }
+        if ((c === '(') || (c === '[')) { stack.push (c); } else if (c === '{') { stack.push (((masked[i - 1] === ' ') && (masked[i + 1] === '\n')) ? 'B' : 'C'); } else if ((c === ')') || (c === ']') || (c === '}')) { stack.pop (); }
     }
     return stack[stack.length - 1] === 'B';
 }
@@ -626,9 +509,7 @@ function goErrStatementStart (masked: string, at: number): boolean {
 function goErrSafePrefix (prefix: string): boolean {
     const head = /^\t*(?:var \w+ [^=\n]+ = |[\w.]+(?:\[[\w." ]+\])*(?:, [\w.]+)* :?= |\w+ <- |return |)/.exec (prefix) as RegExpExecArray;
     const rest = prefix.substring (head[0].length);
-    if (/^(?:if|for|switch|case|else|go|defer|select|func|var)\b/.test (rest.trim ()) || /^\t*\}/.test (prefix)) {
-        return false;
-    }
+    if (/^(?:if|for|switch|case|else|go|defer|select|func|var)\b/.test (rest.trim ()) || /^\t*\}/.test (prefix)) { return false; }
     return /^[\w. ,(!]*$/.test (rest);
 }
 
@@ -661,12 +542,8 @@ function goErrListHolders (content: string): string {
 function goErrNextReceive (masked: string, from: number): number {
     for (let p = masked.indexOf ('<-', from); p >= 0; p = masked.indexOf ('<-', p + 2)) {
         let b = p - 1;
-        while ((b >= 0) && ((masked[b] === ' ') || (masked[b] === '\t'))) {
-            b--;
-        }
-        if (((b >= 0) && /[\w)\]]/.test (masked[b])) || masked.startsWith ('<-chan', p)) {
-            continue;
-        }
+        while ((b >= 0) && ((masked[b] === ' ') || (masked[b] === '\t'))) { b--; }
+        if (((b >= 0) && /[\w)\]]/.test (masked[b])) || masked.startsWith ('<-chan', p)) { continue; }
         return p;
     }
     return -1;
@@ -678,18 +555,12 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
     for (;;) {
         const masked = goMaskGoCode (fn);
         const p = goErrNextReceive (masked, cursor);
-        if (p < 0) {
-            return fn;
-        }
+        if (p < 0) { return fn; }
         cursor = p + 2;
         let opStart = p + 2;
-        while (masked[opStart] === ' ') {
-            opStart++;
-        }
+        while (masked[opStart] === ' ') { opStart++; }
         const opEnd = goErrOperandEnd (masked, opStart);
-        if (opEnd < 0) {
-            continue;
-        }
+        if (opEnd < 0) { continue; }
         const operand = fn.substring (opStart, opEnd);
         const ls = masked.lastIndexOf ('\n', p) + 1;
         const nl = masked.indexOf ('\n', opEnd);
@@ -704,9 +575,7 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
         }
         const selM = /^\.(Raw|Value|Checked\(\))/.exec (masked.substring (re, re + 10));
         const sel = ((selM !== null) && (selM[1] === 'Raw')) ? 'Raw' : 'Value';
-        if (selM !== null) {
-            re += selM[0].length;
-        }
+        if (selM !== null) { re += selM[0].length; }
         // an enclosing PanicOnError( ... )
         let ws = rs;
         let we = re;
@@ -722,31 +591,19 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
         const suffix = masked.substring (we, stmtEnd);
         // already in the hoisted shape
         const own = /^\t*(\w+) := $/.exec (masked.substring (ls, p));
-        if ((own !== null) && (rs === p) && (re === opEnd) && masked.startsWith ('\n' + indent + 'if ' + own[1] + '.Err != nil {', le)) {
-            continue;
-        }
+        if ((own !== null) && (rs === p) && (re === opEnd) && masked.startsWith ('\n' + indent + 'if ' + own[1] + '.Err != nil {', le)) { continue; }
         if (goErrUncheckedCallee (operand)) {
-            if (wrapped && /^\t*$/.test (prefix) && /^\s*$/.test (suffix)) {
-                fn = fn.substring (0, ws) + '<-' + operand + fn.substring (we);
-            }
+            if (wrapped && /^\t*$/.test (prefix) && /^\s*$/.test (suffix)) { fn = fn.substring (0, ws) + '<-' + operand + fn.substring (we); }
             continue;
         }
         // forward of another async result: `ch <- <-X`
-        if (!wrapped && /^\t*\w+ <- $/.test (prefix) && (rs === p) && (re === opEnd) && /^\s*$/.test (suffix)) {
-            continue;
-        }
+        if (!wrapped && /^\t*\w+ <- $/.test (prefix) && (rs === p) && (re === opEnd) && /^\s*$/.test (suffix)) { continue; }
         const atStatement = goErrStatementStart (masked, ls) && (masked.substring (ls, ls + indent.length) === indent);
         if (!(atStatement && goErrSafePrefix (prefix))) {
             // not hoistable: the runtime checks the struct in PanicOnError / Checked(), so the value is unchanged
             const recvText = '(<-' + operand + ')';
             let text: string;
-            if (wrapped) {
-                text = fn.substring (ws, rs) + recvText + ')';
-            } else if ((selM !== null) && (selM[1] !== 'Raw')) {
-                text = recvText + '.Checked()';
-            } else if (selM !== null) {
-                text = q + 'PanicOnError(' + recvText + ')';
-            } else {
+            if (wrapped) { text = fn.substring (ws, rs) + recvText + ')'; } else if ((selM !== null) && (selM[1] !== 'Raw')) { text = recvText + '.Checked()'; } else if (selM !== null) { text = q + 'PanicOnError(' + recvText + ')'; } else {
                 // a bare receive handed on as a value (a promiseAll element): the AsyncResult itself travels on
                 goErrBump (stats, 'handed-on');
                 continue;
@@ -806,26 +663,18 @@ function goErrSends (fn: string, q: string): string {
     const masked = goMaskGoCode (fn);
     const names = new Set<string> ();
     const decl = /(?:[(,] ?(\w+) chan |(\w+) := make\(chan )(?:any\b|interface\{\}|(?:ccxt\.)?AsyncResult\[any\])/g;
-    for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) {
-        names.add (m[1] || m[2]);
-    }
-    if (names.size === 0) {
-        return fn;
-    }
+    for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) { names.add (m[1] || m[2]); }
+    if (names.size === 0) { return fn; }
     const send = new RegExp ('^\\t*(?:' + [ ...names ].join ('|') + ') <- ', 'gm');
     const edits: { start: number, end: number, text: string }[] = [];
     for (let m = send.exec (masked); m !== null; m = send.exec (masked)) {
         const start = m.index + m[0].length;
         const end = goChanExprEnd (masked, start, (d: number) => d <= 0);
         const expr = fn.substring (start, end);
-        if (/^(?:\(?<-|(?:ccxt\.)?AsyncResult\[any\]\{)/.test (expr)) {
-            continue;
-        }
+        if (/^(?:\(?<-|(?:ccxt\.)?AsyncResult\[any\]\{)/.test (expr)) { continue; }
         edits.push ({ start, end, 'text': q + 'AsyncResult[any]{Value: ' + expr + '}' });
     }
-    for (let i = edits.length - 1; i >= 0; i--) {
-        fn = fn.substring (0, edits[i].start) + edits[i].text + fn.substring (edits[i].end);
-    }
+    for (let i = edits.length - 1; i >= 0; i--) { fn = fn.substring (0, edits[i].start) + edits[i].text + fn.substring (edits[i].end); }
     return fn;
 }
 
@@ -842,9 +691,7 @@ function goErrRetypeChans (content: string, q: string): string {
 }
 
 function goErrValuePass (content: string, stats?: GoErrStats): string {
-    if (content.indexOf ('<-') < 0) {
-        return content;
-    }
+    if (content.indexOf ('<-') < 0) { return content; }
     const q = goChanQual (content);
     content = goErrListHolders (goErrWrappers (content));
     const masked = goMaskGoCode (content);
@@ -860,9 +707,7 @@ function goErrValuePass (content: string, stats?: GoErrStats): string {
     }
     const res = goErrRetypeChans (out + content.substring (cursor), q);
     // non-ccxt packages that newly reference ccxt.AsyncResult need the import
-    if (q !== '' && res.indexOf ('ccxt.') >= 0 && !/"github\.com\/ccxt\/ccxt\/go\/v4"/.test (res)) {
-        return res.replace (/^(package \w+\n)/m, '$1\nimport "github.com/ccxt/ccxt/go/v4"\n');
-    }
+    if (q !== '' && res.indexOf ('ccxt.') >= 0 && !/"github\.com\/ccxt\/ccxt\/go\/v4"/.test (res)) { return res.replace (/^(package \w+\n)/m, '$1\nimport "github.com/ccxt/ccxt/go/v4"\n'); }
     return res;
 }
 
@@ -913,22 +758,14 @@ const GO_CHAN3_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)),
 const goChan3File = (): { 'async': Record<string, string>, 'resolved': string[] } => JSON.parse (fs.readFileSync (GO_CHAN3_FILE, 'utf8'));
 let GO_CHAN3_TABLE: Map<string, string> | undefined = undefined;
 
-function goChan3Nilable (type: string): boolean {
-    return /^(?:map\[|\[\]|\*)/.test (type) || goChan3WsInterface (type);
-}
+function goChan3Nilable (type: string): boolean { return /^(?:map\[|\[\]|\*)/.test (type) || goChan3WsInterface (type); }
 
-function goChan3BaseType (type: string): string {
-    return type.replace (/\?$/, '');
-}
+function goChan3BaseType (type: string): string { return type.replace (/\?$/, ''); }
 
-function goChan3AllowsNil (rawType: string): boolean {
-    return rawType.endsWith ('?') || goChan3Nilable (goChan3BaseType (rawType));
-}
+function goChan3AllowsNil (rawType: string): boolean { return rawType.endsWith ('?') || goChan3Nilable (goChan3BaseType (rawType)); }
 
 function goChan3LookupRaw (table: Map<string, string>, receiver: string | undefined, method: string): string | undefined {
-    return ((receiver !== undefined) && (receiver !== '') && table.has (receiver + '.' + method))
-        ? table.get (receiver + '.' + method)
-        : table.get (method);
+    return ((receiver !== undefined) && (receiver !== '') && table.has (receiver + '.' + method)) ? table.get (receiver + '.' + method) : table.get (method);
 }
 
 function goChan3Lookup (table: Map<string, string>, receiver: string | undefined, method: string): string | undefined {
@@ -943,9 +780,7 @@ function goChan3EnclosingReceiver (masked: string, at: number): string | undefin
 }
 
 // a nil T boxed into `any` must read as untyped nil (typed-nil trap): only map[string]any / []any fold
-function goChan3FoldsAbsent (type: string): boolean {
-    return (type === 'map[string]any') || (type === '[]any');
-}
+function goChan3FoldsAbsent (type: string): boolean { return (type === 'map[string]any') || (type === '[]any'); }
 
 // `<ind>x := v` / `x = v` / `ch <- C{Value: v<tail>}` of a T value as native statements: a folding T
 // gets `if v == nil` arms (absent stays untyped nil), any other T is its own box
@@ -968,9 +803,7 @@ function goChan3AbsentGuarded (masked: string, ls: number, v: string): boolean {
 
 // the `any` box of T value `v` spanning [start, end) (the bare read, or a legacy BoxAbsent(v) call) as native
 function goChan3AbsentEdits (content: string, masked: string, start: number, end: number, v: string, type: string, taken: Set<string>): Edit[] {
-    if (!goChan3FoldsAbsent (type)) {
-        return [ { start, end, 'text': v } ];   // pointer / interface T: its box is already the nil verdict
-    }
+    if (!goChan3FoldsAbsent (type)) { return [ { start, end, 'text': v } ]; } // pointer / interface T: its box is already the nil verdict
     const ls = masked.lastIndexOf ('\n', start) + 1;
     let le = masked.indexOf ('\n', end);
     le = (le < 0) ? masked.length : le;
@@ -978,23 +811,15 @@ function goChan3AbsentEdits (content: string, masked: string, start: number, end
     const after = masked.substring (end, le);
     const tail = content.substring (end, le);
     let m = /^(\t+)(\w+) := $/.exec (before) || /^(\t+)var (\w+) any = $/.exec (before);
-    if ((m !== null) && /^\s*$/.test (after)) {
-        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'decl', m[2], v, type) } ];
-    }
+    if ((m !== null) && /^\s*$/.test (after)) { return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'decl', m[2], v, type) } ]; }
     m = /^(\t+)(\w+) = $/.exec (before);
-    if ((m !== null) && /^\s*$/.test (after)) {
-        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'set', m[2], v, type) } ];
-    }
+    if ((m !== null) && /^\s*$/.test (after)) { return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'set', m[2], v, type) } ]; }
     // a hand-written `[]any` base field takes the slice itself: a nil slice reads nil through IsEqual/derefScalar
     m = /^(\t+)this\.Accounts = $/.exec (before);
-    if ((m !== null) && (type === '[]any') && /^\s*$/.test (after)) {
-        return [ { 'start': ls, 'end': le, 'text': m[1] + 'this.Accounts = ' + v } ];
-    }
+    if ((m !== null) && (type === '[]any') && /^\s*$/.test (after)) { return [ { 'start': ls, 'end': le, 'text': m[1] + 'this.Accounts = ' + v } ]; }
     m = /^(\t+)(\w+ <- (?:ccxt\.)?AsyncResult\[any\]\{)Value: $/.exec (before);
     const close = /^((?:, Err: \w+\.Err)?\})\s*$/.exec (after);
-    if ((m !== null) && (close !== null)) {
-        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'send', m[2], v, type, tail.replace (/\s+$/, '')) } ];
-    }
+    if ((m !== null) && (close !== null)) { return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'send', m[2], v, type, tail.replace (/\s+$/, '')) } ]; }
     // hoist: the line must be one whole statement at block level (not a case/else/continuation line)
     const [ fs0 ] = goChan3Func (masked, start);
     let depth = 0;
@@ -1013,14 +838,9 @@ function goChan3AbsentEdits (content: string, masked: string, start: number, end
     }
     const base = v.replace (/\W+/g, '') + 'Box';
     let name = base;
-    for (let k = 1; taken.has (name) || new RegExp ('\\b' + name + '\\b').test (masked.substring (fs0, goChan3Func (masked, start)[1])); k++) {
-        name = base + k;
-    }
+    for (let k = 1; taken.has (name) || new RegExp ('\\b' + name + '\\b').test (masked.substring (fs0, goChan3Func (masked, start)[1])); k++) { name = base + k; }
     taken.add (name);
-    return [
-        { 'start': ls, 'end': ls, 'text': goChan3AbsentStmt (ind[0], 'decl', name, v, type) + '\n' },
-        { start, end, 'text': name },
-    ];
+    return [{ 'start': ls, 'end': ls, 'text': goChan3AbsentStmt (ind[0], 'decl', name, v, type) + '\n' }, { start, end, 'text': name },];
 }
 
 // T of the value `v` read in the function holding `at`: `rN.Value` of a tabled receive, `V[k]` of a
@@ -1038,9 +858,7 @@ function goChan3AbsentType (masked: string, at: number, v: string, table: Map<st
     if (m !== null) {
         const whole = masked.substring (fs0, fe0);
         const decls = [ ...whole.matchAll (new RegExp ('\\n\\t+var ' + m[1] + ' ([^=\\n]+?) = ', 'g')) ];
-        if (decls.length !== 1) {
-            return undefined;
-        }
+        if (decls.length !== 1) { return undefined; }
         const t = decls[0][1];
         return v.endsWith (']') ? (t.startsWith ('[]') ? t.slice (2) : undefined) : t;
     }
@@ -1057,27 +875,17 @@ function goChan3LowerAbsent (content: string, table: Map<string, string>): strin
         let lastLine = -1;
         for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
             const ls = masked.lastIndexOf ('\n', m.index) + 1;
-            if (ls === lastLine) {
-                continue;   // one marker per line per round: hoists on the same line would overlap
-            }
-            if (/^func /.test (masked.substring (ls, m.index))) {
-                continue;
-            }
+            if (ls === lastLine) { continue; } // one marker per line per round: hoists on the same line would overlap
+            if (/^func /.test (masked.substring (ls, m.index))) { continue; }
             const close = goChanClose (masked, m.index + m[0].length - 1);
             const v = content.substring (m.index + m[0].length, close - 1).trim ();
-            if (!/^(?:\w+\.Value|\w+\[\d+\]|retRes\d+)$/.test (v)) {
-                throw new Error ('GOCHAN3: unlowerable absent box of ' + v);
-            }
+            if (!/^(?:\w+\.Value|\w+\[\d+\]|retRes\d+)$/.test (v)) { throw new Error ('GOCHAN3: unlowerable absent box of ' + v); }
             const type = goChan3AbsentType (masked, m.index, v, table);
-            if (type === undefined) {
-                throw new Error ('GOCHAN3: absent box of ' + v + ' without a proven element type');
-            }
+            if (type === undefined) { throw new Error ('GOCHAN3: absent box of ' + v + ' without a proven element type'); }
             edits.push (...goChan3AbsentEdits (content, masked, m.index, close, v, type, taken));
             lastLine = ls;
         }
-        if (!edits.length) {
-            break;
-        }
+        if (!edits.length) { break; }
         content = goChan3Splice (content, edits);
     }
     return content;
@@ -1086,39 +894,27 @@ function goChan3LowerAbsent (content: string, table: Map<string, string>): strin
 // ===== GO-CHAN3 WS: ws cache objects travel as a Go interface element (never MapTyped: that nils them) =====
 // OrderBookInterface: every watchOrderBook* core sends the live book (`ob.Limit()` on a typed local, `ob.(OrderBookInterface).Limit()` on a box)
 // or forwards an untabled Watch/WatchMultiple receive, unboxed at the send with OrderBookTyped.
-function goChan3WsInterface (type: string): boolean {
-    return /^(?:ccxt\.)?(?:OrderBookInterface|ArrayCacheInterface|ClientInterface)$/.test (type);
-}
+function goChan3WsInterface (type: string): boolean { return /^(?:ccxt\.)?(?:OrderBookInterface|ArrayCacheInterface|ClientInterface)$/.test (type); }
 
 // T as spelled in a file of package ccxt (q === '') or an importer (q === 'ccxt.')
-function goChan3QualType (type: string, q: string): string {
-    return goChan3WsInterface (type) ? (q + type.replace (/^ccxt\./, '')) : type;
-}
+function goChan3QualType (type: string, q: string): string { return goChan3WsInterface (type) ? (q + type.replace (/^ccxt\./, '')) : type; }
 
 // the WS send proof: `ob.(OrderBookInterface).Limit()`, or an untabled receive `rN.Value` / its `x := rN.Value`
 // local asserted to the interface element. Returns the Value text to emit, or undefined.
 function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined, q: string): string | undefined {
-    if ((want === undefined) || !goChan3WsInterface (want)) {
-        return undefined;
-    }
+    if ((want === undefined) || !goChan3WsInterface (want)) { return undefined; }
     const t = goChan3QualType (want, q);
-    if (new RegExp ('^\\w+(?:\\.\\(' + t.replace ('.', '\\.') + '\\))?\\.Limit\\(\\)$').test (expr)) {
-        return expr; // Limit() returns OrderBookInterface
-    }
+    if (new RegExp ('^\\w+(?:\\.\\(' + t.replace ('.', '\\.') + '\\))?\\.Limit\\(\\)$').test (expr)) { return expr; } // Limit() returns OrderBookInterface
     let name = expr;
     const local = /^[a-z]\w*$/.exec (expr);
     if ((local !== null) && !/^r\d*$/.test (expr)) {
         const binds = fnMasked.match (new RegExp ('(?<![\\w.])' + expr + '(?:\\s*,\\s*\\w+)*\\s*(?::?=(?!=)|\\+=)|var ' + expr + ' ', 'g')) || [];
         const bind = new RegExp ('\\n\\t*' + expr + ' := (r\\d*)\\.Value\\n').exec (fnMasked);
-        if ((bind === null) || (binds.length !== 1)) {
-            return undefined;
-        }
+        if ((bind === null) || (binds.length !== 1)) { return undefined; }
         name = bind[1] + '.Value';
     }
     const recv = /^(r\d*)\.Value$/.exec (name);
-    if ((recv === null) || (new RegExp ('\\n\\t*' + recv[1] + ' := <-this\\.\\w+\\(').exec (fnMasked) === null)) {
-        return undefined;
-    }
+    if ((recv === null) || (new RegExp ('\\n\\t*' + recv[1] + ' := <-this\\.\\w+\\(').exec (fnMasked) === null)) { return undefined; }
     // untyped nil stays nil, a book / cache / client keeps its pointer
     const unbox = /ArrayCacheInterface$/.test (t) ? 'AsArrayCache' : (/ClientInterface$/.test (t) ? 'AsClient' : 'OrderBookTyped');
     return q + unbox + '(' + expr + ')';
@@ -1126,15 +922,9 @@ function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined
 
 // a balance local: one `var X any|map[string]any = map[string]any{` declaration, every later write keeps that map
 function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
-    if ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1) {
-        return false;
-    }
-    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (fnMasked)) {
-        return false;
-    }
-    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
-        return false;
-    }
+    if ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1) { return false; }
+    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (fnMasked)) { return false; }
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) { return false; }
     const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*[-+*/:]?=(?!=)[^\\n]*', 'g')) || [];
     const keeps = new RegExp ('^' + name + ' = (?:MapTyped\\()?this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)\\)?$)');
     return writes.every ((w) => keeps.test (w));
@@ -1144,30 +934,20 @@ function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
 function goChan3BalanceSend (expr: string, fnMasked: string, ownCall: (name: string) => string | undefined): { value: string, decl?: { start: number, end: number } } | undefined {
     const safe = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
     const name = (safe !== null) ? safe[1] : (/^[a-z]\w*$/.test (expr) ? expr : undefined);
-    if (name === undefined) {
-        return undefined;
-    }
+    if (name === undefined) { return undefined; }
     if (goChan3BalanceLocal (fnMasked, name)) {
         const typed = new RegExp ('\\n\\t+var ' + name + ' map\\[string\\]any = ').test (fnMasked);
         // the SafeBalance call stays (it normalises the map in place); only its `any` result is narrowed
         return { 'value': ((safe !== null) || !typed) ? expr + '.(map[string]any)' : expr };
     }
-    if (safe !== null) {
-        return undefined;
-    }
+    if (safe !== null) { return undefined; }
     const decl = new RegExp ('\\n\\t+var ' + name + ' (any) = this\\.(\\w+)\\(').exec (fnMasked);
-    if ((decl === null) || ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1)) {
-        return undefined;
-    }
+    if ((decl === null) || ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1)) { return undefined; }
     const callStart = decl.index + decl[0].length - decl[2].length - 6;
     const callEnd = goChanExprEnd (fnMasked, callStart);
-    if ((goChanClose (fnMasked, decl.index + decl[0].length - 1) !== callEnd) || (ownCall (decl[2]) !== 'map[string]any')) {
-        return undefined;
-    }
+    if ((goChanClose (fnMasked, decl.index + decl[0].length - 1) !== callEnd) || (ownCall (decl[2]) !== 'map[string]any')) { return undefined; }
     const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?[-+*/:]?=(?!=)', 'g')) || [];
-    if ((writes.length !== 0) || new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
-        return undefined;
-    }
+    if ((writes.length !== 0) || new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) { return undefined; }
     const at = decl.index + decl[0].indexOf (' any = ') + 1;
     return { 'value': name, 'decl': { 'start': at, 'end': at + 3 } };
 }
@@ -1184,16 +964,10 @@ function goChan3Table (): Map<string, string> {
             if ((typeof type !== 'string') || /\bany\b(?!\])|^interface/.test (type.replace (/^(?:\[\])?map\[string\]any$|^\[\]any$/, ''))) {
                 throw new Error ('GOCHAN3: ' + method + ': element type must be concrete (' + f + ')');
             }
-            if (carriers.has (method)) {
-                throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f);
-            }
+            if (carriers.has (method)) { throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f); }
             table.set (method, type);
         }
-        for (const [ method, type ] of goChan3DeclaredVenueTypes ()) {
-            if (!table.has (method) && !carriers.has (method)) {
-                table.set (method, type);
-            }
-        }
+        for (const [ method, type ] of goChan3DeclaredVenueTypes ()) { if (!table.has (method) && !carriers.has (method)) { table.set (method, type); } }
         GO_CHAN3_TABLE = table;
     }
     return GO_CHAN3_TABLE;
@@ -1219,9 +993,7 @@ function goChan3DeclaredVenueTypes (): Map<string, string> {
                 const local = (r: string) => (kind !== 'Dict[]') && /^\w+$/.test (r) && ((body.match (new RegExp ('\\b(?:const|let) ' + r + '\\b', 'g')) || []).length === 1)
                     && !new RegExp ('(?<![\\w.]|(?:const|let) )' + r + ' =(?!=)').test (body)
                     && new RegExp ('\\b(?:const|let) ' + r + '(?:: ' + kind + ' = |' + ((kind === 'Dict') ? ' = this\\.safeDict \\([^;\\n]*, \\{\\}\\);' : '(?!)') + ')').test (body);
-                if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r) || local (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) {
-                    continue;
-                }
+                if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r) || local (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) { continue; }
                 out.set (capitalize (f.replace ('.ts', '')) + '.' + capitalize (name), kinds[kind][0]);
             }
         }
@@ -1240,9 +1012,7 @@ function goChan3SetTableForTest (table: Map<string, string> | undefined, resolve
 let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
 
 function goChan3Resolved (): Set<string> {
-    if (GO_CHAN3_RESOLVED === undefined) {
-        GO_CHAN3_RESOLVED = new Set (goChan3File ().resolved);
-    }
+    if (GO_CHAN3_RESOLVED === undefined) { GO_CHAN3_RESOLVED = new Set (goChan3File ().resolved); }
     return GO_CHAN3_RESOLVED;
 }
 
@@ -1255,42 +1025,27 @@ function goChan3ResolvedOk (want: string | undefined, method: string, receiver?:
 // receive text (`<-this.Watch(..)`) -> the typed twin suffix (WatchMap / WatchMultipleList ..) for the wanted
 function goChan3WatchTwinSuffix (receive: string, want: string, structCarrier: boolean): { 'at': number, 'suffix': string } | undefined {
     const m = /^<-(?:ccxt\.)?this\.(Watch|WatchMultiple)\(/.exec (receive);
-    if (structCarrier || (m === null) || ((want !== 'map[string]any') && (want !== '[]any'))) {
-        return undefined;
-    }
+    if (structCarrier || (m === null) || ((want !== 'map[string]any') && (want !== '[]any'))) { return undefined; }
     return { 'at': m[0].length - 1, 'suffix': (want === 'map[string]any') ? 'Map' : 'List' };
 }
-
-
-
 
 type Edit = { start: number, end: number, text: string };
 type Report = (method: string, receiver: string, reason: string, types: string[]) => void;
 
 function goChan3Splice (content: string, edits: Edit[]): string {
-    if (edits.length === 0) {
-        return content;
-    }
+    if (edits.length === 0) { return content; }
     edits.sort ((a, b) => a.start - b.start);
     const parts: string[] = [];
     let cursor = 0;
     for (const e of edits) {
-        if (e.start < cursor) {
-            throw new Error ('GOCHAN3: overlapping edits at ' + e.start);
-        }
-        if (e.start > cursor) {
-            parts.push (content.slice (cursor, e.start));
-        }
+        if (e.start < cursor) { throw new Error ('GOCHAN3: overlapping edits at ' + e.start); }
+        if (e.start > cursor) { parts.push (content.slice (cursor, e.start)); }
         parts.push (e.text);
         cursor = e.end;
     }
-    if (cursor < content.length) {
-        parts.push (content.slice (cursor));
-    }
+    if (cursor < content.length) { parts.push (content.slice (cursor)); }
     return parts.join ('');
 }
-
-
 
 // fresh `rN` names per enclosing function (names handed out earlier in the same function stay taken)
 function goChan3FreshFactory (content: string, masked: string): (at: number) => string {
@@ -1309,9 +1064,7 @@ function goChan3IfaceEdits (masked: string, iface: RegExp, reg: Map<string, stri
         const owner = /\ntype (\w+) interface \{\n[^}]*$/.exec (masked.substring (0, m.index));
         const isPredIface = (owner !== null) && /^IPrediction/.test (owner[1]);
         const t = (isPredIface ? pred : reg).get (m[2]);
-        if (t === undefined) {
-            continue;
-        }
+        if (t === undefined) { continue; }
         edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + m[3] + 'AsyncResult[' + typed (t, m[3]) + ']' });
     }
 }
@@ -1326,26 +1079,18 @@ function goChan3PromiseAllElem (masked: string, at: number, args: string, predic
     const mnames = [ ...args.matchAll (callRe) ].map ((c) => c[1]);
     for (const id of args.split (',').map ((s) => s.trim ()).filter ((s) => /^\w+$/.test (s))) {
         const dm = new RegExp ('\\n\\t+' + id + ' := (?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(').exec (fnPre);
-        if (dm !== null) {
-            mnames.push (dm[1]);
-        }
+        if (dm !== null) { mnames.push (dm[1]); }
     }
     const lookupPall = (mname: string) => ((encRecv !== undefined) ? pall.get (encRecv + '.' + mname) : undefined) ?? pall.get (mname);
     const ts = new Set (mnames.map ((mname) => lookupPall (mname)));
-    if (!mnames.some ((mname) => lookupPall (mname) !== undefined)) {
-        return undefined;
-    }
-    if ((ts.size !== 1) || ts.has (undefined)) {
-        throw new Error ('GOCHAN3: PromiseAllTyped mixes ' + kind + ' channels: ' + args.substring (0, 120));
-    }
+    if (!mnames.some ((mname) => lookupPall (mname) !== undefined)) { return undefined; }
+    if ((ts.size !== 1) || ts.has (undefined)) { throw new Error ('GOCHAN3: PromiseAllTyped mixes ' + kind + ' channels: ' + args.substring (0, 120)); }
     return [ ...ts ][0] as string;
 }
 
 // tabled element type of a consumer call `.MAsync(` at `at` (prediction table in prediction scope / IPrediction casts)
 function goChan3ConsumerElem (masked: string, at: number, method: string, r: { recv: string, start: number }, predictionFile: boolean, reg: Map<string, string>, pred: Map<string, string>): string | undefined {
-    if (!GO_CHAN3_RECEIVERS.test (r.recv)) {
-        throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + method + 'Async');
-    }
+    if (!GO_CHAN3_RECEIVERS.test (r.recv)) { throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + method + 'Async'); }
     const isPredCall = ((predictionFile || goChan3PredictionScope (masked, at)) && (r.recv !== 'this.BaseExchange')) || /IPrediction/.test (masked.substring (r.start, at));
     const encRecv = goChan3EnclosingReceiver (masked, at);
     const map = isPredCall ? pred : reg;
@@ -1355,13 +1100,9 @@ function goChan3ConsumerElem (masked: string, at: number, method: string, r: { r
 // receiver text of a `.MAsync` call at `at` (the dot), or undefined when it is not a call we know
 function goChan3Receiver (masked: string, at: number): { recv: string, start: number } | undefined {
     const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, at - 120), at));
-    if (asserted !== null) {
-        return { 'recv': asserted[1], 'start': at - asserted[0].length };
-    }
+    if (asserted !== null) { return { 'recv': asserted[1], 'start': at - asserted[0].length }; }
     let s = at;
-    while ((s > 0) && /[\w.]/.test (masked[s - 1])) {
-        s--;
-    }
+    while ((s > 0) && /[\w.]/.test (masked[s - 1])) { s--; }
     return { 'recv': masked.substring (s, at), 'start': s };
 }
 
@@ -1371,9 +1112,7 @@ const GO_CHAN3_RECEIVERS = /^(?:this|this\.base|this\.Exchange|this\.BaseExchang
 function goChan3ReceiveMethod (masked: string, recvAt: number, table: Map<string, string>, receiver?: string): string | undefined {
     const m = /^<-\s*([\w.]+(?:\.\((?:ccxt\.)?I\w+\))?)\.(\w+)Async\(/.exec (masked.substring (recvAt, recvAt + 300));
     const r = receiver ?? goChan3EnclosingReceiver (masked, recvAt);
-    if ((m === null) || (goChan3Lookup (table, r, m[2]) === undefined) || !GO_CHAN3_RECEIVERS.test (m[1].replace (/\.\((?:ccxt\.)?I\w+\)$/, ''))) {
-        return undefined;
-    }
+    if ((m === null) || (goChan3Lookup (table, r, m[2]) === undefined) || !GO_CHAN3_RECEIVERS.test (m[1].replace (/\.\((?:ccxt\.)?I\w+\)$/, ''))) { return undefined; }
     return m[2];
 }
 
@@ -1406,26 +1145,18 @@ function goChan3EndpointStubs (): Map<string, string> {
     return GO_CHAN3_STUBS;
 }
 
-function goChan3SetStubsForTest (map: Map<string, string> | undefined) {
-    GO_CHAN3_STUBS = map;
-}
+function goChan3SetStubsForTest (map: Map<string, string> | undefined) { GO_CHAN3_STUBS = map; }
 
 // T of a sent `rN.Raw` bound once by `rN := <-this.Stub(..)` (typed implicit-API stub) or `<-this.MAsync(..)` (gochan
 // EndpointResult carrier); its Value is the same response's typed view
 function goChan3EndpointRawType (expr: string, fnMasked: string): string | undefined {
     const m = /^(r\d*)\.Raw$/.exec (expr);
-    if (m === null) {
-        return undefined;
-    }
+    if (m === null) { return undefined; }
     const binds = [ ...fnMasked.matchAll (new RegExp ('\\n\\t+' + m[1] + ' :?= <-this\\.(\\w+)\\(', 'g')) ];
-    if ((binds.length !== 1) || ((fnMasked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*:?=(?!=)', 'g')) || []).length !== 1)) {
-        return undefined;
-    }
+    if ((binds.length !== 1) || ((fnMasked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*:?=(?!=)', 'g')) || []).length !== 1)) { return undefined; }
     const callee = binds[0][1];
     const stub = goChan3EndpointStubs ().get (callee);
-    if (stub !== undefined) {
-        return stub;
-    }
+    if (stub !== undefined) { return stub; }
     const carrier = /^(\w+)Async$/.exec (callee);
     return (carrier === null) ? undefined : goChanTable ().get (carrier[1]);
 }
@@ -1443,9 +1174,7 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
     let declAt = -1;
     const bad = (reason: string) => ({ reason, 'edits': [] as Edit[] });
     for (let o = occ.exec (fnMasked); o !== null; o = occ.exec (fnMasked)) {
-        if (o.index < signatureEnd) {
-            return bad ('local-param');
-        }
+        if (o.index < signatureEnd) { return bad ('local-param'); }
         const ls = fnMasked.lastIndexOf ('\n', o.index) + 1;
         const le = fnMasked.indexOf ('\n', o.index);
         const lead = fnMasked.substring (ls, o.index);
@@ -1461,9 +1190,7 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
             const fwdLookup = ((fwd !== null) && (table !== undefined) && (w[3] === 'Value')) ? goChan3Lookup (table, receiver, fwd[1]) : undefined;
             const fwdType = (fwd === null) ? undefined : (fwdLookup ?? goChanTable ().get (fwd[1]));
             const t = ((stub === null) ? undefined : stubs.get (stub[1])) ?? fwdType;
-            if (t === undefined) {
-                return bad ('local-untyped');
-            }
+            if (t === undefined) { return bad ('local-untyped'); }
             types.add (t);
             if (w[3] === 'Raw') {
                 const at = o.index + name.length + w[1].length + 2 + w[2].length + 1;
@@ -1475,9 +1202,7 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
         if (/^\t+var $/.test (lead) && (init !== null)) {
             decls++;
             nilable = nilable || (init[1] === 'nil');
-            if (init[1] !== 'nil') {
-                types.add ('map[string]any');
-            }
+            if (init[1] !== 'nil') { types.add ('map[string]any'); }
             declAt = o.index + name.length + 1;
             continue;
         }
@@ -1510,18 +1235,12 @@ function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, ta
             nilable = true;
             continue;
         }
-        if (/^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after)) {
-            continue;
-        }
+        if (/^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after)) { continue; }
         return bad ('local-any');
     }
     const list = [ ...types ];
-    if ((decls !== 1) || (list.length !== 1) || (nilable && !goChan3Nilable (list[0]))) {
-        return bad ((list.length > 1) ? 'local-mixed' : 'local-any');
-    }
-    if (declAt >= 0) {
-        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
-    }
+    if ((decls !== 1) || (list.length !== 1) || (nilable && !goChan3Nilable (list[0]))) { return bad ((list.length > 1) ? 'local-mixed' : 'local-any'); }
+    if (declAt >= 0) { edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] }); }
     return { 'type': list[0], edits };
 }
 
@@ -1540,9 +1259,7 @@ function goChan3ReceiverStubs (): Map<string, string> {
     return GO_CHAN3_RECV_STUBS;
 }
 
-function goChan3SetReceiverStubsForTest (map: Map<string, string> | undefined) {
-    GO_CHAN3_RECV_STUBS = map;
-}
+function goChan3SetReceiverStubsForTest (map: Map<string, string> | undefined) { GO_CHAN3_RECV_STUBS = map; }
 
 // typed text of `r.field` when r is bound exactly once from `<-this.Stub(` of this receiver
 function goChan3EndpointRead (r: string, field: string, receiver: string, fnMasked: string, q: string): { type: string, text: string } | undefined {
@@ -1550,13 +1267,9 @@ function goChan3EndpointRead (r: string, field: string, receiver: string, fnMask
     const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
     const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
     const s = ((stub === null) || (writes.length !== 1)) ? undefined : goChan3ReceiverStubs ().get (receiver + '.' + stub[1]);
-    if (s === undefined) {
-        return undefined;
-    }
+    if (s === undefined) { return undefined; }
     const type = s.substring (2);
-    if (s[0] === 'E') {
-        return { type, 'text': r + '.Value' };
-    }
+    if (s[0] === 'E') { return { type, 'text': r + '.Value' }; }
     return (field === 'Value') ? { type, 'text': q + ((type === '[]any') ? 'ListTyped(' : 'MapTyped(') + r + '.Value)' } : undefined;
 }
 
@@ -1568,13 +1281,9 @@ function goChan3EndpointSend (expr: string, receiver: string, fnMasked: string, 
         const at = open + 1 + 'Value: '.length;
         return ((read === undefined) || (fnMasked.substring (at, close - 1) !== expr)) ? undefined : { 'type': read.type, 'edits': (read.text === expr) ? [] : [ { 'start': bodyStart + at, 'end': bodyStart + close - 1, 'text': read.text } ] };
     }
-    if (!/^[a-z]\w*$/.test (expr)) {
-        return undefined;
-    }
+    if (!/^[a-z]\w*$/.test (expr)) { return undefined; }
     const seen = memo.get ('#endpoint:' + expr);
-    if (seen !== undefined) {
-        return (seen.type === undefined) ? undefined : { 'type': seen.type, 'edits': [] };
-    }
+    if (seen !== undefined) { return (seen.type === undefined) ? undefined : { 'type': seen.type, 'edits': [] }; }
     const edits: Edit[] = [];
     const types = new Set<string> ();
     const occ = new RegExp ('(?<![\\w.])' + expr + '(?!\\w)', 'g');
@@ -1605,24 +1314,16 @@ function goChan3EndpointSend (expr: string, receiver: string, fnMasked: string, 
         } else if (/^\t+var $/.test (lead) && /^ any = nil\s*$/.test (after)) {
             decls++;
             declAt = o.index + expr.length + 1;
-        } else if (/^\t+$/.test (lead) && (lit !== null)) {
-            types.add (lit[1]);
-        } else if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
-            continue;
-        } else if ((eq !== null) && after.startsWith (', nil)')) {
+        } else if (/^\t+$/.test (lead) && (lit !== null)) { types.add (lit[1]); } else if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) { continue; } else if ((eq !== null) && after.startsWith (', nil)')) {
             edits.push ({ 'start': bodyStart + o.index - eq[0].length, 'end': bodyStart + o.index + expr.length + ', nil)'.length, 'text': expr + ' == nil' });
-        } else {
-            ok = /^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after);
-        }
+        } else { ok = /^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after); }
     }
     const list = [ ...types ];
     if (!ok || (decls !== 1) || (list.length !== 1) || !goChan3Nilable (list[0])) {
         memo.set ('#endpoint:' + expr, { 'reason': 'local-untyped', 'edits': [] });
         return undefined;
     }
-    if (declAt >= 0) {
-        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
-    }
+    if (declAt >= 0) { edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] }); }
     memo.set ('#endpoint:' + expr, { 'type': list[0], edits });
     return { 'type': list[0], edits };
 }
@@ -1654,20 +1355,14 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
     const any = '(?:ccxt\\.)?AsyncResult\\[any\\]';
     const handDef = new RegExp ('^func \\(this \\*(\\w+)\\) (\\w+)Async\\([^\\n]*\\) <-chan ' + any + ' \\{\\n(?!\\tch := make\\(chan ' + any + ', 1\\)\\n\\tgo this\\.\\w+Body\\(ch)', 'gm');
     for (let m = handDef.exec (masked); m !== null; m = handDef.exec (masked)) {
-        if (audit !== undefined) {
-            audit (m[2], m[1], 'hand-shape', []);
-        } else if (goChan3Lookup (table, m[1], m[2]) !== undefined) {
-            throw new Error ('GOCHAN3: ' + m[1] + '.' + m[2] + 'Async is not a generated trampoline');
-        }
+        if (audit !== undefined) { audit (m[2], m[1], 'hand-shape', []); } else if (goChan3Lookup (table, m[1], m[2]) !== undefined) { throw new Error ('GOCHAN3: ' + m[1] + '.' + m[2] + 'Async is not a generated trampoline'); }
     }
     const tramp = new RegExp ('^func \\(this \\*(\\w+)\\) (\\w+)Async\\(([^\\n]*)\\) <-chan ' + any + ' \\{\\n\\tch := make\\(chan ' + any + ', 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\n', 'gm');
     for (let m = tramp.exec (masked); m !== null; m = tramp.exec (masked)) {
         const [ whole, receiver, method, , bodyName ] = m;
         const rawWant = goChan3LookupRaw (table, receiver, method);
         const want = (rawWant === undefined) ? undefined : goChan3BaseType (rawWant);
-        if ((want === undefined) && (audit === undefined)) {
-            continue;
-        }
+        if ((want === undefined) && (audit === undefined)) { continue; }
         const realType = goChan3Lookup (goChan3Table (), receiver, method);
         const methodReturn = (name: string) => { const k = receiver + '.' + name; if (!returns.has (k)) { returns.set (k, goChanMethodReturn (masked, receiver, name)); } return returns.get (k); };
         const structCarrier = (realType !== undefined) && goChan3StructTypes ().has (goChan3BaseType (realType));
@@ -1676,9 +1371,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
         const fail = (reason: string) => { reasons.push (reason); };
         const head = '\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan ' + q + 'AsyncResult[any]';
         const headAt = masked.indexOf (head);
-        if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) {
-            fail ('body-missing');
-        }
+        if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) { fail ('body-missing'); }
         const bodyStart = headAt + 1;
         const bodyEnd = (headAt < 0) ? -1 : masked.indexOf ('\n}\n', bodyStart) + 3;
         const edits: Edit[] = [];
@@ -1689,15 +1382,11 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
             const fnText = content.substring (bodyStart, bodyEnd);
             const signature = fnMasked.substring (0, fnMasked.indexOf ('{'));
             const lines = fnMasked.split ('\n');
-            if (!/^\tdefer close\(ch\)$/.test (lines[1]) || !/^\tdefer (?:ccxt\.)?ReturnPanicError\(ch\)$/.test (lines[2])) {
-                fail ('prologue');
-            }
+            if (!/^\tdefer close\(ch\)$/.test (lines[1]) || !/^\tdefer (?:ccxt\.)?ReturnPanicError\(ch\)$/.test (lines[2])) { fail ('prologue'); }
             const use = /(?<![.\w])ch(?!\w)/g;
             for (let u = use.exec (fnMasked); u !== null; u = use.exec (fnMasked)) {
                 const before = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
-                if ((u.index < signature.length) || /defer (?:ccxt\.)?(?:close|ReturnPanicError)\($/.test (before)) {
-                    continue;
-                }
+                if ((u.index < signature.length) || /defer (?:ccxt\.)?(?:close|ReturnPanicError)\($/.test (before)) { continue; }
                 if (!/^\t*$/.test (before) || !fnMasked.startsWith ('ch <- ', u.index)) {
                     fail ('channel-escapes');
                     continue;
@@ -1713,9 +1402,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
                         let receive = fnText.substring (at, lineEnd);
                         const twin = goChan3WatchTwinSuffix (receive, want as string, structCarrier);
-                        if (twin !== undefined) {
-                            receive = receive.substring (0, twin.at) + twin.suffix + receive.substring (twin.at);
-                        }
+                        if (twin !== undefined) { receive = receive.substring (0, twin.at) + twin.suffix + receive.substring (twin.at); }
                         const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goFreshName (fnText, 'resolved', freshTaken, '(?:Box)?'), (twin !== undefined) || structCarrier);
                         edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
                         types.add (want as string);
@@ -1723,9 +1410,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     }
                     if ((ft === undefined) || ((want !== undefined) && (ft !== want))) {
                         fail ('forward-untabled:' + (/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (at, at + 200)) || [ '', '?' ])[1]);
-                    } else {
-                        types.add (ft);
-                    }
+                    } else { types.add (ft); }
                     continue;
                 }
                 const lit = new RegExp ('^' + any + '\\{').exec (fnMasked.substring (at, at + 40));
@@ -1740,9 +1425,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                 if (v === null) {
                     // `{}` (nil) or `{Err: ..}`
                     if (/^\s*$/.test (inner) || /^Err: /.test (inner)) {
-                        if (/^\s*$/.test (inner)) {
-                            types.add ('nil');
-                        }
+                        if (/^\s*$/.test (inner)) { types.add ('nil'); }
                         edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + goChan3QualType (want || 'any', q) + ']' });
                         continue;
                     }
@@ -1813,9 +1496,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     }
                     // `this.Events` / `this.Outcomes` (prediction cache fields, declared map[string]any in the PredictionExchange struct
                     // table, GO_PREDICTION_STRUCT_FIELDS): already the map the carrier sends, no MapTyped around it
-                    if ((proof.reason !== undefined) && (want === 'map[string]any') && /^this\.(?:Events|Outcomes)$/.test (expr)) {
-                        proof = { 'type': want };
-                    }
+                    if ((proof.reason !== undefined) && (want === 'map[string]any') && /^this\.(?:Events|Outcomes)$/.test (expr)) { proof = { 'type': want }; }
                     if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
                         let join = joins.get (expr);
                         if (join === undefined) {
@@ -1829,26 +1510,18 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     if (bal !== undefined) {
                         if (bal.decl !== undefined) {
                             const d = bal.decl;
-                            if (!edits.some ((e) => (e.start === bodyStart + d.start))) {
-                                edits.push ({ 'start': bodyStart + d.start, 'end': bodyStart + d.end, 'text': 'map[string]any' });
-                            }
+                            if (!edits.some ((e) => (e.start === bodyStart + d.start))) { edits.push ({ 'start': bodyStart + d.start, 'end': bodyStart + d.end, 'text': 'map[string]any' }); }
                         }
-                        if (bal.value !== expr) {
-                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + bal.value });
-                        }
+                        if (bal.value !== expr) { edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + bal.value }); }
                         proof = { 'type': 'map[string]any' };
                     }
                     const ws = (proof.reason !== undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
                     if (ws !== undefined) {
-                        if (ws !== expr) {
-                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
-                        }
+                        if (ws !== expr) { edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws }); }
                         type = want as string;
                     } else if (proof.nil) {
                         type = 'nil';
-                        if ((want !== undefined) && !goChan3Nilable (want)) {
-                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': '' });
-                        }
+                        if ((want !== undefined) && !goChan3Nilable (want)) { edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': '' }); }
                     } else if ((proof.reason !== undefined) && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
                         const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
                         edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, fnText.substring (open + 1 + 7, close - 1), want as string, q, goFreshName (fnText, 'resolved', freshTaken, '(?:Box)?'), structCarrier) });
@@ -1867,24 +1540,10 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
             }
         }
         const list = [ ...types ];
-        if (want !== undefined) {
-            for (const t of list) {
-                if ((t === 'nil') ? !goChan3AllowsNil (rawWant as string) : (t !== want)) {
-                    fail ('type-' + t);
-                }
-            }
-        } else if (list.filter ((t) => t !== 'nil').length > 1) {
-            fail ('mixed-types');
-        }
-        if (audit !== undefined) {
-            audit (method, receiver, [ ...new Set (reasons) ].join (','), list);
-        }
-        if ((want === undefined) || (audit !== undefined && reasons.length)) {
-            continue;
-        }
-        if (reasons.length) {
-            throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async cannot carry AsyncResult[' + want + ']: ' + [ ...new Set (reasons) ].join (', '));
-        }
+        if (want !== undefined) { for (const t of list) { if ((t === 'nil') ? !goChan3AllowsNil (rawWant as string) : (t !== want)) { fail ('type-' + t); } } } else if (list.filter ((t) => t !== 'nil').length > 1) { fail ('mixed-types'); }
+        if (audit !== undefined) { audit (method, receiver, [ ...new Set (reasons) ].join (','), list); }
+        if ((want === undefined) || (audit !== undefined && reasons.length)) { continue; }
+        if (reasons.length) { throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async cannot carry AsyncResult[' + want + ']: ' + [ ...new Set (reasons) ].join (', ')); }
         const carrier = q + 'AsyncResult[' + goChan3QualType (want, q) + ']';
         const asyncText = content.substring (m.index, m.index + whole.length).replace (/\) <-chan (?:ccxt\.)?AsyncResult\[any\] \{/, ') <-chan ' + carrier + ' {').replace (/make\(chan (?:ccxt\.)?AsyncResult\[any\], 1\)/, 'make(chan ' + carrier + ', 1)');
         edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': asyncText });
@@ -1902,15 +1561,12 @@ function goChan3Func (masked: string, at: number): [ number, number ] {
     return [ s, (e < 0) ? masked.length : e + 2 ];
 }
 
-// consumers: every `rN := <-RECV.MAsync(..)` of a tabled method, `ch <- <-RECV.MAsync(..)` forwards into an
-// untabled channel, and the interface lines
+// consumers: every `rN := <-RECV.MAsync(..)` of a tabled method, `ch <- <-RECV.MAsync(..)` forwards into an untabled channel, and the interface lines
 function goChan3ConsumerEdits (content: string, masked: string, table: Map<string, string>, cores: GoChan3Core[], coreSendAt: (at: number) => string | undefined): Edit[] {
     const edits: Edit[] = [];
     const q = goChanQual (content);
     const names = [ ...new Set ([ ...table.keys () ].map ((k) => k.replace (/^\w+\./, ''))) ];
-    if (!names.length) {
-        return edits;
-    }
+    if (!names.length) { return edits; }
     const inHead = (at: number) => cores.some ((c) => (at >= c.asyncStart) && (at < c.asyncEnd));
     const call = new RegExp ('\\.(' + names.join ('|') + ')Async\\b', 'g');
     const fresh = new Map<number, Set<string>> ();
@@ -1918,21 +1574,13 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
         const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
         const lineEnd = masked.indexOf ('\n', m.index);
         const line = masked.substring (lineStart, lineEnd);
-        if (inHead (m.index) || /^func /.test (line) || /^\t\w+Async\(/.test (line)) {
-            continue;
-        }
-        if (masked[m.index + m[0].length] !== '(') {
-            continue; // method value: Spawn / CallDynamically receive it reflectively
-        }
+        if (inHead (m.index) || /^func /.test (line) || /^\t\w+Async\(/.test (line)) { continue; }
+        if (masked[m.index + m[0].length] !== '(') { continue; } // method value: Spawn / CallDynamically receive it reflectively
         const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
-        if (!GO_CHAN3_RECEIVERS.test (r.recv)) {
-            throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + m[1] + 'Async');
-        }
+        if (!GO_CHAN3_RECEIVERS.test (r.recv)) { throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + m[1] + 'Async'); }
         const encRecv = goChan3EnclosingReceiver (masked, m.index);
         const looked = goChan3Lookup (table, encRecv, m[1]);
-        if (looked === undefined) {
-            continue;
-        }
+        if (looked === undefined) { continue; }
         const type = looked;
         const nilable = goChan3Nilable (type);
         const pre = masked.substring (lineStart, r.start);
@@ -1942,12 +1590,8 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
         const fwd = /^(\t+)(\w+) <- <-$/.exec (pre);
         if (fwd !== null) {
             const outer = coreSendAt (m.index);
-            if (outer === type) {
-                continue;
-            }
-            if (outer !== undefined) {
-                throw new Error ('GOCHAN3: forward of ' + m[1] + ' into an AsyncResult[' + outer + '] core');
-            }
+            if (outer === type) { continue; }
+            if (outer !== undefined) { throw new Error ('GOCHAN3: forward of ' + m[1] + ' into an AsyncResult[' + outer + '] core'); }
             const taken = fresh.get (fs0) || new Set<string> ();
             fresh.set (fs0, taken);
             const n = goFreshName (content.substring (fs0, fe0), 'r', taken);
@@ -1972,27 +1616,19 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             const before = masked.substring (ls, at);
             const after = masked.substring (end, le);
             // a struct channel read already boxed or converted by goChan3StructPass (replay): idempotent
-            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List)|ToString|ToFloat64|ParseInt)\($/.test (before)) {
-                continue;
-            }
+            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List)|ToString|ToFloat64|ParseInt)\($/.test (before)) { continue; }
             // a list-of-struct read already boxed / a same-T []T send, emitted by goChan3StructListPass (replay)
-            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
-                continue;
-            }
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) { continue; }
             // a typed map-of-struct wrapper read (`Tickers{Tickers: r.Value}`) emitted by goChan3StructPass (replay)
             const typedDict = /(?:^|[^\w.])(?:ccxt\.)?(\w+)\{(\w+): $/.exec (before);
             if ((typedDict !== null) && (after[0] === '}') && Object.values (GO_CHAN3_STRUCT_MAPS).includes (typedDict[1]) && ((GO_CHAN3_STRUCT_MAP_FIELDS[typedDict[1]] ?? typedDict[1]) === typedDict[2])) {
                 continue;
             }
             // native absent fold or comma-ok nil check already emitted: idempotent
-            if ((nilable && /^\s*(?:,\s*\w+\.Value\s*)?[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) {
-                continue;
-            }
+            if ((nilable && /^\s*(?:,\s*\w+\.Value\s*)?[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) { continue; }
             const assert = /^\.\(([^()]+)\)/.exec (after);
             // type switch over an already boxed typed value (replay): idempotent
-            if (/\bswitch \w+ := any\($/.test (before) && /^\)\.\(type\)/.test (after)) {
-                continue;
-            }
+            if (/\bswitch \w+ := any\($/.test (before) && /^\)\.\(type\)/.test (after)) { continue; }
             if (assert !== null) {
                 // type switch already emitted over an untyped forward (`switch xBox := r.Value.(type)`): box the now-typed value
                 if ((assert[1] === 'type') && /\bswitch \w+ := $/.test (before)) {
@@ -2012,15 +1648,11 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                     edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ParseInt(' + name + '.Value)' });
                     continue;
                 }
-                if (assert[1] !== goChan3QualType (type, q)) {
-                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + type);
-                }
+                if (assert[1] !== goChan3QualType (type, q)) { throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + type); }
                 // comma-ok `x, ok := r.Value.(T)`: ok was false only for an absent (nil) value
                 const commaOk = /^\t+\w+, \w+ :?= $/.test (before) && /^\s*$/.test (after.substring (assert[0].length));
                 const nilable = /^(?:\[\]|map\[|\*)/.test (type);
-                if (commaOk && !nilable) {
-                    throw new Error ('GOCHAN3: comma-ok assertion of ' + m[1] + ' on a value type ' + type);
-                }
+                if (commaOk && !nilable) { throw new Error ('GOCHAN3: comma-ok assertion of ' + m[1] + ' on a value type ' + type); }
                 // `x, _ := r.Value.(T)` on a typed channel is the plain typed declaration
                 // (`xRecv` holders stay: later passes read their `, r.Value != nil` shape)
                 const discarded = commaOk ? /(\w+), _ := $/.exec (before) : null;
@@ -2038,16 +1670,10 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             }
             if (/^\t+var \w+ [^=]+ = $/.test (before) && /^\s*$/.test (after)) {
                 const declared = (/^\t+var \w+ ([^=]+) = $/.exec (before) as RegExpExecArray)[1].trim ();
-                if ((declared === goChan3QualType (type, q)) || !/^(?:any|interface\{\})$/.test (declared)) {
-                    continue; // `var x T = r.Value` (or a mismatched declaration the compiler reports)
-                }
+                if ((declared === goChan3QualType (type, q)) || !/^(?:any|interface\{\})$/.test (declared)) { continue; } // `var x T = r.Value` (or a mismatched declaration the compiler reports)
             }
-            if (/(?:^|[^\w.])(?:ccxt\.)?New\w+\($/.test (before) && (after[0] === ')')) {
-                continue; // typed wrapper conversions take any
-            }
-            if (/BoxAbsent\($/.test (before)) {
-                continue;
-            }
+            if (/(?:^|[^\w.])(?:ccxt\.)?New\w+\($/.test (before) && (after[0] === ')')) { continue; } // typed wrapper conversions take any
+            if (/BoxAbsent\($/.test (before)) { continue; }
             // `x := r.Value`: typed local unless rebound or nil-compared
             const short = /^(\t+)(\w+) := $/.exec (before);
             if ((short !== null) && /^\s*$/.test (after)) {
@@ -2057,15 +1683,11 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 const rebound = new RegExp ('(?<![\\w.])' + x + '(?:\\s*,\\s*\\w+)*\\s*(?::?=(?!=)|\\+=|-=|\\+\\+|--)|&' + x + '\\b|,\\s*' + x + '\\s*:?=(?!=)').test (rest);
                 const nilCmp = new RegExp ('(?<![\\w.])' + x + '\\s*[!=]=\\s*nil|nil\\s*[!=]=\\s*' + x + '(?![\\w.])').test (rest);
                 const closure = new RegExp ('func\\s*\\([^)]*\\b' + x + ' ').test (rest);
-                if (!rebound && !closure && !nilCmp && !nilable) {
-                    continue; // scalar T: x is a native typed local
-                }
+                if (!rebound && !closure && !nilCmp && !nilable) { continue; } // scalar T: x is a native typed local
                 // x only forwarded by a same-T core send (`ch <- AsyncResult[T]{Value: x}`): keep it typed
                 const uses = rest.match (new RegExp ('(?<![\\w.])' + x + '(?![\\w.])', 'g')) || [];
                 const sends = rest.match (new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[[^\\n]*\\]\\{Value: (?:[\\w.]+From(?:Map|List)\\()?' + x + '\\)?\\}', 'g')) || [];
-                if (!rebound && !closure && !nilCmp && uses.length && (uses.length === sends.length) && (coreSendAt (at) === type)) {
-                    continue;
-                }
+                if (!rebound && !closure && !nilCmp && uses.length && (uses.length === sends.length) && (coreSendAt (at) === type)) { continue; }
                 if (!rebound && !closure && nilable) {
                     // nilable T handed on through any: BoxAbsent keeps absent == nil (typed-nil trap)
                     edits.push ({ 'start': ls, 'end': end, 'text': short[1] + x + ' := ' + q + 'BoxAbsent(' + name + '.Value)' });
@@ -2076,24 +1698,14 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
             }
             // `ch <- AsyncResult[any]{Value: r.Value}`: a same-T core send is retyped by the core pass
             const send = /^\t+(\w+) <- (?:ccxt\.)?AsyncResult\[(.+)\]\{Value: $/.exec (before);
-            if ((send !== null) && goChan3IsStructType (send[2])) {
-                continue;   // a struct core's same-T send (replay)
-            }
+            if ((send !== null) && goChan3IsStructType (send[2])) { continue; } // a struct core's same-T send (replay)
             if ((send !== null) && (after[0] === '}')) {
                 const outer = coreSendAt (at);
-                if (outer === type) {
-                    continue;
-                }
-                if (outer !== undefined) {
-                    throw new Error ('GOCHAN3: ' + m[1] + ' forwarded into an AsyncResult[' + outer + '] core');
-                }
+                if (outer === type) { continue; }
+                if (outer !== undefined) { throw new Error ('GOCHAN3: ' + m[1] + ' forwarded into an AsyncResult[' + outer + '] core'); }
             }
-            if (/(?:[!=]=\s*nil)/.test (after.substring (0, 8)) && !nilable) {
-                throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' (' + type + ') compared with nil');
-            }
-            if (nilable) {
-                edits.push ({ 'start': at, 'end': end, 'text': q + 'BoxAbsent(' + name + '.Value)' });
-            }
+            if (/(?:[!=]=\s*nil)/.test (after.substring (0, 8)) && !nilable) { throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' (' + type + ') compared with nil'); }
+            if (nilable) { edits.push ({ 'start': at, 'end': end, 'text': q + 'BoxAbsent(' + name + '.Value)' }); }
         }
     }
     return edits;
@@ -2103,9 +1715,7 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
 // -> `PromiseAllTyped[T, C](A, B)` (C = AsyncResult[T] | EndpointResult[T]), `var V []T = rN.Value`, `BoxAbsent(V[k])`
 // (an absent element stays untyped nil).
 function goChan3PromiseAllPass (content: string, table: Map<string, string>): string {
-    if (content.search (/[pP]romiseAll\((?:\[\]any\{|\w+\)\n)/) < 0) {
-        return content;
-    }
+    if (content.search (/[pP]romiseAll\((?:\[\]any\{|\w+\)\n)/) < 0) { return content; }
     const masked = goMaskGoCode (content);
     const q = goChanQual (content);
     const stubs = goChan3EndpointStubs ();
@@ -2114,23 +1724,17 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
     for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
         const taskList = goChan3PromiseAllTaskList (masked, m);
         const appended = goChan3AppendList (content, masked, m, stubs, q, false) ?? goChan3AppendList (content, masked, m, stubs, q, true); if (appended !== undefined) { edits.push (...appended); continue; }
-        if ((m[3] !== undefined) && (taskList === undefined)) {
-            continue;
-        }
+        if ((m[3] !== undefined) && (taskList === undefined)) { continue; }
         const open = (taskList === undefined) ? (m.index + m[0].length - 1) : taskList.open;
         const close = (taskList === undefined) ? goChanClose (masked, open) : taskList.close;
-        if ((taskList === undefined) && (masked.substring (close, close + 2) !== ')\n')) {
-            continue;
-        }
+        if ((taskList === undefined) && (masked.substring (close, close + 2) !== ')\n')) { continue; }
         const [ fs0, fe0 ] = goChan3Func (masked, m.index);
         const fn = masked.substring (fs0, fe0);
         const r = m[2];
         const tail = masked.substring ((taskList === undefined) ? (close + 2) : (m.index + m[0].length));
         const ind = m[1];
         const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
-        if (head === null) {
-            continue;
-        }
+        if (head === null) { continue; }
         const v = head[1];
         // elements split at depth 0
         const elems: { start: number, end: number }[] = [];
@@ -2180,9 +1784,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
             types.add (((core !== null) ? 'A:' : 'E:') + (t || '?'));
             ok = ok && (t !== undefined);
         }
-        if (!ok || (types.size !== 1)) {
-            continue;
-        }
+        if (!ok || (types.size !== 1)) { continue; }
         const kind = [ ...types ][0];
         const type = kind.substring (2);
         const carrier = q + ((kind[0] === 'A') ? 'AsyncResult[' : 'EndpointResult[') + type + ']';
@@ -2201,13 +1803,9 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
             }
             reads.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': native ? (v + '[' + u[3] + ']') : (q + 'BoxAbsent(' + v + '[' + u[3] + '])') });
         }
-        if (!ok || new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
-            continue;
-        }
+        if (!ok || new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) { continue; }
         edits.push (...local, ...reads);
-        if (taskList !== undefined) {
-            edits.push ({ 'start': taskList.lineStart, 'end': taskList.lineEnd, 'text': '' });
-        }
+        if (taskList !== undefined) { edits.push ({ 'start': taskList.lineStart, 'end': taskList.lineEnd, 'text': '' }); }
         const callEnd = (taskList === undefined) ? (close + 1) : (m.index + m[0].length - 1);
         edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': callEnd, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + args.join (', ') + ')' });
         const varLine = head[0].split ('\n')[3];
@@ -2220,23 +1818,17 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
 // `var P []any = []any{A, B}` declared once in the function and read only by `rN := <-promiseAll(P)`:
 // the literal span (open/close as for an inline literal) and the declaration line to drop
 function goChan3PromiseAllTaskList (masked: string, m: RegExpExecArray): { open: number, close: number, lineStart: number, lineEnd: number } | undefined {
-    if (m[3] === undefined) {
-        return undefined;
-    }
+    if (m[3] === undefined) { return undefined; }
     const [ fs0, fe0 ] = goChan3Func (masked, m.index);
     const fn = masked.substring (fs0, fe0);
     const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + m[3] + ' \\[\\]any = \\[\\]any\\{', 'g')) ];
     const uses = fn.match (new RegExp ('(?<![\\w.])' + m[3] + '(?!\\w)', 'g')) || [];
-    if ((decl.length !== 1) || (uses.length !== 2) || (decl[0][1] !== m[1]) || ((fs0 + (decl[0].index as number)) > m.index)) {
-        return undefined;
-    }
+    if ((decl.length !== 1) || (uses.length !== 2) || (decl[0][1] !== m[1]) || ((fs0 + (decl[0].index as number)) > m.index)) { return undefined; }
     const lineStart = fs0 + (decl[0].index as number) + 1;
     const open = lineStart + decl[0][0].length - 2;
     const close = goChanClose (masked, open);
     // single-line literal ending the line, then only blank lines up to the receive (no code between)
-    if ((close < 0) || (masked[close] !== '\n') || (masked.substring (close, m.index).trim () !== '')) {
-        return undefined;
-    }
+    if ((close < 0) || (masked[close] !== '\n') || (masked.substring (close, m.index).trim () !== '')) { return undefined; }
     return { open, close, lineStart, lineEnd: close + 1 };
 }
 
@@ -2244,9 +1836,7 @@ function goChan3PromiseAllTaskList (masked: string, m: RegExpExecArray): { open:
 // false = boxed through BoxAbsent (GetValue), undefined = not provable
 function goChan3PromiseAllSlotWrap (wrap: string | undefined, type: string): boolean | undefined {
     const name = (wrap ?? '').replace (/^ccxt\./, '').replace (/\($/, '');
-    if (name === 'GetValue') {
-        return false;
-    }
+    if (name === 'GetValue') { return false; }
     return (((name === 'SafeMapTyped') && (type === 'map[string]any')) || ((name === 'SafeListTyped') && (type === '[]any'))) ? true : undefined;
 }
 
@@ -2255,15 +1845,11 @@ function goChan3PromiseAllSlotWrap (wrap: string | undefined, type: string): boo
 // nil map / slice exactly as nil (no rebind, no nil test, no other use): `var x T = V[k]` (T = map[string]any | []any)
 const GO_CHAN3_TYPED_SLOT_READERS = '(?:ccxt\\.)?(?:SafeMapTyped|SafeListTyped|GetArrayLength)\\(|this\\.(?:SafeDictMap|IndexBy)\\(';
 function goChan3PromiseAllTypedSlot (masked: string, start: number, end: number, rest: string, v: string, u: RegExpExecArray, type: string, arity: number): Edit | undefined {
-    if (!goChan3FoldsAbsent (type) || (u[1] === undefined) || (u[1].replace (/^ccxt\./, '') !== 'GetValue(') || (u[3] === undefined) || (Number (u[3]) >= arity)) {
-        return undefined;
-    }
+    if (!goChan3FoldsAbsent (type) || (u[1] === undefined) || (u[1].replace (/^ccxt\./, '') !== 'GetValue(') || (u[3] === undefined) || (Number (u[3]) >= arity)) { return undefined; }
     const ls = masked.lastIndexOf ('\n', start) + 1;
     const le = masked.indexOf ('\n', end);
     const m = /^(\t+)(?:(\w+) := |var (\w+) any = )$/.exec (masked.substring (ls, start));
-    if ((m === null) || (le < 0) || (masked.substring (end, le).trim () !== '')) {
-        return undefined;
-    }
+    if ((m === null) || (le < 0) || (masked.substring (end, le).trim () !== '')) { return undefined; }
     const x = m[2] ?? m[3];
     const [ fs0, fe0 ] = goChan3Func (masked, start);
     const fn = masked.substring (fs0, fe0);
@@ -2271,7 +1857,6 @@ function goChan3PromiseAllTypedSlot (masked: string, start: number, end: number,
     const ok = fn.match (new RegExp ('(?:' + GO_CHAN3_TYPED_SLOT_READERS + ')' + x + '(?!\\w)', 'g')) || [];
     return ((ok.length > 0) && (all.length === ok.length + 1)) ? { 'start': ls, 'end': le, 'text': m[1] + 'var ' + x + ' ' + type + ' = ' + v + '[' + u[3] + ']' } : undefined;
 }
-// ===== end h27-H27-G25
 
 // ===== h28-H28-G18: promiseAll of a task list built only by `append` of one-T endpoint stubs =====
 // `var P []any = []any{}` + `P = append(P, [EndpointRaw(]this.Stub(..)[)])` lines (no closure in between) and a result
@@ -2283,47 +1868,36 @@ function goChan3H28G18LoopBound (rest: string, at: number, v: string, i: string)
     for (let h = rest.lastIndexOf (hdr, at); h >= 0; h = rest.lastIndexOf (hdr, h - 1)) {
         const open = h + hdr.length - 1;
         const close = goChanClose (rest, open);
-        if ((close < 0) || (close <= at)) {
-            continue;
-        }
+        if ((close < 0) || (close <= at)) { continue; }
         const body = rest.substring (open, close);
         return !new RegExp ('(?<![\\w.])(?:' + i + '|' + v + ')\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)').test (body);
     }
     return false;
 }
-// ===== end h28-H28-G18
 
 // ===== h29-H29-G16: append task lists read by arity-proven literal slots or bounds-guarded declarations =====
 // extend: as the plain form, plus: `W(V, k)` with k below the count of unconditional appends (same indent as the
 function goChan3AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string, extend: boolean): Edit[] | undefined {
     const P = m[3];
-    if (P === undefined) {
-        return undefined;
-    }
+    if (P === undefined) { return undefined; }
     const [ fs0, fe0 ] = goChan3Func (masked, m.index);
     const fn = masked.substring (fs0, fe0);
     const at = m.index - fs0;
     const ind = m[1];
     const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + P + ' \\[\\]any = \\[\\]any\\{\\}\\n', 'g')) ];
-    if ((decl.length !== 1) || ((decl[0].index as number) > at) || (fn.substring (decl[0].index as number, at).indexOf ('func(') >= 0)) {
-        return undefined;
-    }
+    if ((decl.length !== 1) || ((decl[0].index as number) > at) || (fn.substring (decl[0].index as number, at).indexOf ('func(') >= 0)) { return undefined; }
     const appRe = new RegExp ('\\n(\\t+)' + P + ' = append\\(' + P + ', ', 'g');
     const apps = [ ...fn.matchAll (appRe) ];
     const uses = (fn.match (new RegExp ('(?<![\\w.])' + P + '(?!\\w)', 'g')) || []).length;
     const lens = (fn.match (new RegExp ('(?<![\\w.])len\\(' + P + '\\)', 'g')) || []).length;
-    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length + (extend ? lens : 0))) {
-        return undefined;
-    }
+    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length + (extend ? lens : 0))) { return undefined; }
     const edits: Edit[] = [];
     let type: string | undefined = undefined;
     let arity = 0;
     for (const a of apps) {
         const open = fs0 + (a.index as number) + a[0].length - P.length - 3;
         const close = goChanClose (masked, open);
-        if ((close < 0) || (fs0 + (a.index as number) > m.index) || (masked[close] !== '\n')) {
-            return undefined;
-        }
+        if ((close < 0) || (fs0 + (a.index as number) > m.index) || (masked[close] !== '\n')) { return undefined; }
         // decl and receive share the indent, so an append at that indent between them runs unconditionally
         arity += ((a[1] === ind) && (decl[0][1] === ind)) ? 1 : 0;
         const argStart = open + 1 + P.length + 2;
@@ -2331,66 +1905,44 @@ function goChan3AppendList (content: string, masked: string, m: RegExpExecArray,
         const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (arg);
         const call = ((w !== null) && (goChanClose (arg, arg.indexOf ('(')) === arg.length)) ? w[1] : arg;
         const c = /^this\.(\w+)\(/.exec (call);
-        if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
-            return undefined;
-        }
+        if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) { return undefined; }
         const t = stubs.get (c[1]);
-        if ((t === undefined) || !goChan3FoldsAbsent (t) || ((type !== undefined) && (type !== t))) {
-            return undefined;
-        }
+        if ((t === undefined) || !goChan3FoldsAbsent (t) || ((type !== undefined) && (type !== t))) { return undefined; }
         type = t;
-        if (call !== arg) {
-            edits.push ({ 'start': argStart, 'end': close - 1, 'text': call });
-        }
+        if (call !== arg) { edits.push ({ 'start': argStart, 'end': close - 1, 'text': call }); }
     }
-    if (type === undefined) {
-        return undefined;
-    }
+    if (type === undefined) { return undefined; }
     const r = m[2];
     const tail = masked.substring (m.index + m[0].length);
     const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
-    if (head === null) {
-        return undefined;
-    }
+    if (head === null) { return undefined; }
     const v = head[1];
     const declEnd = m.index + m[0].length + head[0].length;
     const rest = masked.substring (declEnd, fe0);
-    if (new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
-        return undefined;
-    }
+    if (new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) { return undefined; }
     const reader = (type === 'map[string]any') ? 'SafeMapTyped' : 'SafeListTyped';
     const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, (' + (extend ? '[^()\\n]+' : '\\w+') + ')\\))?', 'g');
     let extended = false;
     for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
-        if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) {
-            continue;
-        }
-        if ((u[1] === undefined) || (u[1] === 'len(') || (u[3] === undefined)) {
-            return undefined;
-        }
+        if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) { continue; }
+        if ((u[1] === undefined) || (u[1] === 'len(') || (u[3] === undefined)) { return undefined; }
         const k = u[3];
         if (/^\w+$/.test (k) && goChan3H28G18LoopBound (rest, u.index, v, k)) {
             edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
             continue;
         }
-        if (!extend) {
-            return undefined;
-        }
+        if (!extend) { return undefined; }
         if (/^\d+$/.test (k) && (Number (k) < arity)) {
             edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
             extended = true;
             continue;
         }
         const g = goChan3H29G16GuardedDecl (masked, fn, declEnd + u.index, declEnd + u.index + u[0].length, v, k, type);
-        if (g === undefined) {
-            return undefined;
-        }
+        if (g === undefined) { return undefined; }
         edits.push (g);
         extended = true;
     }
-    if (extend && !extended) {
-        return undefined;
-    }
+    if (extend && !extended) { return undefined; }
     const carrier = q + 'EndpointResult[' + type + ']';
     const d0 = fs0 + (decl[0].index as number) + 1;
     edits.push ({ 'start': d0, 'end': d0 + decl[0][0].length - 2, 'text': decl[0][1] + 'var ' + P + ' []<-chan ' + carrier });
@@ -2406,16 +1958,9 @@ function goChan3H29G16GuardedDecl (masked: string, fn: string, start: number, en
     const ls = masked.lastIndexOf ('\n', start) + 1;
     const le = masked.indexOf ('\n', end);
     const d = new RegExp ('^(\\t+)var (\\w+) ' + type.replace (/[[\]]/g, '\\$&') + ' = $').exec (masked.substring (ls, start));
-    if ((d === null) || (le < 0) || (masked.substring (end, le) !== '')) {
-        return undefined;
-    }
+    if ((d === null) || (le < 0) || (masked.substring (end, le) !== '')) { return undefined; }
     const e = /^(\d+|(\w+)(?: ?[-+] ?\d+)?)$/.exec (k);
-    if (e === null) {
-        return undefined;
-    }
-    if ((e[2] !== undefined) && !goChan3H29G16IntIndex (masked, fn, start, e[2])) {
-        return undefined;
-    }
+    if ((e === null) || ((e[2] !== undefined) && !goChan3H29G16IntIndex (masked, fn, start, e[2]))) { return undefined; }
     const ind = d[1];
     const x = d[2];
     const guard = (e[2] === undefined) ? (k + ' < len(' + v + ')') : (k + ' >= 0 && ' + k + ' < len(' + v + ')');
@@ -2427,9 +1972,7 @@ function goChan3H29G16GuardedDecl (masked: string, fn: string, start: number, en
 function goChan3H29G16IntIndex (masked: string, fn: string, at: number, n: string): boolean {
     const writes = (fn.match (new RegExp ('(?<![\\w.])' + n + '\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)', 'g')) || []).length;
     const decls = (fn.match (new RegExp ('\\n\\t+var ' + n + ' int = ', 'g')) || []).length;
-    if ((decls === 1) && (writes === 0)) {
-        return !new RegExp ('\\n\\t+for ' + n + ' := ').test (fn);
-    }
+    if ((decls === 1) && (writes === 0)) { return !new RegExp ('\\n\\t+for ' + n + ' := ').test (fn); }
     const hdr = new RegExp ('\\n\\t+for ' + n + ' := [^;\\n]+; [^;\\n]+; ' + n + '\\+\\+ \\{\\n', 'g');
     const fs0 = goChan3Func (masked, at)[0];
     const before = masked.substring (fs0, at);
@@ -2443,9 +1986,7 @@ function goChan3H29G16IntIndex (masked: string, fn: string, at: number, n: strin
             bestClose = close;
         }
     }
-    if (best < 0) {
-        return false;
-    }
+    if (best < 0) { return false; }
     const body = masked.substring (masked.indexOf ('{\n', best) + 1, bestClose);
     return !new RegExp ('(?<![\\w.])' + n + '\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)').test (body);
 }
@@ -2469,37 +2010,25 @@ function goChan3H29G16SelfTest (): string[] {
     goChan3SetStubsForTest (undefined);
     return problems;
 }
-// ===== end h29-H29-G16
 
 // ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
 // Proven above on the map shadow; goChan3StructPass retypes cores (sends `TFromMap(E)`), interfaces (not IPrediction*)
 // and consumers (`NewT` / `.(T)` read T, other reads box with `TToMap`). Prediction venues keep the map shadow.
 const GO_CHAN3_EXTRA_STRUCTS: string[] = [
-    'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
-    'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory',
-    'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo',
-    'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3',
-    'MarginLoan', 'Balance', 'Balances', 'LeverageTiers',
-    'MarketInterface', 'Currency', 'Currencies',
-    'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition',
-    'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest',
-    'PredictionEvent', 'PredictionSettlement', 'PredictionOutcome',
+    'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio', 'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory',
+    'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo', 'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3', 'MarginLoan',
+    'Balance', 'Balances', 'LeverageTiers', 'MarketInterface', 'Currency', 'Currencies', 'PredictionTicker', 'PredictionOrder', 'PredictionTrade',
+    'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionEvent', 'PredictionSettlement',
+    'PredictionOutcome',
 ];
 
-const GO_CHAN3_SHARED_PRED_STRUCTS = new Set<string> ([
-    'Account', 'Balance', 'Balances', 'LeverageTiers', 'LeverageTier', 'MarginLoan',
-    'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent', 'PredictionOutcome',
-]);
+const GO_CHAN3_SHARED_PRED_STRUCTS = new Set<string> ([ 'Account', 'Balance', 'Balances', 'LeverageTiers', 'LeverageTier', 'MarginLoan', 'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent', 'PredictionOutcome' ]);
 
-function goChan3IsPredOnlyStruct (t: string): boolean {
-    return /^(?:map\[string\]|\[\])?Prediction/.test (t);
-}
+function goChan3IsPredOnlyStruct (t: string): boolean { return /^(?:map\[string\]|\[\])?Prediction/.test (t); }
 
 let goChan3StructTypesCache: Set<string> | undefined;
 function goChan3StructTypes (): Set<string> {
-    if (goChan3StructTypesCache !== undefined) {
-        return goChan3StructTypesCache;
-    }
+    if (goChan3StructTypesCache !== undefined) { return goChan3StructTypesCache; }
     const base = [ ...new Set ([ ...Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined), ...GO_CHAN3_EXTRA_STRUCTS ]) ];
     // map-of-struct channels: `map[string]T` (a string-keyed dict of T, e.g. fetchTickers) rides the same pass
     goChan3StructTypesCache = new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t), 'map[string]map[string][]OHLCV' ]);
@@ -2518,9 +2047,7 @@ const GO_CHAN3_STRUCT_MAPS: Record<string, string> = {
     'PredictionOutcome': 'PredictionOutcomes', 'PredictionEvent': 'PredictionEvents',
 };
 
-const GO_CHAN3_STRUCT_MAP_FIELDS: Record<string, string> = {
-    'AllGreeks': 'Greeks', 'OptionChain': 'Chains', 'PredictionTickers': 'Tickers',
-};
+const GO_CHAN3_STRUCT_MAP_FIELDS: Record<string, string> = { 'AllGreeks': 'Greeks', 'OptionChain': 'Chains', 'PredictionTickers': 'Tickers', };
 
 // `map[string]T` -> T (undefined for a single struct)
 function goChan3StructMapElem (t: string): string | undefined {
@@ -2530,18 +2057,14 @@ function goChan3StructMapElem (t: string): string | undefined {
 
 // a struct channel type as written in a file with qualifier q (`map[string]ccxt.Ticker`, `ccxt.Order`)
 function goChan3StructQual (t: string, q: string): string {
-    if (t === 'map[string]map[string][]OHLCV') {
-        return 'map[string]map[string][]' + q + 'OHLCV';
-    }
+    if (t === 'map[string]map[string][]OHLCV') { return 'map[string]map[string][]' + q + 'OHLCV'; }
     const e = goChan3StructMapElem (t);
     return (e === undefined) ? (q + t) : ('map[string]' + q + e);
 }
 
 // the from/to helper base name of a struct channel type (`TickerMap` for map[string]Ticker)
 function goChan3StructHelper (t: string): string {
-    if (t === 'map[string]map[string][]OHLCV') {
-        return 'OHLCVForSymbolsMap';
-    }
+    if (t === 'map[string]map[string][]OHLCV') { return 'OHLCVForSymbolsMap'; }
     const e = goChan3StructMapElem (t);
     return (e === undefined) ? t : (e + 'Map');
 }
@@ -2551,9 +2074,7 @@ function goChan3IsStructType (t: string): boolean {
     return goChan3StructTypes ().has (t.replace (/^ccxt\./, '').replace (/^map\[string\]ccxt\./, 'map[string]').replace (/^map\[string\]map\[string\]\[\]ccxt\./, 'map[string]map[string][]'));
 }
 
-function goChan3Escape (s: string): string {
-    return s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+function goChan3Escape (s: string): string { return s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 // method -> struct T of the tabled struct channels
 function goChan3StructEntries (table: Map<string, string>, predScope = false): Map<string, string> {
@@ -2573,9 +2094,7 @@ function goChan3FamilyEntries (table: Map<string, string>, predScope: boolean, s
     }
     for (const [ m, t ] of (predScope ? table : [])) {
         const e = sel (t);
-        if ((e !== undefined) && m.startsWith ('Prediction.')) {
-            out.set (m.slice (11), e);
-        }
+        if ((e !== undefined) && m.startsWith ('Prediction.')) { out.set (m.slice (11), e); }
     }
     return out;
 }
@@ -2588,9 +2107,7 @@ function goChan3Shadow (table: Map<string, string>): Map<string, string> {
 
 // `at` sits in prediction code: a ccxtprediction file or a PredictionExchange method
 function goChan3PredictionScope (masked: string, at: number): boolean {
-    if (/^package ccxtprediction\s*$/m.test (masked.substring (0, 200))) {
-        return true;
-    }
+    if (/^package ccxtprediction\s*$/m.test (masked.substring (0, 200))) { return true; }
     const [ fs0 ] = goChan3Func (masked, at);
     return /^func \(this \*PredictionExchange\)/.test (masked.substring (fs0, fs0 + 40));
 }
@@ -2613,9 +2130,7 @@ function goChan3BindMethod (masked: string, at: number, name: string): string | 
 // the struct T of that method
 function goChan3StructBind (masked: string, at: number, name: string, structs: Map<string, string>): string | undefined {
     const bm = goChan3BindMethod (masked, at, name);
-    if (bm === undefined) {
-        return undefined;
-    }
+    if (bm === undefined) { return undefined; }
     const enc = goChan3EnclosingReceiver (masked, at);
     return ((enc !== undefined) ? structs.get (enc + '.' + bm) : undefined) ?? structs.get (bm);
 }
@@ -2627,9 +2142,7 @@ function goChan3RetypeCore (content: string, masked: string, at: number, whole: 
     edits.push ({ 'start': at, 'end': at + whole.length, 'text': content.substring (at, at + whole.length).replace (new RegExp ('(?:ccxt\\.)?AsyncResult\\[' + goChan3Escape (shadow) + '\\]', 'g'), carrier) });
     const head = '\nfunc (this *' + receiver[1] + ') ' + bodyName + '(ch chan ' + q + 'AsyncResult[' + shadow + ']';
     const headAt = masked.indexOf (head);
-    if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) {
-        throw new Error ('GOCHAN3: ' + what + 'Async has no single body');
-    }
+    if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) { throw new Error ('GOCHAN3: ' + what + 'Async has no single body'); }
     const bodyStart = headAt + 1;
     const headEnd = masked.indexOf ('\n', bodyStart);
     edits.push ({ 'start': bodyStart, 'end': headEnd, 'text': content.substring (bodyStart, headEnd).replace (q + 'AsyncResult[' + shadow + ']', carrier) });
@@ -2649,17 +2162,11 @@ function goChan3SameTForwards (content: string, masked: string, bodyStart: numbe
         const declEnd = m.index + m[0].length;
         const tail = new RegExp ('^((?:\\n[ \\t]*)*)\\n' + ind + '(?:if ' + name + ' == nil \\{\\n' + ind + '\\tch <- ' + shadow + '\\{(?:Value: nil)?\\}\\n' + ind + '\\} else \\{\\n' + ind + '\\tch <- ' + shadow + '\\{Value: ' + name + '\\}\\n' + ind + '\\}'
             + '|ch <- ' + shadow + '\\{Value: ' + name + '\\})').exec (fn.substring (declEnd));
-        if (tail === null) {
-            continue;
-        }
+        if (tail === null) { continue; }
         const uses = new RegExp ('(?<![\\w.])' + name + '\\b', 'g');
         const blockEnd = declEnd + tail[0].length;
-        if ((fn.match (uses) ?? []).length !== (fn.substring (m.index, blockEnd).match (uses) ?? []).length) {
-            continue;   // the local is read elsewhere: it keeps the map round trip
-        }
-        if (goChan3StructBind (masked, bodyStart + m.index + 1, recv, coreStructs) !== st) {
-            continue;
-        }
+        if ((fn.match (uses) ?? []).length !== (fn.substring (m.index, blockEnd).match (uses) ?? []).length) { continue; } // the local is read elsewhere: it keeps the map round trip
+        if (goChan3StructBind (masked, bodyStart + m.index + 1, recv, coreStructs) !== st) { continue; }
         const gap = content.substring (bodyStart + declEnd, bodyStart + declEnd + tail[1].length);
         const sent = tail[0].substring (tail[1].length);
         if ((content.substring (bodyStart + m.index, bodyStart + declEnd) !== m[0]) || (content.substring (bodyStart + declEnd + tail[1].length, bodyStart + blockEnd) !== sent)) {
@@ -2689,29 +2196,19 @@ function goChan3ConsumerWalk (content: string, masked: string, q: string, fresh:
     for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
         const ls = masked.lastIndexOf ('\n', m.index) + 1;
         const line = masked.substring (ls, masked.indexOf ('\n', m.index));
-        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
-            continue;
-        }
+        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) { continue; }
         const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
         const T = rule.elem (m.index, m[1], r);
-        if (T === undefined) {
-            continue;
-        }
+        if (T === undefined) { continue; }
         const pre = masked.substring (ls, r.start);
         const callEnd = goChanClose (masked, m.index + m[0].length - 1);
         const [ , fe0 ] = goChan3Func (masked, m.index);
         const fwd = /^(\t+)ch <- <-$/.exec (pre);
         if (fwd !== null) {
-            if (rule.inCore (m.index) !== undefined) {
-                continue;   // the core section owns forwards inside its cores
-            }
+            if (rule.inCore (m.index) !== undefined) { continue; } // the core section owns forwards inside its cores
             const outer = goChan3CoreTypeAt (masked, m.index);
-            if ((outer !== undefined) && rule.same (T).includes (outer)) {
-                continue;   // same-T forward (replay)
-            }
-            if ((outer !== 'any') && (outer !== rule.shadow)) {
-                throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + rule.label (T) + ') into an AsyncResult[' + outer + '] core');
-            }
+            if ((outer !== undefined) && rule.same (T).includes (outer)) { continue; } // same-T forward (replay)
+            if ((outer !== 'any') && (outer !== rule.shadow)) { throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + rule.label (T) + ') into an AsyncResult[' + outer + '] core'); }
             const rn = fresh (m.index);
             const carrier = q + 'AsyncResult[' + outer + ']';
             edits.push ({ 'start': ls, 'end': callEnd, 'text': fwd[1] + rn + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + 'ch <- ' + carrier + '{Value: ' + rule.fwdValue (T, outer, rn) + ', Err: ' + rn + '.Err}' });
@@ -2748,18 +2245,14 @@ function goChan3PromiseAllRetype (masked: string, shadow: string, predictionFile
         const open = m.index + m[0].length - 1;
         const close = goChanClose (masked, open);
         const T = goChan3PromiseAllElem (masked, m.index, masked.substring (open + 1, close - 1), predictionFile, reg, pred, kind);
-        if (T === undefined) {
-            continue;
-        }
+        if (T === undefined) { continue; }
         const QT = typeOf (T);
         promiseArgs.push ([ open, close ]);
         edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + QT + ', ' + m[2] + 'AsyncResult[' + QT + ']]' });
         const tail = tailRe.exec (masked.substring (close, close + 400));
         const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
         const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
-        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
-            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of ' + kind + ' channels');
-        }
+        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) { throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of ' + kind + ' channels'); }
         const valueAt = close + tail[0].length - 1 - tail[3].length;
         edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': value (T, tail[3]) });
     }
@@ -2771,9 +2264,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
     const regStructs = goChan3StructEntries (table, false);
     const predStructs = goChan3StructEntries (table, true);
     const names = [ ...new Set ((predictionFile ? [ ...predStructs.keys () ] : [ ...regStructs.keys (), ...predStructs.keys () ]).map ((k) => k.replace (/^\w+\./, ''))) ];
-    if (!names.length || !names.some ((n) => content.includes (n + 'Async('))) {
-        return content;
-    }
+    if (!names.length || !names.some ((n) => content.includes (n + 'Async('))) { return content; }
     const q = goChanQual (content);
     const alt = names.join ('|');
     const masked = goMaskGoCode (content);
@@ -2790,9 +2281,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
         const [ whole, receiver, method, bodyName ] = m;
         const coreStructs = (predictionFile || (receiver === 'PredictionExchange')) ? predStructs : regStructs;
         const st = coreStructs.get (receiver + '.' + method) ?? coreStructs.get (method);
-        if (st === undefined) {
-            continue;
-        }
+        if (st === undefined) { continue; }
         const T = goChan3StructQual (st, q);
         const H = q + goChan3StructHelper (st);
         const carrier = q + 'AsyncResult[' + T + ']';
@@ -2807,15 +2296,11 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
         for (let s = send.exec (fn); s !== null; s = send.exec (fn)) {
             const at = bodyStart + s.index + s[0].length;
             const ind = s[1];
-            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
-                continue;   // inside a same-T forward block, rewritten whole above
-            }
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) { continue; } // inside a same-T forward block, rewritten whole above
             if (masked.startsWith ('<-', at)) {
                 const fm = goChan3ReceiveMethod (masked, at, table);
                 const ft = (fm === undefined) ? undefined : (coreStructs.get (receiver + '.' + fm) ?? coreStructs.get (fm) ?? goChan3Lookup (table, receiver, fm));
-                if (ft === st) {
-                    continue;
-                }
+                if (ft === st) { continue; }
                 if (ft !== 'map[string]any') {
                     throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async forwards ' + (fm || '?') + ' (' + (ft || 'untabled') + ') into AsyncResult[' + T + ']');
                 }
@@ -2825,9 +2310,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
                 continue;
             }
             const lit = /^(?:ccxt\.)?AsyncResult\[map\[string\]any\]\{/.exec (masked.substring (at, at + 40));
-            if (lit === null) {
-                throw new Error ('GOCHAN3: struct core ' + receiver + '.' + method + 'Async has an unshaped send');
-            }
+            if (lit === null) { throw new Error ('GOCHAN3: struct core ' + receiver + '.' + method + 'Async has an unshaped send'); }
             const open = at + lit[0].length - 1;
             const close = goChanClose (masked, open);
             const inner = content.substring (open + 1, close - 1);
@@ -2837,15 +2320,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
                 const e = v[1];
                 const recv = /^(\w+)\.Value$/.exec (e);
                 const boxed = new RegExp ('^(?:ccxt\\.)?' + goChan3StructHelper (st) + 'ToMap\\(([\\s\\S]*)\\)$').exec (e);
-                if (e === 'nil') {
-                    text = v[2].replace (/^, /, '');
-                } else if ((recv !== null) && (goChan3StructBind (masked, at, recv[1], coreStructs) === st)) {
-                    text = inner;
-                } else if ((boxed !== null) && (goChanClose (e, e.indexOf ('(')) === e.length)) {
-                    text = 'Value: ' + boxed[1] + v[2];
-                } else {
-                    text = 'Value: ' + H + 'FromMap(' + e + ')' + v[2];
-                }
+                if (e === 'nil') { text = v[2].replace (/^, /, ''); } else if ((recv !== null) && (goChan3StructBind (masked, at, recv[1], coreStructs) === st)) { text = inner; } else if ((boxed !== null) && (goChanClose (e, e.indexOf ('(')) === e.length)) { text = 'Value: ' + boxed[1] + v[2]; } else { text = 'Value: ' + H + 'FromMap(' + e + ')' + v[2]; }
             }
             edits.push ({ 'start': at, 'end': close, 'text': carrier + '{' + text + '}' });
         }
@@ -2862,34 +2337,24 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
         'fwdValue': (T, outer, rn) => q + ((outer === 'any') ? 'StructBox(' : 'StructResultMap(') + rn + '.Value, ' + q + goChan3StructHelper (T) + 'ToMap)',
         'bind': /^\t+(\w+) := <-$/,
         'unbound': (pre, method, line) => {
-            if (!/^\t+\w+ := $/.test (pre)) {
-                throw new Error ('GOCHAN3: unbound receive of struct channel ' + method + 'Async: ' + line.trim ());
-            }
+            if (!/^\t+\w+ := $/.test (pre)) { throw new Error ('GOCHAN3: unbound receive of struct channel ' + method + 'Async: ' + line.trim ()); }
             // local promise variable passed to PromiseAllTyped
         },
         'read': ({ at, end, read, before, after, name, method, T, fe0 }) => {
-            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
-                return;   // the read of a same-T forward block, rewritten whole by the core section
-            }
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) { return; } // the read of a same-T forward block, rewritten whole by the core section
             const QT = goChan3StructQual (T, q);
             const QH = q + goChan3StructHelper (T);
             const elem = goChan3StructMapElem (T);
             const newName = (T === 'map[string]map[string][]OHLCV') ? 'NewOHLCVForSymbolsMap' : ((elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]));
             const box = q + 'StructBox(' + read + ', ' + QH + 'ToMap)';
             const asMap = q + 'StructResultMap(' + read + ', ' + QH + 'ToMap)';
-            if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) {
-                return;   // already boxed (replay)
-            }
+            if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) { return; } // already boxed (replay)
             const containerName = newName.substring (3);
             const containerField = GO_CHAN3_STRUCT_MAP_FIELDS[containerName] ?? containerName;
-            if ((elem !== undefined) && before.endsWith (containerName + '{' + containerField + ': ') && (after[0] === '}')) {
-                return;   // typed wrapper container (replay)
-            }
+            if ((elem !== undefined) && before.endsWith (containerName + '{' + containerField + ': ') && (after[0] === '}')) { return; } // typed wrapper container (replay)
             const assert = /^\.\(([^()]+)\)/.exec (after);
             if (assert !== null) {
-                if ((assert[1] !== QT) && (assert[1] !== 'map[string]any')) {
-                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' asserted to ' + assert[1] + ', table says ' + T);
-                }
+                if ((assert[1] !== QT) && (assert[1] !== 'map[string]any')) { throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' asserted to ' + assert[1] + ', table says ' + T); }
                 edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': (assert[1] === QT) ? read : asMap });
                 return;
             }
@@ -2903,23 +2368,17 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
                 edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': text });
                 return;
             }
-            if (new RegExp ('^\\t+var \\w+ ' + goChan3Escape (QT) + ' = $').test (before) && /^\s*$/.test (after)) {
-                return;
-            }
+            if (new RegExp ('^\\t+var \\w+ ' + goChan3Escape (QT) + ' = $').test (before) && /^\s*$/.test (after)) { return; }
             const nilCmp = /^(\s*)([!=])= nil\b/.exec (after);
             if (nilCmp !== null) {
                 edits.push ({ 'start': at, 'end': end + nilCmp[0].length, 'text': ((nilCmp[2] === '!') ? '!' : '') + q + 'StructAbsent(' + read + ')' });
                 return;
             }
-            if (/\bnil\s*[!=]=\s*$/.test (before)) {
-                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + T + ') compared with nil');
-            }
+            if (/\bnil\s*[!=]=\s*$/.test (before)) { throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + T + ') compared with nil'); }
             const sendIn = /^\t+ch <- (?:ccxt\.)?AsyncResult\[([^\n]*)\]\{Value: $/.exec (before);
             if (sendIn !== null) {
                 const core = inStructCore (at);
-                if (((core !== undefined) && (core[2] === T)) || (sendIn[1] === QT)) {
-                    return;
-                }
+                if (((core !== undefined) && (core[2] === T)) || (sendIn[1] === QT)) { return; }
                 edits.push ({ 'start': at, 'end': end, 'text': (sendIn[1] === 'map[string]any') ? asMap : box });
                 return;
             }
@@ -2939,7 +2398,6 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 
-
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
     GO_CHAN_BASE_EPOCH++;
@@ -2948,39 +2406,39 @@ function goChan3Pass (content: string, table: Map<string, string> = goChan3Table
 }
 
 // a struct receive boxed to a map / list only to pick one row back into the same struct (`TFromMap(SafeMapTyped(box, k))`):
-function goChan3StructRowReads (content: string): string {
-    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n/gm;
+function goChan3StructRowReadsCore (content: string, nilChecked: boolean): string {
+    const box = nilChecked
+        ? /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n\1if \9\11 == nil \{\n/gm
+        : /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n/gm;
     const edits: Edit[] = [];
     for (let m = box.exec (content); m !== null; m = box.exec (content)) {
         const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
         const [ row, key ] = (m[9] !== undefined) ? [ m[9], m[10] ] : [ m[11], m[12] ];
         const isList = (boxType === '[]any');
         const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
-        if ((elem === undefined) || (isList !== (key === '0'))) {
-            continue;
-        }
+        if ((elem === undefined) || (isList !== (key === '0')) || (nilChecked && ((elem === 'map[string]any') || (elem === 'string')))) { continue; }
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
-        const fn = content.substring (fs0, fe0);
-        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) {
-            continue;   // the key must be a Go string
-        }
+        const fn = nilChecked ? content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""') : content.substring (fs0, fe0);
+        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) { continue; }
         const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
         const from = q + elem + 'FromMap(' + row + ')';
         const froms = fn.split (from).length - 1;
-        if ((uses (name) !== 2) || (froms === 0) || (uses (row) !== 1 + froms)) {
-            continue;   // the box or the row is read elsewhere: keep the round trip
-        }
+        if ((uses (name) !== 2) || (froms === 0) || (uses (row) !== (nilChecked ? 2 : 1) + froms) || (nilChecked && (uses (row + 'Ok') !== 0))) { continue; }
         const T = q + elem;
         const read = isList
-            ? ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'if len(' + name + ') > 0 {\n' + ind + '\t' + row + ' = ' + name + '[0]\n' + ind + '}\n'
-            : ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + ' = ' + name + '[' + key + ']\n';
+            ? ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'if len(' + name + ') > 0 {\n' + ind + '\t' + row + ' = ' + name + '[0]\n' + ind + '}\n' + (nilChecked ? ind + 'if len(' + name + ') == 0 {\n' : '')
+            : (nilChecked
+                ? ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'var ' + row + 'Ok bool\n' + ind + row + ', ' + row + 'Ok = ' + name + '[' + key + ']\n' + ind + 'if !' + row + 'Ok {\n'
+                : ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + ' = ' + name + '[' + key + ']\n');
         edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': read });
         for (let at = content.indexOf (from, m.index + whole.length); (at >= 0) && (at < fe0); at = content.indexOf (from, at + from.length)) {
             edits.push ({ 'start': at, 'end': at + from.length, 'text': row });
         }
     }
-    return goChan3StructRowInlineSends (edits.length ? goChan3Splice (content, edits) : content);
+    const out = edits.length ? goChan3Splice (content, edits) : content;
+    return nilChecked ? out : goChan3StructRowInlineSends (out);
 }
+function goChan3StructRowReads (content: string): string { return goChan3StructRowReadsCore (content, false); }
 
 // ===== h27-H27-A13: the row read inline in the send, `ch <- AsyncResult[T]{Value: TFromMap(this.SafeDictMap(box, k))}`
 // as goChan3StructRowReads: a missing row (empty list, absent key) was the zero T, a present one round-trips; a `{}`
@@ -2992,43 +2450,30 @@ function goChan3StructRowInlineSends (content: string): string {
         const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
         const isList = (boxType === '[]any');
         const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
-        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) {
-            continue;
-        }
+        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) { continue; }
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
         const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
         const qq = q.replace ('.', '\\.');
         const send = new RegExp ('\\n' + ind + 'ch <- ' + qq + 'AsyncResult\\[' + qq + elem + '\\]\\{Value: ' + qq + elem
             + 'FromMap\\(this\\.SafeDictMap\\(' + name + ', (\\w+)(, map\\[string\\]any\\{\\})?\\)\\)\\}\\n');
         const s = send.exec (fn);
-        if ((s === null) || (isList !== (s[1] === '0')) || ((s[2] !== undefined) && (elem !== 'Position'))) {
-            continue;
-        }
+        if ((s === null) || (isList !== (s[1] === '0')) || ((s[2] !== undefined) && (elem !== 'Position'))) { continue; }
         const key = s[1];
-        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) {
-            continue;   // the key must be a Go string
-        }
-        if ((fn.match (new RegExp ('(?<![\\w.])' + name + '\\b', 'g')) ?? []).length !== 2) {
-            continue;   // the box is read elsewhere: keep the round trip
-        }
+        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) { continue; } // the key must be a Go string
+        if ((fn.match (new RegExp ('(?<![\\w.])' + name + '\\b', 'g')) ?? []).length !== 2) { continue; } // the box is read elsewhere: keep the round trip
         const T = q + elem;
         const row = name + 'Row';
-        if (new RegExp ('(?<![\\w.])' + row + '\\b').test (fn)) {
-            continue;
-        }
+        if (new RegExp ('(?<![\\w.])' + row + '\\b').test (fn)) { continue; }
         const read = isList
             ? ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'if len(' + name + ') > 0 {\n' + ind + '\t' + row + ' = ' + name + '[0]\n' + ind + '}\n'
             : ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + ' = ' + name + '[' + key + ']\n';
         const at = content.indexOf (s[0].substring (1), m.index + whole.length);
-        if ((at < 0) || (at >= fe0)) {
-            continue;
-        }
+        if ((at < 0) || (at >= fe0)) { continue; }
         edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': read });
         edits.push ({ 'start': at, 'end': at + s[0].length - 2, 'text': ind + 'ch <- ' + q + 'AsyncResult[' + T + ']{Value: ' + row + '}' });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
 }
-// ===== end h27-H27-A13
 
 // ===== h26-H26-G43: struct row reads, tuple bind and nil-tested row
 // `xRecv, _ := TsToList(rN.Value), rN.Value != nil` + `var x []any = xRecv` feeding a row read: the bool is discarded,
@@ -3038,9 +2483,7 @@ function goChan3StructRowRecv (content: string): string {
     const edits: Edit[] = [];
     for (let m = rx.exec (content); m !== null; m = rx.exec (content)) {
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
-        if ((content.substring (fs0, fe0).match (new RegExp ('(?<![\\w.])' + m[2] + 'Recv\\b', 'g')) ?? []).length !== 2) {
-            continue;
-        }
+        if ((content.substring (fs0, fe0).match (new RegExp ('(?<![\\w.])' + m[2] + 'Recv\\b', 'g')) ?? []).length !== 2) { continue; }
         edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + 'var ' + m[2] + ' []any = ' + m[3] + '\n' });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
@@ -3048,81 +2491,20 @@ function goChan3StructRowRecv (content: string): string {
 
 // as goChan3StructRowReads, for a row tested `if row == nil {` before its FromMap: the boxed row is nil exactly when
 // the key is missing / the list is empty (TToMap of a present struct is never nil), so the test reads that
-function goChan3StructRowNilReads (content: string): string {
-    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n\1(?:var (\w+) map\[string\]any = \4SafeMapTyped\(\2, (\w+)\)|var (\w+), _ = \2\[(\w+)\]\.\(map\[string\]any\))\n\1if \9\11 == nil \{\n/gm;
-    const edits: Edit[] = [];
-    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
-        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
-        const [ row, key ] = (m[9] !== undefined) ? [ m[9], m[10] ] : [ m[11], m[12] ];
-        const isList = (boxType === '[]any');
-        const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
-        if ((elem === undefined) || (isList !== (key === '0')) || (elem === 'map[string]any') || (elem === 'string')) {
-            continue;
-        }
-        const [ fs0, fe0 ] = goChan3Func (content, m.index);
-        const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""');   // names inside message strings are not reads
-        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) {
-            continue;   // the key must be a Go string
-        }
-        const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
-        const from = q + elem + 'FromMap(' + row + ')';
-        const froms = fn.split (from).length - 1;
-        if ((uses (name) !== 2) || (froms === 0) || (uses (row) !== 2 + froms) || (uses (row + 'Ok') !== 0)) {
-            continue;   // the box or the row is read elsewhere: keep the round trip
-        }
-        const T = q + elem;
-        const read = isList
-            ? ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'if len(' + name + ') > 0 {\n' + ind + '\t' + row + ' = ' + name + '[0]\n' + ind + '}\n' + ind + 'if len(' + name + ') == 0 {\n'
-            : ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'var ' + row + 'Ok bool\n' + ind + row + ', ' + row + 'Ok = ' + name + '[' + key + ']\n' + ind + 'if !' + row + 'Ok {\n';
-        edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': read });
-        for (let at = content.indexOf (from, m.index + whole.length); (at >= 0) && (at < fe0); at = content.indexOf (from, at + from.length)) {
-            edits.push ({ 'start': at, 'end': at + from.length, 'text': row });
-        }
-    }
-    return edits.length ? goChan3Splice (content, edits) : content;
-}
+function goChan3StructRowNilReads (content: string): string { return goChan3StructRowReadsCore (content, true); }
 
 // ===== GO-CHAN3 STRUCT LISTS: list-of-struct channels (`AsyncResult[[]any]` -> `AsyncResult[[]T]`) =====
-// Proven above on the []any shadow; goChan3StructListPass retypes cores (sends `TsFromList(E)`), interfaces (not
-// IPrediction*) and consumers (typed wrappers read []T, other reads box with `TsToList`). Prediction venues keep []any.
-const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, row: string, newArray: string }> = {
-    'Trade': { 'from': 'TradesFromList', 'to': 'TradesToList', 'row': 'TradeToMap', 'newArray': 'NewTradeArray' },
-    'Order': { 'from': 'OrdersFromList', 'to': 'OrdersToList', 'row': 'OrderToMap', 'newArray': 'NewOrderArray' },
-    'OHLCV': { 'from': 'OHLCVsFromList', 'to': 'OHLCVsToList', 'row': 'OHLCVToList', 'newArray': 'NewOHLCVArray' },
-    'Position': { 'from': 'PositionsFromList', 'to': 'PositionsToList', 'row': 'PositionToMap', 'newArray': 'NewPositionArray' },
-    'Transaction': { 'from': 'TransactionsFromList', 'to': 'TransactionsToList', 'row': 'TransactionToMap', 'newArray': 'NewTransactionArray' },
-    'LedgerEntry': { 'from': 'LedgerEntriesFromList', 'to': 'LedgerEntriesToList', 'row': 'LedgerEntryToMap', 'newArray': 'NewLedgerEntryArray' },
-    'DepositAddress': { 'from': 'DepositAddressesFromList', 'to': 'DepositAddressesToList', 'row': 'DepositAddressToMap', 'newArray': 'NewDepositAddressArray' },
-    'TransferEntry': { 'from': 'TransferEntriesFromList', 'to': 'TransferEntriesToList', 'row': 'TransferEntryToMap', 'newArray': 'NewTransferEntryArray' },
-    'OpenInterest': { 'from': 'OpenInterestsFromList', 'to': 'OpenInterestsToList', 'row': 'OpenInterestToMap', 'newArray': 'NewOpenInterestArray' },
-    'Conversion': { 'from': 'ConversionsFromList', 'to': 'ConversionsToList', 'row': 'ConversionToMap', 'newArray': 'NewConversionArray' },
-    'Liquidation': { 'from': 'LiquidationsFromList', 'to': 'LiquidationsToList', 'row': 'LiquidationToMap', 'newArray': 'NewLiquidationArray' },
-    'BorrowInterest': { 'from': 'BorrowInterestsFromList', 'to': 'BorrowInterestsToList', 'row': 'BorrowInterestToMap', 'newArray': 'NewBorrowInterestArray' },
-    'FundingHistory': { 'from': 'FundingHistoriesFromList', 'to': 'FundingHistoriesToList', 'row': 'FundingHistoryToMap', 'newArray': 'NewFundingHistoryArray' },
-    'FundingRateHistory': { 'from': 'FundingRateHistoriesFromList', 'to': 'FundingRateHistoriesToList', 'row': 'FundingRateHistoryToMap', 'newArray': 'NewFundingRateHistoryArray' },
-    'LeverageTier': { 'from': 'LeverageTiersFromList', 'to': 'LeverageTiersToList', 'row': 'LeverageTierToMap', 'newArray': 'NewLeverageTierArray' },
-    'MarginModification': { 'from': 'MarginModificationsFromList', 'to': 'MarginModificationsToList', 'row': 'MarginModificationToMap', 'newArray': 'NewMarginModificationArray' },
-    'LongShortRatio': { 'from': 'LongShortRatiosFromList', 'to': 'LongShortRatiosToList', 'row': 'LongShortRatioToMap', 'newArray': 'NewLongShortRatioArray' },
-    'ADL': { 'from': 'ADLsFromList', 'to': 'ADLsToList', 'row': 'ADLToMap', 'newArray': 'NewADLArray' },
-    'Account': { 'from': 'AccountsFromList', 'to': 'AccountsToList', 'row': 'AccountToMap', 'newArray': 'NewAccountArray' },
-    'PredictionOrder': { 'from': 'PredictionOrdersFromList', 'to': 'PredictionOrdersToList', 'row': 'PredictionOrderToMap', 'newArray': 'NewPredictionOrderArray' },
-    'PredictionTrade': { 'from': 'PredictionTradesFromList', 'to': 'PredictionTradesToList', 'row': 'PredictionTradeToMap', 'newArray': 'NewPredictionTradeArray' },
-    'PredictionPosition': { 'from': 'PredictionPositionsFromList', 'to': 'PredictionPositionsToList', 'row': 'PredictionPositionToMap', 'newArray': 'NewPredictionPositionArray' },
-    'PredictionEvent': { 'from': 'PredictionEventsFromList', 'to': 'PredictionEventsToList', 'row': 'PredictionEventToMap', 'newArray': 'NewPredictionEventArray' },
-    'PredictionSettlement': { 'from': 'PredictionSettlementsFromList', 'to': 'PredictionSettlementsToList', 'row': 'PredictionSettlementToMap', 'newArray': 'NewPredictionSettlementArray' },
-    'MarketInterface': { 'from': 'MarketInterfacesFromList', 'to': 'MarketInterfacesToList', 'row': 'MarketInterfaceToMap', 'newArray': 'NewMarketInterfaceArray' },
-    'map[string]any': { 'from': 'MapSliceFromList', 'to': 'MapSliceToList', 'row': 'MapElementToMap', 'newArray': 'NewMapArray' },
-    'string': { 'from': 'StringSliceFromList', 'to': 'StringSliceToList', 'row': 'StringElementToAny', 'newArray': 'NewStringArray' },
-};
+const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, row: string, newArray: string }> = Object.fromEntries ([
+    ...[ 'Trade', 'Order', 'OHLCV', 'Position', 'Transaction', 'OpenInterest', 'Conversion', 'Liquidation', 'BorrowInterest', 'LeverageTier', 'MarginModification', 'LongShortRatio', 'ADL', 'Account', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionEvent', 'PredictionSettlement', 'MarketInterface' ].map ((t) => [ t, { 'from': t + 'sFromList', 'to': t + 'sToList', 'row': (t === 'OHLCV') ? 'OHLCVToList' : (t + 'ToMap'), 'newArray': 'New' + t + 'Array' } ]),
+    ...[ [ 'LedgerEntry', 'LedgerEntries' ], [ 'DepositAddress', 'DepositAddresses' ], [ 'TransferEntry', 'TransferEntries' ], [ 'FundingHistory', 'FundingHistories' ], [ 'FundingRateHistory', 'FundingRateHistories' ] ].map (([ t, p ]) => [ t, { 'from': p + 'FromList', 'to': p + 'ToList', 'row': t + 'ToMap', 'newArray': 'New' + t + 'Array' } ]),
+    [ 'map[string]any', { 'from': 'MapSliceFromList', 'to': 'MapSliceToList', 'row': 'MapElementToMap', 'newArray': 'NewMapArray' } ],
+    [ 'string', { 'from': 'StringSliceFromList', 'to': 'StringSliceToList', 'row': 'StringElementToAny', 'newArray': 'NewStringArray' } ],
+]);
 
 // `[]T` (optionally `[]ccxt.T`) of a list-of-struct channel -> T (undefined otherwise)
 function goChan3ListElem (t: string): string | undefined {
-    if (t === '[]map[string]any') {
-        return 'map[string]any';
-    }
-    if (t === '[]string') {
-        return 'string';
-    }
+    if (t === '[]map[string]any') { return 'map[string]any'; }
+    if (t === '[]string') { return 'string'; }
     const m = /^\[\](?:ccxt\.)?(\w+)$/.exec (t);
     return ((m !== null) && (GO_CHAN3_STRUCT_LISTS[m[1]] !== undefined)) ? m[1] : undefined;
 }
@@ -3149,9 +2531,7 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
     const regLists = goChan3StructListEntries (table, false);
     const predLists = goChan3StructListEntries (table, true);
     const names = [ ...new Set ((predictionFile ? [ ...predLists.keys () ] : [ ...regLists.keys (), ...predLists.keys () ]).map ((k) => k.replace (/^\w+\./, ''))) ];
-    if (!names.length || !names.some ((n) => content.includes (n + 'Async'))) {
-        return content;
-    }
+    if (!names.length || !names.some ((n) => content.includes (n + 'Async'))) { return content; }
     const q = goChanQual (content);
     const alt = names.join ('|');
     const masked = goMaskGoCode (content);
@@ -3170,9 +2550,7 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
         const [ whole, receiver, method, bodyName ] = m;
         const coreLists = (predictionFile || (receiver === 'PredictionExchange')) ? predLists : regLists;
         const T = coreLists.get (receiver + '.' + method) ?? coreLists.get (method);
-        if (T === undefined) {
-            continue;
-        }
+        if (T === undefined) { continue; }
         const carrier = q + 'AsyncResult[' + qt (T) + ']';
         const [ bodyStart, bodyEnd ] = goChan3RetypeCore (content, masked, m.index, whole, bodyName, q, '[]any', carrier, 'list-of-struct core ' + receiver + '.' + method, edits);
         coreBodies.push ([ bodyStart, bodyEnd, T ]);
@@ -3184,37 +2562,27 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
             if (masked.startsWith ('<-', at)) {
                 const fm = goChan3ReceiveMethod (masked, at, table, receiver);
                 const ft = (fm === undefined) ? undefined : ((coreLists.has (receiver + '.' + fm) || coreLists.has (fm)) ? ('[]' + (coreLists.get (receiver + '.' + fm) ?? coreLists.get (fm))) : goChan3Lookup (table, receiver, fm));
-                if (ft === '[]' + T) {
-                    continue;   // same-T forward
-                }
-                if (ft !== '[]any') {
-                    throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async forwards ' + (fm || '?') + ' (' + (ft || 'untabled') + ') into AsyncResult[' + qt (T) + ']');
-                }
+                if (ft === '[]' + T) { continue; } // same-T forward
+                if (ft !== '[]any') { throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async forwards ' + (fm || '?') + ' (' + (ft || 'untabled') + ') into AsyncResult[' + qt (T) + ']'); }
                 const end = goChanExprEnd (masked, at);
                 const rn = fresh (at);
                 edits.push ({ 'start': bodyStart + s.index + 1 + ind.length, 'end': end, 'text': rn + ' := ' + content.substring (at, end) + '\n' + ind + 'ch <- ' + carrier + '{Value: ' + q + helper (T).from + '(' + rn + '.Value), Err: ' + rn + '.Err}' });
                 continue;
             }
             const lit = /^(?:ccxt\.)?AsyncResult\[\[\]any\]\{/.exec (masked.substring (at, at + 40));
-            if (lit === null) {
-                throw new Error ('GOCHAN3: list-of-struct core ' + receiver + '.' + method + 'Async has an unshaped send');
-            }
+            if (lit === null) { throw new Error ('GOCHAN3: list-of-struct core ' + receiver + '.' + method + 'Async has an unshaped send'); }
             const open = at + lit[0].length - 1;
             const close = goChanClose (masked, open);
             edits.push ({ 'start': at, 'end': open, 'text': carrier });
             const inner = masked.substring (open + 1, close - 1);
             const v = /^Value: ([\s\S]*?)((?:, Err: [\w.]+)?)$/.exec (inner);
-            if ((v === null) || (v[1] === 'nil')) {
-                continue;   // `{}` / `{Err: e}` / `{Value: nil}`: a nil slice
-            }
+            if ((v === null) || (v[1] === 'nil')) { continue; } // `{}` / `{Err: e}` / `{Value: nil}`: a nil slice
             const e = v[1];
             const recv = /^(r\d*)\.Value$/.exec (e);
             if (recv !== null) {
                 const bm = bindOf (at, recv[1]);
                 const bt = (bm === undefined) ? undefined : ((coreLists.has (receiver + '.' + bm) || coreLists.has (bm)) ? ('[]' + (coreLists.get (receiver + '.' + bm) ?? coreLists.get (bm))) : goChan3Lookup (table, receiver, bm));
-                if (bt === '[]' + T) {
-                    continue;   // same-T receive: the slice itself
-                }
+                if (bt === '[]' + T) { continue; } // same-T receive: the slice itself
                 if ((bt !== undefined) && (goChan3ListElem (bt) !== undefined)) {
                     throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async sends ' + bm + ' (' + bt + ') as AsyncResult[' + qt (T) + ']');
                 }
@@ -3242,27 +2610,17 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
         'read': ({ at, end, read, before, after, name, method, T, line }) => {
             const QT = qt (T);
             const H = helper (T);
-            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
-                return;   // already boxed / a same-T list send (replay)
-            }
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) { return; } // already boxed / a same-T list send (replay)
             const core = inListCore (at);
-            if ((core !== undefined) && /^\t+ch <- (?:ccxt\.)?AsyncResult\[[^\n]*\]\{Value: $/.test (before)) {
-                return;   // the core section above owns sends inside list-of-struct cores
-            }
+            if ((core !== undefined) && /^\t+ch <- (?:ccxt\.)?AsyncResult\[[^\n]*\]\{Value: $/.test (before)) { return; } // the core section above owns sends inside list-of-struct cores
             const wrap = new RegExp ('(?:^|[^\\w.])((?:ccxt\\.)?' + H.newArray + '\\()$').exec (before);
             if ((wrap !== null) && (after[0] === ')')) {
                 edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': read });
                 return;   // typed wrapper: the slice itself
             }
-            if (new RegExp ('^\\t+var \\w+ ' + QT.replace (/[.[\]]/g, '\\$&') + ' = $').test (before) && /^\s*$/.test (after)) {
-                return;
-            }
-            if (/^\s*[!=]= nil\b/.test (after) || /\bnil\s*[!=]=\s*$/.test (before)) {
-                return;   // a nil slice is the absent result
-            }
-            if (/^\.\(/.test (after)) {
-                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + QT + ') asserted: ' + line.trim ());
-            }
+            if (new RegExp ('^\\t+var \\w+ ' + QT.replace (/[.[\]]/g, '\\$&') + ' = $').test (before) && /^\s*$/.test (after)) { return; }
+            if (/^\s*[!=]= nil\b/.test (after) || /\bnil\s*[!=]=\s*$/.test (before)) { return; } // a nil slice is the absent result
+            if (/^\.\(/.test (after)) { throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + QT + ') asserted: ' + line.trim ()); }
             edits.push ({ 'start': at, 'end': end, 'text': q + H.to + '(' + read + ')' });
         },
     });
@@ -3271,30 +2629,20 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
 
 function goChan3PassMarked (content: string, table: Map<string, string>): string {
     content = goChan3PromiseAllPass (content, table);
-    if ((table.size === 0) || (content.indexOf ('Async') < 0)) {
-        return content;
-    }
+    if ((table.size === 0) || (content.indexOf ('Async') < 0)) { return content; }
     const masked = goMaskGoCode (content);
     const q = goChanQual (content);
     const cores = goChan3Cores (content, masked, table);
     const edits: Edit[] = [];
-    for (const c of cores) {
-        edits.push (...c.edits);
-    }
+    for (const c of cores) { edits.push (...c.edits); }
     // element type of the core whose body holds `at` (undefined: an untabled AsyncResult[any] core / no core)
     const coreSendAt = (at: number) => {
         const c = cores.find ((k) => (at >= k.bodyStart) && (at < k.bodyEnd));
-        if (c !== undefined) {
-            return goChan3Lookup (table, c.receiver, c.method);
-        }
+        if (c !== undefined) { return goChan3Lookup (table, c.receiver, c.method); }
         // a core already typed on disk (replay): its body head carries T (a struct T reads as its map shadow)
         const t = goChan3CoreTypeAt (masked, at);
-        if ((t === undefined) || (t === 'any')) {
-            return undefined;
-        }
-        if (goChan3ListElem (t) !== undefined) {
-            return '[]any';   // a list-of-struct core reads as its []any shadow
-        }
+        if ((t === undefined) || (t === 'any')) { return undefined; }
+        if (goChan3ListElem (t) !== undefined) { return '[]any'; } // a list-of-struct core reads as its []any shadow
         return goChan3IsStructType (t) ? 'map[string]any' : t.replace (/^ccxt\./, '');
     };
     const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
@@ -3583,14 +2931,10 @@ function goLighterSignerSlotReads (content: string): string {
     for (let i = 0; i < lines.length; i++) {
         const holder = /^\s*(\w+Variable) := this\.(\w+)\(/.exec (lines[i]);
         const arity = (holder === null) ? undefined : GO_LIGHTER_SIGNER_ARITY[holder[2]];
-        if (arity === undefined) {
-            continue;
-        }
+        if (arity === undefined) { continue; }
         for (let j = i + 1; j < lines.length; j++) {
             const read = new RegExp ('^(\\s*\\w+ :?= )(?:ccxt\\.)?GetValue\\(' + holder[1] + ', (\\d+)\\)$').exec (lines[j]);
-            if ((read === null) || (Number (read[2]) >= arity)) {
-                break;
-            }
+            if ((read === null) || (Number (read[2]) >= arity)) { break; }
             lines[j] = read[1] + holder[1] + '[' + read[2] + ']';
         }
     }
@@ -3603,8 +2947,7 @@ function goLighterSignerSlotReads (content: string): string {
 type GoTok = { 'kind': string, 'text': string, 'start': number, 'end': number };
 type GoNode = { [key: string]: any };
 
-const GO_MULTI_OPS = [ '<<=', '>>=', '&^=', '...', '&&', '||', '<-', '++', '--', '==', '!=', '<=', '>=', ':=',
-    '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<', '>>', '&^' ];
+const GO_MULTI_OPS = [ '<<=', '>>=', '&^=', '...', '&&', '||', '<-', '++', '--', '==', '!=', '<=', '>=', ':=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<', '>>', '&^' ];
 const GO_SINGLE_OPS = '+-*/%&|^<>=!:,;.()[]{}~';
 const GO_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'continue', 'default', 'defer', 'else',
     'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface', 'map', 'package', 'range',
@@ -3613,9 +2956,7 @@ const GO_ASSIGN_OPS = new Set ([ '=', ':=', '+=', '-=', '*=', '/=', '%=', '&=', 
 const GO_UNARY_OPS = new Set ([ '-', '+', '!', '^', '&', '<-' ]);
 
 function goBinaryPrecedence (tok: GoTok | undefined): number {
-    if (tok === undefined || tok.kind !== 'op') {
-        return 0;
-    }
+    if (tok === undefined || tok.kind !== 'op') { return 0; }
     switch (tok.text) {
     case '||': return 1;
     case '&&': return 2;
@@ -3639,17 +2980,11 @@ function goLexLine (line: string): GoTok[] | null {
             toks.push ({ 'kind': 'comment', 'text': line.slice (i), 'start': i, 'end': line.length });
             break;
         }
-        if (c === '/' && line[i + 1] === '*') {
-            return null;
-        }
+        if (c === '/' && line[i + 1] === '*') { return null; }
         if (c === '"' || c === '\'' || c === '`') {
             let j = i + 1;
-            while (j < line.length && line[j] !== c) {
-                j += (line[j] === '\\' && c !== '`') ? 2 : 1;
-            }
-            if (j >= line.length) {
-                return null;
-            }
+            while (j < line.length && line[j] !== c) { j += (line[j] === '\\' && c !== '`') ? 2 : 1; }
+            if (j >= line.length) { return null; }
             toks.push ({ 'kind': 'lit', 'text': line.slice (i, j + 1), 'start': i, 'end': j + 1 });
             i = j + 1;
             continue;
@@ -3669,9 +3004,7 @@ function goLexLine (line: string): GoTok[] | null {
         }
         const multi = GO_MULTI_OPS.find ((op) => rest.startsWith (op));
         const op = multi ?? (GO_SINGLE_OPS.indexOf (c) >= 0 ? c : undefined);
-        if (op === undefined) {
-            return null;
-        }
+        if (op === undefined) { return null; }
         toks.push ({ 'kind': 'op', 'text': op, 'start': i, 'end': i + op.length });
         i += op.length;
     }
@@ -3685,23 +3018,15 @@ class GoLineParser {
     constructor (toks: GoTok[]) {
         this.toks = toks;
     }
-    peek (offset = 0): GoTok | undefined {
-        return this.toks[this.p + offset];
-    }
+    peek (offset = 0): GoTok | undefined { return this.toks[this.p + offset]; }
     is (text: string, offset = 0): boolean {
         const tok = this.peek (offset);
         return tok !== undefined && (tok.kind === 'op' || tok.kind === 'id') && tok.text === text;
     }
-    atEnd (): boolean {
-        return this.p >= this.toks.length;
-    }
-    fail (): never {
-        throw new Error ('go-layout: unparsed');
-    }
+    atEnd (): boolean { return this.p >= this.toks.length; }
+    fail (): never { throw new Error ('go-layout: unparsed'); }
     expect (text: string) {
-        if (!this.is (text)) {
-            this.fail ();
-        }
+        if (!this.is (text)) { this.fail (); }
         this.p += 1;
     }
     nested<T> (fn: () => T): T {
@@ -3720,27 +3045,19 @@ class GoLineParser {
         while (!this.atEnd ()) {
             const t = this.peek ().text;
             this.p += 1;
-            if (t === open) {
-                depth += 1;
-            } else if (t === close) {
+            if (t === open) { depth += 1; } else if (t === close) {
                 depth -= 1;
-                if (depth === 0) {
-                    return;
-                }
+                if (depth === 0) { return; }
             }
         }
         this.fail ();
     }
-    parseExpr (): GoNode {
-        return this.parseBinary (1);
-    }
+    parseExpr (): GoNode { return this.parseBinary (1); }
     parseBinary (minPrec: number): GoNode {
         let x = this.parseUnary ();
         for (;;) {
             const prec = goBinaryPrecedence (this.peek ());
-            if (prec === 0 || prec < minPrec) {
-                return x;
-            }
+            if (prec === 0 || prec < minPrec) { return x; }
             const op = this.p;
             this.p += 1;
             const y = this.parseBinary (prec + 1);
@@ -3750,9 +3067,7 @@ class GoLineParser {
     parseUnary (): GoNode {
         const tok = this.peek ();
         if (tok !== undefined && tok.kind === 'op') {
-            if (tok.text === '<-' && this.is ('chan', 1)) {
-                return this.parseOperandTail (this.parseType ());
-            }
+            if (tok.text === '<-' && this.is ('chan', 1)) { return this.parseOperandTail (this.parseType ()); }
             if (GO_UNARY_OPS.has (tok.text)) {
                 this.p += 1;
                 return { 't': 'un', 'opText': tok.text, 'x': this.parseUnary () };
@@ -3766,9 +3081,7 @@ class GoLineParser {
     }
     parseOperand (): GoNode {
         const tok = this.peek ();
-        if (tok === undefined) {
-            this.fail ();
-        }
+        if (tok === undefined) { this.fail (); }
         if (tok.kind === 'lit') {
             this.p += 1;
             return { 't': 'leaf' };
@@ -3778,19 +3091,13 @@ class GoLineParser {
                 this.parseFuncType ();
                 if (this.is ('{')) {
                     this.p += 1;                  // a func literal body: statements follow on later lines
-                    if (!this.atEnd ()) {
-                        this.fail ();
-                    }
+                    if (!this.atEnd ()) { this.fail (); }
                     return { 't': 'open' };
                 }
                 return { 't': 'leaf' };
             }
-            if (tok.text === 'map' || tok.text === 'chan' || tok.text === 'struct' || tok.text === 'interface') {
-                return this.parseType ();
-            }
-            if (GO_KEYWORDS.has (tok.text)) {
-                this.fail ();
-            }
+            if (tok.text === 'map' || tok.text === 'chan' || tok.text === 'struct' || tok.text === 'interface') { return this.parseType (); }
+            if (GO_KEYWORDS.has (tok.text)) { this.fail (); }
             this.p += 1;
             return { 't': 'leaf' };
         }
@@ -3800,9 +3107,7 @@ class GoLineParser {
             this.expect (')');
             return { 't': 'paren', 'x': x };
         }
-        if (tok.text === '[') {
-            return this.parseType ();
-        }
+        if (tok.text === '[') { return this.parseType (); }
         this.fail ();
     }
     parseOperandTail (x: GoNode): GoNode {
@@ -3811,18 +3116,12 @@ class GoLineParser {
                 this.p += 1;
                 if (this.is ('(')) {
                     this.p += 1;
-                    if (this.is ('type')) {
-                        this.p += 1;
-                    } else {
-                        this.nested (() => this.parseType ());
-                    }
+                    if (this.is ('type')) { this.p += 1; } else { this.nested (() => this.parseType ()); }
                     this.expect (')');
                     x = { 't': 'assert', 'x': x };
                 } else {
                     const name = this.peek ();
-                    if (name === undefined || name.kind !== 'id') {
-                        this.fail ();
-                    }
+                    if (name === undefined || name.kind !== 'id') { this.fail (); }
                     this.p += 1;
                     x = { 't': 'sel', 'x': x };
                 }
@@ -3832,14 +3131,8 @@ class GoLineParser {
                     const list: GoNode[] = [];
                     while (!this.is (')')) {
                         list.push (this.parseExpr ());
-                        if (this.is ('...')) {
-                            this.p += 1;
-                        }
-                        if (this.is (',')) {
-                            this.p += 1;
-                        } else if (!this.is (')')) {
-                            this.fail ();
-                        }
+                        if (this.is ('...')) { this.p += 1; }
+                        if (this.is (',')) { this.p += 1; } else if (!this.is (')')) { this.fail (); }
                     }
                     return list;
                 });
@@ -3848,11 +3141,7 @@ class GoLineParser {
             } else if (this.is ('[')) {
                 this.p += 1;
                 x = this.nested (() => this.parseIndexTail (x));
-            } else if (this.is ('{') && !this.noLit) {
-                return this.nested (() => this.parseCompositeBody ());
-            } else {
-                return x;
-            }
+            } else if (this.is ('{') && !this.noLit) { return this.nested (() => this.parseCompositeBody ()); } else { return x; }
         }
     }
     parseIndexTail (x: GoNode): GoNode {
@@ -3879,9 +3168,7 @@ class GoLineParser {
         this.expect ('{');
         const elts: GoNode[] = [];
         for (;;) {
-            if (this.atEnd ()) {
-                return { 't': 'comp', 'elts': elts, 'open': true };
-            }
+            if (this.atEnd ()) { return { 't': 'comp', 'elts': elts, 'open': true }; }
             if (this.is ('}')) {
                 this.p += 1;
                 return { 't': 'comp', 'elts': elts };
@@ -3893,40 +3180,24 @@ class GoLineParser {
                 element = { 't': 'kv', 'k': element, 'v': value };
             }
             elts.push (element);
-            if (this.is (',')) {
-                this.p += 1;
-            } else if (!this.is ('}') && !this.atEnd ()) {
-                this.fail ();
-            }
+            if (this.is (',')) { this.p += 1; } else if (!this.is ('}') && !this.atEnd ()) { this.fail (); }
         }
     }
     parseFuncType () {
         this.expect ('func');
-        if (!this.is ('(')) {
-            this.fail ();
-        }
+        if (!this.is ('(')) { this.fail (); }
         this.skipBalanced ();
-        if (this.is ('(')) {
-            this.skipBalanced ();
-        } else if (this.startsType ()) {
-            this.parseType ();
-        }
+        if (this.is ('(')) { this.skipBalanced (); } else if (this.startsType ()) { this.parseType (); }
     }
     startsType (): boolean {
         const tok = this.peek ();
-        if (tok === undefined) {
-            return false;
-        }
-        if (tok.kind === 'id') {
-            return !GO_KEYWORDS.has (tok.text) || [ 'map', 'chan', 'func', 'struct', 'interface' ].includes (tok.text);
-        }
+        if (tok === undefined) { return false; }
+        if (tok.kind === 'id') { return !GO_KEYWORDS.has (tok.text) || [ 'map', 'chan', 'func', 'struct', 'interface' ].includes (tok.text); }
         return tok.text === '*' || tok.text === '[' || (tok.text === '<-' && this.is ('chan', 1));
     }
     parseType (): GoNode {
         const tok = this.peek ();
-        if (tok === undefined) {
-            this.fail ();
-        }
+        if (tok === undefined) { this.fail (); }
         if (tok.text === '*' || tok.text === '<-') {
             this.p += 1;
             return this.parseType ();
@@ -3937,17 +3208,13 @@ class GoLineParser {
         }
         if (tok.text === 'map') {
             this.p += 1;
-            if (!this.is ('[')) {
-                this.fail ();
-            }
+            if (!this.is ('[')) { this.fail (); }
             this.skipBalanced ();
             return this.parseType ();
         }
         if (tok.text === 'chan') {
             this.p += 1;
-            if (this.is ('<-')) {
-                this.p += 1;
-            }
+            if (this.is ('<-')) { this.p += 1; }
             return this.parseType ();
         }
         if (tok.text === 'func') {
@@ -3956,9 +3223,7 @@ class GoLineParser {
         }
         if (tok.text === 'struct' || tok.text === 'interface') {
             this.p += 1;
-            if (!this.is ('{')) {
-                this.fail ();
-            }
+            if (!this.is ('{')) { this.fail (); }
             this.skipBalanced ();
             return { 't': 'leaf' };
         }
@@ -3966,25 +3231,17 @@ class GoLineParser {
             this.skipBalanced ();
             return { 't': 'leaf' };
         }
-        if (tok.kind !== 'id' || GO_KEYWORDS.has (tok.text)) {
-            this.fail ();
-        }
+        if (tok.kind !== 'id' || GO_KEYWORDS.has (tok.text)) { this.fail (); }
         this.p += 1;
-        if (this.is ('.') && this.peek (1)?.kind === 'id') {
-            this.p += 2;
-        }
-        if (this.is ('[')) {
-            this.skipBalanced ();
-        }
+        if (this.is ('.') && this.peek (1)?.kind === 'id') { this.p += 2; }
+        if (this.is ('[')) { this.skipBalanced (); }
         return { 't': 'leaf' };
     }
     parseExprList (): GoNode[] {
         const list = [ this.parseExpr () ];
         while (this.is (',')) {
             this.p += 1;
-            if (this.atEnd ()) {
-                break;                        // the trailing comma of an element line
-            }
+            if (this.atEnd ()) { break; } // the trailing comma of an element line
             list.push (this.parseExpr ());
         }
         return list;
@@ -4003,49 +3260,27 @@ function goWalkBinary (e: GoNode): [ boolean, boolean, number ] {
         has5 = has5 || h5;
         maxProblem = Math.max (maxProblem, mp);
     };
-    if (e.x.t === 'bin' && e.x.prec >= e.prec) {
-        walk (e.x);
-    }
-    if (e.y.t === 'bin') {
-        if (e.y.prec > e.prec) {
-            walk (e.y);
-        }
-    } else if (e.y.t === 'star') {
-        if (e.opText === '/') {
-            maxProblem = 5;
-        }
-    } else if (e.y.t === 'un') {
+    if (e.x.t === 'bin' && e.x.prec >= e.prec) { walk (e.x); }
+    if (e.y.t === 'bin') { if (e.y.prec > e.prec) { walk (e.y); } } else if (e.y.t === 'star') { if (e.opText === '/') { maxProblem = 5; } } else if (e.y.t === 'un') {
         const pair = e.opText + e.y.opText;
         if (pair === '/*' || pair === '&&' || pair === '&^') {
             maxProblem = 5;
-        } else if (pair === '++' || pair === '--') {
-            maxProblem = Math.max (maxProblem, 4);
-        }
+        } else if (pair === '++' || pair === '--') { maxProblem = Math.max (maxProblem, 4); }
     }
     return [ has4, has5, maxProblem ];
 }
 
-function goVisitAll (list: (GoNode | null)[], depth: number, out: GoLayout) {
-    for (const n of list) {
-        goVisitLayout (n, depth, out);
-    }
-}
+function goVisitAll (list: (GoNode | null)[], depth: number, out: GoLayout) { for (const n of list) { goVisitLayout (n, depth, out); } }
 
 function goCutoff (e: GoNode, depth: number): number {
     const [ has4, has5, maxProblem ] = goWalkBinary (e);
-    if (maxProblem > 0) {
-        return maxProblem + 1;
-    }
-    if (has4 && has5) {
-        return depth === 1 ? 5 : 4;
-    }
+    if (maxProblem > 0) { return maxProblem + 1; }
+    if (has4 && has5) { return depth === 1 ? 5 : 4; }
     return depth === 1 ? 6 : 4;
 }
 
 function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
-    if (n === null) {
-        return;
-    }
+    if (n === null) { return; }
     switch (n.t) {
     case 'bin':
         out.blank.set (n.op, n.prec < goCutoff (n, depth));
@@ -4077,9 +3312,7 @@ function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
         goVisitLayout (n.x, 1, out);
         const present = n.items.filter ((item) => item !== null);
         const needsBlanks = (depth <= 1) && (present.length > 1) && present.some ((item) => item.t === 'bin');
-        n.colons.forEach ((colon: number, k: number) => {
-            out.colon.set (colon, [ needsBlanks && n.items[k] !== null, needsBlanks && n.items[k + 1] !== null ]);
-        });
+        n.colons.forEach ((colon: number, k: number) => { out.colon.set (colon, [ needsBlanks && n.items[k] !== null, needsBlanks && n.items[k + 1] !== null ]); });
         goVisitAll (n.items, depth + 1, out);
         break;
     }
@@ -4090,8 +3323,7 @@ function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
         goVisitLayout (n.k, 1, out);
         goVisitLayout (n.v, 1, out);
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -4127,9 +3359,7 @@ function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout, base: number =
         goVisitLayout (lhs[0], base, out);
         if (!parser.atEnd ()) {
             goVisitLayout (parser.is ('{') ? parser.parseCompositeBody () : parser.parseExpr (), base, out);
-            if (parser.is (',')) {
-                parser.p += 1;
-            }
+            if (parser.is (',')) { parser.p += 1; }
         }
     } else {
         goVisitAll (lhs, base, out);
@@ -4142,9 +3372,7 @@ function goLayoutHeader (parser: GoLineParser, out: GoLayout) {
         goLayoutSimpleStmt (parser, out);
         while (parser.is (';')) {
             parser.p += 1;
-            if (!parser.is (';') && !parser.is ('{')) {
-                goLayoutSimpleStmt (parser, out);
-            }
+            if (!parser.is (';') && !parser.is ('{')) { goLayoutSimpleStmt (parser, out); }
         }
     }
     parser.noLit = false;
@@ -4155,13 +3383,9 @@ function goLayoutHeader (parser: GoLineParser, out: GoLayout) {
 function goLayoutRun (parser: GoLineParser, out: GoLayout, layout: (parser: GoLineParser) => GoLayout | null | undefined | void): GoLayout | null {
     try {
         const early = layout (parser);
-        if (early !== undefined) {
-            return early;
-        }
+        if (early !== undefined) { return early; }
         return parser.atEnd () ? out : null;
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
@@ -4173,18 +3397,12 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
         shim[0] = { 'kind': 'id', 'text': '_', 'start': toks[0].start, 'end': toks[0].end };
         // the line may also close a control header whose condition is that call
         let end = shim.length;
-        if ((end > 1) && (shim[end - 1].kind === 'op') && (shim[end - 1].text === '{')) {
-            end -= 1;
-        }
+        if ((end > 1) && (shim[end - 1].kind === 'op') && (shim[end - 1].text === '{')) { end -= 1; }
         let depth = 0;
         for (let k = 0; k < end; k++) {
             const t = shim[k];
-            if (t.kind !== 'op') {
-                continue;
-            }
-            if ((t.text === '(') || (t.text === '[')) {
-                depth += 1;
-            } else if ((t.text === ')') || (t.text === ']')) {
+            if (t.kind !== 'op') { continue; }
+            if ((t.text === '(') || (t.text === '[')) { depth += 1; } else if ((t.text === ')') || (t.text === ']')) {
                 depth -= 1;
                 if (depth < 0) {          // closes a bracket from an earlier line
                     end = k;
@@ -4197,13 +3415,9 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
     return goLayoutRun (new GoLineParser (toks), out, (parser) => {
         if (parser.is ('}')) {
             parser.p += 1;
-            if (parser.atEnd () || (parser.is (',') && parser.toks.length === 2)) {
-                return out;
-            }
+            if (parser.atEnd () || (parser.is (',') && parser.toks.length === 2)) { return out; }
             parser.expect ('else');
-            if (parser.is ('{')) {
-                parser.p += 1;
-            } else {
+            if (parser.is ('{')) { parser.p += 1; } else {
                 parser.expect ('if');
                 goLayoutHeader (parser, out);
             }
@@ -4215,9 +3429,7 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
                 goLayoutHeader (parser, out);
             } else if (word === 'return') {
                 parser.p += 1;
-                if (!parser.atEnd ()) {
-                    goVisitAll (parser.parseExprList (), 1, out);
-                }
+                if (!parser.atEnd ()) { goVisitAll (parser.parseExprList (), 1, out); }
             } else if (word === 'case') {
                 parser.p += 1;
                 goLayoutSimpleStmt (parser, out);
@@ -4227,19 +3439,13 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
                 goVisitLayout (parser.parseExpr (), 1, out);
             } else if (word === 'var' || word === 'const') {
                 const assign = toks.findIndex ((tok) => tok.kind === 'op' && tok.text === '=');
-                if (assign < 0) {
-                    return out;
-                }
+                if (assign < 0) { return out; }
                 parser.p = assign + 1;
                 goVisitAll (parser.parseExprList (), 1, out);
             } else if (word === 'break' || word === 'continue' || word === 'fallthrough' || word === 'goto' ||
                     word === 'default' || word === 'select') {
                 return out;
-            } else if (GO_KEYWORDS.has (word)) {
-                return null;
-            } else {
-                goLayoutSimpleStmt (parser, out);
-            }
+            } else if (GO_KEYWORDS.has (word)) { return null; } else { goLayoutSimpleStmt (parser, out); }
         }
         return undefined;
     });
@@ -4248,11 +3454,7 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
 // the Go text of `line` with the blanks go/printer gives each binary operator and slice colon
 function goApplyLayout (line: string, toks: GoTok[], layout: GoLayout): string {
     const gaps: (string | undefined)[] = toks.map (() => undefined);   // gap before token k
-    const setGap = (k: number, blank: boolean) => {
-        if (k > 0 && k < toks.length && toks[k].kind !== 'comment') {
-            gaps[k] = blank ? ' ' : '';
-        }
-    };
+    const setGap = (k: number, blank: boolean) => { if (k > 0 && k < toks.length && toks[k].kind !== 'comment') { gaps[k] = blank ? ' ' : ''; } };
     for (const [ k, blank ] of layout.blank) {
         setGap (k, blank);
         setGap (k + 1, blank);
@@ -4281,37 +3483,24 @@ function goCountFrameArgs (rest: string, open: number): number {
         const c = rest[i];
         if (c === '"' || c === '\'' || c === '`') {
             let j = i + 1;
-            while (j < rest.length && rest[j] !== c) {
-                j += (rest[j] === '\\') ? 2 : 1;
-            }
+            while (j < rest.length && rest[j] !== c) { j += (rest[j] === '\\') ? 2 : 1; }
             i = j;
             seen = true;
         } else if (c === '/' && rest[i + 1] === '/') {
             const nl = rest.indexOf ('\n', i);
-            if (nl < 0) {
-                break;
-            }
+            if (nl < 0) { break; }
             i = nl;
-        } else if (c === '(' || c === '[' || c === '{') {
-            depth += 1;
-        } else if (c === ')' || c === ']' || c === '}') {
-            if (depth === 0) {
-                return (seen || entries > 0) ? entries + 1 : 0;
-            }
+        } else if (c === '(' || c === '[' || c === '{') { depth += 1; } else if (c === ')' || c === ']' || c === '}') {
+            if (depth === 0) { return (seen || entries > 0) ? entries + 1 : 0; }
             depth -= 1;
             seen = true;
-        } else if (c === ',' && depth === 0) {
-            entries += 1;
-        } else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
-            seen = true;
-        }
+        } else if (c === ',' && depth === 0) { entries += 1; } else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') { seen = true; }
     }
     return (seen || entries > 0) ? entries + 1 : 0;
 }
 
-// per line: true when the line starts inside a `{` body (a block or a composite literal, not a
-// struct/interface type) and outside any raw string or block comment, plus the bracket depth
-// each line starts at
+// per line: true when the line starts inside a `{` body (a block or a composite literal, not a struct/interface type) and outside any raw string or block
+// comment, plus the bracket depth each line starts at
 function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths': number[] } {
     const result: boolean[] = [];
     const depths: number[] = [];
@@ -4333,31 +3522,22 @@ function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths'
         const line = lines[ln];
         const top = stack[stack.length - 1];
         result.push (!inRaw && !inBlockComment && !continued && top === '{');
-        // brackets still open under the innermost block: a line continuing an expression
-        // from inside them starts that many levels deep, as go/printer counts depth. Only
-        // multi-argument call parens add a level, matching goCountFrameArgsText. A line
-        // closing a func literal starts at the literal's own `{`, so that frame is skipped.
+        // brackets still open under the innermost block: a line continuing an expression from inside them starts that many levels deep, as go/printer counts
+        // depth. Only multi-argument call parens add a level, matching goCountFrameArgsText. A line closing a func literal starts at the literal's own `{`, so
+        // that frame is skipped.
         let open = 0;
         let top2 = stack.length - 1;
-        if ((top2 >= 0) && (stack[top2] === '{') && line.trimStart ().startsWith ('}')) {
-            top2 -= 1;
-        }
+        if ((top2 >= 0) && (stack[top2] === '{') && line.trimStart ().startsWith ('}')) { top2 -= 1; }
         for (let s = top2; s >= 0; s--) {
-            if (stack[s] === '{' || stack[s] === 'T') {
-                break;
-            }
-            if (stack[s] !== 'g') {
-                open += 1;
-            }
+            if (stack[s] === '{' || stack[s] === 'T') { break; }
+            if (stack[s] !== 'g') { open += 1; }
         }
         depths.push (open);
         const startedInside = inRaw || inBlockComment;
         for (let i = 0; i < line.length; i++) {
             const c = line[i];
             if (inRaw) {
-                if (c === '`') {
-                    inRaw = false;
-                }
+                if (c === '`') { inRaw = false; }
                 continue;
             }
             if (inBlockComment) {
@@ -4367,9 +3547,7 @@ function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths'
                 }
                 continue;
             }
-            if (c === '/' && line[i + 1] === '/') {
-                break;
-            }
+            if (c === '/' && line[i + 1] === '/') { break; }
             if (c === '/' && line[i + 1] === '*') {
                 inBlockComment = true;
                 i += 1;
@@ -4381,27 +3559,20 @@ function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths'
             }
             if (c === '"' || c === '\'') {
                 let j = i + 1;
-                while (j < line.length && line[j] !== c) {
-                    j += (line[j] === '\\') ? 2 : 1;
-                }
+                while (j < line.length && line[j] !== c) { j += (line[j] === '\\') ? 2 : 1; }
                 i = j;
                 lastSignificant = c;
                 continue;
             }
             if (c === '(' || c === '[') {
-                // go/printer adds a level for a `[` and for a call paren with more than one
-                // argument; a grouping paren or a one-argument call keeps the level
+                // go/printer adds a level for a `[` and for a call paren with more than one argument; a grouping paren or a one-argument call keeps the level
                 let adds = (c === '[');
                 if (c === '(') {
                     const isCall = (i > 0) && /[A-Za-z0-9_)\]}"'`]/.test (line.slice (0, i).replace (/[ \t]+$/, '').slice (-1));
                     adds = isCall && (goCountFrameArgs (joined, lineStart[ln] + i) > 1);
                 }
                 stack.push (adds ? c : 'g');
-            } else if (c === '{') {
-                stack.push ((lastWord === 'struct' || lastWord === 'interface') ? 'T' : '{');
-            } else if (c === ')' || c === ']' || c === '}') {
-                stack.pop ();
-            }
+            } else if (c === '{') { stack.push ((lastWord === 'struct' || lastWord === 'interface') ? 'T' : '{'); } else if (c === ')' || c === ']' || c === '}') { stack.pop (); }
             if (c !== ' ' && c !== '\t') {
                 lastSignificant = c;
                 const word = /^[A-Za-z_][A-Za-z0-9_]*/.exec (line.slice (i));
@@ -4409,15 +3580,12 @@ function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths'
                     lastWord = word[0];
                     i += word[0].length - 1;
                     lastSignificant = 'a';
-                } else if (c !== '{') {
-                    lastWord = '';
-                }
+                } else if (c !== '{') { lastWord = ''; }
             }
         }
         // a line ending in an operator or a separator continues its expression on the next
         const elementComma = (lastSignificant === ',') && (stack[stack.length - 1] === '{');
-        continued = startedInside || inRaw || inBlockComment ||
-            (!elementComma && /[-+*/%&|^<>=!,.:]/.test (lastSignificant));
+        continued = startedInside || inRaw || inBlockComment || (!elementComma && /[-+*/%&|^<>=!,.:]/.test (lastSignificant));
     }
     return { 'inBody': result, 'depths': depths };
 }
@@ -4428,30 +3596,16 @@ function goGofmtBinarySpacing (content: string): string {
     for (let l = 0; l < lines.length; l++) {
         const line = lines[l];
         const maybeLitCall = !ctx.inBody[l] && line.trimStart ().startsWith ('}(');
-        if (!ctx.inBody[l] && !maybeLitCall) {
-            continue;
-        }
-        if (!/[+\-*/%&|^<>=!:]/.test (line)) {
-            continue;
-        }
+        if ((!ctx.inBody[l] && !maybeLitCall) || (!/[+\-*/%&|^<>=!:]/.test (line))) { continue; }
         const toks = goLexLine (line);
-        if (toks === null) {
-            continue;
-        }
+        if (toks === null) { continue; }
         const code = (toks.length > 0 && toks[toks.length - 1].kind === 'comment') ? toks.slice (0, -1) : toks;
-        if (code.length === 0) {
-            continue;
-        }
+        if (code.length === 0) { continue; }
         // a called multi-line func literal continues the expression it sits in, so it is laid
-        const literalCall = (code.length > 1) && (code[0].kind === 'op') && (code[0].text === '}') &&
-            (code[1].kind === 'op') && (code[1].text === '(');
-        if (!ctx.inBody[l] && !literalCall) {
-            continue;
-        }
+        const literalCall = (code.length > 1) && (code[0].kind === 'op') && (code[0].text === '}') && (code[1].kind === 'op') && (code[1].text === '(');
+        if (!ctx.inBody[l] && !literalCall) { continue; }
         const layout = goLayoutStatement (code, literalCall ? ctx.depths[l] + 1 : 1);
-        if (layout !== null && (layout.blank.size > 0 || layout.colon.size > 0)) {
-            lines[l] = goApplyLayout (line, toks, layout);
-        }
+        if (layout !== null && (layout.blank.size > 0 || layout.colon.size > 0)) { lines[l] = goApplyLayout (line, toks, layout); }
     }
     return lines.join ('\n');
 }
@@ -4467,7 +3621,6 @@ const GO_ARITH_CALL_RX = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + GO_ARITH_HELPE
 // BaseExchange methods whose Go signature returns int64 (go/v4/exchange*.go)
 const GO_ARITH_INT64_METHODS = [ 'Milliseconds', 'Seconds', 'ParseToInt', 'ParseTimeframe' ];
 const GO_ARITH_MAX_EXACT = 2 ** 53;
-
 
 function goArithClose (masked: string, open: number): number {
     let depth = 0;
@@ -4496,9 +3649,7 @@ function goArithArgs (masked: string, open: number, close: number): number[][] {
 
 function goArithStripParens (text: string, literalAware = false): string {
     let t = text.trim ();
-    while (t.startsWith ('(') && ((literalAware ? goMatchingCloseText (t, 0) : goArithClose (t, 0)) === t.length - 1)) {
-        t = t.slice (1, -1).trim ();
-    }
+    while (t.startsWith ('(') && ((literalAware ? goMatchingCloseText (t, 0) : goArithClose (t, 0)) === t.length - 1)) { t = t.slice (1, -1).trim (); }
     return t;
 }
 
@@ -4511,19 +3662,13 @@ function goArithDeclaredType (maskedFunc: string, signature: string, name: strin
     const params = signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0));
     const sigParam = new RegExp ('[(,]\\s*' + name + '\\s+([^,()]+?)\\s*[,)]').exec (params);
     const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
-    if (count !== 1) {
-        return undefined;
-    }
-    if (sigParam) {
-        return sigParam[1].trim ();
-    }
+    if (count !== 1) { return undefined; }
+    if (sigParam) { return sigParam[1].trim (); }
     return (vars.length === 1) ? vars[0][1].trim () : undefined;
 }
 
 function goArithIntLiteralValue (t: string): number | undefined {
-    if (!/^\d+(?:\s*[*+]\s*\d+)*$/.test (t) || /^0\d/.test (t)) {
-        return undefined;
-    }
+    if (!/^\d+(?:\s*[*+]\s*\d+)*$/.test (t) || /^0\d/.test (t)) { return undefined; }
     // untyped integer constant expression (only * and +, so no precedence surprise in a product)
     const sums = t.split ('+').map ((s) => s.split ('*').reduce ((a, b) => a * Number (b.trim ()), 1));
     const value = sums.reduce ((a, b) => a + b, 0);
@@ -4537,9 +3682,7 @@ function goArithCaseProblems (pass: (content: string) => string, wrap: (body: st
     const problems: string[] = [];
     for (const [ body, want, present ] of cases) {
         const out = pass (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push (prefix + want + ' in ' + out);
-        }
+        if (out.includes (want) !== present) { problems.push (prefix + want + ' in ' + out); }
     }
     return problems;
 }
@@ -4553,24 +3696,18 @@ function goArithOwnMethods (masked: string, extra: string[] = []): Set<string> {
 let goArithBaseFieldsLastKey = '';
 let goArithBaseFieldsLastVal: Set<string> | null = null;
 function goArithBaseFields (masked: string): Set<string> {
-    if ((goArithBaseFieldsLastVal !== null) && (goArithBaseFieldsLastKey === masked)) {
-        return goArithBaseFieldsLastVal;
-    }
+    if ((goArithBaseFieldsLastVal !== null) && (goArithBaseFieldsLastKey === masked)) { return goArithBaseFieldsLastVal; }
     const shadowed = new Set<string> ();
     const re = /^\s+(\w+)\s+[\w*\[]|\) (\w+)\(/gm;
     let m: RegExpExecArray | null;
-    while ((m = re.exec (masked)) !== null) {
-        shadowed.add (m[1] || m[2]);
-    }
+    while ((m = re.exec (masked)) !== null) { shadowed.add (m[1] || m[2]); }
     const out = new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !shadowed.has (f)));
     goArithBaseFieldsLastKey = masked;
     goArithBaseFieldsLastVal = out;
     return out;
 }
 
-function goArithFileOwnHandles (masked: string): Set<string> {
-    return new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
-}
+function goArithFileOwnHandles (masked: string): Set<string> { return new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1])); }
 
 function goArithScope (masked: string, ownMethods: Set<string>): GoArithScope {
     const nl = masked.indexOf ('\n');
@@ -4585,11 +3722,7 @@ function goArithEachFunc (content: string, rewrite: (fn: string, head: string) =
     let changed = false;
     for (let k = 0; k < lines.length; k++) {
         if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) {
-                start = k;
-            } else {
-                out.push (lines[k]);
-            }
+            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
             continue;
         }
         if (lines[k] === '}') {
@@ -4600,12 +3733,8 @@ function goArithEachFunc (content: string, rewrite: (fn: string, head: string) =
             start = -1;
         }
     }
-    if (!changed) {
-        return content;
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
+    if (!changed) { return content; }
+    if (start >= 0) { out.push (...lines.slice (start)); }
     return out.join ('\n');
 }
 
@@ -4615,9 +3744,7 @@ function goArithMathEachFunc (content: string, masked: string, rewrite: (fn: str
     let usesMath = false;
     const joined = goArithEachFunc (content, (fn, head) => {
         const result = rewrite (fn, head);
-        if (result.math && mathShadowed) {
-            return fn;
-        }
+        if (result.math && mathShadowed) { return fn; }
         usesMath = usesMath || result.math;
         return result.text;
     });
@@ -4636,12 +3763,8 @@ function goArithRewriteCalls (text: string, scope: GoArithScope, rx: RegExp, nat
         const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
         const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
         let out = native (call.helper, args, margs, text);
-        if (out === undefined) {
-            continue;
-        }
-        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
-            out = out.slice (1, -1);
-        }
+        if (out === undefined) { continue; }
+        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) { out = out.slice (1, -1); }
         text = text.slice (0, call.start) + out + text.slice (close + 1);
         masked = masked.slice (0, call.start) + goMaskGoCode (out) + masked.slice (close + 1);
         scope.masked = masked;
@@ -4655,58 +3778,36 @@ function goArithKind (scope: GoArithScope, text: string, maskedText: string): Ki
     const t = goArithStripParens (text);
     const m = goArithStripParens (maskedText);
     const known = scope.known.get (t);
-    if (known !== undefined) {
-        return known;
-    }
-    if (goArithIntLiteralValue (t) !== undefined) {
-        return 'ilit';
-    }
-    if (/^\d+\.\d+$/.test (t)) {
-        return 'flit';
-    }
-    if (/^int64\(-\d+\)$/.test (t)) {
-        return 'i64';
-    }
+    if (known !== undefined) { return known; }
+    if (goArithIntLiteralValue (t) !== undefined) { return 'ilit'; }
+    if (/^\d+\.\d+$/.test (t)) { return 'flit'; }
+    if (/^int64\(-\d+\)$/.test (t)) { return 'i64'; }
     const extraOperandKind = goExtraOperandKind (scope, t, m);
-    if (extraOperandKind !== undefined) {
-        return extraOperandKind;
-    }
-    if (goNeverNilIntExpr (scope, t, m)) {
-        return 'i64';
-    }
+    if (extraOperandKind !== undefined) { return extraOperandKind; }
+    if (goNeverNilIntExpr (scope, t, m)) { return 'i64'; }
     if (/^[A-Za-z_]\w*$/.test (t) && (t !== 'nil') && (t !== 'true') && (t !== 'false')) {
         const type = goArithDeclaredType (scope.masked, scope.signature, t);
         if (((type === '*int64') || (type === '*float64')) && (goTypedArithPointerIsNonNil (scope, t) || goEarlyExitPointerNonNil (scope, t, type) || goGuardedPointerNonNil (scope, t))) {
             scope.derefs.add (t);
             return (type === '*int64') ? 'i64' : 'f64';
         }
-        if ((type === undefined) && goTupleInt64 (scope, t)) {
-            return 'i64';
-        }
+        if ((type === undefined) && goTupleInt64 (scope, t)) { return 'i64'; }
         return (type === 'int64') ? 'i64' : ((type === 'float64') ? 'f64' : ((type === 'int') ? 'int' : undefined));
     }
     // a float64 conversion, optionally divided/multiplied by nonzero constants, is a float64 value
     const conv = /^float64\(/.exec (m);
     if (conv) {
         const end = goArithClose (m, conv[0].length - 1);
-        if ((end > 0) && /^(?:\s*[*/]\s*(?:[1-9]\d*(?:\.\d+)?|float64\(\*?[A-Za-z_]\w*\)))*$/.test (m.slice (end + 1))) {
-            return 'f64';
-        }
+        if ((end > 0) && /^(?:\s*[*/]\s*(?:[1-9]\d*(?:\.\d+)?|float64\(\*?[A-Za-z_]\w*\)))*$/.test (m.slice (end + 1))) { return 'f64'; }
     }
     // math.Floor/Ceil/Trunc of anything is a float64 value
     const mathF = /^math\.(?:Floor|Ceil|Trunc)\(/.exec (m);
-    if (mathF && (goArithClose (m, mathF[0].length - 1) === m.length - 1)) {
-        return 'f64';
-    }
+    if (mathF && (goArithClose (m, mathF[0].length - 1) === m.length - 1)) { return 'f64'; }
     // helpers with a plain Go return type (go/v4/exchange_helpers.go): never nil
     const plain = /^(?:ccxt\.)?(GetArrayLength|GetLength|len|ParseInt)\(/.exec (m);
-    if (plain && (goArithClose (m, plain[0].length - 1) === m.length - 1)) {
-        return (plain[1] === 'ParseInt') ? 'i64' : 'int';
-    }
+    if (plain && (goArithClose (m, plain[0].length - 1) === m.length - 1)) { return (plain[1] === 'ParseInt') ? 'i64' : 'int'; }
     const call = /^this\.(\w+)\(/.exec (m);
-    if (call && GO_ARITH_INT64_METHODS.includes (call[1]) && !scope.ownMethods.has (call[1]) && (goArithClose (m, call[0].length - 1) === m.length - 1)) {
-        return 'i64';
-    }
+    if (call && GO_ARITH_INT64_METHODS.includes (call[1]) && !scope.ownMethods.has (call[1]) && (goArithClose (m, call[0].length - 1) === m.length - 1)) { return 'i64'; }
     return undefined;
 }
 
@@ -4715,9 +3816,7 @@ const isFloatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit
 const isNumeric = (k: Kind) => (k !== undefined);
 
 // float64 spelling of a proven numeric operand (literals stay untyped constants)
-function goArithAsFloat (text: string, kind: Kind): string {
-    return ((kind === 'i64') || (kind === 'int')) ? 'float64(' + text + ')' : text;
-}
+function goArithAsFloat (text: string, kind: Kind): string { return ((kind === 'i64') || (kind === 'int')) ? 'float64(' + text + ')' : text; }
 
 // the native text for one helper call, or undefined to keep the helper
 function goArithNative (helper: string, args: string[], kinds: Kind[], powDivisor = false): { text: string, kind: Kind } | undefined {
@@ -4731,9 +3830,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[], powDiviso
         return undefined;
     }
     if ([ 'MathFloor', 'MathCeil', 'MathRound' ].includes (helper)) {
-        if ((ka === 'i64') || (ka === 'f64') || (ka === 'int')) {
-            return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ')', 'kind': 'f64' };
-        }
+        if ((ka === 'i64') || (ka === 'f64') || (ka === 'int')) { return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ')', 'kind': 'f64' }; }
         return undefined;
     }
     if (helper === 'MathPow') {
@@ -4747,16 +3844,12 @@ function goArithNative (helper: string, args: string[], kinds: Kind[], powDiviso
     const bothFloat = isFloatSide (ka) && isFloatSide (kb) && ((ka === 'f64') || (kb === 'f64'));
     if ((helper === 'MathMin') || (helper === 'MathMax')) {
         // the helper answers float64(a|b); integral operands carry no NaN
-        if (bothInt64) {
-            return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
-        }
+        if (bothInt64) { return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' }; }
         return undefined;
     }
     if ((helper === 'Subtract') || (helper === 'Multiply')) {
         // helper boxes an int64 result for integral operands; float operands may box either kind
-        if (bothInt64) {
-            return { 'text': '(' + a + ((helper === 'Subtract') ? ' - ' : ' * ') + b + ')', 'kind': 'i64' };
-        }
+        if (bothInt64) { return { 'text': '(' + a + ((helper === 'Subtract') ? ' - ' : ' * ') + b + ')', 'kind': 'i64' }; }
         return goNonNilMulSubNative (helper, a, b, ka, kb);
     }
     if (helper === 'Mod') {
@@ -4772,9 +3865,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[], powDiviso
         if (((kb === 'i64') || (kb === 'f64') || (kb === 'int')) && (goPositiveDivisorLiteral (b) || powDivisor) && ((ka === 'i64') || (ka === 'f64') || (ka === 'int') || (ka === 'ilit'))) {
             return { 'text': '(' + goArithAsFloat (a, ka === 'ilit' ? 'f64' : ka) + ' / ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
         }
-        if ((divisor === undefined) || (divisor === 0) || !((ka === 'i64') || (ka === 'f64') || (ka === 'int'))) {
-            return undefined;
-        }
+        if ((divisor === undefined) || (divisor === 0) || !((ka === 'i64') || (ka === 'f64') || (ka === 'int'))) { return undefined; }
         return { 'text': '(' + goArithAsFloat (a, ka) + ' / ' + b + ')', 'kind': 'f64' };
     }
     const ops: { [h: string]: string } = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' };
@@ -4782,9 +3873,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[], powDiviso
     if (op !== undefined) {
         // float `<`/`<=` keep the helper: IsLessThan = !GT && !EQ answers true for NaN
         const floatOk = bothFloat && ((op === '>') || (op === '>='));
-        if (bothInt64 || bothInt || floatOk) {
-            return { 'text': '(' + a + ' ' + op + ' ' + b + ')', 'kind': undefined };
-        }
+        if (bothInt64 || bothInt || floatOk) { return { 'text': '(' + a + ' ' + op + ' ' + b + ')', 'kind': undefined }; }
     }
     return undefined;
 }
@@ -4798,43 +3887,29 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
     calls.sort ((x, y) => y.start - x.start);
     for (const call of calls) {
         const close = goArithClose (masked, call.open);
-        if (close < 0) {
-            continue;
-        }
+        if (close < 0) { continue; }
         const before = masked.slice (0, call.start);
         let after = close + 1;
         const spans = goArithArgs (masked, call.open, close);
         const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
         const maskedArgs = spans.map (([ s, e ]) => masked.slice (s, e).trim ());
         const expected = (call.helper === 'OpNeg' || call.helper.startsWith ('MathF') || call.helper === 'MathCeil' || call.helper === 'MathRound') ? 1 : 2;
-        if (args.length !== expected) {
-            continue;
-        }
+        if (args.length !== expected) { continue; }
         scope.pos = call.start;
         scope.derefs = new Set<string> ();
         scope.sums = new Map<string, string> ();
         const kinds = args.map ((arg, i) => goArithKind (scope, arg, maskedArgs[i]));
-        if (kinds.some ((k) => k === undefined)) {
-            continue;
-        }
+        if (kinds.some ((k) => k === undefined)) { continue; }
         // an operand that is not a single primary keeps its own parens
         const operands = args.map ((arg) => {
             const t = goArithStripParens (arg);
-            if (scope.derefs.has (t)) {
-                return '*' + t;
-            }
-            if (scope.sums?.has (t)) {
-                return scope.sums.get (t) as string;
-            }
-            if (/^\*[A-Za-z_]\w*$/.test (t)) {
-                return t;
-            }
+            if (scope.derefs.has (t)) { return '*' + t; }
+            if (scope.sums?.has (t)) { return scope.sums.get (t) as string; }
+            if (/^\*[A-Za-z_]\w*$/.test (t)) { return t; }
             return /^[\w.]+$|^[\w.]+\(.*\)$|^-?\d+(?:\.\d+)?$/.test (t) && (goArithClose (goMaskGoCode (t), t.indexOf ('(')) === t.length - 1 || t.indexOf ('(') < 0) ? t : '(' + t + ')';
         });
         const native = goArithNative (call.helper, operands, kinds, goPowOfTenDivisor (scope, operands[1]));
-        if (native === undefined) {
-            continue;
-        }
+        if (native === undefined) { continue; }
         // user ruling: division keeps the float64 quotient (like C#), whatever consumes it
         if ((call.helper === 'OpNeg') && goNegLiteralCompare (before, masked.slice (after), kinds[0], operands[0], scope)) {
             native.text = '-' + operands[0];
@@ -4845,9 +3920,7 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         const assertion = /^\.\((\w+)\)/.exec (masked.slice (after));
         if (assertion) {
             // `.(int64)` on the helper's box: the native value already is that type
-            if (!((assertion[1] === 'int64' && native.kind === 'i64') || (assertion[1] === 'float64' && native.kind === 'f64'))) {
-                continue;
-            }
+            if (!((assertion[1] === 'int64' && native.kind === 'i64') || (assertion[1] === 'float64' && native.kind === 'f64'))) { continue; }
             after += assertion[0].length;
         }
         if (native.kind !== undefined) {
@@ -4856,9 +3929,7 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         }
         // drop the operator's own parens where the call already sits alone inside parens or a call argument list
         let nativeText = native.text.replace (/^(math\.\w+)\(\((.*)\)\)$/, (all: string, fn: string, inner: string) => (goArithClose (inner, inner.indexOf ('(')) !== -1 || inner.indexOf ('(') < 0) && goArithClose ('(' + inner + ')', 0) === inner.length + 1 ? fn + '(' + inner + ')' : all);
-        if (nativeText.startsWith ('(') && /\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (after))) {
-            nativeText = nativeText.slice (1, -1);
-        }
+        if (nativeText.startsWith ('(') && /\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (after))) { nativeText = nativeText.slice (1, -1); }
         native.text = nativeText;
         usesMath = usesMath || native.text.startsWith ('math.');
         text = text.slice (0, call.start) + native.text + text.slice (after);
@@ -4869,15 +3940,11 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
 }
 
 function goNativeArithmetic (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !GO_ARITH_CALL_RX.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !GO_ARITH_CALL_RX.test (content)) { return content; }
     GO_ARITH_CALL_RX.lastIndex = 0;
     const masked = goMaskGoCode (content);
     const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
-    for (const m of masked.matchAll (/^func \(this \*\w+\) (HandleOptionIntegerAndParams2?)\(/gm)) {
-        ownMethods.add (m[1]);
-    }
+    for (const m of masked.matchAll (/^func \(this \*\w+\) (HandleOptionIntegerAndParams2?)\(/gm)) { ownMethods.add (m[1]); }
     return goArithMathEachFunc (content, masked, (fn) => goArithRewriteFunc (fn, ownMethods));
 }
 
@@ -4889,25 +3956,17 @@ function goTypedArithPointerIsNonNil (scope: GoArithScope, name: string): boolea
     const lines = head.split ('\n');
     const cur = lines[lines.length - 1];
     const guard = '\\(?' + name + ' != nil\\)? && \\(*';
-    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) {
-        return true;
-    }
+    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) { return true; }
     let indent = cur.length - cur.replace (/^\t+/, '').length;
     for (let k = lines.length - 2; k >= 0; k--) {
         const line = lines[k];
         const s = line.trim ();
-        if (new RegExp ('(?<![\\w.*&])' + name + '\\s*(?:=[^=]|\\+\\+|--|[-+*/]=)').test (line) || /\bfunc\b/.test (s)) {
-            return false;
-        }
+        if (new RegExp ('(?<![\\w.*&])' + name + '\\s*(?:=[^=]|\\+\\+|--|[-+*/]=)').test (line) || /\bfunc\b/.test (s)) { return false; }
         const li = line.length - line.replace (/^\t+/, '').length;
         if ((s !== '') && (li < indent)) {
             indent = li;
-            if (new RegExp ('^(?:\\} else )?if \\(*' + name + ' != nil\\)*(?: && [^|]*)? ?\\{$').test (s) && (s.indexOf ('||') < 0)) {
-                return true;
-            }
-            if (/^(?:\} else|else)/.test (s) || (li === 0)) {
-                return false;
-            }
+            if (new RegExp ('^(?:\\} else )?if \\(*' + name + ' != nil\\)*(?: && [^|]*)? ?\\{$').test (s) && (s.indexOf ('||') < 0)) { return true; }
+            if (/^(?:\} else|else)/.test (s) || (li === 0)) { return false; }
         }
     }
     return false;
@@ -4940,9 +3999,7 @@ function goExtraOperandKind (scope: GoArithScope, t: string, m: string): Kind | 
         const spans = goArithArgs (m, sum[0].length - 1, m.length - 1);
         const parts: string[] = [];
         let typed = false;
-        if (t.length !== m.length) {
-            return undefined;
-        }
+        if (t.length !== m.length) { return undefined; }
         for (const [ s0, e0 ] of spans) {
         const arg = t.slice (s0, e0).trim ();
             const saved = scope.derefs;
@@ -4951,25 +4008,17 @@ function goExtraOperandKind (scope: GoArithScope, t: string, m: string): Kind | 
             const a = goArithStripParens (arg);
             let text = scope.derefs.has (a) ? '*' + a : (/^[\w.*]+$/.test (a) ? a : '(' + a + ')');
             scope.derefs = saved;
-            if ((k !== 'i64') && (k !== 'ilit') && (k !== 'int')) {
-                return undefined;
-            }
-            if (k === 'int') {
-                text = 'int64(' + text + ')';
-            }
+            if ((k !== 'i64') && (k !== 'ilit') && (k !== 'int')) { return undefined; }
+            if (k === 'int') { text = 'int64(' + text + ')'; }
             typed = typed || (k !== 'ilit');
             parts.push (text);
         }
-        if (!typed || (parts.length < 2)) {
-            return undefined;
-        }
+        if (!typed || (parts.length < 2)) { return undefined; }
         scope.sums?.set (t, '(' + parts.join (' + ') + ')');
         return 'i64';
     }
     const conv = /^(int64|int)\(/.exec (m);
-    if (conv && (goArithClose (m, conv[0].length - 1) === m.length - 1)) {
-        return (conv[1] === 'int64') ? 'i64' : 'int';
-    }
+    if (conv && (goArithClose (m, conv[0].length - 1) === m.length - 1)) { return (conv[1] === 'int64') ? 'i64' : 'int'; }
     return undefined;
 }
 
@@ -4982,44 +4031,30 @@ function goSingleWrite (scope: GoArithScope, name: string): boolean {
 // `var p *int64 = this.SafeInteger{,2,N}(..., <int literal | non-nil SafeInteger>)` never yields nil
 function goNonNilIntegerInit (masked: string): boolean {
     const call = /^this\.SafeInteger(2|N)?\(/.exec (masked.trim ());
-    if (!call) {
-        return false;
-    }
+    if (!call) { return false; }
     const text = masked.trim ();
     const open = call[0].length - 1;
-    if (goArithClose (text, open) !== text.length - 1) {
-        return false;
-    }
+    if (goArithClose (text, open) !== text.length - 1) { return false; }
     const spans = goArithArgs (text, open, text.length - 1);
     const want = (call[1] === '2') ? 4 : 3;
-    if (spans.length !== want) {
-        return false;
-    }
+    if (spans.length !== want) { return false; }
     const def = text.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
     return /^-?\d+$/.test (def) || goNonNilIntegerInit (def);
 }
 
 // a declared-once, never-rewritten pointer local proven non-nil by its initializer or an earlier early-exit nil test
 function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: string): boolean {
-    if (!goSingleWrite (scope, name)) {
-        return false;
-    }
+    if (!goSingleWrite (scope, name)) { return false; }
     const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
-    if ((type === '*int64') && decl && goNonNilIntegerInit (decl[1]) && (decl.index < scope.pos)) {
-        return true;
-    }
+    if ((type === '*int64') && decl && goNonNilIntegerInit (decl[1]) && (decl.index < scope.pos)) { return true; }
     const lines = scope.masked.slice (0, scope.pos).split ('\n');
     const all = scope.masked.split ('\n');
     const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
     let indent = indentOf (lines[lines.length - 1]);
     for (let k = lines.length - 2; k >= 0; k--) {
         const s = lines[k].trim ();
-        if (s === '') {
-            continue;
-        }
-        if (/\bfunc\b/.test (s)) {
-            return false;
-        }
+        if (s === '') { continue; }
+        if (/\bfunc\b/.test (s)) { return false; }
         const li = indentOf (lines[k]);
         if (li < indent) {
             indent = li;
@@ -5030,46 +4065,31 @@ function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: stri
             let j = k + 1;
             let last = '';
             while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
-                if (all[j].trim () !== '') {
-                    last = all[j].trim ();
-                }
+                if (all[j].trim () !== '') { last = all[j].trim (); }
                 j++;
             }
-            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) {
-                return true;
-            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) { return true; }
         }
     }
     return false;
 }
 
-// MathMin/MathMax answer float64(a|b); integral operands carry no NaN
-// `L == OpNeg(N)` / `L != OpNeg(N)` with a typed numeric L compares against the constant -N
+// MathMin/MathMax answer float64(a|b); integral operands carry no NaN `L == OpNeg(N)` / `L != OpNeg(N)` with a typed numeric L compares against the constant -N
 function goNegLiteralCompare (before: string, after: string, kind: Kind, operand: string, scope: GoArithScope): boolean {
-    if ((kind !== 'ilit') || !/^\d+$/.test (operand) || /^\s*[.([]/.test (after)) {
-        return false;
-    }
+    if ((kind !== 'ilit') || !/^\d+$/.test (operand) || /^\s*[.([]/.test (after)) { return false; }
     const cmp = /(\S)\s*(?:==|!=)\s*$/.exec (before);
-    if (!cmp) {
-        return false;
-    }
+    if (!cmp) { return false; }
     let end = cmp.index + 1;
     let start = end;
     if (before[end - 1] === ')') {
         let depth = 0;
-        for (let i = end - 1; i >= 0; i--) {
-            if (before[i] === ')') { depth++; } else if (before[i] === '(') { depth--; if (depth === 0) { start = i; break; } }
-        }
+        for (let i = end - 1; i >= 0; i--) { if (before[i] === ')') { depth++; } else if (before[i] === '(') { depth--; if (depth === 0) { start = i; break; } } }
         const callee = /(?:strings\.Index|(?:ccxt\.)?GetIndexOf)$/.exec (before.slice (0, start));
         return (callee !== null) && (callee.index === 0 || /[^\w.]/.test (before[callee.index - 1]));
     }
     const ident = /(?<![\w.*])(this\.RateLimit|[A-Za-z_]\w*)$/.exec (before.slice (0, end));
-    if (!ident) {
-        return false;
-    }
-    if (ident[1] === 'this.RateLimit') {
-        return true;
-    }
+    if (!ident) { return false; }
+    if (ident[1] === 'this.RateLimit') { return true; }
     const type = goArithDeclaredType (scope.masked, scope.signature, ident[1]);
     return (type === 'int64') || (type === 'int') || (type === 'float64');
 }
@@ -5077,14 +4097,10 @@ function goNegLiteralCompare (before: string, after: string, kind: Kind, operand
 // a float64 local written only as math.Pow(10, float64(n)) with n an int local set from len(..): at least 1, never zero
 function goPowOfTenDivisor (scope: GoArithScope, operand: string | undefined): boolean {
     const name = (operand ?? '').trim ();
-    if (!/^[A-Za-z_]\w*$/.test (name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== 'float64')) {
-        return false;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== 'float64')) { return false; }
     const init = new RegExp ('\\bvar\\s+' + name + '\\s+float64\\s*=\\s*(?:math\\.Pow\\(10, float64\\(([A-Za-z_]\\w*)\\)\\)|MathPow\\(10, ([A-Za-z_]\\w*)\\))\\s*(?:\\n|$)').exec (scope.masked + '\n');
     const n = init ? (init[1] ?? init[2]) : '';
-    if (!init || !goSingleWrite (scope, name) || !goSingleWrite (scope, n)) {
-        return false;
-    }
+    if (!init || !goSingleWrite (scope, name) || !goSingleWrite (scope, n)) { return false; }
     return new RegExp ('\\bvar\\s+' + n + '\\s+int\\s*=\\s*len\\([^()\\n]*\\)(?:\\s*\\+\\s*\\d+)?\\s*(?://[^\\n]*)?(?:\\n|$)').test (scope.masked + '\n');
 }
 
@@ -5122,18 +4138,14 @@ function goIntegralArithmeticSelfTest (): string[] {
 function goCompareOperandKind (scope: GoArithScope, text: string, maskedText: string): Kind | undefined {
     const inner: GoArithScope = { ...scope, 'derefs': new Set<string> () };
     const base = goArithKind (inner, text, maskedText);
-    if (base !== undefined) {
-        return (inner.derefs.size === 0) ? base : undefined;
-    }
+    if (base !== undefined) { return (inner.derefs.size === 0) ? base : undefined; }
     const t = goArithStripParens (text);
     const m = goArithStripParens (maskedText);
     if (/^[A-Za-z_]\w*$/.test (t)) {
         const decls = scope.masked.match (new RegExp ('(?<![\\w.])' + t + '\\s*:=\\s*[^\\n;{]*', 'g')) ?? [];
         const others = scope.masked.match (new RegExp ('\\bvar\\s+' + t + '\\b|\\b' + t + '\\s*,[^=\\n]*:=|,\\s*' + t + '\\s*(?:,[^=\\n]*)?:=|\\bfunc\\s*\\([^()]*\\b' + t + '\\b')) ?? [];
         const sig = scope.signature.substring (scope.signature.indexOf ('(', scope.signature.startsWith ('func (') ? scope.signature.indexOf (')') + 1 : 0));
-        if ((decls.length > 0) && (others.length === 0) && !new RegExp ('[(,]\\s*' + t + '\\s').test (sig) && decls.every ((d) => /:=\s*\d+\s*$/.test (d) && !/:=\s*0\d/.test (d))) {
-            return 'int';
-        }
+        if ((decls.length > 0) && (others.length === 0) && !new RegExp ('[(,]\\s*' + t + '\\s').test (sig) && decls.every ((d) => /:=\s*\d+\s*$/.test (d) && !/:=\s*0\d/.test (d))) { return 'int'; }
         return undefined;
     }
     const deref = /^\*\s*([A-Za-z_]\w*)$/.exec (t);
@@ -5148,28 +4160,20 @@ function goCompareOperandKind (scope: GoArithScope, text: string, maskedText: st
     for (let i = 0; i < m.length; i++) {
         const c = m[i];
         if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
-        if ((depth === 0) && '+-*/%'.includes (c) && /[\w)\]]/.test (prev) && (m[i + 1] !== '=') && (m[i + 1] !== c)) {
-            ops.push (i);
-        }
+        if ((depth === 0) && '+-*/%'.includes (c) && /[\w)\]]/.test (prev) && (m[i + 1] !== '=') && (m[i + 1] !== c)) { ops.push (i); }
         if (c !== ' ') { prev = c; }
     }
-    if (ops.length === 0) {
-        return undefined;
-    }
+    if (ops.length === 0) { return undefined; }
     const bounds = [ -1, ...ops, m.length ];
     const kinds: Kind[] = [];
     for (let k = 0; k + 1 < bounds.length; k++) {
         const kind = goCompareOperandKind (scope, t.slice (bounds[k] + 1, bounds[k + 1]), m.slice (bounds[k] + 1, bounds[k + 1]));
-        if (kind === undefined) {
-            return undefined;
-        }
+        if (kind === undefined) { return undefined; }
         kinds.push (kind);
     }
     for (const want of [ 'i64', 'int', 'f64' ] as Kind[]) {
         const lit = (want === 'f64') ? [ 'ilit', 'flit' ] : [ 'ilit' ];
-        if (kinds.includes (want) && kinds.every ((k) => (k === want) || lit.includes (k as string))) {
-            return want;
-        }
+        if (kinds.includes (want) && kinds.every ((k) => (k === want) || lit.includes (k as string))) { return want; }
     }
     return undefined;
 }
@@ -5184,33 +4188,21 @@ function goNativeCompareSkippable (masked: string): boolean {
 function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[], nanSafe = false): string | undefined {
     const op: string = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' }[helper];
     const isLit = (k: Kind) => (k === 'ilit') || (k === 'flit');
-    if ((op === undefined) || (isLit (ka) && isLit (kb))) {
-        return undefined;
-    }
+    if ((op === undefined) || (isLit (ka) && isLit (kb))) { return undefined; }
     const float = (ka === 'f64') || (kb === 'f64') || (ka === 'flit') || (kb === 'flit');
     // IsLessThan = !GT && !EQ answers true for NaN
-    if (!nanSafe && float && ((ka === 'f64') || (kb === 'f64')) && ((op === '<') || (op === '<='))) {
-        return undefined;
-    }
+    if (!nanSafe && float && ((ka === 'f64') || (kb === 'f64')) && ((op === '<') || (op === '<='))) { return undefined; }
     const conv = (x: string, k: Kind, other: Kind) => {
         if (float && ((k === 'i64') || (k === 'int'))) { return 'float64(' + x + ')'; }
         if ((k === 'int') && (other === 'i64')) { return 'int64(' + x + ')'; }
         return x;
     };
-    if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) {
-        return undefined;
-    }
+    if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) { return undefined; }
     const ca = conv (a, ka, kb);
     const cb = conv (b, kb, ka);
     let cmp = ca + ' ' + op + ' ' + cb;
-    if (nanSafe && float && (op === '<')) {
-        cmp = '!(' + ca + ' >= ' + cb + ')';
-    } else if (nanSafe && float && (op === '<=')) {
-        cmp = '!(' + ca + ' > ' + cb + ')';
-    }
-    if (!pa && !pb) {
-        return '(' + cmp + ')';
-    }
+    if (nanSafe && float && (op === '<')) { cmp = '!(' + ca + ' >= ' + cb + ')'; } else if (nanSafe && float && (op === '<=')) { cmp = '!(' + ca + ' > ' + cb + ')'; }
+    if (!pa && !pb) { return '(' + cmp + ')'; }
     const [ na, nb ] = name;
     // helper nil table: GT(nil, x) false, GT(x, nil) true, EQ(nil, nil) true
     const gtOrGe = (op === '>') || (op === '>=');
@@ -5220,9 +4212,7 @@ function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb
         if (op === '>=') { return '(' + nb + ' == nil || (' + na + ' != nil && ' + cmp + '))'; }
         return '(' + na + ' == nil || (' + nb + ' != nil && ' + cmp + '))';
     }
-    if (pa) {
-        return gtOrGe ? '(' + na + ' != nil && ' + cmp + ')' : '(' + na + ' == nil || ' + cmp + ')';
-    }
+    if (pa) { return gtOrGe ? '(' + na + ' != nil && ' + cmp + ')' : '(' + na + ' == nil || ' + cmp + ')'; }
     return gtOrGe ? '(' + nb + ' == nil || ' + cmp + ')' : '(' + nb + ' != nil && ' + cmp + ')';
 }
 
@@ -5238,9 +4228,7 @@ type GoCmpRule = (scope: GoArithScope, x: string, declared: string | undefined) 
 // a `*int64` / `*float64` local: nil unless `nonNil` proves it
 function goCmpPointerRule (nonNil: (scope: GoArithScope, x: string, declared: string) => boolean): GoCmpRule {
     return (scope, x, declared) => {
-        if ((declared !== '*int64') && (declared !== '*float64')) {
-            return undefined;
-        }
+        if ((declared !== '*int64') && (declared !== '*float64')) { return undefined; }
         const proven = nonNil (scope, x, declared);
         return { 'op': '*' + x, 'kind': (declared === '*int64') ? 'i64' : 'f64', 'name': x, 'nil': !proven, 'proven': proven };
     };
@@ -5261,18 +4249,14 @@ function goCompareOperands (scope: GoArithScope, args: string[], margs: string[]
         const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
         for (const rule of rules) {
             const o = rule (scope, x, declared);
-            if (o !== undefined) {
-                return o;
-            }
+            if (o !== undefined) { return o; }
         }
         return { 'op': x, 'kind': goCompareOperandKind (scope, x, margs[i]), 'name': x, 'nil': false };
     });
 }
 
 function goCompareOperandsText (helper: string, ops: GoCmpOperand[], margs: string[], nanSafe = false): string | undefined {
-    if (ops.some ((o) => o.kind === undefined) || goNilSkipUnsafe (ops.map ((o) => o.nil), margs)) {
-        return undefined;
-    }
+    if (ops.some ((o) => o.kind === undefined) || goNilSkipUnsafe (ops.map ((o) => o.nil), margs)) { return undefined; }
     return goNativeCompareText (helper, ops[0].op, ops[1].op, ops[0].kind as Kind, ops[1].kind as Kind, ops[0].nil, ops[1].nil, ops.map ((o) => o.name), nanSafe);
 }
 
@@ -5283,9 +4267,7 @@ function goNativeCompareRewriteFunc (text: string, ownMethods: Set<string>): str
 }
 
 function goNativeCompare (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) { return content; }
     const ownMethods = goArithOwnMethods (goMaskGoCode (content));
     return goArithEachFunc (content, (fn) => goNativeCompareRewriteFunc (fn, ownMethods));
 }
@@ -5324,9 +4306,7 @@ function goArithDeclaredTypeMemo (maskedFunc: string, signature: string, name: s
         goArithDeclaredTypeKey = maskedFunc;
         goArithDeclaredTypeSig = signature;
         goArithDeclaredTypeCache = new Map ();
-    } else if (goArithDeclaredTypeCache.has (name)) {
-        return goArithDeclaredTypeCache.get (name);
-    }
+    } else if (goArithDeclaredTypeCache.has (name)) { return goArithDeclaredTypeCache.get (name); }
     const out = goArithDeclaredType (maskedFunc, signature, name);
     goArithDeclaredTypeCache.set (name, out);
     return out;
@@ -5354,39 +4334,23 @@ function goDeclCountScan (masked: string, name: string): number {
 
 // Go type of a single-write local bound from a Handle*AndParams result, by the base method's declared shape
 function goTupleElementType (scope: GoArithScope, name: string, fileOwn: Set<string>): string | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) {
-        return undefined;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) { return undefined; }
     const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
-    if (pair && !fileOwn.has (pair[1]) && (pair.index < scope.pos)) {
-        return 'int64';
-    }
+    if (pair && !fileOwn.has (pair[1]) && (pair.index < scope.pos)) { return 'int64'; }
     // only a raw `h[0]` read keeps the pointer box (GetValue derefs it to a plain scalar)
     const el = new RegExp ('(?<![\\w.])' + name + '\\s*:=\\s*(\\w+)\\[0\\]\\s*$', 'm').exec (scope.masked);
-    if (!el || (el.index > scope.pos)) {
-        return undefined;
-    }
+    if (!el || (el.index > scope.pos)) { return undefined; }
     const holder = el[1];
     const decl = new RegExp ('\\bvar\\s+' + holder + '\\s+\\[\\]any\\s*=\\s*this\\.(\\w+)\\(').exec (scope.masked);
-    if (!decl || (goDeclCount (scope.masked, holder) !== 1) || !goSingleWrite (scope, holder) || fileOwn.has (decl[1])) {
-        return undefined;
-    }
-    for (const [ rx, type ] of GO_TUPLE_ELEMENT_PTR_TYPES) {
-        if (rx.test (decl[1])) {
-            return type;
-        }
-    }
+    if (!decl || (goDeclCount (scope.masked, holder) !== 1) || !goSingleWrite (scope, holder) || fileOwn.has (decl[1])) { return undefined; }
+    for (const [ rx, type ] of GO_TUPLE_ELEMENT_PTR_TYPES) { if (rx.test (decl[1])) { return type; } }
     return undefined;
 }
 
 // `var n any = <int>` whose every other write is `n = <int>` or `n = Add(n, <int>)`: an int box, never nil
 function goAddOnlyCounter (scope: GoArithScope, name: string): boolean {
-    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1)) {
-        return false;
-    }
-    if (!new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*[1-9]?\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n')) {
-        return false;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1)) { return false; }
+    if (!new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*[1-9]?\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n')) { return false; }
     const writes = scope.masked.match (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)[^\\n]*|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g')) ?? [];
     const lit = '[1-9]?\\d{0,8}';
     const ok = new RegExp ('^' + name + '\\s*=\\s*(?:' + lit + '|(?:ccxt\\.)?Add\\(' + name + ',\\s*' + lit + '\\))\\s*$');
@@ -5399,14 +4363,10 @@ function goTupleCompareRewriteFunc (text: string, ownMethods: Set<string>, fileO
     return goArithRewriteCalls (text, scope, rx, (helper, args, margs) => {
         if (helper === 'EvalTruthy') {
             // EvalTruthy derefs a *bool box: nil is false
-            if ((args.length === 1) && (goTupleElementType (scope, args[0], fileOwn) === '*bool')) {
-                return '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))';
-            }
+            if ((args.length === 1) && (goTupleElementType (scope, args[0], fileOwn) === '*bool')) { return '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))'; }
             return undefined;
         }
-        if (args.length !== 2) {
-            return undefined;
-        }
+        if (args.length !== 2) { return undefined; }
         const rules: GoCmpRule[] = [
             (sc, x) => ((goTupleElementType (sc, x, fileOwn) === '*int64') ? { 'op': '*' + x + '.(*int64)', 'kind': 'i64', 'name': x + '.(*int64)', 'nil': true } : undefined),
             (sc, x) => ((goTupleElementType (sc, x, fileOwn) === 'int64') ? { 'op': x, 'kind': 'i64', 'name': x, 'nil': false } : undefined),
@@ -5418,9 +4378,7 @@ function goTupleCompareRewriteFunc (text: string, ownMethods: Set<string>, fileO
 }
 
 function goTupleTruthyComparisons (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?(?:Is(?:Greater|Less)Than(?:OrEqual)?|EvalTruthy)\(/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?(?:Is(?:Greater|Less)Than(?:OrEqual)?|EvalTruthy)\(/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const ownMethods = goArithOwnMethods (masked);
     // an exchange-level override of a Handle* method may answer another element type
@@ -5458,19 +4416,11 @@ function goNonNilMulSubNative (helper: string, a: string, b: string, ka: Kind, k
     }
     const floatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit');
     // Multiply converts a to b's kind, then multiplies as int64: exact for an already-integral float
-    if ((helper === 'Multiply') && (ka === 'f64') && (kb === 'i64') && /^math\.(?:Floor|Ceil|Trunc)\(/.test (a)) {
-        return { 'text': '(int64(' + a + ') * ' + b + ')', 'kind': 'i64' };
-    }
-    if ((ka !== 'f64') && (kb !== 'f64')) {
-        return undefined;
-    }
-    if (floatSide (ka) && floatSide (kb)) {
-        return { 'text': '(' + a + op + b + ')', 'kind': 'f64' };
-    }
+    if ((helper === 'Multiply') && (ka === 'f64') && (kb === 'i64') && /^math\.(?:Floor|Ceil|Trunc)\(/.test (a)) { return { 'text': '(int64(' + a + ') * ' + b + ')', 'kind': 'i64' }; }
+    if ((ka !== 'f64') && (kb !== 'f64')) { return undefined; }
+    if (floatSide (ka) && floatSide (kb)) { return { 'text': '(' + a + op + b + ')', 'kind': 'f64' }; }
     // Subtract goes through ToFloat64 on both sides; Multiply(f64, int64) would truncate a to b's kind
-    if ((helper === 'Subtract') || (kb === 'f64')) {
-        return { 'text': '(' + goArithAsFloat (a, ka) + op + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
-    }
+    if ((helper === 'Subtract') || (kb === 'f64')) { return { 'text': '(' + goArithAsFloat (a, ka) + op + goArithAsFloat (b, kb) + ')', 'kind': 'f64' }; }
     return undefined;
 }
 
@@ -5489,18 +4439,14 @@ function goSplitTopLevel (cond: string, sep: string): string[] {
 
 // a declared-once, never-rewritten *int64/*float64 local or param that is non-nil at scope.pos
 function goGuardedPointerNonNil (scope: GoArithScope, name: string): boolean {
-    if (!goSingleWrite (scope, name)) {
-        return false;
-    }
+    if (!goSingleWrite (scope, name)) { return false; }
     const lines = scope.masked.slice (0, scope.pos).split ('\n');
     const all = scope.masked.split ('\n');
     const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
     let indent = indentOf (lines[lines.length - 1]);
     for (let k = lines.length - 2; k >= 1; k--) {
         const s = lines[k].trim ();
-        if (s === '') {
-            continue;
-        }
+        if (s === '') { continue; }
         const li = indentOf (lines[k]);
         if (li < indent) {
             indent = li;
@@ -5510,21 +4456,15 @@ function goGuardedPointerNonNil (scope: GoArithScope, name: string): boolean {
                 if (s === '} else {') {
                     for (let h = k - 1; h >= 1; h--) {
                         const hs = lines[h].trim ();
-                        if ((hs === '') || (indentOf (lines[h]) > li)) {
-                            continue;
-                        }
-                        if ((indentOf (lines[h]) === li) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (hs)) {
-                            return true;
-                        }
+                        if ((hs === '') || (indentOf (lines[h]) > li)) { continue; }
+                        if ((indentOf (lines[h]) === li) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (hs)) { return true; }
                         break;
                     }
                 }
                 return false;
             }
             const head = /^(?:\} else )?if (.*) \{$/.exec (s);
-            if (head && (head[1].indexOf ('||') < 0) && (head[1].indexOf (';') < 0) && goSplitTopLevel (head[1], '&&').includes (name + ' != nil')) {
-                return true;
-            }
+            if (head && (head[1].indexOf ('||') < 0) && (head[1].indexOf (';') < 0) && goSplitTopLevel (head[1], '&&').includes (name + ' != nil')) { return true; }
             continue;
         }
         const exit = /^if (.*) \{$/.exec (s);
@@ -5532,14 +4472,10 @@ function goGuardedPointerNonNil (scope: GoArithScope, name: string): boolean {
             let j = k + 1;
             let last = '';
             while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
-                if (all[j].trim () !== '') {
-                    last = all[j].trim ();
-                }
+                if (all[j].trim () !== '') { last = all[j].trim (); }
                 j++;
             }
-            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) {
-                return true;
-            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) { return true; }
         }
     }
     return false;
@@ -5547,9 +4483,7 @@ function goGuardedPointerNonNil (scope: GoArithScope, name: string): boolean {
 
 // `x, p := this.HandleOptionIntegerAndParams(...)` (base method): x is a plain int64
 function goTupleInt64 (scope: GoArithScope, name: string): boolean {
-    if ((goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) {
-        return false;
-    }
+    if ((goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) { return false; }
     const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
     return (pair !== null) && !scope.ownMethods.has (pair[1]) && (pair.index < scope.pos);
 }
@@ -5588,15 +4522,14 @@ function goFloatFieldRewriteFunc (text: string, ownMethods: Set<string>, fields:
     return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => ((args.length === 2) ? goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs, true) : undefined));
 }
 
-function goFloatFieldComparisons (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
-        return content;
-    }
+function goArithFieldCmpPass (content: string, extraOwn: string[], rewrite: (fn: string, own: Set<string>, fields: Set<string>) => string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
-    const ownMethods = goArithOwnMethods (masked);
+    const ownMethods = goArithOwnMethods (masked, extraOwn);
     const fields = goArithBaseFields (masked);
-    return goArithEachFunc (content, (fn, head) => !/Is(?:Greater|Less)Than/.test (fn) ? fn : goFloatFieldRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
+    return goArithEachFunc (content, (fn, head) => !/Is(?:Greater|Less)Than/.test (fn) ? fn : rewrite (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
 }
+function goFloatFieldComparisons (content: string): string { return goArithFieldCmpPass (content, [], goFloatFieldRewriteFunc); }
 
 function goFloatComparisonsSelfTest (): string[] {
     const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
@@ -5615,9 +4548,7 @@ function goFloatComparisonsSelfTest (): string[] {
     const problems = goArithCaseProblems (goFloatFieldComparisons, wrap, cases, 'go float comparisons self test expected ');
     // a struct that redeclares the field keeps the helper
     const shadow = goFloatFieldComparisons ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil'));
-    if (!shadow.includes ('IsGreaterThan(this.RateLimit, 0)')) {
-        problems.push ('shadowed field went native: ' + shadow);
-    }
+    if (!shadow.includes ('IsGreaterThan(this.RateLimit, 0)')) { problems.push ('shadowed field went native: ' + shadow); }
     return problems;
 }
 
@@ -5629,38 +4560,22 @@ const GO_NORMALIZING_READERS = /(?:^|[^\w.])(?:ccxt\.)?(Subtract|Multiply|IsLess
 function goNeverNilIntWrite (scope: GoArithScope, text: string, maskedText: string, guarded: Set<string>): string | undefined {
     const t = goArithStripParens (text);
     const m = goArithStripParens (maskedText);
-    if (/^\d+$/.test (t) && (goArithIntLiteralValue (t) !== undefined)) {
-        return t;
-    }
-    if (guarded.has (t)) {
-        return '*' + t;
-    }
+    if (/^\d+$/.test (t) && (goArithIntLiteralValue (t) !== undefined)) { return t; }
+    if (guarded.has (t)) { return '*' + t; }
     if (/^[A-Za-z_]\w*$/.test (t)) {
         const type = goArithDeclaredType (scope.masked, scope.signature, t);
-        if ((type === 'int') && (t !== 'nil')) {
-            return 'int64(' + t + ')';
-        }
-        if ((type === '*int64') && (goTypedArithPointerIsNonNil (scope, t) || goEarlyExitPointerNonNil (scope, t, type) || goGuardedPointerNonNil (scope, t))) {
-            return '*' + t;
-        }
+        if ((type === 'int') && (t !== 'nil')) { return 'int64(' + t + ')'; }
+        if ((type === '*int64') && (goTypedArithPointerIsNonNil (scope, t) || goEarlyExitPointerNonNil (scope, t, type) || goGuardedPointerNonNil (scope, t))) { return '*' + t; }
     }
-    if (/^this\.SafeInteger(2|N)?\(/.test (m) && goNonNilIntegerInit (m)) {
-        return '*' + t;
-    }
-    if (/^this\.Sum\(/.test (m)) {
-        return undefined;   // Sum returns `any`
-    }
+    if (/^this\.SafeInteger(2|N)?\(/.test (m) && goNonNilIntegerInit (m)) { return '*' + t; }
+    if (/^this\.Sum\(/.test (m)) { return undefined; } // Sum returns `any`
     const mm = /^(?:ccxt\.)?(mathMin|mathMax|MathMin|MathMax)\(/.exec (m);
     if (mm && (goArithClose (m, mm[0].length - 1) === m.length - 1)) {
         // the helper boxes an integral float64; every read normalizes it, so the int64 builtin is the same value
         const spans = goArithArgs (m, mm[0].length - 1, m.length - 1);
-        if (spans.length !== 2) {
-            return undefined;
-        }
+        if (spans.length !== 2) { return undefined; }
         const parts = spans.map (([ s0, e0 ]) => goNeverNilIntWrite (scope, t.slice (s0, e0).trim (), m.slice (s0, e0).trim (), guarded));
-        if (parts.some ((p) => p === undefined) || parts.every ((p, i) => /^\d+$/.test (p as string))) {
-            return undefined;
-        }
+        if (parts.some ((p) => p === undefined) || parts.every ((p, i) => /^\d+$/.test (p as string))) { return undefined; }
         return (mm[1].toLowerCase ().endsWith ('min') ? 'min(' : 'max(') + parts.join (', ') + ')';
     }
     scope.derefs = new Set<string> ();
@@ -5669,15 +4584,11 @@ function goNeverNilIntWrite (scope: GoArithScope, text: string, maskedText: stri
     return ((kind === 'i64') && (scope.derefs.size === 0) && (scope.sums.size === 0)) ? text : undefined;
 }
 
-function goBuiltinShadowed (masked: string): boolean {
-    return /(?<![\w.])(?:min|max)\s*(?::=|,|\s+\w)|\bvar (?:min|max)\b|[(,]\s*(?:min|max)\s+\w/.test (masked);
-}
+function goBuiltinShadowed (masked: string): boolean { return /(?<![\w.])(?:min|max)\s*(?::=|,|\s+\w)|\bvar (?:min|max)\b|[(,]\s*(?:min|max)\s+\w/.test (masked); }
 
 // a native Go `a * b - c` (+ - * only) over int64 operands and int constants is a never-nil int64
 function goNeverNilIntExpr (scope: GoArithScope, t: string, m: string): boolean {
-    if ((t.length !== m.length) || !/[-+*]/.test (m) || /[/%<>=!&|^]/.test (m)) {
-        return false;
-    }
+    if ((t.length !== m.length) || !/[-+*]/.test (m) || /[/%<>=!&|^]/.test (m)) { return false; }
     const parts: [ number, number ][] = [];
     let depth = 0;
     let start = 0;
@@ -5696,24 +4607,18 @@ function goNeverNilIntExpr (scope: GoArithScope, t: string, m: string): boolean 
         if (/\w/.test (c)) { prevOperand = true; }
     }
     parts.push ([ start, m.length ]);
-    if (parts.length < 2) {
-        return false;
-    }
+    if (parts.length < 2) { return false; }
     let typed = false;
     for (const [ s0, e0 ] of parts) {
         const pt = t.slice (s0, e0).trim ();
         const pm = m.slice (s0, e0).trim ();
-        if (pt === '') {
-            return false;
-        }
+        if (pt === '') { return false; }
         const saved = scope.derefs;
         scope.derefs = new Set<string> ();
         const k = /^\d+$/.test (pt) ? 'ilit' : goArithKind (scope, pt, pm);
         const derefNeeded = scope.derefs.size > 0;
         scope.derefs = saved;
-        if (derefNeeded || ((k !== 'i64') && (k !== 'ilit'))) {
-            return false;   // the printed text must already be the int64 value
-        }
+        if (derefNeeded || ((k !== 'i64') && (k !== 'ilit'))) { return false; } // the printed text must already be the int64 value
         typed = typed || (k === 'i64');
     }
     return typed;
@@ -5726,16 +4631,12 @@ function goNilGuardArms (scope: GoArithScope, condition: string, trueArm: boolea
     if (trueArm && (c.indexOf ('||') < 0)) {
         for (const part of goSplitTopLevel (c, '&&')) {
             const g = /^([A-Za-z_]\w*) != nil$/.exec (part);
-            if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) {
-                out.add (g[1]);
-            }
+            if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) { out.add (g[1]); }
         }
     }
     if (!trueArm) {
         const g = /^([A-Za-z_]\w*) == nil$/.exec (c);
-        if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) {
-            out.add (g[1]);
-        }
+        if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) { out.add (g[1]); }
     }
     return out;
 }
@@ -5745,9 +4646,7 @@ function goReadsNormalize (masked: string, name: string, writeSpans: [ number, n
     const rx = new RegExp ('(?<![\\w.*&])' + name + '(?![\\w])', 'g');
     for (const m of masked.matchAll (rx)) {
         const at = m.index as number;
-        if (writeSpans.some (([ s, e ]) => (at >= s) && (at < e))) {
-            continue;
-        }
+        if (writeSpans.some (([ s, e ]) => (at >= s) && (at < e))) { continue; }
         const after = masked.slice (at + name.length);
         if (!/^\s*[,)]/.test (after)) {
             if (process.env.HX4G30_DEBUG) { console.error ('readctx', name, '|', masked.slice (Math.max (0, at - 50), at + name.length + 10).replace (/\s+/g, ' ')); }
@@ -5766,9 +4665,7 @@ function goReadsNormalize (masked: string, name: string, writeSpans: [ number, n
             return false;
         }
         const between = masked.slice (i + 1, at);
-        if (!/^\s*$/.test (between) && !/,\s*$/.test (between)) {
-            return false;
-        }
+        if (!/^\s*$/.test (between) && !/,\s*$/.test (between)) { return false; }
         if (/,\s*$/.test (between)) {
             // the read must start its own argument (nothing of a sibling expression before it)
             let d = 0;
@@ -5792,29 +4689,21 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
     const lines = text.split ('\n');
     const mlines = masked.split ('\n');
     const starts = [ 0 ];
-    for (const l of mlines) {
-        starts.push (starts[starts.length - 1] + l.length + 1);
-    }
+    for (const l of mlines) { starts.push (starts[starts.length - 1] + l.length + 1); }
     const lineStart = (line: number) => starts[line];
     let changed = false;
     for (let k = 1; k < mlines.length; k++) {
         const d = /^(\t+)var (\w+) any = /.exec (mlines[k]);
-        if (!d) {
-            continue;
-        }
+        if (!d) { continue; }
         const name = d[2];
         const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
         // cheap reject first: a plain declaration whose own value is no never-nil int64 never retypes
         if (mlines[k].slice (d[0].length) !== 'func() any {') {
             const mv = mlines[k].slice (d[0].length).trimEnd ();
             scope.pos = lineStart (k) + d[0].length;
-            if (goNeverNilIntWrite (scope, lines[k].slice (d[0].length, d[0].length + mv.length), mv, new Set<string> ()) === undefined) {
-                continue;
-            }
+            if (goNeverNilIntWrite (scope, lines[k].slice (d[0].length, d[0].length + mv.length), mv, new Set<string> ()) === undefined) { continue; }
         }
-        if ((goArithDeclaredTypeMemo (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) {
-            continue;
-        }
+        if ((goArithDeclaredTypeMemo (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) { continue; }
         if (new RegExp ('[\\w.](?:\\s*,\\s*' + name + ')+\\s*:?=(?!=)|(?<![\\w.])' + name + '\\s*,[\\w\\s,]*:?=(?!=)|&' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (masked)) {
             continue;
         }
@@ -5841,22 +4730,16 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
         }
         let ok = true;
         for (let j = k + 1; ok && (j < mlines.length); j++) {
-            if (j <= closureEnd) {
-                continue;
-            }
+            if (j <= closureEnd) { continue; }
             const w = new RegExp ('^(\\t+)' + name + ' = ').exec (mlines[j]);
             if (w) {
                 writes.push ([ j, w[0].length, new Set<string> () ]);
                 writeSpans.push ([ lineStart (j), lineStart (j) + w[0].length ]);
-            } else if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (mlines[j])) {
-                ok = false;
-            }
+            } else if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (mlines[j])) { ok = false; }
         }
         const edits: [ number, number, string ][] = [];
         for (const [ j, col, guarded ] of writes) {
-            if (!ok) {
-                break;
-            }
+            if (!ok) { break; }
             const value = lines[j].slice (col);
             const mvalue = mlines[j].slice (col).trimEnd ();
             const comment = value.slice (mvalue.length);
@@ -5878,16 +4761,10 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
             edits.push ([ j, col, native + comment ]);
         }
         if (ok && !goReadsNormalize (masked, name, writeSpans) && process.env.HX4G30_DEBUG) { console.error ('read', name, '@', mlines[0].slice (0, 60)); }
-        if (!ok || !goReadsNormalize (masked, name, writeSpans)) {
-            continue;
-        }
-        for (const [ j, col, value ] of edits) {
-            lines[j] = lines[j].slice (0, col) + value;
-        }
+        if (!ok || !goReadsNormalize (masked, name, writeSpans)) { continue; }
+        for (const [ j, col, value ] of edits) { lines[j] = lines[j].slice (0, col) + value; }
         lines[k] = lines[k].replace ('var ' + name + ' any = ', 'var ' + name + ' int64 = ');
-        if (closureEnd > 0) {
-            lines[k] = lines[k].replace (/func\(\) any \{$/, 'func() int64 {');
-        }
+        if (closureEnd > 0) { lines[k] = lines[k].replace (/func\(\) any \{$/, 'func() int64 {'); }
         changed = true;
     }
     return changed ? lines.join ('\n') : text;
@@ -5898,23 +4775,17 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
 let goAnyToInt64RetypeMemoKey = '';
 let goAnyToInt64RetypeMemo = new Map<string, string> ();
 function goAnyToInt64Retype (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/\bvar \w+ any = /.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/\bvar \w+ any = /.test (content)) { return content; }
     const ownMethods = goArithOwnMethods (goMaskGoCode (content), [ 'Sum' ]);
     const key = [ ...ownMethods ].join (',');
     if (key !== goAnyToInt64RetypeMemoKey) {
         goAnyToInt64RetypeMemoKey = key;
         goAnyToInt64RetypeMemo = new Map ();
     }
-    if (goAnyToInt64RetypeMemo.size > 20000) {
-        goAnyToInt64RetypeMemo.clear ();
-    }
+    if (goAnyToInt64RetypeMemo.size > 20000) { goAnyToInt64RetypeMemo.clear (); }
     const memo = goAnyToInt64RetypeMemo;
     return goArithEachFunc (content, (fn) => {
-        if (!fn.includes (' any = ')) {
-            return fn;
-        }
+        if (!fn.includes (' any = ')) { return fn; }
         let out = memo.get (fn);
         if (out === undefined) {
             out = goAnyToInt64RetypeFunc (fn, ownMethods);
@@ -5929,9 +4800,7 @@ function goInt64RetypeArith (content: string): string {
     let out = goNativeArithmetic (content);
     for (let i = 0; i < 4; i++) {
         const retyped = goAnyToInt64Retype (out);
-        if (retyped === out) {
-            break;
-        }
+        if (retyped === out) { break; }
         out = goNativeArithmetic (retyped);
     }
     return out;
@@ -5969,24 +4838,16 @@ function goEnclosingIfHeads (scope: GoArithScope): GoIfHead[] {
     for (let k = lines.length - 2; k >= 1; k--) {
         const s = lines[k].trim ();
         const li = indentOf (lines[k]);
-        if ((s === '') || (li >= indent)) {
-            continue;
-        }
+        if ((s === '') || (li >= indent)) { continue; }
         indent = li;
-        if (/\bfunc\b/.test (s)) {
-            break;
-        }
+        if (/\bfunc\b/.test (s)) { break; }
         if (s === '} else {') {
             // the chain head at the same indent; an `else if` chain proves nothing
             for (let j = k - 1; j >= 1; j--) {
                 const t = lines[j].trim ();
                 const lj = indentOf (lines[j]);
-                if ((t === '') || (lj > li)) {
-                    continue;
-                }
-                if (lj < li || /^\} else if /.test (t)) {
-                    break;
-                }
+                if ((t === '') || (lj > li)) { continue; }
+                if (lj < li || /^\} else if /.test (t)) { break; }
                 const h = /^if (.*) \{$/.exec (t);
                 if (h) {
                     heads.push ({ 'cond': h[1], 'negated': true });
@@ -5997,9 +4858,7 @@ function goEnclosingIfHeads (scope: GoArithScope): GoIfHead[] {
             continue;
         }
         const head = /^if (.*) \{$/.exec (s);
-        if (head) {
-            heads.push ({ 'cond': head[1], 'negated': false });
-        }
+        if (head) { heads.push ({ 'cond': head[1], 'negated': false }); }
     }
     return heads;
 }
@@ -6010,30 +4869,18 @@ function goIfGuarded (scope: GoArithScope, conjunct: string): boolean {
 
 // `var p *int64 = this.SafeInteger{,2,N}(..., D)` with D an int literal, a plain int/int64 local, or such a pointer
 function goNonNilIntInit (scope: GoArithScope, name: string, depth: number): boolean {
-    if ((depth > 3) || !goSingleWrite (scope, name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== '*int64')) {
-        return false;
-    }
+    if ((depth > 3) || !goSingleWrite (scope, name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== '*int64')) { return false; }
     const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
-    if (!decl || (decl.index > scope.pos)) {
-        return false;
-    }
+    if (!decl || (decl.index > scope.pos)) { return false; }
     const text = decl[1].trim ();
     const call = /^this\.SafeInteger(2|N)?\(/.exec (text);
-    if (!call || (goArithClose (text, call[0].length - 1) !== text.length - 1)) {
-        return false;
-    }
+    if (!call || (goArithClose (text, call[0].length - 1) !== text.length - 1)) { return false; }
     const spans = goArithArgs (text, call[0].length - 1, text.length - 1);
     const want = (call[1] === '2') ? 4 : 3;
-    if (spans.length !== want) {
-        return false;
-    }
+    if (spans.length !== want) { return false; }
     const def = text.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
-    if (/^-?\d+$/.test (def)) {
-        return true;
-    }
-    if (!/^[A-Za-z_]\w*$/.test (def)) {
-        return false;
-    }
+    if (/^-?\d+$/.test (def)) { return true; }
+    if (!/^[A-Za-z_]\w*$/.test (def)) { return false; }
     const type = goArithDeclaredType (scope.masked, scope.signature, def);
     return (type === 'int') || (type === 'int64') || goNonNilIntInit (scope, def, depth + 1);
 }
@@ -6043,25 +4890,17 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
     const t = goArithStripParens (text);
     const m = goArithStripParens (masked);
     const known = scope.known.get (t);
-    if (known !== undefined) {
-        return { 'kind': known, 'text': t };
-    }
+    if (known !== undefined) { return { 'kind': known, 'text': t }; }
     if (/^[A-Za-z_]\w*$/.test (t)) {
         const declared = goArithDeclaredType (scope.masked, scope.signature, t);
         if (((declared === '*int64') || (declared === '*float64')) && goSingleWrite (scope, t)) {
             const elseOfNil = goEnclosingIfHeads (scope).some ((h) => h.negated && (goArithStripParens (h.cond) === t + ' == nil'));
-            if (elseOfNil || goNonNilIntInit (scope, t, 0)) {
-                return { 'kind': (declared === '*int64') ? 'i64' : 'f64', 'text': '*' + t };
-            }
+            if (elseOfNil || goNonNilIntInit (scope, t, 0)) { return { 'kind': (declared === '*int64') ? 'i64' : 'f64', 'text': '*' + t }; }
         }
-        if ((goTupleElementType (scope, t, fileOwn) === '*int64') && goIfGuarded (scope, '!IsEqual(' + t + ', nil)')) {
-            return { 'kind': 'i64', 'text': '*' + t + '.(*int64)' };
-        }
+        if ((goTupleElementType (scope, t, fileOwn) === '*int64') && goIfGuarded (scope, '!IsEqual(' + t + ', nil)')) { return { 'kind': 'i64', 'text': '*' + t + '.(*int64)' }; }
     }
     const field = /^this\.(\w+)$/.exec (t);
-    if (field && fields.has (field[1]) && (GO_BASE_NUMERIC_FIELDS[field[1]] === 'f64')) {
-        return { 'kind': 'f64', 'text': t };
-    }
+    if (field && fields.has (field[1]) && (GO_BASE_NUMERIC_FIELDS[field[1]] === 'f64')) { return { 'kind': 'f64', 'text': t }; }
     const tight = /^([A-Za-z_]\w*)([-+])(\d+)$/.exec (m);
     if (tight && (t === m)) {
         const l = goGuardedDivideOperand (scope, tight[1], tight[1], fields, fileOwn);
@@ -6076,9 +4915,7 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
         const side = (s: string, ms: string) => goGuardedDivideOperand (scope, s, ms, fields, fileOwn);
         const l = side (t.slice (0, at), m.slice (0, at));
         const r = side (t.slice (at + op.length), m.slice (at + op.length));
-        if (l && r && isInt64Side (l.kind) && isInt64Side (r.kind) && ((l.kind === 'i64') || (r.kind === 'i64'))) {
-            return { 'kind': 'i64', 'text': '(' + l.text + op + r.text + ')' };
-        }
+        if (l && r && isInt64Side (l.kind) && isInt64Side (r.kind) && ((l.kind === 'i64') || (r.kind === 'i64'))) { return { 'kind': 'i64', 'text': '(' + l.text + op + r.text + ')' }; }
         return undefined;
     }
     // BaseExchange.Sum of integral operands boxes an int64 sum
@@ -6088,13 +4925,9 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
         let typed = false;
         const ps = goArithArgs (m, sum[0].length - 1, m.length - 1).map (([ s0, e0 ]) => goGuardedDivideOperand (scope, t.slice (s0, e0), m.slice (s0, e0), fields, fileOwn));
         // Sum folds Add from 0.0: float64 operands give their float64 sum
-        if ((ps.length >= 2) && ps.every ((p) => p && (p.kind === 'f64'))) {
-            return { 'kind': 'f64', 'text': '(' + ps.map ((p) => p?.text).join (' + ') + ')' };
-        }
+        if ((ps.length >= 2) && ps.every ((p) => p && (p.kind === 'f64'))) { return { 'kind': 'f64', 'text': '(' + ps.map ((p) => p?.text).join (' + ') + ')' }; }
         for (const p of ps) {
-            if (!p || ![ 'i64', 'ilit', 'int' ].includes (p.kind as string)) {
-                return undefined;
-            }
+            if (!p || ![ 'i64', 'ilit', 'int' ].includes (p.kind as string)) { return undefined; }
             typed = typed || (p.kind !== 'ilit');
             parts.push ((p.kind === 'int') ? 'int64(' + p.text + ')' : p.text);
         }
@@ -6107,9 +4940,7 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
     const deref = scope.derefs.has (t);
     const summed = scope.sums.get (t);
     scope.derefs = saved;
-    if (kind === undefined) {
-        return undefined;
-    }
+    if (kind === undefined) { return undefined; }
     const spelled = deref ? '*' + t : (summed ?? t);
     return { 'kind': kind, 'text': (/^[\w.*]+$|^-?\d+(?:\.\d+)?$/.test (spelled) || /^[\w.]+\(.*\)$/.test (spelled) && (goArithClose (goMaskGoCode (spelled), spelled.indexOf ('(')) === spelled.length - 1)) ? spelled : '(' + spelled + ')' };
 }
@@ -6118,14 +4949,10 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
 function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
     const t = goArithStripParens (b);
     const lit = (t.indexOf ('.') < 0) ? goArithIntLiteralValue (t) : Number (t);
-    if ((lit !== undefined) && (lit > 0)) {
-        return true;
-    }
+    if ((lit !== undefined) && (lit > 0)) { return true; }
     const name = t.replace (/^\*/, '');
     if (/^[A-Za-z_]\w*$/.test (name)) {
-        if (goPositiveDivisorLiteral (name) || goPowOfTenDivisor (scope, name)) {
-            return true;
-        }
+        if (goPositiveDivisorLiteral (name) || goPowOfTenDivisor (scope, name)) { return true; }
         if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (goArithDeclaredType (scope.masked, scope.signature, name) !== undefined)) {
             return true;
         }
@@ -6143,9 +4970,7 @@ function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fiel
     let usesMath = false;
     for (const call of calls) {
         const close = goArithClose (masked, call.open);
-        if (close < 0) {
-            continue;
-        }
+        if (close < 0) { continue; }
         const spans = goArithArgs (masked, call.open, close);
         scope.pos = call.start;
         let native: string | undefined = undefined;
@@ -6160,22 +4985,14 @@ function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fiel
         } else if ((call.helper !== 'Divide') && (spans.length === 1)) {
             // only around a quotient this pass produced
             const arg = goArithStripParens (text.slice (spans[0][0], spans[0][1]));
-            if (mine.has (arg)) {
-                native = 'math.' + call.helper.slice (4) + '(' + arg + ')';
-            }
+            if (mine.has (arg)) { native = 'math.' + call.helper.slice (4) + '(' + arg + ')'; }
         }
-        if (native === undefined) {
-            continue;
-        }
+        if (native === undefined) { continue; }
         let after = close + 1;
-        if (/(==|!=)\s*$/.test (masked.slice (0, call.start)) || /^\s*(==|!=)/.test (masked.slice (after))) {
-            continue;  // an interface comparison differs from a typed one
-        }
+        if (/(==|!=)\s*$/.test (masked.slice (0, call.start)) || /^\s*(==|!=)/.test (masked.slice (after))) { continue; } // an interface comparison differs from a typed one
         const assertion = /^\.\((\w+)\)/.exec (masked.slice (after));
         if (assertion) {
-            if (assertion[1] !== 'float64') {
-                continue;
-            }
+            if (assertion[1] !== 'float64') { continue; }
             after += assertion[0].length;
         }
         scope.known.set (native, 'f64');
@@ -6194,9 +5011,7 @@ function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fiel
 }
 
 function goGuardedDivide (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Divide\(/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Divide\(/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
     const fields = goArithBaseFields (masked);
@@ -6226,13 +5041,9 @@ function goNativeDivideCheck (): string[] {
     ];
     const problems = goArithCaseProblems (goGuardedDivide, wrap, cases, 'go native divide check expected ');
     const shadow = goGuardedDivide ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif this.RateLimit > 0 {\n\t\treturn Divide(1, this.RateLimit)\n\t}\n\treturn nil'));
-    if (!shadow.includes ('Divide(1, this.RateLimit)')) {
-        problems.push ('shadowed field went native: ' + shadow);
-    }
+    if (!shadow.includes ('Divide(1, this.RateLimit)')) { problems.push ('shadowed field went native: ' + shadow); }
     const imported = goGuardedDivide (wrap ('\tvar s int64 = 3\n\treturn MathCeil(Divide(s, 1000))'));
-    if (!imported.includes ('import "math"') || !imported.includes ('math.Ceil(float64(s) / 1000)')) {
-        problems.push ('math import / Ceil missing: ' + imported);
-    }
+    if (!imported.includes ('import "math"') || !imported.includes ('math.Ceil(float64(s) / 1000)')) { problems.push ('math import / Ceil missing: ' + imported); }
     return problems;
 }
 
@@ -6241,18 +5052,12 @@ function goNativeDivideCheck (): string[] {
 function goIntegralWriteKind (scope: GoArithScope, name: string, hyp: Kind, text: string, masked: string, seen: Set<string>): Kind | undefined {
     const t = goArithStripParens (text);
     const m = goArithStripParens (masked);
-    if (/^\d{1,15}$/.test (t) && !/^0\d/.test (t)) {
-        return 'int';
-    }
+    if (/^\d{1,15}$/.test (t) && !/^0\d/.test (t)) { return 'int'; }
     const arg = (a: string, am: string): Kind | undefined => {
         const s = goArithStripParens (a);
-        if (s === name) {
-            return hyp;
-        }
+        if (s === name) { return hyp; }
         // another box local: its own single kind (bounded recursion, cycles answer undefined)
-        if (/^[A-Za-z_]\w*$/.test (s) && (goArithDeclaredType (scope.masked, scope.signature, s) === 'any')) {
-            return goIntegralBoxKind (scope, s, seen);
-        }
+        if (/^[A-Za-z_]\w*$/.test (s) && (goArithDeclaredType (scope.masked, scope.signature, s) === 'any')) { return goIntegralBoxKind (scope, s, seen); }
         const inner: GoArithScope = { ...scope, 'derefs': new Set<string> (), 'sums': new Map<string, string> () };
         const k = goArithKind (inner, a, am) ?? goCompareOperandKind (scope, a, am);
         return (k === 'ilit') ? 'int' : k;
@@ -6262,9 +5067,7 @@ function goIntegralWriteKind (scope: GoArithScope, name: string, hyp: Kind, text
         const open = m.indexOf ('{');
         const end = goArithClose (m, open);
         const body = m.slice (open + 1, end);
-        if ((end < 0) || (m.slice (end + 1).trim () !== '()') || /\bfunc\b/.test (body)) {
-            return undefined;
-        }
+        if ((end < 0) || (m.slice (end + 1).trim () !== '()') || /\bfunc\b/.test (body)) { return undefined; }
         const rets = [ ...body.matchAll (/\breturn\b([^\n]*)/g) ];
         const off = open + 1;
         const kinds = rets.map ((r) => {
@@ -6273,51 +5076,35 @@ function goIntegralWriteKind (scope: GoArithScope, name: string, hyp: Kind, text
             return goIntegralWriteKind (scope, name, hyp, t.slice (s0, e0), m.slice (s0, e0), seen);
         });
         const stmts = body.split ('\n').map ((l) => l.trim ()).filter ((l) => l !== '');
-        if ((rets.length < 2) || !stmts.every ((l) => /^(?:if .* \{|\} else \{|\} else if .* \{|\}|return .+)$/.test (l))) {
-            return undefined;
-        }
+        if ((rets.length < 2) || !stmts.every ((l) => /^(?:if .* \{|\} else \{|\} else if .* \{|\}|return .+)$/.test (l))) { return undefined; }
         return kinds.every ((k) => k === hyp) ? hyp : undefined;
     }
     const deref = /^(?:ccxt\.)?DerefScalar\(this\.SafeInteger(?:2|N)?\(/.exec (m);
-    if (deref && (goArithClose (m, deref[0].length - 1) === m.length - 2) && goNonNilIntegerInit (m.slice (deref[0].indexOf ('(') + 1, -1))) {
-        return 'i64';
-    }
+    if (deref && (goArithClose (m, deref[0].length - 1) === m.length - 2) && goNonNilIntegerInit (m.slice (deref[0].indexOf ('(') + 1, -1))) { return 'i64'; }
     const call = /^(?:(?:ccxt\.)?(Add|Subtract|Multiply)|this\.(Sum))\(/.exec (m);
     if (call && (goArithClose (m, call[0].length - 1) === m.length - 1) && !((call[2] === 'Sum') && scope.ownMethods.has ('Sum'))) {
         const spans = goArithArgs (m, call[0].length - 1, m.length - 1);
-        if ((call[2] === undefined) && (spans.length !== 2)) {
-            return undefined;
-        }
+        if ((call[2] === undefined) && (spans.length !== 2)) { return undefined; }
         const kinds = spans.map (([ s, e ]) => arg (t.slice (s, e).trim (), m.slice (s, e).trim ()));
-        if ((kinds.length === 0) || kinds.some ((k) => (k !== 'i64') && (k !== 'int'))) {
-            return undefined;
-        }
+        if ((kinds.length === 0) || kinds.some ((k) => (k !== 'i64') && (k !== 'int'))) { return undefined; }
         // Add keeps int+int as int; every other mix goes through int64 (ParseInt / reflect Int())
         return ((call[1] === 'Add') && kinds.every ((k) => k === 'int')) ? 'int' : 'i64';
     }
-    if (/^(?:ccxt\.)?\w+\(/.test (m) && !/^(?:int64|int|float64|len)\(/.test (m)) {
-        return undefined;
-    }
+    if (/^(?:ccxt\.)?\w+\(/.test (m) && !/^(?:int64|int|float64|len)\(/.test (m)) { return undefined; }
     const k = goCompareOperandKind (scope, t, m);
     return ((k === 'i64') || (k === 'int')) ? k : undefined;
 }
 
 // the single box kind of a `var name any = E` local over all its writes, assuming it inductively
 function goIntegralBoxKind (scope: GoArithScope, name: string, seen: Set<string> = new Set<string> ()): Kind | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (name) || seen.has (name) || (seen.size > 4) || (goDeclCount (scope.masked, name) !== 1)) {
-        return undefined;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || seen.has (name) || (seen.size > 4) || (goDeclCount (scope.masked, name) !== 1)) { return undefined; }
     const decl = new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*([^\\n]+)').exec (scope.masked);
-    if (!decl || (decl.index > scope.pos)) {
-        return undefined;
-    }
+    if (!decl || (decl.index > scope.pos)) { return undefined; }
     const writes: [ number, number ][] = [ [ decl.index + decl[0].length - decl[1].length, 0 ] ];
     const rx = new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g');
     for (const w of scope.masked.matchAll (rx)) {
         // only plain `name = E` rebinds; compound, tuple and address-taken writes keep the helper
-        if (!/^\w+\s*=$/.test (w[0]) || /,\s*$/.test (scope.masked.slice (0, w.index as number))) {
-            return undefined;
-        }
+        if (!/^\w+\s*=$/.test (w[0]) || /,\s*$/.test (scope.masked.slice (0, w.index as number))) { return undefined; }
         writes.push ([ (w.index as number) + w[0].length, 0 ]);
     }
     // a write spans to the first newline outside brackets (multi-line `func() any {...}()` initializers)
@@ -6348,9 +5135,7 @@ function goIntegralBoxKind (scope: GoArithScope, name: string, seen: Set<string>
             }
         }
         scope.pos = saved;
-        if (ok) {
-            return hyp;
-        }
+        if (ok) { return hyp; }
     }
     return undefined;
 }
@@ -6366,9 +5151,7 @@ function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields
         goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x) || goGuardedPointerNonNil (sc, x)),
     ];
     return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs, current) => {
-        if (args.length !== 2) {
-            return undefined;
-        }
+        if (args.length !== 2) { return undefined; }
         scope.text = current;
         const ops = goCompareOperands (scope, args, margs, rules);
         // only sites the field-comparison pass could not prove (a box local or a guarded pointer)
@@ -6376,15 +5159,7 @@ function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields
     });
 }
 
-function goIntegralBoxComparisons (content: string): string {
-    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
-        return content;
-    }
-    const masked = goMaskGoCode (content);
-    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
-    const fields = goArithBaseFields (masked);
-    return goArithEachFunc (content, (fn, head) => !/Is(?:Greater|Less)Than/.test (fn) ? fn : goIntegralBoxRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
-}
+function goIntegralBoxComparisons (content: string): string { return goArithFieldCmpPass (content, [ 'Sum' ], goIntegralBoxRewriteFunc); }
 
 function goBoxedIntComparisonsSelfTest (): string[] {
     const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
@@ -6405,43 +5180,31 @@ function goBoxedIntComparisonsSelfTest (): string[] {
     const problems = goArithCaseProblems (goIntegralBoxComparisons, wrap, cases, 'go boxed int comparisons self expected ');
     // a file-local Sum may answer another box
     const own = goIntegralBoxComparisons ('// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) Sum(a ...any) any {\n\treturn nil\n}\n' + wrap ('\tvar s int64 = 5\n\tvar e any = this.Sum(s, 10)\n\tif IsLessThan(e, s) {\n\t}\n\treturn nil'));
-    if (!own.includes ('IsLessThan(e, s)')) {
-        problems.push ('own Sum went native: ' + own);
-    }
+    if (!own.includes ('IsLessThan(e, s)')) { problems.push ('own Sum went native: ' + own); }
     return problems;
 }
 
 function goAddImport (content: string, pkg: string): string {
-    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
-        return content;
-    }
+    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) { return content; }
     const lines = content.split ('\n');
     const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
+    if (at < 0) { return content; }
     lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
     return lines.join ('\n');
 }
 
 // `if IsEqual(this.M(args), true) {` where M is a method of the same receiver in this file whose every
 function goIsEqualBoolMethod (content: string): string {
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/IsEqual\(this\.\w+\(/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/IsEqual\(this\.\w+\(/.test (content)) { return content; }
     const boolish = new Set<string> ();
     const funcs = content.split (/(?=\nfunc )/);
     for (const f of funcs) {
         const head = f.match (/^\nfunc \(this \*(\w+)\) (\w+)\([^\n]*\) (?:any|bool) \{\n/);
         if (!head) { continue; }
         const rets = [ ...goMaskGoCode (f).matchAll (/\breturn\b([^\n]*)/g) ].map ((r) => r[1].trim ());
-        if (rets.length && rets.every ((r) => [ 'true', 'false', 'nil', 'ret__', '' ].includes (r)) && rets.some ((r) => (r === 'true') || (r === 'false'))) {
-            boolish.add (head[1] + '.' + head[2]);
-        }
+        if (rets.length && rets.every ((r) => [ 'true', 'false', 'nil', 'ret__', '' ].includes (r)) && rets.some ((r) => (r === 'true') || (r === 'false'))) { boolish.add (head[1] + '.' + head[2]); }
     }
-    if (!boolish.size) {
-        return content;
-    }
+    if (!boolish.size) { return content; }
     return funcs.map ((f) => {
         const head = f.match (/^\nfunc \(this \*(\w+)\)/);
         if (!head) { return f; }
@@ -6465,9 +5228,7 @@ function goPtrHoistTopLevel (v: string, sep: string, stop = false): string[] | u
             continue;
         }
         if (c === '`') { i = v.indexOf ('`', i + 1); if (i < 0) { return undefined; } continue; }
-        if ('([{'.includes (c)) { depth++; } else if (')]}'.includes (c)) {
-            if (--depth < 0) { if (stop) { parts.push (v.slice (start, i)); parts.push (v.slice (i)); return parts; } return undefined; }
-        }
+        if ('([{'.includes (c)) { depth++; } else if (')]}'.includes (c)) { if (--depth < 0) { if (stop) { parts.push (v.slice (start, i)); parts.push (v.slice (i)); return parts; } return undefined; } }
         if ((depth === 0) && v.startsWith (sep, i)) { parts.push (v.slice (start, i)); start = i + sep.length; i += sep.length - 1; }
     }
     if (depth !== 0 || stop) { return undefined; }
@@ -6491,9 +5252,7 @@ function goPtrHoistIsString (v: string, func: string): boolean {
     return false;
 }
 function goSafeStringPtrHoist (content: string): string {
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || (content.indexOf ('SafeStringPtr(') < 0)) {
-        return content;
-    }
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || (content.indexOf ('SafeStringPtr(') < 0)) { return content; }
     return content.split (/(?=\nfunc )/).map ((func) => {
         const used = new Set<string> ();
         const lines = func.split ('\n');
@@ -6567,25 +5326,17 @@ function goSafeStringPtrHoistCheck (): string[] {
 // of the literal's concrete type: a typed local assigned in a plain if/else evaluates the same branch in the same order
 const GO_TERNARY_IIFE_STMT = /^([ \t]*)(?:var (\w+) ([\w*\[\]{}]+) = |(\w+) := |(\w+(?:\["\w+"\])?) = )func\(\) (bool|string|\*string|int64|float64) \{\n([ \t]+)if ([^\n]+) \{\n([ \t]+)return ([^\n]+)\n\7\}\n\7return ([^\n]+)\n\1\}\(\)$/gm;
 function goTernaryIifeStatements (content: string): string {
-    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
-        return content;
-    }
+    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) { return content; }
     return content.replace (GO_TERNARY_IIFE_STMT, (m: string, ind: string, vName: string, vType: string, defName: string, target: string, litType: string, body: string, cond: string, branch: string, a: string, b: string) => {
         const step = body.substring (ind.length);
-        if (!body.startsWith (ind) || (step.length === 0) || (branch !== body + step) || /func\(|\}\(\)|^\s*$/.test (a + '\n' + b) || cond.endsWith ('{')) {
-            return m;
-        }
+        if (!body.startsWith (ind) || (step.length === 0) || (branch !== body + step) || /func\(|\}\(\)|^\s*$/.test (a + '\n' + b) || cond.endsWith ('{')) { return m; }
         const lhs = target ?? vName ?? defName;
         // a new local must not be named by its own arms or condition (they read the outer binding in the literal)
-        if ((target === undefined) && new RegExp ('\\b' + lhs + '\\b').test (cond + '\n' + a + '\n' + b)) {
-            return m;
-        }
+        if ((target === undefined) && new RegExp ('\\b' + lhs + '\\b').test (cond + '\n' + a + '\n' + b)) { return m; }
         // into a slot not typed T an untyped constant arm would change type (nil, `5` boxes int): convert or keep
         const typedSlot = (target === undefined) && ((vType === undefined) || (vType === litType));
         const arm = (v: string) => typedSlot ? v : ((v === 'nil') ? undefined : (/^-?[\d.e]+$/.test (v) ? litType + '(' + v + ')' : v));
-        if (!typedSlot && ([ a, b ].some ((v) => (arm (v) === undefined) || /^[-\d.e()*+\/ ]+$/.test (v) && !/^-?[\d.e]+$/.test (v)))) {
-            return m;
-        }
+        if (!typedSlot && ([ a, b ].some ((v) => (arm (v) === undefined) || /^[-\d.e()*+\/ ]+$/.test (v) && !/^-?[\d.e]+$/.test (v)))) { return m; }
         a = arm (a);
         b = arm (b);
         const decl = (target === undefined) ? ind + 'var ' + lhs + ' ' + (vType ?? litType) + '\n' : '';
@@ -6631,15 +5382,11 @@ function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
     return undefined;
 }
 function goTernaryAnyTyped (content: string): string {
-    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
-        return content;
-    }
+    if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) { return content; }
     return goRewriteFuncBlocks (content, (fn) => fn.replace (GO_TERNARY_ANY_STMT, (m: string, ind: string, vName: string, defName: string, body: string, cond: string, branch: string, a: string, b: string, note: string | undefined) => {
         const lhs = vName ?? defName;
         // a string literal naming the local (`this.SafeNumber(e, "x")`) is not a self-read
-        if ((branch !== body + body.substring (ind.length)) || new RegExp ('\\b' + lhs + '\\b').test ((cond + '\n' + a + '\n' + b).replace (/"(?:[^"\\]|\\.)*"/g, '""'))) {
-            return m;
-        }
+        if ((branch !== body + body.substring (ind.length)) || new RegExp ('\\b' + lhs + '\\b').test ((cond + '\n' + a + '\n' + b).replace (/"(?:[^"\\]|\\.)*"/g, '""'))) { return m; }
         const ta = goTernaryAnyArmType (a, fn);
         const tb = goTernaryAnyArmType (b, fn);
         // no common arm type: keep the `any` box and fill it per branch (each store boxes what the literal returned)
@@ -6667,9 +5414,7 @@ function goTernaryAnyTyped (content: string): string {
 // in a plain if/else store the same dynamic value the literal returned, in the same order
 const GO_TERNARY_ANY_ASSIGN = /^([ \t]*)(\w+(?:\["\w+"\])?) = func\(\) any \{\n([ \t]+)if ([^\n]+) \{\n([ \t]+)return ([^\n]+)\n\3\}\n\3return ([^\n]+)\n\1\}\(\)$/gm;
 function goTernaryAnyAssign (content: string): string {
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || (content.indexOf (' = func() any {') < 0)) {
-        return content;
-    }
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || (content.indexOf (' = func() any {') < 0)) { return content; }
     return goRewriteFuncBlocks (content, (fn) => fn.replace (GO_TERNARY_ANY_ASSIGN, (m: string, ind: string, lhs: string, body: string, cond: string, branch: string, a: string, b: string) => {
         const ta = goTernaryAnyArmType (a, fn);
         if ((branch !== body + body.substring (ind.length)) || /func\(|\}\(\)/.test (cond + a + b) || cond.endsWith ('{')
@@ -6722,9 +5467,7 @@ function goTernaryIifeStatementsCheck (): string[] {
 // `func() T { if c { return a }; return b }()` inside a statement (map value, call arg, `+` operand): when
 const GO_IIFE_PURE_CALLEE = /^(?:(?:ccxt\.)?(?:Add|ToString|IsEqual)|this\.Safe(?:String|Integer|Number|Bool|Value|Dict|List)(?:2|N|Lower|Upper)*|strconv\.FormatInt|(?:ccxt\.)?(?:StatusFromMap|MapTyped))$/;
 function goTernaryIifeOperands (content: string): string {
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string|any|\*string|int64|float64) \{\n/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string|any|\*string|int64|float64) \{\n/.test (content)) { return content; }
     const indentOf = (s: string) => /^\t*/.exec (s)[0].length;
     const mask = (s: string) => s.replace (/"(?:[^"\\\n]|\\.)*"|`[^`]*`/g, (q) => '"' + ' '.repeat (q.length - 2) + '"');
         return content.split (/(?=\nfunc )/).map ((func) => {
@@ -6804,9 +5547,7 @@ function goTernaryIifeOperands (content: string): string {
 // `func() string { if p == nil { return "" }; str := *p; return str[..] }()` inside a statement -> typed local set before it;
 // guards (no panic, map read only) may move before an if/else-if chain whose earlier conditions hold no call
 function goGuardIifeOperands (content: string): string {
-    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string) \{/.test (content)) {
-        return content;
-    }
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/func\(\) (?:bool|string) \{/.test (content)) { return content; }
     const indentOf = (s: string) => /^\t*/.exec (s)[0].length;
     const mask = (s: string) => s.replace (/"(?:[^"\\\n]|\\.)*"|`[^`]*`/g, (q) => '"' + ' '.repeat (q.length - 2) + '"');
     const hasCall = (s: string) => /[\w\]\)]\(|\.\(|<-/.test (mask (s));
@@ -6836,9 +5577,7 @@ function goGuardIifeOperands (content: string): string {
                 // statement start: an if/else-if head line itself, else the latest line at the innermost block depth
                 let start = -1;
                 let chainStart = -1;
-                if (/^\t*(?:\} else )?if /.test (lines[i])) {
-                    start = i;
-                } else {
+                if (/^\t*(?:\} else )?if /.test (lines[i])) { start = i; } else {
                     const stacks = goIifeLineStacks (lines.slice (0, i + 1), mask);
                     let blockDepth = -1;
                     for (let d = stacks[i].length - 1; d >= 0; d--) { if (stacks[i][d] === 'B') { blockDepth = d + 1; break; } }
@@ -6850,9 +5589,7 @@ function goGuardIifeOperands (content: string): string {
                 const m = mask (before);
                 const st: number[] = [];
                 let callBefore = /\.\(|<-|\bfunc\(/.test (m);
-                for (let q = 0; q < m.length; q++) {
-                    if (m[q] === '(') { st.push (/[\w\]\)]$/.test (m.slice (0, q)) ? 1 : 0); } else if (m[q] === ')') { if (st.pop () === 1) { callBefore = true; } }
-                }
+                for (let q = 0; q < m.length; q++) { if (m[q] === '(') { st.push (/[\w\]\)]$/.test (m.slice (0, q)) ? 1 : 0); } else if (m[q] === ')') { if (st.pop () === 1) { callBefore = true; } } }
                 // a substring literal may panic: it must be evaluated unconditionally (no short-circuit before it, no if head)
                 if (callBefore || (!isBool && ((start === i && /^\t*(?:\} else )?if /.test (lines[i])) || /&&|\|\|/.test (m)))) { skip.add (i); continue; }
                 chainStart = start;
@@ -6937,7 +5674,6 @@ function goTernaryIifeOperandsCheck (): string[] {
     return problems;
 }
 
-
 function goIsEqualBoolMethodCheck (): string[] {
     const problems: string[] = [];
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
@@ -6951,258 +5687,95 @@ function goIsEqualBoolMethodCheck (): string[] {
 
 type dict = { [key: string]: string };
 
-// required non-symbol string params (order ids, currency codes, addresses): merged into the table below
-const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
-    'fetchDepositAddress': [ 0 ], 'createDepositAddress': [ 0 ], 'fetchDepositAddressesByNetwork': [ 0 ],
-    'fetchContractDepositAddress': [ 0 ], 'cancelOrder': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
-    'cancelSpotOrder': [ 0 ], 'cancelContractOrder': [ 0 ], 'fetchOrderStatus': [ 0 ], 'editLimitOrder': [ 0 ],
-    'editLimitBuyOrder': [ 0 ], 'editLimitSellOrder': [ 0 ], 'editOrderWithClientOrderId': [ 0 ],
-    'fetchOrderWithClientOrderId': [ 0 ], 'cancelOrderWithClientOrderId': [ 0 ], 'createConvertTrade': [ 0, 1, 2 ],
-    'fetchConvertQuote': [ 0, 1 ], 'fetchConvertTrade': [ 0 ], 'repayCrossMargin': [ 0 ], 'borrowCrossMargin': [ 0 ],
-    'repayIsolatedMargin': [ 1 ], 'borrowIsolatedMargin': [ 1 ], 'repayMargin': [ 0 ], 'borrowMargin': [ 0 ],
-    'fetchCrossBorrowRate': [ 0 ], 'fetchBorrowRate': [ 0 ], 'fetchDepositWithdrawFee': [ 0 ],
-    'fetchTransactionFee': [ 0 ], 'fetchOptionChain': [ 0 ], 'createSubAccount': [ 0 ], 'fetchTransfer': [ 0 ],
-    'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
-    'editOrder': [ 0 ], 'fetchOrder': [ 0 ], 'fetchOrderRequest': [ 0 ], 'fetchOrderTrades': [ 0 ], 'withdraw': [ 0 ],
-    'transfer': [ 0, 2, 3 ], 'setMarginMode': [ 0 ],
-    // required `code: string` currency-code params (every declaration in ts/src is a required string)
-    'fetchBorrowRateHistory': [ 0 ], 'fetchVolatilityHistory': [ 0 ], 'futuresTransfer': [ 0 ], 'createGiftCode': [ 0 ],
-    'transferIn': [ 0 ], 'transferOut': [ 0 ], 'fetchNetworkDepositAddress': [ 0 ],
-    'convertCurrencyNetwork': [ 0 ],
-    'deposit': [ 0, 2 ], 'fetchWithdrawAddresses': [ 0 ],
-    'fetchOpenOrder': [ 0 ], 'fetchClosedOrder': [ 0 ],
-    'mergeBalanceAccount': [ 1 ],  // required code string; callers pass string codes
-};
-
-// Slice mirror of the string table below: these ws unWatch methods take `string[]`/`string[][]` symbols, matching
-const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = {
-    'unWatchTradesForSymbols': { 0: '[]string' },
-    'unWatchOrderBookForSymbols': { 0: '[]string' },
-    // createOrders (orders: OrderRequest[]) prints `orders []any` on the base, every venue and
-    // ICreateOrders: every caller already hands over a `[]any`
-    'createOrders': { 0: '[]map[string]any' },
-    // base list params every caller hands a `[]any` (typed locals, SortBy/ToArray results, literals);
-    // IDerivedExchange declares GetCacheIndex/HandleBookDeltas with the same slice
-    'getCacheIndex': { 1: '[]any' }, 'handleBookDeltas': { 1: '[]any' }, 'handleDeltasWithKeys': { 1: '[]any' },
-    'arraysConcat': { 0: '[]any' }, 'removeRepeatedElementsFromArray': { 0: '[]any' },
-    'removeRepeatedTradesFromArray': { 0: '[]any' }, 'parseOptionChain': { 0: '[]any' }, 'findNearestCeiling': { 0: '[]any' },
-    'parseWsOHLCVs': { 0: '[]any' },
-    // fetchOutcomes (outcomeSymbols: string[]) on PredictionExchange, kalshi and polymarket: the one caller hands its string[] misses
-    'fetchOutcomes': { 0: '[]string' },
-    // cancelOrders (ids: string[]) on the base, every venue and ICancelOrders
-    'cancelOrders': { 0: '[]string' },
-    // calculateRateLimiterCost (api: string[]) on the base and every override; fetch2 hands its []string api
-    'calculateRateLimiterCost': { 0: '[]string' },
-    // handleDeltas (deltas: any[]) on the base and every ws override; callers pass safeList locals or reads
-    'handleDeltas': { 0: 'IOrderBookSide', 1: '[]any' },
-    // the book side every caller hands over (`orderbook['asks']` / the forwarded side); IDerivedExchange declares it
-    'handleDelta': { 0: 'IOrderBookSide' },
-    // venue handleBidAsks (bookSide: OrderBookSide): every caller hands `book['asks'|'bids']` or a local bound to one
-    'handleBidAsks': { 0: 'IOrderBookSide' },
-    // row-list params every ts/src caller hands a `[]any` (literals, typed locals); the typed wrapper keeps
-    // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
-    'cancelOrdersForSymbols': { 0: '[]map[string]any' }, 'editOrders': { 0: '[]map[string]any' },
-    // symbol-list params every caller hands a `[]any` literal; the typed wrapper converts its []string
-    'watchOrderBookForSymbols': { 0: '[]any' }, 'watchTradesForSymbols': { 0: '[]any' },
-    // base List params with no override and no interface line; every ts/src caller hands a `[]any` local or ToArray
-    'parseFundingRates': { 0: '[]any' }, 'parseFundingRateHistories': { 0: '[]any' },
-    'parseLongShortRatioHistory': { 0: '[]any' }, 'parseIsolatedBorrowRates': { 0: '[]any' },
-    // createOrdersWs (orders: OrderRequest[]) on the base, gate and hyperliquid; the typed wrapper converts
-    'createOrdersWs': { 0: '[]map[string]any' },
-    // venue createOrdersRequest (gate, hyperliquid, pacifica): callers are createOrders/createOrdersWs cores
-    'createOrdersRequest': { 0: '[]map[string]any' },
-    // symbols-and-timeframes rows (string[][]): literals print `[][]any{[]any{..}}`, the wrapper converts its [][]string
-    'watchOHLCVForSymbols': { 0: '[][]any' }, 'unWatchOHLCVForSymbols': { 0: '[][]any' },
-    // base List params every ts/src caller hands a `[]any` local; ParseDepositAddresses' interface line matches
-    'parseDepositAddresses': { 0: '[]any' }, 'parseBorrowInterests': { 0: '[]any' },
-    'parseLiquidations': { 0: '[]any' }, 'parseOpenInterests': { 0: '[]any' },
-    'parseMarginModifications': { 0: '[]any' },
-    // base parseMarginModes (response: object[]): no override, no interface line; every caller hands a `[]any` local or ToArray
-    'parseMarginModes': { 0: '[]any' },
-    // PredictionExchange params (no override) every venue caller hands a `[]any` local or literal
-    'applyEventFetchParams': { 0: '[]any' }, 'rlpEncodeList': { 0: '[]any' },
-    // cancelOrdersWs (ids: string[]) on the base and every ws override; the typed wrapper already takes []string
-    'cancelOrdersWs': { 0: '[]string' },
-    // bybit topic lists: every caller hands a []string local or literal
-    'watchTopics': { 1: '[]string', 2: '[]string' }, 'unWatchTopics': { 3: '[]string', 4: '[]string', 5: '[]string' },
-    // base filterByLimit (array: any[]): its callers hand a []any result local or SortBy; no override, no interface line
-    'filterByLimit': { 0: '[]any' },
-    // base-only number[][] param with no ts/src caller, no override and no typed wrapper
-    'convertOHLCVToTradingView': { 0: '[][]any' },
-    // hyperliquid editOrdersRequest (orders: List): callers are editOrders and editOrderWs, both handing map rows
-    'editOrdersRequest': { 0: '[]map[string]any' },
-    // PredictionExchange event filters (no override): the one caller hands the typed `[]any` event list
-    'filterEventsByStatus': { 0: '[]any' }, 'filterEventsByTags': { 0: '[]any' }, 'filterEventsBySearchIn': { 0: '[]any' },
-    // base List param; every ts/src caller hands a `[]any` row list (typed receive, safeList or row-list producer)
-    'parseIncomes': { 0: '[]any' },
-    // ws list frames (handleListMessage (client, message: List)): the hand-written dispatch hands the asserted []any
-    'handleListMessage': { 1: '[]any' },
-    // order-row lists the createOrders cores hand over whole (kucoin spot/contract, bitget uta)
-    'createSpotOrders': { 0: '[]map[string]any' }, 'createContractOrders': { 0: '[]map[string]any' },
-    'createUtaOrders': { 0: '[]map[string]any' },
-    // ws symbol lists (symbols: string[]) on the base and every override; only the typed wrappers call them
-    'watchMyTradesForSymbols': { 0: '[]string' }, 'watchFundingRatesForSymbols': { 0: '[]string' },
-    'watchLiquidationsForSymbols': { 0: '[]string' },
-    'watchMyLiquidationsForSymbols': { 0: '[]string' },
-    'watchOrdersForSymbols': { 0: '[]string' },
-    // base List row param with no override; every caller hands a `[]any` local
-    'parseADLRanks': { 0: '[]any' },
-    // base parseLeverages (response: object[]): no override, no interface line; every caller hands a `[]any` local or ToArray
-    'parseLeverages': { 0: '[]any' },
-    // base parseOpenInterestsHistory / parseBorrowRateHistory (response: object[]): no override; every caller hands a `[]any` local
-    'parseOpenInterestsHistory': { 0: '[]any' },
-    'parseBorrowRateHistory': { 0: '[]any' },
-    // base parseMarkets (markets: List) and the bitvavo / xt overrides; every caller hands a row list
-    'parseMarkets': { 0: '[]any' },
-};
-
-// the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
-const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = {
-    'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray',
-    'string[][]': 'ConvertStringMatrixToArray', 'string[]': 'StringSliceToList',
-};
-
-// exchange-local methods no ts/src file calls whose required `string` params are Go strings
-// (`<class>.<method>` -> indexes); the call-site proof is vacuous there, so the printer takes the table
-const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = {
-    'bingx.getOrderBookLimitByMarketType': [ 0 ],
-    'hitbtc.convertCurrencyNetwork': [ 2, 3 ],
-    'hyperliquid.resolveOutcomeInput': [ 0 ],
-};
-// base methods whose tuple slot 0 is the Go `*string` (TS declares `string`)
+function goGroupedTable<T> (groups: [ T, string ][]): { [method: string]: T } {
+    const out: { [method: string]: T } = {};
+    for (const [ val, names ] of groups) { for (const name of names.split (' ')) { out[name] = val; } }
+    return out;
+}
+const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } } = goGroupedTable ([
+    [ {"0":"[]any"}, 'arraysConcat removeRepeatedElementsFromArray removeRepeatedTradesFromArray parseOptionChain findNearestCeiling parseWsOHLCVs'
+        + ' watchOrderBookForSymbols watchTradesForSymbols parseFundingRates parseFundingRateHistories parseLongShortRatioHistory'
+        + ' parseIsolatedBorrowRates parseDepositAddresses parseBorrowInterests parseLiquidations parseOpenInterests parseMarginModifications'
+        + ' parseMarginModes applyEventFetchParams rlpEncodeList filterByLimit filterEventsByStatus filterEventsByTags filterEventsBySearchIn'
+        + ' parseIncomes parseADLRanks parseLeverages parseOpenInterestsHistory parseBorrowRateHistory parseMarkets' ],
+    [ {"0":"[]string"}, 'unWatchTradesForSymbols unWatchOrderBookForSymbols fetchOutcomes cancelOrders calculateRateLimiterCost cancelOrdersWs'
+        + ' watchMyTradesForSymbols watchFundingRatesForSymbols watchLiquidationsForSymbols watchMyLiquidationsForSymbols'
+        + ' watchOrdersForSymbols' ],
+    [ {"0":"[]map[string]any"}, 'createOrders cancelOrdersForSymbols editOrders createOrdersWs createOrdersRequest editOrdersRequest createSpotOrders'
+        + ' createContractOrders createUtaOrders' ],
+    [ {"1":"[]any"}, 'getCacheIndex handleBookDeltas handleDeltasWithKeys handleListMessage' ],
+    [ {"0":"[][]any"}, 'watchOHLCVForSymbols unWatchOHLCVForSymbols convertOHLCVToTradingView' ],
+    [ {"0":"IOrderBookSide"}, 'handleDelta handleBidAsks' ],
+    [ {"0":"IOrderBookSide","1":"[]any"}, 'handleDeltas' ],
+    [ {"1":"[]string","2":"[]string"}, 'watchTopics' ],
+    [ {"3":"[]string","4":"[]string","5":"[]string"}, 'unWatchTopics' ],
+]);
+const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = { 'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray', 'string[][]': 'ConvertStringMatrixToArray', 'string[]': 'StringSliceToList' };
+const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = { 'bingx.getOrderBookLimitByMarketType': [ 0 ], 'hitbtc.convertCurrencyNetwork': [ 2, 3 ], 'hyperliquid.resolveOutcomeInput': [ 0 ] };
 const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
-// pair producers whose base and every Go override return (*string, map[string]any): slot 0 concatenates natively after a nil guard
 const GO_GUARDED_STRING_TUPLE_CALLS: string[] = [ 'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'getInstType' ];
-// the order-request builders; a sibling-file call that hands over a unified-string parameter of its method proves them
 const GO_SIBLING_STRING_PASSTHROUGH_PATTERN = '^(create|edit)\\w*OrderRequest$';
-
-const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
-    'createOrder': [ 0, 1, 2 ], 'createOrderWs': [ 0, 1, 2 ], 'createLimitOrder': [ 0, 1 ], 'createLimitOrderWs': [ 0, 1 ],
-    'createMarketOrder': [ 0, 1 ], 'createMarketOrderWs': [ 0, 1 ], 'createMarketOrderWithCost': [ 0, 1 ],
-    'createMarketOrderWithCostWs': [ 0, 1 ], 'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
-    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ], 'createPostOnlyOrder': [ 0, 1, 2 ],
-    'createPostOnlyOrderWs': [ 0, 1, 2 ], 'createReduceOnlyOrder': [ 0, 1, 2 ], 'createReduceOnlyOrderWs': [ 0, 1, 2 ],
-    'createStopLimitOrder': [ 0, 1 ], 'createStopLimitOrderWs': [ 0, 1 ], 'createStopLossOrder': [ 0, 1, 2 ],
-    'createStopLossOrderWs': [ 0, 1, 2 ], 'createStopMarketOrder': [ 0, 1 ], 'createStopMarketOrderWs': [ 0, 1 ],
-    'createStopOrder': [ 0, 1, 2 ], 'createStopOrderWs': [ 0, 1, 2 ], 'createTakeProfitOrder': [ 0, 1, 2 ],
-    'createTakeProfitOrderWs': [ 0, 1, 2 ], 'createTrailingAmountOrder': [ 0, 1, 2 ],
-    'createTrailingAmountOrderWs': [ 0, 1, 2 ], 'createTrailingPercentOrder': [ 0, 1, 2 ],
-    'createTrailingPercentOrderWs': [ 0, 1, 2 ], 'createTriggerOrder': [ 0, 1, 2 ], 'createTriggerOrderWs': [ 0, 1, 2 ],
-    'createTwapOrder': [ 0, 1 ], 'sign': [ 0 ], 'handleErrors': [ 1, 2, 3, 5 ], 'calculateRateLimiterCost': [ 1, 2 ], 'editLimitOrder': [ 1, 2 ], 'editOrderWithClientOrderId': [ 1, 2, 3 ],
-    'editOrderWs': [ 1, 2, 3 ], 'setTakeProfitAndStopLossParams': [ 1, 2 ], 'editLimitBuyOrder': [ 1 ],
-    'editLimitSellOrder': [ 1 ], 'watchOHLCV': [ 0 ], 'unWatchOrderBook': [ 0 ], 'unWatchTrades': [ 0 ],
-    'unWatchOHLCV': [ 0 ], 'unWatchTicker': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchFundingRate': [ 0 ],
-    'fetchOpenInterest': [ 0 ], 'fetchOpenInterestHistory': [ 0 ], 'createMarketBuyOrderWithCost': [ 0 ],
-    'createMarketSellOrderWithCost': [ 0 ], 'addMargin': [ 0 ], 'reduceMargin': [ 0 ], 'closePosition': [ 0 ],
-    'watchFundingRate': [ 0 ], 'fetchFundingInterval': [ 0 ], 'fetchMarketLeverageTiers': [ 0 ], 'fetchGreeks': [ 0 ],
-    'fetchMarkPrice': [ 0 ], 'repayIsolatedMargin': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'fetchOption': [ 0 ],
-    'fetchPositionsForSymbol': [ 0 ], 'fetchPositionsForSymbolWs': [ 0 ], 'watchMarkPrice': [ 0 ],
-    'fetchPositionHistory': [ 0 ], 'fetchLiquidations': [ 0 ], 'watchLiquidations': [ 0 ], 'watchMyLiquidations': [ 0 ],
-    'fetchOHLCVWs': [ 0 ], 'fetchIsolatedBorrowRate': [ 0 ], 'fetchTickerWs': [ 0 ], 'fetchOrderBookWs': [ 0 ],
-    'fetchTradesWs': [ 0 ], 'fetchPositionWs': [ 0 ], 'fetchSpotOHLCV': [ 0 ], 'fetchContractOHLCV': [ 0 ],
-    'fetchADLRank': [ 0 ], 'fetchPositionADLRank': [ 0 ], 'fetchMarkOHLCV': [ 0 ], 'fetchIndexOHLCV': [ 0 ],
-    'fetchPremiumIndexOHLCV': [ 0 ], 'fetchL2OrderBook': [ 0 ], 'fetchL3OrderBook': [ 0 ], 'fetchLongShortRatio': [ 0 ],
-    'createLimitBuyOrder': [ 0 ], 'createLimitSellOrder': [ 0 ], 'createMarketBuyOrder': [ 0 ],
-    'createMarketSellOrder': [ 0 ], 'createLimitBuyOrderWs': [ 0 ], 'createLimitSellOrderWs': [ 0 ],
-    'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ], 'fetchOrderBook': [ 0 ], 'fetchTicker': [ 0 ],
-    'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
-    'checkRequiredArgument': [ 0, 2 ],
-    // required strings; go/v4/exchange_interface.go (IEditOrder) and exchange_ws_cache.go declare them string
-    'editOrder': [ 1, 2, 3 ], 'handleTextMessage': [ 1 ], 'safeDeterministicCall': [ 0 ],
-    // `method`/`methodName: string`: every caller passes a literal or a Go string, so Add chains over them print `+`
-    'fetchPaginatedCallDynamic': [ 0 ], 'fetchPaginatedCallDeterministic': [ 0 ], 'fetchPaginatedCallCursor': [ 0 ],
-    'fetchPaginatedCallIncremental': [ 0 ], 'fetchWebEndpoint': [ 0 ], 'checkRequiredMarginArgument': [ 0 ],
-    'stockDataRequest': [ 0 ], 'handleStockParams': [ 0 ],
-    // required unified `symbol`; the public typed wrappers already take a Go string (watchTrades stays
-    // boxed: paradex watchTrades hands over an optional symbol)
-    'fetchLeverage': [ 0 ], 'fetchPosition': [ 0 ], 'fetchTrades': [ 0 ],
-    'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
-    // `calculateFee (symbol: string, type: string, side: string, ..)`: base and both overrides; no generated Go caller
-    'calculateFee': [ 0, 1, 2 ],
-    // interactivebrokers `createTestOrder (symbol: string, ..)`: the typed CreateTestOrder wrapper takes a Go string
-    'createTestOrder': [ 0 ],
-    // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
-    'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
-    // prediction `method: string` / `eventIdOrSlug: string`: callers pass literals only (none for getEvent)
-    'ethRpc': [ 1 ], 'getEvent': [ 0 ],
-    // `signEvmTransaction (tx: Dict, privateKey: string)`: its one caller passes this.privateKey
-    'signEvmTransaction': [ 1 ],
-    // account names: every caller passes a typed-wrapper string or a nil-guarded market type
-    'convertTypeToAccount': [ 0 ],
-    // `targetUrl: string`; no generated Go caller (the hand-written fetch builds the proxy url itself)
-    'urlEncoderForProxyUrl': [ 0 ],
-    // prediction `fetchEvent (id: string)`: base and every override; the only callers are the typed FetchEvent(id string) wrappers
-    'fetchEvent': [ 0 ],
-    // required `id` / `code` / `symbol: string` declared by every override
-    'fetchWithdrawal': [ 0 ],
-    'fetchDeposit': [ 0 ], 'verifyGiftCode': [ 0 ], 'fetchDepositMethodId': [ 0 ], 'fetchCurrency': [ 0 ],
-    'fetchMarket': [ 0 ], 'fetchTicker2': [ 0 ],
-    // `request (path: string, ...)`: base and every override; callers pass string literals or concatenations
-    'request': [ 0 ],
-    // `methodName: string` on the base and every override; callers pass literals or a string parameter
-    'handleMarginModeAndParams': [ 0 ],
-    // `marketType: string` on the base (no override); its one caller passes a '' -defaulted SafeString
-    'featureValueByType': [ 0 ],
-};
-// required int params whose public typed wrapper already takes int64: body and Async print `int64`
+const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable ([
+    [ [0], 'sign watchOHLCV unWatchOrderBook unWatchTrades unWatchOHLCV unWatchTicker unWatchMarkPrice unWatchFundingRate fetchOpenInterest'
+        + ' fetchOpenInterestHistory createMarketBuyOrderWithCost createMarketSellOrderWithCost addMargin reduceMargin closePosition'
+        + ' watchFundingRate fetchFundingInterval fetchMarketLeverageTiers fetchGreeks fetchMarkPrice fetchOption fetchPositionsForSymbol'
+        + ' fetchPositionsForSymbolWs watchMarkPrice fetchPositionHistory fetchLiquidations watchLiquidations watchMyLiquidations fetchOHLCVWs'
+        + ' fetchIsolatedBorrowRate fetchTickerWs fetchOrderBookWs fetchTradesWs fetchPositionWs fetchSpotOHLCV fetchContractOHLCV'
+        + ' fetchADLRank fetchPositionADLRank fetchMarkOHLCV fetchIndexOHLCV fetchPremiumIndexOHLCV fetchL2OrderBook fetchL3OrderBook'
+        + ' fetchLongShortRatio createLimitBuyOrder createLimitSellOrder createMarketBuyOrder createMarketSellOrder createLimitBuyOrderWs'
+        + ' createLimitSellOrderWs createMarketBuyOrderWs createMarketSellOrderWs fetchOrderBook fetchTicker fetchOHLCV watchOrderBook'
+        + ' watchTicker fetchTradingFee fetchFundingRate safeDeterministicCall fetchPaginatedCallDynamic fetchPaginatedCallDeterministic'
+        + ' fetchPaginatedCallCursor fetchPaginatedCallIncremental fetchWebEndpoint checkRequiredMarginArgument stockDataRequest'
+        + ' handleStockParams fetchLeverage fetchPosition fetchTrades fetchMarginMode setMargin createTestOrder getCurrencyName getEvent'
+        + ' convertTypeToAccount urlEncoderForProxyUrl fetchEvent fetchWithdrawal fetchDeposit verifyGiftCode fetchDepositMethodId'
+        + ' fetchCurrency fetchMarket fetchTicker2 request handleMarginModeAndParams featureValueByType fetchDepositAddress'
+        + ' createDepositAddress fetchDepositAddressesByNetwork fetchContractDepositAddress cancelOrder cancelOrderWs fetchOrderWs'
+        + ' cancelSpotOrder cancelContractOrder fetchOrderStatus fetchOrderWithClientOrderId cancelOrderWithClientOrderId fetchConvertTrade'
+        + ' repayCrossMargin borrowCrossMargin repayMargin borrowMargin fetchCrossBorrowRate fetchBorrowRate fetchDepositWithdrawFee'
+        + ' fetchTransactionFee fetchOptionChain createSubAccount fetchTransfer fetchLedgerEntry fetchOrdersByStatusWs fetchOrder'
+        + ' fetchOrderRequest fetchOrderTrades setMarginMode fetchBorrowRateHistory fetchVolatilityHistory futuresTransfer createGiftCode'
+        + ' transferIn transferOut fetchNetworkDepositAddress convertCurrencyNetwork fetchWithdrawAddresses fetchOpenOrder fetchClosedOrder' ],
+    [ [0,1,2], 'createOrder createOrderWs createOrderWithTakeProfitAndStopLoss createOrderWithTakeProfitAndStopLossWs createPostOnlyOrder'
+        + ' createPostOnlyOrderWs createReduceOnlyOrder createReduceOnlyOrderWs createStopLossOrder createStopLossOrderWs createStopOrder'
+        + ' createStopOrderWs createTakeProfitOrder createTakeProfitOrderWs createTrailingAmountOrder createTrailingAmountOrderWs'
+        + ' createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder createTriggerOrderWs editLimitOrder calculateFee'
+        + ' createConvertTrade' ],
+    [ [0,1], 'createLimitOrder createLimitOrderWs createMarketOrder createMarketOrderWs createMarketOrderWithCost createMarketOrderWithCostWs'
+        + ' createStopLimitOrder createStopLimitOrderWs createStopMarketOrder createStopMarketOrderWs createTwapOrder editLimitBuyOrder'
+        + ' editLimitSellOrder repayIsolatedMargin borrowIsolatedMargin fetchConvertQuote' ],
+    [ [0,2], 'checkRequiredArgument withdraw withdrawWs deposit' ],
+    [ [1], 'handleTextMessage ethRpc signEvmTransaction mergeBalanceAccount' ],
+    [ [0,1,2,3], 'editOrderWithClientOrderId editOrderWs editOrder' ],
+    [ [1,2], 'calculateRateLimiterCost setTakeProfitAndStopLossParams' ],
+    [ [1,2,3,5], 'handleErrors' ],
+    [ [0,2,3], 'transfer' ],
+]);
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {
-        'type': 'map[string]any',
-        'freshMapCalls': [ 'extend', 'deepExtend', 'createSafeDictionary', 'indexBy' ],
-        'selfCalls': [ 'safeBalance' ],
+        'type': 'map[string]any', 'freshMapCalls': [ 'extend', 'deepExtend', 'createSafeDictionary', 'indexBy' ], 'selfCalls': [ 'safeBalance' ],
         'plainCalls': [ 'iso8601', 'milliseconds', 'seconds', 'microseconds', 'extend', 'deepExtend', 'indexBy', 'createSafeDictionary', 'safeBalance' ],
-        'emptyDefaultCalls': [ 'safeDict', 'safeDictMap', 'safeList' ],
-        'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
+        'emptyDefaultCalls': [ 'safeDict', 'safeDictMap', 'safeList' ], 'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
     },
-    // typed market rows: true prints string-literal reads of a MarketInterface / CurrencyInterface row as struct
-    // fields; stays false until the cache stores *MarketInterface rows
     'markets': { 'rowStructReads': true, 'mapStorage': true },
 };
-
-const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
-    'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ],
-    'isPostOnly': [ 0 ], 'handlePostOnly': [ 0, 1 ], 'parseTradesHelper': [ 0 ],
-};
-// the PredictionExchange struct field declarations (go/v4/exchange_prediction.go). The prediction caches
-const GO_PREDICTION_STRUCT_FIELDS: [string, string][] = [
-    [ 'BaseExchange', '' ],
-    [ 'Outcomes', 'map[string]any' ],
-    [ 'Outcomes_by_id', 'map[string]any' ],
-    [ 'Events', 'map[string]any' ],
-    [ 'Events_by_slug', 'map[string]any' ],
-    [ 'ReloadingEvents', 'bool' ],
-    [ 'EventsLoading', 'any' ],
-];
+const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = { 'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ], 'isPostOnly': [ 0 ], 'handlePostOnly': [ 0, 1 ], 'parseTradesHelper': [ 0 ] };
+const GO_PREDICTION_STRUCT_FIELDS: [string, string][] = [ [ 'BaseExchange', '' ], [ 'Outcomes', 'map[string]any' ], [ 'Outcomes_by_id', 'map[string]any' ], [ 'Events', 'map[string]any' ], [ 'Events_by_slug', 'map[string]any' ], [ 'ReloadingEvents', 'bool' ], [ 'EventsLoading', 'any' ] ];
 const GO_PREDICTION_MAP_FIELDS: string[] = GO_PREDICTION_STRUCT_FIELDS.filter ((f) => f[1] === 'map[string]any').map ((f) => f[0]);
-
-const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
-    'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
-    'createAuthToken': [ 0 ],
-};
-// required `amount: number` / `cost: number` of the unified order family: body and Async print `float64`
-const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
-    'createTrailingAmountOrder': [ 3 ], 'createTrailingAmountOrderWs': [ 3 ],
-    'createTrailingPercentOrder': [ 3 ], 'createTrailingPercentOrderWs': [ 3 ], 'createTriggerOrder': [ 3 ], 'createTriggerOrderWs': [ 3 ],
-    'createStopLossOrder': [ 3 ], 'createStopLossOrderWs': [ 3 ], 'createTakeProfitOrder': [ 3 ], 'createTakeProfitOrderWs': [ 3 ],
-    'createOrderWithTakeProfitAndStopLoss': [ 3 ], 'createOrderWithTakeProfitAndStopLossWs': [ 3 ], 'createPostOnlyOrder': [ 3 ],
-    'createPostOnlyOrderWs': [ 3 ], 'createReduceOnlyOrder': [ 3 ], 'createReduceOnlyOrderWs': [ 3 ], 'createStopOrder': [ 3 ],
-    'createStopOrderWs': [ 3 ], 'createLimitOrder': [ 2 ], 'createLimitOrderWs': [ 2 ], 'createMarketOrder': [ 2 ],
-    'createMarketOrderWs': [ 2 ], 'createStopLimitOrder': [ 2 ], 'createStopLimitOrderWs': [ 2 ], 'createStopMarketOrder': [ 2 ],
-    'createStopMarketOrderWs': [ 2 ], 'createLimitBuyOrder': [ 1 ], 'createLimitBuyOrderWs': [ 1 ], 'createLimitSellOrder': [ 1 ],
-    'createLimitSellOrderWs': [ 1 ], 'createMarketBuyOrder': [ 1 ], 'createMarketBuyOrderWs': [ 1 ], 'createMarketSellOrder': [ 1 ],
-    'createMarketSellOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 2 ], 'createMarketOrderWithCostWs': [ 2 ],
-    'createMarketBuyOrderWithCost': [ 1 ], 'createMarketSellOrderWithCost': [ 1 ], 'createTwapOrder': [ 2, 3 ],
-    'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
-    'addMargin': [ 1 ], 'reduceMargin': [ 1 ], 'setMargin': [ 1 ], 'borrowCrossMargin': [ 1 ], 'repayCrossMargin': [ 1 ],
-    'borrowIsolatedMargin': [ 2 ], 'repayIsolatedMargin': [ 2 ],
-    'repayMargin': [ 1 ],
-    'calculateFee': [ 3, 4 ],
-};
-
-for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
-    GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
-}
-
+const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = { 'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ], 'createAuthToken': [ 0 ] };
+const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = goGroupedTable ([
+    [ [1], 'createLimitBuyOrder createLimitBuyOrderWs createLimitSellOrder createLimitSellOrderWs createMarketBuyOrder createMarketBuyOrderWs'
+        + ' createMarketSellOrder createMarketSellOrderWs createMarketBuyOrderWithCost createMarketSellOrderWithCost withdraw withdrawWs'
+        + ' transfer transferIn transferOut addMargin reduceMargin setMargin borrowCrossMargin repayCrossMargin repayMargin' ],
+    [ [3], 'createTrailingAmountOrder createTrailingAmountOrderWs createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder'
+        + ' createTriggerOrderWs createStopLossOrder createStopLossOrderWs createTakeProfitOrder createTakeProfitOrderWs'
+        + ' createOrderWithTakeProfitAndStopLoss createOrderWithTakeProfitAndStopLossWs createPostOnlyOrder createPostOnlyOrderWs'
+        + ' createReduceOnlyOrder createReduceOnlyOrderWs createStopOrder createStopOrderWs' ],
+    [ [2], 'createLimitOrder createLimitOrderWs createMarketOrder createMarketOrderWs createStopLimitOrder createStopLimitOrderWs'
+        + ' createStopMarketOrder createStopMarketOrderWs createMarketOrderWithCost createMarketOrderWithCostWs borrowIsolatedMargin'
+        + ' repayIsolatedMargin' ],
+    [ [2,3], 'createTwapOrder' ],
+    [ [3,4], 'calculateFee' ],
+]);
 ansi.nice;
 
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
@@ -7251,9 +5824,7 @@ function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): 
             i++;
             continue;
         }
-        if (char === '/' && line[i + 1] === '/') {
-            break;
-        }
+        if (char === '/' && line[i + 1] === '/') { break; }
         if (char === '"' || char === '`' || char === '\'') {
             const quote = char;
             i++;
@@ -7262,9 +5833,7 @@ function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): 
                     i += 2;
                     continue;
                 }
-                if (line[i] === quote) {
-                    break;
-                }
+                if (line[i] === quote) { break; }
                 i++;
             }
             stripped += '""';
@@ -7277,14 +5846,11 @@ function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): 
 
 // Free helpers that normalize every argument with derefScalar at entry, so a *T boxed in
 const GO_POINTER_TRANSPARENT_SHIMS = new Set ([
-    'IsEqual', 'EvalTruthy', 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'Negate', 'OpNeg', 'UnaryPlus',
-    'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
-    'GetValue', 'GetArrayLength', 'GetLength', 'GetIndexOf', 'InOp', 'Contains', 'IsNil',
-    'GetValue', 'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice',
-    'JsonParse', 'JsonStringify', 'ParseInt', 'ParseFloat', 'ToFloat64',
-    'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'mathMin', 'mathMax', 'mathFloor', 'mathCeil', 'mathRound', 'mathAbs',
-    'IsArray', 'IsString', 'IsInt', 'IsBool', 'IsNumber', 'IsObject', 'IsDictionary',
-    'ObjectKeys', 'ObjectValues', 'derefScalar', 'DerefScalar',
+    'IsEqual', 'EvalTruthy', 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'Negate', 'OpNeg', 'UnaryPlus', 'IsGreaterThan', 'IsLessThan',
+    'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'GetValue', 'GetArrayLength', 'GetLength', 'GetIndexOf', 'InOp', 'Contains', 'IsNil', 'GetValue',
+    'ToString', 'ToLower', 'ToUpper', 'Trim', 'StartsWith', 'EndsWith', 'Replace', 'Split', 'Join', 'Slice', 'JsonParse', 'JsonStringify', 'ParseInt',
+    'ParseFloat', 'ToFloat64', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'mathMin', 'mathMax', 'mathFloor', 'mathCeil', 'mathRound', 'mathAbs',
+    'IsArray', 'IsString', 'IsInt', 'IsBool', 'IsNumber', 'IsObject', 'IsDictionary', 'ObjectKeys', 'ObjectValues', 'derefScalar', 'DerefScalar',
 ]);
 
 // the whole-argument names of a line passed to a pointer-transparent shim: the argument must BE the name, and a
@@ -7294,17 +5860,11 @@ function goShimDirectArgumentNames (line: string): string[] {
     const callPattern = /(?<![\w.])(?:ccxt\.)?([A-Za-z_]\w*)\s*\(/g;
     let match;
     while ((match = callPattern.exec (line)) !== null) {
-        if (!GO_POINTER_TRANSPARENT_SHIMS.has (match[1])) {
-            continue;
-        }
+        if (!GO_POINTER_TRANSPARENT_SHIMS.has (match[1])) { continue; }
         let depth = 1;
         let i = match.index + match[0].length;
         while (i < line.length && depth > 0) {
-            if (line[i] === '(') {
-                depth++;
-            } else if (line[i] === ')') {
-                depth--;
-            }
+            if (line[i] === '(') { depth++; } else if (line[i] === ')') { depth--; }
             i++;
         }
         const args = line.substring (match.index + match[0].length, i - 1);
@@ -7312,11 +5872,7 @@ function goShimDirectArgumentNames (line: string): string[] {
         let chunk = '';
         const chunks: string[] = [];
         for (const char of args) {
-            if (char === '(') {
-                level++;
-            } else if (char === ')') {
-                level--;
-            }
+            if (char === '(') { level++; } else if (char === ')') { level--; }
             if (char === ',' && level === 0) {
                 chunks.push (chunk);
                 chunk = '';
@@ -7327,9 +5883,7 @@ function goShimDirectArgumentNames (line: string): string[] {
         chunks.push (chunk);
         for (const candidate of chunks) {
             const trimmed = candidate.trim ();
-            if (/^[A-Za-z_]\w*$/.test (trimmed)) {
-                names.push (trimmed);
-            }
+            if (/^[A-Za-z_]\w*$/.test (trimmed)) { names.push (trimmed); }
         }
     }
     return names;
@@ -7345,9 +5899,7 @@ function goDerefWrapReadText (line: string): string {
         let depth = 0;
         let close = -1;
         for (let i = open; i < text.length; i++) {
-            if (text[i] === '(') {
-                depth++;
-            } else if (text[i] === ')') {
+            if (text[i] === '(') { depth++; } else if (text[i] === ')') {
                 depth--;
                 if (depth === 0) {
                     close = i;
@@ -7355,9 +5907,7 @@ function goDerefWrapReadText (line: string): string {
                 }
             }
         }
-        if (close < 0) {
-            break;
-        }
+        if (close < 0) { break; }
         text = text.slice (0, index) + text.slice (open + 1, close) + text.slice (close + 1);
         index = text.indexOf ('DerefScalar(');
     }
@@ -7368,15 +5918,9 @@ function goDerefWrapReadText (line: string): string {
 function goDerefWrapWriteRhs (line: string, name: string): string | null {
     const text = line.trim ();
     const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
-    if (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*=(?!=)').test (text)) {
-        return text.replace (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*='), '');
-    }
-    if (new RegExp ('^' + escaped + '\\s*:?=(?!=)').test (text)) {
-        return text.replace (new RegExp ('^' + escaped + '\\s*:?=(?!=)'), '');
-    }
-    if (new RegExp ('^_\\s*=\\s*' + escaped + '$').test (text)) {
-        return '';
-    }
+    if (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*=(?!=)').test (text)) { return text.replace (new RegExp ('^var ' + escaped + ' [\\w.\\[\\]\\*]+\\s*='), ''); }
+    if (new RegExp ('^' + escaped + '\\s*:?=(?!=)').test (text)) { return text.replace (new RegExp ('^' + escaped + '\\s*:?=(?!=)'), ''); }
+    if (new RegExp ('^_\\s*=\\s*' + escaped + '$').test (text)) { return ''; }
     return null;
 }
 
@@ -7395,24 +5939,16 @@ function goDerefWrapRedundantLocals (fn: string, wrapLines: Set<number>, names: 
             let text = wrapped ? goDerefWrapReadText (lines[index]) : lines[index];
             if (!wrapped) {
                 const rhs = goDerefWrapWriteRhs (text, name);
-                if (rhs !== null) {
-                    text = rhs;
-                }
+                if (rhs !== null) { text = rhs; }
             }
             const occurrences = (text.match (mention) || []).length;
-            if (!occurrences) {
-                continue;
-            }
+            if (!occurrences) { continue; }
             const shimArgs = goShimDirectArgumentNames (text).filter ((candidate) => candidate === name).length;
-            if (shimArgs === occurrences) {
-                continue;
-            }
+            if (shimArgs === occurrences) { continue; }
             safe = false;
             break;
         }
-        if (safe) {
-            redundant.add (name);
-        }
+        if (safe) { redundant.add (name); }
     }
     return redundant;
 }
@@ -7430,20 +5966,14 @@ function goUnwrapDerefWraps (fn: string, names: Iterable<string>, safeCall: stri
 // A bare `any` PARAMETER keeps whatever the caller boxed, including a typed nil pointer, for which the native `x == nil`
 function goParamNilCompareText (fn: string, isEqualFn: string): string {
     const sigEnd = fn.indexOf ('{');
-    if (sigEnd < 0) {
-        return fn;
-    }
+    if (sigEnd < 0) { return fn; }
     const body = fn.slice (sigEnd);
     const paramMatches = fn.slice (0, sigEnd).match (/(\w+) any\b/g) || [];
     for (let i = 0; i < paramMatches.length; i++) {
         const name = paramMatches[i].split (/\s+/)[0];
-        if ((name === 'this') || (name === 'optionalArgs') || (name === 'chan')) {
-            continue;
-        }
+        if ((name === 'this') || (name === 'optionalArgs') || (name === 'chan')) { continue; }
         // a defaulted parameter bound by GetArg (or its typed twin) is nil-comparable natively
-        if (new RegExp ('(^|[\\s(])(?:var\\s+)?' + name + '\\s*(?::=|=)\\s*(?:ccxt\\.)?GetArg\\w*\\(').test (body)) {
-            continue;
-        }
+        if (new RegExp ('(^|[\\s(])(?:var\\s+)?' + name + '\\s*(?::=|=)\\s*(?:ccxt\\.)?GetArg\\w*\\(').test (body)) { continue; }
         fn = goWrapNilCompares (fn, name, isEqualFn);
     }
     return fn;
@@ -7482,9 +6012,7 @@ const GO_POINTER_NAME_PATTERN = '\\*[\\w\\[\\].]+';
 let goFuncBlockRangesLastKey = '';
 let goFuncBlockRangesLastOut: { start: number; end: number }[] = [];
 function goFuncBlockRanges (content: string): { start: number; end: number }[] {
-    if (goFuncBlockRangesLastKey === content) {
-        return goFuncBlockRangesLastOut;
-    }
+    if (goFuncBlockRangesLastKey === content) { return goFuncBlockRangesLastOut; }
     const ranges: { start: number; end: number }[] = [];
     const len = content.length;
     let cursor = 0;
@@ -7527,48 +6055,31 @@ function goFuncBlockRanges (content: string): { start: number; end: number }[] {
     }
 }
 
-// the names a pointer can reach inside one function block: the pointer-typed locals the
-// local-typing families emit (`var x *string = ...`), the native `*T` parameters of the
-// signature, and every `any` local declared or assigned from one of those, transitively.
+// the names a pointer can reach inside one function block: the pointer-typed locals the local-typing families emit (`var x *string = ...`), the native `*T`
+// parameters of the signature, and every `any` local declared or assigned from one of those, transitively.
 function goBoxedPointerNames (fn: string): Set<string> {
     const pointerNames = new Set<string> ();
     let match: RegExpExecArray | null;
     const localRe = new RegExp ('var (\\w+) ' + GO_POINTER_NAME_PATTERN + ' = ', 'g');
-    while ((match = localRe.exec (fn)) !== null) {
-        pointerNames.add (match[1]);
-    }
+    while ((match = localRe.exec (fn)) !== null) { pointerNames.add (match[1]); }
     const braceAt = fn.indexOf ('{');
     const signature = (braceAt < 0) ? fn : fn.slice (0, braceAt);
     const paramRe = new RegExp ('(\\w+) ' + GO_POINTER_NAME_PATTERN + '(?=[,)])', 'g');
-    while ((match = paramRe.exec (signature)) !== null) {
-        if (match[1] !== 'this') {
-            pointerNames.add (match[1]);
-        }
-    }
+    while ((match = paramRe.exec (signature)) !== null) { if (match[1] !== 'this') { pointerNames.add (match[1]); } }
     // every `any` box fed by one of those names; only names declared `any` in this block (own declarations,
     // `x := GetArg(...)`, bare `any` parameters) can hold the box: a typed GetArg twin's local needs no rewrite
     const anyNames = new Set<string> ();
     const anyDeclRe = /var (\w+) any\b/g;
-    while ((match = anyDeclRe.exec (fn)) !== null) {
-        anyNames.add (match[1]);
-    }
+    while ((match = anyDeclRe.exec (fn)) !== null) { anyNames.add (match[1]); }
     const getArgRe = /(\w+) := GetArg\(/g;
-    while ((match = getArgRe.exec (fn)) !== null) {
-        anyNames.add (match[1]);
-    }
+    while ((match = getArgRe.exec (fn)) !== null) { anyNames.add (match[1]); }
     const bareParamRe = /(\w+) any\b/g;
-    while ((match = bareParamRe.exec (signature)) !== null) {
-        anyNames.add (match[1]);
-    }
+    while ((match = bareParamRe.exec (signature)) !== null) { anyNames.add (match[1]); }
     const feeds: string[][] = [];
     const declRe = /var (\w+) any = (\w+)\b/g;
-    while ((match = declRe.exec (fn)) !== null) {
-        feeds.push ([ match[1], match[2] ]);
-    }
+    while ((match = declRe.exec (fn)) !== null) { feeds.push ([ match[1], match[2] ]); }
     const assignRe = /(?:^|[\s;])(\w+) = (\w+)\b/g;
-    while ((match = assignRe.exec (fn)) !== null) {
-        feeds.push ([ match[1], match[2] ]);
-    }
+    while ((match = assignRe.exec (fn)) !== null) { feeds.push ([ match[1], match[2] ]); }
     const boxed = new Set<string> ();
     let grew = true;
     while (grew) {
@@ -7576,9 +6087,7 @@ function goBoxedPointerNames (fn: string): Set<string> {
         for (let i = 0; i < feeds.length; i++) {
             const target = feeds[i][0];
             const source = feeds[i][1];
-            if (boxed.has (target) || !anyNames.has (target)) {
-                continue;
-            }
+            if (boxed.has (target) || !anyNames.has (target)) { continue; }
             if (pointerNames.has (source) || boxed.has (source)) {
                 boxed.add (target);
                 grew = true;
@@ -7588,8 +6097,7 @@ function goBoxedPointerNames (fn: string): Set<string> {
     return boxed;
 }
 
-// each func block's rewrite is spliced back at its own offset, so a block whose
-// text occurs twice cannot be rewritten in the wrong place.
+// each func block's rewrite is spliced back at its own offset, so a block whose text occurs twice cannot be rewritten in the wrong place.
 function goRewriteFuncBlocks (content: string, rewrite: (block: string, start: number, current: string) => string): string {
     const ranges = goFuncBlockRanges (content);
     let parts: string[] | null = null;
@@ -7605,9 +6113,7 @@ function goRewriteFuncBlocks (content: string, rewrite: (block: string, start: n
             cursor = r.end;
         }
     }
-    if (parts === null) {
-        return content;
-    }
+    if (parts === null) { return content; }
     if (cursor < content.length) { parts.push (content.slice (cursor)); }
     return parts.join ('');
 }
@@ -7615,16 +6121,13 @@ function goRewriteFuncBlocks (content: string, rewrite: (block: string, start: n
 // the boxed-pointer locals of each block keep the deref-aware comparison
 export function goBoxedPointerNilCompares (content: string, isEqualFn: string): string {
     return goRewriteFuncBlocks (content, (block) => {
-        for (const name of goBoxedPointerNames (block)) {
-            block = goWrapNilCompares (block, name, isEqualFn);
-        }
+        for (const name of goBoxedPointerNames (block)) { block = goWrapNilCompares (block, name, isEqualFn); }
         return block;
     });
 }
 
-// Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the
-// helper, a box fed by a container keeps the native comparison, another block's rewrite
-// cannot leak in, and a second application is a no-op.
+// Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the helper, a box fed by a container keeps the native comparison, another
+// block's rewrite cannot leak in, and a second application is a no-op.
 function goBoxedPointerSelfTest (ok: SelfTestOk): void {
     const pass = (text: string): string => goBoxedPointerNilCompares (text, 'IsEqual(');
     const fed = pass ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar requested *string = this.SafeStringN(optionalArgs, "currency")\n\tvar currency any = requested\n\tif currency == nil {\n\t\tcurrency = "USDT"\n\t}\n\treturn currency\n}\n');
@@ -7643,34 +6146,27 @@ function goBoxedPointerSelfTest (ok: SelfTestOk): void {
     ok (literal.indexOf ('if IsEqual(myidentity, nil) {') >= 0, 'a name must not be rewritten inside a longer identifier');
 }
 
-// IsEqual(x, nil) on a name declared once in the block as a map, []any, []string or scalar pointer is
-// `x == nil`: derefScalar folds exactly those typed nils to nil. A `var x string` against a
-// string literal is plain `==`. Any other or repeated declaration keeps the helper.
+// IsEqual(x, nil) on a name declared once in the block as a map, []any, []string or scalar pointer is `x == nil`: derefScalar folds exactly those typed nils to
+// nil. A `var x string` against a string literal is plain `==`. Any other or repeated declaration keeps the helper.
 const GO_NIL_COMPARABLE_TYPES = new Set (['map[string]any', '[]any', '[]string', '*string', '*float64', '*int64', '*bool', '*int']);
 
 function goTypedNilCompareText (fn: string, isEqualFn: string): string {
     const helper = isEqualFn.replace (/[.(]/g, '\\$&');
     const sigEnd = fn.indexOf ('{');
-    if ((sigEnd < 0) || (fn.indexOf (isEqualFn) < 0)) {
-        return fn;
-    }
+    if ((sigEnd < 0) || (fn.indexOf (isEqualFn) < 0)) { return fn; }
     const signature = fn.slice (0, sigEnd);
     const typeOf = (name: string): string | undefined => {
         const decls = fn.match (new RegExp ('\\bvar ' + name + ' ([^=\\n]+?) =', 'g')) || [];
         const bare = fn.match (new RegExp ('\\bvar ' + name + ' [^=\\n]+\\n', 'g')) || [];
         const rebinds = fn.match (new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ', 'g')) || [];
         const inSignature = new RegExp ('[(,]\\s*' + name + ' ').test (signature);
-        if ((decls.length !== 1) || bare.length || rebinds.length || inSignature) {
-            return undefined;
-        }
+        if ((decls.length !== 1) || bare.length || rebinds.length || inSignature) { return undefined; }
         return decls[0].slice (('var ' + name + ' ').length, -2).trim ();
     };
     return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), (nil|"[^"\\\\]*")\\)', 'g'), ((m: string, not: string, name: string, rhs: string) => {
         const type = typeOf (name);
         const exact = (rhs === 'nil') ? GO_NIL_COMPARABLE_TYPES.has (type) : (type === 'string');
-        if (!exact) {
-            return m;
-        }
+        if (!exact) { return m; }
         return '(' + name + ((not === '!') ? ' != ' : ' == ') + rhs + ')';
     }) as any);
 }
@@ -7696,9 +6192,8 @@ function goTypedNilSelfTest (ok: SelfTestOk): void {
     ok (pass (typed) === typed, 'a second application must be a no-op');
 }
 
-// IsEqual(x, nil) on an `any` local is `x == nil` unless the box can hold a nil scalar pointer,
-// a typed-nil map/slice or a nil *sync.Map (derefScalar/IsEqual fold those to nil). Every write
-// must come from a producer below that never yields one; any other write keeps the helper.
+// IsEqual(x, nil) on an `any` local is `x == nil` unless the box can hold a nil scalar pointer, a typed-nil map/slice or a nil *sync.Map (derefScalar/IsEqual
+// fold those to nil). Every write must come from a producer below that never yields one; any other write keeps the helper.
 const GO_ANY_NIL_SAFE_CALLS = new Set ([
     'this.Extend', 'this.DeepExtend', 'this.Account', 'this.IndexBy', 'this.GroupBy', 'this.SortBy',
     'this.Milliseconds', 'this.Seconds', 'this.Uuid', 'this.Json', 'this.ParseToInt', 'this.Sum', 'this.ParseJson',
@@ -7713,169 +6208,104 @@ const GO_ANY_NIL_SAFE_CALLS = new Set ([
     'MathMin', 'MathMax', 'ParseFloat', 'OpNeg', 'Iso8601',
 ]);
 // SafeDict/SafeList* return a non-nil container or their default: safe with a nil/literal default
-const GO_ANY_NIL_SAFE_DEFAULTED = new Set ([
-    'this.SafeDict', 'this.SafeDict2', 'this.SafeDictN', 'this.SafeList', 'this.SafeList2', 'this.SafeListN',
-]);
+const GO_ANY_NIL_SAFE_DEFAULTED = new Set (['this.SafeDict', 'this.SafeDict2', 'this.SafeDictN', 'this.SafeList', 'this.SafeList2', 'this.SafeListN',]);
 // DerefScalar folds these scalar-pointer results into a plain value or untyped nil
 const GO_ANY_NIL_DEREF_INNER = /^this\.(?:Safe(?:String|Integer|Number|Float|Bool|Timestamp)\w*|SafeCurrencyCode|NumberToString|PriceToPrecision|AmountToPrecision|Iso8601|Parse8601)\(/;
 const GO_ANY_NIL_SCALAR_TYPES = new Set (['string', 'int64', 'float64', 'bool', 'int']);
 // base readers whose Go result already went through derefScalar (SafeValueN, getValueFromList, GetValue; no venue
 // overrides them): IsEqual's own deref has nothing left to fold, so `x == nil` / `x == "lit"` answer the same
 const GO_ANY_DEREFED_READS = new Set (['this.SafeValue', 'this.SafeValue2', 'this.SafeValueN', 'this.HandleOption', 'this.GetSupportedMapping', 'GetValue']);
-// a whole parenthesised comparison or logical chain is a Go bool
-function goIsBoolExpressionText (text: string): boolean {
-    if (!text.startsWith ('(') || (goCallArgsSpanningText (text, 0) === undefined)) {
-        return false;
-    }
+// scan `text[start..end)` skipping double-quoted strings while tracking bracket depth; return true from `onChar` to stop early
+function goScanDepth (text: string, start: number, end: number, onChar: (i: number, ch: string, depth: number) => boolean): boolean {
     let depth = 0;
-    for (let i = 1; i < text.length - 1; i++) {
-        const char = text[i];
-        if (char === '"') {
+    for (let i = start; i < end; i++) {
+        const ch = text[i];
+        if (ch === '"') {
             i++;
             while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
-        } else if ('([{'.includes (char)) {
-            depth++;
-        } else if (')]}'.includes (char)) {
+        } else if ('([{'.includes (ch)) { depth++; } else if (')]}'.includes (ch)) {
             depth--;
-        } else if ((depth === 0) && /^(?: == | != | && | \|\| | <= | >= | < (?!-)| > )/.test (text.slice (i - 1, i + 4))) {
-            return true;
-        }
+            if (onChar (i, ch, depth)) { return true; }
+        } else if (onChar (i, ch, depth)) { return true; }
     }
     return false;
 }
 
-// the top-level comma-separated arguments of a call text starting at `open` ('('), or undefined
-// when the call does not close exactly at the end of `text`
+// a whole parenthesised comparison or logical chain is a Go bool
+function goIsBoolExpressionText (text: string): boolean {
+    if (!text.startsWith ('(') || (goCallArgsSpanningText (text, 0) === undefined)) { return false; }
+    return goScanDepth (text, 1, text.length - 1, (i, ch, depth) => (depth === 0) && !')]}'.includes (ch) && /^(?: == | != | && | \|\| | <= | >= | < (?!-)| > )/.test (text.slice (i - 1, i + 4)));
+}
+
+// the top-level comma-separated arguments of a call text starting at `open` ('('), or undefined when it doesn't close at end
 function goCallArgsSpanningText (text: string, open: number): string[] | undefined {
     const args: string[] = [];
-    let depth = 0;
     let start = open + 1;
-    for (let i = open; i < text.length; i++) {
-        const char = text[i];
-        if (char === '"') {
-            i++;
-            while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
-        } else if ((char === '(') || (char === '{') || (char === '[')) {
-            depth++;
-        } else if ((char === ')') || (char === '}') || (char === ']')) {
-            depth--;
-            if (depth === 0) {
-                if (i !== text.length - 1) {
-                    return undefined;
-                }
+    let done: string[] | undefined;
+    goScanDepth (text, open, text.length, (i, ch, depth) => {
+        if (')]}'.includes (ch) && (depth === 0)) {
+            if (i === text.length - 1) {
                 const last = text.slice (start, i).trim ();
                 if (last.length) { args.push (last); }
-                return args;
+                done = args;
             }
-        } else if ((char === ',') && (depth === 1)) {
-            args.push (text.slice (start, i).trim ());
-            start = i + 1;
+            return true;
         }
-    }
-    return undefined;
+        if ((ch === ',') && (depth === 1)) { args.push (text.slice (start, i).trim ()); start = i + 1; }
+        return false;
+    });
+    return done;
 }
 
 function goIsArithmeticExpressionText (text: string): boolean {
-    let depth = 0;
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char === '"') {
-            i++;
-            while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
-        } else if ('([{'.includes (char)) {
-            depth++;
-        } else if (')]}'.includes (char)) {
-            depth--;
-        } else if ((depth === 0) && (i > 0) && / [-+*\/%] /.test (text.slice (i - 1, i + 2)) && (text[i] !== ' ')) {
-            return true;
-        }
-    }
-    return false;
+    return goScanDepth (text, 0, text.length, (i, ch, depth) => (depth === 0) && !')]}'.includes (ch) && (i > 0) && / [-+*\/%] /.test (text.slice (i - 1, i + 2)) && (ch !== ' '));
 }
 
 function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (name: string) => boolean, stringSlices: Set<string>): boolean {
     const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
-    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) {
-        return true;
-    }
+    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) { return true; }
     if (/^(?:map\[string\]any|\[\]any)\{/.test (text)) {
         const args = goCallArgsSpanningText (text, text.indexOf ('{'));
         return (args !== undefined) || !/\}\s*$/.test (text) && text.endsWith ('{');
     }
-    if (/^\w+$/.test (text)) {
-        return scalarLocals.has (text) || safeLocal (text);
-    }
+    if (/^\w+$/.test (text)) { return scalarLocals.has (text) || safeLocal (text); }
     // a top-level Go arithmetic or concatenation yields a plain number or string, never nil or a pointer
-    if (goIsArithmeticExpressionText (text)) {
-        return true;
-    }
+    if (goIsArithmeticExpressionText (text)) { return true; }
     // the in-range native index of a []string (a guard proved the literal index): a plain string, never nil
-    if (/^\w+\[\d+\]$/.test (text) && stringSlices.has (text.slice (0, text.indexOf ('[')))) {
-        return true;
-    }
+    if (/^\w+\[\d+\]$/.test (text) && stringSlices.has (text.slice (0, text.indexOf ('[')))) { return true; }
     // the deref of a pair-bind pointer temp (`x = *xPtr`, printed by the tuple-result join) is a plain scalar
-    if (/^\*\w+Ptr$/.test (text)) {
-        return true;
-    }
+    if (/^\*\w+Ptr$/.test (text)) { return true; }
     // an endpoint receive's Raw is decoded JSON or untyped nil: no scalar pointer, no typed nil
     if (/^(?:r\d+|\(<-this\.\w+\(.*\)\))\.Raw$/.test (text) && (text.indexOf ('(<-') !== 0 || goCallArgsSpanningText (text.slice (3, -5), text.slice (3, -5).indexOf ('(')) !== undefined)) {
         return true;
     }
     // the ws subscriptions table (exchange_client.go) hands back a dereferenced scalar, a dictionary or nil
-    if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionSafe|SubscriptionsSnapshot|FutureGet)\(.*\)$/.test (text)) {
-        return true;
-    }
+    if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionSafe|SubscriptionsSnapshot|FutureGet)\(.*\)$/.test (text)) { return true; }
     // Exchange.MyTrades only ever holds an ArrayCache* constructor result or an untyped nil (exchange.go, close()),
     // never a typed-nil pointer, so a local seeded from it compares natively
-    if (text === 'this.MyTrades') {
-        return true;
-    }
-    if (goIsBoolExpressionText (text)) {
-        return true;
-    }
+    if ((text === 'this.MyTrades') || (goIsBoolExpressionText (text))) { return true; }
     // Exchange.Positions (and its WsCacheObjGet owner read) is only ever written with an ArrayCache* constructor,
     // a map literal or untyped nil, so the answer is never a typed nil
-    if ((text === 'this.Positions') || (text === 'this.WsCacheObjGet("Positions")')) {
-        return true;
-    }
+    if ((text === 'this.Positions') || (text === 'this.WsCacheObjGet("Positions")')) { return true; }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
-    if (!call) {
-        return false;
-    }
+    if (!call) { return false; }
     const args = goCallArgsSpanningText (text, call[0].length - 1);
-    if (args === undefined) {
-        return false;
-    }
-    if (call[1] === 'DerefScalar') {
-        return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
-    }
-    if (GO_ANY_NIL_SAFE_CALLS.has (call[1])) {
-        return true;
-    }
-    if (GO_ANY_DEREFED_READS.has (call[1])) {
-        return true;
-    }
+    if (args === undefined) { return false; }
+    if (call[1] === 'DerefScalar') { return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined); }
+    if ((GO_ANY_NIL_SAFE_CALLS.has (call[1])) || (GO_ANY_DEREFED_READS.has (call[1]))) { return true; }
     // an element of a []string is a string; out of range reads untyped nil
-    if ((call[1] === 'GetValue') && (args.length === 2) && (stringSlices.has (args[0]) || /^Split\(/.test (args[0]) && (goCallArgsSpanningText (args[0], 5) !== undefined))) {
-        return true;
-    }
-    if (goAnyNilSafeCall (call[1], args, (arg: string) => goAnyNilSafeWrite (arg, scalarLocals, safeLocal, stringSlices))) {
-        return true;
-    }
+    if ((call[1] === 'GetValue') && (args.length === 2) && (stringSlices.has (args[0]) || /^Split\(/.test (args[0]) && (goCallArgsSpanningText (args[0], 5) !== undefined))) { return true; }
+    if (goAnyNilSafeCall (call[1], args, (arg: string) => goAnyNilSafeWrite (arg, scalarLocals, safeLocal, stringSlices))) { return true; }
     if (GO_ANY_NIL_SAFE_DEFAULTED.has (call[1])) {
         const keys = (call[1].endsWith ('2')) ? 3 : 2;
-        if (args.length <= keys) {
-            return true;
-        }
+        if (args.length <= keys) { return true; }
         return (args.length === keys + 1) && /^(?:nil|map\[string\]any\{\}|\[\]any\{\})$/.test (args[keys]);
     }
     return false;
 }
 
 function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
-    if (fn.indexOf (isEqualFn) < 0) {
-        return fn;
-    }
+    if (fn.indexOf (isEqualFn) < 0) { return fn; }
     // ws/prediction files get their `ccxt.` qualifier after this pass, so accept both spellings
     const helper = '(?:ccxt\\.)?' + isEqualFn.replace (/^ccxt\./, '').replace (/[.(]/g, '\\$&');
     const sigEnd = fn.indexOf ('{');
@@ -7887,53 +6317,35 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
     const stringSlices = new Set<string> ();
     for (const line of code) {
         const decl = /^\s*var (\w+) (\w+|\[\]string)(?: = |$)/.exec (line);
-        if (decl && GO_ANY_NIL_SCALAR_TYPES.has (decl[2])) {
-            scalarLocals.add (decl[1]);
-        } else if (decl && (decl[2] === '[]string')) {
-            stringSlices.add (decl[1]);
-        }
+        if (decl && GO_ANY_NIL_SCALAR_TYPES.has (decl[2])) { scalarLocals.add (decl[1]); } else if (decl && (decl[2] === '[]string')) { stringSlices.add (decl[1]); }
     }
     for (const locals of [ scalarLocals, stringSlices ]) {
         for (const name of Array.from (locals)) {
             const count = code.filter ((line) => new RegExp ('(?<![.\\w])' + name + '\\b[^=\\n]*:=|\\bvar ' + name + ' ').test (line)).length;
-            if ((count !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
-                locals.delete (name);
-            }
+            if ((count !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) { locals.delete (name); }
         }
     }
     const verdict = new Map<string, boolean> ();
     // `func() T {` .. `}()` written at line i: every return (no nested func) must be a safe write
     const invokedLiteralSafe = (rhs: string, i: number): boolean => {
         const head = /^func\(\) (\w+(?:\[\w+\]\w+)?|\[\]\w+) \{$/.exec (rhs.trim ());
-        if (!head) {
-            return false;
-        }
+        if (!head) { return false; }
         const indent = /^\s*/.exec (lines[i])[0];
         let returns = 0;
         for (let j = i + 1; j < lines.length; j++) {
-            if (lines[j] === indent + '}()') {
-                return (returns > 0) && (GO_ANY_NIL_SCALAR_TYPES.has (head[1]) || (head[1] === 'any'));
-            }
-            if (/\bfunc\b/.test (code[j])) {
-                return false;
-            }
+            if (lines[j] === indent + '}()') { return (returns > 0) && (GO_ANY_NIL_SCALAR_TYPES.has (head[1]) || (head[1] === 'any')); }
+            if (/\bfunc\b/.test (code[j])) { return false; }
             const ret = /^\s*return (.*)$/.exec (lines[j]);
             if (ret) {
                 returns++;
-                if (!GO_ANY_NIL_SCALAR_TYPES.has (head[1]) && !goAnyNilSafeWrite (ret[1], scalarLocals, provable, stringSlices)) {
-                    return false;
-                }
-            } else if (/\breturn\b/.test (code[j])) {
-                return false;
-            }
+                if (!GO_ANY_NIL_SCALAR_TYPES.has (head[1]) && !goAnyNilSafeWrite (ret[1], scalarLocals, provable, stringSlices)) { return false; }
+            } else if (/\breturn\b/.test (code[j])) { return false; }
         }
         return false;
     };
     const safeWrite = (rhs: string, i: number): boolean => goAnyNilSafeWrite (rhs, scalarLocals, provable, stringSlices) || invokedLiteralSafe (rhs, i) || goOmitOfTypedMap (rhs, fn);
     const provable = (name: string): boolean => {
-        if (verdict.has (name)) {
-            return verdict.get (name);
-        }
+        if (verdict.has (name)) { return verdict.get (name); }
         // a cycle through another local stays unproven
         verdict.set (name, false);
         let ok = !new RegExp ('[(,]\\s*' + name + ' ').test (signature);
@@ -7941,9 +6353,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
         const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
         for (let i = 0; ok && (i < lines.length); i++) {
             const line = code[i];
-            if (!mention.test (line)) {
-                continue;
-            }
+            if (!mention.test (line)) { continue; }
             // a safeDict-seeded `map[string]any = this.SafeDictMap(..)` local is the same never-nil/absent-nil read as the `any` form
             const decl = new RegExp ('^\\s*var ' + name + ' (?:any|map\\[string\\]any)(?: = (.*))?$').exec (line);
             if (decl) {
@@ -7962,9 +6372,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
                 ok = safeWrite (write[1], i);
                 continue;
             }
-            if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (line)) {
-                ok = false;
-            }
+            if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (line)) { ok = false; }
         }
         ok = ok && (decls === 1);
         verdict.set (name, ok);
@@ -7979,9 +6387,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
             && !new RegExp ('[(,]\\s*' + name + ' ').test (signature) && goAnyNilSafeWrite (decl[2], scalarLocals, provable, stringSlices);
     };
     return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), nil\\)', 'g'), ((m: string, not: string, name: string, at: number) => {
-        if (!provable (name) && !seededAbove (name, at)) {
-            return m;
-        }
+        if (!provable (name) && !seededAbove (name, at)) { return m; }
         return '(' + name + ((not === '!') ? ' != nil)' : ' == nil)');
     }) as any);
 }
@@ -8001,9 +6407,7 @@ export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string)
         let from = 0;
         for (let ls = 0; ls < all.length;) {
             let le = all.indexOf ('\n', ls);
-            if (le < 0) {
-                le = all.length;
-            }
+            if (le < 0) { le = all.length; }
             const line = all.slice (ls, le);
             if (line.includes ('nil') && (line.includes ('&&') || line.includes ('||'))) {
                 const next = line.replace (pattern, ((...a: any[]) => {
@@ -8028,21 +6432,15 @@ export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string)
             const lead = o1.length - c1.length;
             const trail = c2.length - o2.length;
             const mixed = ((h1 === undefined) !== (h2 === undefined));
-            if ((lead < 0) || (trail < 0) || ((h1 || v1) !== (h2 || v2)) || (isNil (n1, e1) !== isNil (n2, e2)) || (mixed && (isNil (n1, e1) !== or))) {
-                return m;
-            }
+            if ((lead < 0) || (trail < 0) || ((h1 || v1) !== (h2 || v2)) || (isNil (n1, e1) !== isNil (n2, e2)) || (mixed && (isNil (n1, e1) !== or))) { return m; }
             const prefix = o1.slice (0, lead);
             const suffix = c2.slice (o2.length);
             const core = m.slice (lead, m.length - trail);
             const before = all.slice (0, at) + prefix;
             const after = suffix + all.slice (at + m.length);
             // only whole operands of a boolean chain; `A && P || P` is not `A && P`
-            if (!/(?:^|[({,]|&&|\|\||[^=!<>]=|\breturn|\bif)\s*$/.test (before) || !/^\s*(?:$|[)}{,;\n]|&&|\|\|)/.test (after)) {
-                return m;
-            }
-            if (or && (/&&\s*$/.test (before) || /^\s*&&/.test (after))) {
-                return m;
-            }
+            if (!/(?:^|[({,]|&&|\|\||[^=!<>]=|\breturn|\bif)\s*$/.test (before) || !/^\s*(?:$|[)}{,;\n]|&&|\|\|)/.test (after)) { return m; }
+            if (or && (/&&\s*$/.test (before) || /^\s*&&/.test (after))) { return m; }
             changed = true;
             const joint = core.indexOf (c1 + ' ' + op + ' ' + o2) + c1.length;
             // the helper side implies the native one (IsEqual also folds typed nil pointers)
@@ -8072,19 +6470,15 @@ function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s any = this.SafeString(p, "a")\n\tif IsEqual(s, nil) {\n\t\ts = this.ParseIds(p)\n\t}\n').indexOf ('IsEqual(s, nil)') >= 0, 'an unsafe seed keeps the helper on the next line');
     ok (f ('\tvar s any = client.SubscriptionSafe("a")\n\tif true {\n\t\tvar s any = this.ParseIds(p)\n\t\t_ = s\n\t}\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('IsEqual(s, nil)') >= 0, 'a shadowed name keeps the helper');
     const keep = [
-        '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = MapTyped(p)\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = this.FilterBy(p, "a", "b")\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = this.SafeDict(p, "v", p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n', '\tvar v any = MapTyped(p)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.FilterBy(p, "a", "b")\n\tif IsEqual(v, nil) {\n\t}\n', '\tvar v any = this.SafeDict(p, "v", p)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = nil\n\tv, _ = this.Two(p)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = nil\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = nil\n\tfunc() {\n\t\tv = this.SafeInteger(p, "a")\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = nil\n\tif true {\n\t\tvar v any = p\n\t\t_ = v\n\t}\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = this.Extend(p).X\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar q *string = nil\n\tvar v any = q\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = this.Extend(p).X\n\tif IsEqual(v, nil) {\n\t}\n', '\tvar q *string = nil\n\tvar v any = q\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = DerefScalar(this.SafeValue(p, "a"))\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = Precise.StringAbs(p)\n\tif IsEqual(v, nil) {\n\t}\n',
-        '\tvar v any = this.ParseNumber(p, q)\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar v any = Precise.StringAbs(p)\n\tif IsEqual(v, nil) {\n\t}\n', '\tvar v any = this.ParseNumber(p, q)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = this.Iso8601(p)\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = func() any {\n\t\tif true {\n\t\t\treturn this.SafeString(p, "a")\n\t\t}\n\t\treturn nil\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = func() any {\n\t\tf := func() any { return p }\n\t\treturn f()\n\t}()\n\tif IsEqual(v, nil) {\n\t}\n',
@@ -8119,69 +6513,40 @@ function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
     ok (dup ('\tif (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {\n\t}\n').indexOf ('if (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {') >= 0, 'an || pair bound into && is kept');
 }
 
-// IsEqual(x, "lit") is `x == "lit"` on a box that never holds a *string/*any (the helper derefs
-// those) or a *sync.Map; on a `*string` local it is the helper's nil-guarded compare. Every
-// write must be proven below; parameters and unknown producers keep the helper.
+// IsEqual(x, "lit") is `x == "lit"` on a box that never holds a *string/*any (the helper derefs those) or a *sync.Map; on a `*string` local it is the helper's
+// nil-guarded compare. Every write must be proven below; parameters and unknown producers keep the helper.
 const GO_STRING_CMP_SAFE_CALLS = new Set ([
-    'GetValue', 'Add', 'Subtract', 'Multiply', 'Divide', 'ParseInt', 'GetArrayLength', 'mathMin', 'mathMax',
-    'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
-    'this.Json', 'this.Uuid', 'this.Milliseconds', 'this.Seconds', 'this.Extend', 'this.DeepExtend',
+    'GetValue', 'Add', 'Subtract', 'Multiply', 'Divide', 'ParseInt', 'GetArrayLength', 'mathMin', 'mathMax', 'ToUpper', 'ToLower', 'ToString', 'Replace',
+    'JsonStringify', 'StringArg', 'Json', 'this.Json', 'this.Uuid', 'this.Milliseconds', 'this.Seconds', 'this.Extend', 'this.DeepExtend',
 ]);
 // producers whose Go result is `any` or `string`, so `x := <call>` compares with a string constant
-const GO_STRING_CMP_BOX_CALLS = new Set ([
-    'GetValue', 'Add', 'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
-    'this.Json', 'this.Uuid', 'GetArg', 'DerefScalar',
-]);
+const GO_STRING_CMP_BOX_CALLS = new Set ([ 'GetValue', 'Add', 'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json', 'this.Json', 'this.Uuid', 'GetArg', 'DerefScalar' ]);
 const GO_STRING_PTR_TUPLE_CALL = /^(?:this|base|this\.Exchange|this\.BaseExchange)\.Handle(?:MarketType|SubType|MarginMode|OptionString)AndParams2?\(/;
 const GO_STRING_CMP_PLAIN_ARG = /^(?:nil|true|false|""|-?\d+(?:\.\d+)?|map\[string\]any\{\}|\[\]any\{\})$/;
 
 // true when the masked right-hand side cannot yield a pointer box; `ident` judges bare names
 function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, boxOnly: boolean): boolean {
     const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
-    if (text === '""') {
-        return true;
-    }
-    if (/^"(?:[^"\\\n]|\\.)*" \+ /.test (text)) { return true; } // Go `"lit" + x` compiles only as a string: never a pointer box
+    if ((text === '""') || (/^"(?:[^"\\\n]|\\.)*" \+ /.test (text))) { return true; } // Go `"lit" + x` compiles only as a string: never a pointer box
     if (/^this\.WalletAddress$/.test (text) || /^this\.(?:EthGetAddressFromPrivateKey|ShortenSlug)\([^()]*\)$/.test (text)) { return true; } // hand-written Go `string` field / results
-    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
-        return !boxOnly;
-    }
+    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) { return !boxOnly; }
     // a tuple-holder slot the printer reads natively holds what GetValue(h, i) answered
-    if (/^\w+Variable\[\d+\]$/.test (text) || /^\w+Pair\.Value\.V$/.test (text)) {
-        return true;
-    }
+    if (/^\w+Variable\[\d+\]$/.test (text) || /^\w+Pair\.Value\.V$/.test (text)) { return true; }
     // the deref of a pair-bind pointer temp (`x = *xPtr`) is a plain scalar, never a pointer box
-    if (/^\*\w+Ptr$/.test (text)) {
-        return true;
-    }
-    if (/^\w+$/.test (text)) {
-        return !boxOnly && ident (text);
-    }
+    if (/^\*\w+Ptr$/.test (text)) { return true; }
+    if (/^\w+$/.test (text)) { return !boxOnly && ident (text); }
     // a pointer-free `map[string]any` element read is as plain as the GetValue read (which derefs) it replaces
-    if (/^[A-Za-z_]\w*\[\"[^\"\\\n]*\"\]$/.test (text)) {
-        return true;
-    }
+    if (/^[A-Za-z_]\w*\[\"[^\"\\\n]*\"\]$/.test (text)) { return true; }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
     const args = call ? goCallArgsSpanningText (text, call[0].length - 1) : undefined;
-    if ((call === null) || (args === undefined)) {
-        return false;
-    }
-    if (boxOnly && !GO_STRING_CMP_BOX_CALLS.has (call[1])) {
-        return false;
-    }
-    if (call[1] === 'DerefScalar') {
-        return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
-    }
-    if (call[1] === 'GetArg') {
-        return (args.length === 3) && GO_STRING_CMP_PLAIN_ARG.test (args[2]);
-    }
+    if (((call === null) || (args === undefined)) || (boxOnly && !GO_STRING_CMP_BOX_CALLS.has (call[1]))) { return false; }
+    if (call[1] === 'DerefScalar') { return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined); }
+    if (call[1] === 'GetArg') { return (args.length === 3) && GO_STRING_CMP_PLAIN_ARG.test (args[2]); }
     return GO_STRING_CMP_SAFE_CALLS.has (call[1]) || GO_ANY_DEREFED_READS.has (call[1]);
 }
 
 function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
-    if (fn.indexOf (isEqualFn) < 0) {
-        return fn;
-    }
+    if (fn.indexOf (isEqualFn) < 0) { return fn; }
     const helper = isEqualFn.replace (/[.(]/g, '\\$&');
     const signature = fn.slice (0, fn.indexOf ('{'));
     const signatureLine = signature.split ('\n').length - 1;
@@ -8190,9 +6555,7 @@ function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
     const kinds = new Map<string, string> ();
     const kindOf = (name: string): string => {
         const known = kinds.get (name);
-        if (known !== undefined) {
-            return known;
-        }
+        if (known !== undefined) { return known; }
         kinds.set (name, 'no');
         const param = new RegExp ('[(,]\\s*' + name + ' (\\S+?)[,)]').exec (signature);
         const declRe = new RegExp ('\\bvar ' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{]*[(,]\\s*' + name + ' ');
@@ -8203,39 +6566,21 @@ function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
             kinds.set (name, kind);
             return kind;
         }
-        if (declLines.length !== 1) {
-            return kind;
-        }
+        if (declLines.length !== 1) { return kind; }
         const declIndex = declLines[0];
         const decl = code[declIndex];
         const safeIdent = (other: string): boolean => (other !== name) && (kindOf (other) !== 'no') && (kindOf (other) !== 'ptr');
         let match: RegExpExecArray | null;
-        if (new RegExp ('^\\s*var ' + name + ' (?:string|int64|float64|bool|int) = ').test (decl)) {
-            kind = 'scalar';
-        } else if (new RegExp ('^\\s*var ' + name + ' \\*string(?: = |$)').test (decl)) {
+        if (new RegExp ('^\\s*var ' + name + ' (?:string|int64|float64|bool|int) = ').test (decl)) { kind = 'scalar'; } else if (new RegExp ('^\\s*var ' + name + ' \\*string(?: = |$)').test (decl)) { kind = 'ptr'; } else if ((match = new RegExp ('^\\s*' + name + ', \\w+ := (.*)$').exec (decl)) && GO_STRING_PTR_TUPLE_CALL.test (match[1]) && (goCallArgsSpanningText (match[1], match[1].indexOf ('(')) !== undefined)) {
             kind = 'ptr';
-        } else if ((match = new RegExp ('^\\s*' + name + ', \\w+ := (.*)$').exec (decl)) && GO_STRING_PTR_TUPLE_CALL.test (match[1]) && (goCallArgsSpanningText (match[1], match[1].indexOf ('(')) !== undefined)) {
-            kind = 'ptr';
-        } else if ((match = new RegExp ('^\\s*var ' + name + ' any(?: = (.*))?$').exec (decl))) {
-            kind = ((match[1] === undefined) || goStringCmpSafeWrite (match[1], safeIdent, false)) ? 'box' : 'no';
-        } else if ((match = new RegExp ('^\\s*' + name + ' := (.*)$').exec (decl))) {
-            kind = goStringCmpSafeWrite (match[1], safeIdent, true) ? 'box' : 'no';
-        }
+        } else if ((match = new RegExp ('^\\s*var ' + name + ' any(?: = (.*))?$').exec (decl))) { kind = ((match[1] === undefined) || goStringCmpSafeWrite (match[1], safeIdent, false)) ? 'box' : 'no'; } else if ((match = new RegExp ('^\\s*' + name + ' := (.*)$').exec (decl))) { kind = goStringCmpSafeWrite (match[1], safeIdent, true) ? 'box' : 'no'; }
         if (kind === 'box') {
             const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
             const unsafe = new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:\\+\\+|--|[-+*/%|&^]=)|,\\s*' + name + '\\s*(?:,[^=\\n]*)?=[^=]|(?<![.\\w])' + name + '\\s*,[\\w\\s,]*=[^=]');
             for (let i = 0; (kind === 'box') && (i < code.length); i++) {
-                if ((i === declIndex) || !mention.test (code[i])) {
-                    continue;
-                }
+                if ((i === declIndex) || !mention.test (code[i])) { continue; }
                 const write = new RegExp ('^\\s*' + name + ' = (.*)$').exec (code[i]);
-                if (unsafe.test (code[i])) {
-                    kind = 'no';
-                } else if (write) {
-                    kind = goStringCmpSafeWrite (write[1], safeIdent, false) ? 'box' : 'no';
-                } else if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (code[i])) {
-                    kind = 'no';
-                }
+                if (unsafe.test (code[i])) { kind = 'no'; } else if (write) { kind = goStringCmpSafeWrite (write[1], safeIdent, false) ? 'box' : 'no'; } else if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (code[i])) { kind = 'no'; }
             }
         }
         kinds.set (name, kind);
@@ -8243,19 +6588,13 @@ function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
     };
     return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), (\"(?:[^\"\\\\]|\\\\.)*\")\\)', 'g'), ((m: string, not: string, name: string, literal: string) => {
         const kind = kindOf (name);
-        if (kind === 'box') {
-            return '(' + name + ((not === '!') ? ' != ' : ' == ') + literal + ')';
-        }
-        if (kind === 'ptr') {
-            return (not === '!') ? '(' + name + ' == nil || *' + name + ' != ' + literal + ')' : '(' + name + ' != nil && *' + name + ' == ' + literal + ')';
-        }
+        if (kind === 'box') { return '(' + name + ((not === '!') ? ' != ' : ' == ') + literal + ')'; }
+        if (kind === 'ptr') { return (not === '!') ? '(' + name + ' == nil || *' + name + ' != ' + literal + ')' : '(' + name + ' != nil && *' + name + ' == ' + literal + ')'; }
         return m;
     }) as any);
 }
 
-export function goStringLiteralNativeCompares (content: string, isEqualFn: string): string {
-    return goRewriteFuncBlocks (content, (block) => goStringLiteralCompareText (block, isEqualFn));
-}
+export function goStringLiteralNativeCompares (content: string, isEqualFn: string): string { return goRewriteFuncBlocks (content, (block) => goStringLiteralCompareText (block, isEqualFn)); }
 
 // `var x any` locals whose every write is a *string producer (Safe*String*, OmitZero, NumberToString, Precise.String*,
 // nil, another such local, or an IIFE returning only those) and whose every read derefs the box (IsEqual against nil or a
@@ -8264,9 +6603,7 @@ const GO_STRPTR_LOCAL_PRODUCER = /^(?:ccxt\.)?(?:this\.(?:SafeString(?:Lower|Upp
 const GO_STRPTR_LOCAL_SINK = /(?:^|[^\w.])(?:ccxt\.)?(?:Precise\.String(?:Add|Sub|Mul|Div|Abs|Neg|Max|Min|Mod|Gt|Lt|Ge|Le|Eq|Equals)|this\.ParseNumber)$/;
 
 function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string>> = new Map ()): string {
-    if (fn.indexOf (' any') < 0) {
-        return fn;
-    }
+    if (fn.indexOf (' any') < 0) { return fn; }
     const sigEnd = fn.indexOf ('{');
     const signature = fn.slice (0, sigEnd);
     const receiver = (/^\s*func \(this \*(\w+)\)/m.exec (signature) || [ '', '' ])[1];
@@ -8278,9 +6615,7 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
         const d = /^\s*var (\w+) any(?: = |$)/.exec (line);
         if (d) { names.add (d[1]); }
     }
-    if (!names.size) {
-        return fn;
-    }
+    if (!names.size) { return fn; }
     const ptrLocals = new Set<string> ();
     for (const line of code) {
         const d = /^\s*var (\w+) \*string(?: = |$)/.exec (line);
@@ -8293,12 +6628,8 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     // lines declaring each name (`\bvar name\b`), counted once per line
     const declLines = new Map<string, number> ();
     for (const l of code) {
-        if (l.indexOf ('var ') < 0) {
-            continue;
-        }
-        for (const v of new Set (Array.from (l.matchAll (/\bvar (\w+)/g), (m) => m[1]))) {
-            declLines.set (v, (declLines.get (v) || 0) + 1);
-        }
+        if (l.indexOf ('var ') < 0) { continue; }
+        for (const v of new Set (Array.from (l.matchAll (/\bvar (\w+)/g), (m) => m[1]))) { declLines.set (v, (declLines.get (v) || 0) + 1); }
     }
     const declCount = (name: string): number => declLines.get (name) || 0;
     for (const name of Array.from (ptrLocals)) {
@@ -8308,17 +6639,11 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     }
     // the [start, end] line span of `func() any {` .. `}()` opened on line i, or undefined
     const iife = (i: number, rhs: string): number | undefined => {
-        if (rhs.trim () !== 'func() any {') {
-            return undefined;
-        }
+        if (rhs.trim () !== 'func() any {') { return undefined; }
         const indent = /^\s*/.exec (lines[i])[0];
         for (let j = i + 1; j < lines.length; j++) {
-            if (lines[j] === indent + '}()') {
-                return j;
-            }
-            if (/\bfunc\b/.test (code[j])) {
-                return undefined;
-            }
+            if (lines[j] === indent + '}()') { return j; }
+            if (/\bfunc\b/.test (code[j])) { return undefined; }
         }
         return undefined;
     };
@@ -8327,30 +6652,20 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     const owner = new Map<number, string> ();
     const cand = new Set<string> ();
     for (const name of names) {
-        if ((declCount (name) !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
-            continue;
-        }
+        if ((declCount (name) !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) { continue; }
         const list: Write[] = [];
         let ok = true;
         const writeRe = new RegExp ('^\\s*(?:var ' + name + ' any = |' + name + ' = )(.*)$');
         const bareRe = new RegExp ('^\\s*var ' + name + ' any$');
         for (let i = 0; ok && (i < lines.length); i++) {
-            if (code[i].indexOf (name) < 0) {
-                continue;
-            }
+            if (code[i].indexOf (name) < 0) { continue; }
             const w = writeRe.exec (code[i]);
-            if (bareRe.test (code[i])) {
-                list.push ({ 'line': i, 'rhs': 'nil' });
-            } else if (w) {
+            if (bareRe.test (code[i])) { list.push ({ 'line': i, 'rhs': 'nil' }); } else if (w) {
                 const rhs = writeRe.exec (lines[i])[1];
                 const end = iife (i, rhs);
-                if ((end === undefined) && (rhs.trim () === 'func() any {')) {
-                    ok = false;
-                }
+                if ((end === undefined) && (rhs.trim () === 'func() any {')) { ok = false; }
                 list.push ({ 'line': i, 'rhs': rhs, 'end': end });
-                if (end !== undefined) {
-                    for (let j = i + 1; j < end; j++) { owner.set (j, name); }
-                }
+                if (end !== undefined) { for (let j = i + 1; j < end; j++) { owner.set (j, name); } }
             }
         }
         if (ok) {
@@ -8360,12 +6675,8 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     }
     const producer = (rhs: string, plain = false): boolean => {
         const text = rhs.replace (/^(?:ccxt\.)?DerefScalar\((.*)\)$/, '$1').trim ();
-        if ((text === 'nil') || (plain && /^"(?:[^"\\]|\\.)*"$/.test (text))) {
-            return true;
-        }
-        if (/^\w+$/.test (text)) {
-            return ptrLocals.has (text) || cand.has (text) || ptrParams.has (text);
-        }
+        if ((text === 'nil') || (plain && /^"(?:[^"\\]|\\.)*"$/.test (text))) { return true; }
+        if (/^\w+$/.test (text)) { return ptrLocals.has (text) || cand.has (text) || ptrParams.has (text); }
         const m = GO_STRPTR_LOCAL_PRODUCER.exec (text) || goStrPtrMethodCall (text, ptrMethods, receiver);
         return (m !== null) && (goMatchingCloseText (text, m[0].length - 1) === text.length - 1);
     };
@@ -8373,9 +6684,7 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     const readsOk = (name: string, i: number): boolean => {
         let line = code[i];
         const own = new RegExp ('^(\\s*)(?:var ' + name + ' any = |' + name + ' = )').exec (line);
-        if (own) {
-            line = own[1] + line.slice (own[0].length);
-        }
+        if (own) { line = own[1] + line.slice (own[0].length); }
         line = line.replace (new RegExp ('(?<![\\w.])(?:ccxt\\.)?IsEqual\\(' + name + ', (?:nil|\"[^\"]*\")\\)', 'g'), 'Z');
         line = line.replace (new RegExp ('(?<![.\\w])' + name + ' [!=]= nil\\b', 'g'), 'Z');
         const mention = new RegExp ('(?<![.\\w&*])' + name + '(?!\\w)', 'g');
@@ -8387,25 +6696,15 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
             if (/^\s*[,)]/.test (after)) {
                 let depth = 0;
                 let k = before.length - 1;
-                for (; k >= 0; k--) {
-                    if (')]}'.indexOf (before[k]) >= 0) { depth++; } else if ('([{'.indexOf (before[k]) >= 0) { if (depth === 0) { break; } depth--; }
-                }
-                if ((k >= 0) && (before[k] === '(') && GO_STRPTR_LOCAL_SINK.test (before.slice (0, k))) {
-                    continue;
-                }
+                for (; k >= 0; k--) { if (')]}'.indexOf (before[k]) >= 0) { depth++; } else if ('([{'.indexOf (before[k]) >= 0) { if (depth === 0) { break; } depth--; } }
+                if ((k >= 0) && (before[k] === '(') && GO_STRPTR_LOCAL_SINK.test (before.slice (0, k))) { continue; }
             }
             // the returned value of another retyped local's IIFE, or the whole rhs of its write
-            if (/^\s*return\s*$/.test (before) && (after.trim () === '') && owner.has (i) && cand.has (owner.get (i))) {
-                continue;
-            }
+            if (/^\s*return\s*$/.test (before) && (after.trim () === '') && owner.has (i) && cand.has (owner.get (i))) { continue; }
             // the value of a literal-key map store: the helper derefs it, so a *string stores the same scalar or nil
-            if (/^\s*(?:ccxt\.)?AddElementToObject\(\w+, "[^"\\\n]*", $/.test (before) && /^\)\s*$/.test (after)) {
-                continue;
-            }
+            if (/^\s*(?:ccxt\.)?AddElementToObject\(\w+, "[^"\\\n]*", $/.test (before) && /^\)\s*$/.test (after)) { continue; }
             const copy = /^\s*(\w+) = $/.exec (before);
-            if (copy && (after.trim () === '') && cand.has (copy[1])) {
-                continue;
-            }
+            if (copy && (after.trim () === '') && cand.has (copy[1])) { continue; }
             return false;
         }
         return true;
@@ -8419,11 +6718,7 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
                 : producer (w.rhs, true));
             const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
             const escape = new RegExp ('&' + name + '\\b|' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\*' + name + '\\b');
-            for (let i = 0; ok && (i < code.length); i++) {
-                if ((code[i].indexOf (name) >= 0) && mention.test (code[i]) && (escape.test (code[i]) || !readsOk (name, i))) {
-                    ok = false;
-                }
-            }
+            for (let i = 0; ok && (i < code.length); i++) { if ((code[i].indexOf (name) >= 0) && mention.test (code[i]) && (escape.test (code[i]) || !readsOk (name, i))) { ok = false; } }
             if (!ok) {
                 cand.delete (name);
                 changed = true;
@@ -8431,21 +6726,13 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
         }
     }
     // a local only ever nil (never a producer) has nothing to fold; keep the rewrite to real *string locals
-    for (const name of Array.from (cand)) {
-        if (writes.get (name).every ((w) => (w.rhs.trim () === 'nil') || /^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ()))) {
-            cand.delete (name);
-        }
-    }
-    if (!cand.size) {
-        return fn;
-    }
+    for (const name of Array.from (cand)) { if (writes.get (name).every ((w) => (w.rhs.trim () === 'nil') || /^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ()))) { cand.delete (name); } }
+    if (!cand.size) { return fn; }
     for (const name of cand) {
         for (const w of writes.get (name)) {
             const re = new RegExp ('^(\\s*)(var ' + name + ') any( = |$)');
             lines[w.line] = lines[w.line].replace (re, '$1$2 *string$3');
-            if (w.end !== undefined) {
-                lines[w.line] = lines[w.line].replace (/func\(\) any \{$/, 'func() *string {');
-            } else if (/^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ())) {
+            if (w.end !== undefined) { lines[w.line] = lines[w.line].replace (/func\(\) any \{$/, 'func() *string {'); } else if (/^"(?:[^"\\]|\\.)*"$/.test (w.rhs.trim ())) {
                 const lit = name + 'Lit' + w.line;
                 lines[w.line] = lines[w.line].replace (new RegExp ('^(\\s*)((?:var ' + name + ' \\*string|' + name + ') = )(.*)$'), '$1' + lit + ' := $3\n$1$2&' + lit);
             } else {
@@ -8508,8 +6795,7 @@ function goSafeBoolLiteralSelfTest (ok: SelfTestOk): void {
     ok (goSafeBoolLiteralDefaultDeref ('if this.SafeBool(this.Options, "a", false) != nil && *this.SafeBool(this.Options, "a", false) {') === 'if *this.SafeBool(this.Options, "a", false) {', 'literal default derefs once');
     ok (goSafeBoolLiteralDefaultDeref ('(!(this.SafeBool2(GetValue(m, "i"), "a", "b", true) != nil && *this.SafeBool2(GetValue(m, "i"), "a", "b", true)))') === '(!(*this.SafeBool2(GetValue(m, "i"), "a", "b", true)))', 'nested args and SafeBool2');
     const keep = [
-        'this.SafeBool(p, "a") != nil && *this.SafeBool(p, "a")',
-        'this.SafeBool(p, "a", d) != nil && *this.SafeBool(p, "a", d)',
+        'this.SafeBool(p, "a") != nil && *this.SafeBool(p, "a")', 'this.SafeBool(p, "a", d) != nil && *this.SafeBool(p, "a", d)',
         'this.SafeBool(p, "a", false) != nil && *this.SafeBool(q, "a", false)',
         'this.SafeBool(p, GetValue(k, false)) != nil && *this.SafeBool(p, GetValue(k, false))',
     ];
@@ -8572,10 +6858,8 @@ function goStringLiteralSelfTest (ok: SelfTestOk): void {
         '\tvar v any = "a"\n\tv, _ = this.Two(p)\n\tif IsEqual(v, "a") {\n\t}\n',
         '\tvar v any = nil\n\tif true {\n\t\tvar v any = p\n\t\t_ = v\n\t}\n\tif IsEqual(v, "a") {\n\t}\n',
         '\tv := GetArg(optionalArgs, 0, this.SafeString(p, "a"))\n\tif IsEqual(v, "a") {\n\t}\n',
-        '\tv := this.Milliseconds()\n\tif IsEqual(v, "a") {\n\t}\n',
-        '\tvar v any = func() any {\n\t\treturn p\n\t}()\n\tif IsEqual(v, "a") {\n\t}\n',
-        '\tvar v any = DerefScalar(p)\n\tif IsEqual(v, "a") {\n\t}\n',
-        '\tvar v any = "a"\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tv := this.Milliseconds()\n\tif IsEqual(v, "a") {\n\t}\n', '\tvar v any = func() any {\n\t\treturn p\n\t}()\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = DerefScalar(p)\n\tif IsEqual(v, "a") {\n\t}\n', '\tvar v any = "a"\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, "a") {\n\t}\n',
         '\tvar v any = "a"\n\tvar w any = v\n\tw = p\n\tv = w\n\tif IsEqual(v, "a") {\n\t}\n',
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, "a")') >= 0, 'unproven write must keep the helper #' + index));
@@ -8590,8 +6874,7 @@ function goStringLiteralSelfTest (ok: SelfTestOk): void {
     ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
 }
 
-// Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
-// every other read shape keeps it.
+// Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and every other read shape keeps it.
 function goDerefWrapSelfTest (ok: SelfTestOk): void {
     const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
     const redundant = (body: string, name: string): boolean => {
@@ -8621,17 +6904,15 @@ function goDerefWrapSelfTest (ok: SelfTestOk): void {
     ok (unwrapped.indexOf ('var flag any = this.SafeBool(market, "flag", false)') >= 0 && unwrapped.indexOf ('var row any = this.SafeString(data, "row")') >= 0, 'the drop must keep the wrapped call');
 }
 
-// One entry per line of a core body: how deeply it sits inside func literals, and
-// whether that line opens or closes one. Everything the rewriter needs to decide
-// what is "core level" comes from here, so the brace scan happens exactly once.
+// One entry per line of a core body: how deeply it sits inside func literals, and whether that line opens or closes one. Everything the rewriter needs to
+// decide what is "core level" comes from here, so the brace scan happens exactly once.
 type CoreBodyScan = {
     'literalDepth': number[];   // func-literal nesting depth *before* the line
     'closesTo': number[];       // for a line that closes a literal: the depth it drops to, else -1
     'sendsInLiteral': boolean;  // some line sends on ch from inside a func literal
 };
 
-// Walk a core body once and record func-literal nesting per line. Returns null when
-// the braces do not balance, i.e. when the scan cannot be trusted.
+// Walk a core body once and record func-literal nesting per line. Returns null when the braces do not balance, i.e. when the scan cannot be trusted.
 function scanCoreBody (body: string[]): CoreBodyScan | null {
     const literalDepth: number[] = [];
     const closesTo: number[] = [];
@@ -8642,9 +6923,7 @@ function scanCoreBody (body: string[]): CoreBodyScan | null {
         const code = stripGoLiterals (line, comment);
         const depthBefore = funcLiteral.filter ((isFunc) => isFunc).length;
         literalDepth.push (depthBefore);
-        if (depthBefore > 0 && GO_CORE_SEND.test (line.trim ())) {
-            sendsInLiteral = true;
-        }
+        if (depthBefore > 0 && GO_CORE_SEND.test (line.trim ())) { sendsInLiteral = true; }
         const starts: number[] = [];
         GO_FUNC_LITERAL.lastIndex = 0;
         let literal = GO_FUNC_LITERAL.exec (code);
@@ -8655,43 +6934,25 @@ function scanCoreBody (body: string[]): CoreBodyScan | null {
         let closed = -1;
         for (let i = 0; i < code.length; i++) {
             if (code[i] === '{') {
-                // a brace opened by the nearest `func(` on this line, with no other
-                // brace in between, opens a function literal body
+                // a brace opened by the nearest `func(` on this line, with no other brace in between, opens a function literal body
                 const opensLiteral = starts.some ((at) => (at < i) && (code.slice (at, i).indexOf ('{') < 0));
                 funcLiteral.push (opensLiteral);
-            } else if (code[i] === '}') {
-                if (funcLiteral.pop () === true) {
-                    closed = funcLiteral.filter ((isFunc) => isFunc).length;
-                }
-            } else {
-                continue;
-            }
-            if (funcLiteral.length < 0) {
-                return null;
-            }
+            } else if (code[i] === '}') { if (funcLiteral.pop () === true) { closed = funcLiteral.filter ((isFunc) => isFunc).length; } } else { continue; }
+            if (funcLiteral.length < 0) { return null; }
         }
         closesTo.push (closed);
     }
-    if (funcLiteral.length || comment.inBlockComment) {
-        return null;
-    }
+    if (funcLiteral.length || comment.inBlockComment) { return null; }
     return { literalDepth, closesTo, sendsInLiteral };
 }
 
-// true when every bracket the line opens it also closes — i.e. the line is a
-// complete statement rather than the head of a multi-line composite literal
+// true when every bracket the line opens it also closes — i.e. the line is a complete statement rather than the head of a multi-line composite literal
 function isBalancedGoLine (line: string): boolean {
     const code = stripGoLiterals (line);
     let depth = 0;
     for (const char of code) {
-        if (char === '{' || char === '(' || char === '[') {
-            depth++;
-        } else if (char === '}' || char === ')' || char === ']') {
-            depth--;
-        }
-        if (depth < 0) {
-            return false;
-        }
+        if (char === '{' || char === '(' || char === '[') { depth++; } else if (char === '}' || char === ')' || char === ']') { depth--; }
+        if (depth < 0) { return false; }
     }
     return depth === 0;
 }
@@ -8700,19 +6961,12 @@ function isBalancedGoLine (line: string): boolean {
 // Returns the replacement body and the index of the column-0 closing brace, or null when any safety gate fails.
 function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
     const indent = (GO_CORE_CLOSE.exec (lines[start]) as RegExpExecArray)[1];
-    // the two defers open the body at the same level; anything else is a shape we did
-    // not emit and do not understand
-    if ((GO_CORE_PANIC.exec (lines[start + 1]) as RegExpExecArray)[1] !== indent) {
-        return null;
-    }
+    // the two defers open the body at the same level; anything else is a shape we did not emit and do not understand
+    if ((GO_CORE_PANIC.exec (lines[start + 1]) as RegExpExecArray)[1] !== indent) { return null; }
     const bodyStart = start + 2;
     let end = bodyStart;
-    while (end < lines.length && !GO_CORE_END.test (lines[end])) {
-        end++;
-    }
-    if (end >= lines.length) {
-        return null;
-    }
+    while (end < lines.length && !GO_CORE_END.test (lines[end])) { end++; }
+    if (end >= lines.length) { return null; }
     const body = lines.slice (bodyStart, end);
     const scan = scanCoreBody (body);
     if (scan === null || !scan.sendsInLiteral) {
@@ -8731,12 +6985,9 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
         }
         rewritten.push (line);
         if (nested && GO_CORE_SEND.test (trimmed)) {
-            // record the send so the core level below can stop; a multi-line send
-            // (`ch <- map[string]any{` …) would put this in the wrong place, so the
-            // send has to be a complete statement on its own line
-            if (!isBalancedGoLine (line)) {
-                return null;
-            }
+            // record the send so the core level below can stop; a multi-line send (`ch <- map[string]any{` …) would put this in the wrong place, so the send
+            // has to be a complete statement on its own line
+            if (!isBalancedGoLine (line)) { return null; }
             rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
         }
         if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
@@ -8752,9 +7003,7 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
 }
 
 function guardMultiSendCores (content: string): string {
-    if (content.indexOf ('ReturnPanicError(ch)') < 0) {
-        return content;
-    }
+    if (content.indexOf ('ReturnPanicError(ch)') < 0) { return content; }
     const lines = content.split ('\n');
     const result: string[] = [];
     let index = 0;
@@ -8772,18 +7021,15 @@ function guardMultiSendCores (content: string): string {
         }
         // the core keeps the prologue ast-transpiler emitted; only the body is rewritten
         result.push (lines[index], lines[index + 1]);
-        for (const line of guarded.body) {
-            result.push (line);
-        }
+        for (const line of guarded.body) { result.push (line); }
         // the core's closing brace is emitted by the next turn of the loop
         index = guarded.end;
     }
     return result.join ('\n');
 }
 
-// JS `x[key].push (v)` mutates the array the slot holds; Go cannot take the address of a
-// map slot or a slice element, so the printer copies the receiver into `retResN` and the
-// append reaches only that copy. Store the grown slice back into the container.
+// JS `x[key].push (v)` mutates the array the slot holds; Go cannot take the address of a map slot or a slice element, so the printer copies the receiver into
+// `retResN` and the append reaches only that copy. Store the grown slice back into the container.
 const GO_APPEND_COPY_DECL = /^(\s*)(retRes\d+) := (.+)$/;
 const GO_APPEND_COPY_CALL = /^(\s*)(?:[A-Za-z_]\w*\.)?AppendToArray\(&(retRes\d+), /;
 const GO_APPEND_SIMPLE_ARG = /^(?:[A-Za-z_]\w*(?:\.\w+)*(?:\[\*?\w+\])?|\*\w+|"[^"\\\n]*"|-?\d+)$/;
@@ -8795,73 +7041,45 @@ function goAppendCopySlot (receiver: string): [string, string] | undefined {
     const call = /^((?:[A-Za-z_]\w*\.)?)GetValue\(([\s\S]*)\)$/.exec (text);
     if (call !== null) {
         const args = goGuardedReadSplitArgs (call[2]);
-        if (args.length !== 2) {
-            return undefined;
-        }
+        if (args.length !== 2) { return undefined; }
         const [ container, key ] = args;
-        if (!/^[A-Za-z_]\w*(?:\.\w+)*$/.test (container) || !GO_APPEND_SIMPLE_ARG.test (key)) {
-            return undefined;
-        }
+        if (!/^[A-Za-z_]\w*(?:\.\w+)*$/.test (container) || !GO_APPEND_SIMPLE_ARG.test (key)) { return undefined; }
         return [ container, key ];
     }
     const index = /^([A-Za-z_]\w*(?:\.\w+)*)\[([^\[\]]+)\]$/.exec (text);
-    if ((index !== null) && GO_APPEND_SIMPLE_ARG.test (index[2].trim ())) {
-        return [ index[1], index[2].trim () ];
-    }
+    if ((index !== null) && GO_APPEND_SIMPLE_ARG.test (index[2].trim ())) { return [ index[1], index[2].trim () ]; }
     return undefined;
 }
 
 // `m[*k]` on a local declared `map[string]any{..}` and never rebound in its function: the map is
 // non-nil and the key a string, so the helper's store is the plain index assignment.
 function goAppendNativeMapSlot (lines: string[], at: number, slot: [string, string]): boolean {
-    if (!/^\w+$/.test (slot[0]) || !/^\*\w+$/.test (slot[1])) {
-        return false;
-    }
+    if (!/^\w+$/.test (slot[0]) || !/^\*\w+$/.test (slot[1])) { return false; }
     let start = at;
-    while ((start > 0) && !/^func /.test (lines[start])) {
-        start--;
-    }
+    while ((start > 0) && !/^func /.test (lines[start])) { start--; }
     const declared = new RegExp ('^\\s*var ' + slot[0] + ' map\\[string\\]any = map\\[string\\]any\\{');
     const rebound = new RegExp ('(?:^|[^\\w.])' + slot[0] + ' (?::?=)|&' + slot[0] + '\\b');
     let found = false;
-    for (let j = start + 1; (j < lines.length) && !/^}/.test (lines[j]); j++) {
-        if (declared.test (lines[j])) {
-            found = !found && (j < at);
-        } else if (rebound.test (lines[j])) {
-            return false;
-        }
-    }
+    for (let j = start + 1; (j < lines.length) && !/^}/.test (lines[j]); j++) { if (declared.test (lines[j])) { found = !found && (j < at); } else if (rebound.test (lines[j])) { return false; } }
     return found;
 }
 
 function nativeAppendWriteBack (content: string): string {
-    if (content.indexOf ('AppendToArray(&retRes') < 0) {
-        return content;
-    }
+    if (content.indexOf ('AppendToArray(&retRes') < 0) { return content; }
     const lines = content.split ('\n');
     const out: string[] = [];
     for (let k = 0; k < lines.length; k++) {
         out.push (lines[k]);
         const decl = GO_APPEND_COPY_DECL.exec (lines[k]);
-        if (decl === null) {
-            continue;
-        }
+        if (decl === null) { continue; }
         const call = GO_APPEND_COPY_CALL.exec (lines[k + 1] ?? '');
-        if ((call === null) || (call[2] !== decl[2]) || (call[1] !== decl[1])) {
-            continue;
-        }
+        if ((call === null) || (call[2] !== decl[2]) || (call[1] !== decl[1])) { continue; }
         const slot = goAppendCopySlot (decl[3]);
-        if (slot === undefined) {
-            continue;
-        }
+        if (slot === undefined) { continue; }
         // a ccxtpro file reaches both helpers through the imported ccxt package
         const pkg = /(?:^|[^\w.])ccxt\./.test (decl[3] + lines[k + 1]) ? 'ccxt.' : '';
         out.push (lines[k + 1]);
-        if (goAppendNativeMapSlot (lines, k, slot)) {
-            out.push (decl[1] + slot[0] + '[' + slot[1] + '] = ' + decl[2]);
-        } else {
-            out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')');
-        }
+        if (goAppendNativeMapSlot (lines, k, slot)) { out.push (decl[1] + slot[0] + '[' + slot[1] + '] = ' + decl[2]); } else { out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')'); }
         k++;
     }
     return out.join ('\n');
@@ -8874,9 +7092,8 @@ function joinGoDeclarations (decls: string[]): string {
         (index === 0 ? '' : (/^\s*\/[/*]/.test (decl.split ('\n')[0]) ? '\n\n' : '\n')) + decl).join ('');
 }
 
-// The Go printer emits gofmt-clean text; `--check-gofmt [paths…]` is the gate (`gofmt -l` over go/v4 and go/tests, exit 1 on
-// any listing or parse error, 2 when gofmt or the tree is missing). gofmt is resolved from $CCXT_GOFMT, PATH, $GOROOT/bin and
-// /usr/local/go/bin, in that order.
+// The Go printer emits gofmt-clean text; `--check-gofmt [paths…]` is the gate (`gofmt -l` over go/v4 and go/tests, exit 1 on any listing or parse error, 2 when
+// gofmt or the tree is missing). gofmt is resolved from $CCXT_GOFMT, PATH, $GOROOT/bin and /usr/local/go/bin, in that order.
 const GOFMT_BINARY_ENV = 'CCXT_GOFMT';
 // the emitted tree: go/v4 recurses into pro/ and prediction/, go/tests holds the test tier
 const GOFMT_GATE_TREE = [ 'go/v4', 'go/tests' ];
@@ -8889,13 +7106,9 @@ function gofmtUsable (binary: string): boolean {
 let resolvedGofmt: string | null | undefined = undefined;  // undefined = not probed yet
 
 function resolveGofmt (): string | null {
-    if (resolvedGofmt !== undefined) {
-        return resolvedGofmt;
-    }
+    if (resolvedGofmt !== undefined) { return resolvedGofmt; }
     const candidates = [ process.env[GOFMT_BINARY_ENV], 'gofmt' ];
-    if (process.env['GOROOT']) {
-        candidates.push (path.join (process.env['GOROOT'], 'bin', 'gofmt'));
-    }
+    if (process.env['GOROOT']) { candidates.push (path.join (process.env['GOROOT'], 'bin', 'gofmt')); }
     // fallback location of the Go toolchain when gofmt is not on PATH
     candidates.push ('/usr/local/go/bin/gofmt');
     resolvedGofmt = null;
@@ -8908,12 +7121,10 @@ function resolveGofmt (): string | null {
     return resolvedGofmt;
 }
 
-// `s[i]` on a local the printer typed `[]string` prints as `GetValue(s, i)`, whose Go
-// return type is `any`, so the declaration keeps the box; inside a loop that bounds the
-// counter to `len(s)` every read is the element itself, and the retag happens here.
+// `s[i]` on a local the printer typed `[]string` prints as `GetValue(s, i)`, whose Go return type is `any`, so the declaration keeps the box; inside a loop
+// that bounds the counter to `len(s)` every read is the element itself, and the retag happens here.
 
-// every brace-delimited block of the file as { open, close, depth } line indices, plus the
-// brace depth at the start of each line (and after the last one)
+// every brace-delimited block of the file as { open, close, depth } line indices, plus the brace depth at the start of each line (and after the last one)
 function goTextBlocks (maskedLines: string[]): any {
     const depth: number[] = [];
     let current = 0;
@@ -8936,9 +7147,7 @@ function goTextBlocks (maskedLines: string[]): any {
         } else if (after < before) {
             for (let x = before; x > after; x--) {
                 const closed: any = stack.pop ();
-                if (closed !== undefined) {
-                    closed.close = k;
-                }
+                if (closed !== undefined) { closed.close = k; }
             }
         }
     }
@@ -8948,11 +7157,7 @@ function goTextBlocks (maskedLines: string[]): any {
 // the innermost block holding this line, undefined at the top level
 function goTextEnclosingBlock (blocks: any[], index: number): any {
     let found: any = undefined;
-    for (const block of blocks) {
-        if ((block.open < index) && (index <= block.close) && ((found === undefined) || (block.depth > found.depth))) {
-            found = block;
-        }
-    }
+    for (const block of blocks) { if ((block.open < index) && (index <= block.close) && ((found === undefined) || (block.depth > found.depth))) { found = block; } }
     return found;
 }
 
@@ -8985,13 +7190,10 @@ const GO_ACCESS_SCALAR_TYPES = [ 'string', 'int64', 'float64', 'bool', 'int' ];
 const GO_ACCESS_PLAIN_VALUE_TYPES = [ ...GO_ACCESS_SCALAR_TYPES, 'map[string]any', '[]any', '[]string' ];
 const GO_ACCESS_DEREF_POINTER_TYPES = [ '*string', '*int64', '*float64', '*bool' ];
 
-function goAccessEscape (name: string): string {
-    return name.replace (/[^\w]/g, '');
-}
+function goAccessEscape (name: string): string { return name.replace (/[^\w]/g, ''); }
 
-// the Go type of `name` when the func text declares it exactly once (a `var` or a parameter
-// of the top-level signature), with its initializer text for a `var`; undefined otherwise
-// `var x, _ = e.(T)`: a comma-ok assertion declares x as T
+// the Go type of `name` when the func text declares it exactly once (a `var` or a parameter of the top-level signature), with its initializer text for a `var`;
+// undefined otherwise `var x, _ = e.(T)`: a comma-ok assertion declares x as T
 const GO_COMMA_OK_DECL_HEAD = '\\bvar\\s+';
 const GO_COMMA_OK_DECL_TAIL = ', _ = [^\\n]*\\.\\((map\\[string\\]any|\\[\\]any)\\)(?=\\n|$)';
 // pure in its arguments and read-only to callers: many passes probe the same names of one function
@@ -9003,9 +7205,7 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
         goAccessSingleDeclKey = maskedFunc;
         goAccessSingleDeclSig = signature;
         goAccessSingleDeclCache = new Map ();
-    } else if (goAccessSingleDeclCache.has (name)) {
-        return goAccessSingleDeclCache.get (name);
-    }
+    } else if (goAccessSingleDeclCache.has (name)) { return goAccessSingleDeclCache.get (name); }
     const out = goAccessSingleDeclarationScan (maskedFunc, signature, name);
     goAccessSingleDeclCache.set (name, out);
     return out;
@@ -9021,17 +7221,12 @@ function goAccessSingleDeclarationScan (maskedFunc: string, signature: string, n
     const shortDecls = hasShort ? (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? []) : [];
     const literalParams = maskedFunc.includes ('func(') || maskedFunc.includes ('func (')
         ? [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1])) : [];
-    const rangeDecls = (hasShort && maskedFunc.includes ('range'))
-        ? (maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? []) : [];
+    const rangeDecls = (hasShort && maskedFunc.includes ('range')) ? (maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? []) : [];
     const sigParam = signature.includes (name)
         ? new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0))) : null;
     const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
-    if (count !== 1) {
-        return undefined;
-    }
-    if (sigParam) {
-        return { 'type': sigParam[1].trim (), 'init': undefined };
-    }
+    if (count !== 1) { return undefined; }
+    if (sigParam) { return { 'type': sigParam[1].trim (), 'init': undefined }; }
     if (vars.length === 1) {
         const line = maskedFunc.substring (vars[0].index).split ('\n')[0];
         return { 'type': vars[0][1].trim (), 'index': vars[0].index, 'line': line };
@@ -9051,9 +7246,7 @@ function goAccessPairSlot0Declaration (maskedFunc: string, signature: string, na
         return undefined;
     }
     const sigs = lines.filter ((l) => l.startsWith ('func (this *') && l.includes (') ' + bind[1] + '('));
-    if ((sigs.length === 0) || !sigs.every ((l) => l.endsWith (') (*string, map[string]any) {'))) {
-        return undefined;
-    }
+    if ((sigs.length === 0) || !sigs.every ((l) => l.endsWith (') (*string, map[string]any) {'))) { return undefined; }
     return { 'type': '*string', 'index': bind.index, 'line': bind[0] };
 }
 
@@ -9075,26 +7268,18 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
 
 // runs `rewrite (lines, masked, start, end)` over each top-level `func ... }` of the file when `applies`
 function goRewriteEachFunc (content: string, applies: boolean, rewrite: (lines: string[], masked: string[], start: number, end: number) => void): string {
-    if (!applies) {
-        return content;
-    }
+    if (!applies) { return content; }
     const lines = content.split ('\n');
     const snapshot = lines.slice ();
     const masked = goMaskGoCode (content).split ('\n');
     let start = -1;
     for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
+        if (lines[k].startsWith ('func ')) { start = k; } else if ((start >= 0) && (lines[k] === '}')) {
             rewrite (lines, masked, start, k);
             start = -1;
         }
     }
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k] !== snapshot[k]) {
-            return lines.join ('\n');
-        }
-    }
+    for (let k = 0; k < lines.length; k++) { if (lines[k] !== snapshot[k]) { return lines.join ('\n'); } }
     return content;
 }
 
@@ -9105,8 +7290,7 @@ function nativeTypedContainerAccess (content: string): string {
 // Go types whose len() answers what GetArrayLength answers (nil slice -> 0, string -> bytes)
 const GO_ARRLEN_NATIVE_TYPES = /^(?:string|\[\](?:any|string|int64|float64|bool|int|map\[string\]any|\[\]any))$/;
 
-// len(ObjectKeys(m)) -> len(m) on a map[string]any local/param: the helper derefs nothing
-// for a plain map and counts every key, a nil map answers 0 either way
+// len(ObjectKeys(m)) -> len(m) on a map[string]any local/param: the helper derefs nothing for a plain map and counts every key, a nil map answers 0 either way
 function goNativeObjectKeysLength (line: string, masked: string, typeAt: (name: string, k: number) => string | undefined, k: number): string {
     return line.replace (/(?<![\w.])len\((?:ccxt\.)?ObjectKeys\((\w+)\)\)/g, (all: string, name: string, at: number) =>
         (((masked.substr (at, all.length) === all) && (typeAt (name, k) === 'map[string]any')) ? 'len(' + name + ')' : all));
@@ -9121,12 +7305,8 @@ function goAnyObjectKeysLength (lines: string[], masked: string[], start: number
     const m = masked[k];
     const call = /(?<![\w.])len\((?:ccxt\.)?ObjectKeys\((\w+)\)\)/g;
     const names = new Set<string> ();
-    for (let hit = call.exec (m); hit !== null; hit = call.exec (m)) {
-        names.add (hit[1]);
-    }
-    if (names.size !== 1) {
-        return line;
-    }
+    for (let hit = call.exec (m); hit !== null; hit = call.exec (m)) { names.add (hit[1]); }
+    if (names.size !== 1) { return line; }
     const name = [ ...names ][0];
     const nameRx = goAccessEscape (name);
     const before = masked.slice (start, k).join ('\n');
@@ -9134,24 +7314,16 @@ function goAnyObjectKeysLength (lines: string[], masked: string[], start: number
         || new RegExp ('^\\s*' + nameRx + ' := (?:GetArg\\(optionalArgs, \\d+, [^\\n]*\\)|this\\.Omit\\([^\\n]*\\))\\s*$', 'm').test (before);
     const alone = masked.slice (start, end + 1).join ('\n').match (new RegExp ('(?:^|[^\\w.])' + nameRx + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
     const decls = masked.slice (start, end + 1).join ('\n').match (new RegExp ('\\bvar\\s+' + nameRx + '\\s', 'g')) ?? [];
-    if (!isAny || ((alone.length + decls.length) !== 1)) {
-        return line;
-    }
+    if (!isAny || ((alone.length + decls.length) !== 1)) { return line; }
     const mapName = name + 'Map';
     const bound = mapName + ', _ := ' + name + '.(map[string]any)';
     const replaced = line.replace (call, 'len(' + mapName + ')');
     const head = /^(\s*(?:\} else )?if )(.*) \{$/.exec (replaced);
     // an if-init binding is scoped to its own chain, so earlier ones of the same name never collide
     const taken = lines.slice (start, end + 1).filter ((l) => !l.includes ('if ' + bound + ';')).join ('\n');
-    if (new RegExp ('\\b' + mapName + '\\b').test (taken)) {
-        return line;
-    }
-    if ((head !== null) && ((m.match (/\{/g) ?? []).length === 1)) {
-        return head[1] + bound + '; ' + head[2] + ' {';
-    }
-    if (!/^\s*(?:var \w+ \w+ = |\w+ := )/.test (line) || /[{}]/.test (m)) {
-        return line;
-    }
+    if (new RegExp ('\\b' + mapName + '\\b').test (taken)) { return line; }
+    if ((head !== null) && ((m.match (/\{/g) ?? []).length === 1)) { return head[1] + bound + '; ' + head[2] + ' {'; }
+    if (!/^\s*(?:var \w+ \w+ = |\w+ := )/.test (line) || /[{}]/.test (m)) { return line; }
     return /^\s*/.exec (line)[0] + bound + '\n' + replaced;
 }
 
@@ -9182,9 +7354,7 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             break;
         }
     }
-    if (!hasCandidate) {
-        return;
-    }
+    if (!hasCandidate) { return; }
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const lineOffsets: number[] = [];
     let offset = 0;
@@ -9195,9 +7365,7 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const cache = new Map<string, any> ();
     let pairBinds: boolean | undefined = undefined;
     const hasPairBinds = () => {
-        if (pairBinds === undefined) {
-            pairBinds = /^\s*\w+, \w+ := this\.\w+\(|^\s*var \w+, \w+ map\[string\]any$/m.test (maskedFunc);
-        }
+        if (pairBinds === undefined) { pairBinds = /^\s*\w+, \w+ := this\.\w+\(|^\s*var \w+, \w+ map\[string\]any$/m.test (maskedFunc); }
         return pairBinds;
     };
     const declOf = (name: string) => {
@@ -9211,28 +7379,19 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     // declared before this line (a parameter always is)
     const typeAt = (name: string, k: number): string | undefined => {
         const decl = declOf (name);
-        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= lineOffsets[k - start]))) {
-            return undefined;
-        }
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= lineOffsets[k - start]))) { return undefined; }
         return decl.type;
     };
     const rebound = new Map<string, boolean> ();
     const notRebound = (name: string): boolean => {
-        if (!rebound.has (name)) {
-            rebound.set (name, !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc));
-        }
+        if (!rebound.has (name)) { rebound.set (name, !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc)); }
         return rebound.get (name);
     };
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
         const original = line;
         const m = masked[k];
-        if (m.includes ('InOp(') && goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
-            continue;
-        }
-        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|ObjectKeys)\(/.test (m)) {
-            continue;
-        }
+        if ((m.includes ('InOp(') && goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) || (!/\b(?:GetArrayLength|GetValue|AddElementToObject|ObjectKeys)\(/.test (m))) { continue; }
         const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
         if (m.includes ('GetArrayLength(')) {
             line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
@@ -9244,16 +7403,10 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
             line = line.replace (GO_ACCESS_DEREF_CONSUMER_CALL_RX, (all: string, head: string, name: string, key: string, at: number) =>
                 ((isCode (head, at) && (typeAt (name, k) === 'map[string]any')) ? head + name + '[' + key + ']' : all));
         }
-        if (line === lines[k]) {
-            goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound);
-        } else {
-            lines[k] = line;
-        }
+        if (line === lines[k]) { goNativeMapWrite (lines, masked, start, end, k, maskedFunc, declOf, typeAt, notRebound); } else { lines[k] = line; }
         if ((lines[k] === original) && m.includes ('ObjectKeys(')) {
             lines[k] = goNativeObjectKeysLength (lines[k], m, typeAt, k);
-            if (lines[k] === original) {
-                lines[k] = goAnyObjectKeysLength (lines, masked, start, end, k, typeAt);
-            }
+            if (lines[k] === original) { lines[k] = goAnyObjectKeysLength (lines, masked, start, end, k, typeAt); }
         }
     }
 }
@@ -9264,9 +7417,7 @@ const GO_INOP_READ_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMa
 // InOp only reads, and a Go read of a nil map answers ok=false like the helper, so the receiver
 // needs a static map[string]any that no other goroutine can write: no go/Spawn/unawaited Async here
 function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf: (name: string) => any): boolean {
-    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
-        return false;
-    }
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) { return false; }
     const n = goAccessEscape (name);
     if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc)
         || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
@@ -9274,9 +7425,7 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
         return false;
     }
     const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
-    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
-        writes.push (w[1].trim ());
-    }
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) { writes.push (w[1].trim ()); }
     return writes.every ((init: string) => {
         // element 1 of a base handle*(..., params) tuple is that params map or a fresh copy
         const tuple = /^(?:ccxt\.)?MapTyped\((?:(?:ccxt\.)?GetValue\((\w+), 1\)|(\w+)\[1\])\)$/.exec (init);
@@ -9289,19 +7438,16 @@ function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf
 
 // a map[string]any local whose every write is a typed producer (SafeDictMap/SafeDict2Map, a channel result's
 // Value): only the lone if-init comma-ok form is emitted for it, a nil map answering false like InOp
-function goInOpTypedProducerReceiver (maskedFunc: string, decl: any, name: string): boolean {
-    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
-        return false;
-    }
+function goLocalAllWritesMatch (maskedFunc: string, decl: any, name: string, type: string, producer: RegExp): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== type)) { return false; }
     const n = goAccessEscape (name);
-    if (new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
-        return false;
-    }
+    if (goMapLocalRebound (maskedFunc, n)) { return false; }
     const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
-    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
-        writes.push (w[1].trim ());
-    }
-    return writes.every ((init: string) => /^(?:this\.SafeDict2?Map\(|r\d+\.Value$|nil$)/.test (init));
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) { writes.push (w[1].trim ()); }
+    return writes.every ((init: string) => producer.test (init));
+}
+function goInOpTypedProducerReceiver (maskedFunc: string, decl: any, name: string): boolean {
+    return goLocalAllWritesMatch (maskedFunc, decl, name, 'map[string]any', /^(?:this\.SafeDict2?Map\(|r\d+\.Value$|nil$)/);
 }
 
 // `InOp(m, k)` in an `if` condition or a `var x bool =` initialiser -> native lookup on a proven read
@@ -9311,16 +7457,12 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
     const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
     const boolInit = /^\s*var \w+ bool = [^;{}]*$/.test (masked[k]);
     const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
-    if (((cond === null) && !boolInit) || (calls.length === 0)) {
-        return false;
-    }
+    if (((cond === null) && !boolInit) || (calls.length === 0)) { return false; }
     const found: any[] = [];
     for (const c of calls) {
         const at = c.index;
         const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
-        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
-            continue;
-        }
+        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) { continue; }
         const [ , name, key ] = call;
         // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result),
         // read-only when nothing else can write it: no go/Spawn/unawaited Async in the func
@@ -9328,18 +7470,12 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
         const typed = (typeAt (name, k) === 'map[string]any');
         const readOnly = typed && goInOpReadReceiver (maskedFunc, declOf (name), name, declOf);
         const alias = (pairParams || readOnly) ? undefined : goInOpAliasReceiver (maskedFunc, name);
-        if (!pairParams && !readOnly && (alias === undefined) && !(typed && goInOpTypedProducerReceiver (maskedFunc, declOf (name), name))) {
-            continue;
-        }
-        if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
-            continue;
-        }
+        if (!pairParams && !readOnly && (alias === undefined) && !(typed && goInOpTypedProducerReceiver (maskedFunc, declOf (name), name))) { continue; }
+        if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) { continue; }
         found.push ({ at, 'length': call[0].length, 'name': alias ?? name, key, 'ifOnly': !pairParams && !readOnly && (alias === undefined) });
     }
     const single = (cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc);
-    if ((found.length === 0) || (!single && found.some ((f) => f.ifOnly))) {
-        return false;
-    }
+    if ((found.length === 0) || (!single && found.some ((f) => f.ifOnly))) { return false; }
     if (single) {
         const { at, length, name, key } = found[0];
         let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + length);
@@ -9348,9 +7484,7 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
         return true;
     }
     let line = lines[k];
-    for (const { at, length, name, key } of found.reverse ()) {
-        line = line.substring (0, at) + 'func() bool { _, ok := ' + name + '[' + key + ']; return ok }()' + line.substring (at + length);
-    }
+    for (const { at, length, name, key } of found.reverse ()) { line = line.substring (0, at) + 'func() bool { _, ok := ' + name + '[' + key + ']; return ok }()' + line.substring (at + length); }
     lines[k] = line;
     return true;
 }
@@ -9371,26 +7505,18 @@ function goLateNativeInOp (content: string): string {
     return goRewriteEachFunc (content, /\bInOp\(/.test (content), (lines: string[], masked: string[], start: number, end: number) => {
         const maskedFunc = masked.slice (start, end + 1).join ('\n');
         const offsets: number[] = [];
-        for (let k = start, o = 0; k <= end; o += masked[k].length + 1, k++) {
-            offsets.push (o);
-        }
+        for (let k = start, o = 0; k <= end; o += masked[k].length + 1, k++) { offsets.push (o); }
         const declOf = (name: string) => goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines);
         const typeAt = (name: string, k: number) => {
             const d = declOf (name);
             return ((d === undefined) || ((d.index !== undefined) && (d.index >= offsets[k - start]))) ? undefined : d.type;
         };
-        for (let k = start + 1; k < end; k++) {
-            goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt);
-        }
+        for (let k = start + 1; k < end; k++) { goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt); }
     });
 }
 
-// ------------------------------------------------------------------------------------
-// AddElementToObject(m, k, v) -> m[k] = v
-// ------------------------------------------------------------------------------------
-// The helper derefs a pointer key/value (a nil pointer or a typed-nil container becomes
-// untyped nil) and is a no-op on a typed-nil map; its mutex guards shared maps only. So the
-// native write needs a never-nil map local, a string key and a value the deref leaves alone.
+// AddElementToObject(m, k, v) -> m[k] = v The helper derefs a pointer key/value (a nil pointer or a typed-nil container becomes untyped nil) and is a no-op on
+// a typed-nil map; its mutex guards shared maps only. So the native write needs a never-nil map local, a string key and a value the deref leaves alone.
 const GO_MAPWRITE_NON_NIL_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$|this\.(?:Extend|DeepExtend)\(|this\.Account\(\)$|this\.SafeDict(?:2)?Map\([^\n]*, (?:map\[string\]any\{\}|this\.Account\(\))\)$)/;  // a literal-default SafeDictMap read of decoded data is never nil
 // hand-written callees (no generated override) whose result derefScalar leaves unchanged
 const GO_MAPWRITE_PLAIN_CALLS = [
@@ -9407,9 +7533,7 @@ function goMapWriteGroupEnd (text: string, open: number): number {
     for (let i = open; i < text.length; i++) {
         const c = text[i];
         depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
-        if (depth === 0) {
-            return i + 1;
-        }
+        if (depth === 0) { return i + 1; }
     }
     return -1;
 }
@@ -9417,25 +7541,15 @@ function goMapWriteGroupEnd (text: string, open: number): number {
 // every declaration and write of a local map is a never-nil map producer
 function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, declOf?: (name: string) => any, depth: number = 0): boolean {
     const producer = GO_MAPWRITE_NON_NIL_INIT;
-    if ((decl === undefined) || (decl.index === undefined)) {
-        return false;
-    }
-    if (decl.pairSlot !== undefined) {
-        return goPairMapSlotNeverNil (maskedFunc, decl, depth);
-    }
+    if ((decl === undefined) || (decl.index === undefined)) { return false; }
+    if (decl.pairSlot !== undefined) { return goPairMapSlotNeverNil (maskedFunc, decl, depth); }
     const init = decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim ();
     let admitted = producer.test (init);
-    if (!admitted && (declOf !== undefined) && (depth < 4)) {
-        admitted = goTupleSlotNeverNil (maskedFunc, init, declOf, depth);
-    }
-    if (!admitted) {
-        return false;
-    }
+    if (!admitted && (declOf !== undefined) && (depth < 4)) { admitted = goTupleSlotNeverNil (maskedFunc, init, declOf, depth); }
+    if (!admitted) { return false; }
     const n = goAccessEscape (name);
     const own = goPairRebindsBlanked (maskedFunc, name);
-    if (goMapLocalRebound (own, n)) {
-        return false; // address taken or multi-value rebinding
-    }
+    if (goMapLocalRebound (own, n)) { return false; } // address taken or multi-value rebinding
     for (const w of own.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
         if (!producer.test (w[1].trim ()) && !w[1].trim ().startsWith ('this.OmitDict(' + name + ', ') && !goSelfMapRebind (w[1].trim (), name)) { // self-omit
             return false;
@@ -9449,32 +7563,23 @@ function goMapWritePlainValueExpr (maskedValue: string): boolean {
     const literal = /^(?:ccxt\.)?(?:map\[string\]any|\[\]any|\[\]string)\{/.exec (maskedValue);
     const call = /^(?:ccxt\.)?((?:this\.)?\w+)\(/.exec (maskedValue);
     let open = -1;
-    if (literal !== null) {
-        open = literal[0].length - 1;
-    } else if ((call !== null) && (GO_MAPWRITE_PLAIN_CALLS.indexOf (call[1]) >= 0)) {
-        open = call[0].length - 1;
-    }
+    if (literal !== null) { open = literal[0].length - 1; } else if ((call !== null) && (GO_MAPWRITE_PLAIN_CALLS.indexOf (call[1]) >= 0)) { open = call[0].length - 1; }
     return (open >= 0) && (goMapWriteGroupEnd (maskedValue, open) === maskedValue.length);
 }
 
 // `row["lit"]` on a map local whose every write is a Market/SafeMarket/Currency/SafeCurrency result or nil
 function goMapWriteMarketRowRead (maskedFunc: string, value: string, type: string | undefined): boolean {
     const m = /^(\w+)\["[^"\\\n]*"\]$/.exec (value);
-    if ((m === null) || (type !== 'map[string]any')) {
-        return false;
-    }
+    if ((m === null) || (type !== 'map[string]any')) { return false; }
     const n = goAccessEscape (m[1]);
-    if (goMapLocalRebound (maskedFunc, n) || new RegExp ('AddElementToObject\\(' + n + '\\b|(?<![\\w.])' + n + '\\s*\\[[^\\n]*\\]\\s*=(?!=)').test (maskedFunc)) {
-        return false;
-    }
+    if (goMapLocalRebound (maskedFunc, n) || new RegExp ('AddElementToObject\\(' + n + '\\b|(?<![\\w.])' + n + '\\s*\\[[^\\n]*\\]\\s*=(?!=)').test (maskedFunc)) { return false; }
     const writes = [ ...maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])(?:var ' + n + ' map\\[string\\]any|' + n + ')\\s*=(?!=)\\s*([^\\n]*)', 'gm')) ];
     return (writes.length > 0) && writes.every ((w) => GO_MARKET_ROW_WRITE.test (w[1].trim ()));
 }
 
-// OrderBookInterface field writes: AddElementToObject(orderbook, "timestamp", ts) -> orderbook.SetTimestamp(ts).
-// The setters (exchange_orderbook.go) take the *int64/*string a Safe*/Parse8601/Iso8601 call answers and are
-// a no-op on a nil pointer, like the helper's deref-then-skip. A nil interface receiver would panic where the
-// helper is a no-op, so the receiver must be a type assertion `x.(ccxt.OrderBookInterface)` (panics, never nil).
+// OrderBookInterface field writes: AddElementToObject(orderbook, "timestamp", ts) -> orderbook.SetTimestamp(ts). The setters (exchange_orderbook.go) take the
+// *int64/*string a Safe*/Parse8601/Iso8601 call answers and are a no-op on a nil pointer, like the helper's deref-then-skip. A nil interface receiver would
+// panic where the helper is a no-op, so the receiver must be a type assertion `x.(ccxt.OrderBookInterface)` (panics, never nil).
 const GO_ORDERBOOK_PRINTER = {
     'classes': [ 'OrderBook', 'WsOrderBook', 'IndexedOrderBook', 'CountedOrderBook' ],
     'constructors': [ 'orderBook', 'indexedOrderBook', 'countedOrderBook' ],
@@ -9505,44 +7610,24 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
     const asserted = new RegExp ('^\\s*(?:var ' + n + ' (?:ccxt\\.)?OrderBookInterface = |' + n + ' = )[^\\n]*\\.\\((?:ccxt\\.)?OrderBookInterface\\)$');
     let level = indent;
     for (let j = k - 1; j >= 0; j--) {
-        if (/^func /.test (masked[j])) {
-            return false;
-        }
-        if (masked[j].trim () === '') {
-            continue;
-        }
+        if (/^func /.test (masked[j])) { return false; }
+        if (masked[j].trim () === '') { continue; }
         const ind = /^\t*/.exec (masked[j])[0].length;
         if (ind < level) {
             // an enclosing block opener (`if x {`, `for ... {`, `func() {`) keeps the statements above it in force;
             // an `} else {` or a case label means the earlier lines were another branch
-            if (!/\{$/.test (masked[j]) || /^\s*(?:\}|case\b|default\b)/.test (masked[j])) {
-                return false;
-            }
+            if (!/\{$/.test (masked[j]) || /^\s*(?:\}|case\b|default\b)/.test (masked[j])) { return false; }
             if (/^\s*for\b|\bfunc\(/.test (masked[j])) {
                 // a loop or closure body may run again after a later write: the local must never be rebound after k
-                for (let m = k + 1; m < masked.length && !/^\}/.test (masked[m]); m++) {
-                    if (write.test (masked[m])) {
-                        return false;
-                    }
-                }
+                for (let m = k + 1; m < masked.length && !/^\}/.test (masked[m]); m++) { if (write.test (masked[m])) { return false; } }
             }
             level = ind;
             continue;
         }
-        if ((ind === level) && goOrderBookNilGuardAt (masked, j, n, ind)) {
-            return true;
-        }
-        if ((ind === indent) && asserted.test (masked[j])) {
-            return true;  // a single-value interface assertion panics on nil: the book is already non-nil here
-        }
-        if (/^\s*(?:\w+:|goto\b)/.test (masked[j]) || write.test (masked[j])) {
-            if (!(ind === level && asserted.test (masked[j]))) {
-                return false;
-            }
-        }
-        if ((ind === level) && (call.test (masked[j]) || asserted.test (masked[j]))) {
-            return true;
-        }
+        if ((ind === level) && goOrderBookNilGuardAt (masked, j, n, ind)) { return true; }
+        if ((ind === indent) && asserted.test (masked[j])) { return true; } // a single-value interface assertion panics on nil: the book is already non-nil here
+        if (/^\s*(?:\w+:|goto\b)/.test (masked[j]) || write.test (masked[j])) { if (!(ind === level && asserted.test (masked[j]))) { return false; } }
+        if ((ind === level) && (call.test (masked[j]) || asserted.test (masked[j]))) { return true; }
     }
     return false;
 }
@@ -9550,14 +7635,10 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
 // `}` at line j closes `if book == nil {` whose one statement leaves (continue/return/panic) or rebinds the book to
 // this.OrderBook/IndexedOrderBook/CountedOrderBook (base-only methods returning a non-nil struct pointer)
 function goOrderBookNilGuardAt (masked: string[], j: number, n: string, ind: number): boolean {
-    if (masked[j] !== '\t'.repeat (ind) + '}' || j < 2) {
-        return false;
-    }
+    if (masked[j] !== '\t'.repeat (ind) + '}' || j < 2) { return false; }
     const opener = new RegExp ('^\\t{' + ind + '}if ' + n + ' == nil \\{$');
     const [ open, stmt ] = [ masked[j - 2], masked[j - 1] ];
-    if (!opener.test (open) || /^\t*$/.test (stmt)) {
-        return false;
-    }
+    if (!opener.test (open) || /^\t*$/.test (stmt)) { return false; }
     const inner = '\t'.repeat (ind + 1);
     const rebind = new RegExp ('^' + n + ' = this\\.(?:OrderBook|IndexedOrderBook|CountedOrderBook)\\([^\\n]*\\)$');
     const s = stmt.substring (inner.length);
@@ -9567,24 +7648,16 @@ function goOrderBookNilGuardAt (masked: string[], j: number, n: string, ind: num
 function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, typeAt: (name: string, k: number) => string | undefined): boolean {
     // string literals are blanked in masked: it proves the call is code, lines[k] carries the key
     const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), /.exec (masked[k]);
-    if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) {
-        return false;
-    }
+    if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) { return false; }
     const text = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), \"(timestamp|nonce|datetime|symbol)\", ([^\n]+)\)$/.exec (lines[k]);
-    if (text === null) {
-        return false;
-    }
+    if (text === null) { return false; }
     const [ , indent, name, field, value ] = text;
-    if (!/^(?:ccxt\.)?OrderBookInterface$/.test (typeAt (name, k) ?? '') || !goOrderBookReceiverDereferenced (lines, masked, k, name, indent.length)) {
-        return false;
-    }
+    if (!/^(?:ccxt\.)?OrderBookInterface$/.test (typeAt (name, k) ?? '') || !goOrderBookReceiverDereferenced (lines, masked, k, name, indent.length)) { return false; }
     const { method: setter, value: producer, type } = GO_ORDERBOOK_PRINTER.setters[field];
     const valueMasked = masked[k].substring (masked[k].length - value.length - 1, masked[k].length - 1);
     const typedLocal = /^\w+$/.test (value) && (typeAt (value, k) === type);
     const call = new RegExp (producer).test (value) && (goMapWriteGroupEnd (valueMasked, value.indexOf ('(')) === value.length);
-    if (!typedLocal && !call) {
-        return false;
-    }
+    if (!typedLocal && !call) { return false; }
     lines[k] = indent + name + '.' + setter + '(' + value + ')';
     masked[k] = masked[k].replace (/\S[\s\S]*/, (t: string) => ' '.repeat (t.length));
     return true;
@@ -9597,11 +7670,7 @@ function goOrderBookSetterPass (content: string): string {
     return goRewriteEachFunc (content, applies, (lines, masked, start, k) => {
         const resolve = goBlockScopeResolver (masked, start, k);
         const typeAt = (name: string, at: number) => { const d = resolve (name, at); return (d === undefined) ? undefined : d.type; };
-        for (let j = start + 1; j < k; j++) {
-            if (masked[j].indexOf ('AddElementToObject(') >= 0) {
-                goNativeOrderBookSetter (lines, masked, j, typeAt);
-            }
-        }
+        for (let j = start + 1; j < k; j++) { if (masked[j].indexOf ('AddElementToObject(') >= 0) { goNativeOrderBookSetter (lines, masked, j, typeAt); } }
     });
 }
 
@@ -9638,9 +7707,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined, notRebound: (name: string) => boolean) {
     const m = masked[k];
     const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+|this\.Balance), /.exec (m);
-    if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) {
-        return;
-    }
+    if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) { return; }
     const name = head[2];
     // a typed-nil map makes the helper a no-op: pointer-value stores may guard the receiver instead;
     // the `map[string]any` field this.Balance (exchange.go) is always guarded, its writers may store nil
@@ -9648,9 +7715,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     let nilReceiverGuard = fieldReceiver;
     if (!fieldReceiver && (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
         && !goUntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt))) {
-        if (typeAt (name, k) !== 'map[string]any') {
-            return;
-        }
+        if (typeAt (name, k) !== 'map[string]any') { return; }
         nilReceiverGuard = true;
     }
     nilReceiverGuard = nilReceiverGuard && !(!fieldReceiver && (typeAt (name, k) === 'map[string]any') && goOptionsDefaultedDictLocal (maskedFunc, declOf (name), name));
@@ -9658,9 +7723,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const tail = masked.slice (k, end).join ('\n');
     const open = m.indexOf ('(', head[1].length);
     const close = goMapWriteGroupEnd (tail, open);
-    if ((close < 0) || (tail.substring (close).split ('\n')[0].trim () !== '')) {
-        return;
-    }
+    if ((close < 0) || (tail.substring (close).split ('\n')[0].trim () !== '')) { return; }
     const lastLine = k + tail.substring (0, close).split ('\n').length - 1;
     const argsMasked = tail.substring (head[0].length, close - 1);
     const argsText = lines.slice (k, lastLine + 1).join ('\n').substring (head[0].length, close - 1);
@@ -9674,9 +7737,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
             break;
         }
     }
-    if ((comma < 0) || (argsMasked[comma + 1] !== ' ') || (argsMasked.substring (0, comma).indexOf ('\n') >= 0)) {
-        return;
-    }
+    if ((comma < 0) || (argsMasked[comma + 1] !== ' ') || (argsMasked.substring (0, comma).indexOf ('\n') >= 0)) { return; }
     const key = argsText.substring (0, comma);
     const value = argsText.substring (comma + 2);
     const valueMasked = argsMasked.substring (comma + 2);
@@ -9684,67 +7745,40 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const guardedPointer = (text: string) => /^\w+$/.test (text) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (typeAt (text, k) ?? '') >= 0)
         && notRebound (text) && (goAccessInsideNilGuard (masked, k, text) || goEnclosingNilGuard (masked, start, k, text) || goMapWriteDominatingNilGuard (masked, start, k, text, maskedFunc, declOf));
     let keyOut: string | undefined = undefined;
-    if (/^"[^"\\\n]*"$/.test (key) || (/^\w+$/.test (key) && (typeAt (key, k) === 'string'))) {
-        keyOut = key;
-    } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
-        keyOut = '*' + key;
-    }
+    if (/^"[^"\\\n]*"$/.test (key) || (/^\w+$/.test (key) && (typeAt (key, k) === 'string'))) { keyOut = key; } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) { keyOut = '*' + key; }
     // a nil *string key makes the helper a no-op: `if k != nil { m[*k] = v }` is its map
     // branch, so the write can be guarded instead of demanding a non-nil proof.
-    const nilKeyGuardable = (keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string')
-        && notRebound (key) && (lastLine === k);
+    const nilKeyGuardable = (keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string') && notRebound (key) && (lastLine === k);
     let nilKeyGuard = false;
     const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
     // SafeString with a string default never answers nil (exchange_safe.go)
     const defaulted = /^this\.SafeString\((\w+(?:\[\"[^\"\\\n]*\"\])?|this\.\w+), (\w+|"[^"\\\n]*"), (\w+|"[^"\\\n]*")\)$/.exec (value);
     const defaultedOk = (defaulted !== null) && (defaulted[3].startsWith ('"') || (typeAt (defaulted[3], k) === 'string'));
     let valueOut: string | undefined = undefined;
-    if ((keyOut === undefined) && !nilKeyGuardable) {
-        return;
-    }
-    if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) {
-        valueOut = value;
-    } else if ((valueType !== undefined) && (GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0)) {
-        valueOut = value;
-    } else if ((valueType !== undefined) && (keyOut !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
+    if ((keyOut === undefined) && !nilKeyGuardable) { return; }
+    if (/^(?:"[^"\\\n]*"|-?\d+(?:\.\d+)?|true|false|nil)$/.test (value) || goMapWritePlainValueExpr (valueMasked)) { valueOut = value; } else if ((valueType !== undefined) && (GO_ACCESS_SCALAR_TYPES.indexOf (valueType) >= 0)) { valueOut = value; } else if ((valueType !== undefined) && (keyOut !== undefined) && keyOut.startsWith ('"') && (GO_ACCESS_PLAIN_VALUE_TYPES.indexOf (valueType) >= 0)) {
         valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
     } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
         valueOut = value; // the helper would store a typed-nil map as untyped nil
     } else if ((valueType === 'map[string]any') && goOptionsDefaultedDictLocal (maskedFunc, declOf (value), value)) {
         valueOut = value; // the `{}`-defaulted comma-ok read is never nil
-    } else if (guardedPointer (value)) {
-        valueOut = '*' + value;
-    } else if (defaultedOk) {
-        valueOut = '*' + value;
-    } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
+    } else if (guardedPointer (value)) { valueOut = '*' + value; } else if (defaultedOk) { valueOut = '*' + value; } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
         valueOut = value; // every return of the producer is a fresh non-nil map
-    } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
-        valueOut = value;
-    } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
+    } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) { valueOut = value; } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
         valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
-    } else if (goMapWriteKeyReadFromValue (lines, masked, start, k, key, value, typeAt)) {
-        valueOut = value;
-    } else if (goMapWriteMarketRowRead (maskedFunc, value, typeAt (value.replace (/\[[\s\S]*$/, ''), k))) {
+    } else if (goMapWriteKeyReadFromValue (lines, masked, start, k, key, value, typeAt)) { valueOut = value; } else if (goMapWriteMarketRowRead (maskedFunc, value, typeAt (value.replace (/\[[\s\S]*$/, ''), k))) {
         valueOut = value; // Market/Currency rows are pointer-free (MarketTyped): the helper's deref leaves the read unchanged
     }
     if ((valueOut === undefined) && (lastLine === k) && (goDerefPointerValue (lines, value, valueMasked, typeAt (value, k)) !== undefined)) {
         // a pointer value: the helper stores *v, or nil for a nil pointer; print that store as a plain if/else
         const ptr = /^\w+$/.test (value) ? value : 'ptrValue';
         const store = (v: string) => name + '[' + (keyOut ?? ('*' + key)) + '] = ' + v;
-        if ((ptr !== value) && /\bptrValue\b/.test (name + ' ' + key + ' ' + value)) {
-            return;
-        }
+        if ((ptr !== value) && /\bptrValue\b/.test (name + ' ' + key + ' ' + value)) { return; }
         const ind = head[1] + (((keyOut === undefined) && nilKeyGuardable) ? '\t' : '');
         let text = ind + 'if ' + ((ptr === value) ? '' : ptr + ' := ' + value + '; ') + ptr + ' != nil {\n' + ind + '\t' + store ('*' + ptr) + '\n'
             + ind + '} else {\n' + ind + '\t' + store ('nil') + '\n' + ind + '}';
-        if ((keyOut === undefined) && nilKeyGuardable) {
-            text = head[1] + 'if ' + key + ' != nil {\n' + text + '\n' + head[1] + '}';
-        } else if (keyOut === undefined) {
-            return;
-        }
-        if (nilReceiverGuard) {
-            text = head[1] + 'if ' + name + ' != nil {\n' + text.split ('\n').map ((l) => '\t' + l).join ('\n') + '\n' + head[1] + '}';
-        }
+        if ((keyOut === undefined) && nilKeyGuardable) { text = head[1] + 'if ' + key + ' != nil {\n' + text + '\n' + head[1] + '}'; } else if (keyOut === undefined) { return; }
+        if (nilReceiverGuard) { text = head[1] + 'if ' + name + ' != nil {\n' + text.split ('\n').map ((l) => '\t' + l).join ('\n') + '\n' + head[1] + '}'; }
         lines[k] = text;
         masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
         return;
@@ -9752,9 +7786,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     // a SafeDict*Map local rebound only to typed map reads: the guard tests the map the store sees
     const typedRebinds = (typeAt (name, k) === 'map[string]any') && /^\s*var \w+ map\[string\]any = this\.SafeDict(?:2|N)?Map\(/.test (declOf (name)?.line ?? '')
         && !goMapLocalRebound (maskedFunc, goAccessEscape (name));
-    if (nilReceiverGuard && !(((keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k)) && (fieldReceiver || notRebound (name) || typedRebinds))) {
-        return;
-    }
+    if (nilReceiverGuard && !(((keyOut !== undefined) && (valueOut !== undefined) && (lastLine === k)) && (fieldReceiver || notRebound (name) || typedRebinds))) { return; }
     if (nilReceiverGuard) {
         const suffixField = lines[k].substring (lines[k].length - (tail.substring (close).split ('\n')[0].length));
         lines[k] = head[1] + 'if ' + name + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffixField + '\n' + head[1] + '}';
@@ -9765,9 +7797,7 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         keyOut = '*' + key;  // guarded *string key, exact copy of the helper's map branch
         nilKeyGuard = true;
     }
-    if ((keyOut === undefined) || (valueOut === undefined)) {
-        return;
-    }
+    if ((keyOut === undefined) || (valueOut === undefined)) { return; }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
     if (nilKeyGuard) {
         lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffix + '\n' + head[1] + '}';
@@ -9788,34 +7818,22 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
 // encloses line k, after the single declaration of name: every path reaching k has name != nil
 function goMapWriteDominatingNilGuard (masked: string[], start: number, k: number, name: string, maskedFunc: string, declOf: (name: string) => any): boolean {
     const decl = declOf (name);
-    if ((decl === undefined) || (decl.index === undefined) || /\bgoto\b/.test (maskedFunc)) {
-        return false;
-    }
+    if ((decl === undefined) || (decl.index === undefined) || /\bgoto\b/.test (maskedFunc)) { return false; }
     const declLine = start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
     const n = goAccessEscape (name);
     const nilTest = new RegExp ('^(?:\\(\\s*)?(?:' + n + ' == nil|IsEqual\\(' + n + ', nil\\))(?:\\s*\\))?$');
     for (let g = k - 1; g > declLine; g--) {
         const head = /^\s*if (.*) \{$/.exec (masked[g]);
-        if ((head === null) || !goMapWriteTopLevelParts (head[1], '||').some ((d) => nilTest.test (d.trim ()))) {
-            continue;
-        }
+        if ((head === null) || !goMapWriteTopLevelParts (head[1], '||').some ((d) => nilTest.test (d.trim ()))) { continue; }
         // the guard body: balanced, ends with a terminator, closed by a bare `}`
         let depth = 1;
         let close = -1;
         let last = '';
         for (let j = g + 1; (j < k) && (close < 0); j++) {
-            for (const c of masked[j]) {
-                depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
-            }
-            if (depth === 0) {
-                close = j;
-            } else if ((depth === 1) && (masked[j].trim () !== '')) {
-                last = masked[j].trim ();
-            }
+            for (const c of masked[j]) { depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0); }
+            if (depth === 0) { close = j; } else if ((depth === 1) && (masked[j].trim () !== '')) { last = masked[j].trim (); }
         }
-        if ((close < 0) || (masked[close].trim () !== '}') || !/^(?:continue|return\b.*|panic\(.*\))$/.test (last)) {
-            continue;
-        }
+        if ((close < 0) || (masked[close].trim () !== '}') || !/^(?:continue|return\b.*|panic\(.*\))$/.test (last)) { continue; }
         // the guard's own block must still enclose line k
         let level = 0;
         let encloses = true;
@@ -9828,9 +7846,7 @@ function goMapWriteDominatingNilGuard (masked: string[], start: number, k: numbe
                 }
             }
         }
-        if (encloses) {
-            return true;
-        }
+        if (encloses) { return true; }
     }
     return false;
 }
@@ -9846,13 +7862,9 @@ function goMapWriteIfHeader (masked: string[], j: number): string {
             const body = text.substring (0, text.lastIndexOf ('{'));
             for (const c of body) {
                 depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
-                if (depth < 0) {
-                    break;
-                }
+                if (depth < 0) { break; }
             }
-            if (depth === 0) {
-                return text.replace (/\n\s*/g, ' ');
-            }
+            if (depth === 0) { return text.replace (/\n\s*/g, ' '); }
         }
     }
     return masked[j];
@@ -9879,9 +7891,7 @@ const GO_MAPWRITE_MAP_RESULT_BASE = [ 'SafeCurrencyStructure', 'SafeTicker', 'Sa
 // `return account` in a callee whose only `account` is `var account <map|any> = this.Account()`,
 // written solely as `account[k] = v` (never rebound, address-taken or passed on): a fresh non-nil map
 function goMapWriteCalleeAccountLocal (lines: string[], def: number, name: string): boolean {
-    if (!/^\w+$/.test (name)) {
-        return false;
-    }
+    if (!/^\w+$/.test (name)) { return false; }
     let decls = 0;
     const n = goAccessEscape (name);
     const word = new RegExp ('(?<![\\w.])' + n + '(?![\\w])');
@@ -9890,14 +7900,8 @@ function goMapWriteCalleeAccountLocal (lines: string[], def: number, name: strin
     const takenRx = new RegExp ('&\\s*' + n + '\\b');
     for (let j = def + 1; (j < lines.length) && (lines[j] !== '}'); j++) {
         const line = goMaskGoCode (lines[j]);
-        if (!word.test (line)) {
-            continue;
-        }
-        if (declRx.test (line)) {
-            decls++;
-        } else if (!(writeRx.test (line) && !takenRx.test (line)) && (line.trim () !== 'return ' + name)) {
-            return false;
-        }
+        if (!word.test (line)) { continue; }
+        if (declRx.test (line)) { decls++; } else if (!(writeRx.test (line) && !takenRx.test (line)) && (line.trim () !== 'return ' + name)) { return false; }
     }
     return decls === 1;
 }
@@ -9906,59 +7910,35 @@ function goMapWriteCalleeAccountLocal (lines: string[], def: number, name: strin
 // return (outside func literals) is a map literal or such a producer call
 function goMapWriteMapResultCall (lines: string[], text: string, depth: number = 0): boolean {
     const call = /^this\.(\w+)\(/.exec (text);
-    if ((call === null) || (depth > 3)) {
-        return false;
-    }
+    if ((call === null) || (depth > 3)) { return false; }
     const defs = lines.map ((l, i) => (new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(').test (l) ? i : -1)).filter ((i) => i >= 0);
-    if (defs.length === 0) {
-        return GO_MAPWRITE_MAP_RESULT_BASE.indexOf (call[1]) >= 0;
-    }
-    if (defs.length !== 1) {
-        return false;
-    }
+    if (defs.length === 0) { return GO_MAPWRITE_MAP_RESULT_BASE.indexOf (call[1]) >= 0; }
+    if (defs.length !== 1) { return false; }
     let returns = 0;
     let depthFunc = 0;
     for (let j = defs[0] + 1; (j < lines.length) && (lines[j] !== '}'); j++) {
         const line = goMaskGoCode (lines[j]);
         if (/\bfunc\s*\(/.test (line) || (depthFunc > 0)) {
-            for (const c of line) {
-                depthFunc += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
-            }
+            for (const c of line) { depthFunc += (c === '{') ? 1 : ((c === '}') ? -1 : 0); }
             continue;
         }
         const ret = /^\s*return\b\s*(.*)$/.exec (line);
         if (ret !== null) {
             returns++;
             const r = ret[1].trim ();
-            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1) && !goMapWriteCalleeAccountLocal (lines, defs[0], r)) {
-                return false;
-            }
+            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1) && !goMapWriteCalleeAccountLocal (lines, defs[0], r)) { return false; }
         }
     }
     return returns > 0;
 }
 
-// producers whose `any` result already went through derefScalar (GetValue, DerefScalar, SafeValue and its
-// SafeDict/SafeList wrappers, GetArg defaults), or a never-pointer map: AddElementToObject's own deref of the
-// stored value is then the identity
+// producers whose `any` result already went through derefScalar (GetValue, DerefScalar, SafeValue and its SafeDict/SafeList wrappers, GetArg defaults), or a
+// never-pointer map: AddElementToObject's own deref of the stored value is then the identity
 const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
 
 // a single-declaration `any` local whose declaration and every later write is a deref'd producer,
 // and whose address is never taken (AppendToArray(&x, ..) rewrites it)
-function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean {
-    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'any')) {
-        return false;
-    }
-    const n = goAccessEscape (name);
-    if (goMapLocalRebound (maskedFunc, n)) {
-        return false;
-    }
-    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
-    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
-        writes.push (w[1].trim ());
-    }
-    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init) );
-}
+function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean { return goLocalAllWritesMatch (maskedFunc, decl, name, 'any', GO_MAPWRITE_DEREFED_ANY_PRODUCER); }
 
 // key `var K *string = this.SafeString(V, "k")` with V unwritten up to line k: a non-nil K proves V is no nil or
 // scalar pointer box; no generated or base Go code boxes a *map[string]any / *any, so derefScalar(V) is V
@@ -9973,25 +7953,17 @@ function goMapWriteKeyReadFromValue (lines: string[], masked: string[], start: n
     for (let j = k - 1; j > start; j--) {
         if (decl.test (lines[j]) && (masked[j].indexOf ('//') < 0)) {
             // a loop may come back to k: V stays unwritten for the rest of the func
-            for (let e = k + 1; (e < masked.length) && (lines[e] !== '}'); e++) {
-                if (goTextWritesName (masked[e], value) || goTextWritesName (masked[e], key)) {
-                    return false;
-                }
-            }
+            for (let e = k + 1; (e < masked.length) && (lines[e] !== '}'); e++) { if (goTextWritesName (masked[e], value) || goTextWritesName (masked[e], key)) { return false; } }
             return true;
         }
-        if (/\bfunc\s*\(/.test (masked[j]) || goTextWritesName (masked[j], value) || goTextWritesName (masked[j], key)) {
-            return false;
-        }
+        if (/\bfunc\s*\(/.test (masked[j]) || goTextWritesName (masked[j], value) || goTextWritesName (masked[j], key)) { return false; }
     }
     return false;
 }
 
 // a single-declaration `any` local initialised by a map producer call
 function goMapWriteMapResultLocal (lines: string[], decl: any): boolean {
-    if ((decl === undefined) || (decl.index === undefined)) {
-        return false;
-    }
+    if ((decl === undefined) || (decl.index === undefined)) { return false; }
     const init = /^\s*var\s+\w+\s+any\s*=\s*(.*)$/.exec (decl.line);
     return (init !== null) && /\)$/.test (init[1].trim ()) && goMapWriteMapResultCall (lines, init[1].trim ());
 }
@@ -10000,18 +7972,14 @@ function goMapWriteMapResultLocal (lines: string[], decl: any): boolean {
 // SafeCurrency result or nil: those rows are pointer-free (MarketTyped/CurrencyTyped), so the index reads what GetValue does.
 const GO_MARKET_ROW_WRITE = /^(?:(?:ccxt\.)?this\.(?:DerivedExchange\.|Exchange\.)?(?:Market|SafeMarket|Currency|SafeCurrency)\(.*\)|nil)$/;
 
-function nativeMarketRowReads (content: string): string {
-    return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), rewriteMarketRowReads);
-}
+function nativeMarketRowReads (content: string): string { return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), rewriteMarketRowReads); }
 
 function rewriteMarketRowReads (lines: string[], masked: string[], start: number, end: number) {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const verdicts = new Map<string, number | undefined> ();
     // line index of the single declaration when every write is a market row or nil
     const marketRowLocal = (name: string): number | undefined => {
-        if (verdicts.has (name)) {
-            return verdicts.get (name);
-        }
+        if (verdicts.has (name)) { return verdicts.get (name); }
         let verdict: number | undefined = undefined;
         const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
         if ((decl !== undefined) && (decl.type === 'map[string]any') && (decl.index !== undefined) && !new RegExp ('&\\s*' + name + '\\b').test (maskedFunc)) {
@@ -10019,14 +7987,10 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
             let ok = true;
             let declLine = -1;
             for (let k = start + 1; ok && (k < end); k++) {
-                if (!writes.test (masked[k])) {
-                    continue;
-                }
+                if (!writes.test (masked[k])) { continue; }
                 const m = new RegExp ('^\\s*(var ' + name + ' map\\[string\\]any|' + name + ') = (.*)$').exec (lines[k]);
                 ok = (m !== null) && (masked[k].trimEnd ().length === lines[k].trimEnd ().length) && GO_MARKET_ROW_WRITE.test (m[2].trim ());
-                if (ok && m[1].startsWith ('var ')) {
-                    declLine = k;
-                }
+                if (ok && m[1].startsWith ('var ')) { declLine = k; }
             }
             verdict = (ok && (declLine >= 0)) ? declLine : undefined;
         }
@@ -10034,9 +7998,7 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
         return verdict;
     };
     for (let k = start + 1; k < end; k++) {
-        if (masked[k].indexOf ('GetValue(') < 0) {
-            continue;
-        }
+        if (masked[k].indexOf ('GetValue(') < 0) { continue; }
         const m = masked[k];
         lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), ("[^"\\\n]*")\)/g, (all: string, name: string, key: string, at: number) => {
             const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
@@ -10049,60 +8011,39 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
 // the loop bound is len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
 // is declared once before the loop, in a scope still open at it, and never written
 function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, bound: string, slice: string, reserved: string[]): boolean {
-    if ((bound === 'len(' + slice + ')') || (bound === 'GetArrayLength(' + slice + ')')) {
-        return true;
-    }
-    if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === slice) || reserved.includes (bound)) {
-        return false;
-    }
+    if ((bound === 'len(' + slice + ')') || (bound === 'GetArrayLength(' + slice + ')')) { return true; }
+    if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === slice) || reserved.includes (bound)) { return false; }
     const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
     let boundLine = -1;
     for (let k = fn.open + 1; k < body.open; k++) {
         if (boundRx.test (maskedLines[k])) {
-            if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
-                return false; // ambiguous or declared inside the loop
-            }
+            if ((boundLine >= 0) || (depth[k] > depth[body.open])) { return false; } // ambiguous or declared inside the loop
             boundLine = k;
         }
     }
-    if (boundLine < 0) {
-        return false;
-    }
+    if (boundLine < 0) { return false; }
     const boundBlock = goTextEnclosingBlock (blocks, boundLine);
-    if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
-        return false;
-    }
-    for (let k = fn.open + 1; k < fn.close; k++) {
-        if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
-            return false;
-        }
-    }
+    if ((boundBlock !== undefined) && (boundBlock.close < body.open)) { return false; }
+    for (let k = fn.open + 1; k < fn.close; k++) { if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) { return false; } }
     return true;
 }
 
 // a promiseAll result list; its elements may be scalar boxes, so only an ArrayConcat operand (which derefs) reads natively
 const GO_PROMISE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?ListTyped\((?:r\d*\.Value|(?:ccxt\.)?PanicOnError\(\(<-(?:ccxt\.)?[pP]romiseAll\(.*\)\)\))\)$/;
 
-// `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {`
-// when `s` is declared once in the func as `[]string` and never written, `i` is not written in
-// the body and no func literal opens between the loop and the read (derefScalar of a string is itself).
+// `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {` when `s` is declared once in the func as `[]string` and
+// never written, `i` is not written in the body and no func literal opens between the loop and the read (derefScalar of a string is itself).
 function nativeLoopBoundedSliceReads (content: string): string {
-    if (content.indexOf ('GetValue(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('GetValue(') < 0) { return content; }
     const lines = content.split ('\n');
     const maskedLines = goMaskGoCode (content).split ('\n');
     const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
     const readRx = /\b(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)(\.\(string\))?/g;
     let changed = false;
     for (let index = 0; index < lines.length; index++) {
-        if (maskedLines[index].indexOf ('GetValue(') < 0) {
-            continue;
-        }
+        if (maskedLines[index].indexOf ('GetValue(') < 0) { continue; }
         const replaced = lines[index].replace (readRx, (match: string, slice: string, counter: string, assertion: string | undefined, offset: number) => {
-            if ((maskedLines[index].substr (offset, match.length) !== match) || (slice === counter)) {
-                return match; // inside a literal/comment
-            }
+            if ((maskedLines[index].substr (offset, match.length) !== match) || (slice === counter)) { return match; } // inside a literal/comment
             const after = maskedLines[index].substring (offset + match.length);
             const before = maskedLines[index].substring (0, offset);
             if (/^\s*(?:[!=]=\s*nil\b|\.\()/.test (after) || /\bnil\s*[!=]=\s*$/.test (before) || /(?:^|[^\w.])[A-Za-z_]\w*\s*:=\s*$/.test (before)) {
@@ -10113,9 +8054,7 @@ function nativeLoopBoundedSliceReads (content: string): string {
             let body: any = undefined;
             let header: RegExpExecArray | null = null;
             for (const b of enclosing) {
-                if (/\bfunc\b/.test (maskedLines[b.open])) {
-                    break;
-                }
+                if (/\bfunc\b/.test (maskedLines[b.open])) { break; }
                 const h = /^[ \t]*for ([A-Za-z_]\w*) := 0; ([A-Za-z_]\w*) < (.+); ([A-Za-z_]\w*)\+\+ \{$/.exec (maskedLines[b.open]);
                 if ((h !== null) && (h[1] === counter)) {
                     body = b;
@@ -10123,13 +8062,9 @@ function nativeLoopBoundedSliceReads (content: string): string {
                     break;
                 }
             }
-            if ((body === undefined) || (header === null) || (header[2] !== counter) || (header[4] !== counter) || (index === body.open)) {
-                return match;
-            }
+            if ((body === undefined) || (header === null) || (header[2] !== counter) || (header[4] !== counter) || (index === body.open)) { return match; }
             const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
-            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
-                return match;
-            }
+            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) { return match; }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
             const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
             // a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
@@ -10138,27 +8073,15 @@ function nativeLoopBoundedSliceReads (content: string): string {
             const taskList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_PROMISE_LIST.test (decl.line)
                 && (assertion === undefined) && /\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')');
             const derefList = (decl !== undefined) && (decl.type === '[]any') && (assertion === undefined) && goLoopReadDerefConsumer (maskedLines, before, after);
-            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList && !taskList && !derefList)) {
-                return match;
-            }
+            if ((decl === undefined) || ((decl.type !== '[]string') && !jsonList && !taskList && !derefList)) { return match; }
             const declRx = new RegExp ('^[ \\t]*var ' + slice + ((jsonList || taskList || derefList) ? ' \\[\\]any\\b' : ' \\[\\]string\\b'));
             for (let k = fn.open + 1; k < fn.close; k++) {
                 const line = (decl.line !== undefined) ? maskedLines[k].replace (declRx, '') : maskedLines[k];
-                if (goTextWritesName (line, slice)) {
-                    return match;
-                }
+                if (goTextWritesName (line, slice)) { return match; }
             }
-            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => declRx.test (l)))) {
-                return match; // declared after the loop header
-            }
-            for (let k = body.open + 1; k < body.close; k++) {
-                if (goTextWritesName (maskedLines[k], counter)) {
-                    return match;
-                }
-            }
-            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[3].trim (), slice, [ counter ])) {
-                return match;
-            }
+            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => declRx.test (l)))) { return match; } // declared after the loop header
+            for (let k = body.open + 1; k < body.close; k++) { if (goTextWritesName (maskedLines[k], counter)) { return match; } }
+            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[3].trim (), slice, [ counter ])) { return match; }
             changed = true;
             return slice + '[' + counter + ']';
         });
@@ -10167,38 +8090,25 @@ function nativeLoopBoundedSliceReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-// the read is a whole argument that its consumer derefScalars on entry (SafeStringPtr, ArrayConcat, a base Safe*
-// accessor's object, or a same-file method whose param only feeds such accessors): the in-range element then
-// answers exactly what GetValue's derefScalar gave
+// the read is a whole argument that its consumer derefScalars on entry (SafeStringPtr, ArrayConcat, a base Safe* accessor's object, or a same-file method whose
+// param only feeds such accessors): the in-range element then answers exactly what GetValue's derefScalar gave
 function goLoopReadDerefConsumer (maskedLines: string[], before: string, after: string): boolean {
     const file = '\n' + maskedLines.join ('\n');
     const own = (m: string) => new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + m + '\\(').test (file);
     const safe = GO_LOOP_READ_SAFE_ACCESSORS.filter ((m: string) => !own (m));
-    if (/(?<![\w.])(?:ccxt\.)?SafeStringPtr\($/.test (before) && after.startsWith (')')) {
-        return true;
-    }
-    if (/\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')') && !own ('ArrayConcat')) {
-        return true;
-    }
+    if (/(?<![\w.])(?:ccxt\.)?SafeStringPtr\($/.test (before) && after.startsWith (')')) { return true; }
+    if (/\bthis\.ArrayConcat\([A-Za-z_]\w*, $/.test (before) && after.startsWith (')') && !own ('ArrayConcat')) { return true; }
     const safeHead = new RegExp ('\\bthis\\.(?:' + safe.join ('|') + ')\\($');
-    if (safeHead.test (before) && /^[,)]/.test (after)) {
-        return true;
-    }
+    if (safeHead.test (before) && /^[,)]/.test (after)) { return true; }
     // `this.M(a, <read>)` on a same-file method that declares that param `any` and reads it only as a Safe* object
     const call = /\bthis\.(\w+)\(([A-Za-z_]\w*, )?$/.exec (before);
-    if ((call === null) || !after.startsWith (')')) {
-        return false;
-    }
+    if ((call === null) || !after.startsWith (')')) { return false; }
     const slot = (call[2] === undefined) ? 0 : 1;
     const defs = [ ...file.matchAll (new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + call[1] + '\\(([^()]*)\\) \\{\\n((?:(?!\\n\\}\\n)[\\s\\S])*)\\n\\}\\n', 'g')) ];
-    if (defs.length !== 1) {
-        return false;
-    }
+    if (defs.length !== 1) { return false; }
     const params = defs[0][1].split (',').map ((x: string) => x.trim ());
     const param = (params.length === slot + 1) ? /^(\w+) any$/.exec (params[slot]) : null;
-    if ((param === null) || /\bfunc\s*\(/.test (defs[0][2])) {
-        return false;
-    }
+    if ((param === null) || /\bfunc\s*\(/.test (defs[0][2])) { return false; }
     const uses = defs[0][2].match (new RegExp ('\\b' + param[1] + '\\b', 'g')) ?? [];
     const reads = defs[0][2].match (new RegExp ('\\bthis\\.(?:' + safe.join ('|') + ')\\(' + param[1] + ', ', 'g')) ?? [];
     return (uses.length > 0) && (uses.length === reads.length);
@@ -10206,32 +8116,23 @@ function goLoopReadDerefConsumer (maskedLines: string[], before: string, after: 
 // ParseOrderBookBidAsk (base, kraken, mexc) reads its bidask only as a Safe* object
 const GO_LOOP_READ_SAFE_ACCESSORS = [ 'SafeString', 'SafeString2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeInteger', 'SafeInteger2', 'SafeValue', 'SafeValue2', 'ParseOrderBookBidAsk' ];
 
-// Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index
-// is provably in range (enclosing `for`/`if` bound), and the DerefScalar wrap goes when the slice is a SafeList unbox
-// (JSON values, never scalar pointers). The two halves are independent.
+// Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index is provably in range (enclosing
+// `for`/`if` bound), and the DerefScalar wrap goes when the slice is a SafeList unbox (JSON values, never scalar pointers). The two halves are independent.
 const GO_GUARDED_READ_GUARD = /^([ \t]*)if (.+?) >= 0 && \2 < len\(([A-Za-z_]\w*)\) \{$/;
 const GO_GUARDED_READ_ROOF = /func\(\) any \{$/;
-// a `[]any` unboxed from a SafeList accessor: `listValueToTypedSlice` hands back the JSON
-// array as-is, so no element is a *string/*int64/... box
+// a `[]any` unboxed from a SafeList accessor: `listValueToTypedSlice` hands back the JSON array as-is, so no element is a *string/*int64/... box
 const GO_GUARDED_READ_SAFE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:(?:ccxt\.)?SafeList\d*(?:Typed)?)\(|^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = this\.SafeListSlice\([^()]*, \[\]any\{\}\)$/;
 
 // the braces of a single parenthesised clause around its own expression
-
 
 // the container of a guarded read: a `[]any`/`[]string` local or parameter this func
 // declares exactly once and never writes (a write could change len() or replace the slice)
 function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, lines?: string[]): any {
     const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
     const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], name);
-    if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) {
-        return undefined;
-    }
+    if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) { return undefined; }
     const declareLine = (decl.index === undefined) ? -1 : (fn.open + 1 + (maskedFunc.substring (0, decl.index).split ('\n').length - 1));
-    for (let k = fn.open + 1; k < fn.close; k++) {
-        if ((k !== declareLine) && goTextWritesName (maskedLines[k], name)) {
-            return undefined;
-        }
-    }
+    for (let k = fn.open + 1; k < fn.close; k++) { if ((k !== declareLine) && goTextWritesName (maskedLines[k], name)) { return undefined; } }
     const init = ((lines !== undefined) && (declareLine >= 0)) ? lines[declareLine] : undefined;
     const header = ((lines !== undefined) && (declareLine > fn.open + 1)) ? lines[declareLine - 1] : undefined;
     return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init, 'header': header, 'line': declareLine };
@@ -10255,14 +8156,10 @@ function goGuardedReadSplitArgs (text: string): string[] {
 // the declaration's own initializer proves the literal index `key` is in range: strings.Split(x, "<non-empty literal>")
 // and this.MarketSymbols(..) (panics when empty) have index 0; an unwritten `[]any{a, b, c}` literal has exactly its elements
 function goGuardedReadInitProvesIndex (init: string | undefined, key: string, header?: string): boolean {
-    if ((init === undefined) || !/^\d+$/.test (key)) {
-        return false;
-    }
+    if ((init === undefined) || !/^\d+$/.test (key)) { return false; }
     const index = Number (key);
     const split = /^[ \t]*var [A-Za-z_]\w* \[\]string = (?:ccxt\.)?strings\.Split\(.*, \"[^\"\\\\]+\"\)[ \t]*(?:\/\/.*)?$/.exec (init);
-    if (split !== null) {
-        return (index === 0) || ((index === 1) && goGuardedReadSplitHasSeparator (init, header));
-    }
+    if (split !== null) { return (index === 0) || ((index === 1) && goGuardedReadSplitHasSeparator (init, header)); }
     const symbols = /^[ \t]*var [A-Za-z_]\w* \[\]string = this\.MarketSymbols\((.*)\)[ \t]*(?:\/\/.*)?$/.exec (init);
     if (symbols !== null) {
         const args = goGuardedReadSplitArgs (symbols[1]);
@@ -10281,9 +8178,7 @@ function goGuardedReadInitProvesIndex (init: string | undefined, key: string, he
 function goGuardedReadSplitHasSeparator (init: string, header: string | undefined): boolean {
     const split = /^([ \t]*)var [A-Za-z_]\w* \[\]string = strings\.Split\((\*?[A-Za-z_][\w.]*), ("[^"\\]+")\)[ \t]*$/.exec (init);
     const cond = (header === undefined) ? null : /^([ \t]*)if (.+) \{$/.exec (header);
-    if ((split === null) || (cond === null) || (cond[1] + '\t' !== split[1]) || /\|\||!(?!=)/.test (cond[2])) {
-        return false;
-    }
+    if ((split === null) || (cond === null) || (cond[1] + '\t' !== split[1]) || /\|\||!(?!=)/.test (cond[2])) { return false; }
     const probe = ('strings.Index(' + split[2] + ', ' + split[3] + ')').replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp ('(?:^|[(&] ?)' + probe + ' (?:>= 0|> 0|> -1)(?:\\)|$| &&)').test (cond[2]);
 }
@@ -10293,19 +8188,13 @@ function goGuardedReadSplitHasSeparator (init: string, header: string | undefine
 function goGuardedReadSplitOfFoundHash (maskedLines: string[], fn: any, read: any, lines: string[], key: string): boolean {
     const at = read.line;
     const split = ((key !== '1') || (at < fn.open + 3)) ? null : /^([ \t]+)var [A-Za-z_]\w* \[\]string = strings\.Split\(\*?([A-Za-z_]\w*), ("[^"\\]+")\)[ \t]*$/.exec (lines[at]);
-    if (split === null) {
-        return false;
-    }
+    if (split === null) { return false; }
     const h = split[2];
     const hash = new RegExp ('^' + split[1] + 'var ' + h + ' (?:\\*string = (?:(?:ccxt\\.)?SafeStringPtr\\((\\w+)\\[(\\w+)\\]\\)|this\\.SafeString\\((\\w+), (\\w+), ""\\))|string = (\\w+)\\[(\\w+)\\])$').exec (lines[at - 1]);
-    if (hash === null) {
-        return false;
-    }
+    if (hash === null) { return false; }
     const hashes = hash[1] ?? hash[3] ?? hash[5];
     const i = hash[2] ?? hash[4] ?? hash[6];
-    if (lines[at - 2] !== split[1].substring (1) + 'for ' + i + ' := 0; ' + i + ' < len(' + hashes + '); ' + i + '++ {') {
-        return false;
-    }
+    if (lines[at - 2] !== split[1].substring (1) + 'for ' + i + ' := 0; ' + i + ' < len(' + hashes + '); ' + i + '++ {') { return false; }
     const source = goGuardedReadContainer (maskedLines, fn, hashes, lines);
     const found = (source?.init === undefined) ? null : /^[ \t]*var \w+ (?:\[\]any = (?:ccxt\.)?ArrayTyped\((?=.*\)\)[ \t]*$)|\[\]string = )this\.FindMessageHashes\((?:ccxt\.)?AsClient\(client\), (?:[A-Za-z_]\w*\+)?("[^"\\]*")\)\)?[ \t]*$/.exec (source.init);
     return (found !== null) && (found[1].indexOf (split[3].slice (1, -1)) >= 0);
@@ -10316,30 +8205,20 @@ function goGuardedReadSplitOfFoundHash (maskedLines: string[], fn: any, read: an
 function goGuardedReadProducerArity (maskedLines: string[], blocks: any[], fn: any, init: string | undefined, key: string): boolean {
     const call = (init === undefined) ? null : /^[ \t]*var [A-Za-z_]\w* \[\]any = (?:ccxt\.)?ArrayTyped\(this\.([A-Z]\w*)\(.*\)\)[ \t]*$/.exec (init);
     const receiver = /^func \(this \*([A-Za-z_]\w*)\) /.exec (maskedLines[fn.open]);
-    if ((call === null) || (receiver === null) || !/^\d+$/.test (key)) {
-        return false;
-    }
+    if ((call === null) || (receiver === null) || !/^\d+$/.test (key)) { return false; }
     const head = 'func (this *' + receiver[1] + ') ' + call[1] + '(';
     const defs = blocks.filter ((b: any) => (b.depth === 1) && maskedLines[b.open].startsWith (head));
-    if ((defs.length !== 1) || !/\) \[\]any \{$/.test (maskedLines[defs[0].open])) {
-        return false;
-    }
+    if ((defs.length !== 1) || !/\) \[\]any \{$/.test (maskedLines[defs[0].open])) { return false; }
     const method = defs[0];
     let returns = 0;
     for (let k = method.open + 1; k < method.close; k++) {
-        if (!/^[ \t]*return\b/.test (maskedLines[k])) {
-            continue;
-        }
+        if (!/^[ \t]*return\b/.test (maskedLines[k])) { continue; }
         // a return inside a nested func literal belongs to that literal
         const owner = blocks.filter ((b: any) => (b.open < k) && (k <= b.close) && /\bfunc\b/.test (maskedLines[b.open]))
             .sort ((a: any, b: any) => b.depth - a.depth)[0];
-        if (owner !== method) {
-            continue;
-        }
+        if (owner !== method) { continue; }
         const row = /^[ \t]*return \[\]any\{(.*)\}[ \t]*$/.exec (maskedLines[k]);
-        if ((row === null) || (goGuardedReadSplitArgs (row[1]).filter ((item: string) => item !== '').length <= Number (key))) {
-            return false;
-        }
+        if ((row === null) || (goGuardedReadSplitArgs (row[1]).filter ((item: string) => item !== '').length <= Number (key))) { return false; }
         returns += 1;
     }
     return returns > 0;
@@ -10347,14 +8226,10 @@ function goGuardedReadProducerArity (maskedLines: string[], blocks: any[], fn: a
 
 // base methods whose every own return is a `[]any{..}` row of this many items (no venue overrides
 // them); `rows` is the item count of every element of the returned list
-const GO_GUARDED_READ_BASE_PRODUCERS: { [name: string]: { 'items'?: number, 'rows'?: number } } = {
-    'HandleTriggerPricesAndParams': { 'items': 4 },
-    'BuildOHLCVC': { 'rows': 7 },
-};
+const GO_GUARDED_READ_BASE_PRODUCERS: { [name: string]: { 'items'?: number, 'rows'?: number } } = { 'HandleTriggerPricesAndParams': { 'items': 4 }, 'BuildOHLCVC': { 'rows': 7 }, };
 
-// `var x []any = ArrayTyped(this.M(..))` / `var x []any = this.M(..)` with M a base producer of
-// the table and no same-file definition; `var row []any = ArrayTyped(rows[i])` inside
-// `for i := 0; i < len(rows); i++` over such a list reads one of its fixed-size rows
+// `var x []any = ArrayTyped(this.M(..))` / `var x []any = this.M(..)` with M a base producer of the table and no same-file definition; `var row []any =
+// ArrayTyped(rows[i])` inside `for i := 0; i < len(rows); i++` over such a list reads one of its fixed-size rows
 function goGuardedReadBaseProducerArity (maskedLines: string[], blocks: any[], depth: number[], fn: any, read: any, key: string): boolean {
     const init: string | undefined = read.init;
     const producer = (text: string | undefined, kind: 'items' | 'rows'): boolean => {
@@ -10363,22 +8238,14 @@ function goGuardedReadBaseProducerArity (maskedLines: string[], blocks: any[], d
         const defined = (call !== null) && maskedLines.some ((line: string) => new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(').test (line));
         return (size !== undefined) && !defined && (Number (key) < size);
     };
-    if (!/^\d+$/.test (key)) {
-        return false;
-    }
-    if (producer (init, 'items')) {
-        return true;
-    }
+    if (!/^\d+$/.test (key)) { return false; }
+    if (producer (init, 'items')) { return true; }
     const row = (init === undefined) ? null : /^([ \t]*)var [A-Za-z_]\w* \[\]any = (?:ccxt\.)?ArrayTyped\(([A-Za-z_]\w*)\[([A-Za-z_]\w*)\]\)[ \t]*$/.exec (init);
-    if (row === null) {
-        return false;
-    }
+    if (row === null) { return false; }
     const at = read.line;
     const loop = blocks.filter ((b: any) => (b.open < at) && (at <= b.close)).sort ((a: any, b: any) => b.depth - a.depth)[0];
     const header = (loop === undefined) ? null : /^[ \t]*for ([A-Za-z_]\w*) := 0; \1 < (.+); \1\+\+ \{$/.exec (maskedLines[loop.open]);
-    if ((header === null) || (header[1] !== row[3]) || !goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, loop, header[2].trim (), row[2], [ row[3] ])) {
-        return false;
-    }
+    if ((header === null) || (header[1] !== row[3]) || !goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, loop, header[2].trim (), row[2], [ row[3] ])) { return false; }
     const rows = goGuardedReadContainer (maskedLines, fn, row[2], maskedLines);
     return (rows !== undefined) && producer (rows.init, 'rows');
 }
@@ -10386,22 +8253,16 @@ function goGuardedReadBaseProducerArity (maskedLines: string[], blocks: any[], d
 // an earlier `if .. len(container) == 0 [|| ..] { .. return|panic(..) }` in a block that encloses the read (same func
 // literal) leaves len >= 1, so index 0 is in range; `!= 1` leaves len == 1. Only an exit as the arm's last statement counts.
 function goGuardedReadEarlyExit (maskedLines: string[], blocks: any[], depth: number[], fn: any, index: number, container: string, key: string): boolean {
-    if (key !== '0') {
-        return false;
-    }
+    if (key !== '0') { return false; }
     const chain: any[] = [];
     const enclosing = blocks.filter ((b: any) => (b.open < index - 1) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
     for (const block of enclosing) {
         if (/\bfunc\b/.test (maskedLines[block.open]) && (block !== fn)) {
-            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4)) {
-                continue;
-            }
+            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4)) { continue; }
             return false;
         }
         chain.push (block);
-        if (block === fn) {
-            break;
-        }
+        if (block === fn) { break; }
     }
     for (const arm of blocks) {
         const parent = chain.find ((b: any) => (arm.depth === b.depth + 1) && (arm.open > b.open));
@@ -10412,17 +8273,11 @@ function goGuardedReadEarlyExit (maskedLines: string[], blocks: any[], depth: nu
             continue;
         }
         let last = arm.close - 1;
-        while ((last > arm.open) && (maskedLines[last].trim () === '')) {
-            last -= 1;
-        }
-        if ((last <= arm.open) || (depth[last] !== arm.depth) || !/^[ \t]*(?:return\b|panic\()/.test (maskedLines[last])) {
-            continue;
-        }
+        while ((last > arm.open) && (maskedLines[last].trim () === '')) { last -= 1; }
+        if ((last <= arm.open) || (depth[last] !== arm.depth) || !/^[ \t]*(?:return\b|panic\()/.test (maskedLines[last])) { continue; }
         const terms = [ 'len\\(' + goAccessEscape (container) + '\\)', ...goGuardedReadLenBounds (maskedLines, blocks, depth, fn, arm, container).map ((b: string) => goAccessEscape (b)) ];
         const empty = new RegExp ('^(?:' + terms.join ('|') + ')(?:==0|<1|<=0|!=1)$');
-        if (goMapWriteTopLevelParts (condition[1], '||').some ((part: string) => (part.indexOf ('&&') < 0) && empty.test (goArithStripParens (part).replace (/[ \t]/g, '')))) {
-            return true;
-        }
+        if (goMapWriteTopLevelParts (condition[1], '||').some ((part: string) => (part.indexOf ('&&') < 0) && empty.test (goArithStripParens (part).replace (/[ \t]/g, '')))) { return true; }
     }
     return false;
 }
@@ -10435,9 +8290,7 @@ function goGuardedReadLenBounds (maskedLines: string[], blocks: any[], depth: nu
     for (let k = fn.open + 1; k < block.open; k++) {
         const m = rx.exec (maskedLines[k]);
         const name = (m === null) ? undefined : (m[1] ?? m[2]);
-        if ((name !== undefined) && !names.includes (name) && goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, name, container, [])) {
-            names.push (name);
-        }
+        if ((name !== undefined) && !names.includes (name) && goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, block, name, container, [])) { names.push (name); }
     }
     return names;
 }
@@ -10451,52 +8304,31 @@ function goGuardedReadAtMostLenBounds (maskedLines: string[], fn: any, container
     for (let k = fn.open + 1; k < fn.close; k++) {
         const m = declRx.exec (maskedLines[k]);
         const name = (m === null) ? undefined : (m[1] ?? m[2]);
-        if ((name === undefined) || names.includes (name) || (name === container)) {
-            continue;
-        }
+        if ((name === undefined) || names.includes (name) || (name === container)) { continue; }
         const assign = new RegExp ('^[ \\t]*' + name + ' = (?:0|len\\(' + c + '\\))[ \\t]*$');
         let decls = 0;
         let sets = 0;
         let ok = true;
         for (let j = fn.open + 1; (j < fn.close) && ok; j++) {
             const line = maskedLines[j];
-            if (declRx.exec (line)?.slice (1).includes (name)) {
-                decls += 1;
-            } else if (assign.test (line)) {
-                sets += (line.indexOf ('len(') >= 0) ? 1 : 0;
-            } else if (goTextWritesName (line, name)) {
-                ok = false;
-            }
+            if (declRx.exec (line)?.slice (1).includes (name)) { decls += 1; } else if (assign.test (line)) { sets += (line.indexOf ('len(') >= 0) ? 1 : 0; } else if (goTextWritesName (line, name)) { ok = false; }
         }
-        if (ok && (decls === 1) && (sets > 0)) {
-            names.push (name);
-        }
+        if (ok && (decls === 1) && (sets > 0)) { names.push (name); }
     }
     return names;
 }
 
-// `key` is a valid index into `container` when this conjunct holds; `bounds` are locals
-// equal to len(container)
+// `key` is a valid index into `container` when this conjunct holds; `bounds` are locals equal to len(container)
 function goGuardedReadInRangeClause (clause: string, container: string, key: string, bounds: string[]): boolean {
     const text = goArithStripParens (clause).replace (/[ \t]/g, '');
     const terms = [ 'len\\(' + goAccessEscape (container) + '\\)', ...bounds.map ((b: string) => goAccessEscape (b)) ];
     const k = /^\d+$/.test (key) ? key : goAccessEscape (key);
     for (const t of terms) {
-        if (new RegExp ('^' + t + '>' + k + '$').test (text)) {
-            return true;                                      // len > key
-        }
-        if (new RegExp ('^' + t + '>=' + k + '\\+1$').test (text)) {
-            return true;                                      // len >= key + 1
-        }
-        if (new RegExp ('^' + k + '<' + t + '$').test (text)) {
-            return true;                                      // key < len
-        }
-        if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) {
-            return true;                                      // key <= len - 1
-        }
-        if ((key.replace (/[ \t]/g, '') === t.replace (/\\/g, '') + '-1') && new RegExp ('^(?:' + t + '(?:>0|>=1|!=0)|0<' + t + ')$').test (text)) {
-            return true;                                      // len - 1 under len > 0
-        }
+        if (new RegExp ('^' + t + '>' + k + '$').test (text)) { return true; } // len > key
+        if (new RegExp ('^' + t + '>=' + k + '\\+1$').test (text)) { return true; } // len >= key + 1
+        if (new RegExp ('^' + k + '<' + t + '$').test (text)) { return true; } // key < len
+        if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) { return true; } // key <= len - 1
+        if ((key.replace (/[ \t]/g, '') === t.replace (/\\/g, '') + '-1') && new RegExp ('^(?:' + t + '(?:>0|>=1|!=0)|0<' + t + ')$').test (text)) { return true; } // len - 1 under len > 0
         if (/^\d+$/.test (key)) {
             // a literal bound: len > L / len >= L / len == L, and the mirror forms
             const above = new RegExp ('^' + t + '(>|>=|==)(\\d+)$').exec (text);
@@ -10505,29 +8337,22 @@ function goGuardedReadInRangeClause (clause: string, container: string, key: str
             const limit = (above !== null) ? Number (above[2]) : ((below !== null) ? Number (below[1]) : -1);
             if ((op !== undefined) && (limit >= 0)) {
                 const highest = (op === '>') ? limit : (limit - 1);
-                if (Number (key) <= highest) {
-                    return true;
-                }
+                if (Number (key) <= highest) { return true; }
             }
         }
     }
     return false;
 }
 
-// the guarded read at `index` is in range: an enclosing counting loop over `len(container)`
-// or an `if` whose condition bounds the index. Walks only the blocks that enclose the func
-// literal (a nested `func` opener ends the walk, so an outer guard cannot dominate a read
-// inside a closure).
+// the guarded read at `index` is in range: an enclosing counting loop over `len(container)` or an `if` whose condition bounds the index. Walks only the blocks
+// that enclose the func literal (a nested `func` opener ends the walk, so an outer guard cannot dominate a read inside a closure).
 function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: number[], fn: any, index: number, container: string, key: string): boolean {
     const enclosing = blocks.filter ((b: any) => (b.open < index - 1) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
     for (const block of enclosing) {
         if (/\bfunc\b/.test (maskedLines[block.open])) {
-            // `f(func() any {..}()) + g(func() any {..}())` counts the first literal's block as
-            // still open at the second guard (the `}()) + g(func() any {` roof is brace-neutral). That
-            // block is only the sibling guard closure, ending on this closure's own last line.
-            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4) && (block.open < index - 1)) {
-                continue;
-            }
+            // `f(func() any {..}()) + g(func() any {..}())` counts the first literal's block as still open at the second guard (the `}()) + g(func() any {`
+            // roof is brace-neutral). That block is only the sibling guard closure, ending on this closure's own last line.
+            if (GO_GUARDED_READ_ROOF.test (maskedLines[block.open]) && (block.close === index + 4) && (block.open < index - 1)) { continue; }
             break;
         }
         const header = maskedLines[block.open];
@@ -10538,13 +8363,10 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
                 && !((loop[2].trim () !== key) && goGuardedReadAtMostLenBounds (maskedLines, fn, container).includes (loop[2].trim ()))) {
                 return false;
             }
-            // `goTextWritesName` reads the `&&` of a `&& i < len(x)` condition as an
-            // address-of, so the one-letter counter gets its own write test
+            // `goTextWritesName` reads the `&&` of a `&& i < len(x)` condition as an address-of, so the one-letter counter gets its own write test
             const counterWrite = new RegExp ('(?<![\\w.])' + goAccessEscape (key) + '\\s*(?::=|\\+\\+|--|[-+*/%&|^]?=(?!=))|(?<!&)&\\s*' + goAccessEscape (key) + '\\b');
             for (let k = block.open + 1; k < block.close; k++) {
-                if (counterWrite.test (maskedLines[k])) {
-                    return false;                              // the counter is rebased in the body
-                }
+                if (counterWrite.test (maskedLines[k])) { return false; } // the counter is rebased in the body
             }
             return true;
         }
@@ -10552,9 +8374,7 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
         if (condition !== null) {
             const bounds = [ ...goGuardedReadLenBounds (maskedLines, blocks, depth, fn, block, container), ...goGuardedReadAtMostLenBounds (maskedLines, fn, container) ];
             const clauses = goMapWriteTopLevelParts (condition[1], '&&');
-            if (clauses.some ((clause: string) => (clause.indexOf ('||') < 0) && goGuardedReadInRangeClause (clause, container, key, bounds))) {
-                return true;
-            }
+            if (clauses.some ((clause: string) => (clause.indexOf ('||') < 0) && goGuardedReadInRangeClause (clause, container, key, bounds))) { return true; }
         }
     }
     return false;
@@ -10564,9 +8384,7 @@ function goGuardedReadIsInRange (maskedLines: string[], blocks: any[], depth: nu
 // -> `f(x[k])` when the read is in range, `f(DerefScalar(x[k]))` when the element can box a
 // pointer; the DerefScalar wrap is dropped in place when the slice came from a SafeList
 function nativeGuardedListElementReads (content: string): string {
-    if ((content.indexOf ('>= 0 && ') < 0) || (content.indexOf ('func() any {') < 0)) {
-        return content;
-    }
+    if ((content.indexOf ('>= 0 && ') < 0) || (content.indexOf ('func() any {') < 0)) { return content; }
     const lines = content.split ('\n');
     const maskedLines = goMaskGoCode (content).split ('\n');
     const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
@@ -10613,16 +8431,12 @@ function nativeGuardedListElementReads (content: string): string {
             || goGuardedReadProducerArity (maskedLines, blocks, fn, read.init, key)
             || goGuardedReadBaseProducerArity (maskedLines, blocks, depth, fn, read, key)
             || goGuardedReadEarlyExit (maskedLines, blocks, depth, fn, index, container, key)) {
-            // an earlier closure of the same expression may already have been merged into
-            // the roof line, so splice into what was emitted, not the original text
+            // an earlier closure of the same expression may already have been merged into the roof line, so splice into what was emitted, not the original text
             const roofText = out[out.length - 1];
             const roofClose = roofText.lastIndexOf ('func() any {');
             let suffix = lines[index + 4].substring (closes.length);
-            // the element of a `[]string` is already a string: the `. (string)` the printer
-            // adds to an `any` read goes with the closure
-            if ((read.type === '[]string') && suffix.startsWith ('.(string)')) {
-                suffix = suffix.substring ('.(string)'.length);
-            }
+            // the element of a `[]string` is already a string: the `. (string)` the printer adds to an `any` read goes with the closure
+            if ((read.type === '[]string') && suffix.startsWith ('.(string)')) { suffix = suffix.substring ('.(string)'.length); }
             const merged = roofText.substring (0, roofClose) + readText + suffix;
             if ((roofClose >= 0) && !suffix.trimStart ().startsWith ('.') && (merged.length <= 400)) {
                 out[out.length - 1] = merged;
@@ -10640,8 +8454,7 @@ function nativeGuardedListElementReads (content: string): string {
     return changed ? out.join ('\n') : content;
 }
 
-// the guard literal goes when the index is provably in range, the derefScalar
-// wrap goes when the slice is a SafeList unbox; every other read keeps both
+// the guard literal goes when the index is provably in range, the derefScalar wrap goes when the slice is a SafeList unbox; every other read keeps both
 function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     const lists = '\tvar markets []any = SafeListTyped(response, "markets")\n';
     const read = (key: string, container: string, wrap: string) => '\t\tvar m any = func() any {\n\t\t\tif ' + key + ' >= 0 && ' + key + ' < len(' + container + ') {\n\t\t\t\treturn ' + wrap + container + '[' + key + ']' + ((wrap === '') ? '' : ')') + '\n\t\t\t}\n\t\t\treturn nil\n\t\t}()\n';
@@ -10732,22 +8545,16 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
 }
 
-// Semantic post-passes over the printer text: a leaked body goroutine, a missing type
-// assertion and an unbounded element read are fixed here; layout is the printer's job and
-// is gofmt-clean except where an emitter splices operand text into a call it prints.
+// Semantic post-passes over the printer text: a leaked body goroutine, a missing type assertion and an unbounded element read are fixed here; layout is the
+// printer's job and is gofmt-clean except where an emitter splices operand text into a call it prints.
 
-// A resolved watch value as statements at indent `ind` (first line unindented): `var <v> T` + a type switch over
-// `expr` + the typed send. `direct` (a typed twin, or a struct carrier whose `<T>FromMap` builder coerces the box
-// itself via RowDict in exchange_struct_returns.go) sends the box as is.
+// A resolved watch value as statements at indent `ind` (first line unindented): `var <v> T` + a type switch over `expr` + the typed send. `direct` (a typed
+// twin, or a struct carrier whose `<T>FromMap` builder coerces the box itself via RowDict in exchange_struct_returns.go) sends the box as is.
 function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
     const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
-    if (direct) {
-        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + swExpr + '}';
-    }
+    if (direct) { return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + swExpr + '}'; }
     const wsIface: { [want: string]: string } = { 'OrderBookInterface': 'OrderBookTyped', 'ArrayCacheInterface': 'AsArrayCache', 'ClientInterface': 'AsClient' };
-    if (wsIface[want] !== undefined) {
-        return 'var ' + v + ' ' + q + want + ' = ' + q + wsIface[want] + '(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + want + ']{Value: ' + v + '}';
-    }
+    if (wsIface[want] !== undefined) { return 'var ' + v + ' ' + q + want + ' = ' + q + wsIface[want] + '(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + want + ']{Value: ' + v + '}'; }
     const box = v + 'Box';
     // extra coercion arms after `case <want>:`. A map[string]any coercion has no `case *sync.Map:` arm: no *sync.Map
     // producer is left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
@@ -10772,9 +8579,7 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
 // PreciseStruct.Decimals is a hand-written int (exchange_precise.go): a Sum of it and a ParseToInt int64, or a Math.max
 // of it and a nil-guarded *int64 SafeInteger local, is the int operator on the same values
 function goPreciseDecimalsWrites (content: string): string {
-    if (content.indexOf ('.Decimals = ') < 0) {
-        return content;
-    }
+    if (content.indexOf ('.Decimals = ') < 0) { return content; }
     content = content.replace (/^(\t+)(\w+)\.Decimals = this\.Sum\(\2\.Decimals, (this\.ParseToInt\((?:[^()]|\([^()]*\))*\))\)$/gm, '$1$2.Decimals += int($3)');
     // SafeInteger with an integer literal default is never nil
     content = content.replace (/^(\t+)(\w+)\.Decimals = this\.Sum\(\2\.Decimals, (this\.SafeInteger\(\[\]any\{\w+\}, 0, 0\))\)$/gm, '$1$2.Decimals += int(*$3)');
@@ -10790,24 +8595,18 @@ function goPreciseDecimalsWrites (content: string): string {
 // HandleTriggerPricesAndParams returns Go (*string, *string, *string, map[string]any) (exchange_market_type.go): its
 // holder block (four GetValue reads, or index reads through SafeStringPtr/DerefScalar/MapTyped) binds the four results
 function goTriggerPricesBind (content: string): string {
-    if (content.indexOf ('this.HandleTriggerPricesAndParams(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('this.HandleTriggerPricesAndParams(') < 0) { return content; }
     const lines = content.split ('\n');
     const head = /^(\s*)var (\w+) \[\]any = (?:ArrayTyped\((this\.HandleTriggerPricesAndParams\((?:[^()]|\([^()]*\))*\))\)|(this\.HandleTriggerPricesAndParams\((?:[^()]|\([^()]*\))*\)))$/;
     for (let k = 0; k < lines.length; k++) {
         const m = head.exec (lines[k]);
-        if (m === null) {
-            continue;
-        }
+        if (m === null) { continue; }
         const [ ind, h, call ] = [ m[1], m[2], m[3] ?? m[4] ];
         const names = [ '_', '_', '_', '_' ];
         let j = k + 1;
         for (; j < lines.length; j++) {
             const r = new RegExp ('^' + ind + '(?:(\\w+) := GetValue\\(' + h + ', ([0-3])\\)|var (\\w+) (?:\\*string = SafeStringPtr|any = DerefScalar|map\\[string\\]any = MapTyped)\\(' + h + '\\[([0-3])\\]\\))$').exec (lines[j]);
-            if (r === null) {
-                break;
-            }
+            if (r === null) { break; }
             const slot = Number (r[2] ?? r[4]);
             const ptr = lines[j].indexOf ('SafeStringPtr(') >= 0;
             if ((names[slot] !== '_') || (ptr && (slot === 3)) || (lines[j].indexOf ('MapTyped(') >= 0 && slot !== 3)) {
@@ -10819,18 +8618,14 @@ function goTriggerPricesBind (content: string): string {
         // the holder must have no other reader in its function
         const end = lines.findIndex ((l, i) => (i >= j) && (l === '}'));
         const rest = lines.slice (j, (end < 0) ? lines.length : end).join ('\n');
-        if ((j < 0) || (j === k + 1) || new RegExp ('\\b' + h + '\\b').test (rest)) {
-            continue;
-        }
+        if ((j < 0) || (j === k + 1) || new RegExp ('\\b' + h + '\\b').test (rest)) { continue; }
         lines.splice (k, j - k, ind + names.join (', ') + ' := ' + call);
     }
     return lines.join ('\n');
 }
 
 export function formatGoSource (filePath: string, content: string): string {
-    if (!filePath.endsWith ('.go')) {
-        return content;
-    }
+    if (!filePath.endsWith ('.go')) { return content; }
     content = guardMultiSendCores (content);
     content = nativeAppendWriteBack (content);
     content = nativeLoopBoundedSliceReads (content);
@@ -10873,15 +8668,10 @@ export function formatGoSource (filePath: string, content: string): string {
     return goGofmtSplicedText (content);
 }
 
-// ------------------------------------------------------------------------------------
-// gofmt spacing of the arithmetic an emitter splices into a call or an index
-// ------------------------------------------------------------------------------------
-// go/printer (src/go/printer/nodes.go) prints a level-4/5 operator (`+ - * / % << >>
+// gofmt spacing of the arithmetic an emitter splices into a call or an index go/printer (src/go/printer/nodes.go) prints a level-4/5 operator (`+ - * / % << >>
 // & &^ | ^`) with a blank on each side only when cutoff() asks for it: 6 for the
 function goGofmtSplicedText (content: string): string {
-    if (content.indexOf ('(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('(') < 0) { return content; }
     return goGofmtLevelOneSums (goGofmtTightenSplicedArithmetic (goGofmtLevelOneChains (goGofmtSliceColons (content))));
 }
 
@@ -10890,25 +8680,19 @@ function goGofmtLevelOneSums (content: string): string {
     const lines = content.split ('\n');
     for (let l = 0; l < lines.length; l++) {
         const statement = /^(\t*[A-Za-z_][A-Za-z0-9_.]* (?:[-+|^]?=|:=) )(.+)$/.exec (lines[l]);
-        if (statement === null) {
-            continue;
-        }
+        if (statement === null) { continue; }
         let rhs = statement[2];
         let head = statement[1];
         let tail = '';
         for (let call = /^[A-Za-z_][A-Za-z0-9_.]*\(/.exec (rhs); call !== null; call = /^[A-Za-z_][A-Za-z0-9_.]*\(/.exec (rhs)) {
             const open = call[0].length - 1;
-            if ((goMatchingCloseText (rhs, open) !== rhs.length - 1) || (goCountFrameArgsText (rhs, open) !== 1)) {
-                break;
-            }
+            if ((goMatchingCloseText (rhs, open) !== rhs.length - 1) || (goCountFrameArgsText (rhs, open) !== 1)) { break; }
             head += rhs.slice (0, open + 1);
             tail = ')' + tail;
             rhs = rhs.slice (open + 1, rhs.length - 1);
         }
         const widened = goWidenLevelFourChainText (rhs);
-        if (widened !== null) {
-            lines[l] = head + widened + tail;
-        }
+        if (widened !== null) { lines[l] = head + widened + tail; }
     }
     return lines.join ('\n');
 }
@@ -10932,9 +8716,7 @@ function goTopLevelScan (text: string, from: number, stop: (i: number, depth: nu
         }
         const at = brackets.indexOf (char);
         depth += (at < 0) ? 0 : ((at < half) ? 1 : -1);
-        if (stop (i, depth)) {
-            return i;
-        }
+        if (stop (i, depth)) { return i; }
     }
     return -1;
 }
@@ -10953,20 +8735,14 @@ function goWidenLevelFourChainText (text: string): string | null {
         } else if (/[0-9.]/.test (char) && !operand) {
             i += /^[0-9.]*(?:[eEpP][-+]?)?[0-9A-Za-z_.]*/.exec (text.slice (i))[0].length - 1;   // `1e-9` is one literal
             operand = true;
-        } else if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
-            return null;
-        } else if (char === '(' || char === '[' || char === '{') {
-            depth += 1;
-        } else if (char === ')' || char === ']' || char === '}') {
+        } else if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) { return null; } else if (char === '(' || char === '[' || char === '{') { depth += 1; } else if (char === ')' || char === ']' || char === '}') {
             depth -= 1;
             operand = true;
         } else if ((depth === 0) && (char !== ' ') && (char !== '\t')) {
             const value = goGoOperatorText (text, i);
             if ((value !== null) || (char === '=') || (char === '!') || (char === ':') || (char === ',')) {
                 if (operand) {
-                    if ((value === null) || (value.precedence !== 4)) {
-                        return null;
-                    }
+                    if ((value === null) || (value.precedence !== 4)) { return null; }
                     operators.push (i);
                 }
                 operand = false;
@@ -10976,9 +8752,7 @@ function goWidenLevelFourChainText (text: string): string | null {
             }
         }
     }
-    if (operators.length === 0) {
-        return null;
-    }
+    if (operators.length === 0) { return null; }
     let out = text;
     for (let o = operators.length - 1; o >= 0; o--) {
         const at = operators[o];
@@ -10996,48 +8770,26 @@ const GO_OPERAND_ENDER = /[A-Za-z0-9_)\]}"'`]/;
 // prints its operand only, so `((a == b))` comes out `(a == b)`; call/conversion parens are kept
 const GO_PAREN_KEYWORDS = new Set ([ 'if', 'for', 'switch', 'return', 'case', 'go', 'defer', 'range' ]);
 function goGofmtNestedParens (content: string): string {
-    if (content.indexOf ('((') < 0) {
-        return content;
-    }
+    if (content.indexOf ('((') < 0) { return content; }
     const match = new Map<number, number> ();
     const stack: number[] = [];
     for (let i = 0; i < content.length; i++) {
         const char = content[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            i = goSkipLiteralText (content, i);
-        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-            i = goSkipCommentText (content, i);
-        } else if (char === '(') {
-            stack.push (i);
-        } else if (char === ')' && stack.length > 0) {
-            match.set (stack.pop (), i);
-        }
+        if (char === '"' || char === '\'' || char === '`') { i = goSkipLiteralText (content, i); } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) { i = goSkipCommentText (content, i); } else if (char === '(') { stack.push (i); } else if (char === ')' && stack.length > 0) { match.set (stack.pop (), i); }
     }
     const drop = new Set<number> ();
     for (const [ open, close ] of match) {
-        if ((content[open + 1] !== '(') || (match.get (open + 1) !== close - 1)) {
-            continue;
-        }
+        if ((content[open + 1] !== '(') || (match.get (open + 1) !== close - 1)) { continue; }
         let k = open - 1;
-        while ((k >= 0) && (content[k] === ' ' || content[k] === '\t')) {
-            k -= 1;
-        }
+        while ((k >= 0) && (content[k] === ' ' || content[k] === '\t')) { k -= 1; }
         const word = /(\w+)$/.exec (content.slice (Math.max (0, k - 15), k + 1));
-        if ((k >= 0) && GO_OPERAND_ENDER.test (content[k]) && !((word !== null) && GO_PAREN_KEYWORDS.has (word[1]))) {
-            continue;                     // outer is a call/conversion paren: keep it
-        }
+        if ((k >= 0) && GO_OPERAND_ENDER.test (content[k]) && !((word !== null) && GO_PAREN_KEYWORDS.has (word[1]))) { continue; } // outer is a call/conversion paren: keep it
         drop.add (open + 1);
         drop.add (close - 1);
     }
-    if (drop.size === 0) {
-        return content;
-    }
+    if (drop.size === 0) { return content; }
     let out = '';
-    for (let i = 0; i < content.length; i++) {
-        if (!drop.has (i)) {
-            out += content[i];
-        }
-    }
+    for (let i = 0; i < content.length; i++) { if (!drop.has (i)) { out += content[i]; } }
     return out;
 }
 
@@ -11046,13 +8798,7 @@ function goSkipLiteralText (content: string, index: number): number {
     const quote = content[index];
     for (let i = index + 1; i < content.length; i++) {
         const char = content[i];
-        if (char === '\\' && quote !== '`') {
-            i += 1;
-        } else if (char === quote) {
-            return i;
-        } else if (char === '\n' && quote !== '`') {
-            return i - 1;                 // unterminated: stop at the line end
-        }
+        if (char === '\\' && quote !== '`') { i += 1; } else if (char === quote) { return i; } else if (char === '\n' && quote !== '`') { return i - 1; } // unterminated: stop at the line end
     }
     return content.length - 1;
 }
@@ -11067,8 +8813,7 @@ function goSkipCommentText (content: string, index: number): number {
     return end < 0 ? content.length - 1 : end + 1;
 }
 
-// number of comma separated entries between the bracket at `opener` and its matching
-// closer (strings and comments ignored); 0 when unbalanced
+// number of comma separated entries between the bracket at `opener` and its matching closer (strings and comments ignored); 0 when unbalanced
 function goCountFrameArgsText (content: string, opener: number): number {
     let depth = 0;
     let entries = 0;
@@ -11078,48 +8823,33 @@ function goCountFrameArgsText (content: string, opener: number): number {
         if (char === '"' || char === '\'' || char === '`') {
             i = goSkipLiteralText (content, i);
             seen = true;
-        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-            i = goSkipCommentText (content, i);
-        } else if (char === '(' || char === '[' || char === '{') {
-            depth += 1;
-        } else if (char === ')' || char === ']' || char === '}') {
-            if (depth === 0) {
-                return seen || entries > 0 ? entries + 1 : 0;
-            }
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) { i = goSkipCommentText (content, i); } else if (char === '(' || char === '[' || char === '{') { depth += 1; } else if (char === ')' || char === ']' || char === '}') {
+            if (depth === 0) { return seen || entries > 0 ? entries + 1 : 0; }
             depth -= 1;
             seen = true;
-        } else if (char === ',' && depth === 0) {
-            entries += 1;
-        } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
-            seen = true;
-        }
+        } else if (char === ',' && depth === 0) { entries += 1; } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') { seen = true; }
     }
     return 0;
 }
 
-// a `(` opens a call's (or a conversion's, or a func literal's) argument list when an
-// operand or a selector ends right in front of it; every other `(` only groups, and
-// go/printer prints a grouped expression one level shallower
+// a `(` opens a call's (or a conversion's, or a func literal's) argument list when an operand or a selector ends right in front of it; every other `(` only
+// groups, and go/printer prints a grouped expression one level shallower
 function goIsCallParenText (content: string, open: number): boolean {
     let i = open - 1;
-    while ((i >= 0) && ((content[i] === ' ') || (content[i] === '\t'))) {
-        i -= 1;
-    }
+    while ((i >= 0) && ((content[i] === ' ') || (content[i] === '\t'))) { i -= 1; }
     return (i >= 0) && GO_OPERAND_ENDER.test (content[i]);
 }
 
-// a `(` that opens the parameter list of a function declaration, a method or a func type
-// rather than a call: the names and types in there are declarations, so a `*` in there is a
-// pointer, never a multiplication - nothing inside a signature is a level-4/5 expression
+// a `(` that opens the parameter list of a function declaration, a method or a func type rather than a call: the names and types in there are declarations, so
+// a `*` in there is a pointer, never a multiplication - nothing inside a signature is a level-4/5 expression
 function goIsSignatureParenText (content: string, open: number): boolean {
     const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
     const keyword = head.lastIndexOf ('func');
     return (keyword >= 0) && (head.indexOf ('{', keyword) < 0);
 }
 
-// the level-4/5 operator token at `index`, or null when the text there is none: level 6
-// is unary, `++`/`--` and the `//`/`/*` openers are not operators, `*=` & co assign, and
-// level 3 and below (`<`, `<-`, comparisons) always keep their blanks
+// the level-4/5 operator token at `index`, or null when the text there is none: level 6 is unary, `++`/`--` and the `//`/`/*` openers are not operators, `*=` &
+// co assign, and level 3 and below (`<`, `<-`, comparisons) always keep their blanks
 function goLevel45OperatorText (content: string, index: number): string | null {
     const char = content[index];
     const next = content[index + 1];
@@ -11128,52 +8858,38 @@ function goLevel45OperatorText (content: string, index: number): string | null {
         return ((next === '=') || (next === '>') || (next === char) || (next === '-')) ? null : char;
     }
     if (char === '&') {
-        if ((next === '&') || (next === '=')) {
-            return null;
-        }
+        if ((next === '&') || (next === '=')) { return null; }
         return (next === '^') ? '&^' : '&';
     }
     if ((char === '<') || (char === '>')) {
-        if (next !== char) {
-            return null;                  // a comparison, or the `<-` receive operator
-        }
+        if (next !== char) { return null; } // a comparison, or the `<-` receive operator
         return (content[index + 2] === '=') ? null : char + char;
     }
     return null;
 }
 
-// the `)` of a `if (cond) {` style control clause, i.e. of exactly the parens that wrap a
-// whole control expression on one line: -1 when this `(` is anything else (a composite
-// literal in the condition, a condition spanning lines, or no control keyword in front)
+// the `)` of a `if (cond) {` style control clause, i.e. of exactly the parens that wrap a whole control expression on one line: -1 when this `(` is anything
+// else (a composite literal in the condition, a condition spanning lines, or no control keyword in front)
 function goControlClauseClose (content: string, open: number): number {
     const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
     // the parens may wrap the whole clause (`if (c) {`) or, in a three-clause `for`, just the
     // condition between the two semicolons (`for i := 0; (c); i++ {`); gofmt strips both
     const whole = /^[ \t]*(?:\} else )?(?:if|for|switch)[ \t]+$/.test (head);
     const middle = /^[ \t]*for[ \t]+[^;{]*;[ \t]*$/.test (head);
-    if (!whole && !middle) {
-        return -1;
-    }
+    if (!whole && !middle) { return -1; }
     let depth = 0;
     for (let i = open; i < content.length; i++) {
         const char = content[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            i = goSkipLiteralText (content, i);
-        } else if (char === '(') {
-            depth += 1;
-        } else if (char === ')') {
+        if (char === '"' || char === '\'' || char === '`') { i = goSkipLiteralText (content, i); } else if (char === '(') { depth += 1; } else if (char === ')') {
             depth -= 1;
             if (depth === 0) {
                 const lineEnd = content.indexOf ('\n', i);
                 const tail = content.slice (i + 1, lineEnd < 0 ? content.length : lineEnd);
-                // `if (c) {` ends the line at the brace; a `for`'s middle clause is followed
-                // by `; post {`, and gofmt strips the parens in both shapes
+                // `if (c) {` ends the line at the brace; a `for`'s middle clause is followed by `; post {`, and gofmt strips the parens in both shapes
                 const ok = /^[ \t]*\{[ \t]*$/.test (tail) || (middle && /^[ \t]*;[^;{]*\{[ \t]*$/.test (tail));
                 return ok ? i : -1;
             }
-        } else if ((char === '{') || (char === '}') || (char === '\n')) {
-            return -1;                    // not the whole condition: gofmt keeps the parens
-        }
+        } else if ((char === '{') || (char === '}') || (char === '\n')) { return -1; } // not the whole condition: gofmt keeps the parens
     }
     return -1;
 }
@@ -11196,17 +8912,7 @@ function goGofmtSliceColons (content: string): string {
         }
         if (char === '(' || char === '[' || char === '{') {
             stack.push ({ 'open': i + 1, 'level': level });
-            if (char === '{') {
-                level = 1;
-            } else if (char === '[') {
-                level += 1;
-            } else if (goIsCallParenText (content, i)) {
-                if (goCountFrameArgsText (content, i) > 1) {
-                    level += 1;
-                }
-            } else if (level > 1) {
-                level -= 1;
-            }
+            if (char === '{') { level = 1; } else if (char === '[') { level += 1; } else if (goIsCallParenText (content, i)) { if (goCountFrameArgsText (content, i) > 1) { level += 1; } } else if (level > 1) { level -= 1; }
             i += 1;
             continue;
         }
@@ -11215,9 +8921,7 @@ function goGofmtSliceColons (content: string): string {
             if (frame !== undefined) {
                 if (char === ']') {
                     const fix = goSliceColonFix (content, frame.open, i, frame.level);
-                    if (fix !== null) {
-                        fixes.push (fix);
-                    }
+                    if (fix !== null) { fixes.push (fix); }
                 }
                 level = frame.level;
             }
@@ -11232,26 +8936,19 @@ function goGofmtSliceColons (content: string): string {
 // `fixes` spliced into `content` back to front, so every edit keeps its offsets
 function goApplyTextFixes (content: string, fixes: { 'start': number, 'end': number, 'text': string }[]): string {
     fixes.sort ((a, b) => b.start - a.start);
-    for (let f = 0; f < fixes.length; f++) {
-        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
-    }
+    for (let f = 0; f < fixes.length; f++) { content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end); }
     return content;
 }
 
-// the `colon : high` text of the slice whose bounds are `content[open : close]`, or null
-// when the brackets hold anything but one `low:high` pair
+// the `colon : high` text of the slice whose bounds are `content[open : close]`, or null when the brackets hold anything but one `low:high` pair
 function goSliceColonFix (content: string, open: number, close: number, level: number) {
     const bounds = content.slice (open, close);
     const colons: number[] = [];
     goTopLevelScan (bounds, 0, (i: number, depth: number) => {
-        if ((bounds[i] === ':') && (depth === 0)) {
-            colons.push (i);
-        }
+        if ((bounds[i] === ':') && (depth === 0)) { colons.push (i); }
         return false;
     });
-    if (colons.length !== 1) {
-        return null;                      // `low:high:max` and anything else: leave it alone
-    }
+    if (colons.length !== 1) { return null; } // `low:high:max` and anything else: leave it alone
     const colon = colons[0];
     const low = bounds.slice (0, colon).replace (/[ \t]+$/, '');
     const high = bounds.slice (colon + 1).replace (/^[ \t]+/, '');
@@ -11265,62 +8962,33 @@ function goSliceColonFix (content: string, open: number, close: number, level: n
 // operator (`h[i:i+1] == "0"`): go/printer then prints it one level deeper, without blanks
 function goSliceIsBinaryOperand (content: string, open: number, close: number): boolean {
     const after = /^[ \t]*(==|!=|<=|>=|&&|\|\||<<|>>|&\^|[-+*/%&|^<>])(?!=)/.exec (content.slice (close + 1, close + 8));
-    if (after !== null) {
-        return true;
-    }
+    if (after !== null) { return true; }
     let k = open - 2;
-    while ((k >= 0) && /[\w.]/.test (content[k])) {
-        k -= 1;
-    }
-    while ((k >= 0) && ((content[k] === ' ') || (content[k] === '\t'))) {
-        k -= 1;
-    }
+    while ((k >= 0) && /[\w.]/.test (content[k])) { k -= 1; }
+    while ((k >= 0) && ((content[k] === ' ') || (content[k] === '\t'))) { k -= 1; }
     const before = /(==|!=|<=|>=|&&|\|\||<<|>>|&\^|[-+*/%&|^<>])$/.exec (content.slice (Math.max (0, k - 1), k + 1));
-    if (before === null) {
-        return false;
-    }
+    if (before === null) { return false; }
     let m = k - before[1].length;
-    while ((m >= 0) && ((content[m] === ' ') || (content[m] === '\t'))) {
-        m -= 1;
-    }
+    while ((m >= 0) && ((content[m] === ' ') || (content[m] === '\t'))) { m -= 1; }
     return (m >= 0) && GO_OPERAND_ENDER.test (content[m]);   // binary, not a unary sign or `*` deref
 }
 
-// true when the slice bound `text` is a binary expression for go/printer's isBinary(),
-// i.e. when it has a binary operator of its own - one nested in a call or a bracket does
-// not count, and neither does a unary sign
+// true when the slice bound `text` is a binary expression for go/printer's isBinary(), i.e. when it has a binary operator of its own - one nested in a call or
+// a bracket does not count, and neither does a unary sign
 function goBoundIsBinary (text: string): boolean {
-    return goTopLevelScan (text, 0, (i: number, depth: number) => {
-        if ((depth !== 0) || ('+-*/%&|^<>=!'.indexOf (text[i]) < 0)) {
-            return false;
-        }
-        let before = i - 1;
-        while ((before >= 0) && ((text[before] === ' ') || (text[before] === '\t'))) {
-            before -= 1;
-        }
-        return (before >= 0) && GO_OPERAND_ENDER.test (text[before]);
-    }) >= 0;
+    return goTopLevelScan (text, 0, (i: number, depth: number) => (depth === 0) && ('+-*/%&|^<>=!'.indexOf (text[i]) >= 0) && goIsCallParenText (text, i)) >= 0;
 }
 
 // the printer level inside the bracket opened at `content[i]`, entered from `level`
 function goOpenFrameLevel (content: string, i: number, level: number): number {
-    if (content[i] === '{') {
-        return 1;
-    }
-    if (content[i] === '[') {
-        return level + 1;
-    }
-    if (goIsSignatureParenText (content, i)) {
-        return 0;                                       // declarations: no operators in there
-    }
-    if (goIsCallParenText (content, i)) {
-        return (goCountFrameArgsText (content, i) > 1) ? level + 1 : level;
-    }
+    if (content[i] === '{') { return 1; }
+    if (content[i] === '[') { return level + 1; }
+    if (goIsSignatureParenText (content, i)) { return 0; } // declarations: no operators in there
+    if (goIsCallParenText (content, i)) { return (goCountFrameArgsText (content, i) > 1) ? level + 1 : level; }
     return (level > 1) ? level - 1 : level;
 }
 
-// the same level rule for the operators the printer printed, with the control-clause
-// parens dropped on the way through
+// the same level rule for the operators the printer printed, with the control-clause parens dropped on the way through
 function goGofmtTightenSplicedArithmetic (content: string): string {
     // unchanged runs are copied as slices (never empty ones, so the last piece ends in the last emitted char)
     const out: string[] = [];
@@ -11366,9 +9034,7 @@ function goGofmtTightenSplicedArithmetic (content: string): string {
         }
         if ((c === 41) || (c === 93) || (c === 125)) { // ) ] }
             const frame = stack.pop ();
-            if (frame !== undefined) {
-                level = frame;
-            }
+            if (frame !== undefined) { level = frame; }
             lastChar = content[i];
             i += 1;
             continue;
@@ -11380,9 +9046,7 @@ function goGofmtTightenSplicedArithmetic (content: string): string {
                 if (tightened !== null) {
                     emit (content.slice (from, i));
                     const last = (out.length > 0) ? out[out.length - 1] : '';
-                    if (last.endsWith (' ') || last.endsWith ('\t')) {
-                        out[out.length - 1] = last.slice (0, -1);   // drop the one blank before it
-                    }
+                    if (last.endsWith (' ') || last.endsWith ('\t')) { out[out.length - 1] = last.slice (0, -1); } // drop the one blank before it
                     out.push (operator);
                     from = i = tightened.end;
                     lastChar = '';
@@ -11390,14 +9054,10 @@ function goGofmtTightenSplicedArithmetic (content: string): string {
                 }
             }
         }
-        if ((c !== 32) && (c !== 9)) {
-            lastChar = content[i];
-        }
+        if ((c !== 32) && (c !== 9)) { lastChar = content[i]; }
         i += 1;
     }
-    if (from === 0) {
-        return content;
-    }
+    if (from === 0) { return content; }
     emit (content.slice (from));
     return out.join ('');
 }
@@ -11405,16 +9065,10 @@ function goGofmtTightenSplicedArithmetic (content: string): string {
 // the blanks an operator printed at level >= 2 may not keep: the span to replace with the
 function goTightenedOperatorText (content: string, index: number, operator: string) {
     let start = index;
-    while ((start > 0) && ((content[start - 1] === ' ') || (content[start - 1] === '\t'))) {
-        start -= 1;
-    }
-    if ((start === 0) || (content[start - 1] === '\n')) {
-        return null;                      // the operator starts a line: go/printer's linebreak
-    }
+    while ((start > 0) && ((content[start - 1] === ' ') || (content[start - 1] === '\t'))) { start -= 1; }
+    if ((start === 0) || (content[start - 1] === '\n')) { return null; } // the operator starts a line: go/printer's linebreak
     let end = index + operator.length;
-    while ((end < content.length) && ((content[end] === ' ') || (content[end] === '\t'))) {
-        end += 1;
-    }
+    while ((end < content.length) && ((content[end] === ' ') || (content[end] === '\t'))) { end += 1; }
     const right = content[end] ?? '';
     const pair = operator + right;
     if ((right === '') || (right === '\n') || [ '/*', '//', '&&', '&^', '++', '--' ].includes (pair)) {
@@ -11433,9 +9087,7 @@ function goGofmtLevelOneChains (content: string): string {
     while (i <= content.length) {
         const char = content[i];
         if ((i === content.length) || (char === '\n')) {
-            if (level === 1) {
-                goCollectLevelOneChainFixes (content, lineStart, i, fixes);
-            }
+            if (level === 1) { goCollectLevelOneChainFixes (content, lineStart, i, fixes); }
             lineStart = i + 1;
             i += 1;
             continue;
@@ -11456,9 +9108,7 @@ function goGofmtLevelOneChains (content: string): string {
         }
         if (char === ')' || char === ']' || char === '}') {
             const frame = stack.pop ();
-            if (frame !== undefined) {
-                level = frame.level;
-            }
+            if (frame !== undefined) { level = frame.level; }
             i += 1;
             continue;
         }
@@ -11513,8 +9163,7 @@ function goGoOperatorText (content: string, index: number) {
     return null;
 }
 
-// the keywords that can stand in front of an expression: an operator right after one of
-// them is unary, not binary
+// the keywords that can stand in front of an expression: an operator right after one of them is unary, not binary
 const GO_EXPRESSION_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'continue', 'default',
     'defer', 'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface',
     'map', 'package', 'range', 'return', 'select', 'struct', 'switch', 'type', 'var' ]);
@@ -11524,9 +9173,7 @@ const GO_EXPRESSION_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'con
 function goCollectLevelOneChainFixes (content: string, start: number, end: number, fixes: { 'start': number, 'end': number, 'text': string }[]) {
     // a fix needs both a level-4 (`+ - | ^`) and a level-5 (`* / % & << >>`) operator on the line
     const line = content.slice (start, end);
-    if (!/[-+|^]/.test (line) || !/[*/%&<>]/.test (line)) {
-        return;
-    }
+    if (!/[-+|^]/.test (line) || !/[*/%&<>]/.test (line)) { return; }
     const tokens: { 'operator': string | null, 'start': number, 'end': number, 'keyword': boolean }[] = [];
     let has4 = false;
     let has5 = false;
@@ -11548,11 +9195,7 @@ function goCollectLevelOneChainFixes (content: string, start: number, end: numbe
             const previous = tokens[tokens.length - 1];
             const binary = (previous !== undefined) && (previous.operator === null) && !previous.keyword;
             const precedence = (binary ? value.precedence : 0);
-            if (precedence === 4) {
-                has4 = true;
-            } else if (precedence === 5) {
-                has5 = true;
-            }
+            if (precedence === 4) { has4 = true; } else if (precedence === 5) { has5 = true; }
             tokens.push ({ 'operator': (value.precedence >= 4) ? value.token : null, 'start': i, 'end': i + value.token.length, 'keyword': binary && (value.precedence < 4) });
             i += value.token.length;
             continue;
@@ -11570,21 +9213,10 @@ function goCollectLevelOneChainFixes (content: string, start: number, end: numbe
                 i = goSkipCommentText (content, i) + 1;
                 continue;
             }
-            if (operandChar === '(' || operandChar === '[' || operandChar === '{') {
-                depth += 1;
-            } else if (operandChar === ')' || operandChar === ']' || operandChar === '}') {
-                if (depth === 0) {
-                    break;
-                }
+            if (operandChar === '(' || operandChar === '[' || operandChar === '{') { depth += 1; } else if (operandChar === ')' || operandChar === ']' || operandChar === '}') {
+                if (depth === 0) { break; }
                 depth -= 1;
-            } else if (depth === 0) {
-                if (' \t:,='.indexOf (operandChar) >= 0) {
-                    break;
-                }
-                if (goGoOperatorText (content, i) !== null) {
-                    break;
-                }
-            }
+            } else if (depth === 0) { if ((' \t:,='.indexOf (operandChar) >= 0) || (goGoOperatorText (content, i) !== null)) { break; } }
             i += 1;
         }
         if (i > operandStart) {
@@ -11598,28 +9230,20 @@ function goCollectLevelOneChainFixes (content: string, start: number, end: numbe
             i += 1;                       // a blank or a bracket: nothing to tokenize here
         }
     }
-    if (!(has4 && has5)) {
-        return;
-    }
+    if (!(has4 && has5)) { return; }
 }
 
-// gofmt's file-level blank lines: exactly one after the package clause and every import
-// declaration, at most one anywhere else, whitespace-only lines trimmed, one final newline.
-// Non-blank lines are left byte-for-byte alone.
+// gofmt's file-level blank lines: exactly one after the package clause and every import declaration, at most one anywhere else, whitespace-only lines trimmed,
+// one final newline. Non-blank lines are left byte-for-byte alone.
 function normalizeGoFileHeader (content: string): string {
     const lines = content.split ('\n');
     const packageLine = lines.findIndex ((line: string) => /^package \S/.test (line));
-    if (packageLine < 0) {
-        return content;         // hand-written file (or a fragment): leave it alone
-    }
+    if (packageLine < 0) { return content; } // hand-written file (or a fragment): leave it alone
     const out = [ lines[packageLine] ];
     let i = packageLine + 1;
-    while ((i < lines.length) && (lines[i].trim () === '')) {
-        i++;
-    }
+    while ((i < lines.length) && (lines[i].trim () === '')) { i++; }
     out.push ('');              // exactly one blank line after the package clause
-    // every import declaration of the header (a file can carry more than one) keeps exactly
-    // one blank line behind it
+    // every import declaration of the header (a file can carry more than one) keeps exactly one blank line behind it
     while (/^import\b/.test (lines[i] ?? '')) {
         out.push (lines[i]);
         if (lines[i].indexOf ('(') >= 0) {
@@ -11631,20 +9255,14 @@ function normalizeGoFileHeader (content: string): string {
             out.push (lines[i]);            // the closing paren of the block
         }
         i++;
-        while ((i < lines.length) && (lines[i].trim () === '')) {
-            i++;
-        }
+        while ((i < lines.length) && (lines[i].trim () === '')) { i++; }
         out.push ('');
     }
     // the rest of the file: every blank run collapses to a single blank line
     while (i < lines.length) {
         if (lines[i].trim () === '') {
-            while ((i < lines.length) && (lines[i].trim () === '')) {
-                i++;
-            }
-            if (i < lines.length) {
-                out.push ('');
-            }
+            while ((i < lines.length) && (lines[i].trim () === '')) { i++; }
+            if (i < lines.length) { out.push (''); }
             continue;
         }
         out.push (lines[i]);
@@ -11696,19 +9314,14 @@ function runGofmtGate () {
             ? listed.files.length + ' file(s) are not gofmt-clean:'
             : 'gofmt exited ' + listed.status + ' without listing a file (parse error or bad path):';
         console.error ('--check-gofmt: ' + headline);
-        for (const file of listed.files) {
-            console.error ('  ' + file);
-        }
-        if (listed.stderr.length) {
-            console.error (listed.stderr);
-        }
+        for (const file of listed.files) { console.error ('  ' + file); }
+        if (listed.stderr.length) { console.error (listed.stderr); }
         process.exit (1);
     }
     console.log ('--check-gofmt: clean (' + gofmt + ' -l ' + targets.join (' ') + ')');
 }
 
-// The fixtures are flush-left on purpose: the strings are raw printer output, and any
-// indentation of the template literals would end up inside them.
+// The fixtures are flush-left on purpose: the strings are raw printer output, and any indentation of the template literals would end up inside them.
 const GOFMT_SELFTEST_MULTISEND = `func (this *Exchange) fetch2Async(symbol any, params ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetch2Body(ch, symbol, params...)
@@ -11793,8 +9406,7 @@ function gofmtSelfTest (ok: SelfTestOk): void {
     const passedThrough = formatGoSource ('selftest.go', GOFMT_SELFTEST_MULTISEND);
     ok (passedThrough === GOFMT_SELFTEST_MULTISEND_GUARDED,
         'formatGoSource must preserve the multi-send guard byte-for-byte\n--- actual ---\n' + passedThrough + '--- expected ---\n' + GOFMT_SELFTEST_MULTISEND_GUARDED);
-    ok (passedThrough.indexOf ('chSent := false') !== -1 && passedThrough.indexOf ('if chSent {') !== -1,
-        'the guarded core must carry the flag declaration and the early exit');
+    ok (passedThrough.indexOf ('chSent := false') !== -1 && passedThrough.indexOf ('if chSent {') !== -1, 'the guarded core must carry the flag declaration and the early exit');
     const untouched = formatGoSource ('selftest.go', GOFMT_SELFTEST_SINGLE_SEND);
     ok (untouched === GOFMT_SELFTEST_SINGLE_SEND, 'a core that never multi-sends must pass through byte-identical');
     const asserted = formatGoSource ('selftest.go', GOFMT_SELFTEST_ELEMENT_ACCESS);
@@ -11812,9 +9424,7 @@ function gofmtSelfTest (ok: SelfTestOk): void {
     }
     // the gate's listing parser, against a real gofmt and a throwaway tree
     const gofmt = resolveGofmt ();
-    if (gofmt === null) {
-        console.log ('  note: gofmt not found — the gate listing check is skipped');
-    } else {
+    if (gofmt === null) { console.log ('  note: gofmt not found — the gate listing check is skipped'); } else {
         const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-check-gofmt-'));
         try {
             fs.writeFileSync (path.join (dir, 'clean.go'), 'package x\n\nfunc F() int {\n\treturn 1\n}\n');
@@ -11843,9 +9453,7 @@ const GO_NIL_COLLAPSE_RULES: [ string, RegExp, string ][] = [
 ];
 
 export function collapseRedundantNilChecks (content: string): string {
-    for (const [ token, rx, replacement ] of GO_NIL_COLLAPSE_RULES) {
-        content = content.includes (token) ? content.replace (rx, replacement) : content;
-    }
+    for (const [ token, rx, replacement ] of GO_NIL_COLLAPSE_RULES) { content = content.includes (token) ? content.replace (rx, replacement) : content; }
     return content;
 }
 
@@ -11869,41 +9477,22 @@ const GO_PROVEN_STRUCT_TO_MAP_CALLS = [ 'TradeToMap', 'TickerToMap', 'OrderToMap
 
 // Structure parsers retyped to `map[string]any` on the base, every override and IDerivedExchange; the
 // venue-only sub-parsers are the ones a retyped parser returns (kucoin/phemex dispatch).
-function goProvenParseMapMethods (): string[] {
-    return [ 'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
-        'ParseContractTicker', 'ParseUtaOrder', 'ParseContractOrder', 'ParseSpotOrder', 'ParseSwapOrder',
-        // ws parsers: every override returns Safe{Order,Ticker,Trade}(..) wrapped by the
-        // struct->map converter, i.e. a dictionary on every path
-        'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder',
-        'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
-        'SafePredictionOrder', 'SafePredictionTicker', 'SafePredictionOrderBook', 'ParsePredictionOrder', 'ParsePredictionTicker', 'ParsePredictionOpenInterest',
-        'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
-        'ParseMarginLoan',
-        'ParseADLRank',
-        'ParseLastPrice',
-        'ParseEvent', 'ParseMarketToEvent',
-        'SafePosition', 'ParsePosition', 'ParseOptionPosition',
-        // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
-        'ParseWsBidAsk', 'ParseWsPosition', 'ParseWsMyTrade', 'ParseWsOrderTrade', 'ParseWsUtaTrade', 'ParseWsFundingRate',
-        'ParseLeverageList', // mexc: the fetchLeverage row-list parser, returns a Leverage literal
-        // every override returns a map literal or SafeLiquidation(<map literal>); SafeLiquidation returns its map param
-        'SafeLiquidation', 'ParseLiquidation', 'ParseIncome',
-        'Sign',
-        'SafePredictionTrade', 'ParsePredictionTrade', // base + every override return a SafePredictionTrade map literal
-        'SafePredictionPosition', 'ParsePredictionPosition', 'ParseWsOptionsPosition' ]; // map literal / converter on every override // base + every override return a request map literal
-}
+const GO_PROVEN_PARSE_MAP = ('SafeOrder SafeTicker SafeLedgerEntry ParseOrder ParseTicker ParseTransaction ParseTransfer ParseLedgerEntry '
+    + 'ParseContractTicker ParseUtaOrder ParseContractOrder ParseSpotOrder ParseSwapOrder ParseWsTrade ParseWsTicker ParseWsOrder '
+    + 'SafeMarketStructure SafeCurrencyStructure SafeOpenInterest ParseCurrency ParseOpenInterest SafePredictionOrder SafePredictionTicker '
+    + 'SafePredictionOrderBook ParsePredictionOrder ParsePredictionTicker ParsePredictionOpenInterest ParseSpotOrUtaTicker ParseContractOrderBook '
+    + 'ParseFundingRate ParseLeverage ParseTradingFee ParseDepositAddress ParseMarginMode ParseGreeks ParseOption ParseBorrowRate '
+    + 'ParseIsolatedBorrowRate ParseConversion ParseMarginModification ParseTradeTx ParseLeverageFromMarket ParseLeverageFromSetting '
+    + 'ParseMarginModeFromSetting ParseMarginLoan ParseADLRank ParseLastPrice ParseEvent ParseMarketToEvent SafePosition ParsePosition '
+    + 'ParseOptionPosition ParseWsBidAsk ParseWsPosition ParseWsMyTrade ParseWsOrderTrade ParseWsUtaTrade ParseWsFundingRate ParseLeverageList '
+    + 'SafeLiquidation ParseLiquidation ParseIncome Sign SafePredictionTrade ParsePredictionTrade SafePredictionPosition ParsePredictionPosition ParseWsOptionsPosition').split (' ');
+function goProvenParseMapMethods (): string[] { return GO_PROVEN_PARSE_MAP; }
 
-
-// Return families the printer retypes from `any` (config `provenReturnFamilies`, ast retypeGoProvenFamily):
-// every return is a `type` literal, a call of `calls`, a struct->map converter or a single-assignment
-// local of one of those; an unproven def throws instead of staying `any`.
+// Return families retyped from `any` (ast retypeGoProvenFamily); unproven defs throw.
 function goProvenReturnFamilies (): any[] {
     const lists = goProvenListMethods ();
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
-    // proven dict producers the struct-returns pass retypes itself: a family def may return one,
-    // but they are not members of this family (their `any` stub is the struct pass's to retype)
     const calleeOnly = [ 'SafeTrade', 'ParseTrade' ];
-    // dydx/hitbtc/lighter/pacifica/toobit build a pair list, so only these two dispatchers retype
     const builders = [ 'CreateRegularOrderRequest', 'CreateTriggerOrderRequest', 'CreateSpotOrderRequest', 'CreateSwapOrderRequest' ];
     return [
         { 'names': [ 'MergeBalanceAccount' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': [] },
@@ -11914,51 +9503,25 @@ function goProvenReturnFamilies (): any[] {
     ];
 }
 
-// list producers (base + every override): TS `X[]`; a returned `array` parameter is coerced with ToArray (caches too)
-function goProvenListMethods (): string[] {
-    return [ 'ParseOrders', 'ParseTrades', 'ParseTradesHelper', 'ParseTransactions', 'ParseOHLCVs', 'ParseLedger', 'ParsePositions', 'ParseMarkets',
-        'ParseTransfers', 'FilterBySinceLimit', 'FilterBySymbolSinceLimit', 'FilterBySymbolsSinceLimit', 'FilterByArrayPositions',
-        'FilterByValueSinceLimit', 'FilterByCurrencySinceLimit', 'FilterByLimit', 'ParseCancelOrders',
-        'ParseBorrowRateHistory',
-        'InsertMissingCandles', 'ParseTradingViewOHLCV',
- 'ArraysConcat',
-        'ParseTransactionsByType', // kraken, FilterByCurrencySinceLimit on its only path
-        'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers',
-        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'FilterByArrayPositions',
-        'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts',
-        'ParsePredictionOrders', 'FilterByOutcomeSinceLimit',
-        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories',
-        'ParsePredictionTrades',
-        'ParsePredictionPositions',
-        'ParseDepositAddresses',
-        'ParseDepositMethodIds', 'ParsePortfolioDetails',
-        'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList',
-        'ParseOrderBookBidsAsks',
-        'ParseBorrowInterests', 'ParseMarginModifications' ];
-}
+const GO_PROVEN_LIST_METHODS = ('ParseOrders ParseTrades ParseTradesHelper ParseTransactions ParseOHLCVs ParseLedger ParsePositions ParseMarkets '
+    + 'ParseTransfers FilterBySinceLimit FilterBySymbolSinceLimit FilterBySymbolsSinceLimit FilterByArrayPositions FilterByValueSinceLimit '
+    + 'FilterByCurrencySinceLimit FilterByLimit ParseCancelOrders ParseBorrowRateHistory InsertMissingCandles ParseTradingViewOHLCV ArraysConcat '
+    + 'ParseTransactionsByType ParseMarketLeverageTiers ParseEmulatedLeverageTiers ParseOpenInterestsHistory ParseLiquidations ParseADLRanks '
+    + 'FilterByArrayADLRanks FilterByArrayPositions ParseConversions ParseLongShortRatioHistory ParseAccounts ParsePredictionOrders '
+    + 'FilterByOutcomeSinceLimit ParseFundingRateHistories ParseIncomes ParseFundingHistories ParsePredictionTrades ParsePredictionPositions '
+    + 'ParseDepositAddresses ParseDepositMethodIds ParsePortfolioDetails ParseOrderBookBidAsk ReduceFeesByCurrency EventsList '
+    + 'ParseOrderBookBidsAsks ParseBorrowInterests ParseMarginModifications').split (' ');
+function goProvenListMethods (): string[] { return GO_PROVEN_LIST_METHODS; }
 
-// dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
-// `any` (ws venues hand it this.Balance, a *sync.Map); it returns its argument, so `SafeBalance(<map literal local>)` is proven
-function goProvenMapCollectionMethods (): string[] {
-    return [ 'ParseBalance', 'ParseTickers', 'ParseCurrencies', 'FilterByArrayTickers', 'ParseFundingRate', 'ParseFundingRates',
-        'ParseDepositAddress', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositWithdrawFees',
-        'ParseIsolatedBorrowRates',
-        'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash',
-        // venue balance parsers (every override ends in SafeBalance(<balance local>) or returns another of these)
-        'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
-        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList',
-        'ParseCurrenciesCustom',
-        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes',
-        'ParseOpenInterests',
-        'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount',
-        'ParseDepositAddressSpecial',
-        'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
-        'ParsePublicDepositWithdrawFees',
-        'ParseAllGreeksList', 'ParseAllGreeksDict',
-        'ParseTickersList', 'ParseTickersDict', 'ParseLastPricesList', 'ParseLastPricesDict',
-        'SetApiCredentials' ]; // opinion/polymarket return their creds map literal
-}
-
+const GO_PROVEN_MAP_COLLECTION = ('ParseBalance ParseTickers ParseCurrencies FilterByArrayTickers ParseFundingRate ParseFundingRates '
+    + 'ParseDepositAddress ParseLeverage ParseTradingFee ParseDepositWithdrawFees ParseIsolatedBorrowRates ParseLastPrices RemoveKeysFromDict '
+    + 'ParseTickersForRolling ParseBidsAsksCustom ParseSxbetTickersByHash ParseBalanceCustom ParseUtaBalance ParseBalanceByType '
+    + 'ParseBalanceForSingleCurrency ParseCustomBalance ParseSwapBalance ParseSpotBalance CustomParseBalance ParseFundingBalance '
+    + 'ParseTradingBalance ParseBalanceList ParseCurrenciesCustom ParseLeverageTiers ParseLeverages ParseMarginModes ParseOpenInterests '
+    + 'ParseAllGreeks ParseOptionChain ParseAccount ParseDepositAddressSpecial ParseTradingFees AssignDefaultDepositWithdrawFees '
+    + 'ParseDepositWithdrawFee ParseTradingLimits DepositWithdrawFee ParsePublicDepositWithdrawFees ParseAllGreeksList ParseAllGreeksDict '
+    + 'ParseTickersList ParseTickersDict ParseLastPricesList ParseLastPricesDict SetApiCredentials').split (' ');
+function goProvenMapCollectionMethods (): string[] { return GO_PROVEN_MAP_COLLECTION; }
 
 // base methods whose every return path is already a MarketTyped/CurrencyTyped row, so a
 // second wrapper around their call is the identity (the helper hands back the same map for a plain row).
@@ -11972,14 +9535,10 @@ function dropNoOpMapTyped (content: string): string {
     let cursor = 0;
     const wrapper = /\b(?:ccxt\.)?(?:MapTyped|MarketTyped|CurrencyTyped)\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
     for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
-        if (m.index < cursor) {
-            continue;
-        }
+        if (m.index < cursor) { continue; }
         const open = m.index + m[0].length - 1;
         const end = goMatchingCloseText (content, open, '()');
-        if (end < 0) {
-            continue;
-        }
+        if (end < 0) { continue; }
         if (m[0].startsWith ('this.')) {
             if (content.startsWith ('.(map[string]any)', end + 1)) {
                 out += content.substring (cursor, end + 1);
@@ -11989,13 +9548,10 @@ function dropNoOpMapTyped (content: string): string {
         }
         const inner = content.substring (open + 1, end);
         const innerOpen = inner.indexOf ('(');
-        // a MarketTyped/CurrencyTyped wrap is the identity only on a base method that already answers a
-        // plain row; MapTyped keeps its wider table
+        // a MarketTyped/CurrencyTyped wrap is the identity only on a base method that already answers a plain row; MapTyped keeps its wider table
         const rowWrap = /^(?:ccxt\.)?(?:MarketTyped|CurrencyTyped)\($/.test (m[0]);
         const innerIsCall = (rowWrap ? GO_PLAIN_ROW_CALL : callee).test (inner);
-        if (!innerIsCall || (goMatchingCloseText (inner, innerOpen, '()') !== inner.length - 1)) {
-            continue;
-        }
+        if (!innerIsCall || (goMatchingCloseText (inner, innerOpen, '()') !== inner.length - 1)) { continue; }
         out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
         cursor = end + 1;
         wrapper.lastIndex = cursor;
@@ -12003,17 +9559,12 @@ function dropNoOpMapTyped (content: string): string {
     return out + content.substring (cursor);
 }
 
-// ------------------------------------------------------------------------------------
-// gofmt's block, blank-line and table rules
-// ------------------------------------------------------------------------------------
-// A pass that splices statement text cannot keep gofmt's layout: it puts a body on the
-// control line, leaves a second blank line behind, or writes literal entries unaligned.
-// These rules run once on the finished file, per file (not per splice).
+// gofmt's block, blank-line and table rules A pass that splices statement text cannot keep gofmt's layout: it puts a body on the control line, leaves a second
+// blank line behind, or writes literal entries unaligned. These rules run once on the finished file, per file (not per splice).
 type GoCompositeEntryAligner = { 'alignGoCompositeEntries': (entries: string[]) => string[] };
 
-// same as goTextMaskLiteralsAndComments but the comments stay readable: the layout rules below
-// have to see a trailing `//` (it takes the line out of every rule) while a `//` inside a
-// string literal must not count
+// same as goTextMaskLiteralsAndComments but the comments stay readable: the layout rules below have to see a trailing `//` (it takes the line out of every
+// rule) while a `//` inside a string literal must not count
 
 // one flag per line: it starts outside a raw string and a block comment, so the layout rules may
 // rewrite it (a quote or a comment keeps its own spacing in the source)
@@ -12053,46 +9604,33 @@ function goGofmtExpandBlockLine (line: string, code: string, commentFree: string
     }
     const open = code.indexOf ('{');
     const trimmed = code.trimEnd ();
-    if ((open < 0) || !trimmed.endsWith ('}')) {
-        return null;
-    }
+    if ((open < 0) || !trimmed.endsWith ('}')) { return null; }
     const maskedBody = code.slice (open + 1, trimmed.length - 1);
     let level = 0;
     for (let i = 0; i < maskedBody.length; i++) {
         const c = maskedBody[i];
         if (c === '{') { level += 1; } else if (c === '}') { level -= 1; }
-        if ((level < 0) || (maskedBody.indexOf (';') >= 0)) {
-            return null;
-        }
+        if ((level < 0) || (maskedBody.indexOf (';') >= 0)) { return null; }
     }
-    if (level !== 0) {
-        return null;
-    }
+    if (level !== 0) { return null; }
     const indent = /^\t*/.exec (line)![0];
     const head = line.slice (indent.length, open).trimEnd ();
     const body = line.slice (open + 1, line.trimEnd ().length - 1).trim ();
-    if ((body.length === 0) || (head.length === 0)) {
-        return null;
-    }
+    if ((body.length === 0) || (head.length === 0)) { return null; }
     const inner = goGofmtExpandBlockLine (indent + '\t' + body, '\t' + body, goMaskGoCode (body, false));
-    if (inner !== null) {
-        return [ indent + head + ' {', ...inner, indent + '}' ];
-    }
+    if (inner !== null) { return [ indent + head + ' {', ...inner, indent + '}' ]; }
     return [ indent + head + ' {', indent + '\t' + body, indent + '}' ];
 }
 
-// gofmt puts a keyed literal's entries one tab inside its opening line, their values in one
-// column and the closing brace on the opening line's indent; only a literal whose body is all
-// single-line keyed entries is rewritten, so anything else keeps the printer's text.
+// gofmt puts a keyed literal's entries one tab inside its opening line, their values in one column and the closing brace on the opening line's indent; only a
+// literal whose body is all single-line keyed entries is rewritten, so anything else keeps the printer's text.
 function goGofmtAlignTables (content: string, aligner: GoCompositeEntryAligner): string {
     const lines = content.split ('\n');
     const live = goTextCodeLineStarts (content);
     const depth = (l: string) => /^\t*/.exec (l)![0].length;
     const keyed = /^(\t*)"((?:[^"\\]|\\.)*)": (.*?)(,?)$/;
     for (let i = 0; i < lines.length; i++) {
-        if (!live[i] || !lines[i].trimEnd ().endsWith ('{')) {
-            continue;
-        }
+        if (!live[i] || !lines[i].trimEnd ().endsWith ('{')) { continue; }
         const ind = depth (lines[i]);
         const entries: string[] = [];
         let j = i + 1;
@@ -12105,13 +9643,9 @@ function goGofmtAlignTables (content: string, aligner: GoCompositeEntryAligner):
             entries.push (lines[j]);
             j += 1;
         }
-        if (bad || (j >= lines.length) || (entries.length === 0)) {
-            continue;
-        }
+        if (bad || (j >= lines.length) || (entries.length === 0)) { continue; }
         const close = lines[j].replace (/^\t*/, '');
-        if (!/^\}[)\]\s,]*$/.test (close)) {
-            continue;
-        }
+        if (!/^\}[)\]\s,]*$/.test (close)) { continue; }
         const texts: string[] = [];
         let usable = true;
         for (const entry of entries) {
@@ -12126,34 +9660,25 @@ function goGofmtAlignTables (content: string, aligner: GoCompositeEntryAligner):
             }
             texts.push ('\t'.repeat (ind + 1) + '"' + m[2] + '": ' + value);
         }
-        if (!usable) {
-            continue;
-        }
+        if (!usable) { continue; }
         const aligned = aligner.alignGoCompositeEntries (texts);
-        if (aligned.length !== entries.length) {
-            continue;
-        }
-        for (let k = 0; k < entries.length; k++) {
-            lines[i + 1 + k] = aligned[k];
-        }
+        if (aligned.length !== entries.length) { continue; }
+        for (let k = 0; k < entries.length; k++) { lines[i + 1 + k] = aligned[k]; }
         lines[j] = '\t'.repeat (ind) + close;
         i = j;
     }
     return lines.join ('\n');
 }
 
-// gofmt aligns each run of consecutive single-line keyed entries on its own (a multi-line entry,
-// a blank or a comment line ends the run), so a pass that rewrote one entry of a literal holding
-// a nested literal or a func value is realigned run by run; a run with a trailing comment is left alone.
+// gofmt aligns each run of consecutive single-line keyed entries on its own (a multi-line entry, a blank or a comment line ends the run), so a pass that
+// rewrote one entry of a literal holding a nested literal or a func value is realigned run by run; a run with a trailing comment is left alone.
 function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): string {
     const lines = content.split ('\n');
     const live = goTextCodeLineStarts (content);
     const keyed = /^(\t+)"((?:[^"\\]|\\.)*)": +(.*?),( *\/\/.*)?$/;
     const entry = (k: number): RegExpExecArray | null => {
         const m = live[k] ? keyed.exec (lines[k]) : null;
-        if (m === null) {
-            return null;
-        }
+        if (m === null) { return null; }
         const mask = goMaskGoCode (m[3]);
         const count = (c: string) => mask.split (c).length;
         const balanced = (count ('(') === count (')')) && (count ('[') === count (']')) && (count ('{') === count ('}'));
@@ -12166,9 +9691,7 @@ function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): s
     };
     for (let i = 0; i < lines.length; i++) {
         const first = entry (i);
-        if (first === null) {
-            continue;
-        }
+        if (first === null) { continue; }
         const run: RegExpExecArray[] = [ first ];
         let j = i + 1;
         for (let m = entry (j); (m !== null) && (m[1] === first[1]); m = entry (j)) {
@@ -12178,11 +9701,7 @@ function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): s
         const commented = run.some ((m) => (m[4] !== undefined) || (goMaskGoCode (m[3], false).indexOf ('//') >= 0));
         if (!commented) {
             const aligned = aligner.alignGoCompositeEntries (run.map ((m) => m[1] + '"' + m[2] + '": ' + m[3]));
-            if (aligned.length === run.length) {
-                for (let k = 0; k < run.length; k++) {
-                    lines[i + k] = aligned[k];
-                }
-            }
+            if (aligned.length === run.length) { for (let k = 0; k < run.length; k++) { lines[i + k] = aligned[k]; } }
         }
         i = j - 1;
     }
@@ -12202,9 +9721,7 @@ export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner
             continue;
         }
         if (line.trim ().length === 0) {
-            if ((out.length > 0) && (out[out.length - 1].trim ().length === 0)) {
-                continue;                     // gofmt keeps at most one blank line
-            }
+            if ((out.length > 0) && (out[out.length - 1].trim ().length === 0)) { continue; } // gofmt keeps at most one blank line
             out.push ('');
             continue;
         }
@@ -12239,19 +9756,14 @@ function goGofmtLayoutSelfTest (ok: SelfTestOk): void {
 }
 
 function overwriteFileAndFolder (path: string, content: string) {
-    if (!(fs.existsSync(path))) {
-        checkCreateFolder (path);
-    }
-    // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the
-    // printer reproduces that itself (ast-transpiler `alignGoTrailingComments`), and this second
-    // pass covers the text assembled here (hand-written emitters and sections concatenated after
-    // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
-    // runs last so its match sees the canonical spacing.
+    if (!(fs.existsSync(path))) { checkCreateFolder (path); }
+    // gofmt aligns the trailing `//` comments of adjacent lines through its tabwriter; the printer reproduces that itself (ast-transpiler
+    // `alignGoTrailingComments`), and this second pass covers the text assembled here (hand-written emitters and sections concatenated after the transpiled
+    // ones). It is a no-op on text that is already aligned. The nil-check collapse runs last so its match sees the canonical spacing.
     content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
-    // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
-    // parens of that form are exactly the ones gofmt's stripParens() takes off a control
-    // expression - so the spacing pass runs once more over its output
-    // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
+    // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the parens of that form are exactly the ones gofmt's stripParens()
+    // takes off a control expression - so the spacing pass runs once more over its output market-row reads run after dropNoOpMapTyped so
+    // `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (goMapTypedOfMapLocal (goOmitChainMapLocals (dropNoOpMapTyped (goSafeBalanceSelfRebind (goSafeListSliceReads (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))))))));
     content = goTypedGvMapReads (content);
     content = path.endsWith ('.go') ? goHashmapRowReads (content) : content;
@@ -12268,8 +9780,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         // the base file gains its struct-to-map row wraps only here (parseLedger's itemOrItems is never an array)
         content = (path === BASE_METHODS_FILE) ? goTypedShapeHelpers (content, '') : content;
     }
-    // layout last: the passes above splice operands (derefs, natives) after spacing and the
-    // comment columns were computed; recompute both from the final text
+    // layout last: the passes above splice operands (derefs, natives) after spacing and the comment columns were computed; recompute both from the final text
     if (path.endsWith ('.go')) {
         content = goStdlibStringHelpers (goJoinStringLocals (content));  // string-only []any locals are []string first
         content = goNativeStringAdds (goStringAnyLocals (content));  // string-only `any` locals are strings, their Add chains native
@@ -12306,9 +9817,7 @@ function overwriteFileAndFolder (path: string, content: string) {
 // declare x with that type (the same static type `:=` inferred). Unproven receives keep `:=`.
 const GO_TYPED_RECV_LOCAL_TYPES = new Set ([ 'map[string]any', '[]any', '*string', 'string', 'bool', '*int64', 'int64' ]);
 function goTypedRecvLocals (content: string): string {
-    if (!/\n\t+\w+ := r\d*\.Value\n/.test (content)) {
-        return content;
-    }
+    if (!/\n\t+\w+ := r\d*\.Value\n/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const table = goChan3Table ();
     const re = /\n(\t+)(\w+) := (r\d*)\.Value(?=\n)/g;
@@ -12319,9 +9828,7 @@ function goTypedRecvLocals (content: string): string {
         const r = m[3];
         const binds = fn.match (new RegExp ('\\n\\t+' + r + ' := <-[^\\n]*', 'g')) || [];
         const writes = fn.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
-        if ((binds.length !== 1) || (writes.length !== 1)) {
-            continue;
-        }
+        if ((binds.length !== 1) || (writes.length !== 1)) { continue; }
         const recv = goChan3EnclosingReceiver (masked, m.index + 1);
         const async = /:= <-this\.(?:\w+\.)?(\w+)Async\(/.exec (binds[0]);
         const stub = /:= <-this\.(\w+)\(/.exec (binds[0]);
@@ -12333,19 +9840,16 @@ function goTypedRecvLocals (content: string): string {
             const s = goChan3ReceiverStubs ().get (recv + '.' + stub[1]);
             type = ((s !== undefined) && (s[0] === 'E')) ? s.substring (2) : undefined;
         }
-        if ((type === undefined) || !GO_TYPED_RECV_LOCAL_TYPES.has (type)) {
-            continue;
-        }
+        if ((type === undefined) || !GO_TYPED_RECV_LOCAL_TYPES.has (type)) { continue; }
         const start = m.index + 1 + m[1].length;
         edits.push ({ start, 'end': start + m[2].length + 4 + r.length + 6, 'text': 'var ' + m[2] + ' ' + type + ' = ' + r + '.Value' });
     }
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 
-// `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice
-// reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test,
-// the `[]any` slot of ParseOpenInterests / ParseMarkets, ToArray and IndexBy: both read a nil slice as untyped nil),
-// so x takes the receive's type and the guard goes.
+// `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice reads like the untyped nil through every
+// use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test, the `[]any` slot of ParseOpenInterests / ParseMarkets, ToArray and IndexBy: both
+// read a nil slice as untyped nil), so x takes the receive's type and the guard goes.
 const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty|ToArray|IndexBy)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.(?:ParseOpenInterests|ParseMarkets))\($/;
 // Readers that only hand their first argument to ToArray: a nil []any and the untyped nil both give a nil slice (a nil
 // map would give []any{}), so they are admitted for a []any fold only.
@@ -12353,9 +9857,7 @@ const GO_NIL_FOLD_LIST_READERS = /^this\.(?:ParseLedger|ParseTransactions|ParseC
 // Readers that touch their first argument only through GetArrayLength and in-loop element reads (0 for both nils).
 const GO_NIL_FOLD_LENGTH_READERS = /^this\.(?:FilterTransactionsByKind|FilterTransfersByType|SetEvents)\($/;
 function goTypedNilFoldLocals (content: string): string {
-    if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
-        return content;
-    }
+    if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const table = goChan3Table ();
     const re = /\n(\t+)var (\w+) any = nil\n\1if (r\d*)\.Value != nil \{\n\1\t\2 = ((?:ccxt\.)?\w+ToList\(\3\.Value\)|\3\.Value)\n\1\}(?=\n)/g;
@@ -12366,19 +9868,13 @@ function goTypedNilFoldLocals (content: string): string {
         const fn = masked.substring (fs0, fe0);
         const binds = fn.match (new RegExp ('\\n\\t+' + r + ' := <-this\\.(?:\\w+\\.)?(\\w+)Async\\(', 'g')) || [];
         const rWrites = fn.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
-        if ((binds.length !== 1) || (rWrites.length !== 1)) {
-            continue;
-        }
+        if ((binds.length !== 1) || (rWrites.length !== 1)) { continue; }
         let type: string | undefined = '[]any';
         if (value === r + '.Value') {
             const raw = goChan3LookupRaw (table, goChan3EnclosingReceiver (masked, m.index + 1), /(\w+)Async\($/.exec (binds[0])[1]);
             type = ((raw === 'map[string]any') || (raw === '[]any')) ? raw : undefined;
-        } else if (!/ToList\(/.test (value) || /OHLCVToList\(/.test (value) || /^(?:ccxt\.)?ToList\(/.test (value)) {
-            type = undefined;
-        }
-        if (type === undefined) {
-            continue;
-        }
+        } else if (!/ToList\(/.test (value) || /OHLCVToList\(/.test (value) || /^(?:ccxt\.)?ToList\(/.test (value)) { type = undefined; }
+        if (type === undefined) { continue; }
         const offset = m.index - fs0;
         const rest = fn.substring (0, offset) + fn.substring (offset + m[0].length);
         const use = new RegExp ('(?<![\\w.&])' + name + '\\b', 'g');
@@ -12391,9 +9887,7 @@ function goTypedNilFoldLocals (content: string): string {
             const listReader = (reader !== null) && (type === '[]any') && (GO_NIL_FOLD_LIST_READERS.test (reader[1]) || GO_NIL_FOLD_LENGTH_READERS.test (reader[1]));
             safe = nilTest || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || listReader) && /^[,)]/.test (after));
         }
-        if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) {
-            continue;
-        }
+        if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) { continue; }
         const start = m.index + 1;
         edits.push ({ start, 'end': m.index + m[0].length, 'text': ind + 'var ' + name + ' ' + type + ' = ' + content.substring (m.index + m[0].lastIndexOf ('= ') + 2, m.index + m[0].lastIndexOf ('\n')) });
     }
@@ -12403,9 +9897,7 @@ function goTypedNilFoldLocals (content: string): string {
 // `var x any = nil` whose every write is `x = rN.Raw` of one typed endpoint stub (map/list T): x is T and the writes read
 // Value. Uses: nil tests, nil-tolerant reader first args, or anything after a same-block `if x == nil { panic(` guard.
 function goTypedEndpointNilLocals (content: string): string {
-    if (!/\n\t+\w+ = r\d*\.Raw\n/.test (content)) {
-        return content;
-    }
+    if (!/\n\t+\w+ = r\d*\.Raw\n/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const re = /\n(\t+)var (\w+) any = nil(?=\n)/g;
     const edits: Edit[] = [];
@@ -12415,9 +9907,7 @@ function goTypedEndpointNilLocals (content: string): string {
         const fn = masked.substring (fs0, fe0);
         const recv = goChan3EnclosingReceiver (masked, m.index + 1);
         const writes = [ ...fn.matchAll (new RegExp ('\\n\\t+' + name + ' = ([^\\n]*)', 'g')) ];
-        if ((recv === undefined) || !writes.length || ((fn.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1)) {
-            continue;
-        }
+        if ((recv === undefined) || !writes.length || ((fn.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1)) { continue; }
         const types = new Set<string | undefined> ();
         for (const w of writes) {
             const r = /^(r\d*)\.Raw$/.exec (w[1]);
@@ -12427,9 +9917,7 @@ function goTypedEndpointNilLocals (content: string): string {
             types.add (((s !== undefined) && (s[0] === 'E')) ? s.substring (2) : undefined);
         }
         const type = (types.size === 1) ? [ ...types ][0] : undefined;
-        if ((type !== 'map[string]any') && (type !== '[]any')) {
-            continue;
-        }
+        if ((type !== 'map[string]any') && (type !== '[]any')) { continue; }
         const declEnd = m.index + m[0].length - fs0;
         const guard = new RegExp ('\\n' + ind + 'if ' + name + ' == nil \\{\\n' + ind + '\\tpanic\\(').exec (fn.substring (declEnd));
         const guardAt = (guard === null) ? -1 : declEnd + guard.index;
@@ -12441,9 +9929,7 @@ function goTypedEndpointNilLocals (content: string): string {
             const lead = fn.substring (fn.lastIndexOf ('\n', u.index) + 1, u.index);
             const before = fn.substring (Math.max (0, u.index - 60), u.index);
             const after = fn.substring (u.index + name.length, u.index + name.length + 8);
-            if ((u.index === m.index + 1 + ind.length + 4 - fs0) || (/^\t+$/.test (lead) && / = r\d*\.Raw\n/.test (fn.substring (u.index + name.length, fn.indexOf ('\n', u.index) + 1)))) {
-                continue;
-            }
+            if ((u.index === m.index + 1 + ind.length + 4 - fs0) || (/^\t+$/.test (lead) && / = r\d*\.Raw\n/.test (fn.substring (u.index + name.length, fn.indexOf ('\n', u.index) + 1)))) { continue; }
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
             const handOff = guarded && (u.index > guardAt) && /^[,)]/.test (after) && (reader !== null || /, $/.test (before));
@@ -12452,9 +9938,7 @@ function goTypedEndpointNilLocals (content: string): string {
             const keyRead = /^\[(?:"[^"\n]*"|\w+)\]\.\((?:map\[string\]any|\[\]any)\)/.test (content.substring (at, at + 120));
             safe = nilTest || handOff || keyRead || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || GO_ENDPOINT_KEY_READERS.test (reader[1])) && /^[,)]/.test (after));
         }
-        if (!safe || new RegExp ('&' + name + '\\b|' + name + '\\s*[-+*/]=').test (fn)) {
-            continue;
-        }
+        if (!safe || new RegExp ('&' + name + '\\b|' + name + '\\s*[-+*/]=').test (fn)) { continue; }
         edits.push ({ 'start': m.index + 1 + ind.length, 'end': m.index + m[0].length, 'text': 'var ' + name + ' ' + type + ' = nil' });
         for (const w of writes) {
             const at = fs0 + w.index + w[0].length - 3;
@@ -12469,9 +9953,7 @@ const GO_ENDPOINT_KEY_READERS = /^(?:ccxt\.)?(?:InOp|ObjectKeys|GetValue)\($/;
 // `x := rN.Raw` of a map[string]any endpoint read only by first-argument readers (with >= 1 InOp/ObjectKeys/GetValue) and
 // nil tests: x is `var x map[string]any = rN.Value` (MapTyped of the same Raw: a map passes through, else nil)
 function goTypedEndpointRawLocals (content: string): string {
-    if (!/\n\t+\w+ := r\d*\.Raw\n/.test (content)) {
-        return content;
-    }
+    if (!/\n\t+\w+ := r\d*\.Raw\n/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
     const re = /\n(\t+)(\w+) := (r\d*)\.Raw(?=\n)/g;
     const edits: Edit[] = [];
@@ -12484,16 +9966,12 @@ function goTypedEndpointRawLocals (content: string): string {
         const rWrites = fn.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
         const s = ((recv === undefined) || (binds.length !== 1) || (rWrites.length !== 1)) ? undefined : goChan3ReceiverStubs ().get (recv + '.' + /<-this\.(\w+)\($/.exec (binds[0])[1]);
         const decls = fn.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^=\\n]*)?:?=(?!=)|\\bvar ' + name + '\\b|,\\s*' + name + '\\s*:?=(?!=)|&' + name + '\\b', 'g')) || [];
-        if ((s !== 'E:map[string]any') || (decls.length !== 1)) {
-            continue;
-        }
+        if ((s !== 'E:map[string]any') || (decls.length !== 1)) { continue; }
         const declAt = m.index + 1 - fs0;
         const use = new RegExp ('(?<![\\w.&])' + name + '\\b', 'g');
         let [ safe, keyed ] = [ true, false ];
         for (let u = use.exec (fn); safe && (u !== null); u = use.exec (fn)) {
-            if (u.index === declAt + ind.length) {
-                continue;
-            }
+            if (u.index === declAt + ind.length) { continue; }
             const before = fn.substring (Math.max (0, u.index - 60), u.index);
             const after = fn.substring (u.index + name.length, u.index + name.length + 8);
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
@@ -12557,9 +10035,7 @@ function goLateTypedMapRowReads (content: string): string {
         const maskedFunc = masked.slice (start, end + 1).join ('\n');
         for (let k = start + 1; k < end; k++) {
             const m = /^(\t+)var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\((\w+), (\w+|"[^"\\\n]*")\)((?: \/\/[^\n]*)?)$/.exec (lines[k]);
-            if ((m === null) || (m[2] === m[3])) {
-                continue;
-            }
+            if ((m === null) || (m[2] === m[3])) { continue; }
             const decl = goAccessSingleDeclaration (maskedFunc, lines[start], m[3]);
             if ((decl?.type === '[]any') && (decl.index !== undefined) && /^\d+$/.test (m[4])) {
                 // a []any local at a literal index: out of range or a non-map element reads nil, as SafeValue does
@@ -12572,9 +10048,7 @@ function goLateTypedMapRowReads (content: string): string {
                 lines[k] = m[1] + 'var ' + m[2] + ' map[string]any = nil' + m[5] + '\n' + m[1] + 'if ' + m[4] + ' != nil {\n' + m[1] + '\t' + m[2] + ', _ = ' + m[3] + '[*' + m[4] + '].(map[string]any)\n' + m[1] + '}';
                 continue;
             }
-            if ((decl?.type !== 'map[string]any') || (!m[4].startsWith ('"') && (key?.type !== 'string'))) {
-                continue;
-            }
+            if ((decl?.type !== 'map[string]any') || (!m[4].startsWith ('"') && (key?.type !== 'string'))) { continue; }
             lines[k] = m[1] + 'var ' + m[2] + ', _ = ' + m[3] + '[' + m[4] + '].(map[string]any)' + m[5];
         }
     });
@@ -12614,22 +10088,18 @@ function goTypedRecvLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar h []any = r2.Value\n'), 'tabled list receive: ' + out);
 }
 
-// Methods in CCXT_GO_BOOL_METHOD_NAMES are `: boolean` in ts/src and return a Go bool on every path, so their declared
-// `any` return is retagged `bool`. Signature half of the rule in build/go-local-types.js, which types
-// `var x any = this.M(...)` as `bool` off the same list, so the two cannot drift.
+// Methods in CCXT_GO_BOOL_METHOD_NAMES are `: boolean` in ts/src and return a Go bool on every path, so their declared `any` return is retagged `bool`.
+// Signature half of the rule in build/go-local-types.js, which types `var x any = this.M(...)` as `bool` off the same list, so the two cannot drift.
 function coerceGoBoolMethodReturns (content: string, names: string[]): string {
     for (const name of names) {
         const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + name + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
-        // the replacement spells the single space before `{` itself, so a padded
-        // signature (`) any  {`) can never survive the coercion as `) bool  {`
+        // the replacement spells the single space before `{` itself, so a padded signature (`) any  {`) can never survive the coercion as `) bool  {`
         content = content.replace (coerceRegex, '$1 bool {');
     }
     return content;
 }
 
-function capitalize(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-}
+function capitalize(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 // The indentation of the line that the match starting at `offset` sits on: emitters that split
 // one expression into several Go statements indent every emitted line with it.
@@ -12641,11 +10111,7 @@ function statementIndent (whole: string, offset: number): string {
 }
 
 // on windows the pathname keeps a leading '/' (/C:Users/user/Desktop/), which is invalid
-if (platform === 'win32') {
-    if (__dirname[0] === '/') {
-        __dirname = __dirname.substring(1);
-    }
-}
+if (platform === 'win32') { if (__dirname[0] === '/') { __dirname = __dirname.substring(1); } }
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
@@ -12673,9 +10139,8 @@ const goTypeOptions: dict = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
-// option struct/func names the prediction package declares locally (a renamed base param), keyed by
-// method capName → [Options, OptionsStruct, WithXxx...]: unqualified where the exchange defines the
-// method, ccxt.-qualified where it is a base delegation (missing-method wrapper).
+// option struct/func names the prediction package declares locally (a renamed base param), keyed by method capName → [Options, OptionsStruct, WithXxx...]:
+// unqualified where the exchange defines the method, ccxt.-qualified where it is a base delegation (missing-method wrapper).
 const predictionLocalOptionStructs = new Map<string, string[]>();
 
 const WRAPPER_METHODS: {} = {};
@@ -12683,72 +10148,40 @@ const WRAPPER_METHODS: {} = {};
 let goTests: string[] = [];
 const goWsTests: string[] = [];
 
-const imports = [
-    'import ccxt "github.com/ccxt/ccxt/go/v4"'
-];
+const imports = ['import ccxt "github.com/ccxt/ccxt/go/v4"'];
 
-// `exchange: any` in ts/src/test hides the callee from the transpiler's checker, so the async
-// suffix is not applied to those call sites; every unified method received with `<-` is a
-// channel trampoline, so append it here. Sleep is hand-written (exchange.go) and keeps its name.
+// `exchange: any` in ts/src/test hides the callee from the transpiler's checker, so the async suffix is not applied to those call sites; every unified method
+// received with `<-` is a channel trampoline, so append it here. Sleep is hand-written (exchange.go) and keeps its name.
 const GO_TEST_ANY_RECEIVE_REGEX: [RegExp, string] = [
     new RegExp (`<-exchange\\.(\\((?:ccxt\\.)?I\\w+\\)\\.)?((?!Sleep\\b)[A-Z]\\w*?)(?<!${GO_ASYNC_SUFFIX})\\(`, 'g'),
     `<-exchange.$1$2${GO_ASYNC_SUFFIX}(`,
 ];
 
-const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
-    "cancelOrder": true, // true if the method returns a channel (async in JS)
-    "cancelOrdersWithClientOrderIds": true, "cancelOrderWithClient": true, "createExpiredOptionMarket": false,
-    "createOrder": true, "editOrder": true, "editOrderWithClientOrderId": true, "fetchAccounts": true,
-    "fetchEvents": true, // prediction base -> venue override (loadEventsHelper)
-    "fetchOutcome": true, // prediction base -> venue override (kalshi on-demand loadOutcome)
-    "fetchOutcomes": true, // prediction base loadOutcomes -> venue batch override (kalshi tickers=, polymarket clob_token_ids)
-    "signEvmTransaction": false, // sync (returns hex string, not a channel); prediction base sendEvmTransaction -> venue override
-    "fetchBalance": true, "fetchClosedOrders": true, "fetchDepositAddressesByNetwork": true, "fetchDeposits": true,
-    "fetchDepositsWithdrawals": true, "fetchDepositWithdrawFees": true, "fetchFundingInterval": true,
-    "fetchFundingIntervals": true, "fetchFundingRates": true, "fetchL2OrderBook": true, "fetchL3OrderBook": true,
-    "fetchLeverage": true, "fetchLeverages": true, "fetchLeverageTiers": true, "fetchMarginMode": true,
-    "fetchMarginModes": true, "fetchMyTrades": true, "fetchOHLCV": true, "fetchOpenOrders": true,
-    "fetchTradingFees": true, "fetchOption": true, "fetchOrder": true, "fetchOrderWithClientOrderId": true,
-    "fetchOrderBook": true, "fetchOrderBooks": true, "fetchOrders": true, "fetchOrderTrades": true,
-    "fetchPositionsHistory": true, "fetchStatus": true, "fetchTicker": true, "fetchTickers": true, "fetchTime": true,
-    "fetchTrades": true, "fetchTransactions": true, "fetchWithdrawals": true, "parseAccount": false,
-    "parseBalance": false, "parseOrderBookBidsAsks": false, "parseBorrowInterest": false, "parseBorrowRate": false,
-    "parseCurrency": false, "parseDeposit": false, "parseDepositAddress": false, "parseDepositStatus": false,
-    "parseDepositWithdrawFee": false, "parseFundingRate": false, "parseFundingRateHistory": false, "parseIncome": false,
-    "parseLedgerEntry": false, "parseLiquidation": false, "parseMarginMode": false, "parseMarginModification": false,
-    "parseMarket": false, "parseMarketLeverageTiers": false, "parseOHLCV": false, "parseOpenInterest": false,
-    "parseOption": false, "parseOrder": false, "parseOrderSide": false, "parseOrderStatus": false,
-    "parseOrderType": false, "parsePosition": false, "parseTicker": false, "parseTrade": false, "parseWsTrade": false,
-    "parseGreeks": false, "parseTransaction": false, "parseTransfer": false, "parseWithdrawal": false,
-    "parseLeverage": false, "parseWithdrawalStatus": false,
-    "safeMarket": false, // try to remove custom implementations
-    "market": false, "setSandboxMode": false, "safeCurrencyCode": false, "parseConversion": false, "sign": false,
-    "nonce": false, // venues override nonce() (e.g. hyperliquid); base incrementingNonce() must reach the override, matching Rust
-    "signIn": true,
-    // ws methods
-    'cancelAllOrdersWs': true, 'cancelOrdersWs': true, 'cancelOrderWs': true, 'createLimitBuyOrderWs': true,
-    'createLimitOrderWs': true, 'createLimitSellOrderWs': true, 'createMarketBuyOrderWs': true,
-    'createMarketOrderWithCostWs': true, 'createMarketOrderWs': true, 'createMarketSellOrderWs': true,
-    'createOrdersWs': true, 'createOrderWithTakeProfitAndStopLossWs': true, 'createOrderWs': true,
-    'createPostOnlyOrderWs': true, 'createReduceOnlyOrderWs': true, 'createStopLimitOrderWs': true,
-    'createStopLossOrderWs': true, 'createStopMarketOrderWs': true, 'createStopOrderWs': true,
-    'createTakeProfitOrderWs': true, 'createTrailingAmountOrderWs': true, 'createTrailingPercentOrderWs': true,
-    'createTriggerOrderWs': true, 'editOrderWs': true, 'fetchBalanceWs': true, 'fetchClosedOrdersWs': true,
-    'fetchDepositsWs': true, 'fetchMyTradesWs': true, 'fetchOHLCVWs': true, 'fetchOpenOrdersWs': true,
-    'fetchOrderBookWs': true, 'fetchOrdersByStatusWs': true, 'fetchOrdersWs': true, 'fetchOrderWs': true,
-    'fetchOpenInterests': true, 'fetchPositionsForSymbolWs': true, 'fetchPositionsWs': true, 'fetchPositionWs': true,
-    'fetchTickersWs': true, 'fetchTickerWs': true, 'fetchTradesWs': true, 'fetchTradingFeesWs': true,
-    'fetchWithdrawalsWs': true, 'handleDelta': false, 'unWatchBidsAsks': true, 'unWatchMyTrades': true,
-    'unWatchOHLCV': true, 'watchBalance': true, 'watchBidsAsks': true, 'watchLiquidations': true,
-    'watchMarkPrice': true, 'watchMarkPrices': true, 'watchMyLiquidations': true, 'watchMyLiquidationsForSymbols': true,
-    'watchMyTrades': true, 'watchOHLCV': true, 'watchOHLCVForSymbols': true, 'watchOrderBook': true,
-    'watchOrderBookForSymbols': true, 'watchOrders': true, 'watchOrdersForSymbols': true, 'watchPosition': true,
-    'watchPositions': true, 'watchTicker': true, 'watchTickers': true, 'watchTrades': true,
-    'watchTradesForSymbols': true, 'withdrawWs': true, "parseLastPrice": false, 'fetchPositionsADLRank': true,
-    'parseADLRank': false
-    // 'fetchCurrenciesWs': true,
-    // 'fetchMarketsWs': true,
-}
+const VIRTUAL_BASE_METHODS: { [key: string]: boolean } = goGroupedTable ([
+    [ true, 'cancelOrder cancelOrdersWithClientOrderIds cancelOrderWithClient createOrder editOrder editOrderWithClientOrderId fetchAccounts'
+        + ' fetchEvents fetchOutcome fetchOutcomes fetchBalance fetchClosedOrders fetchDepositAddressesByNetwork fetchDeposits'
+        + ' fetchDepositsWithdrawals fetchDepositWithdrawFees fetchFundingInterval fetchFundingIntervals fetchFundingRates fetchL2OrderBook'
+        + ' fetchL3OrderBook fetchLeverage fetchLeverages fetchLeverageTiers fetchMarginMode fetchMarginModes fetchMyTrades fetchOHLCV'
+        + ' fetchOpenOrders fetchTradingFees fetchOption fetchOrder fetchOrderWithClientOrderId fetchOrderBook fetchOrderBooks fetchOrders'
+        + ' fetchOrderTrades fetchPositionsHistory fetchStatus fetchTicker fetchTickers fetchTime fetchTrades fetchTransactions'
+        + ' fetchWithdrawals signIn cancelAllOrdersWs cancelOrdersWs cancelOrderWs createLimitBuyOrderWs createLimitOrderWs'
+        + ' createLimitSellOrderWs createMarketBuyOrderWs createMarketOrderWithCostWs createMarketOrderWs createMarketSellOrderWs'
+        + ' createOrdersWs createOrderWithTakeProfitAndStopLossWs createOrderWs createPostOnlyOrderWs createReduceOnlyOrderWs'
+        + ' createStopLimitOrderWs createStopLossOrderWs createStopMarketOrderWs createStopOrderWs createTakeProfitOrderWs'
+        + ' createTrailingAmountOrderWs createTrailingPercentOrderWs createTriggerOrderWs editOrderWs fetchBalanceWs fetchClosedOrdersWs'
+        + ' fetchDepositsWs fetchMyTradesWs fetchOHLCVWs fetchOpenOrdersWs fetchOrderBookWs fetchOrdersByStatusWs fetchOrdersWs fetchOrderWs'
+        + ' fetchOpenInterests fetchPositionsForSymbolWs fetchPositionsWs fetchPositionWs fetchTickersWs fetchTickerWs fetchTradesWs'
+        + ' fetchTradingFeesWs fetchWithdrawalsWs unWatchBidsAsks unWatchMyTrades unWatchOHLCV watchBalance watchBidsAsks watchLiquidations'
+        + ' watchMarkPrice watchMarkPrices watchMyLiquidations watchMyLiquidationsForSymbols watchMyTrades watchOHLCV watchOHLCVForSymbols'
+        + ' watchOrderBook watchOrderBookForSymbols watchOrders watchOrdersForSymbols watchPosition watchPositions watchTicker watchTickers'
+        + ' watchTrades watchTradesForSymbols withdrawWs fetchPositionsADLRank' ],
+    [ false, 'createExpiredOptionMarket signEvmTransaction parseAccount parseBalance parseOrderBookBidsAsks parseBorrowInterest parseBorrowRate'
+        + ' parseCurrency parseDeposit parseDepositAddress parseDepositStatus parseDepositWithdrawFee parseFundingRate parseFundingRateHistory'
+        + ' parseIncome parseLedgerEntry parseLiquidation parseMarginMode parseMarginModification parseMarket parseMarketLeverageTiers'
+        + ' parseOHLCV parseOpenInterest parseOption parseOrder parseOrderSide parseOrderStatus parseOrderType parsePosition parseTicker'
+        + ' parseTrade parseWsTrade parseGreeks parseTransaction parseTransfer parseWithdrawal parseLeverage parseWithdrawalStatus safeMarket'
+        + ' market setSandboxMode safeCurrencyCode parseConversion sign nonce handleDelta parseLastPrice parseADLRank' ],
+]);
 
 const INTERFACE_METHODS = [
     'cancelOrders', 'cancelOrdersWithClientOrderIds', 'cancelAllOrders', 'cancelAllOrdersAfter', 'cancelOrder',
@@ -12801,7 +10234,7 @@ const INTERFACE_METHODS = [
     'watchMyTrades', 'watchOHLCV', 'watchOHLCVForSymbols', 'watchOrderBook', 'watchOrderBookForSymbols', 'watchOrders',
     'watchOrdersForSymbols', 'watchPosition', 'watchPositions', 'watchTicker', 'watchTickers', 'watchTrades',
     'watchTradesForSymbols', 'withdrawWs',
-    
+
 ];
 
 class NewTranspiler {
@@ -12809,17 +10242,13 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
-    // true while transpiling the prediction-market exchanges (ts/src/prediction/),
-    // which live in their own go packages (ccxtprediction / ccxtpredictionpro)
+    // true while transpiling the prediction-market exchanges (ts/src/prediction/), which live in their own go packages (ccxtprediction / ccxtpredictionpro)
     isPrediction = false;
-    // set once any stage skipped an up-to-date exchange: the shared
-    // exchange_wrapper_structs.go is rebuilt from the module-level `goTypeOptions`
-    // accumulator, which only holds the structs of the exchanges transpiled in this
-    // process — rewriting it after a partial run would truncate it
+    // set once any stage skipped an up-to-date exchange: the shared exchange_wrapper_structs.go is rebuilt from the module-level `goTypeOptions` accumulator,
+    // which only holds the structs of the exchanges transpiled in this process — rewriting it after a partial run would truncate it
     skippedUnchangedExchanges = false;
-    // parsed PredictionExchange method signatures; lets a prediction venue that doesn't
-    // override a unified method still emit the prediction-typed wrapper (resolving to the
-    // inherited base method) instead of the crypto-typed method promoted from BaseExchange
+    // parsed PredictionExchange method signatures; lets a prediction venue that doesn't override a unified method still emit the prediction-typed wrapper
+    // (resolving to the inherited base method) instead of the crypto-typed method promoted from BaseExchange
     predictionBaseMethodsTypes: any[] = [];
     // names of the 62 symbol-based trading methods that live in `export default class Exchange
     // extends BaseExchange` in the TS source. They hang off *Exchange (not *BaseExchange), so
@@ -12834,8 +10263,7 @@ class NewTranspiler {
     // true while createTypedInterfaceFile() is running: requireBaseMethodsMetadata() regenerates
     // the typed interface after a late base re-read, which must not re-enter its own caller
     creatingTypedInterface = false;
-    // lazily created in webworkerTranspile and kept alive for the lifetime of the
-    // instance, so every transpile stage reuses the same warm worker threads
+    // lazily created in webworkerTranspile and kept alive for the lifetime of the instance, so every transpile stage reuses the same warm worker threads
     piscina: Piscina | undefined;
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
         // 'kucoinfutures'
@@ -12852,13 +10280,7 @@ class NewTranspiler {
 
         this.setupTranspiler();
 
-        this.pythonStandardLibraries = {
-            'hashlib': 'hashlib',
-            'math': 'math',
-            'json.loads': 'json',
-            'json.dumps': 'json',
-            'sys': 'sys',
-        };
+        this.pythonStandardLibraries = { 'hashlib': 'hashlib', 'math': 'math', 'json.loads': 'json', 'json.dumps': 'json', 'sys': 'sys', };
     }
 
     getWsRegexes() {
@@ -12887,22 +10309,19 @@ class NewTranspiler {
             // callDynamically array wrapper removal
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, ', '.Call(this, '],
-            
+
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
-            
+
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
             // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
             [/stored := NewArrayCache\(limit\)/g, 'var stored *ArrayCache = NewArrayCache(limit)'],
-            // Futures
-            // `future.(Resolve|Reject)` on a boxed future: the printer prints the assertion (84g3)
+            // Futures `future.(Resolve|Reject)` on a boxed future: the printer prints the assertion (84g3)
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
-            // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2)
-            // GetsLimit
+            // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2) GetsLimit
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit', '.GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
-            // OrderBook
-            // `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
+            // OrderBook `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
             [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks[$1])'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
@@ -12947,10 +10366,8 @@ class NewTranspiler {
 
                 if (match) {
                     const baseExchange = match[2];
-                    
-                    if (baseExchange.toLowerCase() !== exchangeName.toLowerCase()) {
-                        extendedExchanges[exchangeName] = baseExchange;
-                    }
+
+                    if (baseExchange.toLowerCase() !== exchangeName.toLowerCase()) { extendedExchanges[exchangeName] = baseExchange; }
                 }
             })
             this._extendedExchanges = extendedExchanges;
@@ -12958,29 +10375,20 @@ class NewTranspiler {
         return this._extendedExchanges;
     }
 
-    isExtendedExchange(exchangeName: string) {
-        return this.extendedExchanges[exchangeName] !== undefined;
-    }
+    isExtendedExchange(exchangeName: string) { return this.extendedExchanges[exchangeName] !== undefined; }
 
-    isAlias (exchangeName: string) {
-        return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName);
-    }
+    isAlias (exchangeName: string) { return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName); }
 
-    // a helper to apply an array of regexes and substitutions to text
-    // accepts an array like [ [ regex, substitution ], ... ]
+    // a helper to apply an array of regexes and substitutions to text accepts an array like [ [ regex, substitution ], ... ]
 
     regexAll (text: string, rules: any[]) {
         for (const [pattern, replacement, guard] of rules) {
-            if ((guard !== undefined) && !text.includes (guard)) {
-                continue;  // the rule's literal token is absent: no match possible
-            }
+            if ((guard !== undefined) && !text.includes (guard)) { continue; } // the rule's literal token is absent: no match possible
             const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
             text = text.replace(rx, replacement);
         }
         return text;
     }
-
-    // ============================================================================
 
     getTranspilerConfig(isWrapper: boolean = false) {
         const classNameMap = {};
@@ -13000,8 +10408,7 @@ class NewTranspiler {
             "verbose": false,
             "go": {
                 "classNameMap": classNameMap,
-                // channel-returning async methods carry the suffix so the plain name is
-                // free for the typed sync method emitted into the same core file
+                // channel-returning async methods carry the suffix so the plain name is free for the typed sync method emitted into the same core file
                 "asyncMethodSuffix": GO_ASYNC_SUFFIX,
                 // implicit endpoints are emitted unsuffixed by the Go api generator
                 "asyncSuffixExemptPaths": [ "(^|/)ts/src/abstract/" ],
@@ -13042,7 +10449,6 @@ class NewTranspiler {
                 "asyncStringPtrCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '*string').map (([ name ]) => name),
                 // struct-list channels (receive is the `*ToList` carrier of maps): names only, read by the h27g08 rule
                 "asyncStructRowListCallees": Object.fromEntries ([ ...goChan3Table () ].filter (([ name, type ]) => /^\[\][A-Z]\w*$/.test (type) && !name.includes ('.')).map (([ name, type ]) => [ name, type ])),
-                // ===== end RF-go-6-C =====
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
                 "stringPointerTupleCalls": GO_STRING_POINTER_TUPLE_CALLS,
                 "guardedStringTupleCalls": GO_GUARDED_STRING_TUPLE_CALLS,
@@ -13051,7 +10457,6 @@ class NewTranspiler {
                 // tuple producers: Go type of each slot; an integer-literal default (arg index) selects the value form
                 "goTupleSlotTypes": { "HandleOptionIntegerAndParams": [ "*int64" ], "HandleOptionIntegerAndParams2": [ "*int64" ] },
                 "goTupleValueDefaultArg": { "HandleOptionIntegerAndParams": 3, "HandleOptionIntegerAndParams2": 4 },
-                // ===== end RF-go-6-F =====
             },
         };
     }
@@ -13060,14 +10465,10 @@ class NewTranspiler {
         const commentNameRegex = /@name\s(\w+)#(\w+)/;
         const nameMatches = comment.match(commentNameRegex);
         const exchangeName = nameMatches ? nameMatches[1] : undefined;
-        if (!exchangeName) {
-            return comment;
-        }
+        if (!exchangeName) { return comment; }
         const methodName = nameMatches[2];
         let exchangeMethods = goComments[exchangeName];
-        if (!exchangeMethods) {
-            exchangeMethods = goComments[exchangeName] = {};
-        }
+        if (!exchangeMethods) { exchangeMethods = goComments[exchangeName] = {}; }
         exchangeMethods[methodName] = comment;
         return comment;
     }
@@ -13097,9 +10498,7 @@ class NewTranspiler {
     }
 
     // The base files are assembled from the part of the printed body after its delimiter, which cuts
-    declareBaseFileStdlibImports (file: string, packages: string[] | undefined): string {
-        return (packages ?? []).reduce ((text, pkg) => goAddImport (text, pkg), file);
-    }
+    declareBaseFileStdlibImports (file: string, packages: string[] | undefined): string { return (packages ?? []).reduce ((text, pkg) => goAddImport (text, pkg), file); }
 
     createGeneratedHeader() {
         return [
@@ -13113,12 +10512,7 @@ class NewTranspiler {
         if (this.isPrediction) {
             const namespace = ws ? `package ${PREDICTION_WS_PACKAGE}` : `package ${PREDICTION_PACKAGE}`;
             // gofmt keeps exactly one blank line between the package clause and the import clause,
-            return [
-                namespace,
-                '',
-                'import ccxt "github.com/ccxt/ccxt/go/v4"',
-                ...(ws ? [ PREDICTION_IMPORT ] : []),
-            ];
+            return [namespace, '', 'import ccxt "github.com/ccxt/ccxt/go/v4"', ...(ws ? [ PREDICTION_IMPORT ] : []),];
         }
         const namespace = ws ? 'package ccxtpro' : 'package ccxt';
         const values = [
@@ -13139,22 +10533,15 @@ class NewTranspiler {
         ) {
             return '[]Order'
         }
-        if (name.startsWith('withdrawWs')) {
-            return 'Transaction'
-        }
-        
-        if (name.startsWith('watchOrderBook')) {
-             return this.isPrediction ? `PredictionOrderBook` : `OrderBook`;
+        if (name.startsWith('withdrawWs')) { return 'Transaction' }
 
-        }
+        if (name.startsWith('watchOrderBook')) { return this.isPrediction ? `PredictionOrderBook` : `OrderBook`; }
 
         if (name.startsWith('unWatch')) { // type not unified yet
             return `any`;
         }
 
-        if (name === 'fetchTime'){
-            return `<-chan int64`; // custom handling for now
-        }
+        if (name === 'fetchTime') { return `<-chan int64`; } // custom handling for now
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
@@ -13166,19 +10553,14 @@ class NewTranspiler {
             return addTaskIfNeeded('map[string]any');
         }
 
-        // inferred union return types (`Position | undefined`, `Dict | Leverage`): drop undefined/null
-        // members and collapse the rest to the first member
+        // inferred union return types (`Position | undefined`, `Dict | Leverage`): drop undefined/null members and collapse the rest to the first member
         if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
             const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
             wrappedType = members.length > 0 ? members[0] : 'any';
         }
 
         function addTaskIfNeeded(type: string) {
-            if (type == 'void') {
-                return '<-chan';
-            } else if (isList) {
-                return isPromise ? `<-chan []${type}` : `[]${type}`;
-            }
+            if (type == 'void') { return '<-chan'; } else if (isList) { return isPromise ? `<-chan []${type}` : `[]${type}`; }
             return isPromise ? `<-chan ${type}` : type;
         }
 
@@ -13193,18 +10575,12 @@ class NewTranspiler {
             'Strings': '[]string',
         };
 
-        if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addTaskIfNeeded('any'); // default if type is unknown;
-        }
+        if (wrappedType === undefined || wrappedType === 'Undefined') { return addTaskIfNeeded('any'); } // default if type is unknown;
 
         // `List` is an alias for `Array<any>`: route it through the array branch (no `List` type in the Go runtime)
-        if (wrappedType === 'List') {
-            wrappedType = 'any[]';
-        }
+        if (wrappedType === 'List') { wrappedType = 'any[]'; }
 
-        if (wrappedType === 'string[][]') {
-            return addTaskIfNeeded('[][]string');
-        }
+        if (wrappedType === 'string[][]') { return addTaskIfNeeded('[][]string'); }
 
         // check if returns a list
         if (wrappedType.endsWith('[]')) {
@@ -13213,9 +10589,7 @@ class NewTranspiler {
         }
 
         if ((wrappedType === 'any') || (wrappedType === 'unknown')) {
-            if (isReturn) {
-                return addTaskIfNeeded('map[string]any');
-            }
+            if (isReturn) { return addTaskIfNeeded('map[string]any'); }
             return addTaskIfNeeded('any');
         }
         const primitiveTypes: [ (t: string) => boolean, string ][] = [
@@ -13226,12 +10600,8 @@ class NewTranspiler {
             [ (t) => [ 'boolean', 'BooleanLiteral', 'BooleanLiteralType', 'Bool' ].includes(t), 'bool' ],
         ];
         const primitive = primitiveTypes.find (([ test ]) => test(wrappedType));
-        if (primitive) {
-            return addTaskIfNeeded(primitive[1]);
-        }
-        if (goReplacements[wrappedType] !== undefined) {
-            return addTaskIfNeeded(goReplacements[wrappedType]);
-        }
+        if (primitive) { return addTaskIfNeeded(primitive[1]); }
+        if (goReplacements[wrappedType] !== undefined) { return addTaskIfNeeded(goReplacements[wrappedType]); }
 
         if (wrappedType.startsWith('Dictionary<')) {
             // Always convert the value type to ensure array/slice notation is correct.
@@ -13247,9 +10617,7 @@ class NewTranspiler {
     }
 
     safeGoName(name: string): string {
-        const goReservedWordsReplacement: dict = {
-            'type': 'typeVar',
-        };
+        const goReservedWordsReplacement: dict = { 'type': 'typeVar', };
         return goReservedWordsReplacement[name] || name;
     }
 
@@ -13260,9 +10628,7 @@ class NewTranspiler {
             return 'params ...any';
         }
         const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param, methodName)).join(', ');
-        if (!needsVariadicOptions) {
-            return paramsParsed;
-        }
+        if (!needsVariadicOptions) { return paramsParsed; }
         const regularParams = params.filter(param => !this.isOptionalGoParam(param));
         const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param, methodName));
         const allParams =  regularParamsParsed.concat(['options ...' + capitalize(methodName) + 'Options']);
@@ -13280,17 +10646,13 @@ class NewTranspiler {
             || ((String (param?.type ?? '') === 'string[]') && (GO_UNIFIED_SLICE_PARAMS[methodName ?? '']?.[0] === '[]any')));
         // a declared unified struct the core takes as its map: the wrapper keeps the struct and converts it
         const structKeepsAnnotation = (decidedGoType === 'map[string]any') && (GO_CHAN3_STRUCT_LISTS[String (param?.type ?? '')]?.row?.endsWith ('ToMap') === true);
-        if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation && !structKeepsAnnotation) {
-            return `${safeName} ${decidedGoType}`;
-        }
+        if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation && !structKeepsAnnotation) { return `${safeName} ${decidedGoType}`; }
         const paramType = (param.type == undefined) ? 'any' : this.jsTypeToGo(name, param.type);
         return this.isOptionalGoParam(param) ? `${safeName} *${paramType}` : `${safeName} ${paramType}`;
     }
 
     // a parameter the typed wrapper takes through its variadic options struct
-    isOptionalGoParam(param: any): boolean {
-        return !!(param.optional || param.initializer !== undefined);
-    }
+    isOptionalGoParam(param: any): boolean { return !!(param.optional || param.initializer !== undefined); }
 
     // true when the typed wrapper declares an options struct (not for a lone `params` bag)
     usesOptionsStruct(rawParameters: any[]): boolean {
@@ -13299,30 +10661,19 @@ class NewTranspiler {
     }
 
     shouldCreateWrapper(methodName: string, isWs = false): boolean {
-        const allowedPrefixes = [
-            'fetch', 'create', 'edit', 'cancel', 'closePosition', 'setP', 'setM', 'setL', 'transfer', 'withdraw',
-            'watch', 'unWatch'
-        ];
+        const allowedPrefixes = ['fetch', 'create', 'edit', 'cancel', 'closePosition', 'setP', 'setM', 'setL', 'transfer', 'withdraw', 'watch', 'unWatch'];
         const blacklistMethods = new Set ([
-            'createOrderRequest', 'editOrderRequest', 'cancelOrdersRequest', 'cancelAllOrdersRequest',
-            'createContractOrder', 'createSpotOrder', 'createSwapOrder', 'createVault', 'fetch', 'fetchCurrenciesWs',
-            'fetchMarketsWs', 'fetchPortfolioDetails', 'loadMarketsHelper', 'loadOrderBook', 'setPositionCache',
-            'setPositionsCache', 'setLastRequest', 'setLastRestRequestTimestamp', 'setProperty', 'setProxyAgents',
-            'setSandBoxMode', 'unWatch', 'unWatchChannel', 'unWatchMultiple', 'unWatchPrivate', 'unWatchPublic',
-            'unWatchPublicMultiple', 'unWatchTopics', 'watch', 'watchMany', 'watchMultiHelper', 'watchMultiple',
-            'watchMultipleSubscription', 'watchMultipleWrapper', 'watchMultiRequest', 'watchMultiTicker',
-            'watchMultiTickerHelper', 'watchPrivate', 'watchPrivateMultiple', 'watchPrivateRequest',
-            'watchPrivateSubscribe', 'watchPublic', 'watchPublicMultiple', 'watchSpotPrivate', 'watchStockMarketStream',
-            'watchSwapPrivate', 'watchSpotPublic', 'watchSwapPublic', 'watchTopics', 'unWatchChannels',
+            'createOrderRequest', 'editOrderRequest', 'cancelOrdersRequest', 'cancelAllOrdersRequest', 'createContractOrder', 'createSpotOrder',
+            'createSwapOrder', 'createVault', 'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'fetchPortfolioDetails', 'loadMarketsHelper', 'loadOrderBook',
+            'setPositionCache', 'setPositionsCache', 'setLastRequest', 'setLastRestRequestTimestamp', 'setProperty', 'setProxyAgents', 'setSandBoxMode',
+            'unWatch', 'unWatchChannel', 'unWatchMultiple', 'unWatchPrivate', 'unWatchPublic', 'unWatchPublicMultiple', 'unWatchTopics', 'watch',
+            'watchMany', 'watchMultiHelper', 'watchMultiple', 'watchMultipleSubscription', 'watchMultipleWrapper', 'watchMultiRequest', 'watchMultiTicker',
+            'watchMultiTickerHelper', 'watchPrivate', 'watchPrivateMultiple', 'watchPrivateRequest', 'watchPrivateSubscribe', 'watchPublic',
+            'watchPublicMultiple', 'watchSpotPrivate', 'watchStockMarketStream', 'watchSwapPrivate', 'watchSpotPublic', 'watchSwapPublic', 'watchTopics',
+            'unWatchChannels',
         ]); // improve this later
-        if (methodName.toLowerCase().includes('uta')) {
-            return false; // skip UTA methods
-        }
-        if (isWs) {
-            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
-                return false;
-            }
-        }
+        if (methodName.toLowerCase().includes('uta')) { return false; } // skip UTA methods
+        if (isWs) { if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) { return false; } }
         const isBlackListed = blacklistMethods.has (methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
         return !isBlackListed && startsWithAllowedPrefix;
@@ -13336,17 +10687,11 @@ class NewTranspiler {
     // createReturnStatement's conversion of `res` as a func(any) T value for AwaitResult
     createReturnConverter (methodName: string, unwrappedType: string) {
         const stmt = this.createReturnStatement (methodName, unwrappedType);
-        if (stmt === 'res') {
-            return 'Untyped';
-        }
+        if (stmt === 'res') { return 'Untyped'; }
         const call = stmt.match (/^(\w+)\(res\)$/);
-        if (call) {
-            return call[1];
-        }
+        if (call) { return call[1]; }
         const assertion = stmt.match (/^\(?res\)?\.\((.+)\)$/);
-        if (assertion) {
-            return `AssertAs[${assertion[1]}]`;
-        }
+        if (assertion) { return `AssertAs[${assertion[1]}]`; }
         throw new Error (`[go] no AwaitResult converter for ${methodName}: ${stmt}`);
     }
 
@@ -13362,15 +10707,9 @@ class NewTranspiler {
             return `ToString(res)`;
         }
 
-        if (unwrappedType === 'float64') {
-            return `(res).(float64)`;
-        }
-        if (unwrappedType === 'int64') {
-            return `(res).(int64)`;
-        }
-        if (methodName.startsWith('watchOrderBook')) {
-            return this.isPrediction ? `NewPredictionOrderBookFromWs(res)` : `NewOrderBookFromWs(res)`;
-        }
+        if (unwrappedType === 'float64') { return `(res).(float64)`; }
+        if (unwrappedType === 'int64') { return `(res).(int64)`; }
+        if (methodName.startsWith('watchOrderBook')) { return this.isPrediction ? `NewPredictionOrderBookFromWs(res)` : `NewOrderBookFromWs(res)`; }
 
         if (methodName.startsWith('unWatch')) {
             // type not unified yet
@@ -13378,13 +10717,9 @@ class NewTranspiler {
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict' || unwrappedType === 'ExchangeOptions' || unwrappedType === 'map[string]any') {
-            return `res.(map[string]any)`;
-        }
+        if (unwrappedType === 'Dict' || unwrappedType === 'ExchangeOptions' || unwrappedType === 'map[string]any') { return `res.(map[string]any)`; }
 
-        if (unwrappedType === '[]map[string]any') {
-            return `NewMapArray(res)`; // safe conversion, the runtime value is usually a []any
-        }
+        if (unwrappedType === '[]map[string]any') { return `NewMapArray(res)`; } // safe conversion, the runtime value is usually a []any
 
         if (unwrappedType === 'map[string]map[string][]OHLCV') {
             // watchOHLCVForSymbols cores send nested map[string]any (createOHLCVObject), never the struct shape
@@ -13394,9 +10729,7 @@ class NewTranspiler {
         // struct-valued dictionaries hold map[string]any values at runtime: convert via the generated NewXMap
         // (MarketInterface keeps the plain assertion; LoadMarkets uses the hand-written NewMarketsMap)
         const mapValueType = unwrappedType.startsWith('map[string]') ? unwrappedType.substring('map[string]'.length) : '';
-        if (/^[A-Z]\w*$/.test(mapValueType) && mapValueType !== 'MarketInterface') {
-            return `New${capitalize(mapValueType)}Map(res)`;
-        }
+        if (/^[A-Z]\w*$/.test(mapValueType) && mapValueType !== 'MarketInterface') { return `New${capitalize(mapValueType)}Map(res)`; }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') &&
             !unwrappedType.startsWith('Dictionary<') &&
@@ -13406,9 +10739,7 @@ class NewTranspiler {
             unwrappedType !== 'float' &&
             unwrappedType !== 'bool' &&
             unwrappedType !== 'Int64';
-        if (unwrappedType.startsWith('[]')) {
-            return `New${capitalize(unwrappedType.replace('[]', ''))}Array(res)`;
-        }
+        if (unwrappedType.startsWith('[]')) { return `New${capitalize(unwrappedType.replace('[]', ''))}Array(res)`; }
         return needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` : `res.(${unwrappedType})`;
     }
 
@@ -13417,9 +10748,7 @@ class NewTranspiler {
      * The struct declares it as `*<type>` and the wrapper declares its optional local as
      * `*<type>` too, so both must be computed here and nowhere else.
      */
-    optionStructFieldGoType(param: any, qualify: (type: string | undefined) => string | undefined): string | undefined {
-        return qualify(this.jsTypeToGo(param.name, param.type));
-    }
+    optionStructFieldGoType(param: any, qualify: (type: string | undefined) => string | undefined): string | undefined { return qualify(this.jsTypeToGo(param.name, param.type)); }
 
     getDefaultParamsWrappers(name: string, rawParameters: any[]) {
         let res: string[] = [];
@@ -13439,12 +10768,9 @@ class NewTranspiler {
         return res.join("\n");
     }
 
-    // qualifies base ccxt type names (e.g. Ticker -> ccxt.Ticker) for code generated
-    // into a sibling package (pro / prediction); primitives are left untouched
+    // qualifies base ccxt type names (e.g. Ticker -> ccxt.Ticker) for code generated into a sibling package (pro / prediction); primitives are left untouched
     qualifyBaseGoType(type: string | undefined): string | undefined {
-        if (!type) {
-            return type;
-        }
+        if (!type) { return type; }
         const baseNames = this.extractTypeAndFuncNames(EXCHANGES_FOLDER);
         return type.replace(/[A-Za-z_][A-Za-z0-9_]*/g, (m) => baseNames.has(m) ? `ccxt.${capitalize(m)}` : m);
     }
@@ -13454,22 +10780,17 @@ class NewTranspiler {
         const optionalParams = params.filter(param => this.isOptionalGoParam(param));
         // prediction is tracked via the instance flag; the isWs param is a plain boolean here
         const isPrediction = this.isPrediction || (isWs === 'prediction');
-        if (!this.usesOptionsStruct(params)) {
-            return;
-        }
+        if (!this.usesOptionsStruct(params)) { return; }
         // reuse an already-generated struct, EXCEPT when a prediction method's optional params
         let predictionLocalOverride = false;
         if (capName in goTypeOptions) {
             if (isPrediction) {
-                // `\s+` between name and `*` — the emitted field line is space-aligned
-                // (`Since  *int64`), so a single-space pattern would miss every field
+                // `\s+` between name and `*` — the emitted field line is space-aligned (`Since  *int64`), so a single-space pattern would miss every field
                 const existingFields = (goTypeOptions[capName].match (/^\s+(\w+)\s+\*/gm) || []).map (s => s.trim ().split (/\s+/)[0]);
                 const predFields = optionalParams.map (param => capitalize (param.name));
                 predictionLocalOverride = predFields.some (f => existingFields.indexOf (f) === -1);
             }
-            if (!predictionLocalOverride) {
-                return;
-            }
+            if (!predictionLocalOverride) { return; }
         }
         // gofmt indents one tab per level and aligns the `Name Type` columns of a struct's
         const one = '';
@@ -13479,8 +10800,7 @@ class NewTranspiler {
         const options = `${capName}Options`;
         const optionsStruct = `${capName}OptionsStruct`;
 
-        // the prediction package aliases the structs that already exist in the base
-        // package and declares local ones for prediction-only / param-renamed methods
+        // the prediction package aliases the structs that already exist in the base package and declares local ones for prediction-only / param-renamed methods
         const useAlias = (isWs === true) || (isPrediction && baseGoTypeOptionNames.has(capName) && !predictionLocalOverride);
         if (isPrediction && !useAlias) {
             // a locally-declared option struct (param-renamed base method, or a prediction-only
@@ -13538,18 +10858,14 @@ class NewTranspiler {
         const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const isExchange = exchangeName === 'Exchange';
         const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName, isWs === true) || !isAsync) {
-            return ''; // skip aux methods like encodeUrl, parseOrder, etc
-        }
+        if (!this.shouldCreateWrapper(methodName, isWs === true) || !isAsync) { return ''; } // skip aux methods like encodeUrl, parseOrder, etc
 
         const methodNameCapitalized = capitalize(methodName);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         // a core that carries *int64 (declared `Promise<int>`) returns int64: the wrapper derefs it instead of converting
         const intCarrier = (unwrappedType === 'float64') && (goChan3Lookup (goChan3Table (), capitalize (exchangeName), capitalize (methodName)) === '*int64');
-        if (intCarrier) {
-            unwrappedType = 'int64';
-        }
+        if (intCarrier) { unwrappedType = 'int64'; }
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         let params = methodWrapper.parameters.map((param: any) => {
@@ -13566,14 +10882,9 @@ class NewTranspiler {
                 return `${sliceConversion}(${this.safeGoName(param.name)})`;
             }
             const structRow = GO_CHAN3_STRUCT_LISTS[String (param.type ?? '')]?.row;
-            if ((param.goType === 'map[string]any') && (structRow?.endsWith ('ToMap') === true)) {
-                return `${structRow}(${this.safeGoName(param.name)})`;
-            }
-            // optional params live on the options struct: hand the field straight to the
-            // core call instead of hopping through an identically-typed local
-            if (this.usesOptionsStruct(methodWrapper.parameters) && this.isOptionalGoParam(param)) {
-                return `opts.${capitalize(param.name)}`;
-            }
+            if ((param.goType === 'map[string]any') && (structRow?.endsWith ('ToMap') === true)) { return `${structRow}(${this.safeGoName(param.name)})`; }
+            // optional params live on the options struct: hand the field straight to the core call instead of hopping through an identically-typed local
+            if (this.usesOptionsStruct(methodWrapper.parameters) && this.isOptionalGoParam(param)) { return `opts.${capitalize(param.name)}`; }
 
             return this.safeGoName(param.name);
         }).join(', ');
@@ -13583,43 +10894,24 @@ class NewTranspiler {
         const three = '\t\t';
         const methodDoc = [] as any[];
         if (goComments[exchangeName] && goComments[exchangeName][methodName]) {
-            // the wrapper is a top-level declaration: its doc comment sits at column 0 even
-            // when the source comment was written inside the method body
+            // the wrapper is a top-level declaration: its doc comment sits at column 0 even when the source comment was written inside the method body
             methodDoc.push (goComments[exchangeName][methodName].replace (/^[ \t]+(?=\/\/|\/\*)/gm, '').replace (/^[ \t]+(?=\*)/gm, ' '));
         }
 
         let emptyObject = `${unwrappedType}{}`;
-        if (unwrappedType.startsWith('[]')) {
-            emptyObject = 'nil'
-        } else if (unwrappedType.includes('int64')) {
-            emptyObject = '-1'
-        } else if (unwrappedType.includes('float64')) {
-            emptyObject = 'float64(-1)'
-        } else if (unwrappedType === 'string') {
-            emptyObject = '""'
-        } else if (unwrappedType === 'any') {
-            emptyObject = 'nil';
-        }
+        if (unwrappedType.startsWith('[]')) { emptyObject = 'nil' } else if (unwrappedType.includes('int64')) { emptyObject = '-1' } else if (unwrappedType.includes('float64')) { emptyObject = 'float64(-1)' } else if (unwrappedType === 'string') { emptyObject = '""' } else if (unwrappedType === 'any') { emptyObject = 'nil'; }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
 
-        if (stringArgs =='params ...any') {
-            params = 'params...';
-        }
+        if (stringArgs =='params ...any') { params = 'params...'; }
 
         const body = [
            `${defaultParams}`,
             ...goNativeAwaitBody (two, unwrappedType, intCarrier ? 'ParseInt' : this.createReturnConverter (methodName, unwrappedType), `this.${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
         ];
         const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
-        if (!WRAPPER_METHODS[exchangeName]) {
-            WRAPPER_METHODS[exchangeName] = [];
-        }
-        WRAPPER_METHODS[exchangeName][methodName] = {
-            wrapper: methodWrapper,
-            interface: interfaceMethod,
-            params: stringArgs,
-        };
+        if (!WRAPPER_METHODS[exchangeName]) { WRAPPER_METHODS[exchangeName] = []; }
+        WRAPPER_METHODS[exchangeName][methodName] = { wrapper: methodWrapper, interface: interfaceMethod, params: stringArgs, };
         // base typed methods sit on the base structs and reach every venue through embedding:
         // the 62 symbol-based ones on Exchange, the rest on BaseExchange (prediction venues too)
         const funcContext = isExchange ? (this.exchangeTierMethods.has (methodName) ? 'Exchange' : 'BaseExchange') : capitalize(exchangeName);
@@ -13636,9 +10928,7 @@ class NewTranspiler {
 
     // Ensures WRAPPER_METHODS['Exchange'] is populated even when the mtime gate skipped the base
     requireBaseMethodsMetadata () {
-        if (WRAPPER_METHODS['Exchange']) {
-            return;
-        }
+        if (WRAPPER_METHODS['Exchange']) { return; }
         log.bright.cyan ('[go] base methods were up to date but their wrapper metadata is needed, re-reading', TS_BASE_FILE.yellow);
         this.transpileBaseMethods (TS_BASE_FILE, false, true);
         if (!this.creatingTypedInterface) {
@@ -13657,14 +10947,11 @@ class NewTranspiler {
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
         const isAlias = this.isAlias(exchange);
         let wrappersIndented = joinGoDeclarations (wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)));
-        if (isWs && path === GLOBAL_WRAPPER_FILE) {
-            return '';
-        }
+        if (isWs && path === GLOBAL_WRAPPER_FILE) { return ''; }
         let missingMethodsWrappers = '';
         if (exchange !== 'Exchange' && this.isPrediction) {
             this.requireBaseMethodsMetadata ();
-            // a unified method PredictionExchange retypes must be emitted on the venue, so it
-            // shadows the crypto-typed one promoted from BaseExchange
+            // a unified method PredictionExchange retypes must be emitted on the venue, so it shadows the crypto-typed one promoted from BaseExchange
             missingMethodsWrappers = joinGoDeclarations (missingMethods.map (m => {
                 const predMethod = this.predictionBaseMethodsTypes.find ((w: any) => w.name === m);
                 return predMethod ? this.createWrapper (exchange, predMethod, ws) : '';
@@ -13678,15 +10965,12 @@ class NewTranspiler {
                 '',
                 '// typed methods',
                 wrappersIndented,
-                // gofmt puts one blank line between the last wrapper and the doc comment group of
-                // the base-fallback wrappers (`min = 2` in go/printer declList)
+                // gofmt puts one blank line between the last wrapper and the doc comment group of the base-fallback wrappers (`min = 2` in go/printer declList)
                 '',
                 needsTypedBase && missingMethodsWrappers ? '// prediction-typed methods from base' : '',
                 needsTypedBase ? missingMethodsWrappers : '',
             ].join('\n');
-            if (ws || this.isPrediction) {
-                section = this.qualifyTypedSection (section, wrappers, missingMethods);
-            }
+            if (ws || this.isPrediction) { section = this.qualifyTypedSection (section, wrappers, missingMethods); }
             return section;
         }
 
@@ -13715,15 +10999,12 @@ class NewTranspiler {
 
     // Aliases embed their parent and ws exchanges embed their REST twin, so only a non-alias REST
     // exchange may need venue-level re-typings of base methods (prediction venues).
-    needsTypedBase (exchange: string, ws: boolean | 'prediction' = false): boolean {
-        return (ws !== true) && !this.isAlias (exchange);
-    }
+    needsTypedBase (exchange: string, ws: boolean | 'prediction' = false): boolean { return (ws !== true) && !this.isAlias (exchange); }
 
     // ccxt.-qualify the base package names inside a typed section emitted into package ccxtpro /
     // ccxtprediction, keeping the prediction-local option structs unqualified.
     qualifyTypedSection (section: string, wrappers: any[], missingMethods: string[]): string {
-        // copy — extractTypeAndFuncNames returns a CACHED Set; mutating it below would
-        // corrupt the cache for every later exchange/call
+        // copy — extractTypeAndFuncNames returns a CACHED Set; mutating it below would corrupt the cache for every later exchange/call
         const baseNames = new Set (this.extractTypeAndFuncNames(EXCHANGES_FOLDER));
         if (this.isPrediction) {
             // keep renamed-param option structs unqualified so the wrapper binds to the local
@@ -13731,11 +11012,7 @@ class NewTranspiler {
                 .concat (missingMethods.filter ((m: string) => this.predictionBaseMethodsTypes.some ((w: any) => w.name === m)));
             for (const methodName of localMethodNames) {
                 const localNames = predictionLocalOptionStructs.get(capitalize(methodName));
-                if (localNames !== undefined) {
-                    for (const name of localNames) {
-                        baseNames.delete(name);
-                    }
-                }
+                if (localNames !== undefined) { for (const name of localNames) { baseNames.delete(name); } }
             }
         }
         return this.addPackagePrefix(section, baseNames, 'ccxt');
@@ -13746,15 +11023,11 @@ class NewTranspiler {
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js';
         const errorHierarchyPath = `${__dirname}/.${errorHierarchyFilename}`;
 
-        if (skipUpToDateStage ('go', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) { return; }
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8');
 
-        js = this.regexAll (js, [
-            [ /\s*export default[^\n]+;\n/g, '' ],
-        ]).trim ();
+        js = this.regexAll (js, [[ /\s*export default[^\n]+;\n/g, '' ],]).trim ();
 
         const message = 'Transpiling error hierachy →';
         const root = errorHierarchy['BaseError'];
@@ -13799,9 +11072,7 @@ ${caseStatements.join('\n')}
 
     // gofmt aligns the type column of a const block to the widest name + 1 (tabwriter)
     const constNameColumn = Math.max (...errorNames.map ((error) => (error + 'ErrType').length)) + 1;
-    const constStatements = errorNames.map(error => {
-        return`\t${(error + 'ErrType').padEnd (constNameColumn)}ErrorType = "${error}"`;
-    });
+    const constStatements = errorNames.map(error => { return`\t${(error + 'ErrType').padEnd (constNameColumn)}ErrorType = "${error}"`; });
 
     const constDecl =`const (
 ${constStatements.join('\n')}
@@ -13851,9 +11122,7 @@ ${constStatements.join('\n')}
         if (exTierMatch) {
             const methodNameRe = /^ {4}(?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/gm;
             let mm;
-            while ((mm = methodNameRe.exec (exTierMatch[1])) !== null) {
-                this.exchangeTierMethods.add (mm[1]);
-            }
+            while ((mm = methodNameRe.exec (exTierMatch[1])) !== null) { this.exchangeTierMethods.add (mm[1]); }
         }
 
         baseClass = this.dispatchVirtualBaseCalls (baseClass);
@@ -13909,8 +11178,7 @@ ${constStatements.join('\n')}
             [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
             [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
             [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
-            // loadOrderBook is hand-written on *Exchange in exchange.go: drop the transpiled
-            // trampoline + body pair, up to the next EXPORTED *Exchange method
+            // loadOrderBook is hand-written on *Exchange in exchange.go: drop the transpiled trampoline + body pair, up to the next EXPORTED *Exchange method
             [new RegExp(`func\\s+\\(this \\*Exchange\\)\\s+LoadOrderBook${GO_ASYNC_SUFFIX}\\([\\s\\S]*?(?=\\nfunc\\s+\\(this \\*Exchange\\)\\s+[A-Z])`, 'g'), ''],
             // safeBool/safeBool2/safeBoolN have hand-written *bool twins in exchange_safe.go:
             // drop the printer's `any` copies (a rename in Exchange.ts fails the build loudly)
@@ -13974,9 +11242,7 @@ ${constStatements.join('\n')}
     }
 
     goBaseFileHeader (): string {
-        return this.getGoImports(undefined).concat([
-            this.createGeneratedHeader().join('\n'),
-        ]).join("\n");
+        return this.getGoImports(undefined).concat([this.createGeneratedHeader().join('\n'),]).join("\n");
     }
 
     baseFileNilCompares (file: string): string {
@@ -13987,9 +11253,7 @@ ${constStatements.join('\n')}
         // PredictionExchange is the base for prediction-market exchanges; it lives in
         const goPredictionBase = './go/v4/exchange_prediction.go';
         // `registerOnly` writes nothing — it only captures predictionBaseMethodsTypes for this
-        if (registerOnly && this.predictionBaseMethodsTypes.length) {
-            return;
-        }
+        if (registerOnly && this.predictionBaseMethodsTypes.length) { return; }
         if (!registerOnly && skipUpToDateStage ('go', 'prediction base methods', force, [
             predictionBaseFile,
             './ts/src/base/Exchange.ts',
@@ -14000,9 +11264,7 @@ ${constStatements.join('\n')}
         const baseFile = this.transpileVirtualBaseFile (predictionBaseFile);
         // capture the signatures so createGoWrappers can emit prediction-typed wrappers for
         this.predictionBaseMethodsTypes = baseFile.methodsTypes || [];
-        if (registerOnly) {
-            return;
-        }
+        if (registerOnly) { return; }
         let baseClass = this.dispatchVirtualBaseCalls (baseFile.content);
         baseClass = this.regexAll (baseClass, [
             [/\=\snew\s/gm, "= "],
@@ -14044,11 +11306,8 @@ ${constStatements.join('\n')}
             const fileHeader = this.goBaseFileHeader ();
             // prediction exchanges live in package ccxtprediction and can only reach exported
             const shims = [
-                '',
-                'func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {',
-                '\treturn this.callEndpointAsync(endpointName, args...)',
-                '}',
-                '',
+                '', 'func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {',
+                '\treturn this.callEndpointAsync(endpointName, args...)', '}', '',
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
             // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
@@ -14064,9 +11323,7 @@ ${constStatements.join('\n')}
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
         // this file is a pure function of the exchange id lists in exchanges.json
-        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json' ], [ dynamicInstanceFile ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json' ], [ dynamicInstanceFile ])) { return; }
         const exchanges = ws ? exchangeIdsWs : (prediction ? predictionIds : ['Exchange'].concat(exchangeIds));
         const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
@@ -14116,16 +11373,12 @@ ${caseStatements.join('\n')}
         } finally {
             this.creatingTypedInterface = false;
         }
-        if (!WRAPPER_METHODS['Exchange']) {
-            throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
-        }
+        if (!WRAPPER_METHODS['Exchange']) { throw new Error('Exchange wrapper methods are not defined, please transpile base methods first'); }
         const exchanges = ['exchange'].concat(exchangeIds);
         const functionDecl = this.goCreateExchangeDecl (exchanges, (exchange) => (exchange === 'exchange' ? '&Exchange{}' : `New${capitalize(exchange)}(options)`), 'IExchange');
         const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
             const methodInfo = WRAPPER_METHODS['Exchange'][method];
-            if (!INTERFACE_METHODS.includes(method)) {
-                return '';
-            }
+            if (!INTERFACE_METHODS.includes(method)) { return ''; }
             return methodInfo.interface;
         }).filter(e => !!e);
 
@@ -14153,15 +11406,9 @@ type IExchange interface {
     // ----- WS specific ----- //
     createWsTypedInterfaceFile(force = true){
         // a pure function of the ws exchange id list in exchanges.json
-        if (skipUpToDateStage ('go', 'ws typed interface file', force, [ './exchanges.json' ], [ TYPED_WS_INTERFACE_FILE ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'ws typed interface file', force, [ './exchanges.json' ], [ TYPED_WS_INTERFACE_FILE ])) { return; }
 
-        const interfaceWs = [
-            'type IExchange interface {',
-            '\tccxt.IExchange',
-            '}'
-        ].join('\n');
+        const interfaceWs = ['type IExchange interface {', '\tccxt.IExchange', '}'].join('\n');
 
         const functionDecl = this.goCreateExchangeDecl (exchangeIdsWs, (exchange) => `New${capitalize(exchange)}(options)`, 'ccxt.IExchange');
 
@@ -14203,24 +11450,16 @@ ${caseStatements.join('\n')}
 
     async transpileWS(force = false, prediction = false) {
         // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
-        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
-            return;
-        }
+        if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) { return; }
         const tsFolder = prediction ? './ts/src/prediction/pro' : './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const scopedRun = inputExchanges.length > 0;
-        if (inputExchanges === undefined) {
-            inputExchanges = exchanges.ws;
-        }
-        if (prediction && (!inputExchanges || !inputExchanges.length)) {
-            inputExchanges = predictionWsIds;
-        }
+        if (inputExchanges === undefined) { inputExchanges = exchanges.ws; }
+        if (prediction && (!inputExchanges || !inputExchanges.length)) { inputExchanges = predictionWsIds; }
         const wsFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
         const options = { goFolder: wsFolder, exchanges:inputExchanges };
-        if (scopedRun) {
-            force = true; // a scoped run (CI `goTranspiler.ts <exchange> --ws`) always writes, same as the REST path
-        }
+        if (scopedRun) { force = true; } // a scoped run (CI `goTranspiler.ts <exchange> --ws`) always writes, same as the REST path
         // base methods are always needed to populate the wrapper metadata (WRAPPER_METHODS)
         // (when the gate skips it, requireBaseMethodsMetadata() re-reads it on demand)
         this.transpileBaseMethods(TS_BASE_FILE, true, force);
@@ -14228,8 +11467,7 @@ ${caseStatements.join('\n')}
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
         this.isPrediction = false;
         if (prediction) {
-            // the prediction ws package only emits the derived exchange classes,
-            // it reuses the dynamic-instance / typed-interface plumbing of package ccxtpro
+            // the prediction ws package only emits the derived exchange classes, it reuses the dynamic-instance / typed-interface plumbing of package ccxtpro
             log.bright.green ('Transpiled prediction ws exchanges successfully.');
             return;
         }
@@ -14242,20 +11480,16 @@ ${caseStatements.join('\n')}
     async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
         let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
-        const goFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
-            , tsFolder = prediction ? './ts/src/prediction' : './ts/src';
+        const goFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER, tsFolder = prediction ? './ts/src/prediction' : './ts/src';
 
         createFolderRecursively (goFolder);
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
-        if (transpilingSingleExchange) {
-            force = true; // when transpiling single exchange, we always force
-        }
+        if (transpilingSingleExchange) { force = true; } // when transpiling single exchange, we always force
         if (prediction) {
             if (exchanges.length) {
                 const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x));
                 if (!predictionOnly.length) {
-                    // a scoped regular-exchange run has no prediction work —
-                    // ts/src/prediction/ has no files for those ids
+                    // a scoped regular-exchange run has no prediction work — ts/src/prediction/ has no files for those ids
                     return;
                 }
             }
@@ -14265,8 +11499,7 @@ ${caseStatements.join('\n')}
         const options = { goFolder, exchanges };
 
         this.transpileBaseMethods (TS_BASE_FILE, false, force); // now we always need the baseMethods info
-        // the dynamic-instance / typed-interface files belong to package ccxt; the
-        // prediction package reuses them and must not regenerate them
+        // the dynamic-instance / typed-interface files belong to package ccxt; the prediction package reuses them and must not regenerate them
         if (!transpilingSingleExchange && !prediction) {
             this.transpilePredictionBaseMethods (undefined, false, force);
             this.createDynamicInstanceFile(false, false, force);
@@ -14284,20 +11517,13 @@ ${caseStatements.join('\n')}
         }
 
         if (prediction) {
-            // the prediction package needs its OWN DynamicallyCreateInstance (over
-            // prediction ids); the base one in package ccxt only knows regular ids
+            // the prediction package needs its OWN DynamicallyCreateInstance (over prediction ids); the base one in package ccxt only knows regular ids
             this.createDynamicInstanceFile (false, true, force);
             log.bright.green ('Transpiled prediction exchanges successfully.');
             return;
         }
 
-        if (baseOnly) {
-            return;
-        }
-
-        if (transpilingSingleExchange) {
-            return;
-        }
+        if (baseOnly || transpilingSingleExchange) { return; }
 
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
         await this.transpileEverything (force, false, false, true);
@@ -14309,13 +11535,10 @@ ${caseStatements.join('\n')}
         log.bright.green ('Transpiled successfully.');
     }
 
-    // default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w (Go often prefers 2).
-    // Override with CCXT_TRANSPILE_PROCESSES.
+    // default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w (Go often prefers 2). Override with CCXT_TRANSPILE_PROCESSES.
     goWorkerThreads () {
         const n = Number (process.env.CCXT_TRANSPILE_PROCESSES)
-        if (n > 0) {
-            return Math.floor (n)
-        }
+        if (n > 0) { return Math.floor (n) }
         return Math.max (1, Math.min (2, os.availableParallelism ()))
     }
 
@@ -14324,10 +11547,7 @@ ${caseStatements.join('\n')}
         // create worker
         const maxThreads = this.goWorkerThreads ()
         if (!this.piscina) {
-            this.piscina = new Piscina({
-                filename: resolve(__dirname, 'go-worker.ts'),
-                maxThreads,
-            });
+            this.piscina = new Piscina({ filename: resolve(__dirname, 'go-worker.ts'), maxThreads, });
         }
         const piscina = this.piscina;
 
@@ -14336,33 +11556,25 @@ ${caseStatements.join('\n')}
         const now = Date.now();
         // One file per task. `roots` is the FULL stage list on every task so each worker
         // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
-        for (const file of allFiles) {
-            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
-        }
+        for (const file of allFiles) { promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]})); }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
         // Order-preserving flatten: Promise.all is in input order; each task returns one file.
         const flatResult = [];
         for (const res of workerResult) {
-            for (const f of (res.files ?? [res.file])) {
-                flatResult.push(f);
-            }
+            for (const f of (res.files ?? [res.file])) { flatResult.push(f); }
             this.mergeWorkerGoComments(res.goComments);
         }
         return flatResult;
     }
 
     mergeWorkerGoComments (workerComments: any) {
-        if (!workerComments) {
-            return;
-        }
+        if (!workerComments) { return; }
         for (const exchangeName in workerComments) {
             const exchangeData = goComments[exchangeName] || (goComments[exchangeName] = {});
             const workerMethods = workerComments[exchangeName];
-            for (const methodName in workerMethods) {
-                exchangeData[methodName] = workerMethods[methodName];
-            }
+            for (const methodName in workerMethods) { exchangeData[methodName] = workerMethods[methodName]; }
         }
     }
 
@@ -14378,12 +11590,9 @@ ${caseStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ];
             for (const key in goTypeOptions) {
-                // emit param-renamed prediction overrides locally even though a same-named
-                // struct exists in base (e.g. FetchTickersOptionsStruct with Outcomes)
+                // emit param-renamed prediction overrides locally even though a same-named struct exists in base (e.g. FetchTickersOptionsStruct with Outcomes)
                 const isLocalOverride = predictionLocalOptionStructs.has(key);
-                if (!isLocalOverride && (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct'))) {
-                    continue;
-                }
+                if (!isLocalOverride && (ccxtNames.has(key + 'Options') || ccxtNames.has(key + 'OptionsStruct'))) { continue; }
                 // the option-struct strings end with a blank line of their own; drop it before
                 file.push(goTypeOptions[key].replace (/\n+$/, ''));
                 file.push('');
@@ -14392,12 +11601,9 @@ ${caseStatements.join('\n')}
             fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, normalizeGoFileHeader (file.join('\n')));
             return;
         }
-        const EXCHANGE_OPTIONS_FILE = ws
-            ? './go/v4/pro/exchange_wrapper_structs.go'
-            : './go/v4/exchange_wrapper_structs.go';
+        const EXCHANGE_OPTIONS_FILE = ws ? './go/v4/pro/exchange_wrapper_structs.go' : './go/v4/exchange_wrapper_structs.go';
 
-        // gofmt puts one blank line after the package clause, after the import decl and
-        // between the generated header comment and the first declaration
+        // gofmt puts one blank line after the package clause, after the import decl and between the generated header comment and the first declaration
         const file = [
             ws ? 'package ccxtpro' : 'package ccxt',
             '',
@@ -14428,23 +11634,15 @@ ${caseStatements.join('\n')}
 
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = [];
-        try {
-            ids = this.isPrediction ? (ws ? predictionWsIds : predictionIds) : (exchanges as any).ids;
-        } catch (e) {
-        }
+        try { ids = this.isPrediction ? (ws ? predictionWsIds : predictionIds) : (exchanges as any).ids; } catch (e) {}
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
         // local file list — must NOT clobber the module-level `exchanges` (the parsed
         let exchangeFiles: string[];
-        if (options.exchanges && options.exchanges.length) {
-            exchangeFiles = options.exchanges.map ((x:string) => x + pattern);
-        } else {
-            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
-        }
+        if (options.exchanges && options.exchanges.length) { exchangeFiles = options.exchanges.map ((x:string) => x + pattern); } else { exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts')))); }
 
-        // Only process exchanges that are in transpiledExchanges
-        // (the prediction exchanges have their own id list and skip this gate)
+        // Only process exchanges that are in transpiledExchanges (the prediction exchanges have their own id list and skip this gate)
         if (!this.isPrediction) {
             exchangeFiles = exchangeFiles.filter (file => {
                 const exchangeName = basename (file, pattern);
@@ -14464,13 +11662,9 @@ ${caseStatements.join('\n')}
                 ],
             };
         });
-        if (exchangeFiles.length < totalExchangeFiles) {
-            this.skippedUnchangedExchanges = true;
-        }
+        if (exchangeFiles.length < totalExchangeFiles) { this.skippedUnchangedExchanges = true; }
 
-        if (!exchangeFiles.length) {
-            return {};
-        }
+        if (!exchangeFiles.length) { return {}; }
 
         // transpile using webworker
         const allFilesPath = exchangeFiles.map ((file: string) => `${jsFolder}/${file}` );
@@ -14485,11 +11679,7 @@ ${caseStatements.join('\n')}
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, typedSections[idx]));
         // prediction packages always need their own option-structs file even with a single exchange.
-        if (this.skippedUnchangedExchanges) {
-            log.bright.cyan ('[go] Keeping exchange_wrapper_structs.go from the previous full run (incremental run, pass --force to regenerate)');
-        } else if (exchangeFiles.length > 1 || this.isPrediction) {
-            this.safeOptionsStructFile(ws);
-        }
+        if (this.skippedUnchangedExchanges) { log.bright.cyan ('[go] Keeping exchange_wrapper_structs.go from the previous full run (incremental run, pass --force to regenerate)'); } else if (exchangeFiles.length > 1 || this.isPrediction) { this.safeOptionsStructFile(ws); }
         return {};
     }
 
@@ -14501,9 +11691,7 @@ ${caseStatements.join('\n')}
             log.green ('[go] already emitted identical', (path as any).yellow, '- skipping rewrite');
             return false;
         }
-        if (repeated) {
-            this._lastWrittenContent[path] = content;
-        }
+        if (repeated) { this._lastWrittenContent[path] = content; }
         overwriteFileAndFolder (path, content);
         return true;
     }
@@ -14514,13 +11702,10 @@ ${caseStatements.join('\n')}
      * @returns A set of type and function names with braces.
      */
     extractTypeAndFuncNames(dirPath: string): Set<string> {
-        if (this._typeAndFuncNamesCache[dirPath]) {
-            return this._typeAndFuncNamesCache[dirPath];
-        }
+        if (this._typeAndFuncNamesCache[dirPath]) { return this._typeAndFuncNamesCache[dirPath]; }
         const results = new Set<string>([
-            'Precise', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO', 'TRUNCATE',
-            'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'toFixed', 'throwDynamicException', 'NewArrayCache',
-            'NewArrayCacheByTimestamp', 'NewArrayCacheBySymbolById', 'NewArrayCacheBySymbolBySide'
+            'Precise', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO', 'TRUNCATE', 'ROUND', 'ROUND_UP', 'ROUND_DOWN',
+            'toFixed', 'throwDynamicException', 'NewArrayCache', 'NewArrayCacheByTimestamp', 'NewArrayCacheBySymbolById', 'NewArrayCacheBySymbolBySide',
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -14579,11 +11764,7 @@ ${caseStatements.join('\n')}
             let result = '';
             for (let i = 0; i < segments.length; i++) {
                 const seg = segments[i];
-                if ((seg.length > 0) && ((seg[0] === '"') || (seg[0] === '`'))) {
-                    result += seg;
-                } else {
-                    result += seg.replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
-                }
+                if ((seg.length > 0) && ((seg[0] === '"') || (seg[0] === '`'))) { result += seg; } else { result += seg.replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`); }
             }
             return result;
         };
@@ -14595,8 +11776,7 @@ ${caseStatements.join('\n')}
                     const declarationMatch = line.match(/^(func(?: \(\w+ \*?\w+\))? \w+)\s*(\(.*)/);
                     if (declarationMatch) {
                         const declaration = declarationMatch[1];
-                        const decMatch = declaration + qualifyOutsideStrings(declarationMatch[2]);
-                        return decMatch
+                        return declaration + qualifyOutsideStrings(declarationMatch[2]);
                     }
                     return line;
                 }
@@ -14619,9 +11799,7 @@ ${caseStatements.join('\n')}
             content = content.replace (fnRegex, ((match: string, params: string, body: string) => {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
                 const returnExpr = returnExprs.find ((e) => returns.length === 1 && returns[0].trim ().replace (/\s+/g, ' ') === ('return ' + e));
-                if (returnExpr === undefined) {
-                    return match; // unexpected body shape: keep the transpiled `any` signature
-                }
+                if (returnExpr === undefined) { return match; } // unexpected body shape: keep the transpiled `any` signature
                 const returnIndent = (returns[0].match (/^[ \t]*/) as RegExpMatchArray)[0];
                 const wrapped = body.replace (returns[0], returnIndent + 'return SafeStringPtr(' + returnExpr + ')');
                 return 'func (this *BaseExchange) ' + method + '(' + params + ') *string {' + wrapped + '\n}';
@@ -14638,9 +11816,7 @@ ${caseStatements.join('\n')}
             const fnRegex = new RegExp ('func\\s+\\(this \\*(?!BaseExchange)(\\w+)\\)\\s+' + names[i] + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
             content = content.replace (fnRegex, ((match: string, receiver: string, params: string, body: string) => {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
-                if (!returns.length || (body.indexOf ('SafeStringPtr(') >= 0)) {
-                    return match;
-                }
+                if (!returns.length || (body.indexOf ('SafeStringPtr(') >= 0)) { return match; }
                 let wrapped = body;
                 for (let r = 0; r < returns.length; r++) {
                     const expr = returns[r].replace (/^[ \t]*return[ \t]+/, '');
@@ -14669,9 +11845,7 @@ ${caseStatements.join('\n')}
                 const open = match.indexOf ('{');
                 const body = match.substring (open + 1, match.length - 1);
                 const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => 'SafeStringPtr(' + expr + ')');
-                if ((scanned === undefined) || (scanned.total === 0)) {
-                    return match;
-                }
+                if ((scanned === undefined) || (scanned.total === 0)) { return match; }
                 return match.substring (0, open).replace (/\s+any\s*$/, ' *string ') + '{' + scanned.text + '}';
             }) as any);
         }
@@ -14683,13 +11857,9 @@ ${caseStatements.join('\n')}
         let depth = 0;
         for (let i = open; i < content.length; i++) {
             const c = content[i];
-            if (c === '{') {
-                depth += 1;
-            } else if (c === '}') {
+            if (c === '{') { depth += 1; } else if (c === '}') {
                 depth -= 1;
-                if (depth === 0) {
-                    return i;
-                }
+                if (depth === 0) { return i; }
             }
         }
         return -1;
@@ -14716,21 +11886,13 @@ ${caseStatements.join('\n')}
                 const head = body.substring (lineStart, i);
                 const isLiteral = /(^|[^\w.])func\s*\([^)]*\)/.test (head);
                 stack.push (isLiteral);
-                if (isLiteral) {
-                    literalOpen += 1;
-                }
+                if (isLiteral) { literalOpen += 1; }
             } else if (c === '}') {
-                if (!stack.length) {
-                    return undefined;
-                }
-                if (stack.pop ()) {
-                    literalOpen -= 1;
-                }
+                if (!stack.length) { return undefined; }
+                if (stack.pop ()) { literalOpen -= 1; }
             }
         }
-        if (stack.length) {
-            return undefined;
-        }
+        if (stack.length) { return undefined; }
         const lines = body.split ('\n');
         const out: string[] = [];
         const exprs: string[] = [];
@@ -14740,36 +11902,24 @@ ${caseStatements.join('\n')}
             const trimmed = line.trim ();
             if (!inLiteral[offset] && /^return([ \t]|$)/.test (trimmed)) {
                 let expr = trimmed.substring ('return'.length).trim ();
-                if (expr.length === 0) {
-                    return undefined;
-                }
+                if (expr.length === 0) { return undefined; }
                 // a multi-line expression (e.g. a map literal argument) ends where its delimiters balance;
                 // an expression that never balances leaves the whole method untyped
                 const depthOf = (text: string): number => {
                     let depth = 0;
                     for (let k = 0; k < text.length; k++) {
                         const c = text[k];
-                        if (c === '"' || c === '`' || c === "'") {
-                            k = goSkipLiteralText (text, k);
-                        } else if (c === '(' || c === '[' || c === '{') {
-                            depth += 1;
-                        } else if (c === ')' || c === ']' || c === '}') {
-                            depth -= 1;
-                        }
+                        if (c === '"' || c === '`' || c === "'") { k = goSkipLiteralText (text, k); } else if (c === '(' || c === '[' || c === '{') { depth += 1; } else if (c === ')' || c === ']' || c === '}') { depth -= 1; }
                     }
                     return depth;
                 };
                 while ((depthOf (expr) > 0) && (i + 1 < lines.length)) {
-                    if (/func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) {
-                        return undefined;
-                    }
+                    if (/func\s*\(/.test (lines[i]) && (lines[i].indexOf ('{', lines[i].search (/func\s*\(/)) < 0)) { return undefined; }
                     offset += lines[i].length + 1;
                     i += 1;
                     expr += '\n' + lines[i];
                 }
-                if (depthOf (expr) !== 0) {
-                    return undefined;
-                }
+                if (depthOf (expr) !== 0) { return undefined; }
                 const indent = line.substring (0, line.length - line.trimStart ().length);
                 out.push (indent + 'return ' + wrapper (expr));
                 exprs.push (expr);
@@ -14800,24 +11950,18 @@ ${caseStatements.join('\n')}
         let out = '';
         let cursor = 0;
         let match = headRegex.exec (content);
-        if (match === null) {
-            return content;
-        }
+        if (match === null) { return content; }
         while (match !== null) {
             const headStart = match.index;
             const open = content.indexOf ('{', headStart + match[0].length - 1);
             const close = (open < 0) ? -1 : this.goBraceClose (content, open);
-            if ((open < 0) || (close < 0)) {
-                return content; // unbalanced: keep the transpiled signature
-            }
+            if ((open < 0) || (close < 0)) { return content; } // unbalanced: keep the transpiled signature
             const body = content.substring (open + 1, close);
             let newBody = body;
             if (wrap) {
                 // a name bound once as `var x map[string]any` is already the map: MapTyped is the identity
                 const mapLocal = (expr: string) => {
-                    if ((typed !== 'MapTyped(') || (goType !== 'map[string]any') || !/^[A-Za-z_]\w*$/.test (expr)) {
-                        return false;
-                    }
+                    if ((typed !== 'MapTyped(') || (goType !== 'map[string]any') || !/^[A-Za-z_]\w*$/.test (expr)) { return false; }
                     const binds = (body.match (new RegExp ('(?<![\\w.])' + expr + '\\b[^\\n=]*:=|(?<![\\w.])var ' + expr + '\\b|func\\([^)\\n]*\\b' + expr + ' ', 'g')) ?? []).length;
                     const declared = new RegExp ('\\n[ \\t]*var ' + expr + ' map\\[string\\]any\\b').test (body);
                     return declared && (binds === 1);
@@ -14830,18 +11974,11 @@ ${caseStatements.join('\n')}
                             && ((body.match (new RegExp ('(?<![\\w.])' + expr + '\\b[^\\n=]*:=|(?<![\\w.])var ' + expr + '\\b', 'g')) ?? []).length === 1)));
                 const bare = (expr: string) => mapLocal (expr) || listLocal (expr) || ((typed === 'MapTyped(') && ((expr === 'nil') || /^this\.DerivedExchange\.Market\(\w+\)$/.test (expr)));
                 const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => bare (expr) ? expr : typed + expr + ')');
-                if ((scanned === undefined) || (scanned.total === 0)) {
-                    return content;
-                }
-                if ((accept !== undefined) && (!scanned.exprs.every (accept))) {
-                    return content;
-                }
+                if (((scanned === undefined) || (scanned.total === 0)) || ((accept !== undefined) && (!scanned.exprs.every (accept)))) { return content; }
                 newBody = scanned.text;
             } else {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
-                if ((returns.length !== 1) || (!accept (returns[0].trim ().replace (/\s+/g, ' ').replace (/^return /, '')))) {
-                    return content;
-                }
+                if ((returns.length !== 1) || (!accept (returns[0].trim ().replace (/\s+/g, ' ').replace (/^return /, '')))) { return content; }
             }
             const head = content.substring (headStart, open);
             out += content.substring (cursor, headStart) + head.replace (/\s+any\s*$/, ' ' + goType + ' ') + '{' + newBody;
@@ -14870,23 +12007,15 @@ ${caseStatements.join('\n')}
             [ 'BaseExchange', 'SafeMarket', (expr: string) => expr.length > 0, true ],
             [ 'BaseExchange', 'MarketOrNull', (expr: string) => (expr === 'nil') || /^this\.DerivedExchange\.Market\(symbol\)$/.test (expr), true ],
         ];
-        for (let i = 0; i < rows.length; i++) {
-            content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]);
-        }
+        for (let i = 0; i < rows.length; i++) { content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], rows[i][2], rows[i][3]); }
         return content;
     }
 
     // Venue overrides of the map accessors shadow the base method, so they get the same
     // `map[string]any` shape (every function-level return through MapTyped; fail closed).
     coerceTypedMapAccessorOverrides (content: string): string {
-        const rows: [string, string][] = [
-            [ 'Ndax', 'ParseOrderBook' ],
-            [ 'Binance', 'Market' ],
-            [ 'Hyperliquid', 'Market' ],
-        ];
-        for (let i = 0; i < rows.length; i++) {
-            content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true);
-        }
+        const rows: [string, string][] = [[ 'Ndax', 'ParseOrderBook' ], [ 'Binance', 'Market' ], [ 'Hyperliquid', 'Market' ],];
+        for (let i = 0; i < rows.length; i++) { content = this.retypeGoMapMethod (content, rows[i][0], rows[i][1], undefined, true); }
         // every exchange override of a base map accessor carries the base's map signature
         const overrides = content.match (/func\s+\(this \*\w+\)\s+(?:Currency|SafeCurrency|SafeMarket)\(/g) || [];
         for (let i = 0; i < overrides.length; i++) {
@@ -14907,61 +12036,35 @@ ${caseStatements.join('\n')}
             .replace (/func\s+\(this \*(\w+)\)\s+(HandleUntilOption)\(([^)]*)\)\s+(?:any|\[\]any)(\s+\{)/g, 'func (this *$1) $2($3) (map[string]any, map[string]any) {');
     }
 
-    // ------------------------------------------------------------------
-    // gofmt-compatible spacing of the arithmetic spliced into emitted Go
-    // ------------------------------------------------------------------
-    // go/printer prints a level-4/5 operator (`+ - * / % & | ^ << >>`) with a
-    // blank around it only at the top level of a statement: nodes.go picks a
-    // cutoff from the operator tree (walkBinary/cutoff) and drops both blanks
-    // when the operator precedence is below it. The same `"a" + "b"` is therefore
-    // spaced in `x := "a" + "b"` and compact in `Add(x, "a"+"b")` or `a[i+1]`.
-    // gofmt tracks the level over the Go AST it prints: 1 at the start of every
-    // statement, +1 for an argument list with more than one argument, +1 for an
-    // index expression, -1 inside parentheses (never below 1), and back to 1 for
-    // composite literal elements.
+    // gofmt-compatible spacing of the arithmetic spliced into emitted Go go/printer prints a level-4/5 operator (`+ - * / % & | ^ << >>`) with a blank around
+    // it only at the top level of a statement: nodes.go picks a cutoff from the operator tree (walkBinary/cutoff) and drops both blanks when the operator
+    // precedence is below it. The same `"a" + "b"` is therefore spaced in `x := "a" + "b"` and compact in `Add(x, "a"+"b")` or `a[i+1]`. gofmt tracks the level
+    // over the Go AST it prints: 1 at the start of every statement, +1 for an argument list with more than one argument, +1 for an index expression, -1 inside
+    // parentheses (never below 1), and back to 1 for composite literal elements.
     //
-    // `"\0"` is the one literal the printer cannot emit (a raw NUL byte is not
-    // valid Go source), so its replacement text is spliced into Go the printer has
+    // `"\0"` is the one literal the printer cannot emit (a raw NUL byte is not valid Go source), so its replacement text is spliced into Go the printer has
     // already produced and the level has to be read back from that text.
     goGofmtArithmeticDepth (content: string, index: number): number {
-        // every statement is printed indented, so the enclosing top-level
-        // declaration is the last line that starts in column 0
+        // every statement is printed indented, so the enclosing top-level declaration is the last line that starts in column 0
         let start = content.lastIndexOf ('\n', index - 1) + 1;
         while (start > 0) {
             const previousLineStart = content.lastIndexOf ('\n', start - 2) + 1;
             const previousLine = content.slice (previousLineStart, start - 1);
-            if (previousLine.length > 0 && previousLine[0] !== ' ' && previousLine[0] !== '\t') {
-                break;
-            }
+            if (previousLine.length > 0 && previousLine[0] !== ' ' && previousLine[0] !== '\t') { break; }
             start = previousLineStart;
         }
         const frames = [];
         for (let i = start; i < index; i++) {
             const char = content[i];
-            if (char === '"' || char === '\'' || char === '`') {
-                i = goSkipLiteralText (content, i);
-            } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-                i = goSkipCommentText (content, i);
-            } else if (char === '(' || char === '[' || char === '{') {
-                frames.push ({ kind: char, args: goCountFrameArgsText (content, i) });
-            } else if (char === ')' || char === ']' || char === '}') {
-                frames.pop ();
-            }
+            if (char === '"' || char === '\'' || char === '`') { i = goSkipLiteralText (content, i); } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) { i = goSkipCommentText (content, i); } else if (char === '(' || char === '[' || char === '{') { frames.push ({ kind: char, args: goCountFrameArgsText (content, i) }); } else if (char === ')' || char === ']' || char === '}') { frames.pop (); }
         }
         let depth = 1;
         for (let fi = 0; fi < frames.length; fi++) {
             const frame = frames[fi];
             if (frame.kind === '(') {
-                // a call prints its argument list one level deeper, but only when
-                // there is more than one argument
-                if (frame.args > 1) {
-                    depth += 1;
-                }
-            } else if (frame.kind === '[') {
-                depth += 1;
-            } else if (frame.kind === '{') {
-                depth = 1;
-            }
+                // a call prints its argument list one level deeper, but only when there is more than one argument
+                if (frame.args > 1) { depth += 1; }
+            } else if (frame.kind === '[') { depth += 1; } else if (frame.kind === '{') { depth = 1; }
         }
         return depth;
     }
@@ -15016,28 +12119,16 @@ ${caseStatements.join('\n')}
             const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
             // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
             const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat ((fn.includes (' := GetArg(') && fn.match (/(\w+) := GetArg\(/g)) || []);
-            for (const param of paramMatches) {
-                anyLocals.add (param.split (' ')[0]);
-            }
+            for (const param of paramMatches) { anyLocals.add (param.split (' ')[0]); }
             const typedLocals = new Set ((fn.match (/var (\w+) \*\w+\b/g) || []).map ((d: string) => d.split (' ')[1]));
-            if (!anyLocals.size) {
-                return fn;
-            }
+            if (!anyLocals.size) { return fn; }
             // DerefScalar() is only load-bearing for the reads that can see the pointer (raw
             const wrapLines = new Set<number> ();
-            fn.split ('\n').forEach ((line, index) => {
-                if (line.indexOf ('DerefScalar(') >= 0) {
-                    wrapLines.add (index);
-                }
-            });
+            fn.split ('\n').forEach ((line, index) => { if (line.indexOf ('DerefScalar(') >= 0) { wrapLines.add (index); } });
             // the proof is only consulted for locals a wrap is removed from or withheld on
             const candidates = new Set<string> ();
-            for (const m of fn.matchAll (/var (\w+) any = (?:ccxt\.)?DerefScalar\(/g)) {
-                candidates.add (m[1]);
-            }
-            for (const m of fn.matchAll (safeReassignRx)) {
-                candidates.add (m[2]);
-            }
+            for (const m of fn.matchAll (/var (\w+) any = (?:ccxt\.)?DerefScalar\(/g)) { candidates.add (m[1]); }
+            for (const m of fn.matchAll (safeReassignRx)) { candidates.add (m[2]); }
             const proofNames = [ ...anyLocals ].filter ((n) => candidates.has (n));
             const redundantWraps = proofNames.length ? goDerefWrapRedundantLocals (fn, wrapLines, proofNames) : new Set<string> ();
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
@@ -15062,9 +12153,7 @@ ${caseStatements.join('\n')}
         const qual = (isWs || isPrediction) ? 'ccxt.' : '';
         content = goTypedDictNarrowers (content, qual);
         const comparePasses = [ goBoxedPointerNilCompares, goTypedNativeNilCompares, goProvenParamNativeNilCompares, goAnyLocalNativeNilCompares, goStringLiteralNativeCompares ];
-        for (const pass of comparePasses) {
-            content = pass (content, qual + 'IsEqual(');
-        }
+        for (const pass of comparePasses) { content = pass (content, qual + 'IsEqual('); }
         content = goNativeEquality (content);
         content = goSafeBoolLiteralDefaultDeref (content);
         content = goTypedShapeHelpers (content, qual);
@@ -15114,9 +12203,7 @@ ${caseStatements.join('\n')}
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
 
-        if (isExtended) {
-            content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`);
-        }
+        if (isExtended) { content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`); }
 
         // prediction cores embed BaseExchange directly (independent of the concrete Exchange)
         const baseField = this.isPrediction ? 'BaseExchange' : 'Exchange';
@@ -15169,9 +12256,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const go  = this.createGoExchange (extensionlessName, goResult, ws, typedSection);
 
-        if (goFolder) {
-            overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);
-        }
+        if (goFolder) { overwriteFileAndFolder (`${goFolder}/${goFilename}`, go); }
     }
 
     // The ws cache test files are split on their separator comments and re-joined: indent each
@@ -15181,35 +12266,24 @@ func (this *${className}) Init(userConfig map[string]any) {
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim () === separator) {
                 let j = i + 1;
-                while ((j < lines.length) && (lines[j].trim () === '')) {
-                    j++;
-                }
+                while ((j < lines.length) && (lines[j].trim () === '')) { j++; }
                 const next = (j < lines.length) ? lines[j] : '';
                 const indent = next.match (/^[ \t]*/);
                 lines[i] = (indent ? indent[0] : '') + separator;
-            } else if (lines[i].trim () === '') {
-                lines[i] = '';
-            }
+            } else if (lines[i].trim () === '') { lines[i] = ''; }
         }
         return lines.join ('\n');
     }
 
     // one hand-assembled test file: `transform` turns the transpiled source into the file body
     transpileGoTestFile (jsFile: string, goFile: string, stage: string, force: boolean, logLabel: string, pkg: string, transform: (content: string) => string) {
-        if (skipUpToDateStage ('go', stage, force, testStageInputs (), [ goFile ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', stage, force, testStageInputs (), [ goFile ])) { return; }
 
         log.magenta (logLabel, (jsFile as any).yellow);
 
         const content = transform (this.transpiler.transpileGoByPath(jsFile).content).trim ();
 
-        const file = [
-            pkg,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            content,
-        ].join('\n') + '\n';
+        const file = [pkg, '', this.createGeneratedHeader().join('\n'), content,].join('\n') + '\n';
 
         log.magenta ('→', (goFile as any).yellow);
 
@@ -15226,9 +12300,7 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // the `.ts` sources of a test folder, extension stripped
-    listTsTestNames (folder: string): string[] {
-        return fs.readdirSync (folder).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-    }
+    listTsTestNames (folder: string): string[] { return fs.readdirSync (folder).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', '')); }
 
     // the harness and exchange tests call through ccxt.ICoreExchange; the symbol-based methods trimmed
     // from it assert to the per-method interface (ccxt.I<Method>) for exactly the method called
@@ -15275,9 +12347,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
     async transpileBaseTests (outDir: string, force = true) {
 
-        const baseFolders = {
-            ts: './ts/src/test/base',
-        };
+        const baseFolders = { ts: './ts/src/test/base', };
 
         const baseFunctionTests = this.listTsTestNames (baseFolders.ts);
         // `// NO_AUTO_TRANSPILE` sources are emitted by their own stage (test.cryptography)
@@ -15285,9 +12355,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         // the accumulator feeds createFunctionsMapFile(), which rewrites the whole FunctionsMap —
         eligible.forEach ((testName: string) => goTests.push (capitalize (testName)));
 
-        if (skipUpToDateStage ('go', 'base tests', force, testStageInputs (), eligible.map ((testName: string) => `${outDir}/${testName}.go`))) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'base tests', force, testStageInputs (), eligible.map ((testName: string) => `${outDir}/${testName}.go`))) { return; }
 
         // route the ~61 sources through the worker pool instead of transpiling them one by
         const paths = eligible.map ((testName: string) => `${baseFolders.ts}/${testName}.ts`);
@@ -15326,8 +12394,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // the markers sit inside `// ` comments: drop the marker text and the space
                 // the comment left in front of it, so no `// ` trailing-space line survives
                 [ /[ \t]*\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
-                // Match ArrayCache variables and cast to appropriate type based on variable name
-                // Order matters: check most specific types first
+                // Match ArrayCache variables and cast to appropriate type based on variable name Order matters: check most specific types first
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
                 [/(\w*ArrayCacheByTimestamp\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheByTimestamp).Hashmap'],
                 [/(\w*ArrayCacheBySymbolById\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
@@ -15399,12 +12466,7 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     async transpileExchangeTests(force = true){
-        const baseFolders = {
-            ts: './ts/src/test/Exchange',
-            tsBase: './ts/src/test/Exchange/base',
-            goBase: './go/tests/base',
-            go: './go/tests/base',
-        };
+        const baseFolders = { ts: './ts/src/test/Exchange', tsBase: './ts/src/test/Exchange/base', goBase: './go/tests/base', go: './go/tests/base', };
 
         // ignore throttle test for now
         const baseTests = this.listTsTestNames (baseFolders.tsBase).filter (filename => filename !== 'test.throttle');
@@ -15412,22 +12474,16 @@ func (this *${className}) Init(userConfig map[string]any) {
         const tests = this.goTestEntries (baseTests, baseFolders.tsBase, baseFolders.goBase).concat (this.goTestEntries (exchangeTests, baseFolders.ts, baseFolders.go));
 
         const testNames = tests.map (test => test.name);
-        // push before the gate: createFunctionsMapFile() rewrites the whole map from this
-        // accumulator, so a skipped stage must still contribute its names
+        // push before the gate: createFunctionsMapFile() rewrites the whole map from this accumulator, so a skipped stage must still contribute its names
         testNames.forEach (test => goTests.push(test));
 
-        if (skipUpToDateStage ('go', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.goFile)))) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.goFile)))) { return; }
 
         const baseTestsOnly = process.argv.includes ('--baseTests');
         if (baseTestsOnly) return;
 
         // remove above later debug only
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'goFile': BASE_TESTS_FILE,
-        });
+        this.transpileMainTest({ 'tsFile': './ts/src/test/tests.ts', 'goFile': BASE_TESTS_FILE, });
         await this.transpileAndSaveGoExchangeTests (tests);
     }
 
@@ -15442,9 +12498,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         const tests = this.goTestEntries (wsTests, baseFolders.ts, baseFolders.go);
         wsTests.forEach (test => goWsTests.push(test));
 
-        if (skipUpToDateStage ('go', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.goFile))) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.goFile))) { return; }
 
         const baseTestsOnly = process.argv.includes ('--baseTests');
         if (baseTestsOnly) return;
@@ -15493,10 +12547,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 '',
                 this.createGeneratedHeader().join('\n'),
             ];
-            const go = [
-                ...fileHeaders,
-                contentIndentend,
-            ].join('\n');
+            const go = [...fileHeaders, contentIndentend,].join('\n');
             overwriteFileAndFolder (tests[idx].goFile, go);
         });
     }
@@ -15516,16 +12567,12 @@ func (this *${className}) Init(userConfig map[string]any) {
 
     createFunctionsMapFile(force = true) {
         // derived purely from the test source listings collected above
-        if (skipUpToDateStage ('go', 'functions map file', force, testStageInputs (), [ `${BASE_TESTS_FOLDER}/test.functions.go` ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'functions map file', force, testStageInputs (), [ `${BASE_TESTS_FOLDER}/test.functions.go` ])) { return; }
         // an async test transpiles to `Test<Name>Async` (channel-returning); the map keeps the
         // unified method name as key and points at whichever symbol the test file declares
         const goTestSymbol = (test: string, methodName: string): string => {
             const goFile = `${BASE_TESTS_FOLDER}/test.${methodName}.go`;
-            if (fs.existsSync (goFile) && fs.readFileSync (goFile, 'utf8').includes (`func ${test}${GO_ASYNC_SUFFIX}(`)) {
-                return test + GO_ASYNC_SUFFIX;
-            }
+            if (fs.existsSync (goFile) && fs.readFileSync (goFile, 'utf8').includes (`func ${test}${GO_ASYNC_SUFFIX}(`)) { return test + GO_ASYNC_SUFFIX; }
             return test;
         };
         // gofmt aligns every consecutive single-line entry of a composite literal to the widest key;
@@ -15533,12 +12580,8 @@ func (this *${className}) Init(userConfig map[string]any) {
         const mapEntries = (tests: string[]): string[] => {
             const entries: string[] = [];
             for (let test of tests) {
-                if ((test === 'test.sharedMethods') || (test === 'Tests.init')) {
-                    continue;
-                }
-                if (test === 'test.ohlcv') {
-                    test = 'test.OHLCV';
-                }
+                if ((test === 'test.sharedMethods') || (test === 'Tests.init')) { continue; }
+                if (test === 'test.ohlcv') { test = 'test.OHLCV'; }
                 const methodName = test.replace('Test.', '').replace('test.', '');
                 entries.push (`\t"${methodName}": ${goTestSymbol ('Test' + capitalize(methodName), methodName)}`);
             }
@@ -15564,9 +12607,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         const GO_TYPES_FILE_PRO = "./go/v4/pro/exchange_types.go";
 
         // mirrors the hand-written go/v4/exchange_types.go into the pro package
-        if (skipUpToDateStage ('go', 'pro types', force, [ GO_TYPES_FILE ], [ GO_TYPES_FILE_PRO ])) {
-            return;
-        }
+        if (skipUpToDateStage ('go', 'pro types', force, [ GO_TYPES_FILE ], [ GO_TYPES_FILE_PRO ])) { return; }
 
         const output: string[] = [
             'package ccxtpro',
@@ -15580,7 +12621,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         const lines = file.split(/\r?\n/);
 
         const structRegex = /^type\s+(\w+)\s+struct\s*{/;
-    
+
         for (const line of lines) {
             const structMatch = line.match(structRegex);
 
@@ -15592,7 +12633,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, normalizeGoFileHeader (alignGoTrailingComments(output.join("\n")) + "\n")), "utf8");
     }
-    
+
 }
 
 // Module-level accumulators that a fresh process used to zero for us. --rest-and-ws runs
@@ -15616,19 +12657,6 @@ function goSafeListSliceSelfTest (ok: SelfTestOk): void {
     balKeep.forEach ((b, i) => ok (goSafeBalanceSelfRebind (f (b)) === f (b), 'balance negative ' + i));
 }
 
-// Table-driven self-test helper: checks `[input, expectedSubstring | null (unchanged), message]` cases
-function goCheckCases (ok: SelfTestOk, pass: (s: string) => string, wrap: (body: string) => string, cases: [ string, string | null, string ][]): void {
-    for (const [ body, want, msg ] of cases) {
-        const input = wrap (body);
-        const got = pass (input);
-        if (want === null) {
-            ok (got === input, msg + ': ' + got);
-        } else {
-            ok (got.includes (want), msg + ': ' + got);
-        }
-    }
-}
-
 // one runner for the ok-callback self-test cases: collects every failed message under the case's prefix
 // (a `threw` case also reports an exception as one `<prefix> threw: ` problem instead of aborting the run)
 function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: boolean): string[] {
@@ -15636,9 +12664,7 @@ function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: bo
     try {
         test ((condition, message) => { if (!condition) { problems.push (prefix + message); } });
     } catch (e) {
-        if (!threw) {
-            throw e;
-        }
+        if (!threw) { throw e; }
         problems.push (prefix.replace (/: $/, ' threw: ') + e.message);
     }
     return problems;
@@ -15693,8 +12719,7 @@ async function runMain () {
         return;
     }
     const ws = process.argv.includes ('--ws');
-    // bare prediction-only ids (e.g. `goTranspiler.ts kalshi`) auto-route to the
-    // prediction namespace so scoped CI steps don't need to know it
+    // bare prediction-only ids (e.g. `goTranspiler.ts kalshi`) auto-route to the prediction namespace so scoped CI steps don't need to know it
     const cliExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every (x => predictionIds.includes (x) && !exchangeIds.includes (x));
     const prediction = process.argv.includes ('--prediction') || allArePredictionOnly;
@@ -15704,12 +12729,8 @@ async function runMain () {
     const force = process.argv.includes ('--force');
     const baseClassOnly = process.argv.includes ('--baseClass')
     const exchange = process.argv.includes ('--exchange');
-    if (exchange) {
-        transpiledExchanges = [ exchange ];
-    }
-    if (prediction) {
-        transpiledExchanges = predictionIds;
-    }
+    if (exchange) { transpiledExchanges = [ exchange ]; }
+    if (prediction) { transpiledExchanges = predictionIds; }
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     log.bright.green ({ force });
     // single-process REST+WS (default via npm run transpileGO / CI): keeps the one
@@ -15724,25 +12745,17 @@ async function runMain () {
             if (restAndWs) {
                 await transpiler.transpileEverything (force, false, examples, prediction);
                 // module-level accumulators dumped into exchange_wrapper_structs.go: the ws stage emits only ws structs
-                for (const k of Object.keys (goTypeOptions)) {
-                    delete goTypeOptions[k];
-                }
+                for (const k of Object.keys (goTypeOptions)) { delete goTypeOptions[k]; }
                 baseGoTypeOptionNames.clear ();
                 predictionLocalOptionStructs.clear ();
             }
             const predictionWsOnly = !restAndWs && prediction;
-            if (!predictionWsOnly) {
-                await transpiler.transpileWS (force);
-            }
+            if (!predictionWsOnly) { await transpiler.transpileWS (force); }
             if (predictionWsOnly || !cliExchanges.length) {
                 // full ws builds also transpile the prediction ws exchanges
                 await transpiler.transpileWS (force, true);
             }
-        } else if (test || baseTestsOnly) {
-            await transpiler.transpileTests ();
-        } else {
-            await transpiler.transpileEverything (force, false, examples, prediction);
-        }
+        } else if (test || baseTestsOnly) { await transpiler.transpileTests (); } else { await transpiler.transpileEverything (force, false, examples, prediction); }
     } finally {
         await transpiler.destroy ();
     }
@@ -15750,17 +12763,13 @@ async function runMain () {
 
 // (method, parameter) pairs whose every caller passes untyped nil or a value that is never a typed
 // nil (decoded JSON, literals, non-nil maps), so IsEqual(p, nil) is `p == nil`
-const GO_UNTYPED_NIL_PARAMS: { [method: string]: string[] } = {
-    'HandleErrors': [ 'response' ],
-};
+const GO_UNTYPED_NIL_PARAMS: { [method: string]: string[] } = { 'HandleErrors': [ 'response' ], };
 
 // Producers whose every Go return path is a two-element []any literal (or a call to another entry).
 const GO_TUPLE_PAIR_PRODUCERS: string[] = [
-    'HandleNetworkCodeAndParams', 'HandleWithdrawTagAndParams', 'HandlePostOnly',
-    'HandleParamString', 'HandleParamString2', 'HandleParamInteger', 'HandleParamInteger2', 'HandleParamBool', 'HandleParamBool2',
-    'HandleOptionAndParams', 'HandleOptionAndParams2',
-    'HandleOptionBoolAndParamsNullable', 'HandleOptionBoolAndParams2Nullable',
-    'HandleOptionIntegerAndParamsNullable', 'HandleOptionIntegerAndParams2Nullable',
+    'HandleNetworkCodeAndParams', 'HandleWithdrawTagAndParams', 'HandlePostOnly', 'HandleParamString', 'HandleParamString2', 'HandleParamInteger',
+    'HandleParamInteger2', 'HandleParamBool', 'HandleParamBool2', 'HandleOptionAndParams', 'HandleOptionAndParams2', 'HandleOptionBoolAndParamsNullable',
+    'HandleOptionBoolAndParams2Nullable', 'HandleOptionIntegerAndParamsNullable', 'HandleOptionIntegerAndParams2Nullable',
 ];
 // elements every return path stores already derefScalar-invariant (a GetValue/Omit result, a bool
 // literal, a non-nil map), so a bare `x := GetValue(h, k)` reads the same as `x := h[k]`
@@ -15772,9 +12781,7 @@ const GO_TUPLE_PLAIN_ELEMENTS: { [producer: string]: string[] } = {
 // consumers that apply derefScalar to their argument first, so GetValue's own deref is redundant
 const GO_TUPLE_DEREF_CONSUMERS: string[] = [ 'MapTyped', 'ListTyped', 'SafeStringPtr', 'SafeBoolPtr', 'Float64PtrTyped' ];
 
-if (isMainEntry (import.meta.url)) {
-    await runMain ();
-}
+if (isMainEntry (import.meta.url)) { await runMain (); }
 
 export function goProvenParamNativeNilCompares (content: string, isEqualFn: string): string {
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
@@ -15786,9 +12793,7 @@ export function goProvenParamNativeNilCompares (content: string, isEqualFn: stri
             const declared = new RegExp ('(?:^|,\\s*)' + name + ' any(?:,|$)').test (sig[2]);
             // any write, address-take, redeclaration or closure parameter of the name keeps the helper
             const rebound = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*(?::=|=[^=])|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bvar ' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
-            if (!declared || rebound) {
-                continue;
-            }
+            if (!declared || rebound) { continue; }
             fn = fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + name + ', nil\\)', 'g'), ((_m: string, not: string) => '(' + name + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
         }
         return fn;
@@ -15816,48 +12821,28 @@ function goProvenParamNilSelfTest (ok: SelfTestOk): void {
 function goAsyncPairProducerInFile (content: string, masked: string, receiver: string, method: string): boolean {
     const body = method.charAt (0).toLowerCase () + method.slice (1) + 'Body';
     const wrapper = new RegExp ('\\nfunc \\(this \\*' + receiver + '\\) ' + method + 'Async\\([^\\n]*\\) <-chan any \\{\\n\\s*ch := make\\(chan any, 1\\)\\n\\s*go this\\.' + body + '\\(ch(?:, [^\\n]*)?\\)\\n\\s*return ch\\n\\}\\n');
-    if (!wrapper.test (masked) || (masked.split ('func (this *' + receiver + ') ' + method + 'Async(').length !== 2)) {
-        return false;
-    }
+    if (!wrapper.test (masked) || (masked.split ('func (this *' + receiver + ') ' + method + 'Async(').length !== 2)) { return false; }
     const start = masked.indexOf ('\nfunc (this *' + receiver + ') ' + body + '(ch chan any');
-    if ((start < 0) || (masked.split (') ' + body + '(').length !== 2)) {
-        return false;
-    }
+    if ((start < 0) || (masked.split (') ' + body + '(').length !== 2)) { return false; }
     const end = masked.indexOf ('\n}\n', start);
     const lines = masked.substring (start + 1, end + 2).split ('\n');
-    if (content.substring (start + 1, end + 2).indexOf ('panic("break")') >= 0) {
-        return false;
-    }
-    if ((lines[1].trim () !== 'defer close(ch)') || (lines[2].trim () !== 'defer ReturnPanicError(ch)')) {
-        return false;
-    }
+    if ((content.substring (start + 1, end + 2).indexOf ('panic("break")') >= 0) || ((lines[1].trim () !== 'defer close(ch)') || (lines[2].trim () !== 'defer ReturnPanicError(ch)'))) { return false; }
     const { 'blocks': blocks } = goTextBlocks (lines);
     const inLiteral = (k: number) => blocks.some ((b: any) => (b.depth > 1) && (b.open < k) && (k <= b.close) && /\bfunc\s*\(/.test (lines[b.open]));
     const pairSend = /^\s*ch <- \[\]any\{[^{}(),]+(?:\([^(){}]*\))?, [^{}(),]+\}$/;
     let last = '';
     for (let k = 3; k < lines.length - 1; k++) {
         const line = lines[k];
-        if (/\bgo\b|\bch\b(?!\s*<-\s*\[\]any\{)/.test (line) && !pairSend.test (line)) {
-            return false;
-        }
-        if (/\bch\s*<-/.test (line) && (!pairSend.test (line) || inLiteral (k))) {
-            return false;
-        }
-        if (/\breturn\b/.test (line) && !inLiteral (k) && ((line.trim () !== 'return nil') || !pairSend.test (last))) {
-            return false;
-        }
-        if (line.trim () !== '') {
-            last = line;
-        }
+        if ((/\bgo\b|\bch\b(?!\s*<-\s*\[\]any\{)/.test (line) && !pairSend.test (line)) || (/\bch\s*<-/.test (line) && (!pairSend.test (line) || inLiteral (k)))) { return false; }
+        if (/\breturn\b/.test (line) && !inLiteral (k) && ((line.trim () !== 'return nil') || !pairSend.test (last))) { return false; }
+        if (line.trim () !== '') { last = line; }
     }
     return (last.trim () === 'return nil') || /^\s*panic\(/.test (last);
 }
 
 // `C(GetValue(h, 0|1))` -> `C(h[0|1])` for `var h []any = ListTyped(PanicOnError((<-this.<m>Async(...))))`, <m> proven above.
 function nativeAsyncTupleHolderReads (content: string): string {
-    if (content.indexOf ('Async(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('Async(') < 0) { return content; }
     const lines = content.split ('\n');
     const maskedLines = goMaskGoCode (content).split ('\n');
     const masked = maskedLines.join ('\n');
@@ -15866,53 +12851,37 @@ function nativeAsyncTupleHolderReads (content: string): string {
     const proven = new Map<string, boolean> ();
     let changed = false;
     for (let index = 0; index < lines.length; index++) {
-        if (maskedLines[index].indexOf ('GetValue(') < 0) {
-            continue;
-        }
+        if (maskedLines[index].indexOf ('GetValue(') < 0) { continue; }
         lines[index] = lines[index].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
             if ((maskedLines[index].substr (offset, match.length) !== match) || (offset > 0 && /[\w.]$/.test (maskedLines[index].substring (0, offset)) && !/ccxt\.$/.test (maskedLines[index].substring (0, offset)))) {
                 return match;
             }
             const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
             const recv = (fn === undefined) ? null : /^func \(this \*(\w+)\) /.exec (maskedLines[fn.open]);
-            if (recv === null) {
-                return match;
-            }
+            if (recv === null) { return match; }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
             const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], holder);
-            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
-                return match;
-            }
+            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) { return match; }
             // the printer binds a proven async []any receive to `<holder>Recv`: `<holder>Recv, _ := PanicOnError((<-this.<m>Async(..))).([]any)`
             const via = new RegExp ('^\\s*var ' + holder + ' \\[\\]any = (' + holder + 'Recv\\d*)$').exec (decl.line);
             const viaLine = (via === null) ? undefined : maskedFunc.substring (0, decl.index).split ('\n').slice (-2)[0];
             const init = (via === null)
                 ? new RegExp ('^\\s*var ' + holder + ' \\[\\]any = (?:ccxt\\.)?ListTyped\\((?:ccxt\\.)?PanicOnError\\(\\(<-this\\.(\\w+)Async\\([^\\n]*\\)\\)\\)\\)$').exec (decl.line)
                 : new RegExp ('^\\s*' + via[1] + ', _ := (?:ccxt\\.)?PanicOnError\\(\\(<-this\\.(\\w+)Async\\([^\\n]*\\)\\)\\)\\.\\(\\[\\]any\\)$').exec (viaLine ?? '');
-            if (init === null) {
-                return match;
-            }
+            if (init === null) { return match; }
             const key = recv[1] + '.' + init[1];
-            if (!proven.has (key)) {
-                proven.set (key, goAsyncPairProducerInFile (content, masked, recv[1], init[1]));
-            }
-            if (!proven.get (key)) {
-                return match;
-            }
+            if (!proven.has (key)) { proven.set (key, goAsyncPairProducerInFile (content, masked, recv[1], init[1])); }
+            if (!proven.get (key)) { return match; }
             let declLine = -1;
             for (let k = fn.open + 1; k < fn.close; k++) {
                 if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (maskedLines[k])) {
                     declLine = k;
                     continue;
                 }
-                if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) {
-                    return match;
-                }
+                if (goTextWritesName (maskedLines[k], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (maskedLines[k])) { return match; }
             }
             const declBlock = (declLine < 0) ? undefined : goTextEnclosingBlock (blocks, declLine);
-            if ((declLine < 0) || (declLine >= index) || (declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) {
-                return match;
-            }
+            if ((declLine < 0) || (declLine >= index) || (declBlock === undefined) || !((declBlock.open < index) && (index <= declBlock.close))) { return match; }
             changed = true;
             return consumer + '(' + holder + '[' + slot + '])';
         });
@@ -15922,42 +12891,26 @@ function nativeAsyncTupleHolderReads (content: string): string {
 
 // `var h []any = ListTyped(r.Value)` after `r := <-promiseAll(P)` with P a `[]any{..}` literal holds exactly len(P) results,
 function goIfElseArmAppends (masked: string[], blocks: any[], blk: any, name: string): number {
-    if (!/^\s*if .*\{$/.test (masked[blk.open]) || !/^\s*\}$/.test (masked[blk.close])) {
-        return 0;
-    }
+    if (!/^\s*if .*\{$/.test (masked[blk.open]) || !/^\s*\}$/.test (masked[blk.close])) { return 0; }
     const append = new RegExp ('^\\s*' + name + ' = append\\(' + name + ', ');
     let elseLine = -1;
     for (let q = blk.open + 1; q < blk.close; q++) {
         if ((goTextEnclosingBlock (blocks, q) === blk) && /^\s*\}\s*else/.test (masked[q])) {
-            if ((elseLine >= 0) || !/^\s*\} else \{$/.test (masked[q])) {
-                return 0;
-            }
+            if ((elseLine >= 0) || !/^\s*\} else \{$/.test (masked[q])) { return 0; }
             elseLine = q;
         }
     }
-    if (elseLine < 0) {
-        return 0;
-    }
+    if (elseLine < 0) { return 0; }
     let before = 0;
     let after = 0;
-    for (let q = blk.open + 1; q < blk.close; q++) {
-        if ((goTextEnclosingBlock (blocks, q) === blk) && append.test (masked[q])) {
-            if (q < elseLine) {
-                before++;
-            } else {
-                after++;
-            }
-        }
-    }
+    for (let q = blk.open + 1; q < blk.close; q++) { if ((goTextEnclosingBlock (blocks, q) === blk) && append.test (masked[q])) { if (q < elseLine) { before++; } else { after++; } } }
     return Math.min (before, after);
 }
 
 // shared skeleton of the promiseAll holder passes: visits each `var h []any = ListTyped(r.Value)` inside a function
 type GoPromiseAllHolder = { lines: string[], masked: string[], blocks: any[], d: number, holder: string, res: string, fn: any, declBlock: any };
 function goPromiseAllEachHolder (content: string, visit: (h: GoPromiseAllHolder) => boolean): string {
-    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
-        return content;
-    }
+    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) { return content; }
     const lines = content.split ('\n');
     const masked = goMaskGoCode (content).split ('\n');
     const { 'blocks': blocks } = goTextBlocks (masked);
@@ -15966,9 +12919,7 @@ function goPromiseAllEachHolder (content: string, visit: (h: GoPromiseAllHolder)
         const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
         const fn = (decl === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
         const declBlock = (decl === null) ? undefined : goTextEnclosingBlock (blocks, d);
-        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) {
-            continue;
-        }
+        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) { continue; }
         changed = visit ({ lines, masked, blocks, d, 'holder': decl[1], 'res': decl[2], fn, declBlock }) || changed;
     }
     return changed ? lines.join ('\n') : content;
@@ -15977,20 +12928,12 @@ function goPromiseAllEachHolder (content: string, visit: (h: GoPromiseAllHolder)
 function goPromiseAllSlotReads (content: string): string {
     const literalArity = (text: string): number => {
         const lit = /^(?:ccxt\.)?\[\]any\{([\s\S]*)\}$/.exec (text.trim ());
-        if (lit === null) {
-            return -1;
-        }
+        if (lit === null) { return -1; }
         let depth = 0;
         let count = (lit[1].trim () === '') ? 0 : 1;
         for (let i = 0; i < lit[1].length; i++) {
             const c = lit[1][i];
-            if ((c === '(') || (c === '[') || (c === '{')) {
-                depth++;
-            } else if ((c === ')') || (c === ']') || (c === '}')) {
-                depth--;
-            } else if ((c === ',') && (depth === 0)) {
-                count++;
-            }
+            if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; } else if ((c === ',') && (depth === 0)) { count++; }
         }
         return ((depth === 0) && (lit[1].trim ().slice (-1) !== ',')) ? count : -1;
     };
@@ -16002,15 +12945,9 @@ function goPromiseAllSlotReads (content: string): string {
             let depth = 0;
             for (let q = j; q < limit; q++) {
                 const part = (q === j) ? first : masked[q];
-                if (q > j) {
-                    text += '\n' + part;
-                }
-                for (const c of part) {
-                    depth += ('([{'.indexOf (c) >= 0 ? 1 : 0) - (')]}'.indexOf (c) >= 0 ? 1 : 0);
-                }
-                if (depth <= 0) {
-                    break;
-                }
+                if (q > j) { text += '\n' + part; }
+                for (const c of part) { depth += ('([{'.indexOf (c) >= 0 ? 1 : 0) - (')]}'.indexOf (c) >= 0 ? 1 : 0); }
+                if (depth <= 0) { break; }
             }
             return text;
         };
@@ -16018,9 +12955,7 @@ function goPromiseAllSlotReads (content: string): string {
         let arity = -1;
         let ok = true;
         for (let k = fn.open + 1; k < fn.close; k++) {
-            if (k === d) {
-                continue;
-            }
+            if (k === d) { continue; }
             const take = new RegExp ('^\\s*' + res + ' := <-(?:ccxt\\.)?[pP]romiseAll\\((.+)\\)$').exec (masked[k]);
             if (take !== null) {
                 if ((resLine >= 0) || (k > d)) {
@@ -16037,9 +12972,7 @@ function goPromiseAllSlotReads (content: string): string {
                     const armBlocks: any[] = [];
                     for (let j = fn.open + 1; j < fn.close; j++) {
                         const pd = new RegExp ('^\\s*var ' + arg + ' \\[\\]any = (.+)$').exec (masked[j]);
-                        if (/\bgoto\b/.test (masked[j])) {
-                            jumps = true;
-                        }
+                        if (/\bgoto\b/.test (masked[j])) { jumps = true; }
                         if (pd !== null) {
                             if ((found >= 0) || (j > k)) {
                                 found = -2;
@@ -16049,9 +12982,7 @@ function goPromiseAllSlotReads (content: string): string {
                             arity = literalArity (initText (pd[1], j, fn.close));
                         } else if (new RegExp ('^\\s*' + arg + ' = append\\(' + arg + ', ').test (masked[j])) {
                             const inBlock = goTextEnclosingBlock (blocks, j);
-                            if ((found >= 0) && (j < k) && (inBlock === goTextEnclosingBlock (blocks, found))) {
-                                extra++;
-                            } else if ((found >= 0) && (j < k) && (inBlock !== undefined) && (inBlock.close < k) && (goTextEnclosingBlock (blocks, inBlock.open) === goTextEnclosingBlock (blocks, found)) && (armBlocks.indexOf (inBlock) < 0)) {
+                            if ((found >= 0) && (j < k) && (inBlock === goTextEnclosingBlock (blocks, found))) { extra++; } else if ((found >= 0) && (j < k) && (inBlock !== undefined) && (inBlock.close < k) && (goTextEnclosingBlock (blocks, inBlock.open) === goTextEnclosingBlock (blocks, found)) && (armBlocks.indexOf (inBlock) < 0)) {
                                 armBlocks.push (inBlock);
                             }
                         } else if (goTextWritesName (masked[j], arg)) {
@@ -16060,14 +12991,8 @@ function goPromiseAllSlotReads (content: string): string {
                         }
                     }
                     // an `if {..} else {..}` whose arms both append unconditionally adds the smaller count
-                    for (const blk of armBlocks) {
-                        extra += goIfElseArmAppends (masked, blocks, blk, arg);
-                    }
-                    if ((found < 0) || (arity < 0) || (jumps && (extra > 0))) {
-                        arity = -1;
-                    } else {
-                        arity += extra;
-                    }
+                    for (const blk of armBlocks) { extra += goIfElseArmAppends (masked, blocks, blk, arg); }
+                    if ((found < 0) || (arity < 0) || (jumps && (extra > 0))) { arity = -1; } else { arity += extra; }
                 } else {
                     arity = literalArity (arg);
                 }
@@ -16076,18 +13001,12 @@ function goPromiseAllSlotReads (content: string): string {
                 break;
             }
         }
-        if (!ok || (resLine < 0) || (arity < 0)) {
-            return false;
-        }
+        if (!ok || (resLine < 0) || (arity < 0)) { return false; }
         const readRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(' + holder + ', (\\d+)\\)', 'g');
         for (let k = d + 1; k < fn.close; k++) {
-            if (!((declBlock.open < k) && (k <= declBlock.close)) || (masked[k].indexOf ('GetValue(') < 0)) {
-                continue;
-            }
+            if (!((declBlock.open < k) && (k <= declBlock.close)) || (masked[k].indexOf ('GetValue(') < 0)) { continue; }
             lines[k] = lines[k].replace (readRx, (match: string, slot: string, offset: number) => {
-                if ((masked[k].substr (offset, match.length) !== match) || (Number (slot) >= arity)) {
-                    return match;
-                }
+                if ((masked[k].substr (offset, match.length) !== match) || (Number (slot) >= arity)) { return match; }
                 changed = true;
                 return holder + '[' + slot + ']';
             });
@@ -16104,30 +13023,18 @@ function goPromiseAllSelfBoundReads (content: string): string {
         let ok = true;
         let takes = 0;
         for (let k = fn.open + 1; k < fn.close; k++) {
-            if (new RegExp ('^\\s*' + res + ' := <-(?:ccxt\\.)?[pP]romiseAll\\(').test (masked[k])) {
-                takes++;
-            } else if ((k !== d) && (goTextWritesName (masked[k], holder) || goTextWritesName (masked[k], res))) {
-                ok = false;
-            }
+            if (new RegExp ('^\\s*' + res + ' := <-(?:ccxt\\.)?[pP]romiseAll\\(').test (masked[k])) { takes++; } else if ((k !== d) && (goTextWritesName (masked[k], holder) || goTextWritesName (masked[k], res))) { ok = false; }
         }
-        if (!ok || (takes !== 1)) {
-            return false;
-        }
+        if (!ok || (takes !== 1)) { return false; }
         for (const b of blocks) {
             const h = forRx.exec (masked[b.open]);
-            if ((h === null) || (h[2] !== holder) || !((declBlock.open < b.open) && (b.open > d) && (b.close <= declBlock.close))) {
-                continue;
-            }
+            if ((h === null) || (h[2] !== holder) || !((declBlock.open < b.open) && (b.open > d) && (b.close <= declBlock.close))) { continue; }
             const body = masked.slice (b.open + 1, b.close + 1).join ('\n');
-            if (goTextWritesName (body, h[1]) || goTextWritesName (body, holder)) {
-                continue;
-            }
+            if (goTextWritesName (body, h[1]) || goTextWritesName (body, holder)) { continue; }
             const readRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(' + holder + ', ' + h[1] + '\\)', 'g');
             for (let k = b.open + 1; k < b.close; k++) {
                 lines[k] = lines[k].replace (readRx, (match: string, offset: number) => {
-                    if (masked[k].substr (offset, match.length) !== match) {
-                        return match;
-                    }
+                    if (masked[k].substr (offset, match.length) !== match) { return match; }
                     changed = true;
                     return holder + '[' + h[1] + ']';
                 });
@@ -16151,51 +13058,29 @@ function goPromiseAllLoopReads (content: string): string {
                 ok = ok && (takeLine < 0);
                 takeLine = k;
                 list = take[1];
-            } else if (goTextWritesName (masked[k], res) || goTextWritesName (masked[k], holder)) {
-                ok = false;
-            }
+            } else if (goTextWritesName (masked[k], res) || goTextWritesName (masked[k], holder)) { ok = false; }
         }
-        if (!ok || (takeLine < 0)) {
-            return false;
-        }
+        if (!ok || (takeLine < 0)) { return false; }
         let declared = false;
         let appendLine = -1;
         for (let k = fn.open + 1; k < fn.close; k++) {
-            if (new RegExp ('^\\s*var ' + list + ' \\[\\]any = (?:ccxt\\.)?\\[\\]any\\{\\}$').test (masked[k]) && !declared && (k < takeLine)) {
-                declared = true;
-            } else if (new RegExp ('^\\s*' + list + ' = append\\(' + list + ', ').test (masked[k]) && (appendLine < 0) && (k < takeLine)) {
-                appendLine = k;
-            } else if (goTextWritesName (masked[k], list) || (new RegExp ('\\b' + list + '\\b').test (masked[k]) && (k !== takeLine) && (k > takeLine))) {
-                ok = false;
-            }
+            if (new RegExp ('^\\s*var ' + list + ' \\[\\]any = (?:ccxt\\.)?\\[\\]any\\{\\}$').test (masked[k]) && !declared && (k < takeLine)) { declared = true; } else if (new RegExp ('^\\s*' + list + ' = append\\(' + list + ', ').test (masked[k]) && (appendLine < 0) && (k < takeLine)) { appendLine = k; } else if (goTextWritesName (masked[k], list) || (new RegExp ('\\b' + list + '\\b').test (masked[k]) && (k !== takeLine) && (k > takeLine))) { ok = false; }
         }
         const loop = (appendLine < 0) ? undefined : goTextEnclosingBlock (blocks, appendLine);
         const head = (loop === undefined) ? null : forRx.exec (masked[loop.open]);
         const outer = (loop === undefined) ? undefined : goTextEnclosingBlock (blocks, loop.open);
-        if (!ok || !declared || (head === null) || (outer === undefined) || (outer.open !== fn.open) || (loop.close >= takeLine)) {
-            return false;
-        }
+        if (!ok || !declared || (head === null) || (outer === undefined) || (outer.open !== fn.open) || (loop.close >= takeLine)) { return false; }
         const bound = head[2];
         const counter = head[1];
         const known = new RegExp ('\\bvar ' + bound + '\\b|\\b' + bound + ' :=').test (masked.slice (fn.open, loop.open).join ('\n')) || new RegExp ('[(,] ?' + bound + ' ').test (masked[fn.open]);
         for (let k = loop.open + 1; k <= loop.close; k++) {
-            if (/\b(?:continue|break|return|goto)\b/.test (masked[k]) || goTextWritesName (masked[k], counter) || goTextWritesName (masked[k], bound)) {
-                ok = false;
-            }
+            if (/\b(?:continue|break|return|goto)\b/.test (masked[k]) || goTextWritesName (masked[k], counter) || goTextWritesName (masked[k], bound)) { ok = false; }
         }
-        for (let k = loop.close + 1; k < fn.close; k++) {
-            if (goTextWritesName (masked[k], bound) && !forRx.test (masked[k])) {
-                ok = false;
-            }
-        }
-        if (!ok || !known) {
-            return false;
-        }
+        for (let k = loop.close + 1; k < fn.close; k++) { if (goTextWritesName (masked[k], bound) && !forRx.test (masked[k])) { ok = false; } }
+        if (!ok || !known) { return false; }
         for (let k = d + 1; k < fn.close; k++) {
             const read = new RegExp ('^(\\s*(?:var \\w+ [\\w.*\\[\\]]+ = |\\w+ := ))(?:ccxt\\.)?GetValue\\(' + holder + ', (\\w+)\\)$').exec (lines[k]);
-            if ((read === null) || (masked[k] !== lines[k]) || !((declBlock.open < k) && (k <= declBlock.close))) {
-                continue;
-            }
+            if ((read === null) || (masked[k] !== lines[k]) || !((declBlock.open < k) && (k <= declBlock.close))) { continue; }
             let inside = false;
             for (const b of blocks) {
                 const h = forRx.exec (masked[b.open]);
@@ -16270,11 +13155,8 @@ function goAsyncTupleIndexSelfTest (ok: SelfTestOk): void {
     ok (nativeAsyncTupleHolderReads (pos) === pos, 'second application is a no-op');
     ok (run ('\tif p != nil {\n\t\tpanic(\"x\")\n\t}\n\tch <- []any{p, p}\n\treturn nil\n').indexOf ('h[1]') >= 0, 'panic exits are fine');
     const keepBodies: string[] = [
-        '\tif p != nil {\n\t\treturn nil\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
-        '\tch <- []any{p, p, p}\n\treturn nil\n',
-        '\tch <- p\n\treturn nil\n',
-        '\tch <- []any{p, p}\n',
-        '\tfor {\n\t\tpanic(\"break\")\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
+        '\tif p != nil {\n\t\treturn nil\n\t}\n\tch <- []any{p, p}\n\treturn nil\n', '\tch <- []any{p, p, p}\n\treturn nil\n', '\tch <- p\n\treturn nil\n',
+        '\tch <- []any{p, p}\n', '\tfor {\n\t\tpanic(\"break\")\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
         '\tgo func() {\n\t\tch <- []any{p, p}\n\t}()\n\treturn nil\n',
         '\tif p != nil {\n\t\tch <- []any{p}\n\t\treturn nil\n\t}\n\tch <- []any{p, p}\n\treturn nil\n',
     ];
@@ -16288,24 +13170,19 @@ function goAsyncTupleIndexSelfTest (ok: SelfTestOk): void {
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
 }
 
-// `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`:
-// Omit of a map always returns a fresh map[string]any.
+// `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`: Omit of a map always returns a fresh map[string]any.
 function goOmitDictOfTypedMaps (content: string): string {
     const lines = content.split ('\n');
     let funcStart = 0;
     const call = /\b(?:ccxt\.)?MapTyped\(this\.Omit\((\w+|this\.Urls),/g;
     for (let i = 0; i < lines.length; i++) {
-        if (/^func /.test (lines[i])) {
-            funcStart = i;
-        }
+        if (/^func /.test (lines[i])) { funcStart = i; }
         let line = lines[i];
         call.lastIndex = 0;
         for (let m = call.exec (line); m !== null; m = call.exec (line)) {
             const end = goMatchingCloseText (line, m.index + m[0].indexOf ('('), '()');
             const typed = goNearestLocalType (lines, funcStart, i, m[1]) === 'map[string]any';
-            if ((end < 0) || (line[end - 1] !== ')') || !(typed || goUrlsKeyGuarded (lines, funcStart, i, line.substring (m.index)))) {
-                continue;
-            }
+            if ((end < 0) || (line[end - 1] !== ')') || !(typed || goUrlsKeyGuarded (lines, funcStart, i, line.substring (m.index)))) { continue; }
             const inner = line.substring (m.index + m[0].length, end - 1);
             const replacement = 'this.OmitDict(' + m[1] + ',' + inner + ')';
             line = line.substring (0, m.index) + replacement + line.substring (end + 1);
@@ -16316,21 +13193,14 @@ function goOmitDictOfTypedMaps (content: string): string {
     return lines.join ('\n');
 }
 
-
 // this.Urls (a map[string]any field) is non-nil inside an enclosing `if _, ok := this.Urls[k]; ok {`
 // (a found key needs a non-nil map), so Omit of it is a fresh map
 function goUrlsKeyGuarded (lines: string[], funcStart: number, at: number, call: string): boolean {
-    if (!/^(?:ccxt\.)?MapTyped\(this\.Omit\(this\.Urls,/.test (call)) {
-        return false;
-    }
+    if (!/^(?:ccxt\.)?MapTyped\(this\.Omit\(this\.Urls,/.test (call)) { return false; }
     const indent = (l: string) => /^\t*/.exec (l)[0].length;
     for (let k = at - 1; k > funcStart; k--) {
-        if (/^\s*this\.Urls = /.test (lines[k])) {
-            return false; // a rebinding may install a nil map
-        }
-        if ((indent (lines[k]) < indent (lines[at])) && (lines[k].trim () !== '')) {
-            return /^(?:} else )?if _, ok := this\.Urls\["\w+"\]; ok \{$/.test (lines[k].trim ());
-        }
+        if (/^\s*this\.Urls = /.test (lines[k])) { return false; } // a rebinding may install a nil map
+        if ((indent (lines[k]) < indent (lines[at])) && (lines[k].trim () !== '')) { return /^(?:} else )?if _, ok := this\.Urls\["\w+"\]; ok \{$/.test (lines[k].trim ()); }
     }
     return false;
 }
@@ -16361,18 +13231,12 @@ function goNearestLocalType (lines: string[], funcStart: number, at: number, nam
     const indent = (l: string) => /^\s*/.exec (l)[0].length;
     let floor = indent (lines[at]);
     for (let k = at; k > funcStart; k--) {
-        if ((k < at) && (lines[k].trim () !== '')) {
-            floor = Math.min (floor, indent (lines[k]));
-        }
+        if ((k < at) && (lines[k].trim () !== '')) { floor = Math.min (floor, indent (lines[k])); }
         // a bare `var x map[string]any` declares the type of the comma-ok read on the next line
         const m = decl.exec (lines[k]) ?? goJoinedDeclarationType (lines, k, name) ?? new RegExp ('^(\\s*)var ' + name + GO_COMMA_OK_DECL_TAIL).exec (lines[k])
             ?? goBoundedRowDeclarationType (lines, k, name) ?? new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any)$').exec (lines[k]);
-        if ((m !== null) && (k < at)) {
-            return (m[1].length <= floor) ? m[2] : undefined;
-        }
-        if (rebind.test (lines[k])) {
-            return undefined;
-        }
+        if ((m !== null) && (k < at)) { return (m[1].length <= floor) ? m[2] : undefined; }
+        if (rebind.test (lines[k])) { return undefined; }
     }
     const param = new RegExp ('[(,] ?' + name + ' (map\\[string\\]any)[,)]').exec (lines[funcStart]);
     return (param === null) ? undefined : param[1];
@@ -16386,9 +13250,7 @@ function goSafeDictMapReads (content: string): string {
     for (let m = call.exec (content); m !== null; m = call.exec (content)) {
         const open = m.index + m[0].indexOf ('(');
         const end = goMatchingCloseText (content, open, '()');
-        if ((end < 0) || (content[end - 1] !== ')') || (goMatchingCloseText (content, m.index + m[0].length - 1, '()') !== end - 1)) {
-            continue;
-        }
+        if ((end < 0) || (content[end - 1] !== ')') || (goMatchingCloseText (content, m.index + m[0].length - 1, '()') !== end - 1)) { continue; }
         out += content.substring (cursor, m.index) + 'this.' + m[1] + 'Map(' + content.substring (m.index + m[0].length, end);
         cursor = end + 1;
         call.lastIndex = cursor;
@@ -16419,16 +13281,12 @@ function goSafeListSliceReads (content: string): string {
         const open = m.index + m[0].indexOf ('(');
         const end = goMatchingCloseText (content, open, '()');
         const innerOpen = m.index + m[0].length - 1;
-        if ((end < 0) || (goMatchingCloseText (content, innerOpen, '()') !== end - 1)) {
-            continue;
-        }
+        if ((end < 0) || (goMatchingCloseText (content, innerOpen, '()') !== end - 1)) { continue; }
         const args = goSplitTopLevelCommas (content.substring (innerOpen + 1, end - 1)).map ((a) => a.trim ());
         const dflt = (args.length === 3) ? args[2] : '';
         const proven = /^\[\]any\{.*\}$/s.test (dflt) && (goMatchingCloseText (dflt, 5, '{}') === dflt.length - 1)
             || /^\w+$/.test (dflt) && goOnceDeclaredAs (goEnclosingFuncText (content, m.index), dflt, '[]any', '[]any{');
-        if (!proven) {
-            continue;
-        }
+        if (!proven) { continue; }
         out += content.substring (cursor, m.index) + 'this.SafeListSlice(' + content.substring (innerOpen + 1, end);
         cursor = end + 1;
         call.lastIndex = cursor;
@@ -16444,9 +13302,7 @@ function goHashmapRowReads (content: string): string {
         const header = body.substring (0, body.indexOf ('{\n') + 1);
         const declared = (type: string) => goOnceDeclaredAs (body, key, type, '')
             || (!new RegExp ('\\bvar ' + key + ' |(?<![.\\w])' + key + '(?:, \\w+)? :=').test (body) && new RegExp ('[(,] ?' + key + ' ' + type.replace ('*', '\\*') + '[,)]').test (header));
-        if (declared ('string')) {
-            return ind + 'var ' + name + ' map[string]any = ' + rows + '[' + key + ']';
-        }
+        if (declared ('string')) { return ind + 'var ' + name + ' map[string]any = ' + rows + '[' + key + ']'; }
         if (declared ('*string')) {
             return ind + 'var ' + name + ' map[string]any = nil\n' + ind + 'if byKey := ' + rows + '; ' + key + ' != nil {\n' + ind + '\t' + name + ' = byKey[*' + key + ']\n' + ind + '}';
         }
@@ -16494,9 +13350,7 @@ function goOmitChainMapLocals (content: string): string {
                 const src = omitOf (m[3]) ?? m[3];
                 const writes = [ ...fn.matchAll (new RegExp ('\\n\\t*' + x + ' = ([^\\n]*)', 'g')) ].map ((w) => w[1]);
                 const binds = (fn.match (new RegExp ('(?<![\\w.&])' + x + '(?:, \\w+)* :?=(?!=)|(?<![\\w.])\\w+, ' + x + ' :?=(?!=)|[(,] ?' + x + ' [\\w*[\\]{}.]+[,)]|range ' + x + '\\b|&' + x + '\\b|\\bvar ' + x + '\\b', 'g')) ?? []).length;
-                if (!typed (src) || (binds !== 1 + writes.length) || !writes.every ((w) => (omitOf (w) !== undefined) && typed (omitOf (w)))) {
-                    continue;
-                }
+                if (!typed (src) || (binds !== 1 + writes.length) || !writes.every ((w) => (omitOf (w) !== undefined) && typed (omitOf (w)))) { continue; }
                 const od = (v: string) => v.replace (/^(?:ccxt\.)?this\.Omit\(/, 'this.OmitDict(');
                 fn = fn.replace (m[0], '\n' + m[1] + 'var ' + x + ' map[string]any = ' + od (m[3]) + '\n')
                     .replace (new RegExp ('(\\n\\t*' + x + ' = )((?:ccxt\\.)?this\\.Omit\\()', 'g'), '$1this.OmitDict(');
@@ -16536,9 +13390,7 @@ function goListTypedOfLiteral (content: string): string {
         const open = m.index + m[0].indexOf ('(');
         const brace = m.index + m[0].length - 1;
         const end = goMatchingCloseText (content, open, '()');
-        if ((end < 0) || (goMatchingCloseText (content, brace, '{}') !== end - 1)) {
-            continue;
-        }
+        if ((end < 0) || (goMatchingCloseText (content, brace, '{}') !== end - 1)) { continue; }
         out += content.substring (cursor, m.index) + content.substring (open + 1, end);
         cursor = end + 1;
         call.lastIndex = cursor;
@@ -16557,9 +13409,7 @@ function goListTypedOfLiteralSelfTest (ok: SelfTestOk): void {
 // `x = MapTyped(this.SafeBalance(x))` of a once-declared map[string]any local is the bare call: the base
 // SafeBalance writes into its argument and returns it, and MapTyped of a map[string]any is that map
 function goSafeBalanceSelfRebind (content: string): string {
-    if (/\) SafeBalance\(balance any\) any \{/.test (content)) {
-        return content;  // the base declaration itself
-    }
+    if (/\) SafeBalance\(balance any\) any \{/.test (content)) { return content; } // the base declaration itself
     return content.replace (/^(\t+)(\w+) = (?:ccxt\.)?MapTyped\(this\.SafeBalance\(\2\)\)$/gm, (line, indent, name, offset) =>
         goOnceDeclaredAs (goEnclosingFuncText (content, offset), name, 'map[string]any', '') ? indent + 'this.SafeBalance(' + name + ')' : line);
 }
@@ -16593,9 +13443,7 @@ function goNativeAwaitBody (indent: string, valueType: string, converter: string
 // `var res string = r.Value.(string)` on a *string carrier: the deref the wrapper tail prints for fetchOrderStatus
 function goChan3StringResultDeref (edits: Edit[], before: string, after: string, ls: number, end: number, name: string): boolean {
     const decl = /^(\t+)var (\w+) string = $/.exec (before);
-    if ((decl === null) || !/^\s*$/.test (after)) {
-        return false;
-    }
+    if ((decl === null) || !/^\s*$/.test (after)) { return false; }
     const [ , ind, x ] = decl;
     edits.push ({ 'start': ls, end, 'text': ind + 'var ' + x + ' string = "<nil>"\n' + ind + 'if ' + name + '.Value != nil {\n' + ind + '\t' + x + ' = *' + name + '.Value\n' + ind + '}' });
     return true;
@@ -16610,9 +13458,7 @@ function goNativeAwaitStringTail (indent: string): string[] {
 // IsEqual(x, true|false) on an `any` box no pointer can reach is exactly `==`; pointer-kind locals keep the helper.
 function goBoolLiteralCompares (content: string): string {
     const masked = content.replace (/(?<![.\w])IsEqual\((\w+), (true|false)\)/g, 'IsEqual($1, "__h2k_g08_bool_$2__")');
-    if (masked === content) {
-        return content;
-    }
+    if (masked === content) { return content; }
     return goStringLiteralNativeCompares (masked, 'IsEqual(')
         .replace (/\((\w+) != nil && \*\1 == "__h2k_g08_bool_(true|false)__"\)/g, 'IsEqual($1, $2)')
         .replace (/\((\w+) == nil \|\| \*\1 != "__h2k_g08_bool_(true|false)__"\)/g, '!IsEqual($1, $2)')
@@ -16625,9 +13471,7 @@ function goTypedBoolCompareText (fn: string): string {
     return fn.replace (/(!?)(?<![.\w])IsEqual\((\w+), (true|false)\)/g, ((m: string, not: string, name: string, lit: string) => {
         const decls = fn.match (new RegExp ('\\bvar ' + name + '\\b[^\\n]*', 'g')) || [];
         const rebinds = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (fn);
-        if ((decls.length !== 1) || !new RegExp ('^var ' + name + ' bool = ').test (decls[0]) || rebinds || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
-            return m;
-        }
+        if ((decls.length !== 1) || !new RegExp ('^var ' + name + ' bool = ').test (decls[0]) || rebinds || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) { return m; }
         return '(' + name + ((not === '!') ? ' != ' : ' == ') + lit + ')';
     }) as any);
 }
@@ -16673,9 +13517,7 @@ function goNativeEqualitySelfTest (ok: SelfTestOk): void {
 
 // ===== AddElementToObject receivers from the base handleUntilOption =====
 // HandleUntilOption(key, R, p) returns MapTyped(R): R itself, never nil when R is a never-nil map local.
-function goUntilOptionRx (target: string, op: string, source: string): RegExp {
-    return new RegExp ('^\\s*' + target + ', \\w+ ' + op + ' this\\.HandleUntilOption\\([^,()\\n]*, ' + source + ', ');
-}
+function goUntilOptionRx (target: string, op: string, source: string): RegExp { return new RegExp ('^\\s*' + target + ', \\w+ ' + op + ' this\\.HandleUntilOption\\([^,()\\n]*, ' + source + ', '); }
 
 // the never-nil map local `name` with its `name, p = this.HandleUntilOption(_, name, _)` writes blanked out
 function goSelfUntilNeverNil (funcLines: string[], name: string, declOf: (name: string) => any): boolean {
@@ -16691,21 +13533,13 @@ function goUntilReceiverNeverNil (masked: string[], start: number, k: number, ma
     declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
     const n = goAccessEscape (name);
     const funcLines = maskedFunc.split ('\n');
-    if ((n !== name) || new RegExp ('[(,]\\s*' + n + '\\b').test (signature.substring (signature.indexOf (')') + 1))) {
-        return false;
-    }
-    if (typeAt (name, k) === 'map[string]any') {
-        return goSelfUntilNeverNil (funcLines, name, declOf);
-    }
+    if ((n !== name) || new RegExp ('[(,]\\s*' + n + '\\b').test (signature.substring (signature.indexOf (')') + 1))) { return false; }
+    if (typeAt (name, k) === 'map[string]any') { return goSelfUntilNeverNil (funcLines, name, declOf); }
     const writeRx = new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|&\\s*' + n + '\\b|\\bvar\\s+' + n + '\\b|\\b' + n + '\\s*(?:\\+\\+|--)|\\bfunc\\s*\\([^()]*\\b' + n + '\\b|\\bfor\\b[^\\n{]*\\b' + n + '\\b');
     const writes = funcLines.map ((line, i) => (writeRx.test (line) ? i : -1)).filter ((i) => i >= 0);
-    if ((writes.length !== 1) || (start + writes[0] >= k)) {
-        return false;
-    }
+    if ((writes.length !== 1) || (start + writes[0] >= k)) { return false; }
     const bind = goUntilOptionRx (n, ':=', '(\\w+)').exec (funcLines[writes[0]]);
-    if ((bind === null) || (bind[1] === name) || (typeAt (bind[1], start + writes[0]) !== 'map[string]any')) {
-        return false;
-    }
+    if ((bind === null) || (bind[1] === name) || (typeAt (bind[1], start + writes[0]) !== 'map[string]any')) { return false; }
     return goMapWriteLocalNeverNil (maskedFunc, declOf (bind[1]), bind[1], declOf) || goSelfUntilNeverNil (funcLines, bind[1], declOf);
 }
 
@@ -16715,9 +13549,7 @@ function goUntilReceiverNeverNil (masked: string[], start: number, k: number, ma
 function goNativeKeysAndRemove (content: string): string {
     return goRewriteEachFunc (content, /\b(?:ObjectKeys|Remove)\(/.test (content), (lines, masked, start, end) => {
         const { maskedFunc, typeAt } = goFuncTypeAt (lines, masked, start, end);
-        for (let k = start + 1; k < end; k++) {
-            lines[k] = goNativeKeysRewriteLine (lines[k], masked[k], k, maskedFunc, typeAt).join ('\n');
-        }
+        for (let k = start + 1; k < end; k++) { lines[k] = goNativeKeysRewriteLine (lines[k], masked[k], k, maskedFunc, typeAt).join ('\n'); }
     });
 }
 
@@ -16732,16 +13564,12 @@ function goFuncTypeAt (lines: string[], masked: string[], start: number, end: nu
     }
     const cache = new Map<string, any> ();
     const declOf = (name: string) => {
-        if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
-        }
+        if (!cache.has (name)) { cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name)); }
         return cache.get (name);
     };
     const typeAt = (name: string, k: number): string | undefined => {
         const decl = declOf (name);
-        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
-            return undefined;
-        }
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) { return undefined; }
         return decl.type;
     };
     return { maskedFunc, declOf, typeAt };
@@ -16820,18 +13648,14 @@ function goFuncDeclaredType (fn: string, name: string): string | undefined {
     const param = header.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
     // a `:=`, closure parameter, range variable or `&x` could rebind or alias the name
     const shadow = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
-    if (shadow || (decls.length + (param ? 1 : 0)) !== 1) {
-        return undefined;
-    }
+    if (shadow || (decls.length + (param ? 1 : 0)) !== 1) { return undefined; }
     return param ? param[1] : decls[0].replace (/^var \w+ /, '');
 }
 
 // every write of a `*string` local is a SafeString* call with a literal default in the default slot: never nil
 function goNonNilStringCall (rhs: string, nonNilDefault?: (arg: string) => boolean): boolean {
     const m = rhs.match (/^this\.SafeString(?:Lower|Upper)?(2|N)?\(/);
-    if (!m || !rhs.endsWith (')')) {
-        return false;
-    }
+    if (!m || !rhs.endsWith (')')) { return false; }
     const args: string[] = [];
     let depth = 0, cur = '', inStr = false;
     for (let i = m[0].length; i < rhs.length - 1; i++) {
@@ -16904,15 +13728,9 @@ export function goTypedShapeHelpers (content: string, qual: string): string {
             && !new RegExp ('(?<![.\\w])' + x + ' = ').test (fn);
         fn = fn.replace (new RegExp ('(!?)' + call ('IsArray').source, 'g'), ((m: string, not: string, xp: string, xb: string) => {
             const x = xp || xb;
-            if (structMapLocal (x)) {
-                return not ? 'true' : 'false';
-            }
-            if (not && [ '[]any', '[]string' ].includes (typeOf (x))) {
-                return '(' + x + ' == nil)';
-            }
-            if (not) {
-                return (typeOf (x) === 'map[string]any') ? 'true' : m;
-            }
+            if (structMapLocal (x)) { return not ? 'true' : 'false'; }
+            if (not && [ '[]any', '[]string' ].includes (typeOf (x))) { return '(' + x + ' == nil)'; }
+            if (not) { return (typeOf (x) === 'map[string]any') ? 'true' : m; }
             const t = typeOf (x);
             return ([ '[]any', '[]string' ].includes (t)) ? '(' + x + ' != nil)' : (t === 'map[string]any' ? 'false' : m);
         }) as any);
@@ -16956,23 +13774,10 @@ function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
 // Helpers that derefScalar their first argument before any use: GetValue's own deref is redundant,
 // and a Go map read answers nil for a missing key / nil map exactly like getValue.
 function goDerefAtEntryFuncs (): string[] {
-    return [
-        'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'IsEqual', 'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
-        'EvalTruthy', 'IsString', 'IsArray', 'IsBool', 'IsNumber', 'IsInteger', 'IsDictionary', 'IsNil', 'InOp', 'GetIndexOf',
-        'StartsWith', 'EndsWith', 'Contains', 'IndexOf', 'Split', 'Join', 'Replace', 'Slice', 'Trim', 'ToString', 'ToLower', 'ToUpper',
-        'ParseInt', 'ParseFloat', 'ToFloat64', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'GetArrayLength', 'GetLength',
-        'ObjectKeys', 'ObjectValues', 'JsonStringify', 'ListTyped', 'MapTyped', 'SafeStringPtr', 'SafeBoolPtr', 'GetValue', 'MarketTyped', 'CurrencyTyped',
-    ];
+    return ('Add Subtract Multiply Divide Mod IsEqual IsGreaterThan IsLessThan IsGreaterThanOrEqual IsLessThanOrEqual EvalTruthy IsString IsArray IsBool IsNumber IsInteger IsDictionary IsNil InOp GetIndexOf StartsWith EndsWith Contains IndexOf Split Join Replace Slice Trim ToString ToLower ToUpper ParseInt ParseFloat ToFloat64 MathFloor MathCeil MathRound MathAbs GetArrayLength GetLength ObjectKeys ObjectValues JsonStringify ListTyped MapTyped SafeStringPtr SafeBoolPtr GetValue MarketTyped CurrencyTyped').split (' ');
 }
-// hand-written exchange_safe.go methods: the object argument reaches SafeValueN, which derefs it first
 function goDerefAtEntryMethods (): string[] {
-    return [
-        'SafeString', 'SafeString2', 'SafeStringLower', 'SafeStringLower2', 'SafeStringUpper', 'SafeStringUpper2',
-        'SafeInteger', 'SafeInteger2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeBool', 'SafeBool2',
-        'SafeTimestamp', 'SafeTimestamp2', 'SafeValue', 'SafeValue2', 'SafeIntegerProduct', 'SafeIntegerProduct2',
-        // derefScalar their first argument too (derefScalar / Add at entry)
-        'NumberToString', 'ParseNumber', 'Sum',
-    ];
+    return [ ...'SafeString SafeStringLower SafeStringUpper SafeInteger SafeFloat SafeNumber SafeBool SafeTimestamp SafeValue SafeIntegerProduct'.split (' ').flatMap ((m) => [ m, m + '2' ]), 'NumberToString', 'ParseNumber', 'Sum' ];
 }
 
 function nativeDerefArgMapReads (content: string): string {
@@ -16992,23 +13797,13 @@ function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number
     const { maskedFunc, declOf, typeAt } = goFuncTypeAt (lines, masked, start, end);
     const receiverOk = new Map<string, boolean> ();
     for (let k = start + 1; k < end; k++) {
-        if (masked[k].indexOf ('GetValue(') < 0) {
-            continue;
-        }
+        if (masked[k].indexOf ('GetValue(') < 0) { continue; }
         const m = masked[k];
         lines[k] = lines[k].replace (rx, (all: string, callHead: string, name: string, key: string, at: number) => {
-            if (m.substr (at, callHead.length) !== callHead) {
-                return all;
-            }
-            if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
-                return all;
-            }
-            if (typeAt (name, k) !== 'map[string]any') {
-                return all;
-            }
-            if (!receiverOk.has (name)) {
-                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf));
-            }
+            if (m.substr (at, callHead.length) !== callHead) { return all; }
+            if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) { return all; }
+            if (typeAt (name, k) !== 'map[string]any') { return all; }
+            if (!receiverOk.has (name)) { receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf)); }
             return receiverOk.get (name) ? callHead + name + '[' + key + ']' : all;
         });
         goDerefGuardedListReads (lines, masked, start, k, typeAt, maskedFunc, head);
@@ -17017,12 +13812,7 @@ function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number
 
 // an int key: a numeric literal, a `var k int` local, or the only declaration is `for k := N;`
 function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): boolean {
-    if (/^\d+$/.test (key)) {
-        return true;
-    }
-    if (typeAt (key, k) === 'int') {
-        return true;
-    }
+    if ((/^\d+$/.test (key)) || (typeAt (key, k) === 'int')) { return true; }
     const n = goAccessEscape (key);
     return (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|\\bvar\\s+' + n + '\\b|[(,]\\s*' + n + '\\s+\\w', 'gm')) ?? []).length === 1
         && new RegExp ('\\bfor ' + n + ' := \\d+; ').test (maskedFunc);
@@ -17033,9 +13823,7 @@ function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (nam
 function goDerefGuardedListReads (lines: string[], masked: string[], start: number, k: number,
     typeAt: (name: string, k: number) => string | undefined, maskedFunc: string, head: string) {
     const m = masked[k];
-    if (m.indexOf ('GetValue(') < 0) {
-        return;
-    }
+    if (m.indexOf ('GetValue(') < 0) { return; }
     const indent = lines[k].substring (0, lines[k].length - lines[k].trimStart ().length);
     const consumerTail = new RegExp ('(?:' + head + ')$');
     const rx = /(?<![\w.])(?:ccxt\.)?GetValue\((\w+), (\w+)\)/g;
@@ -17045,9 +13833,7 @@ function goDerefGuardedListReads (lines: string[], masked: string[], start: numb
     while ((match = rx.exec (m)) !== null) {
         const [ all, name, key ] = match;
         const at = match.index;
-        if (lines[k].substr (at, all.length) !== all) {
-            continue;
-        }
+        if (lines[k].substr (at, all.length) !== all) { continue; }
         const t = typeAt (name, k);
         // the unified row-list `[]any` parameters keep GetValue (a native read trades it for a closure)
         if ((((name === 'orders') && /\b(?:createOrders(?:Ws)?|cancelOrdersForSymbols|editOrders)Body\(/.test (masked[start] ?? ''))
@@ -17055,17 +13841,13 @@ function goDerefGuardedListReads (lines: string[], masked: string[], start: numb
             continue;
         }
         const ok = ((t === '[]string') || ((t === '[]any') && consumerTail.test (m.substring (0, at)))) && goDerefIntKey (key, k, maskedFunc, typeAt);
-        if (!ok) {
-            continue;
-        }
+        if (!ok) { continue; }
         const read = 'func() any {\n' + indent + '\tif ' + key + ' >= 0 && ' + key + ' < len(' + name + ') {\n'
             + indent + '\t\treturn ' + name + '[' + key + ']\n' + indent + '\t}\n' + indent + '\treturn nil\n' + indent + '}()';
         out += lines[k].substring (cursor, at) + read;
         cursor = at + all.length;
     }
-    if (cursor > 0) {
-        lines[k] = out + lines[k].substring (cursor);
-    }
+    if (cursor > 0) { lines[k] = out + lines[k].substring (cursor); }
 }
 
 function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
@@ -17093,10 +13875,8 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s []string = Split(x, "/")\n\tfor i := 0; i < len(s); i++ {\n\t\tx := GetValue(s, i)\n\t}\n').indexOf ('return s[i]') >= 0, '[]string loop counter');
     ok (f ('\tvar s []any = ListTyped(x)\n\tvar a any = ToString(GetValue(s, 1))\n').indexOf ('return s[1]') >= 0, '[]any in deref consumer');
     const keepList = [
-        '\tvar s []any = ListTyped(x)\n\tx := GetValue(s, 1)\n',
-        '\tvar s []string = Split(x, "/")\n\tvar i any = 1\n\tx := GetValue(s, i)\n',
-        '\tx := GetValue(s, 1)\n\tvar s []string = Split(x, "/")\n',
-        '\tvar s []string = Split(x, "/")\n\ts := Split(y, "/")\n\tx := GetValue(s, 1)\n',
+        '\tvar s []any = ListTyped(x)\n\tx := GetValue(s, 1)\n', '\tvar s []string = Split(x, "/")\n\tvar i any = 1\n\tx := GetValue(s, i)\n',
+        '\tx := GetValue(s, 1)\n\tvar s []string = Split(x, "/")\n', '\tvar s []string = Split(x, "/")\n\ts := Split(y, "/")\n\tx := GetValue(s, 1)\n',
         '\tvar s []any = ListTyped(x)\n\tvar a any = Foo(GetValue(s, 1))\n',
     ];
     keepList.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(s,') >= 0, 'list negative ' + i));
@@ -17109,31 +13889,23 @@ function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'I
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
 function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]); }
 
-
-// split `text` (masked twin `masked`) at top-level occurrences of `sep`
-// shared bracket-depth splitter: separator offsets at depth 0 from `from`; `stop` ends at the first unmatched
-// closer (end = its index), otherwise depth may go negative (`neg`) and end = masked.length
+// split `text` (masked twin `masked`) at top-level occurrences of `sep` shared bracket-depth splitter: separator offsets at depth 0 from `from`; `stop` ends at
+// the first unmatched closer (end = its index), otherwise depth may go negative (`neg`) and end = masked.length
 function goTopCuts (masked: string, from: number, sep: string, stop: boolean): { cuts: number[], end: number, depth: number, neg: boolean } {
     const cuts: number[] = [];
     let depth = 0;
     let neg = false;
     for (let i = from; i < masked.length; i++) {
         const c = masked[i];
-        if ((c === '(') || (c === '[') || (c === '{')) {
-            depth++;
-        } else if ((c === ')') || (c === ']') || (c === '}')) {
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) {
             if (stop && (depth === 0)) { return { cuts, 'end': i, depth, neg }; }
             if (--depth < 0) { neg = true; }
-        } else if ((c === sep) && (depth === 0)) {
-            cuts.push (i);
-        }
+        } else if ((c === sep) && (depth === 0)) { cuts.push (i); }
     }
     return { cuts, 'end': masked.length, depth, neg };
 }
 
-function goTopPieces (text: string, from: number, cuts: number[], end: number): string[] {
-    return [ ...cuts, end ].map ((c, k) => text.slice (k === 0 ? from : cuts[k - 1] + 1, c));
-}
+function goTopPieces (text: string, from: number, cuts: number[], end: number): string[] { return [ ...cuts, end ].map ((c, k) => text.slice (k === 0 ? from : cuts[k - 1] + 1, c)); }
 
 function goAddSplitTop (text: string, masked: string, sep: string): string[] | null {
     const r = goTopCuts (masked, 0, sep, false);
@@ -17148,25 +13920,19 @@ type GoFileAddIndex = {
 
 function goBuildFileAddIndex (fileMasked: string): GoFileAddIndex {
     const cache: any = goBuildFileAddIndex;
-    if ((cache._v !== undefined) && (cache._k === fileMasked)) {
-        return cache._v;
-    }
+    if ((cache._v !== undefined) && (cache._k === fileMasked)) { return cache._v; }
     const globals = new Set<string> ();
     let m: RegExpExecArray | null;
     const gRe = /^(?:var|const|func) (\w+)\b/gm;
     while ((m = gRe.exec (fileMasked)) !== null) { globals.add (m[1]); }
     const methodCounts = new Map<string, number> ();
     const mRe = /^func \(\w+ \*\w+\) (\w+)\(/gm;
-    while ((m = mRe.exec (fileMasked)) !== null) {
-        methodCounts.set (m[1], (methodCounts.get (m[1]) ?? 0) + 1);
-    }
+    while ((m = mRe.exec (fileMasked)) !== null) { methodCounts.set (m[1], (methodCounts.get (m[1]) ?? 0) + 1); }
     const starStringMethods = new Map<string, { params: string; body: string }> ();
     const sRe = /(?:^|\n)func \(\w+ (\*\w+)\) (\w+)\(([^)]*)\) \*string \{\n([\s\S]*?)\n\}/g;
     while ((m = sRe.exec (fileMasked)) !== null) {
         const key = m[1] + '.' + m[2];
-        if (!starStringMethods.has (key)) {
-            starStringMethods.set (key, { 'params': m[3], 'body': m[4] });
-        }
+        if (!starStringMethods.has (key)) { starStringMethods.set (key, { 'params': m[3], 'body': m[4] }); }
     }
     cache._k = fileMasked;
     cache._v = { globals, methodCounts, starStringMethods };
@@ -17207,12 +13973,8 @@ function goAddStringLeaf (text: string, masked: string, locals: Set<string>, ove
     const field = t.match (/^this\.(\w+)$/);
     if (field) { return goAddStringFields ().has (field[1]); }
     const call = t.match (/^(this\.(\w+)|(ccxt\.)?ToString)\(/);
-    if (call && goMatchingCloseText (mt, mt.indexOf ('(')) === mt.length - 1) {
-        return (call[2] === undefined) || (goAddStringMethods ().has (call[2]) && !overridden.has (call[2]));
-    }
-    if (t.startsWith ('(') && goMatchingCloseText (mt, 0) === mt.length - 1) {
-        return goAddStringSum (t.slice (1, -1), mt.slice (1, -1), locals, overridden) !== null;
-    }
+    if (call && goMatchingCloseText (mt, mt.indexOf ('(')) === mt.length - 1) { return (call[2] === undefined) || (goAddStringMethods ().has (call[2]) && !overridden.has (call[2])); }
+    if (t.startsWith ('(') && goMatchingCloseText (mt, 0) === mt.length - 1) { return goAddStringSum (t.slice (1, -1), mt.slice (1, -1), locals, overridden) !== null; }
     return false;
 }
 
@@ -17253,9 +14015,7 @@ function goAddNative (text: string, masked: string, locals: Set<string>, overrid
 // the file's own methods that shadow a base string method (non-`string` return)
 function goAddOverriddenMethods (fileMasked: string): Set<string> {
     const cache: any = goAddOverriddenMethods;
-    if ((cache._v !== undefined) && (cache._k === fileMasked)) {
-        return cache._v;
-    }
+    if ((cache._v !== undefined) && (cache._k === fileMasked)) { return cache._v; }
     const overridden = new Set<string> ();
     const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
     let d: RegExpExecArray | null;
@@ -17345,9 +14105,7 @@ function goStringAnyLocals (content: string): string {
             const leaf = goTypedStrOperand (rhs, fn, masked0, fileMasked);
             return ((leaf !== undefined) && (leaf.kind === 'string') && (leaf.text === rhs)) || goAddStringLeaf (rhs, goMaskGoCode (rhs), new Set<string> (), overridden);
         }).map ((m) => m[1]));
-        for (const name of [ ...cands ]) {
-            if (goStringOperandDeclaredType (masked0, name) !== 'any') { cands.delete (name); }
-        }
+        for (const name of [ ...cands ]) { if (goStringOperandDeclaredType (masked0, name) !== 'any') { cands.delete (name); } }
         if (cands.size === 0) { return fn; }
         if (fileIndex === undefined) { fileIndex = goBuildFileAddIndex (fileMasked); }
         const masked = masked0;
@@ -17383,9 +14141,7 @@ function goStringAnyLocals (content: string): string {
                 if (!good) { cands.delete (name); changed = true; }
             }
         }
-        for (const name of cands) {
-            fn = fn.replace (new RegExp ('^([ \\t]*var ' + name.replace (/\$/g, '\\$') + ' )any( = )', 'm'), '$1string$2');
-        }
+        for (const name of cands) { fn = fn.replace (new RegExp ('^([ \\t]*var ' + name.replace (/\$/g, '\\$') + ' )any( = )', 'm'), '$1string$2'); }
         return fn;
     });
 }
@@ -17439,31 +14195,19 @@ function goSplitCallArgs (content: string, masked: string, open: number): { args
 // the Go type of `name` when the function declares it exactly once as `var name T` (no param,
 // no `:=`, no closure param, no range/tuple binding); undefined otherwise
 function goStringOperandDeclaredType (maskedFunc: string, name: string): string | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil') || (name === 'true') || (name === 'false')) {
-        return undefined;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil') || (name === 'true') || (name === 'false')) { return undefined; }
     const n = name.replace (/\$/g, '\\$');
     const decls = [ ...maskedFunc.matchAll (new RegExp ('\\bvar ' + n + ' ([\\w\\[\\]]+)(?: =|\\n)', 'g')) ];
-    if (decls.length !== 1) {
-        return undefined;
-    }
+    if (decls.length !== 1) { return undefined; }
     const other = new RegExp ('\\b' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\w+\\s*,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|func\\s*(?:\\([^)]*\\)\\s*\\w*\\s*)?\\([^)]*\\b' + n + '\\b[^)]*\\)|\\bvar ' + n + '\\s*,|,\\s*' + n + '\\s+[\\w.*\\[\\]]+\\s*[,)]');
-    if (other.test (maskedFunc)) {
-        return undefined;
-    }
+    if (other.test (maskedFunc)) { return undefined; }
     return decls[0][1];
 }
 
 function goStringOperandKind (arg: string, maskedFunc: string): string | undefined {
-    if (GO_STRING_LITERAL_RX ().test (arg)) {
-        return 'string';
-    }
-    if (GO_SMALL_INT_LITERAL_RX ().test (arg)) {
-        return 'const-int';
-    }
-    if (/^OpNeg\((\d{1,9})\)$/.test (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('))) {
-        return 'const-neg';
-    }
+    if (GO_STRING_LITERAL_RX ().test (arg)) { return 'string'; }
+    if (GO_SMALL_INT_LITERAL_RX ().test (arg)) { return 'const-int'; }
+    if (/^OpNeg\((\d{1,9})\)$/.test (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('))) { return 'const-neg'; }
     return goStringOperandDeclaredType (maskedFunc, arg);
 }
 
@@ -17492,23 +14236,15 @@ function goStringHelperCallsRewrite (func: string, pkgs: Set<string>, rx: () => 
             const m = hits[h];
             const parsed = goSplitCallArgs (out, masked, m.index + m[0].length - 1);
             // a call enclosing an edit of this pass is re-read on the next pass
-            if ((parsed === undefined) || (parsed.end >= firstEdit)) {
-                continue;
-            }
+            if ((parsed === undefined) || (parsed.end >= firstEdit)) { continue; }
             const rep = native (m[2], parsed.args, out, masked, m.index);
-            if (rep === undefined) {
-                continue;
-            }
-            if (rep.pkg !== '') {
-                pkgs.add (rep.pkg);
-            }
+            if (rep === undefined) { continue; }
+            if (rep.pkg !== '') { pkgs.add (rep.pkg); }
             out = out.substring (0, m.index) + rep.text + out.substring (parsed.end + 1);
             firstEdit = m.index;
             changed = true;
         }
-        if (!changed) {
-            break;
-        }
+        if (!changed) { break; }
     }
     return out;
 }
@@ -17524,18 +14260,9 @@ function goOnlyPromiseAllHolder (masked: string, name: string): boolean {
         const lineStart = masked.lastIndexOf ('\n', u.index) + 1;
         const before = masked.substring (lineStart, u.index);
         const after = masked.substring (u.index + name.length, masked.indexOf ('\n', u.index));
-        if (/^\s*(?:var )?$/.test (before) && /^(?: \[\]any| any)? = /.test (after)) {
-            continue;       // declaration or plain write
-        }
-        if (/^\s*_ = $/.test (before) || new RegExp ('^\\s*' + name + ' = append\\($').test (before)) {
-            continue;
-        }
-        if (/(?:ccxt\.)?[pP]romiseAll\($/.test (before) && after.startsWith (')')) {
-            continue;
-        }
-        if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{[\w, ]*$/.test (before)) {
-            continue;
-        }
+        if (/^\s*(?:var )?$/.test (before) && /^(?: \[\]any| any)? = /.test (after)) { continue; } // declaration or plain write
+        if ((/^\s*_ = $/.test (before) || new RegExp ('^\\s*' + name + ' = append\\($').test (before)) || (/(?:ccxt\.)?[pP]romiseAll\($/.test (before) && after.startsWith (')'))) { continue; }
+        if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{[\w, ]*$/.test (before)) { continue; }
         return false;
     }
     return true;
@@ -17546,9 +14273,7 @@ function goPromiseAllOpener (masked: string, at: number): { index: number, prefi
     let depth = 0;
     for (let i = at - 1; i >= 0; i--) {
         const c = masked[i];
-        if ((c === ')') || (c === '}') || (c === ']')) {
-            depth++;
-        } else if ((c === '(') || (c === '{') || (c === '[')) {
+        if ((c === ')') || (c === '}') || (c === ']')) { depth++; } else if ((c === '(') || (c === '{') || (c === '[')) {
             if (depth === 0) {
                 const lineStart = masked.lastIndexOf ('\n', i) + 1;
                 return { index: i, prefix: masked.substring (lineStart, i + 1) };
@@ -17560,36 +14285,24 @@ function goPromiseAllOpener (masked: string, at: number): { index: number, prefi
 }
 
 function goDropEndpointRaw (func: string): string {
-    if (func.indexOf ('EndpointRaw(') < 0) {
-        return func;
-    }
+    if (func.indexOf ('EndpointRaw(') < 0) { return func; }
     const masked = goMaskGoCode (func);
     const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?EndpointRaw\(/g) ];
     let out = func;
     for (let h = hits.length - 1; h >= 0; h--) {
         const m = hits[h];
         const parsed = goSplitCallArgs (func, masked, m.index + m[0].length - 1);
-        if ((parsed === undefined) || (parsed.args.length !== 1)) {
-            continue;
-        }
+        if ((parsed === undefined) || (parsed.args.length !== 1)) { continue; }
         let ok = false;
         const opener = goPromiseAllOpener (masked, m.index);
         const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
         const own = masked.substring (lineStart, m.index);
         let holder;
-        if ((holder = /^\s*var (\w+) any = $/.exec (own)) !== null) {
-            ok = goOnlyPromiseAllHolder (masked, holder[1]);
-        } else if (opener === undefined) {
-            ok = false;
-        } else if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{$/.test (opener.prefix)) {
-            ok = true;
-        } else if (((holder = /^\s*(?:var )?(\w+)(?: \[\]any)? = \[\]any\{$/.exec (opener.prefix)) !== null)
+        if ((holder = /^\s*var (\w+) any = $/.exec (own)) !== null) { ok = goOnlyPromiseAllHolder (masked, holder[1]); } else if (opener === undefined) { ok = false; } else if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{$/.test (opener.prefix)) { ok = true; } else if (((holder = /^\s*(?:var )?(\w+)(?: \[\]any)? = \[\]any\{$/.exec (opener.prefix)) !== null)
             || (((holder = /^\s*(\w+) = append\((\w+), $/.exec (own)) !== null) && (holder[1] === holder[2]) && /append\($/.test (opener.prefix))) {
             ok = goOnlyPromiseAllHolder (masked, holder[1]);
         }
-        if (ok) {
-            out = out.substring (0, m.index) + parsed.args[0] + out.substring (parsed.end + 1);
-        }
+        if (ok) { out = out.substring (0, m.index) + parsed.args[0] + out.substring (parsed.end + 1); }
     }
     return out;
 }
@@ -17598,9 +14311,7 @@ function goDropEndpointRaw (func: string): string {
 // (a base file has no import clause to extend: only package-free rewrites land there)
 function goStringHelperFilePass (filePath: string, content: string, guard: RegExp | undefined, prep: (part: string) => string,
     rewrite: (part: string, pkgs: Set<string>) => string): string {
-    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0) || ((guard !== undefined) && !guard.test (content))) {
-        return content;
-    }
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0) || ((guard !== undefined) && !guard.test (content))) { return content; }
     const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
     const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
     const pkgs = new Set<string> ();
@@ -17612,15 +14323,11 @@ function goStringHelperFilePass (filePath: string, content: string, guard: RegEx
     }
     parts.push (content.substring (from));
     let out = parts.map ((part, i) => {
-        if (((i === 0) && !part.startsWith ('func ')) || ((guard !== undefined) && !guard.test (part))) {
-            return part;
-        }
+        if (((i === 0) && !part.startsWith ('func ')) || ((guard !== undefined) && !guard.test (part))) { return part; }
         const next = prep (part);
         const local = new Set<string> ();
         const trial = rewrite (next, local);
-        if (base && [ ...local ].some ((p) => !has (p))) {
-            return next;
-        }
+        if (base && [ ...local ].some ((p) => !has (p))) { return next; }
         local.forEach ((p) => pkgs.add (p));
         return trial;
     }).join ('');
@@ -17632,33 +14339,23 @@ function goStringHelperFilePass (filePath: string, content: string, guard: RegEx
     return out;
 }
 
-function goNativeStringHelpers (filePath: string, content: string): string {
-    return goStringHelperFilePass (filePath, content, undefined, goDropEndpointRaw, goNativeStringHelpersRewriteFunc);
-}
+function goNativeStringHelpers (filePath: string, content: string): string { return goStringHelperFilePass (filePath, content, undefined, goDropEndpointRaw, goNativeStringHelpersRewriteFunc); }
 
 // ===== Int64PtrTyped(rN.Value) of an int64 / *int64 async receive =====
 // The same file declares the callee `<-chan AsyncResult[int64|*int64]`, so the box round-trip is dropped.
 export function goAsyncInt64Value (content: string): string {
-    if (content.indexOf ('Int64PtrTyped(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('Int64PtrTyped(') < 0) { return content; }
     const re = /^(\t+var \w+ \*int64 = )Int64PtrTyped\((r\d+)\.Value\)$/gm;
     return content.replace (re, (line: string, head: string, recv: string, at: number) => {
         const before = content.slice (0, at);
         // the receive may sit in a nested block: any tab depth before `rN := <-this.`
         const recvAt = before.lastIndexOf ('\t' + recv + ' := <-this.');
         const funcAt = before.lastIndexOf ('\nfunc ');
-        if ((recvAt < 0) || (recvAt < funcAt) || !/\n\t*$/.test (before.slice (funcAt, recvAt + 1))) {
-            return line;
-        }
+        if ((recvAt < 0) || (recvAt < funcAt) || !/\n\t*$/.test (before.slice (funcAt, recvAt + 1))) { return line; }
         const callee = /^<-this\.(\w+Async)\(/.exec (before.slice (recvAt + recv.length + 5, recvAt + recv.length + 80));
-        if (!callee) {
-            return line;
-        }
+        if (!callee) { return line; }
         const sig = new RegExp ('^func \\(this \\*\\w+\\) ' + callee[1] + '\\(.*\\) <-chan AsyncResult\\[(\\*?int64)\\] \\{$', 'm').exec (content);
-        if (!sig) {
-            return line;
-        }
+        if (!sig) { return line; }
         return head + ((sig[1] === 'int64') ? '&' : '') + recv + '.Value';
     });
 }
@@ -17679,9 +14376,7 @@ export function goAsyncInt64ValueCheck (): string[] {
 // ===== SafeStringPtr(rN.Value) of a string / *string async receive =====
 // The callee is declared in the same file `<-chan AsyncResult[string|*string]`: the value is already the pointer.
 export function goAsyncStringValue (content: string, filePath = ''): string {
-    if (content.indexOf ('SafeStringPtr(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('SafeStringPtr(') < 0) { return content; }
     // a pro file's callee may be inherited from the embedded REST class: read its signature there
     const parentPath = filePath.replace (/\/go\/v4\/pro\/(\w+\.go)$/, '/go/v4/$1');
     const parent = ((parentPath !== filePath) && fs.existsSync (parentPath)) ? fs.readFileSync (parentPath, 'utf8') : '';
@@ -17691,9 +14386,7 @@ export function goAsyncStringValue (content: string, filePath = ''): string {
         const body = before.slice (before.lastIndexOf ('\nfunc '));
         const recvs = [ ...body.matchAll (new RegExp ('\\n\\t+' + recv + ' :?= (<-this\\.(\\w+Async)\\()?', 'g')) ];
         const callee = (recvs.length === 1) ? recvs[0][2] : undefined;
-        if (!callee) {
-            return line;
-        }
+        if (!callee) { return line; }
         const sigRe = (owner: string) => new RegExp ('^func \\(this \\*' + owner + '\\) ' + callee + '\\(.*\\) <-chan (?:ccxt\\.)?AsyncResult\\[(\\*?string)\\] \\{$', 'm');
         const local = new RegExp ('^func \\(this \\*\\w+\\) ' + callee + '\\(', 'm').test (content);
         const embed = /^type (\w+) struct \{\n\t\*ccxt\.(\w+)\n/m.exec (content);
@@ -17715,9 +14408,7 @@ export function goAsyncStringValueCheck (): string[] {
 
 // SafeStringPtr(xs[i]) of a once-declared []string local is &xs[i] (never nil, xs[i] evaluated the same);
 export function goStringSliceIndexPtr (content: string): string {
-    if (content.indexOf ('SafeStringPtr(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('SafeStringPtr(') < 0) { return content; }
     const proven = (at: number, xs: string, x: string): boolean => {
         const start = Math.max (0, content.lastIndexOf ('\nfunc ', at));
         const endAt = content.indexOf ('\n}\n', at);
@@ -17759,22 +14450,16 @@ function goTypedDerefAccessor (): RegExp {
 // the call text of `name(<arg>)` spanning exactly `text`, or undefined
 function goTypedSoleArg (text: string, name: RegExp): string | undefined {
     const m = name.exec (text);
-    if (!m) {
-        return undefined;
-    }
+    if (!m) { return undefined; }
     const args = goCallArgsSpanningText (text, m[0].length - 1);
     return ((args !== undefined) && (args.length === 1)) ? args[0] : undefined;
 }
 
 function goTypedLiteralDefaultAccessor (call: string, callee: string, own: Set<string>): boolean {
     const count = GO_SAFE_ACCESSOR_DEFAULT_ARG_COUNT[callee];
-    if ((count === undefined) || own.has (callee.slice (5))) {
-        return false;
-    }
+    if ((count === undefined) || own.has (callee.slice (5))) { return false; }
     const args = goCallArgsSpanningText (call, callee.length);
-    if ((args === undefined) || (args.length < count)) {
-        return false;
-    }
+    if ((args === undefined) || (args.length < count)) { return false; }
     return /^(?:-?\d+(?:\.\d+)?|"(?:[^"\\\n]|\\.)*"|true|false)$/.test (args[args.length - 1]);
 }
 
@@ -17786,11 +14471,7 @@ function goTypedTrailingCommentAt (line: string): number {
         if (quote !== '') {
             i += ((c === '\\') && (quote !== '`')) ? 1 : 0;
             quote = (c === quote) ? '' : quote;
-        } else if ((c === '"') || (c === '`') || (c === "'")) {
-            quote = c;
-        } else if ((c === '/') && (line[i + 1] === '/')) {
-            return i;
-        }
+        } else if ((c === '"') || (c === '`') || (c === "'")) { quote = c; } else if ((c === '/') && (line[i + 1] === '/')) { return i; }
     }
     return -1;
 }
@@ -17798,14 +14479,10 @@ function goTypedTrailingCommentAt (line: string): number {
 // a line with a trailing comment only takes the in-place `(*call)` form, which keeps the comment
 function goTypedRewriteLine (line: string, own: Set<string>): string | undefined {
     const at = goTypedTrailingCommentAt (line);
-    if (at < 0) {
-        return goTypedRewriteCode (line, own);
-    }
+    if (at < 0) { return goTypedRewriteCode (line, own); }
     const code = line.slice (0, at).replace (/\s+$/, '');
     const out = goTypedRewriteCode (code, own);
-    if ((out === undefined) || !out.includes ('\n')) {
-        return (out !== undefined) ? out + line.slice (code.length) : undefined;
-    }
+    if ((out === undefined) || !out.includes ('\n')) { return (out !== undefined) ? out + line.slice (code.length) : undefined; }
     // a statement form keeps the comment on its `if derefPtr` header line
     const lines = out.split ('\n');
     const at2 = lines.findIndex ((l) => l.trimStart ().startsWith ('if derefPtr := '));
@@ -17815,20 +14492,14 @@ function goTypedRewriteLine (line: string, own: Set<string>): string | undefined
 
 function goTypedRewriteCode (line: string, own: Set<string>): string | undefined {
     const m = /^(\t*)(?:(var (\w+) (any) = )|((\w+) = )|(return ))((?:ccxt\.)?DerefScalar\(.*\))$/.exec (line);
-    if (!m || (m[1] === '') || (m[6] === '_')) {
-        return undefined;
-    }
+    if (!m || (m[1] === '') || (m[6] === '_')) { return undefined; }
     const [ , ind, decl, declName, declType, , assignName, ret, call ] = m;
     const name = declName ?? assignName;
     const inner = goTypedSoleArg (call, /^(?:ccxt\.)?DerefScalar\(/);
-    if (inner === undefined) {
-        return undefined;
-    }
+    if (inner === undefined) { return undefined; }
     const accessor = /^(this\.\w+)\(/.exec (inner);
     // every declaration of these names returns *string/*int64/*float64/*bool except SafeIntegerOmitZero (any)
-    if (!accessor || !goTypedDerefAccessor ().test (inner) || /OmitZero\(/.test (accessor[0]) || (goCallArgsSpanningText (inner, accessor[0].length - 1) === undefined)) {
-        return undefined;
-    }
+    if (!accessor || !goTypedDerefAccessor ().test (inner) || /OmitZero\(/.test (accessor[0]) || (goCallArgsSpanningText (inner, accessor[0].length - 1) === undefined)) { return undefined; }
     const head = 'if derefPtr := ' + inner + '; derefPtr != nil {';
     const value = '*derefPtr';
     // an accessor with a literal default answers a fresh non-nil pointer on every path, so it
@@ -17840,22 +14511,14 @@ function goTypedRewriteCode (line: string, own: Set<string>): string | undefined
     // the operand must not read the name it writes (a `var` would shadow it) nor the temporary
     // (string literals are keys, not reads; an assignment evaluates the operand before it writes)
     const code = inner.replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
-    if (((decl !== undefined) && new RegExp ('\\b' + name + '\\b').test (code)) || /\bderefPtr\b/.test (code) || (name === 'derefPtr')) {
-        return undefined;
-    }
-    if (ret !== undefined) {
-        return [ ind + head, ind + '\treturn ' + value, ind + '}', ind + 'return nil' ].join ('\n');
-    }
-    if (decl !== undefined) {
-        return [ ind + 'var ' + name + ' ' + declType, ind + head, ind + '\t' + name + ' = ' + value, ind + '}' ].join ('\n');
-    }
+    if (((decl !== undefined) && new RegExp ('\\b' + name + '\\b').test (code)) || /\bderefPtr\b/.test (code) || (name === 'derefPtr')) { return undefined; }
+    if (ret !== undefined) { return [ ind + head, ind + '\treturn ' + value, ind + '}', ind + 'return nil' ].join ('\n'); }
+    if (decl !== undefined) { return [ ind + 'var ' + name + ' ' + declType, ind + head, ind + '\t' + name + ' = ' + value, ind + '}' ].join ('\n'); }
     return [ ind + head, ind + '\t' + name + ' = ' + value, ind + '} else {', ind + '\t' + name + ' = nil', ind + '}' ].join ('\n');
 }
 
 export function goTypedNativeDerefs (filePath: string, content: string): string {
-    if (!filePath.endsWith ('.go') || ((content.indexOf ('DerefScalar(') < 0) && (content.indexOf ('Float64PtrTyped(') < 0))) {
-        return content;
-    }
+    if (!filePath.endsWith ('.go') || ((content.indexOf ('DerefScalar(') < 0) && (content.indexOf ('Float64PtrTyped(') < 0))) { return content; }
     // an accessor the file declares itself may answer nil: only the base method is trusted
     const own = new Set<string> ((content.match (/^func \(this \*\w+\) Safe\w+\(/gm) ?? []).map ((d: string) => d.replace (/^func \(this \*\w+\) /, '').replace (/\($/, '')));
     return content.split ('\n').map ((line) => goTypedRewriteLine (line, own) ?? line).join ('\n');
@@ -17881,23 +14544,15 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
     ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k"))') === '\t\tif derefPtr := this.SafeInteger(m, "k"); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
     ok (f ('\treturn DerefScalar(this.SafeBool(m, "k"))') === '\tif derefPtr := this.SafeBool(m, "k"); derefPtr != nil {\n\t\treturn *derefPtr\n\t}\n\treturn nil', 'return form');
     const kept = [
-        '\tvar s any = DerefScalar(data[i])',
-        '\tvar s any = DerefScalar(this.SafeIntegerOmitZero(m, "k"))',
-        'var s any = DerefScalar(this.SafeString(m, "k"))',
-        '\tvar s any = DerefScalar(this.SafeValue(m, "k"))',
-        '\tvar s any = DerefScalar(this.SafeString(m, s))',
-        '\tderefPtr = DerefScalar(this.SafeString(m, "k"))',
-        '\ts = DerefScalar(this.SafeString(func() any {',
-        '\tvar p *float64 = this.ParseNumber(s)',
-        '\tvar p *float64 = Float64PtrTyped(GetValue(t, 0))',
-        '\t_ = DerefScalar(this.SafeString(m, "k"))',
-        '\tx := DerefScalar(this.SafeString(m, "k"))',
-        '\tvar s string = DerefScalar(this.SafeString(m, "k"))',
-        '\tvar s any = DerefScalar(this.SafeString(m, "k")) + 1',
+        '\tvar s any = DerefScalar(data[i])', '\tvar s any = DerefScalar(this.SafeIntegerOmitZero(m, "k"))',
+        'var s any = DerefScalar(this.SafeString(m, "k"))', '\tvar s any = DerefScalar(this.SafeValue(m, "k"))',
+        '\tvar s any = DerefScalar(this.SafeString(m, s))', '\tderefPtr = DerefScalar(this.SafeString(m, "k"))',
+        '\ts = DerefScalar(this.SafeString(func() any {', '\tvar p *float64 = this.ParseNumber(s)', '\tvar p *float64 = Float64PtrTyped(GetValue(t, 0))',
+        '\t_ = DerefScalar(this.SafeString(m, "k"))', '\tx := DerefScalar(this.SafeString(m, "k"))',
+        '\tvar s string = DerefScalar(this.SafeString(m, "k"))', '\tvar s any = DerefScalar(this.SafeString(m, "k")) + 1',
     ];
     kept.forEach ((line) => ok (f (line) === line, 'must keep: ' + line));
 }
-
 
 // ===== Omit of a tuple-helper params map is OmitDict =====
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
@@ -17914,9 +14569,7 @@ function goTypedMaplistTupleMap (func: string, name: string, pairs: string = '')
 }
 
 function goTypedMaplistOmitOfTupleMaps (content: string): string {
-    if (content.indexOf ('MapTyped(this.Omit(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('MapTyped(this.Omit(') < 0) { return content; }
     const masked = goMaskGoCode (content);
     // the file's own pair producers (venue `[ Str|Dict, Dict ]` methods printed with a `(T, map[string]any)` result)
     const pairs = [ ...masked.matchAll (/^func \(this \*\w+\) (\w+)\([^\n]*\) \((?:\*string|map\[string\]any|int64|bool), map\[string\]any\) \{$/gm) ].map ((p) => '|' + p[1]).join ('');
@@ -17928,9 +14581,7 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         const end = goMatchingCloseText (masked, open);
         const fs = masked.lastIndexOf ('\nfunc ', m.index);
         const fe = masked.indexOf ('\n}\n', m.index);
-        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1], pairs)) {
-            continue;
-        }
+        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1], pairs)) { continue; }
         const inner = content.substring (m.index + m[0].length, end - 1);
         out += content.substring (cursor, m.index) + 'this.OmitDict(' + m[1] + ',' + inner + ')';
         cursor = end + 1;
@@ -17955,12 +14606,8 @@ function goTypedMaplistSelfTest (ok: SelfTestOk): void {
 // IsEqual derefs pointers and compares same-kind scalars (int/int64/float64 cross-kind by value);
 // with a scalar-typed side, a nil-guarded pointer, or a MarketTyped row value it is exactly Go ==.
 function goTypedIsEqualLiteral (text: string): string | undefined {
-    if (/^"(?:[^"\\\n]|\\.)*"$/.test (text)) {
-        return 'string';
-    }
-    if ((text === 'true') || (text === 'false')) {
-        return 'bool';
-    }
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (text)) { return 'string'; }
+    if ((text === 'true') || (text === 'false')) { return 'bool'; }
     return /^-?\d{1,9}$/.test (text) ? 'int' : undefined;
 }
 
@@ -17971,23 +14618,13 @@ function goTypedIsEqualScalarVsLiteral (goType: string, lit: string): boolean {
     return (kind !== undefined) && (ok[goType] !== undefined) && (ok[goType].indexOf (kind) >= 0);
 }
 
-
-
 // split `a, b` at the single top-level comma; undefined for any other arity
 function goTypedIsEqualArgs (inner: string): string[] | undefined {
     let depth = 0;
     const cuts: number[] = [];
     for (let i = 0; i < inner.length; i++) {
         const c = inner[i];
-        if ((c === '"') || (c === '`') || (c === '\'')) {
-            i = goSkipLiteralText (inner, i);
-        } else if ('([{'.indexOf (c) >= 0) {
-            depth++;
-        } else if (')]}'.indexOf (c) >= 0) {
-            depth--;
-        } else if ((c === ',') && (depth === 0)) {
-            cuts.push (i);
-        }
+        if ((c === '"') || (c === '`') || (c === '\'')) { i = goSkipLiteralText (inner, i); } else if ('([{'.indexOf (c) >= 0) { depth++; } else if (')]}'.indexOf (c) >= 0) { depth--; } else if ((c === ',') && (depth === 0)) { cuts.push (i); }
     }
     return (cuts.length === 1) ? [ inner.slice (0, cuts[0]).trim (), inner.slice (cuts[0] + 1).trim () ] : undefined;
 }
@@ -17996,18 +14633,14 @@ function goTypedIsEqualArgs (inner: string): string[] | undefined {
 function goTypedIsEqualNativeForm (a: string, b: string, maskedFunc: string, signature: string, methods: Map<string, string>, negate: boolean): string | undefined {
     const eq = negate ? ' != ' : ' == ';
     const declType = (x: string): string | undefined => {
-        if (!/^[A-Za-z_]\w*$/.test (x) || (x === 'nil') || (x === 'true') || (x === 'false') || new RegExp ('&\\s*' + x + '\\b').test (maskedFunc)) {
-            return undefined;
-        }
+        if (!/^[A-Za-z_]\w*$/.test (x) || (x === 'nil') || (x === 'true') || (x === 'false') || new RegExp ('&\\s*' + x + '\\b').test (maskedFunc)) { return undefined; }
         const decl = goAccessSingleDeclaration (maskedFunc, signature, x);
         return (decl === undefined) ? undefined : decl.type;
     };
     const scalar = [ 'string', 'bool', 'int64', 'int', 'float64' ];
     const rowLocal = (x: string): boolean => {
         const m = /^([A-Za-z_]\w*)\["[^"\\\n]*"\]$/.exec (x);
-        if ((m === null) || (declType (m[1]) !== 'map[string]any')) {
-            return false;
-        }
+        if ((m === null) || (declType (m[1]) !== 'map[string]any')) { return false; }
         const writes = [ ...maskedFunc.matchAll (new RegExp ('(?:^|\\n)\\s*(?:var ' + m[1] + ' map\\[string\\]any|' + m[1] + ') = ([^\\n]*)', 'g')) ];
         const all = maskedFunc.match (new RegExp ('(?<![\\w.])' + m[1] + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)', 'g')) ?? [];
         return (writes.length > 0) && (writes.length === all.length) && writes.every ((w) => /^(?:(?:ccxt\.)?this\.(?:DerivedExchange\.|Exchange\.)?(?:Market|SafeMarket)\(.*\)|nil)$/.test (w[1].trim ()));
@@ -18016,17 +14649,13 @@ function goTypedIsEqualNativeForm (a: string, b: string, maskedFunc: string, sig
         const lit = goTypedIsEqualLiteral (y);
         const t = declType (x);
         // scalar local/param against a literal of its kind
-        if ((lit !== undefined) && (t !== undefined) && goTypedIsEqualScalarVsLiteral (t, y)) {
-            return x + eq + y;
-        }
+        if ((lit !== undefined) && (t !== undefined) && goTypedIsEqualScalarVsLiteral (t, y)) { return x + eq + y; }
         // pointer local/param: nil never equals a literal
         if ((lit !== undefined) && (t !== undefined) && t.startsWith ('*') && goTypedIsEqualScalarVsLiteral (t.slice (1), y)) {
             return negate ? ('(' + x + ' == nil || *' + x + ' != ' + y + ')') : ('(' + x + ' != nil && *' + x + ' == ' + y + ')');
         }
         // a MarketTyped row value is plain (no pointer, no typed-nil container)
-        if (((lit === 'string') || (lit === 'bool')) && rowLocal (x)) {
-            return x + eq + y;
-        }
+        if (((lit === 'string') || (lit === 'bool')) && rowLocal (x)) { return x + eq + y; }
         // same-file method on this receiver with a scalar Go result
         const call = /^this\.(\w+)\(/.exec (x);
         if ((lit !== undefined) && (call !== null) && (goMatchingCloseText (x, call[0].length - 1) === x.length - 1) && methods.has (call[1]) && goTypedIsEqualScalarVsLiteral (methods.get (call[1]), y)) {
@@ -18043,13 +14672,9 @@ function goTypedIsEqualNativeForm (a: string, b: string, maskedFunc: string, sig
         // two scalar idents (int widened to int64), or a pointer against a scalar ident
         if ((t !== undefined) && (u !== undefined) && (scalar.indexOf (u) >= 0)) {
             const base = t.startsWith ('*') ? t.slice (1) : t;
-            if ((scalar.indexOf (base) < 0) || ((base !== u) && !((base === 'int64') && (u === 'int')))) {
-                continue;
-            }
+            if ((scalar.indexOf (base) < 0) || ((base !== u) && !((base === 'int64') && (u === 'int')))) { continue; }
             const rhs = (base === u) ? y : ('int64(' + y + ')');
-            if (!t.startsWith ('*')) {
-                return x + eq + rhs;
-            }
+            if (!t.startsWith ('*')) { return x + eq + rhs; }
             return negate ? ('(' + x + ' == nil || *' + x + ' != ' + rhs + ')') : ('(' + x + ' != nil && *' + x + ' == ' + rhs + ')');
         }
     }
@@ -18057,9 +14682,7 @@ function goTypedIsEqualNativeForm (a: string, b: string, maskedFunc: string, sig
 }
 
 export function goTypedIsEqualNative (content: string): string {
-    if (!/(?<![\w.])(?:ccxt\.)?IsEqual\(/.test (content)) {
-        return content;
-    }
+    if (!/(?<![\w.])(?:ccxt\.)?IsEqual\(/.test (content)) { return content; }
     const methodsByRecv = new Map<string, Map<string, string>> ();
     for (const m of content.matchAll (/\nfunc \(this \*(\w+)\) (\w+)\([^\n]*\) (string|bool|int64|int|float64) \{\n/g)) {
         let map = methodsByRecv.get (m[1]);
@@ -18070,9 +14693,7 @@ export function goTypedIsEqualNative (content: string): string {
 }
 
 function goTypedIsEqualFuncText (fn: string, methodsByRecv: Map<string, Map<string, string>>): string {
-    if (fn.indexOf ('IsEqual(') < 0) {
-        return fn;
-    }
+    if (fn.indexOf ('IsEqual(') < 0) { return fn; }
     const masked = goMaskGoCode (fn);
     const signature = fn.replace (/^\n/, '').split ('\n')[0];
     const recv = /^func \(this \*(\w+)\)/.exec (signature);
@@ -18084,14 +14705,10 @@ function goTypedIsEqualFuncText (fn: string, methodsByRecv: Map<string, Map<stri
         const head = m.index + m[1].length;
         const open = m.index + m[0].length - 1;
         const close = goMatchingCloseText (fn, open);
-        if ((m.index < cursor) || (close < 0) || (masked.slice (head, open + 1) !== fn.slice (head, open + 1)) || (fn.slice (open, close).indexOf ('\n') >= 0)) {
-            continue;
-        }
+        if ((m.index < cursor) || (close < 0) || (masked.slice (head, open + 1) !== fn.slice (head, open + 1)) || (fn.slice (open, close).indexOf ('\n') >= 0)) { continue; }
         const args = goTypedIsEqualArgs (fn.slice (open + 1, close));
         const form = (args === undefined) ? undefined : goTypedIsEqualNativeForm (goArithStripParens (args[0], true), goArithStripParens (args[1], true), masked, signature, methods, m[1] === '!');
-        if (form === undefined) {
-            continue;
-        }
+        if (form === undefined) { continue; }
         const before = fn.slice (0, m.index);
         const after = fn.slice (close + 1);
         // gofmt drops parens around a whole control condition; an already-parenthesised call keeps one pair
@@ -18125,9 +14742,7 @@ function goTypedIsEqualSelfTest (ok: SelfTestOk): void {
 // and no read observes the box, so the typed-container pass can print plain `x[k] = v` for its writes.
 function goTypedAddElemMapWrite (rhs: string, n: string, nilOk = false): string | undefined {
     const r = rhs.trim ();
-    if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r) || (r === 'this.Account()')) {
-        return r;
-    }
+    if (/^(?:map\[string\]any\{|this\.(?:Extend|DeepExtend)\()/.test (r) || (r === 'this.Account()')) { return r; }
     // SafeDict* with a fresh-map default (or x itself) never answers nil: its typed twin reads the same map
     const sd = /^this\.SafeDict(2|N)?\(/.exec (r);
     if ((sd !== null) && (goMapWriteGroupEnd (r, sd[0].length - 1) === r.length)) {
@@ -18157,9 +14772,7 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
         // a top-level `if x == nil { panic/return }` dominates every later use: writes above it may be nil-capable
         let guard = -1;
         for (let k = start + 1; (k + 2 < end) && (guard < 0); k++) {
-            if ((masked[k] === '\tif ' + n + ' == nil {') && /^\t\t(?:panic\(|return\b)/.test (masked[k + 1]) && (masked[k + 2] === '\t}')) {
-                guard = k;
-            }
+            if ((masked[k] === '\tif ' + n + ' == nil {') && /^\t\t(?:panic\(|return\b)/.test (masked[k + 1]) && (masked[k + 2] === '\t}')) { guard = k; }
         }
         const vetoText = (guard < 0) ? maskedFunc : masked.slice (start, end + 1).map ((l, i) => ((i + start) === guard) ? '' : l).join ('\n');
         if ((n !== name) || (decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)
@@ -18186,18 +14799,12 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
                 const rhs = lines[k].substring (w[1].length);
                 const out = (goMapWriteGroupEnd (masked[k].substring (w[1].length), w[2].indexOf ('(') < 0 ? 0 : w[2].indexOf ('(')) >= 0) ? goTypedAddElemMapWrite (rhs, n, preGuard) : undefined;
                 safe = (out !== undefined) && (lines[k].indexOf ('//') < 0);
-                if (safe) {
-                    edits.push ([ k, w[1] + out ]);
-                }
+                if (safe) { edits.push ([ k, w[1] + out ]); }
             } else if (untilRx.test (masked[k])) {
                 continue; // returns MapTyped(x): x itself
             } else if ((masked[k].trim () !== '') && (goPairRebindsBlanked (masked[start] + '\n' + masked[k], name).split ('\n').pop () === '')) {
                 continue; // slot 0 of a never-nil pair method
-            } else if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)|,\\s*' + n + '\\s*(?:,[^=\\n]*)?:?=(?!=)').test (masked[k])) {
-                safe = false;
-            } else if (goTextWritesName (masked[k], n) && !new RegExp ('\\b' + n + '\\s*\\[').test (masked[k])) {
-                safe = false;
-            }
+            } else if (new RegExp ('(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)|,\\s*' + n + '\\s*(?:,[^=\\n]*)?:?=(?!=)').test (masked[k])) { safe = false; } else if (goTextWritesName (masked[k], n) && !new RegExp ('\\b' + n + '\\s*\\[').test (masked[k])) { safe = false; }
         }
         if (safe && (edits.length > 0) && declRx.test (masked[edits[0][0]])) {
             for (const [ k, text ] of edits) {
@@ -18266,15 +14873,9 @@ function goTypedAddElemRetypeMapLocals (content: string): string {
 function goTypedAddElemBlockEnd (masked: string[], g: number, end: number): number {
     let depth = 1;
     for (let j = g + 1; j < end; j++) {
-        if ((depth === 1) && /^\s*\} else \{$/.test (masked[j])) {
-            return j;
-        }
-        for (const c of masked[j]) {
-            depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
-        }
-        if (depth === 0) {
-            return (masked[j].trim () === '}') ? j : -1;
-        }
+        if ((depth === 1) && /^\s*\} else \{$/.test (masked[j])) { return j; }
+        for (const c of masked[j]) { depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0); }
+        if (depth === 0) { return (masked[j].trim () === '}') ? j : -1; }
     }
     return -1;
 }
@@ -18287,9 +14888,7 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
     const names = new Set ([ ...maskedFunc.matchAll (/(?<![\w.])(?:ccxt\.)?AddElementToObject\((\w+), /g) ].map ((m) => m[1]));
     for (const name of names) {
         const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
-        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined) || goMapLocalRebound (maskedFunc, name)) {
-            continue;
-        }
+        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined) || goMapLocalRebound (maskedFunc, name)) { continue; }
         const d = start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
         const sd = new RegExp ('^(\\s*var ' + name + ' )any = this\\.SafeDict(2|N)?\\((.*)\\)$').exec (lines[d]);
         const arity = (sd === null) ? 0 : ((sd[2] === '2') ? 3 : 2);
@@ -18306,13 +14905,9 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
         let proven = false; // x is non-nil from line k on, or never read again
         while (!proven && (k < end)) {
             const g = nilTest.exec (masked[k]);
-            if (g === null) {
-                break;
-            }
+            if (g === null) { break; }
             const close = goTypedAddElemBlockEnd (masked, k, end);
-            if (close < 0) {
-                break;
-            }
+            if (close < 0) { break; }
             const body = masked.slice (k + 1, close);
             const touched = body.map ((l, i) => (mention.test (l) ? i : -1)).filter ((i) => i >= 0);
             let next = close + 1;
@@ -18322,18 +14917,12 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
             } else if ((touched.length === 1) && (touched[0] === body.length - 1) && reread.test (lines[close - 1])
                 && (goMapWriteGroupEnd (masked[close - 1], masked[close - 1].indexOf ('(')) === masked[close - 1].length)) {
                 const r = reread.exec (lines[close - 1]) as RegExpExecArray;
-                if (goMapWriteTopLevelParts (r[3], ',').length !== ((r[2] === '2') ? 3 : 2)) {
-                    break;
-                }
+                if (goMapWriteTopLevelParts (r[3], ',').length !== ((r[2] === '2') ? 3 : 2)) { break; }
                 edits.push ([ close - 1, r[1] + 'this.SafeDict' + (r[2] ?? '') + 'Map(' + r[3] + ')' ]);
                 state = 'reread';
-            } else if ((touched.length === 0) && /^(?:continue|return\b.*|panic\(.*\))$/.test (body.filter ((l) => l.trim () !== '').pop ()?.trim () ?? '')) {
-                state = 'leave';
-            } else if ((touched.length === 0) && /^\s*\} else \{$/.test (masked[close])) {
+            } else if ((touched.length === 0) && /^(?:continue|return\b.*|panic\(.*\))$/.test (body.filter ((l) => l.trim () !== '').pop ()?.trim () ?? '')) { state = 'leave'; } else if ((touched.length === 0) && /^\s*\} else \{$/.test (masked[close])) {
                 const elseEnd = goTypedAddElemBlockEnd (masked, close, end);
-                if ((elseEnd < 0) || masked.slice (elseEnd + 1, end).some ((l) => mention.test (l))) {
-                    break;
-                }
+                if ((elseEnd < 0) || masked.slice (elseEnd + 1, end).some ((l) => mention.test (l))) { break; }
                 state = 'else';
                 next = elseEnd + 1;
             } else {
@@ -18341,9 +14930,7 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
             }
             if (/^\s*\} else \{$/.test (masked[close]) && (state !== 'else')) {
                 const elseEnd = goTypedAddElemBlockEnd (masked, close, end);
-                if ((state !== 'fresh') || (elseEnd < 0)) {
-                    break;
-                }
+                if ((state !== 'fresh') || (elseEnd < 0)) { break; }
                 next = elseEnd + 1;
             }
             edits.push ([ k, g[1] + name + ' == nil' + g[2] ]);
@@ -18352,9 +14939,7 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
         }
         // every other write must be a fresh non-nil map
         const writes = masked.slice (d + 1, end).map ((l, i) => [ l, i + d + 1 ] as [string, number]).filter (([ l ]) => new RegExp ('(?:^|[^\\w.])' + name + '\\s*=(?!=)').test (l));
-        if (!proven || writes.some (([ l, i ]) => !fresh.test (l) && !edits.some (([ e ]) => e === i))) {
-            continue;
-        }
+        if (!proven || writes.some (([ l, i ]) => !fresh.test (l) && !edits.some (([ e ]) => e === i))) { continue; }
         for (const [ e, text ] of edits) {
             lines[e] = text;
             masked[e] = goMaskGoCode (text);
@@ -18365,17 +14950,13 @@ function goTypedAddElemNilGuardedFunc (lines: string[], masked: string[], start:
 // ===== GetValue(m, "lit") -> m["lit"] on multi-line market-row locals =====
 // Extends nativeMarketRowReads to `var m map[string]any = this.Market(<multi-line arg>)` and to
 // writes from another market-row local: every value of a MarketTyped row reads as GetValue does.
-function goTypedGvMapReads (content: string): string {
-    return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), goTypedGvMapFunc);
-}
+function goTypedGvMapReads (content: string): string { return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), goTypedGvMapFunc); }
 
 function goTypedGvMapFunc (lines: string[], masked: string[], start: number, end: number) {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const verdicts = new Map<string, number | undefined> ();
     const rowLocal = (name: string, seen: string[]): number | undefined => {
-        if (verdicts.has (name)) {
-            return verdicts.get (name);
-        }
+        if (verdicts.has (name)) { return verdicts.get (name); }
         verdicts.set (name, undefined); // cycles fail closed
         const n = goAccessEscape (name);
         const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
@@ -18387,34 +14968,24 @@ function goTypedGvMapFunc (lines: string[], masked: string[], start: number, end
         const form = new RegExp ('^(\\s*)(var ' + n + ' map\\[string\\]any|' + n + ') = (.*)$');
         let declLine = -1;
         for (let k = start + 1; k < end; k++) {
-            if (!write.test (masked[k])) {
-                continue;
-            }
+            if (!write.test (masked[k])) { continue; }
             const m = form.exec (masked[k]);
-            if (m === null) {
-                return undefined;
-            }
+            if (m === null) { return undefined; }
             const rhs = m[3].trim ();
             let ok = (rhs === 'nil');
             if (!ok && /^\w+$/.test (rhs) && (seen.indexOf (rhs) < 0)) {
                 const other = rowLocal (rhs, seen.concat ([ name ]));
                 ok = (other !== undefined) && (other < k);
             }
-            if (!ok) {
-                return undefined;
-            }
-            if (m[2].startsWith ('var ')) {
-                declLine = k;
-            }
+            if (!ok) { return undefined; }
+            if (m[2].startsWith ('var ')) { declLine = k; }
         }
         const verdict = (declLine >= 0) ? declLine : undefined;
         verdicts.set (name, verdict);
         return verdict;
     };
     for (let k = start + 1; k < end; k++) {
-        if (masked[k].indexOf ('GetValue(') < 0) {
-            continue;
-        }
+        if (masked[k].indexOf ('GetValue(') < 0) { continue; }
         const m = masked[k];
         lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), ("[^"\\\n]*")\)/g, (all: string, name: string, key: string, at: number) => {
             const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
@@ -18431,18 +15002,13 @@ function goTypedStrSafeStringArity (): Record<string, number> {  // function, no
     return { SafeString: 3, SafeStringLower: 3, SafeStringUpper: 3, SafeString2: 4, SafeStringLower2: 4, SafeStringUpper2: 4 };
 }
 
-// the only write of `name` in the function is its declaration (no assignment, no address taken)
-// the Go kind of a local bound exactly once by `:=` from a typed producer and never written again:
-// slot 0 of the base HandleOptionInteger(AndParams|AndParams2) tuple is int64, NewPrecise returns *PreciseStruct
+// the only write of `name` in the function is its declaration (no assignment, no address taken) the Go kind of a local bound exactly once by `:=` from a typed
+// producer and never written again: slot 0 of the base HandleOptionInteger(AndParams|AndParams2) tuple is int64, NewPrecise returns *PreciseStruct
 function goTypedBoundOnceKind (masked: string, name: string, file: string): string | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil')) {
-        return undefined;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil')) { return undefined; }
     const bind = [ ...masked.matchAll (new RegExp ('^[ \\t]*' + name + '(?:, *[A-Za-z_]\\w*)* := ([^\\n]*)$', 'gm')) ];
     const any = [ ...masked.matchAll (new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=]*:=', 'g')) ];
-    if ((bind.length !== 1) || (any.length !== 1)) {
-        return undefined;
-    }
+    if ((bind.length !== 1) || (any.length !== 1)) { return undefined; }
     const rest = masked.replace (bind[0][0], '');
     const n = name;
     if (new RegExp ('(?<![\\w.])' + n + '\\s*(?:,\\s*[\\w.]+\\s*)*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)|,\\s*' + n + '\\s*(?:,\\s*[\\w.]+\\s*)*=(?!=)|&' + n + '\\b|\\bfunc\\b[^\\n]*\\b' + n + '\\b|\\bvar ' + n + '\\b|\\brange\\b[^\\n]*\\b' + n + '\\b').test (rest)) {
@@ -18451,12 +15017,8 @@ function goTypedBoundOnceKind (masked: string, name: string, file: string): stri
     const first = new RegExp ('^' + n + '(?:,|\\s)').test (bind[0][0].trim ());
     const call = bind[0][1];
     const tuple = /^this\.(HandleOptionInteger(?:AndParams|AndParams2))\(/.exec (call);
-    if (first && (tuple !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + tuple[1] + '\\(', 'm').test (file)) {
-        return 'int64';
-    }
-    if ((new RegExp ('^' + n + ' := ').test (bind[0][0].trim ())) && /^(?:ccxt\.)?NewPrecise\(/.test (call)) {
-        return 'precise';
-    }
+    if (first && (tuple !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + tuple[1] + '\\(', 'm').test (file)) { return 'int64'; }
+    if ((new RegExp ('^' + n + ' := ').test (bind[0][0].trim ())) && /^(?:ccxt\.)?NewPrecise\(/.test (call)) { return 'precise'; }
     return undefined;
 }
 
@@ -18468,9 +15030,7 @@ function goTypedStrWrittenOnce (maskedFunc: string, name: string): boolean {
 // the initializer text of the single `var name T = ...` line
 function goTypedStrInit (func: string, masked: string, name: string, type: string): string | undefined {
     const m = new RegExp ('\\bvar ' + name + ' ' + type.replace (/[*\[\]]/g, '\\$&') + ' = ').exec (masked);
-    if (m === null) {
-        return undefined;
-    }
+    if (m === null) { return undefined; }
     const start = m.index + m[0].length;
     const end = masked.indexOf ('\n', start);
     return func.substring (start, end).replace (/\s*\/\/.*$/, '').trim ();
@@ -18478,13 +15038,9 @@ function goTypedStrInit (func: string, masked: string, name: string, type: strin
 
 // { kind, text }: the operand's Go type and the expression that yields it natively
 function goAllScopesString (masked: string, name: string): boolean {
-    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil')) {
-        return false;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil')) { return false; }
     const decls = [ ...masked.matchAll (new RegExp ('\\bvar ' + name + ' ([\\w\\[\\]*]+)(?: =|\\n)', 'g')) ];
-    if ((decls.length < 2) || !decls.every ((d) => d[1] === 'string')) {
-        return false;
-    }
+    if ((decls.length < 2) || !decls.every ((d) => d[1] === 'string')) { return false; }
     const other = new RegExp ('\\b' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\w+\\s*,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|func\\s*(?:\\([^)]*\\)\\s*\\w*\\s*)?\\([^)]*\\b' + name + '\\b[^)]*\\)|\\bvar ' + name + '\\s*,|,\\s*' + name + '\\s+[\\w.*\\[\\]]+\\s*[,)]|\\brange\\b[^\\n]*\\b' + name + '\\b');
     return !other.test (masked);
 }
@@ -18501,37 +15057,23 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
     }
     if ((strOperandKind === '*string') || (strOperandKind === '*int64')) {
         const init = goTypedStrInit (func, masked, arg, strOperandKind);
-        if ((init === undefined) || !goTypedStrWrittenOnce (masked.replace (new RegExp ('\\bvar ' + arg + ' '), 'var _ '), arg)) {
-            return undefined;
-        }
+        if ((init === undefined) || !goTypedStrWrittenOnce (masked.replace (new RegExp ('\\bvar ' + arg + ' '), 'var _ '), arg)) { return undefined; }
         const call = /^this\.(\w+)\(/.exec (init);
-        if ((call === null) || new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(', 'm').test (file)) {
-            return undefined;
-        }
+        if ((call === null) || new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(', 'm').test (file)) { return undefined; }
         const initMasked = goMaskGoCode (init);
         const parsed = goSplitCallArgs (init, initMasked, call[0].length - 1);
-        if ((parsed === undefined) || (parsed.end !== init.length - 1)) {
-            return undefined;
-        }
+        if ((parsed === undefined) || (parsed.end !== init.length - 1)) { return undefined; }
         const last = parsed.args[parsed.args.length - 1];
         // the method returns the default when the key is absent, so a literal default is never nil
-        if ((strOperandKind === '*string') && (goTypedStrSafeStringArity ()[call[1]] === parsed.args.length) && GO_STRING_LITERAL_RX ().test (last)) {
-            return { kind: 'string', text: '*' + arg };
-        }
-        if ((strOperandKind === '*int64') && (call[1] === 'SafeInteger') && (parsed.args.length === 3) && GO_SMALL_INT_LITERAL_RX ().test (last)) {
-            return { kind: 'int64', text: '*' + arg };
-        }
+        if ((strOperandKind === '*string') && (goTypedStrSafeStringArity ()[call[1]] === parsed.args.length) && GO_STRING_LITERAL_RX ().test (last)) { return { kind: 'string', text: '*' + arg }; }
+        if ((strOperandKind === '*int64') && (call[1] === 'SafeInteger') && (parsed.args.length === 3) && GO_SMALL_INT_LITERAL_RX ().test (last)) { return { kind: 'int64', text: '*' + arg }; }
         return undefined;
     }
     if (/^[A-Za-z_]\w*$/.test (arg) && (strOperandKind === undefined)) {
         const bound = goTypedBoundOnceKind (masked, arg, file);
-        if (bound !== undefined) {
-            return { kind: bound, text: arg };
-        }
+        if (bound !== undefined) { return { kind: bound, text: arg }; }
     }
-    if (arg === 'this.Id') {
-        return { kind: 'string', text: arg };
-    }
+    if (arg === 'this.Id') { return { kind: 'string', text: arg }; }
     // a `name string` parameter that no `var`, `:=`, closure param or range rebinds
     if ((strOperandKind === undefined) && /^[A-Za-z_]\w*$/.test (arg)) {
         const sig = masked.substring (0, masked.indexOf ('{'));
@@ -18539,9 +15081,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
         const isParam = new RegExp ('[(,]\\s*' + n + ' string(?=[,)])').test (sig);
         const body = masked.substring (masked.indexOf ('{'));
         const rebound = new RegExp ('\\bvar ' + n + '\\b|\\b' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + n + '\\b|\\brange\\b[^\\n]*\\b' + n + '\\b').test (body);
-        if (isParam && !rebound) {
-            return { kind: 'string', text: arg };
-        }
+        if (isParam && !rebound) { return { kind: 'string', text: arg }; }
     }
     // an already-dereferenced pointer ident is the string its proven-non-nil operand prints as `*x`
     const deref = /^\*([A-Za-z_]\w*)$/.exec (arg);
@@ -18550,32 +15090,18 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
         return ((inner !== undefined) && (inner.kind === 'string') && (inner.text === arg)) ? inner : undefined;
     }
     // a name that every `var` in the func declares `string` (sibling scopes), never bound another way
-    if (goAllScopesString (masked, arg)) {
-        return { kind: 'string', text: arg };
-    }
+    if (goAllScopesString (masked, arg)) { return { kind: 'string', text: arg }; }
     // strconv.FormatInt/Itoa of a plain identifier or field is a string
-    if (/^strconv\.(?:FormatInt\([\w.]+, 10|Itoa\([\w.]+)\)$/.test (arg)) {
-        return { kind: 'string', text: arg };
-    }
+    if (/^strconv\.(?:FormatInt\([\w.]+, 10|Itoa\([\w.]+)\)$/.test (arg)) { return { kind: 'string', text: arg }; }
     // plain-string base fields (exchange.go declares them `string`, not a box)
-    if (/^this\.(?:ApiKey|Secret|Password|Uid|AccountId|PrivateKey|WalletAddress|Hostname)$/.test (arg)) {
-        return { kind: 'string', text: arg };
-    }
+    if (/^this\.(?:ApiKey|Secret|Password|Uid|AccountId|PrivateKey|WalletAddress|Hostname)$/.test (arg)) { return { kind: 'string', text: arg }; }
     const clock = /^this\.(Milliseconds|Seconds|Microseconds)\(\)$/.exec (arg);
-    if ((clock !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + clock[1] + '\\(', 'm').test (file)) {
-        return { kind: 'int64', text: arg };
-    }
+    if ((clock !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + clock[1] + '\\(', 'm').test (file)) { return { kind: 'int64', text: arg }; }
     // Nonce () and IncrementingNonce () are int64 in the interface, the base and every override (ast goNonceReturnType)
-    if (/^this\.(?:Incrementing)?Nonce\(\)$/.test (arg)) {
-        return { kind: 'int64', text: arg };
-    }
-    if (/^client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetUrl\(\)$/.test (arg)) {
-        return { kind: 'string', text: arg };
-    }
+    if (/^this\.(?:Incrementing)?Nonce\(\)$/.test (arg)) { return { kind: 'int64', text: arg }; }
+    if (/^client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?GetUrl\(\)$/.test (arg)) { return { kind: 'string', text: arg }; }
     const elem = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*|\d{1,9})\]$/.exec (arg);
-    if ((elem !== null) && (goStringOperandDeclaredType (masked, elem[1]) === '[]string')) {
-        return { kind: 'string', text: arg };
-    }
+    if ((elem !== null) && (goStringOperandDeclaredType (masked, elem[1]) === '[]string')) { return { kind: 'string', text: arg }; }
     // a `+` sum whose every leaf is a string that needs no rewrite
     const argMasked = goMaskGoCode (arg);
     const parts: string[] = [];
@@ -18595,9 +15121,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
 // `Slice(s, a, b)` on a proven Go string with literal bounds: the helper's index arithmetic (negative
 // counts from the end, nil end, end clamped to len) spelled as a subscript; other bounds keep the helper
 function goSliceLiteralNative (recv: { kind: string, text: string } | undefined, rawArgs: string[]): { text: string, pkg: string } | undefined {
-    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) {
-        return undefined;
-    }
+    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) { return undefined; }
     const bound = (a: string): number | undefined => {
         const m = /^(?:int64\((-?\d{1,9})\)|(?:ccxt\.)?OpNeg\((\d{1,9})\)|(-?\d{1,9}))$/.exec (a);
         if (m === null) { return undefined; }
@@ -18605,14 +15129,10 @@ function goSliceLiteralNative (recv: { kind: string, text: string } | undefined,
     };
     const start = bound (rawArgs[1]);
     const end = (rawArgs[2] === 'nil') ? null : bound (rawArgs[2]);
-    if ((start === undefined) || (end === undefined)) {
-        return undefined;
-    }
+    if ((start === undefined) || (end === undefined)) { return undefined; }
     const s = recv.text;
     const len = 'len(' + s + ')';
-    if (end === null) {
-        return { text: s + '[' + ((start >= 0) ? String (start) : 'max(' + len + '-' + (-start) + ', 0)') + ':]', pkg: '' };
-    }
+    if (end === null) { return { text: s + '[' + ((start >= 0) ? String (start) : 'max(' + len + '-' + (-start) + ', 0)') + ':]', pkg: '' }; }
     const from = (start >= 0) ? String (start) : len + '-' + (-start);
     const to = (end >= 0) ? 'min(' + end + ', ' + len + ')' : len + '-' + (-end);
     return { text: s + '[' + from + ':' + to + ']', pkg: '' };
@@ -18620,13 +15140,9 @@ function goSliceLiteralNative (recv: { kind: string, text: string } | undefined,
 
 // an int/int64 Slice bound read more than once: a once-declared local, a `for i := 0` counter, `x+N`, len(recv)
 function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: string, nonneg: boolean } | undefined {
-    if ((arg === 'len(' + recv + ')') || (arg === 'len((' + recv + '))')) {
-        return { kind: 'int', nonneg: true };
-    }
+    if ((arg === 'len(' + recv + ')') || (arg === 'len((' + recv + '))')) { return { kind: 'int', nonneg: true }; }
     const m = /^([A-Za-z_]\w*)(?:\s*\+\s*(\d{1,6}))?$/.exec (arg);
-    if (m === null) {
-        return undefined;
-    }
+    if (m === null) { return undefined; }
     let kind = goStringOperandDeclaredType (masked, m[1]);
     if ((kind === undefined) && (masked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\b[^\\n=]*:=', 'g')) ?? []).length === 1
         && new RegExp ('\\bfor ' + m[1] + ' := \\d+; ').test (masked) && !new RegExp ('\\bvar ' + m[1] + '\\b|&' + m[1] + '\\b|\\bfunc\\b[^\\n]*\\b' + m[1] + '\\b').test (masked)) {
@@ -18640,49 +15156,31 @@ function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: s
 // `Slice(s, a, b)` with int-typed bounds: a negative bound counts from the end (indicator min(max(-x, 0), 1)),
 // the end is clamped to len, a nil end clamps the start at 0; out-of-range bounds panic as in the helper
 function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefined, rawArgs: string[], masked: string): { text: string, pkg: string } | undefined {
-    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) {
-        return undefined;
-    }
+    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) { return undefined; }
     const s = recv.text.startsWith ('*') ? '(' + recv.text + ')' : recv.text;
     const lit = (a: string) => /^(?:int64\()?(\d{1,9})\)?$/.exec (a);
     const one = (a: string): { text: string, kind: string, nonneg: boolean } | undefined => {
         const l = lit (a);
-        if (l !== null) {
-            return { text: l[1], kind: 'const', nonneg: true };
-        }
+        if (l !== null) { return { text: l[1], kind: 'const', nonneg: true }; }
         const b = goSliceBoundKind (a, masked, recv.text);
-        if (b === undefined) {
-            return undefined;
-        }
-        if (b.nonneg) {
-            return { text: a, kind: b.kind, nonneg: true };
-        }
+        if (b === undefined) { return undefined; }
+        if (b.nonneg) { return { text: a, kind: b.kind, nonneg: true }; }
         const len = (b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')';
         const x = /^\w+$/.test (a) ? a : '(' + a + ')';
         return { text: x + '+' + len + '*min(max(-' + x + ', 0), 1)', kind: b.kind, nonneg: b.nonneg };
     };
     const a = one (rawArgs[1]);
-    if (a === undefined) {
-        return undefined;
-    }
-    if (rawArgs[2] === 'nil') {
-        return { text: s + '[' + (a.nonneg ? a.text : 'max(' + a.text + ', 0)') + ':]', pkg: '' };
-    }
+    if (a === undefined) { return undefined; }
+    if (rawArgs[2] === 'nil') { return { text: s + '[' + (a.nonneg ? a.text : 'max(' + a.text + ', 0)') + ':]', pkg: '' }; }
     const b = one (rawArgs[2]);
-    if ((b === undefined) || ((a.kind === 'const') && (b.kind === 'const'))) {
-        return undefined;
-    }
+    if ((b === undefined) || ((a.kind === 'const') && (b.kind === 'const'))) { return undefined; }
     const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + b.text + ', ' + ((b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')') + ')';
     return { text: s + '[' + a.text + ':' + end + ']', pkg: '' };
 }
 
 function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[], masked?: string): { text: string, pkg: string } | undefined {
-    if (helper === 'Slice') {
-        return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked));
-    }
-    if (ops.some ((o) => o === undefined)) {
-        return undefined;
-    }
+    if (helper === 'Slice') { return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked)); }
+    if (ops.some ((o) => o === undefined)) { return undefined; }
     const o = ops as { kind: string, text: string }[];
     const str = (i: number) => (o[i].kind === 'string');
     const t = o.map ((x) => x.text);
@@ -18696,20 +15194,16 @@ function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } 
         if (o[0].kind === 'precise') { return { text: t[0] + '.String()', pkg: '' }; }
         return undefined;
     case 'ToUpper':
-    case 'ToLower':
-        return ((o.length === 1) && str (0)) ? { text: 'strings.' + helper + '(' + t[0] + ')', pkg: 'strings' } : undefined;
-    case 'Trim':
-        return ((o.length === 1) && str (0)) ? { text: 'strings.TrimSpace(' + t[0] + ')', pkg: 'strings' } : undefined;
+    case 'ToLower': return ((o.length === 1) && str (0)) ? { text: 'strings.' + helper + '(' + t[0] + ')', pkg: 'strings' } : undefined;
+    case 'Trim': return ((o.length === 1) && str (0)) ? { text: 'strings.TrimSpace(' + t[0] + ')', pkg: 'strings' } : undefined;
     case 'Split':
         // an empty separator splits by UTF-8 sequence in Go, by UTF-16 unit in JS: keep the helper
         return ((o.length === 2) && str (0) && str (1) && (rawArgs[1] !== '""')) ? { text: 'strings.Split(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
     case 'StartsWith':
     case 'EndsWith':
         return ((o.length === 2) && str (0) && str (1)) ? { text: 'strings.' + ((helper === 'StartsWith') ? 'HasPrefix' : 'HasSuffix') + '(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
-    case 'Replace':
-        return ((o.length === 3) && str (0) && str (1) && str (2)) ? { text: 'strings.ReplaceAll(' + t[0] + ', ' + t[1] + ', ' + t[2] + ')', pkg: 'strings' } : undefined;
-    case 'Join':
-        return ((o.length === 2) && (o[0].kind === '[]string') && str (1)) ? { text: 'strings.Join(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
+    case 'Replace': return ((o.length === 3) && str (0) && str (1) && str (2)) ? { text: 'strings.ReplaceAll(' + t[0] + ', ' + t[1] + ', ' + t[2] + ')', pkg: 'strings' } : undefined;
+    case 'Join': return ((o.length === 2) && (o[0].kind === '[]string') && str (1)) ? { text: 'strings.Join(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
     case 'GetIndexOf':
         if ((o.length !== 2) || !str (1)) { return undefined; }
         if (str (0)) { return { text: 'strings.Index(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' }; }
@@ -18745,49 +15239,36 @@ function goNilProvenStringPtr (arg: string, masked: string, at: number): { kind:
     if ((chain !== null) && chain[1].includes ('(' + arg + ' != nil)') && !write.test (line.replace (/[=!]=/g, '  '))) {
         const open = chain[0].length - 1;
         const close = goMatchingCloseText (line, open);
-        if ((close > at - lineStart) && /^\s*\{?\s*$/.test (line.substring (close + 1))) {
-            return { kind: 'string', text: '*' + arg };
-        }
+        if ((close > at - lineStart) && /^\s*\{?\s*$/.test (line.substring (close + 1))) { return { kind: 'string', text: '*' + arg }; }
     }
     return goNilGuardedStringLocals (masked, at, new Set ([ '*' + arg ])).has ('!' + arg) ? { kind: 'string', text: '*' + arg } : undefined;
 }
 
-function GO_TYPED_STR_CALL_RX (): RegExp {
-    return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/g;
-}
+function GO_TYPED_STR_CALL_RX (): RegExp { return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/g; }
 
 function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): string {
     return goStringHelperCallsRewrite (func, pkgs, GO_TYPED_STR_CALL_RX, (name, args, out, masked, at) =>
         goTypedStrNative (name, args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, at)), args, masked));
 }
 
-// a func-local `var X []any = []any{<strings>}` only appended proven strings, measured with len() and joined with
-// Join(X, sep) is a `[]string` (Join then prints strings.Join); Join/len answer the same on the []any of the same strings.
-// Every use of the name must be one of those four forms.
+// a func-local `var X []any = []any{<strings>}` only appended proven strings, measured with len() and joined with Join(X, sep) is a `[]string` (Join then
+// prints strings.Join); Join/len answer the same on the []any of the same strings. Every use of the name must be one of those four forms.
 function goJoinStringLocals (content: string): string {
-    if (!/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (content) || (content.indexOf ('var ') < 0)) {
-        return content;
-    }
+    if (!/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (content) || (content.indexOf ('var ') < 0)) { return content; }
     const parts = content.split (/(?=^func )/m);
     for (let p = 0; p < parts.length; p++) {
-        if (!parts[p].startsWith ('func ') || !/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (parts[p])) {
-            continue;
-        }
+        if (!parts[p].startsWith ('func ') || !/(?<![\w.])(?:ccxt\.)?(?:Join|DerefScalar)\(/.test (parts[p])) { continue; }
         let func = parts[p];
         const masked0 = goMaskGoCode (func);
         const joinOverridden = goAddOverriddenMethods (goMaskGoCode (content));
         const names = [ ...masked0.matchAll (/^[ \t]*var (\w+) \[\]any = \[\]any\{/gm) ].map ((m) => m[1]);
         for (const name of new Set (names)) {
             const masked = goMaskGoCode (func);
-            if (goStringOperandDeclaredType (masked, name) !== '[]any') {
-                continue;
-            }
+            if (goStringOperandDeclaredType (masked, name) !== '[]any') { continue; }
             const n = name.replace (/\$/g, '\\$');
             const total = (masked.match (new RegExp ('(?<![\\w.])' + n + '(?![\\w])', 'g')) ?? []).length;
             const decl = new RegExp ('^([ \\t]*var ' + n + ' )\\[\\]any( = )\\[\\]any\\{(.*)\\}$', 'm').exec (func);
-            if ((decl === null) || (new RegExp ('^[ \\t]*var ' + n + ' \\[\\]any = \\[\\]any\\{.*\\}$', 'm').exec (masked) === null)) {
-                continue;
-            }
+            if ((decl === null) || (new RegExp ('^[ \\t]*var ' + n + ' \\[\\]any = \\[\\]any\\{.*\\}$', 'm').exec (masked) === null)) { continue; }
             const elems = (decl[3].trim () === '') ? [] : goGuardedReadSplitArgs (decl[3]);
             const isLeaf = (e: string) => { const o = goTypedStrOperand (e, func, masked, content); return (o !== undefined) && (o.kind === 'string') && (o.text === e); };
             // a `+` sum of string leaves, a defaulted `*this.SafeString(.., "lit")` among them, is a string
@@ -18796,15 +15277,11 @@ function goJoinStringLocals (content: string): string {
             // a deref `*x` of a `*string` local is a Go string; so is a once-bound `var x any = <string call>` local
             const derefPtr = (e: string) => /^\*\w+$/.test (e) && (goFuncDeclaredType (func, e.slice (1)) === '*string');
             const isString = (e: string) => isLeaf (e) || goJoinStringSum (e, isLeaf) || stringCall (e) || derefPtr (e) || (goJoinBoxedStringLocal (func, e, stringCall) !== undefined);
-            if (!elems.every (isString)) {
-                continue;
-            }
+            if (!elems.every (isString)) { continue; }
             let accounted = 1 + elems.reduce ((a, e) => a + (e.match (new RegExp ('(?<![\\w.])' + n + '(?![\\w])', 'g')) ?? []).length, 0);
             let ok = true;
             for (const m of func.matchAll (new RegExp ('^[ \\t]*' + n + ' = append\\(' + n + ', (.+)\\)$', 'gm'))) {
-                if (!isString (m[1].trim ()) || (new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (m[1]))) {
-                    ok = false;
-                }
+                if (!isString (m[1].trim ()) || (new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (m[1]))) { ok = false; }
                 accounted += 2;
             }
             const lens = (masked.match (new RegExp ('(?<![\\w.])len\\(' + n + '\\)', 'g')) ?? []).length;
@@ -18813,9 +15290,7 @@ function goJoinStringLocals (content: string): string {
             const idx = '(?<![\\w.&])' + n + '\\[[A-Za-z_]\\w*\\](?=[,)])';
             const reads = (masked.match (new RegExp (idx, 'g')) ?? []).length;
             accounted += lens + joins + reads;
-            if (!ok || ((joins < 1) && (reads < 1)) || (accounted !== total)) {
-                continue;
-            }
+            if (!ok || ((joins < 1) && (reads < 1)) || (accounted !== total)) { continue; }
             func = func.replace (decl[0], decl[1] + '[]string' + decl[2] + '[]string{' + decl[3] + '}');
             for (const m of func.matchAll (new RegExp ('^[ \\t]*' + n + ' = append\\(' + n + ', (\\w+)\\)$', 'gm'))) {
                 const boxed = goJoinBoxedStringLocal (func, m[1], stringCall);
@@ -18827,15 +15302,11 @@ function goJoinStringLocals (content: string): string {
         for (const m of [ ...goMaskGoCode (func).matchAll (/^([ \t]*var (\w+) )\[\]any = this\.ArraySlice\((\w+), (\d{1,3})\)$/gm) ]) {
             const masked = goMaskGoCode (func);
             const [ name, src ] = [ m[2], m[3] ];
-            if ((goStringOperandDeclaredType (masked, name) !== '[]any') || (goStringOperandDeclaredType (masked, src) !== '[]string')) {
-                continue;
-            }
+            if ((goStringOperandDeclaredType (masked, name) !== '[]any') || (goStringOperandDeclaredType (masked, src) !== '[]string')) { continue; }
             const total = (masked.match (new RegExp ('(?<![\\w.])' + name + '(?![\\w])', 'g')) ?? []).length;
             const lens = (masked.match (new RegExp ('(?<![\\w.])len\\(' + name + '\\)', 'g')) ?? []).length;
             const joins = (masked.match (new RegExp ('(?<![\\w.])(?:ccxt\\.)?Join\\(' + name + ', ', 'g')) ?? []).length;
-            if ((joins < 1) || (1 + lens + joins !== total)) {
-                continue;
-            }
+            if ((joins < 1) || (1 + lens + joins !== total)) { continue; }
             func = func.replace (m[0], m[1] + '[]string = ' + src + '[' + m[4] + ':]');
         }
         parts[p] = func;
@@ -18845,21 +15316,15 @@ function goJoinStringLocals (content: string): string {
 
 // the `var x any = <string call>` line of a local bound once, never rebound, nil-compared, addressed or asserted
 function goJoinBoxedStringLocal (func: string, name: string, stringCall: (e: string) => boolean): string | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (name)) {
-        return undefined;
-    }
+    if (!/^[A-Za-z_]\w*$/.test (name)) { return undefined; }
     const masked = goMaskGoCode (func);
     const decls = [ ...masked.matchAll (new RegExp ('^[ \\t]*var ' + name + ' any = (.+)$', 'gm')) ];
-    if ((decls.length !== 1) || (goFuncDeclaredType (func, name) !== 'any')) {
-        return undefined;
-    }
+    if ((decls.length !== 1) || (goFuncDeclaredType (func, name) !== 'any')) { return undefined; }
     const at = (decls[0].index as number) + decls[0][0].length - decls[0][1].length;
     const rhs = func.slice (at, at + decls[0][1].length).trim ();
     const rest = masked.replace (decls[0][0], '');
     const w = '(?<![\\w.])' + name + '(?![\\w])';
-    if (!stringCall (rhs) || new RegExp (w + '\\s*(?:[-+*/%|&^]?=(?!=)|\\.\\(|\\[|[=!]=\\s*nil)|&' + name + '\\b|nil\\s*[=!]=\\s*' + w).test (rest)) {
-        return undefined;
-    }
+    if (!stringCall (rhs) || new RegExp (w + '\\s*(?:[-+*/%|&^]?=(?!=)|\\.\\(|\\[|[=!]=\\s*nil)|&' + name + '\\b|nil\\s*[=!]=\\s*' + w).test (rest)) { return undefined; }
     return func.slice (decls[0].index as number, (decls[0].index as number) + decls[0][0].length);
 }
 
@@ -18867,14 +15332,10 @@ function goJoinBoxedStringLocal (func: string, name: string, stringCall: (e: str
 function goJoinStringSum (e: string, isLeaf: (t: string) => boolean): boolean {
     const masked = goMaskGoCode (e);
     const terms = goAddSplitTop (e, masked, '+');
-    if ((terms === null) || (terms.length < 2)) {
-        return false;
-    }
+    if ((terms === null) || (terms.length < 2)) { return false; }
     return terms.every ((raw) => {
         const t = raw.trim ();
-        if (GO_STRING_LITERAL_RX ().test (t) || isLeaf (t)) {
-            return true;
-        }
+        if (GO_STRING_LITERAL_RX ().test (t) || isLeaf (t)) { return true; }
         const call = /^\*this\.(\w+)\(/.exec (t);
         const tm = goMaskGoCode (t);
         const parsed = (call === null) ? undefined : goSplitCallArgs (t, tm, call[0].length - 1);
@@ -18884,9 +15345,7 @@ function goJoinStringSum (e: string, isLeaf: (t: string) => boolean): boolean {
 }
 
 // the join-pass self-test input: one method body behind a generated-file header, through both join passes
-function goJoinCheckInput (body: string): string {
-    return goStdlibStringHelpers (goJoinStringLocals (goSelfTestHead (true) + 'func (this *X) F(n any) any {\n\tvar s string = "v"\n' + body + '}\n'));
-}
+function goJoinCheckInput (body: string): string { return goStdlibStringHelpers (goJoinStringLocals (goSelfTestHead (true) + 'func (this *X) F(n any) any {\n\tvar s string = "v"\n' + body + '}\n')); }
 
 function goJoinStringLocalsCheck (ok: SelfTestOk): void {
     const f = goJoinCheckInput;
@@ -18972,21 +15431,15 @@ function goTypedLenDeclType (lines: string[], at: number, name: string): string 
     const decl = new RegExp ('^\\t*var ' + name + ' ([\\w*.\\[\\]]+)(?: =|$)');
     for (let k = at - 1; k >= 0; k--) {
         const l = lines[k];
-        if (l.trim () === '') {
-            continue;
-        }
+        if (l.trim () === '') { continue; }
         if (/^func /.test (l)) {
             const p = l.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
             return p ? p[1] : undefined;
         }
         const i = indent (l);
-        if (i < min) {
-            min = i;
-        }
+        if (i < min) { min = i; }
         const d = (i <= min) ? decl.exec (l) : null;
-        if (d) {
-            return d[1];
-        }
+        if (d) { return d[1]; }
     }
     return undefined;
 }
@@ -18994,9 +15447,7 @@ function goTypedLenDeclType (lines: string[], at: number, name: string): string 
 function goTypedLenFunc (fn: string): string {
     const nameRe = '(\\w+)';
     const call = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(GetArrayLength|GetLength)\\((?:\\(' + nameRe + '\\)|' + nameRe + ')\\)', 'g');
-    if (!/(?:GetArrayLength|GetLength)\(/.test (fn)) {
-        return fn;
-    }
+    if (!/(?:GetArrayLength|GetLength)\(/.test (fn)) { return fn; }
     const lines = fn.split ('\n');
     const rebinds = (n: string) => new RegExp ('(?<![.\\w])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + n + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + n + ' ').test (fn.substring (fn.indexOf ('\n', 1) + 1));
     const slices = [ '[]any', '[]string', '[]int64', '[]float64', '[]bool', '[]int', '[][]any', '[]map[string]any', 'string' ];
@@ -19007,21 +15458,11 @@ function goTypedLenFunc (fn: string): string {
                 return m;
             }
             const t = goTypedLenDeclType (lines, k, x);
-            if (t === undefined) {
-                return m;
-            }
-            if (h === 'GetArrayLength' && slices.includes (t)) {
-                return 'len(' + x + ')';
-            }
-            if (h === 'GetLength' && t !== 'string' && t !== '*string' && !t.startsWith ('[]')) {
-                return m;
-            }
-            if (h === 'GetLength' && (slices.includes (t))) {
-                return 'len(' + x + ')';
-            }
-            if (t !== '*string') {
-                return m;
-            }
+            if (t === undefined) { return m; }
+            if (h === 'GetArrayLength' && slices.includes (t)) { return 'len(' + x + ')'; }
+            if (h === 'GetLength' && t !== 'string' && t !== '*string' && !t.startsWith ('[]')) { return m; }
+            if (h === 'GetLength' && (slices.includes (t))) { return 'len(' + x + ')'; }
+            if (t !== '*string') { return m; }
             const guard = new RegExp ('\\(' + x + ' != nil\\) && \\($|\\(' + x + ' == nil\\) \\|\\| \\($').test (line.substring (0, at));
             return (guard || goNonNilStringPtr (fn, x)) ? 'len(*' + x + ')' : m;
         }) as any);
@@ -19037,9 +15478,7 @@ function goTypedLenFunc (fn: string): string {
 }
 
 function goTypedLenNative (content: string): string {
-    if (!/(?:GetArrayLength|GetLength)\(/.test (content)) {
-        return content;
-    }
+    if (!/(?:GetArrayLength|GetLength)\(/.test (content)) { return content; }
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedLenFunc (fn)) as any);
 }
 
@@ -19060,7 +15499,6 @@ function goTypedLenSelfTest (ok: SelfTestOk): void {
     ok (f ('', '\tvar p []any = x\n\tif GetLength(p[0]) == 8 {\n\t}\n').includes ('GetLength(p[0])'), '[]any element keeps helper');
 }
 
-
 // ===== futures reads: GetValue/SafeValue on a client's futures map -> `futures[key]` =====
 // GetValue/SafeValue on a client's futures read the typed client method FutureGet: it answers the *Future
 // or an untyped nil (never a typed-nil box), exactly what the helper answered, for any key kind.
@@ -19074,9 +15512,7 @@ function w8ClientFuturesReads (content: string): string {
             let m: RegExpExecArray | null;
             while ((m = re.exec (lines[k])) !== null) {
                 const key = m[3];
-                if (masked[k].substring (m.index, m.index + 4) !== lines[k].substring (m.index, m.index + 4)) {
-                    continue;
-                }
+                if (masked[k].substring (m.index, m.index + 4) !== lines[k].substring (m.index, m.index + 4)) { continue; }
                 out += lines[k].substring (last, m.index) + m[2].replace ('GetFutures()', 'FutureGet(' + key + ')');
                 last = m.index + m[0].length;
             }
@@ -19090,9 +15526,7 @@ function w8ClientFuturesReads (content: string): string {
 
 // InOp / ObjectKeys on the client's futures and SafeValue on its subscriptions become typed client methods.
 function w8ClientTableCalls (content: string): string {
-    if (!/(?:(?:InOp|ObjectKeys|SafeValue)\(|= )client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?(?:GetFutures|SubscriptionsSnapshot)\(\)/.test (content)) {
-        return content;
-    }
+    if (!/(?:(?:InOp|ObjectKeys|SafeValue)\(|= )client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?(?:GetFutures|SubscriptionsSnapshot)\(\)/.test (content)) { return content; }
     const lines = content.split ('\n');
     const masked = goMaskGoCode (content).split ('\n');
     const recv = 'client\\.(?:\\((?:ccxt\\.)?ClientInterface\\)\\.)?';
@@ -19129,9 +15563,7 @@ function w8ClientFuturesSelfTest (ok: SelfTestOk): void {
 // the masked text of the func opened at line k (through its closing `}` line) and each line's offset in it
 function goFuncMaskedOffsets (lines: string[], masked: string[], k: number): { maskedFunc: string, offsets: number[] } {
     let end = k;
-    while ((end < lines.length) && (lines[end] !== '}')) {
-        end++;
-    }
+    while ((end < lines.length) && (lines[end] !== '}')) { end++; }
     const offsets: number[] = [];
     let o = 0;
     for (let j = k; (j <= end) && (j < lines.length); j++) {
@@ -19156,9 +15588,7 @@ function w8FuturesPairInOp (content: string): string {
                 const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], name);
                 return (decl !== undefined) && (decl.type === 'string') && ((decl.index === undefined) || (decl.index < scope.offsets[k - start]));
             };
-            if ((m === null) || /\b(?:hasFuture|hasSymbolFuture)\b/.test (scope.maskedFunc) || !stringKey (m[3]) || !stringKey (m[4])) {
-                continue;
-            }
+            if ((m === null) || /\b(?:hasFuture|hasSymbolFuture)\b/.test (scope.maskedFunc) || !stringKey (m[3]) || !stringKey (m[4])) { continue; }
             lines[k] = m[1] + '_, hasFuture := ' + m[2] + '[' + m[3] + ']\n' + m[1] + '_, hasSymbolFuture := ' + m[2] + '[' + m[4] + ']\n' + m[1] + 'if hasFuture || hasSymbolFuture {';
         }
     });
@@ -19184,20 +15614,14 @@ function goTypedInopClientMaps (content: string): string {
         for (let k = start + 1; (k < end) && !/\bok\b/.test (scope.maskedFunc); k++) {
             const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
             const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
-            if ((cond === null) || (calls.length !== 1)) {
-                continue;
-            }
+            if ((cond === null) || (calls.length !== 1)) { continue; }
             const at = calls[0].index;
             const call = /^(?:ccxt\.)?InOp\((client\.(?:\((?:ccxt\.)?ClientInterface\)\.)?Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
-            if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
-                continue;
-            }
+            if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) { continue; }
             const [ all, recv, key ] = call;
             if (!key.startsWith ('"')) {
                 const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], key);
-                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= scope.offsets[k - start]))) {
-                    continue;
-                }
+                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= scope.offsets[k - start]))) { continue; }
             }
             let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
             rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
@@ -19233,34 +15657,22 @@ function gvListDerefSlots (): Map<string, number[]> {
 // the occurrence of a name at `at` is the whole argument of a deref-at-entry slot on its line
 function gvListInDerefSlot (line: string, at: number, len: number, methods: string[]): boolean {
     const after = line.substring (at + len).trimStart ();
-    if (!after.startsWith (',') && !after.startsWith (')')) {
-        return false;
-    }
+    if (!after.startsWith (',') && !after.startsWith (')')) { return false; }
     let depth = 0;
     let idx = 0;
     for (let i = at - 1; i >= 0; i--) {
         const c = line[i];
-        if (c === ')' || c === ']' || c === '}') {
-            depth++;
-        } else if (c === '(' || c === '[' || c === '{') {
+        if (c === ')' || c === ']' || c === '}') { depth++; } else if (c === '(' || c === '[' || c === '{') {
             if (depth > 0) {
                 depth--;
                 continue;
             }
-            if (c !== '(') {
-                return false;
-            }
+            if (c !== '(') { return false; }
             const head = /(?:(?<![\w.])(?:ccxt\.)?(\w+)|\bthis\.(\w+))$/.exec (line.substring (0, i));
-            if (head === null) {
-                return false;
-            }
-            if (head[2] !== undefined) {
-                return (idx === 0) && methods.includes (head[2]);
-            }
+            if (head === null) { return false; }
+            if (head[2] !== undefined) { return (idx === 0) && methods.includes (head[2]); }
             return (gvListDerefSlots ().get (head[1]) ?? []).includes (idx);
-        } else if ((c === ',') && (depth === 0)) {
-            idx++;
-        }
+        } else if ((c === ',') && (depth === 0)) { idx++; }
     }
     return false;
 }
@@ -19271,37 +15683,25 @@ function gvListDerefOnlyLocal (masked: string[], start: number, end: number, nam
     const occ = new RegExp ('(?<![\\w.])' + n + '(?!\\w)', 'g');
     for (let k = start + 1; k < end; k++) {
         const line = masked[k];
-        if (line.indexOf (name) < 0) {
-            continue;
-        }
-        if (new RegExp ('&\\s*' + n + '\\b|\\bfunc\\b[^{]*[(,]\\s*' + n + '\\b').test (line)) {
-            return false;
-        }
+        if (line.indexOf (name) < 0) { continue; }
+        if (new RegExp ('&\\s*' + n + '\\b|\\bfunc\\b[^{]*[(,]\\s*' + n + '\\b').test (line)) { return false; }
         if (new RegExp ('^\\s*var ' + n + ' any(?: = |$)').test (line) || new RegExp ('^\\s*_ = ' + n + '\\s*$').test (line)) {
-            if (line.indexOf (name) !== line.lastIndexOf (name)) {
-                return false;
-            }
+            if (line.indexOf (name) !== line.lastIndexOf (name)) { return false; }
             continue;
         }
         const target = new RegExp ('^(\\s*)' + n + ' :?= ').exec (line);
         let m: RegExpExecArray | null;
         occ.lastIndex = 0;
         while ((m = occ.exec (line)) !== null) {
-            if ((target !== null) && (m.index === target[1].length)) {
-                continue;
-            }
-            if (!gvListInDerefSlot (line, m.index, name.length, methods)) {
-                return false;
-            }
+            if ((target !== null) && (m.index === target[1].length)) { continue; }
+            if (!gvListInDerefSlot (line, m.index, name.length, methods)) { return false; }
         }
     }
     return true;
 }
 
 function nativeDerefOnlyListReads (content: string): string {
-    if (!/GetValue\(\w+, \d+\)/.test (content)) {
-        return content;
-    }
+    if (!/GetValue\(\w+, \d+\)/.test (content)) { return content; }
     const lines = content.split ('\n');
     const joined = goMaskGoCode (content);
     const masked = joined.split ('\n');
@@ -19315,35 +15715,21 @@ function nativeDerefOnlyListReads (content: string): string {
         const maskedFunc = masked.slice (fn.open + 1, fn.close + 1).join ('\n');
         for (let k = fn.open + 1; k < fn.close; k++) {
             const m = bare.exec (masked[k]);
-            if ((m === null) || (lines[k] !== masked[k])) {
-                continue;
-            }
+            if ((m === null) || (lines[k] !== masked[k])) { continue; }
             const [ , indent, name, , holder, slot ] = m;
             const decl = goAccessSingleDeclaration (maskedFunc, masked[fn.open], holder);
-            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
-                continue;
-            }
+            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) { continue; }
             let declLine = -1;
             let written = false;
             for (let j = fn.open + 1; j < fn.close; j++) {
-                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (masked[j])) {
-                    declLine = j;
-                } else if (goTextWritesName (masked[j], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (masked[j])) {
-                    written = true;
-                }
+                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (masked[j])) { declLine = j; } else if (goTextWritesName (masked[j], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (masked[j])) { written = true; }
             }
             const declBlock = (declLine < 0) ? undefined : goTextEnclosingBlock (blocks, declLine);
-            if (written || (declLine < 0) || (declLine >= k) || (declBlock === undefined) || !((declBlock.open < k) && (k <= declBlock.close))) {
-                continue;
-            }
-            if (!gvListDerefOnlyLocal (masked, fn.open, fn.close, name, methods)) {
-                continue;
-            }
+            if (written || (declLine < 0) || (declLine >= k) || (declBlock === undefined) || !((declBlock.open < k) && (k <= declBlock.close))) { continue; }
+            if (!gvListDerefOnlyLocal (masked, fn.open, fn.close, name, methods)) { continue; }
             const producer = /^\s*var \w+ \[\]any = this\.(\w+)\(/.exec (decl.line);
             const pair = (producer !== null) && GO_TUPLE_PAIR_PRODUCERS.includes (producer[1]) && !overridden.includes (producer[1]) && (slot === '0' || slot === '1');
-            if (pair) {
-                lines[k] = indent + name + ' ' + m[3] + ' ' + holder + '[' + slot + ']';
-            }
+            if (pair) { lines[k] = indent + name + ' ' + m[3] + ' ' + holder + '[' + slot + ']'; }
         }
     }
     return lines.join ('\n');
@@ -19380,9 +15766,7 @@ function gvListSelfTest (ok: SelfTestOk): void {
 // setDefaults only writes fields carrying a `default:"…"` tag, so a struct without tags makes it a no-op.
 function goTypedMiscSetDefaults (content: string): string {
     const struct = /\ntype \w+ struct \{([^}]*)\n\}/.exec (content);
-    if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) {
-        return content;
-    }
+    if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) { return content; }
     const out = content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?SetDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
     // keep the call when it was the file's only use of the imported ccxt package (unused import)
     return (content.includes ('ccxt.SetDefaults(p)') && !/(?<![\w.])ccxt\./.test (out)) ? content : out;
@@ -19400,9 +15784,7 @@ function goTypedMiscFunc (fn: string): string {
     return fn;
 }
 
-export function goTypedMiscNative (content: string): string {
-    return goTypedMiscSetDefaults (content).replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedMiscFunc (fn)) as any);
-}
+export function goTypedMiscNative (content: string): string { return goTypedMiscSetDefaults (content).replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedMiscFunc (fn)) as any); }
 
 function goTypedMiscSelfTest (ok: SelfTestOk): void {
     const ctor = (fields: string) => 'package p\n\ntype X struct {\n\t*ccxt.X\n' + fields + '}\n\nfunc newX() *X {\n\tp := &X{}\n\tbase := &ccxt.X{}\n\tp.base = base\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
@@ -19460,49 +15842,33 @@ function goTypedWrapMethodReturnType (content: string, recv: string, name: strin
 // the printed type the callee text of a whole wrapped call returns, undefined when unproven
 function goTypedWrapCalleeType (content: string, recv: string | undefined, inner: string): string | undefined {
     const free = /^(?:ccxt\.)?(TradeToMap|TickerToMap|OrderToMap)\($/.exec (inner);
-    if (free !== null) {
-        return 'map[string]any'; // hand-written go/v4/exchange_struct_returns.go boundaries
-    }
+    if (free !== null) { return 'map[string]any'; } // hand-written go/v4/exchange_struct_returns.go boundaries
     const method = /^this\.([A-Z]\w*)\($/.exec (inner);
-    if ((method === null) || (recv === undefined)) {
-        return undefined;
-    }
+    if ((method === null) || (recv === undefined)) { return undefined; }
     return goTypedWrapMethodReturnType (content, recv, method[1]);
 }
 
 // one enclosing-function scan: `name` has exactly one binding there, `var name string = ...` or a `name string` parameter
 function goTypedWrapIsStringLocal (body: string, signature: string, name: string): boolean {
     const n = name.replace (/[^\w]/g, '');
-    if (n !== name) {
-        return false;
-    }
+    if (n !== name) { return false; }
     const decls = body.match (new RegExp ('\\bvar ' + n + '\\b[^\\n=]*', 'g')) || [];
     const params = signature.match (new RegExp ('[(,] *' + n + ' ([^,)]+)', 'g')) || [];
     const rebinds = body.match (new RegExp ('(\\b' + n + '\\s*(,[^\\n=]*)?:=|,\\s*' + n + '\\s*:=|func\\([^)]*\\b' + n + ' )', 'g')) || [];
-    if (rebinds.length > 0) {
-        return false;
-    }
-    if ((decls.length === 1) && (params.length === 0)) {
-        return /^var \w+ string$/.test (decls[0].trim ());
-    }
-    if ((decls.length === 0) && (params.length === 1)) {
-        return /^[(,] *\w+ string$/.test (params[0].trim ());
-    }
+    if (rebinds.length > 0) { return false; }
+    if ((decls.length === 1) && (params.length === 0)) { return /^var \w+ string$/.test (decls[0].trim ()); }
+    if ((decls.length === 0) && (params.length === 1)) { return /^[(,] *\w+ string$/.test (params[0].trim ()); }
     return false;
 }
 
 export function goDropRedundantTyped (content: string): string {
     const funcs: { start: number, recv: string | undefined, signature: string }[] = [];
     const fre = /^func (?:\(this \*(\w+)\) )?[^\n]*$/gm;
-    for (let m = fre.exec (content); m !== null; m = fre.exec (content)) {
-        funcs.push ({ start: m.index, recv: m[1], signature: m[0] });
-    }
+    for (let m = fre.exec (content); m !== null; m = fre.exec (content)) { funcs.push ({ start: m.index, recv: m[1], signature: m[0] }); }
     const enclosing = (at: number) => {
         let found: any = undefined;
         for (const f of funcs) {
-            if (f.start > at) {
-                break;
-            }
+            if (f.start > at) { break; }
             found = f;
         }
         return found;
@@ -19515,27 +15881,19 @@ export function goDropRedundantTyped (content: string): string {
     let cursor = 0;
     const wrapper = /(?<![\w.])(?:ccxt\.)?(MapTyped|ListTyped|DerefScalar)\(/g;
     for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
-        if (m.index < cursor) {
-            continue;
-        }
+        if (m.index < cursor) { continue; }
         const lineStart = content.lastIndexOf ('\n', m.index) + 1;
         if (content.substring (lineStart, m.index).includes ('//')) {
             continue;
         }
         const open = m.index + m[0].length - 1;
         const end = goMatchingCloseText (content, open, '()');
-        if (end < 0) {
-            continue;
-        }
+        if (end < 0) { continue; }
         const inner = content.substring (open + 1, end);
         const f = enclosing (m.index);
-        if (f === undefined) {
-            continue;
-        }
+        if (f === undefined) { continue; }
         let native = false;
-        if (m[1] === 'DerefScalar') {
-            native = /^[a-z_]\w*$/.test (inner) && goTypedWrapIsStringLocal (bodyOf (f), f.signature, inner);
-        } else {
+        if (m[1] === 'DerefScalar') { native = /^[a-z_]\w*$/.test (inner) && goTypedWrapIsStringLocal (bodyOf (f), f.signature, inner); } else {
             const innerOpen = inner.indexOf ('(');
             const recv = /^(r\d*)\.Value$/.exec (inner);
             if ((recv !== null) && (m[1] === 'ListTyped')) {
@@ -19547,9 +15905,7 @@ export function goDropRedundantTyped (content: string): string {
                 native = goTypedWrapCalleeType (content, f.recv, inner.substring (0, innerOpen + 1)) === want;
             }
         }
-        if (!native) {
-            continue;
-        }
+        if (!native) { continue; }
         out += content.substring (cursor, m.index) + inner;
         cursor = end + 1;
     }
@@ -19590,16 +15946,12 @@ function goTupleProducers (lines: string[], masked: string[], blocks: any[], bas
     const out = new Map<string, number> ();
     for (const fn of blocks.filter ((b: any) => b.depth === 1)) {
         const sig = /^func \(this \*(\w+)\) (\w+)\(.*\) any \{$/.exec (masked[fn.open]);
-        if ((sig === null) || (sig[1] === 'BaseExchange') || (sig[1] === 'PredictionExchange') || baseNames.has (sig[2])) {
-            continue;
-        }
+        if ((sig === null) || (sig[1] === 'BaseExchange') || (sig[1] === 'PredictionExchange') || baseNames.has (sig[2])) { continue; }
         const literals = blocks.filter ((b: any) => (b.depth > 1) && (b.open > fn.open) && (b.close <= fn.close) && /\bfunc\s*\(/.test (masked[b.open]));
         let arity = -1;
         let ok = true;
         for (let k = fn.open + 1; ok && (k < fn.close); k++) {
-            if (!/\breturn\b/.test (masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) {
-                continue;
-            }
+            if (!/\breturn\b/.test (masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) { continue; }
             const r = /^\s*return \[\]any\{(.*)\}\s*$/.exec (masked[k]);
             let depth = 0;
             let n = 1;
@@ -19611,9 +15963,7 @@ function goTupleProducers (lines: string[], masked: string[], blocks: any[], bas
             ok = ok && (r !== null) && (depth === 0) && (r[1].trim () !== '');
             arity = (arity < 0) ? n : Math.min (arity, n);
         }
-        if (ok && (arity > 0) && (lines[fn.open] === masked[fn.open])) {
-            out.set (sig[2], arity);
-        }
+        if (ok && (arity > 0) && (lines[fn.open] === masked[fn.open])) { out.set (sig[2], arity); }
     }
     return out;
 }
@@ -19631,30 +15981,22 @@ function x01BaseMethodNames (): Set<string> {
 }
 
 function goTupleProducerReads (content: string, baseNames: Set<string> = undefined): string {
-    if (content.indexOf (') any {') < 0) {
-        return content;
-    }
+    if (content.indexOf (') any {') < 0) { return content; }
     const lines = content.split ('\n');
     const masked = goMaskGoCode (content).split ('\n');
     const { 'blocks': blocks } = goTextBlocks (masked);
     const producers = goTupleProducers (lines, masked, blocks, baseNames ?? x01BaseMethodNames ());
-    if ((producers.size === 0) || (baseNames === undefined && x01BaseMethodNames ().size === 0)) {
-        return content;
-    }
+    if ((producers.size === 0) || (baseNames === undefined && x01BaseMethodNames ().size === 0)) { return content; }
     for (let k = 0; k < lines.length; k++) {
         const sig = /^(func \(this \*\w+\) (\w+)\(.*\)) any \{$/.exec (lines[k]);
-        if ((sig !== null) && producers.has (sig[2])) {
-            lines[k] = sig[1] + ' []any {';
-        }
+        if ((sig !== null) && producers.has (sig[2])) { lines[k] = sig[1] + ' []any {'; }
     }
     const consumers = 'MapTyped|ListTyped|SafeStringPtr|SafeBoolPtr|Float64PtrTyped';
     const readRx = new RegExp ('((?:ccxt\\.)?(?:' + consumers + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*Variable), (\\d+)\\)\\)', 'g');
     // the producer arity of the nearest `h := this.M(..)` above line k when its block encloses k and nothing rewrites h in between
     const holderArity = (holder: string, k: number): number => {
         const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < k) && (k <= b.close));
-        if (fn === undefined) {
-            return -1;
-        }
+        if (fn === undefined) { return -1; }
         for (let j = k - 1; j > fn.open; j--) {
             const decl = new RegExp ('^\\s*' + holder + ' := this\\.(\\w+)\\(').exec (masked[j]);
             if (decl !== null) {
@@ -19662,20 +16004,14 @@ function goTupleProducerReads (content: string, baseNames: Set<string> = undefin
                 const enclosing = (block !== undefined) && (block.open < k) && (k <= block.close);
                 return (enclosing && producers.has (decl[1])) ? producers.get (decl[1]) : -1;
             }
-            if (goTextWritesName (masked[j], holder)) {
-                return -1;
-            }
+            if (goTextWritesName (masked[j], holder)) { return -1; }
         }
         return -1;
     };
     for (let k = 0; k < lines.length; k++) {
-        if ((masked[k].indexOf ('GetValue(') < 0) || (lines[k] !== masked[k])) {
-            continue;
-        }
+        if ((masked[k].indexOf ('GetValue(') < 0) || (lines[k] !== masked[k])) { continue; }
         lines[k] = lines[k].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
-            if ((offset > 0) && /[\w.]$/.test (lines[k].substring (0, offset)) && !/ccxt\.$/.test (lines[k].substring (0, offset))) {
-                return match;
-            }
+            if ((offset > 0) && /[\w.]$/.test (lines[k].substring (0, offset)) && !/ccxt\.$/.test (lines[k].substring (0, offset))) { return match; }
             return (Number (slot) < holderArity (holder, k)) ? consumer + '(' + holder + '[' + slot + '])' : match;
         });
     }
@@ -19693,15 +16029,12 @@ function goTupleProducerReadsSelfTest (ok: SelfTestOk): void {
     ok (goTupleProducerReads (r, base) === r, 'idempotent');
     const keepSig = [
         'func (this *X) P(p any) any {\n\tif p != nil {\n\t\treturn p\n\t}\n\treturn []any{1, p}\n}\n',
-        'func (this *X) P(p any) any {\n\treturn []any{\n\t\t1, p,\n\t}\n}\n',
-        'func (this *BaseExchange) P(p any) any {\n\treturn []any{1, p}\n}\n',
-        'func (this *X) P(p any) any {\n\treturn []any{}\n}\n',
-        'func (this *X) ParseWsOHLCV(p any) any {\n\treturn []any{1, p}\n}\n',
+        'func (this *X) P(p any) any {\n\treturn []any{\n\t\t1, p,\n\t}\n}\n', 'func (this *BaseExchange) P(p any) any {\n\treturn []any{1, p}\n}\n',
+        'func (this *X) P(p any) any {\n\treturn []any{}\n}\n', 'func (this *X) ParseWsOHLCV(p any) any {\n\treturn []any{1, p}\n}\n',
     ];
     keepSig.forEach ((s: string, i: number) => ok (goTupleProducerReads (s, base).indexOf (') any {') >= 0, 'signature negative ' + i));
     const keepRead = [
-        '\thVariable := this.P(nil, p)\n\tvar c any = MapTyped(GetValue(hVariable, 2))\n',
-        '\thVariable := this.P(nil, p)\n\tx := GetValue(hVariable, 0)\n',
+        '\thVariable := this.P(nil, p)\n\tvar c any = MapTyped(GetValue(hVariable, 2))\n', '\thVariable := this.P(nil, p)\n\tx := GetValue(hVariable, 0)\n',
         '\thVariable := this.P(nil, p)\n\thVariable = this.Q(p)\n\tvar b map[string]any = MapTyped(GetValue(hVariable, 1))\n',
         '\thVariable := this.Q(p)\n\tvar b map[string]any = MapTyped(GetValue(hVariable, 1))\n',
         '\tif p != nil {\n\t\thVariable := this.P(nil, p)\n\t\t_ = hVariable\n\t}\n\tvar b map[string]any = MapTyped(GetValue(hVariable, 1))\n',
@@ -19737,9 +16070,7 @@ function goSelfTestTranspile (prefix: string, files: { [rel: string]: string }, 
 }
 
 // the printed `func (this *Test) <name>(` of a self-test transpile ('' when absent)
-function goSelfTestFuncBody (go: string, name: string): string {
-    return go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? '';
-}
+function goSelfTestFuncBody (go: string, name: string): string { return go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? ''; }
 
 // generated-file head for self-test inputs, with the CONTRIBUTING line when `contributing`
 function goSelfTestHead (contributing: boolean): string {
@@ -19828,9 +16159,7 @@ function goAnnotatedReturnSelfTest (ok: SelfTestOk): void {
 // (the Go printer's defaulted Options read) and no other write or address of x: x is never nil
 function goOptionsDefaultedDictLocal (maskedFunc: string, decl: any, name: string): boolean {
     const n = goAccessEscape (name);
-    if ((decl === undefined) || (decl.line === undefined) || !new RegExp ('^\\s*var ' + n + ' map\\[string\\]any\\s*$').test (decl.line)) {
-        return false;
-    }
+    if ((decl === undefined) || (decl.line === undefined) || !new RegExp ('^\\s*var ' + n + ' map\\[string\\]any\\s*$').test (decl.line)) { return false; }
     const read = new RegExp ('^[ \\t]*' + n + ', _ = (?:this\\.(?:Options|Balance)\\[[^\\]\\n]*\\]|\\w+\\["[^"\\\\\\n]*"\\])\\.\\(map\\[string\\]any\\)\\n[ \\t]*if ' + n + ' == nil \\{\\n[ \\t]*' + n + ' = map\\[string\\]any\\{\\}\\n[ \\t]*\\}$', 'gm');
     const reads = maskedFunc.match (read) ?? [];
     const rest = (reads.length === 1) ? maskedFunc.replace (reads[0], ' '.repeat (reads[0].length)) : '';
@@ -19851,17 +16180,11 @@ function goEnclosingNilGuard (masked: string[], start: number, k: number, name: 
         const line = masked[j];
         for (let c = line.length - 1; c >= 0; c--) {
             depth += (line[c] === '}') ? 1 : ((line[c] === '{') ? -1 : 0);
-            if (depth >= 0) {
-                continue;
-            }
+            if (depth >= 0) { continue; }
             depth = 0;
-            if (/\bfunc\s*\([^{]*\{\s*$/.test (line.substring (0, c + 1))) {
-                return false;
-            }
+            if (/\bfunc\s*\([^{]*\{\s*$/.test (line.substring (0, c + 1))) { return false; }
             const head = /^\s*(?:\}\s*else\s+)?if (.*) \{\s*$/.exec (goMapWriteIfHeader (masked, j));
-            if ((head !== null) && (c === line.trimEnd ().length - 1) && goMapWriteTopLevelParts (head[1], '&&').some ((p) => test.test (p.trim ()))) {
-                return true;
-            }
+            if ((head !== null) && (c === line.trimEnd ().length - 1) && goMapWriteTopLevelParts (head[1], '&&').some ((p) => test.test (p.trim ()))) { return true; }
         }
     }
     return false;
@@ -19917,9 +16240,7 @@ function goTupleSlotEncloses (ctx: any, j: number, k: number): boolean {
 // top-level comma split of a masked list body; raw pieces share the masked offsets
 function goTupleSplitTop (masked: string, raw: string): string[][] {
     const r = goTopCuts (masked, 0, ',', false);
-    if (r.neg || (r.depth !== 0)) {
-        return undefined;
-    }
+    if (r.neg || (r.depth !== 0)) { return undefined; }
     const rawParts = goTopPieces (raw, 0, r.cuts, masked.length);
     return goTopPieces (masked, 0, r.cuts, masked.length).map ((m, k) => [ m.trim (), rawParts[k].trim () ]);
 }
@@ -19928,12 +16249,8 @@ function goTupleSplitTop (masked: string, raw: string): string[][] {
 function goTupleNearestDef (ctx: any, fn: any, k: number, name: string, rx: RegExp): { m: RegExpExecArray, j: number } | undefined {
     for (let j = k - 1; j > fn.open; j--) {
         const m = rx.exec (ctx.masked[j]);
-        if (m !== null) {
-            return goTupleSlotEncloses (ctx, j, k) ? { 'm': m, 'j': j } : undefined;
-        }
-        if (goTextWritesName (ctx.masked[j], name)) {
-            return undefined;
-        }
+        if (m !== null) { return goTupleSlotEncloses (ctx, j, k) ? { 'm': m, 'j': j } : undefined; }
+        if (goTextWritesName (ctx.masked[j], name)) { return undefined; }
     }
     return undefined;
 }
@@ -19964,134 +16281,77 @@ function goTupleAsyncReceiveProducer (ctx: any, fn: any, k: number, source: stri
 
 function goTupleSlotIdentPlain (ctx: any, fn: any, name: string, k: number, depth: number): boolean {
     const decl = goAccessSingleDeclaration (ctx.masked.slice (fn.open + 1, fn.close + 1).join ('\n'), ctx.masked[fn.open], name);
-    if ((decl !== undefined) && [ 'bool', 'string', 'int64', 'float64', 'int' ].includes (decl.type)) {
-        return true;
-    }
+    if ((decl !== undefined) && [ 'bool', 'string', 'int64', 'float64', 'int' ].includes (decl.type)) { return true; }
     const multi = new RegExp ('(?:^|[^\\w.])' + name + '\\s*,[^=\\n]*?(?<![!<>=:])=(?!=)|,\\s*' + name + '\\s*(?:,[^=\\n]*)?:?=(?!=)');
     const writes = (j: number) => (goTextWritesName (ctx.masked[j], name) || multi.test (ctx.masked[j])) && !new RegExp ('^\\s*' + name + '\\s*\\[[^\\]]*\\]\\s*=(?!=)').test (ctx.masked[j]);
     // a func literal writing the local may run anywhere after its definition
     const closures = ctx.blocks.filter ((b: any) => (b.open > fn.open) && (b.close <= fn.close) && /\bfunc\s*\(/.test (ctx.masked[b.open]));
-    for (const b of closures) {
-        for (let j = b.open + 1; j < b.close; j++) {
-            if (writes (j)) {
-                return false;
-            }
-        }
-    }
+    for (const b of closures) { for (let j = b.open + 1; j < b.close; j++) { if (writes (j)) { return false; } } }
     // a write later in an enclosing loop can reach the return on the next iteration
     for (const b of ctx.blocks.filter ((b: any) => (b.open > fn.open) && (b.open < k) && (k <= b.close) && /^\s*for\b/.test (ctx.masked[b.open]))) {
-        for (let j = k + 1; j < b.close; j++) {
-            if (writes (j)) {
-                return false;
-            }
-        }
+        for (let j = k + 1; j < b.close; j++) { if (writes (j)) { return false; } }
     }
     for (let j = k - 1; j > fn.open; j--) {
-        if (/^\s*(?:case\b|default:)/.test (ctx.masked[j])) {
-            return false;
-        }
+        if (/^\s*(?:case\b|default:)/.test (ctx.masked[j])) { return false; }
         // both results of the hand-written (any, map[string]any) option pair: a derefScalar'd value and a map
         const optionPair = new RegExp ('^\\s*(?:' + name + ', \\w+|\\w+, ' + name + ') :?= this\\.HandleOptionAndParams2?\\(').test (ctx.masked[j]);
-        if (!writes (j) && !optionPair) {
-            continue;
-        }
-        if (!goTupleSlotEncloses (ctx, j, k)) {
-            return false;
-        }
+        if (!writes (j) && !optionPair) { continue; }
+        if (!goTupleSlotEncloses (ctx, j, k)) { return false; }
         const m = ctx.masked[j];
-        if (optionPair) {
-            return true;
-        }
-        if (new RegExp ('^\\s*var ' + name + ' any\\s*$').test (m)) {
-            return true;
-        }
+        if (optionPair || (new RegExp ('^\\s*var ' + name + ' any\\s*$').test (m))) { return true; }
         // a fresh multi-line `map[string]any{` literal is a non-nil map, like the one-line literal below
-        if (new RegExp ('^\\s*(?:var ' + name + ' map\\[string\\]any|' + name + ') :?= map\\[string\\]any\\{\\s*$').test (m)) {
-            return true;
-        }
+        if (new RegExp ('^\\s*(?:var ' + name + ' map\\[string\\]any|' + name + ') :?= map\\[string\\]any\\{\\s*$').test (m)) { return true; }
         // the params result of the hand-written (*bool, map[string]any) pair is MapTyped of a plain slot
-        if (new RegExp ('^\\s*\\w+, ' + name + ' :?= this\\.HandleOptionBoolAndParams2?Nullable\\(').test (m)) {
-            return true;
-        }
+        if (new RegExp ('^\\s*\\w+, ' + name + ' :?= this\\.HandleOptionBoolAndParams2?Nullable\\(').test (m)) { return true; }
         const w = new RegExp ('^(\\s*(?:var ' + name + '(?: [^=,]+?)?|' + name + ') :?= )(.+?)\\s*$').exec (m);
-        if (w === null) {
-            return false;
-        }
+        if (w === null) { return false; }
         const start = w[1].length;
         const rhs = m.substring (start).trim ();
         // a nil stored into a typed container/pointer local is a typed nil, not untyped nil
         const typed = new RegExp ('\\bvar ' + name + ' ([^=\\s]+)').exec (ctx.masked.slice (fn.open, k).join ('\n'));
-        if ((rhs === 'nil') && ((typed === null) || (typed[1] !== 'any'))) {
-            return false;
-        }
+        if ((rhs === 'nil') && ((typed === null) || (typed[1] !== 'any'))) { return false; }
         return goTupleSlotExprPlain (ctx, fn, j, rhs, ctx.lines[j].substring (start).trim (), depth + 1);
     }
     return false;
 }
 
 function goTupleSlotExprPlain (ctx: any, fn: any, k: number, masked: string, raw: string, depth: number): boolean {
-    if (depth > 5) {
-        return false;
-    }
-    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (masked)) {
-        return true;
-    }
-    if (/^"(?:[^"\\\n]|\\.)*"$/.test (raw) && (masked.trim () === '')) {
-        return true;
-    }
-    if (/^[A-Za-z_]\w*$/.test (masked) && (masked !== 'this')) {
-        return goTupleSlotIdentPlain (ctx, fn, masked, k, depth);
-    }
-    if (/^GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$/.test (masked)) {
-        return true;
-    }
-    return false;
+    if (depth > 5) { return false; }
+    if ((/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (masked)) || (/^"(?:[^"\\\n]|\\.)*"$/.test (raw) && (masked.trim () === ''))) { return true; }
+    if (/^[A-Za-z_]\w*$/.test (masked) && (masked !== 'this')) { return goTupleSlotIdentPlain (ctx, fn, masked, k, depth); }
+    return /^GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$/.test (masked);
 }
 
 // { arity, plain[] } of a `[]any` producer defined in this file whose every own return is a one-line literal
 function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
     ctx.producers = ctx.producers ?? new Map<string, any> ();
-    if (ctx.producers.has (method)) {
-        return ctx.producers.get (method);
-    }
-    if (ctx.busy.has (method) || (depth > 5)) {
-        return undefined;
-    }
+    if (ctx.producers.has (method)) { return ctx.producers.get (method); }
+    if (ctx.busy.has (method) || (depth > 5)) { return undefined; }
     const asyncBody = method.endsWith ('Body');
     const fn = ctx.blocks.find ((b: any) => (b.depth === 1) && new RegExp ('^func \\(this \\*(\\w+)\\) ' + method + '\\(' + (asyncBody ? 'ch chan AsyncResult\\[\\[\\](?:any|map\\[string\\]any)\\], .*\\) any' : '.*\\) \\[\\]any') + ' \\{$').test (ctx.masked[b.open]));
     const owner = (fn === undefined) ? undefined : /^func \(this \*(\w+)\)/.exec (ctx.masked[fn.open])[1];
-    if ((fn === undefined) || (owner === 'BaseExchange') || (owner === 'PredictionExchange')) {
-        return undefined;
-    }
+    if ((fn === undefined) || (owner === 'BaseExchange') || (owner === 'PredictionExchange')) { return undefined; }
     ctx.busy.add (method);
     const literals = ctx.blocks.filter ((b: any) => (b.depth > 1) && (b.open > fn.open) && (b.close <= fn.close) && /\bfunc\s*\(/.test (ctx.masked[b.open]));
     const rows: string[][][] = [];
     let ok = true;
     let mapPair = false;
     for (let k = fn.open + 1; ok && (k < fn.close); k++) {
-        if (asyncBody && /^\s*return nil\s*$/.test (ctx.masked[k])) {
-            continue;
-        }
-        if (!(asyncBody ? /\bch <- / : /\breturn\b/).test (ctx.masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) {
-            continue;
-        }
+        if (asyncBody && /^\s*return nil\s*$/.test (ctx.masked[k])) { continue; }
+        if (!(asyncBody ? /\bch <- / : /\breturn\b/).test (ctx.masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) { continue; }
         // a map-pair send `MapSliceFromList([]any{..})` always has the literal's length and GetValue returns its maps as-is
         const pair = asyncBody ? /^(\s*ch <- AsyncResult\[\[\]map\[string\]any\]\{Value: MapSliceFromList\(\[\]any\{)(.*)\}\)\}\s*$/.exec (ctx.masked[k]) : null;
         mapPair = mapPair || (pair !== null);
         const r = pair ?? (asyncBody ? /^(\s*ch <- AsyncResult\[\[\]any\]\{Value: \[\]any\{)(.*)\}\}\s*$/ : /^(\s*return \[\]any\{)(.*)\}\s*$/).exec (ctx.masked[k]);
         const parts = ((r === null) || (r[2].trim () === '')) ? undefined : goTupleSplitTop (r[2], ctx.lines[k].substring (r[1].length, r[1].length + r[2].length));
         ok = (parts !== undefined);
-        if (ok) {
-            rows.push (parts.map ((p: string[]) => [ p[0], p[1], String (k) ]));
-        }
+        if (ok) { rows.push (parts.map ((p: string[]) => [ p[0], p[1], String (k) ])); }
     }
     let info: any = undefined;
     if (ok && (rows.length > 0)) {
         const arity = Math.min (...rows.map ((r) => r.length));
         const plain: boolean[] = [];
-        for (let i = 0; i < arity; i++) {
-            plain.push (mapPair || rows.every ((r) => goTupleSlotExprPlain (ctx, fn, Number (r[i][2]), r[i][0], r[i][1], depth + 1)));
-        }
+        for (let i = 0; i < arity; i++) { plain.push (mapPair || rows.every ((r) => goTupleSlotExprPlain (ctx, fn, Number (r[i][2]), r[i][0], r[i][1], depth + 1))); }
         info = { 'arity': arity, 'plain': plain };
     }
     ctx.busy.delete (method);
@@ -20101,14 +16361,10 @@ function goTupleLocalProducer (ctx: any, method: string, depth: number): any {
 
 // the REST chain of a pro file (`*ccxt.X` -> go/v4/x.go -> its embedded REST parents); a pro parent is unresolvable
 function goTupleRestChain (ctx: any): any[] {
-    if (ctx.restChain !== undefined) {
-        return ctx.restChain;
-    }
+    if (ctx.restChain !== undefined) { return ctx.restChain; }
     ctx.restChain = [];
     const at = /^(.*go\/v4\/)pro\/\w+\.go$/.exec (ctx.path.replace (/\\/g, '/'));
-    if ((at !== null) && (at[1].indexOf ('/prediction/') >= 0)) {
-        return [];
-    }
+    if ((at !== null) && (at[1].indexOf ('/prediction/') >= 0)) { return []; }
     const reader = ctx.reader ?? ((p: string) => (fs.existsSync (p) ? fs.readFileSync (p, 'utf8') : undefined));
     let embedded = /\ntype \w+ struct \{\n\s*(\*?)(ccxt\.)?(\w+)\n/.exec ('\n' + ctx.lines.join ('\n'));
     if ((at === null) || (embedded === null) || (embedded[2] === undefined)) {
@@ -20116,9 +16372,7 @@ function goTupleRestChain (ctx: any): any[] {
         return ctx.restChain;
     }
     for (let hops = 0; (embedded !== null) && (hops < 4); hops++) {
-        if ([ 'Exchange', 'BaseExchange', 'PredictionExchange' ].includes (embedded[3])) {
-            break;
-        }
+        if ([ 'Exchange', 'BaseExchange', 'PredictionExchange' ].includes (embedded[3])) { break; }
         const text = reader (at[1] + embedded[3].toLowerCase () + '.go');
         const next = (text === undefined) ? undefined : goTupleSlotCtx (text, at[1] + embedded[3].toLowerCase () + '.go');
         if (next === undefined) {
@@ -20134,42 +16388,26 @@ function goTupleRestChain (ctx: any): any[] {
 // the producer `this.M` resolves to from this file: own definition first, then the REST chain of a pro file
 function goTupleProducerInfo (ctx: any, method: string, depth: number = 0): any {
     const defines = (c: any) => new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + method + '\\(').test (c.masked.join ('\n'));
-    if (defines (ctx)) {
-        return goTupleLocalProducer (ctx, method, depth);
-    }
-    if (!/\/pro\/\w+\.go$/.test (ctx.path.replace (/\\/g, '/'))) {
-        return undefined;
-    }
+    if (defines (ctx)) { return goTupleLocalProducer (ctx, method, depth); }
+    if (!/\/pro\/\w+\.go$/.test (ctx.path.replace (/\\/g, '/'))) { return undefined; }
     const chain = goTupleRestChain (ctx);
-    for (const c of (chain ?? [])) {
-        if (defines (c)) {
-            return goTupleLocalProducer (c, method, depth);
-        }
-    }
+    for (const c of (chain ?? [])) { if (defines (c)) { return goTupleLocalProducer (c, method, depth); } }
     return undefined;
 }
 
 function goAsyncTupleSlotReads (content: string, path: string = '', reader: any = undefined): string {
-    if (!/GetValue\([A-Za-z_]\w*Variable, \d+\)/.test (content)) {
-        return content;
-    }
+    if (!/GetValue\([A-Za-z_]\w*Variable, \d+\)/.test (content)) { return content; }
     const ctx = goTupleSlotCtx (content, path);
-    if (ctx === undefined) {
-        return content;
-    }
+    if (ctx === undefined) { return content; }
     ctx.reader = reader;
     const lines = ctx.lines.slice ();
     const consumers = 'MapTyped|ListTyped|SafeStringPtr|SafeBoolPtr|SafeIntegerPtr';
     const readRx = new RegExp ('((?:ccxt\\.)?(?:' + consumers + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*Variable), (\\d+)\\)\\)', 'g');
     let changed = false;
     for (let k = 0; k < lines.length; k++) {
-        if ((ctx.masked[k].indexOf ('GetValue(') < 0) || (ctx.lines[k] !== ctx.masked[k])) {
-            continue;
-        }
+        if ((ctx.masked[k].indexOf ('GetValue(') < 0) || (ctx.lines[k] !== ctx.masked[k])) { continue; }
         const fn = goTupleSlotFuncAt (ctx, k);
-        if (fn === undefined) {
-            continue;
-        }
+        if (fn === undefined) { continue; }
         const bare = /^(\s*(?:var \w+ any =|\w+ :?=) )(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), (\d+)\)(\s*)$/.exec (lines[k]);
         if (bare !== null) {
             const method = goTupleHolderProducer (ctx, fn, bare[2], k);
@@ -20181,14 +16419,10 @@ function goAsyncTupleSlotReads (content: string, path: string = '', reader: any 
             continue;
         }
         lines[k] = lines[k].replace (readRx, (match: string, consumer: string, holder: string, slot: string, offset: number) => {
-            if ((offset > 0) && /[\w.]$/.test (lines[k].substring (0, offset)) && !/ccxt\.$/.test (lines[k].substring (0, offset))) {
-                return match;
-            }
+            if ((offset > 0) && /[\w.]$/.test (lines[k].substring (0, offset)) && !/ccxt\.$/.test (lines[k].substring (0, offset))) { return match; }
             const method = goTupleHolderProducer (ctx, fn, holder, k);
             const info = (method === undefined) ? undefined : goTupleProducerInfo (ctx, method);
-            if ((info === undefined) || (Number (slot) >= info.arity)) {
-                return match;
-            }
+            if ((info === undefined) || (Number (slot) >= info.arity)) { return match; }
             changed = true;
             return consumer + '(' + holder + '[' + slot + '])';
         });
@@ -20199,9 +16433,7 @@ function goAsyncTupleSlotReads (content: string, path: string = '', reader: any 
 // a map-pair async core (`<-chan AsyncResult[[]map[string]any]`) destructured through its Recv holder: when every
 // read of the holder is `MapTyped(h[i])`, h is the typed slice itself (same length, same nil map per slot)
 function goAsyncMapPairHolders (content: string): string {
-    if (content.indexOf ('MapSliceToList(') < 0) {
-        return content;
-    }
+    if (content.indexOf ('MapSliceToList(') < 0) { return content; }
     const lines = content.split ('\n');
     const masked = goMaskGoCode (content).split ('\n');
     const { 'blocks': blocks } = goTextBlocks (masked);
@@ -20209,9 +16441,7 @@ function goAsyncMapPairHolders (content: string): string {
     for (let k = 0; k + 1 < lines.length; k++) {
         const recv = /^(\s*)(\w+)Recv, _ := ((?:ccxt\.)?)MapSliceToList\((\w+)\.Value\), \4\.Value != nil$/.exec (lines[k]);
         const fn = (recv === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < k) && (k <= b.close));
-        if ((fn === undefined) || (masked[k + 1] !== recv[1] + 'var ' + recv[2] + ' []any = ' + recv[2] + 'Recv')) {
-            continue;
-        }
+        if ((fn === undefined) || (masked[k + 1] !== recv[1] + 'var ' + recv[2] + ' []any = ' + recv[2] + 'Recv')) { continue; }
         const [ , indent, h, q, r ] = recv;
         const body = masked.slice (fn.open + 1, fn.close + 1).join ('\n');
         const bind = new RegExp ('^\\s*' + r + ' := <-this\\.\\w+Async\\(', 'm');
@@ -20223,9 +16453,7 @@ function goAsyncMapPairHolders (content: string): string {
         }
         lines.splice (k, 2, indent + 'var ' + h + ' []map[string]any = ' + r + '.Value');
         masked.splice (k, 2, indent + 'var ' + h + ' []map[string]any = ' + r + '.Value');
-        for (let j = k + 1; j < fn.close - 1; j++) {
-            lines[j] = lines[j].replace (new RegExp ('(?<![\\w.])' + q.replace ('.', '\\.') + 'MapTyped\\((' + h + '\\[\\d+\\])\\)', 'g'), '$1');
-        }
+        for (let j = k + 1; j < fn.close - 1; j++) { lines[j] = lines[j].replace (new RegExp ('(?<![\\w.])' + q.replace ('.', '\\.') + 'MapTyped\\((' + h + '\\[\\d+\\])\\)', 'g'), '$1'); }
         fn.close -= 1;
         for (const b of blocks) {
             b.open -= (b.open > k) ? 1 : 0;
@@ -20302,9 +16530,7 @@ function goStrReturnSelfTest (ok: SelfTestOk): void {
 // More `any`-local writes whose box never holds a nil scalar pointer or a typed-nil map/[]any/[]string:
 // SortBy2 with a literal key, Safe{Dict,List}* whose default is itself such a write.
 function goAnyNilSafeCall (callee: string, args: string[], safeArg: (arg: string) => boolean): boolean {
-    if (callee === 'this.SortBy2') {
-        return (args.length >= 3) && /^"(?:[^"\\]|\\.)*"$/.test (args[1]);
-    }
+    if (callee === 'this.SortBy2') { return (args.length >= 3) && /^"(?:[^"\\]|\\.)*"$/.test (args[1]); }
     if (/^this\.Safe(?:Dict|List)(?:2|N)?$/.test (callee)) {
         const keys = callee.endsWith ('2') ? 3 : 2;
         return (args.length === keys + 1) && safeArg (args[keys]);
@@ -20316,9 +16542,7 @@ function goAnyNilSafeCall (callee: string, args: string[], safeArg: (arg: string
 // untyped nil, which Omit hands back as is; any other map yields a fresh map
 function goOmitOfTypedMap (rhs: string, fn: string): boolean {
     const m = /^(?:ccxt\.)?this\.Omit(?:Dict)?\((\w+), [^\n]*\)$/.exec (rhs.replace (/\s+\/\/[^"]*$/, '').trim ());
-    if ((m === null) || (m[1] === 'this')) {
-        return false;
-    }
+    if ((m === null) || (m[1] === 'this')) { return false; }
     const n = m[1];
     const sigEnd = fn.indexOf ('{');
     const sigParam = new RegExp ('[(,]\\s*' + n + ' map\\[string\\]any[,)]').test (fn.slice (0, sigEnd));
@@ -20326,19 +16550,13 @@ function goOmitOfTypedMap (rhs: string, fn: string): boolean {
     const vars = body.match (new RegExp ('\\bvar ' + n + ' (\\S+)', 'g')) ?? [];
     const short = body.match (new RegExp ('(?<![.\\w])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + n + ' |\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range', 'g')) ?? [];
     const pair = new RegExp ('^\\s*\\w+, ' + n + ' := this\\.HandleOption(?:Bool)?AndParams2?\\(', 'm');
-    if (sigParam) {
-        return (vars.length === 0) && (short.length === 0);
-    }
-    if ((vars.length === 1) && (short.length === 0)) {
-        return vars[0] === 'var ' + n + ' map[string]any';
-    }
+    if (sigParam) { return (vars.length === 0) && (short.length === 0); }
+    if ((vars.length === 1) && (short.length === 0)) { return vars[0] === 'var ' + n + ' map[string]any'; }
     return (vars.length === 0) && (short.length === 1) && pair.test (body) && /HandleOptionBoolAndParams2?\(/.test (body.match (pair)[0]);
 }
 
 // OmitDict always returns a fresh map owned by the caller (never a this.* map)
-function goInOpOwnedMapWrite (init: string): boolean {
-    return /^this\.OmitDict\(\w+, /.test (init);
-}
+function goInOpOwnedMapWrite (init: string): boolean { return /^this\.OmitDict\(\w+, /.test (init); }
 
 function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
     const nil = (body: string) => goAnyLocalNativeNilCompares ('\nfunc (this *X) f(p any) any {\n' + body + '\tif IsEqual(v, nil) {\n\t}\n\treturn nil\n}\n', 'IsEqual(');
@@ -20357,13 +16575,9 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
     ok (nil ('\tvar s *string = this.SafeString(p, "a")\n\tvar v any = nil\n\tv = s\n').includes ('IsEqual(v, nil)'), 'a pointer write keeps the helper');
     ok (nil ('\tvar v any = nil\n\tv = Add(p, 1)\n').includes ('IsEqual(v, nil)'), 'a boxed call write keeps the helper');
     for (const keep of [
-        '\tvar v any = this.SortBy2(p, k, "b")\n',
-        '\tvar v any = this.SafeList(p, "a", p)\n',
-        '\tvar r []any = ArrayTyped(p)\n\tvar v any = this.SafeList(p, "a", r)\n',
-        '\tvar v any = this.ToArray(p)\n',
-        '\tvar v any = this.FilterBy(p, "a", "b")\n',
-        '\tvar v any = ObjectKeys(p)\n',
-        '\tvar v any = ObjectValues(p)\n',
+        '\tvar v any = this.SortBy2(p, k, "b")\n', '\tvar v any = this.SafeList(p, "a", p)\n',
+        '\tvar r []any = ArrayTyped(p)\n\tvar v any = this.SafeList(p, "a", r)\n', '\tvar v any = this.ToArray(p)\n',
+        '\tvar v any = this.FilterBy(p, "a", "b")\n', '\tvar v any = ObjectKeys(p)\n', '\tvar v any = ObjectValues(p)\n',
         '\tvar v any = this.FilterBySinceLimit(p, nil, nil)\n',
     ]) {
         ok (nil (keep).includes ('IsEqual(v, nil)'), 'unproven write keeps the helper: ' + keep.trim ());
@@ -20386,9 +16600,7 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
 
 // Add leaves proven non-nil Go strings: `*x` on a once-declared `*string` local/param, `*this.Safe<String>(..)`,
 // strings.*/strconv.* string returns, NumberToString, base/same-file methods printed `string`.
-function goStringPointerLocals (masked: string, fileIndex: GoFileAddIndex): Set<string> {
-    return goOnceTypedLocals (masked, fileIndex, '\\*string', true);
-}
+function goStringPointerLocals (masked: string, fileIndex: GoFileAddIndex): Set<string> { return goOnceTypedLocals (masked, fileIndex, '\\*string', true); }
 
 // one pass per function text: `var x` counts (all / not `string` / not `*string`), names bound by a `:=` list,
 // and names inside a `func (...)` literal's parameter text (the body after the first `{`)
@@ -20396,9 +16608,7 @@ type GoLocalDeclIndex = { varAll: Map<string, number>; varNotStr: Map<string, nu
 
 function goLocalDeclIndex (masked: string): GoLocalDeclIndex {
     const cache: any = goLocalDeclIndex;
-    if ((cache._v !== undefined) && (cache._k === masked)) {
-        return cache._v;
-    }
+    if ((cache._v !== undefined) && (cache._k === masked)) { return cache._v; }
     const inc = (m: Map<string, number>, k: string) => { m.set (k, (m.get (k) ?? 0) + 1); };
     const varAll = new Map<string, number> ();
     const varNotStr = new Map<string, number> ();
@@ -20454,9 +16664,7 @@ function goOnceTypedLocals (masked: string, fileIndex: GoFileAddIndex, ty: strin
     for (const name of candidates) {
         if (fileIndex.globals.has (name) || idx.shorts.has (name) || idx.lits.has (name)) { continue; }
         const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!' + ty + '[,)])').test (signature);
-        const once = ptr
-            ? ((idx.varAll.get (name) ?? 0) + (new RegExp ('[(,]\\s*' + name + ' ' + ty + '(?=[,)])').test (signature) ? 1 : 0) === 1)
-            : !idx.varNotStr.has (name);
+        const once = ptr ? ((idx.varAll.get (name) ?? 0) + (new RegExp ('[(,]\\s*' + name + ' ' + ty + '(?=[,)])').test (signature) ? 1 : 0) === 1) : !idx.varNotStr.has (name);
         if (once && !otherParam) { out.add (name); }
     }
     return out;
@@ -20609,9 +16817,7 @@ function goUnboxDefaultedSafeIntegerFunc (lines: string[], masked: string[], sta
     const decl = /^(\t+var )(\w+) \*int64 = (this\.(SafeInteger2?)\()/;
     for (let d = start + 1; d < end; d++) {
         const m = decl.exec (masked[d]);
-        if (m === null) {
-            continue;
-        }
+        if (m === null) { continue; }
         const open = m[0].length - 1;
         const parsed = goSplitCallArgs (lines[d], masked[d], open);
         if ((parsed === undefined) || (parsed.end !== masked[d].length - 1) || (parsed.args.length !== ((m[4] === 'SafeInteger') ? 3 : 4))
@@ -20660,9 +16866,7 @@ function goUnboxDefaultedSafeIntegerFunc (lines: string[], masked: string[], sta
             }
             out.push (text);
         }
-        if (!ok) {
-            continue;
-        }
+        if (!ok) { continue; }
         for (let k = d + 1; k < end; k++) {
             lines[k] = out[k - d - 1];
             masked[k] = goMaskGoCode (lines[k]);
@@ -20672,10 +16876,7 @@ function goUnboxDefaultedSafeIntegerFunc (lines: string[], masked: string[], sta
     }
 }
 
-function goUnboxDefaultedSafeInteger (content: string): string {
-    return goRewriteEachFunc (content, content.indexOf ('*int64 = this.SafeInteger') >= 0, goUnboxDefaultedSafeIntegerFunc);
-}
-
+function goUnboxDefaultedSafeInteger (content: string): string { return goRewriteEachFunc (content, content.indexOf ('*int64 = this.SafeInteger') >= 0, goUnboxDefaultedSafeIntegerFunc); }
 
 function goUnboxDefaultedSafeIntegerSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goUnboxDefaultedSafeInteger ('func (this *X) f(' + sig + ') any {\n' + body + '}\n');
@@ -20732,8 +16933,7 @@ function goRowStringLocals (fn: string, masked: string, fileIndex: GoFileAddInde
     let m: RegExpExecArray | null;
     while ((m = declRe.exec (body)) !== null) {
         const name = m[1];
-        if (fileIndex.globals.has (name) || (idx.varAll.get (name) !== 1) || idx.shorts.has (name) || idx.lits.has (name)) { continue; }
-        if (new RegExp ('[(,]\\s*' + name + '\\b').test (signature)) { continue; }
+        if ((fileIndex.globals.has (name) || (idx.varAll.get (name) !== 1) || idx.shorts.has (name) || idx.lits.has (name)) || (new RegExp ('[(,]\\s*' + name + '\\b').test (signature))) { continue; }
         if (new RegExp ('&' + name + '\\b|AddElementToObject\\(' + name + '\\b').test (body)) { continue; }
         // every write: `[var name map[string]any ]name = <rhs>` as a whole statement
         const writes = [ ...body.matchAll (new RegExp ('(?<![\\w.\\]])' + name + '\\s*(?:map\\[string\\]any)?(\\[[^\\n]*?\\])?\\s*=(?!=)([^\\n]*)', 'g')) ];
@@ -20763,8 +16963,7 @@ function goAddNonNilProducerPtr (fn: string, name: string, fileIndex: GoFileAddI
     const nonNil = (rhs: string): boolean => {
         if (rhs === 'this.Iso8601(this.Milliseconds())') { return !fileIndex.methodCounts.has ('Iso8601') && !fileIndex.methodCounts.has ('Milliseconds'); }
         const call = /^this\.(\w+)\([^()]*\)$/.exec (rhs);
-        if (call === null || recv === null) { return false; }
-        if (fileIndex.methodCounts.get (call[1]) !== 1) { return false; }
+        if ((call === null || recv === null) || (fileIndex.methodCounts.get (call[1]) !== 1)) { return false; }
         const def = fileIndex.starStringMethods.get (recv[1] + '.' + call[1]);
         if (def === undefined) { return false; }
         const strParams = new Set ([ ...def.params.matchAll (/(\w+) string\b/g) ].map ((p) => p[1]));
@@ -20818,13 +17017,7 @@ function goBlockScopePaths (masked: string[], start: number, end: number): numbe
     let id = 0;
     for (let k = start; k <= end; k++) {
         paths[k] = stack.slice ();
-        for (const c of masked[k]) {
-            if (c === '{') {
-                stack.push (++id);
-            } else if ((c === '}') && (stack.length > 0)) {
-                stack.pop ();
-            }
-        }
+        for (const c of masked[k]) { if (c === '{') { stack.push (++id); } else if ((c === '}') && (stack.length > 0)) { stack.pop (); } }
     }
     return paths;
 }
@@ -20839,23 +17032,15 @@ function goBlockScopeResolver (masked: string[], start: number, end: number) {
         offset += masked[k].length + 1;
     }
     const inScope = (j: number, k: number) => {
-        if ((j >= k) || (paths[j].length > paths[k].length) || !paths[j].every ((b, i) => paths[k][i] === b)) {
-            return false;
-        }
+        if ((j >= k) || (paths[j].length > paths[k].length) || !paths[j].every ((b, i) => paths[k][i] === b)) { return false; }
         // brace-less case clauses: a later clause of the same switch is a new scope
-        for (let c = j + 1; c < k; c++) {
-            if ((paths[c].length === paths[j].length) && /^\s*(?:case\b|default:)/.test (masked[c])) {
-                return false;
-            }
-        }
+        for (let c = j + 1; c < k; c++) { if ((paths[c].length === paths[j].length) && /^\s*(?:case\b|default:)/.test (masked[c])) { return false; } }
         return true;
     };
     const cache = new Map<string, any> ();
     return (name: string, k: number): any => {
         const key = name + '@' + k;
-        if (cache.has (key)) {
-            return cache.get (key);
-        }
+        if (cache.has (key)) { return cache.get (key); }
         const n = goAccessEscape (name);
         const varRx = new RegExp ('^\\s*var\\s+' + n + '\\s+([^=]+?)\\s*(?:=|$)');
         const otherRx = new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + n + '\\b');
@@ -20864,14 +17049,10 @@ function goBlockScopeResolver (masked: string[], start: number, end: number) {
         let found: any = undefined;
         const sigParam = new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (sigParams);
         let reaching = (sigParam !== null) ? 1 : 0;
-        if (sigParam !== null) {
-            found = { 'type': sigParam[1].trim (), 'init': undefined };
-        }
+        if (sigParam !== null) { found = { 'type': sigParam[1].trim (), 'init': undefined }; }
         for (let j = start + 1; (j < end) && (reaching < 2); j++) {
             const v = varRx.exec (masked[j]);
-            if ((v === null) && !otherRx.test (masked[j])) {
-                continue;
-            }
+            if ((v === null) && !otherRx.test (masked[j])) { continue; }
             // a func-literal parameter or a `:=` (incl. if/for headers) is never a resolved declaration
             if ((v === null) || otherRx.test (masked[j]) || (paths[j].length < fnPath.length)) {
                 reaching += 2;
@@ -20890,9 +17071,7 @@ function goBlockScopeResolver (masked: string[], start: number, end: number) {
 
 // some line in [start, end] contains `token`
 function goLinesInclude (lines: string[], start: number, end: number, token: string | RegExp): boolean {
-    for (let k = start; k <= end; k++) {
-        if ((typeof token === 'string') ? (lines[k].indexOf (token) >= 0) : token.test (lines[k])) { return true; }
-    }
+    for (let k = start; k <= end; k++) { if ((typeof token === 'string') ? (lines[k].indexOf (token) >= 0) : token.test (lines[k])) { return true; } }
     return false;
 }
 
@@ -20904,17 +17083,11 @@ function goBlockScopedDeclFunc (lines: string[], masked: string[], start: number
     const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
     for (let k = start + 1; k < end; k++) {
         const m = masked[k];
-        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/.test (m)) {
-            continue;
-        }
+        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/.test (m)) { continue; }
         const declOf = (name: string) => resolve (name, k) ?? goPairMapSlotDeclaration (maskedFunc, name);
         const typeAt = (name: string, at: number) => { const d = resolve (name, at) ?? goPairMapSlotDeclaration (maskedFunc, name); return (d === undefined) ? undefined : d.type; };
-        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
-            continue;
-        }
-        if (goMaskGoCode (lines[k]) !== m) {
-            continue; // the line opens inside a multi-line literal or comment
-        }
+        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) { continue; }
+        if (goMaskGoCode (lines[k]) !== m) { continue; } // the line opens inside a multi-line literal or comment
         let cur = m;
         const isCode = (text: string, at: number) => cur.substr (at, text.length) === text;
         // same exactness table as goTypedNilCompareText: nil on a nilable typed local, a literal on a string
@@ -21042,14 +17215,10 @@ function goIsEqualSafeLiteralSelfTest (ok: SelfTestOk): void {
     r = f ('\tvar a any = map[string]any{"d": IsEqual(this.SafeStringLower(p, "c"), "x"),}\n');
     ok (r.includes ('"d": (this.SafeStringLower(p, "c") != nil && *this.SafeStringLower(p, "c") == "x")'), 'SafeStringLower: ' + r);
     for (const keep of [
-        '\tvar a bool = IsEqual(this.SafeString(p, "c"), 1)\n',
-        '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), "1")\n',
-        '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), 1.5)\n',
-        '\tvar a bool = IsEqual(this.SafeString(p, "c"), q)\n',
-        '\tvar a bool = IsEqual(this.SafeValue(p, "c"), "x")\n',
-        '\tvar a bool = IsEqual(this.SafeString(this.Next(p), "c"), "x")\n',
-        '\tvar a bool = IsEqual(this.SafeString(func() any { return p }(), "c"), "x")\n',
-        '\tvar a bool = IsEqual(this.SafeString(<-ch, "c"), "x")\n',
+        '\tvar a bool = IsEqual(this.SafeString(p, "c"), 1)\n', '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), "1")\n',
+        '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), 1.5)\n', '\tvar a bool = IsEqual(this.SafeString(p, "c"), q)\n',
+        '\tvar a bool = IsEqual(this.SafeValue(p, "c"), "x")\n', '\tvar a bool = IsEqual(this.SafeString(this.Next(p), "c"), "x")\n',
+        '\tvar a bool = IsEqual(this.SafeString(func() any { return p }(), "c"), "x")\n', '\tvar a bool = IsEqual(this.SafeString(<-ch, "c"), "x")\n',
     ]) {
         ok (f (keep).includes ('IsEqual(this.Safe'), 'keeps IsEqual: ' + JSON.stringify (keep));
     }
@@ -21065,26 +17234,16 @@ function goTupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: s
     const slot = (slotMatch === null) ? null : [ slotMatch[0], slotMatch[1] ?? slotMatch[3], slotMatch[2] ?? slotMatch[4] ];
     const callerLines = maskedFunc.split ('\n');
     const recv = /^func \(this \*(\w+)\) /.exec (callerLines[0]);
-    if ((file === undefined) || (slot === null) || (recv === null) || (file.indexOf (callerLines[0]) < 0)) {
-        return false;
-    }
+    if ((file === undefined) || (slot === null) || (recv === null) || (file.indexOf (callerLines[0]) < 0)) { return false; }
     const h = slot[1];
-    if (goMapLocalRebound (maskedFunc, h) && !new RegExp ('^\\s*' + h + ' := ', 'm').test (maskedFunc)) {
-        return false;
-    }
+    if (goMapLocalRebound (maskedFunc, h) && !new RegExp ('^\\s*' + h + ' := ', 'm').test (maskedFunc)) { return false; }
     const writes = callerLines.filter ((l) => goTextWritesName (l, h));
     const holder = (writes.length === 1) ? /^\s*\w+ := this\.(\w+)\((.*)\)\s*$/.exec (writes[0]) : null;
-    if ((holder === null) || !writes[0].trim ().startsWith (h + ' := ') || new RegExp ('&\\s*' + h + '\\b|\\b' + h + '\\s*\\[[^\\]]*\\]\\s*=(?!=)').test (maskedFunc)) {
-        return false;
-    }
+    if ((holder === null) || !writes[0].trim ().startsWith (h + ' := ') || new RegExp ('&\\s*' + h + '\\b|\\b' + h + '\\s*\\[[^\\]]*\\]\\s*=(?!=)').test (maskedFunc)) { return false; }
     const defs = file.map ((l, i) => (l.startsWith ('func (this *' + recv[1] + ') ' + holder[1] + '(') ? i : -1)).filter ((i) => i >= 0);
-    if ((defs.length !== 1) || (file.filter ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + holder[1] + '\\(').test (l)).length !== 1)) {
-        return false;
-    }
+    if ((defs.length !== 1) || (file.filter ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + holder[1] + '\\(').test (l)).length !== 1)) { return false; }
     let close = defs[0] + 1;
-    while ((close < file.length) && (file[close] !== '}')) {
-        close++;
-    }
+    while ((close < file.length) && (file[close] !== '}')) { close++; }
     const callee = file.slice (defs[0], close + 1);
     const calleeFunc = callee.join ('\n');
     const calleeDeclOf = (name: string) => goAccessSingleDeclaration (calleeFunc, callee[0], name);
@@ -21094,25 +17253,17 @@ function goTupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: s
     let lit = 0;
     for (const line of callee.slice (1, -1)) {
         if ((lit > 0) || /\bfunc\s*\(/.test (line)) {
-            for (const c of line) {
-                lit += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
-            }
+            for (const c of line) { lit += (c === '{') ? 1 : ((c === '}') ? -1 : 0); }
             continue;
         }
         const ret = /^\s*return\b\s*(.*)$/.exec (line);
-        if (ret === null) {
-            continue;
-        }
+        if (ret === null) { continue; }
         returns++;
         const tuple = /^\[\]any\{(.*)\}$/.exec (ret[1].trim ());
         const parts = (tuple === null) ? [] : goSplitTopLevelCommas (tuple[1]);
         const value = (parts.length === 2) ? parts[Number (slot[2])].trim () : '';
-        if (/^map\[string\]any\{\}$/.test (value)) {
-            continue;
-        }
-        if (!/^\w+$/.test (value)) {
-            return false;
-        }
+        if (/^map\[string\]any\{\}$/.test (value)) { continue; }
+        if (!/^\w+$/.test (value)) { return false; }
         const param = sigParams.findIndex ((p) => p.trim () === value + ' map[string]any');
         if (param >= 0) {
             const arg = (param < callArgs.length) ? callArgs[param].trim () : '';
@@ -21120,9 +17271,7 @@ function goTupleSlotNeverNil (maskedFunc: string, init: string, declOf: (name: s
                 || !goMapWriteLocalNeverNil (maskedFunc, declOf (arg), arg, declOf, depth + 1)) {
                 return false;
             }
-        } else if (!goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) {
-            return false;
-        }
+        } else if (!goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) { return false; }
     }
     return returns > 0;
 }
@@ -21133,23 +17282,17 @@ goTupleSlotNeverNil.file = undefined as string[] | undefined;
 function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
     const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
     const n = goAccessEscape (name);
-    if ((file === undefined) || !/^\w+$/.test (name)) {
-        return undefined;
-    }
+    if ((file === undefined) || !/^\w+$/.test (name)) { return undefined; }
     // only a name bound by a `a, b := this.M(` / `var a, b map[string]any` line can answer (one cached scan per func)
     const cache: any = goPairMapSlotDeclaration;
     if (cache._k !== maskedFunc) {
         cache._k = maskedFunc;
         cache._v = new Set ([ ...maskedFunc.matchAll (/^\s*(?:(\w+), (\w+) := this\.\w+\(|var (\w+), (\w+) map\[string\]any$)/gm) ].flatMap ((m) => [ m[1] ?? m[3], m[2] ?? m[4] ]));
     }
-    if (!cache._v.has (name)) {
-        return undefined;
-    }
+    if (!cache._v.has (name)) { return undefined; }
     const lines = maskedFunc.split ('\n');
     const decls = lines.map ((l, i) => [ l, i ] as [string, number]).filter (([ l ]) => new RegExp ('\\bvar\\s+(?:\\w+,\\s*)?' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*:=|\\bfunc\\b[^\\n]*[(,]\\s*' + n + ' |&' + n + '\\b').test (l));
-    if ((decls.length !== 1) || (decls[0][1] === 0)) {
-        return undefined;
-    }
+    if ((decls.length !== 1) || (decls[0][1] === 0)) { return undefined; }
     const [ line, at ] = decls[0];
     const short = /^\s*(\w+), (\w+) := this\.(\w+)\(/.exec (line);
     const both = /^(\s*)var (\w+), (\w+) map\[string\]any$/.exec (line);
@@ -21164,9 +17307,7 @@ function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
         const arm = new RegExp ('^' + ind + '\\t' + both[2] + ', ' + both[3] + ' = this\\.(\\w+)\\(');
         const a = arm.exec (lines[at + 2] ?? '');
         const b = arm.exec (lines[at + 4] ?? '');
-        if (!(lines[at + 1] ?? '').startsWith (ind + 'if ') || (a === null) || (lines[at + 3] !== ind + '} else {') || (b === null) || (lines[at + 5] !== ind + '}')) {
-            return undefined;
-        }
+        if (!(lines[at + 1] ?? '').startsWith (ind + 'if ') || (a === null) || (lines[at + 3] !== ind + '} else {') || (b === null) || (lines[at + 5] !== ind + '}')) { return undefined; }
         pairs.push (a[1], b[1]);
     } else {
         return undefined;
@@ -21174,15 +17315,11 @@ function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
     const slot = names.indexOf (name);
     // no later write of either name (a rebind or a multi-assign elsewhere)
     const rest = lines.filter ((l, i) => (i !== at) && !((both !== null) && ((i === at + 2) || (i === at + 4))));
-    if ((slot < 0) || rest.some ((l) => goTextWritesName (l, n) && !new RegExp ('\\b' + n + '\\s*\\[').test (l))) {
-        return undefined;
-    }
+    if ((slot < 0) || rest.some ((l) => goTextWritesName (l, n) && !new RegExp ('\\b' + n + '\\s*\\[').test (l))) { return undefined; }
     const recv = /^func \(this \*(\w+)\) /.exec (lines[0]);
     for (const m of pairs) {
         const sigs = file.filter ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + m + '\\(').test (l));
-        if ((recv === null) || (sigs.length !== 1) || !sigs[0].startsWith ('func (this *' + recv[1] + ') ') || !sigs[0].endsWith (') (map[string]any, map[string]any) {')) {
-            return undefined;
-        }
+        if ((recv === null) || (sigs.length !== 1) || !sigs[0].startsWith ('func (this *' + recv[1] + ') ') || !sigs[0].endsWith (') (map[string]any, map[string]any) {')) { return undefined; }
     }
     return { 'type': 'map[string]any', 'index': lines.slice (0, at).join ('\n').length + 1, 'line': line, 'pairSlot': slot, 'pairs': pairs };
 }
@@ -21190,40 +17327,26 @@ function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
 // every return of every bound pair method stores a never-nil map in the slot
 function goPairMapSlotNeverNil (maskedFunc: string, decl: any, depth: number): boolean {
     const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
-    if ((file === undefined) || (depth > 3)) {
-        return false;
-    }
+    if ((file === undefined) || (depth > 3)) { return false; }
     for (const m of decl.pairs) {
         const def = file.findIndex ((l) => new RegExp ('^func \\(this \\*\\w+\\) ' + m + '\\(').test (l));
         let close = def + 1;
-        while ((close < file.length) && (file[close] !== '}')) {
-            close++;
-        }
+        while ((close < file.length) && (file[close] !== '}')) { close++; }
         const callee = file.slice (def, close + 1);
         const calleeFunc = callee.join ('\n');
         const calleeDeclOf = (name: string) => goAccessSingleDeclaration (calleeFunc, callee[0], name);
         let returns = 0;
         for (const line of callee.slice (1, -1)) {
-            if (/\bfunc\s*\(/.test (line)) {
-                return false;
-            }
+            if (/\bfunc\s*\(/.test (line)) { return false; }
             const ret = /^\s*return\b\s*(.*)$/.exec (line);
-            if (ret === null) {
-                continue;
-            }
+            if (ret === null) { continue; }
             returns++;
             const parts = goSplitTopLevelCommas (ret[1]);
             const value = (parts.length === 2) ? parts[decl.pairSlot].trim () : '';
-            if (/^map\[string\]any\{\}$/.test (value)) {
-                continue;
-            }
-            if (!/^\w+$/.test (value) || !goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) {
-                return false;
-            }
+            if (/^map\[string\]any\{\}$/.test (value)) { continue; }
+            if (!/^\w+$/.test (value) || !goMapWriteLocalNeverNil (calleeFunc, calleeDeclOf (value), value, calleeDeclOf, depth + 1)) { return false; }
         }
-        if (returns === 0) {
-            return false;
-        }
+        if (returns === 0) { return false; }
     }
     return true;
 }
@@ -21232,15 +17355,11 @@ function goPairMapSlotNeverNil (maskedFunc: string, decl: any, depth: number): b
 function goPairRebindsBlanked (maskedFunc: string, name: string): string {
     const file: string[] | undefined = (goTupleSlotNeverNil as any).file;
     const recv = /^func \(this \*(\w+)\) /.exec (maskedFunc);
-    if ((file === undefined) || (recv === null) || !/^\w+$/.test (name)) {
-        return maskedFunc;
-    }
+    if ((file === undefined) || (recv === null) || !/^\w+$/.test (name)) { return maskedFunc; }
     const rx = new RegExp ('^\\s*' + name + ', \\w+ = this\\.(\\w+)\\([^\\n]*\\)$');
     return maskedFunc.split ('\n').map ((l) => {
         const m = rx.exec (l);
-        if (m === null) {
-            return l;
-        }
+        if (m === null) { return l; }
         const sigs = file.filter ((f) => new RegExp ('^func \\(this \\*\\w+\\) ' + m[1] + '\\(').test (f));
         const ok = (sigs.length === 1) && sigs[0].startsWith ('func (this *' + recv[1] + ') ') && sigs[0].endsWith (') (map[string]any, map[string]any) {')
             && goPairMapSlotNeverNil (maskedFunc, { 'pairs': [ m[1] ], 'pairSlot': 0 }, 1);
@@ -21248,9 +17367,7 @@ function goPairRebindsBlanked (maskedFunc: string, name: string): string {
     }).join ('\n');
 }
 
-function goSplitTopLevelCommas (text: string): string[] {
-    return goTopPieces (text, 0, goTopCuts (text, 0, ',', false).cuts, text.length);
-}
+function goSplitTopLevelCommas (text: string): string[] { return goTopPieces (text, 0, goTopCuts (text, 0, ',', false).cuts, text.length); }
 
 function goTupleSlotNeverNilCheck (ok: SelfTestOk): void {
     const prep = (ret: string) => 'func (this *X) Prep(optionalArgs ...any) []any {\n\tvar params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n'
@@ -21305,13 +17422,7 @@ function goProvenLocalIsEqual (content: string): string {
             if (kind === undefined) { return m; }
             let form: string | undefined;
             // an int64 slot is never nil: the helper's answer stays
-            if (lit === 'nil' && kind !== 'int64') {
-                form = x + (not ? ' != ' : ' == ') + 'nil';
-            } else if (kind === '*string' && lit.startsWith ('"')) {
-                form = not ? (x + ' == nil || *' + x + ' != ' + lit) : (x + ' != nil && *' + x + ' == ' + lit);
-            } else if (kind === 'int64' && /^-?\d/.test (lit)) {
-                form = x + (not ? ' != ' : ' == ') + lit;
-            }
+            if (lit === 'nil' && kind !== 'int64') { form = x + (not ? ' != ' : ' == ') + 'nil'; } else if (kind === '*string' && lit.startsWith ('"')) { form = not ? (x + ' == nil || *' + x + ' != ' + lit) : (x + ' != nil && *' + x + ' == ' + lit); } else if (kind === 'int64' && /^-?\d/.test (lit)) { form = x + (not ? ' != ' : ' == ') + lit; }
             if (form === undefined) { return m; }
             const before = fn.slice (0, off);
             const after = fn.slice (off + m.length);
@@ -21355,9 +17466,7 @@ function goArithHelpersWiredCheck (ok: SelfTestOk): void {
     // proven operands go native, unproven ones keep the helper call, never an inline closure
     const out = goWrittenThrough (goSelfTestHead (true) + 'func (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
     ok (!(/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')), 'inline closure emitted: ' + out);
-    for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
-        ok (out.includes (want), 'unproven call lost its helper (' + want + '): ' + out);
-    }
+    for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) { ok (out.includes (want), 'unproven call lost its helper (' + want + '): ' + out); }
     ok (!out.includes ('IsLessThan(n, 10)'), 'proven int64 comparison not native: ' + out);
 }
 
@@ -21403,13 +17512,7 @@ function goPlainBoxIsEqual (content: string): string {
         return fn.replace (re, ((m: string, not: string, x: string, y: string, off: number) => {
             if (masked.slice (off, off + m.length).indexOf ('IsEqual(') < 0) { return m; }
             let ok = false;
-            if (x.startsWith ('this.Has[')) {
-                ok = (y === 'nil') || (y === 'true') || (y === 'false');
-            } else if (x.startsWith ('this.')) {
-                ok = (y === 'nil') && (creds.indexOf (x.slice (5)) >= 0);
-            } else {
-                ok = isPlainLocal (x);
-            }
+            if (x.startsWith ('this.Has[')) { ok = (y === 'nil') || (y === 'true') || (y === 'false'); } else if (x.startsWith ('this.')) { ok = (y === 'nil') && (creds.indexOf (x.slice (5)) >= 0); } else { ok = isPlainLocal (x); }
             if (!ok) { return m; }
             const form = x + (not ? ' != ' : ' == ') + y;
             const before = fn.slice (0, off);
@@ -21536,23 +17639,15 @@ function goDerefPointerValue (lines: string[], value: string, valueMasked: strin
         'SafeStringLower', 'SafeStringUpper', 'SafeCurrencyCode', 'SafeSymbol', 'SafeInteger', 'SafeInteger2', 'SafeNumber', 'SafeBool',
         'SafeIntegerN', 'SafeNumber2', 'SafeNumberN', 'SafeBool2', 'Iso8601', 'Parse8601', 'ParseNumber' ];
     const wrap = (x: string) => 'func() any {\n\tif v := ' + x + '; v != nil {\n\t\treturn *v\n\t}\n\treturn nil\n}()';
-    if (/^\w+$/.test (value)) {
-        return (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType ?? '') >= 0) ? wrap (value) : undefined;
-    }
+    if (/^\w+$/.test (value)) { return (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (valueType ?? '') >= 0) ? wrap (value) : undefined; }
     // Precise.String* answers *string (exchange_precise.go)
     const precise = /^(?:ccxt\.)?Precise\.String(?:Add|Sub|Mul|Div|Abs|Neg|Max|Min|Mod)\(/.exec (valueMasked);
-    if ((precise !== null) && (value.indexOf ('\n') < 0) && (goMapWriteGroupEnd (valueMasked, precise[0].length - 1) === valueMasked.length)) {
-        return wrap (value);
-    }
+    if ((precise !== null) && (value.indexOf ('\n') < 0) && (goMapWriteGroupEnd (valueMasked, precise[0].length - 1) === valueMasked.length)) { return wrap (value); }
     const call = /^this\.(\w+)\(/.exec (valueMasked);
-    if ((call === null) || (value.indexOf ('\n') >= 0) || (goMapWriteGroupEnd (valueMasked, call[0].length - 1) !== valueMasked.length)) {
-        return undefined;
-    }
+    if ((call === null) || (value.indexOf ('\n') >= 0) || (goMapWriteGroupEnd (valueMasked, call[0].length - 1) !== valueMasked.length)) { return undefined; }
     const sigs = lines.filter ((l) => l.startsWith ('func (this *') && l.includes (') ' + call[1] + '('));
     const declared = sigs.map ((l) => / (\*(?:string|int64|float64|bool)) \{$/.exec (l)?.[1] ?? '');
-    if (declared.some ((t) => t === '') || ((sigs.length === 0) && (basePtrCalls.indexOf (call[1]) < 0))) {
-        return undefined;
-    }
+    if (declared.some ((t) => t === '') || ((sigs.length === 0) && (basePtrCalls.indexOf (call[1]) < 0))) { return undefined; }
     return wrap (value);
 }
 
@@ -21624,8 +17719,6 @@ function goNullableStrParamSelfTest (ok: SelfTestOk): void {
 // Split/Join/Replace: a proven non-pointer `string` subject (`[]string` for Join) whose other operands are literals or proven
 // `string`s takes the plain stdlib call; every other site keeps the helper. Operands move verbatim (evaluated once).
 
-
-
 // the single static Go type of `name` in this func chunk (masked): its parameter type or every `var name T`
 // declaration agreeing; undefined when any `:=`, range, or func-literal binding could rebind it to another type
 function goChunkDeclType (chunk: string, name: string): string | undefined {
@@ -21638,9 +17731,7 @@ function goChunkDeclType (chunk: string, name: string): string | undefined {
     const types = [ ...body.matchAll (new RegExp ('\\bvar ' + name + ' ([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ].map ((m) => m[1].trim ());
     if (new RegExp ('\\b' + name + '\\b').test (sig)) {
         const param = new RegExp ('[(,]\\s*' + name + '((?:\\s*,\\s*\\w+)*)\\s+([^,()]+?)\\s*[,)]').exec (sig);
-        if (!param) {
-            return undefined;
-        }
+        if (!param) { return undefined; }
         types.push (param[2].trim ());
     }
     return ((types.length > 0) && types.every ((t) => t === types[0])) ? types[0] : undefined;
@@ -21699,9 +17790,7 @@ function goStdlibStringHelpersCheck (ok: SelfTestOk): void {
         run ('\tvar s string = "x"\n\treturn Split(s, b)'),
         run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
     ];
-    for (const k of keep) {
-        ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k);
-    }
+    for (const k of keep) { ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k); }
     ok (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') === goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")')), 'not idempotent');
     ok (run ('\treturn Join(this.Ids, ",")').includes ('strings.Join(this.Ids, ",")'), 'Ids field joins natively');
     ok (!run ('\treturn Join(this.Options, ",")').includes ('strings.'), 'boxed field keeps the helper');
@@ -21712,32 +17801,22 @@ function goStdlibStringHelpersCheck (ok: SelfTestOk): void {
 // ===== credential fields are plain Go strings =====
 // go/v4/exchange.go declares the credential fields `string`, so an absent key is "" and never a nil box: nil tests print
 // as empty-string tests, a nil/empty pair collapses to its empty half, and a defaulted SafeString write derefs.
-function gb09CredentialFields (): string[] {
-    return [ 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ];
-}
+function gb09CredentialFields (): string[] { return [ 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]; }
 
 // `this.<Field> = this.SafeString(..., "<literal>")`: the literal default makes the call non-nil
 function gb09CredentialWrite (line: string): string | undefined {
     const m = /^(\t*this\.(\w+) = )(this\.[\w]+\(.*\))$/.exec (line);
-    if ((m === null) || (gb09CredentialFields ().indexOf (m[2]) < 0)) {
-        return undefined;
-    }
+    if ((m === null) || (gb09CredentialFields ().indexOf (m[2]) < 0)) { return undefined; }
     const call = m[3];
     const inner = call.slice (call.indexOf ('(') + 1, -1);
     const args = goAddSplitTop (inner, inner, ',');
-    if ((args === null) || (args.length < 3)) {
-        return undefined; // no default: the call can be nil, keep it (a compile error, not a panic)
-    }
-    if (!/^"(?:[^"\\$\n]|\\.)*"$/.test (args[args.length - 1].trim ())) {
-        return undefined;
-    }
+    if ((args === null) || (args.length < 3)) { return undefined; } // no default: the call can be nil, keep it (a compile error, not a panic)
+    if (!/^"(?:[^"\\$\n]|\\.)*"$/.test (args[args.length - 1].trim ())) { return undefined; }
     return m[1] + '*' + call;
 }
 
 export function gb09CredentialStrings (content: string): string {
-    if (content.indexOf ('this.') < 0) {
-        return content;
-    }
+    if (content.indexOf ('this.') < 0) { return content; }
     const alt = gb09CredentialFields ().join ('|');
     const nilOrEmpty = new RegExp ('\\(this\\.(' + alt + ') == nil\\) \\|\\| \\(this\\.\\1 == ""\\)', 'g');
     const setOrEmpty = new RegExp ('\\(this\\.(' + alt + ') != nil\\) && \\(this\\.\\1 != ""\\)', 'g');
@@ -21749,9 +17828,7 @@ export function gb09CredentialStrings (content: string): string {
     const lines = content.split ('\n');
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if ((line.indexOf ('this.') < 0) || ((line.indexOf ('nil') < 0) && (line.indexOf ('SafeString') < 0))) {
-            continue;
-        }
+        if ((line.indexOf ('this.') < 0) || ((line.indexOf ('nil') < 0) && (line.indexOf ('SafeString') < 0))) { continue; }
         let out = line;
         if (out.indexOf ('nil') >= 0) {
             out = out.replace (nilOrEmpty, '(this.$1 == "")');
@@ -21764,13 +17841,9 @@ export function gb09CredentialStrings (content: string): string {
         }
         if (out.indexOf ('SafeString') >= 0) {
             const written = gb09CredentialWrite (out);
-            if (written !== undefined) {
-                out = written;
-            }
+            if (written !== undefined) { out = written; }
         }
-        if (out !== line) {
-            lines[i] = out;
-        }
+        if (out !== line) { lines[i] = out; }
     }
     return lines.join ('\n');
 }
@@ -21801,9 +17874,7 @@ function h27g26StructRowReads (content: string): string {
     for (let m = box.exec (content); m !== null; m = box.exec (content)) {
         const [ whole, ind, name, q, toList, rl ] = m;
         const elem = Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList);
-        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) {
-            continue;
-        }
+        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) { continue; }
         const [ , fe0 ] = goChan3Func (content, m.index);
         const bodyStart = m.index + whole.length;
         const body = content.substring (bodyStart, fe0);
@@ -21818,9 +17889,7 @@ function h27g26StructRowReads (content: string): string {
         const rowVar = name + 'Row0';
         const firstRow = (i: string, v: string) => i + 'var ' + v + ' ' + T + '\n' + i + 'if len(' + name + ') > 0 {\n' + i + '\t' + v + ' = ' + name + '[0]\n' + i + '}\n';
         const uses = (id: string, s: string) => (s.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
-        if (uses (rowVar, masked) > 0) {
-            continue;
-        }
+        if (uses (rowVar, masked) > 0) { continue; }
         let inlineCount = 0;
         for (let r = rowDecl.exec (masked); r !== null; r = rowDecl.exec (masked)) {
             reads++;
@@ -21833,13 +17902,9 @@ function h27g26StructRowReads (content: string): string {
                 break;
             }
             local.push ({ 'start': bodyStart + r.index, 'end': bodyStart + r.index + r[0].length, 'text': firstRow (r[1], row) });
-            for (let at = masked.indexOf (from); at >= 0; at = masked.indexOf (from, at + from.length)) {
-                local.push ({ 'start': bodyStart + at, 'end': bodyStart + at + from.length, 'text': row });
-            }
+            for (let at = masked.indexOf (from); at >= 0; at = masked.indexOf (from, at + from.length)) { local.push ({ 'start': bodyStart + at, 'end': bodyStart + at + from.length, 'text': row }); }
             const nt = masked.indexOf ('if ' + row + ' == nil {');
-            if (nt >= 0) {
-                local.push ({ 'start': bodyStart + nt, 'end': bodyStart + nt + ('if ' + row + ' == nil {').length, 'text': 'if len(' + name + ') == 0 {' });
-            }
+            if (nt >= 0) { local.push ({ 'start': bodyStart + nt, 'end': bodyStart + nt + ('if ' + row + ' == nil {').length, 'text': 'if len(' + name + ') == 0 {' }); }
         }
         for (let r = inline.exec (masked); !bad && (r !== null); r = inline.exec (masked)) {
             reads++;
@@ -21851,14 +17916,10 @@ function h27g26StructRowReads (content: string): string {
             const call = r[0].substring (r[1].length + r[2].length);
             local.push ({ 'start': bodyStart + r.index, 'end': bodyStart + r.index + r[1].length, 'text': firstRow (r[1], rowVar) + r[1] });
             local.push ({ 'start': bodyStart + r.index + r[1].length + r[2].length, 'end': bodyStart + r.index + r[0].length, 'text': rowVar });
-            if (call.length === 0) {
-                bad = true;
-            }
+            if (call.length === 0) { bad = true; }
         }
         const lens = masked.split ('len(' + name + ')').length - 1;
-        if (bad || (reads === 0) || (uses (name, masked) !== reads + lens)) {
-            continue;   // the box is read some other way: keep it
-        }
+        if (bad || (reads === 0) || (uses (name, masked) !== reads + lens)) { continue; } // the box is read some other way: keep it
         edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' });
         edits.push (...local);
     }
@@ -21886,7 +17947,6 @@ function h27g26StructRowReadsSelfTest (): string[] {
     ok (h27g26StructRowReads (inl) === inl, 'idempotent');
     return problems;
 }
-// ===== end h27-H27-G26
 // ===== h28-H28-A23: struct map rows keyed by a `*string` local, nil-tested before their FromMap
 // as goChan3StructRowNilReads (map form, also the `StructBox` seed) for a key declared `var k *string`: a nil
 // key read as absent in SafeMapTyped, so the typed read runs only under `k != nil` and the miss stays `!rowOk`
@@ -21900,9 +17960,7 @@ function h28a23StructRowPtrKeyReads (content: string): string {
         const rv = m[4] ?? m[8];
         const elem = m[5] ?? m[9];
         const [ row, recv, key ] = [ m[10], m[11], m[12] ];
-        if ((recv !== name) || (elem === 'map[string]any') || (elem === 'string')) {
-            continue;
-        }
+        if ((recv !== name) || (elem === 'map[string]any') || (elem === 'string')) { continue; }
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
         const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""').replace (/^(\t*)\/\/.*$/gm, '$1');   // names in strings and comments are not reads
         // the key is a declared *string local, or statically a string: a `string` parameter or local, or a MarketInterface's Symbol
@@ -21912,9 +17970,7 @@ function h28a23StructRowPtrKeyReads (content: string): string {
         const decls = (fn.match (new RegExp ('(?:\\bvar |[(, ])' + kVar + ' [\\w*\\[]', 'g')) ?? []).length;
         const strKey = (decls === 1) && ((kField !== undefined) ? new RegExp ('\\n\\t+var ' + kVar + ' (?:ccxt\\.)?MarketInterface = ').test (fn)
             : new RegExp ('^func [^\\n]*[(, ]' + kVar + ' string[,)]|\\n\\t+var ' + kVar + ' string = ').test (fn));
-        if (ptrKey ? !nilTest : !strKey) {
-            continue;
-        }
+        if (ptrKey ? !nilTest : !strKey) { continue; }
         const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
         const from = q + elem + 'FromMap(' + row + ')';
         const froms = fn.split (from).length - 1;
@@ -21969,7 +18025,6 @@ function h28a23StructRowPtrKeyReadsSelfTest (): string[] {
     ok (h28a23StructRowPtrKeyReads (rowUsed) === rowUsed, 'a string-key row read elsewhere keeps the wrap');
     return problems;
 }
-// ===== end h28-H28-A23
 // ===== h42-G14
 // a struct map box read once by a statically `string` key: bind the typed result and index it
 // (map[string]T by the key; LeverageTiers by its Tiers field). A missing key gives the zero row, as XFromMap(nil) did.
@@ -21981,9 +18036,7 @@ function h42g14StructBoxStringKeyReads (content: string): string {
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
         const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""').replace (/^(\t*)\/\/.*$/gm, '$1');
         const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
-        if (uses (name) !== ((m[2] !== undefined) ? 2 : 3)) {
-            continue;   // the box is read more than once: keep it
-        }
+        if (uses (name) !== ((m[2] !== undefined) ? 2 : 3)) { continue; } // the box is read more than once: keep it
         const tail = content.substring (m.index + m[0].length, fe0);
         const isStrKey = (k: string) => ((fn.match (new RegExp ('(?:\\bvar |[(, ])' + k + ' [\\w*\\[]', 'g')) ?? []).length === 1)
             && new RegExp ('^func [^\\n]*[(, ]' + k + ' string[,)]|\\n\\t+var ' + k + ' string = ').test (fn);
@@ -21998,15 +18051,9 @@ function h42g14StructBoxStringKeyReads (content: string): string {
         } else if (elem === 'LeverageTiers') {
             T = q + elem;
             read = new RegExp ('^\\t+var (\\w+) \\[\\]any = (?:ccxt\\.)?SafeListTyped\\(' + name + ', (\\w+)\\)$', 'm').exec (tail);
-            if ((read !== null) && (uses (read[1]) === (fn.split (q + 'LeverageTiersFromList(' + read[1] + ')').length))) {
-                [ read[1], read[2] ] = [ read[2], read[1] ];
-            } else {
-                read = null;
-            }
+            if ((read !== null) && (uses (read[1]) === (fn.split (q + 'LeverageTiersFromList(' + read[1] + ')').length))) { [ read[1], read[2] ] = [ read[2], read[1] ]; } else { read = null; }
         }
-        if ((read === null) || !isStrKey (read[1])) {
-            continue;
-        }
+        if ((read === null) || !isStrKey (read[1])) { continue; }
         const at = m.index + m[0].length + read.index;
         const head = ind + 'var ' + name + ' ' + ((map !== null) ? ('map[string]' + T) : T) + ' = ' + rv + '.Value\n';
         edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': head });
@@ -22018,9 +18065,7 @@ function h42g14StructBoxStringKeyReads (content: string): string {
         const lineInd = /^\t+/.exec (read[0])[0];
         edits.push ({ 'start': at, 'end': at + read[0].length, 'text': lineInd + 'var ' + row + ' []' + q + 'LeverageTier = ' + name + '.Tiers[' + read[1] + ']' });
         const from = q + 'LeverageTiersFromList(' + row + ')';
-        for (let f = content.indexOf (from, at); (f >= 0) && (f < fe0); f = content.indexOf (from, f + from.length)) {
-            edits.push ({ 'start': f, 'end': f + from.length, 'text': row });
-        }
+        for (let f = content.indexOf (from, at); (f >= 0) && (f < fe0); f = content.indexOf (from, f + from.length)) { edits.push ({ 'start': f, 'end': f + from.length, 'text': row }); }
     }
     return edits.length ? goChan3Splice (content, edits) : content;
 }
@@ -22042,7 +18087,6 @@ function h42g14StructBoxStringKeyReadsSelfTest (): string[] {
     ok (h42g14StructBoxStringKeyReads (tiersUsed) === tiersUsed, 'a tiers list read elsewhere keeps the wrap');
     return problems;
 }
-// ===== end h42-G14
 // ===== h29-H29-A22
 function h29a22StructBoxInfoReads (content: string): string {
     const box = /^(\t+)(?:var )?(\w+) (?:map\[string\]any )?= ((?:ccxt\.)?)Struct(?:Box|ResultMap)\((r\d*)\.Value, \3(\w+)ToMap\)\n/gm;
@@ -22055,9 +18099,7 @@ function h29a22StructBoxInfoReads (content: string): string {
         const [ , fe0 ] = goChan3Func (content, m.index);
         const declAt = content.lastIndexOf ('\n', content.lastIndexOf ('\t' + rv + ' := <-', m.index)) + 1;
         const declLine = /^(\t+)(\w+) := <-/.exec (content.substring (declAt));
-        if ((declAt <= 0) || (declLine === null) || (declLine[2] !== rv) || (goChan3Func (content, declAt)[1] !== fe0)) {
-            continue;
-        }
+        if ((declAt <= 0) || (declLine === null) || (declLine[2] !== rv) || (goChan3Func (content, declAt)[1] !== fe0)) { continue; }
         const depth = declLine[1].length;
         const mine: Edit[] = [];
         const reads = [ new RegExp ('^(\\t*)(?:var \\w+ map\\[string\\]any = |\\w+ = )?(' + q.replace ('.', '\\.') + 'SafeMapTyped\\(' + name + ', "info"\\))', 'gm'),
@@ -22072,9 +18114,7 @@ function h29a22StructBoxInfoReads (content: string): string {
                 // the receive is still in scope (no line closes its block) and neither the receive nor the box is rewritten
                 const closed = lines.slice (1).some ((l) => (l.trim () !== '') && ((l.length - l.replace (/^\t+/, '').length) < depth));
                 const rewritten = new RegExp ('(?<![\\w.])(?:' + rv + ' :?=|' + name + ' :?=|&' + name + '\\b)').test (between);
-                if (!closed && !rewritten) {
-                    mine.push ({ 'start': at, 'end': at + call.length, 'text': rv + '.Value.Info' });
-                }
+                if (!closed && !rewritten) { mine.push ({ 'start': at, 'end': at + call.length, 'text': rv + '.Value.Info' }); }
             }
         }
         // Go rejects a local that is only written: a box left with no read loses its declaration, or keeps every wrap
@@ -22082,9 +18122,7 @@ function h29a22StructBoxInfoReads (content: string): string {
         const body = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
         const boxReads = (body.match (new RegExp ('(?<![\\w.])' + name + '\\b(?! :?= )', 'g')) ?? []).length - (body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) ?? []).length;
         if ((mine.length > 0) && (boxReads === mine.length)) {
-            if (!m[0].startsWith (m[1] + 'var ')) {
-                continue;
-            }
+            if (!m[0].startsWith (m[1] + 'var ')) { continue; }
             mine.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': '' });
         }
         edits.push (...mine);
@@ -22115,4 +18153,3 @@ function h29a22StructBoxInfoReadsSelfTest (): string[] {
     ok (h29a22StructBoxInfoReads (scoped) === scoped, 'a read after the receive block closes keeps the wrap');
     return problems;
 }
-// ===== end h29-H29-A22
