@@ -3130,6 +3130,10 @@ class NewTranspiler {
     applyExchangeTierJavaFixes(baseClass: string): string {
         // describe() is a dictionary on every tier (TS `describe (): Dict`); overrides are covariant-safe because every tier retypes it
         baseClass = baseClass.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()');
+        // crypto curve/hash identifiers are hand-written no-arg methods on BaseExchange (`ed25519()` etc.);
+        // the exchange pipeline applies the same rewrite in createJavaClass (applied twice for adjacent matches)
+        baseClass = baseClass.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
+        baseClass = baseClass.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so
         // the qualified-this used inside anonymous-class initializers must name the enclosing class
         // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)

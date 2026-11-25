@@ -47,6 +47,7 @@ const mainRules = {
     'import/named': 'off',
     'strict': 'off',
     'semi': 'error',
+    'unicode-bom': ['error', 'never'],
     'indent': ['error', 4],
     'init-declarations': 'off',
     'no-undef-init': 'off',
