@@ -9271,7 +9271,24 @@ function goAccessEscape (name: string): string {
 // `var x, _ = e.(T)`: a comma-ok assertion declares x as T
 const GO_COMMA_OK_DECL_HEAD = '\\bvar\\s+';
 const GO_COMMA_OK_DECL_TAIL = ', _ = [^\\n]*\\.\\((map\\[string\\]any|\\[\\]any)\\)(?=\\n|$)';
+// pure in its arguments and read-only to callers: many passes probe the same names of one function
+let goAccessSingleDeclKey = '';
+let goAccessSingleDeclSig = '';
+let goAccessSingleDeclCache = new Map<string, any> ();
 function goAccessSingleDeclaration (maskedFunc: string, signature: string, name: string): any {
+    if ((goAccessSingleDeclKey !== maskedFunc) || (goAccessSingleDeclSig !== signature)) {
+        goAccessSingleDeclKey = maskedFunc;
+        goAccessSingleDeclSig = signature;
+        goAccessSingleDeclCache = new Map ();
+    } else if (goAccessSingleDeclCache.has (name)) {
+        return goAccessSingleDeclCache.get (name);
+    }
+    const out = goAccessSingleDeclarationScan (maskedFunc, signature, name);
+    goAccessSingleDeclCache.set (name, out);
+    return out;
+}
+
+function goAccessSingleDeclarationScan (maskedFunc: string, signature: string, name: string): any {
     const n = goAccessEscape (name);
     const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ]
         .concat ([ ...maskedFunc.matchAll (new RegExp (GO_COMMA_OK_DECL_HEAD + n + GO_COMMA_OK_DECL_TAIL, 'g')) ]);
@@ -9434,10 +9451,12 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         offset += masked[k].length + 1;
     }
     const cache = new Map<string, any> ();
+    // goPairMapSlotDeclaration answers only from a `a, b := this.M(` / `var a, b map[string]any` line
+    const pairBinds = /^\s*\w+, \w+ := this\.\w+\(|^\s*var \w+, \w+ map\[string\]any$/m.test (maskedFunc);
     const declOf = (name: string) => {
         if (!cache.has (name)) {
             cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines)
-                ?? goPairMapSlotDeclaration (maskedFunc, name));
+                ?? (pairBinds ? goPairMapSlotDeclaration (maskedFunc, name) : undefined));
         }
         return cache.get (name);
     };
@@ -9449,7 +9468,13 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         }
         return decl.type;
     };
-    const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
+    const rebound = new Map<string, boolean> ();
+    const notRebound = (name: string): boolean => {
+        if (!rebound.has (name)) {
+            rebound.set (name, !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc));
+        }
+        return rebound.get (name);
+    };
     const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
