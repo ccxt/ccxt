@@ -315,6 +315,7 @@ try {
   showCredentials();
   $('form').hidden = false;
   if (!saved) openCredentials();
+  if (window.parent !== window) window.parent.postMessage({ type: 'ccxt/signing-ready' }, '*');
 } catch {
   notice('Open a valid approval link from the CCXT plugin in a secure browser tab.');
 }

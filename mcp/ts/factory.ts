@@ -10,6 +10,8 @@ import type { ResolvedConfig, ServerContext } from './types.js';
 
 export interface CreateServerOptions {
     config: ResolvedConfig;
+    browserTradingEnabled?: boolean;
+    browserFrameOrigin?: string;
     ccxtModule: any;
     poolsDeps: PoolsDeps;
     version: string;
@@ -77,7 +79,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
             { 'timeout': 300000, 'maxTotalTimeout': 300000, 'resetTimeoutOnProgress': true },
         ),
     };
-    registerMarketWidget (server);
+    registerMarketWidget (server, options.browserTradingEnabled, options.browserFrameOrigin);
     registerAllTools (server, ctx);
     return { server, ctx };
 }

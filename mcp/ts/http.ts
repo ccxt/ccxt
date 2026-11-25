@@ -4,6 +4,8 @@
 import { log } from './logging.js';
 import { ccxt, ccxtVersion, exchangeClass, isKnownExchange, allExchangeIds, closestMatches } from './ccxt-loader.js';
 import { createHostedApp } from './hosted.js';
+import { createPostHog } from './posthog.js';
+import { DEFAULT_FRAME_ANCESTORS } from './browser-trading.js';
 import { createRequire } from 'module';
 
 const require = createRequire (import.meta.url);
@@ -48,11 +50,16 @@ async function main (): Promise<void> {
     if (requireRelayToken && relayToken === undefined) {
         throw new Error ('CCXT_MCP_RELAY_REQUIRE_TOKEN=true needs CCXT_MCP_RELAY_TOKEN (at least 32 characters)');
     }
-    if (browserTradingEnabled && signingOrigin !== undefined && !requireRelayToken) {
-        log ('warning', 'browser signing relay runs WITHOUT a relay token — anyone who can reach ' + signingOrigin + '/relay-order can forward requests to the allowlisted exchange routes');
+    const framingEnv = process.env['CCXT_MCP_SIGNING_FRAME_ANCESTORS'];
+    const frameAncestors = (framingEnv === 'none') ? [] : (envList ('CCXT_MCP_SIGNING_FRAME_ANCESTORS') ?? DEFAULT_FRAME_ANCESTORS);
+    // server-side MCP analytics (off unless a PostHog project token is set); nothing runs in the pages
+    const posthog = createPostHog (process.env['POSTHOG_PROJECT_TOKEN'], process.env['POSTHOG_HOST']);
+    if (posthog !== undefined) {
+        log ('info', 'PostHog MCP analytics on (' + (process.env['POSTHOG_HOST'] ?? 'https://eu.i.posthog.com') + ')');
     }
     const app = createHostedApp ({
-        'browserTrading': browserTradingEnabled && signingOrigin !== undefined ? { 'origin': signingOrigin, 'token': relayToken } : undefined,
+        posthog,
+        'browserTrading': browserTradingEnabled && signingOrigin !== undefined ? { 'origin': signingOrigin, 'token': relayToken, frameAncestors } : undefined,
         'ccxtModule': ccxt,
         'poolsDeps': { exchangeClass, isKnownExchange, allExchangeIds, closestMatches },
         'version': packageJson.version,
@@ -70,6 +77,8 @@ async function main (): Promise<void> {
         shuttingDown = true;
         log ('info', 'shutting down (' + reason + ')');
         try {
+            // flush queued analytics events before exiting
+            await posthog?.shutdown (3000);
             await app.close ();
         } catch (e) {
             // nothing useful left to do on the way out

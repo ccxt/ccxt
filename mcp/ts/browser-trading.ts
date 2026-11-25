@@ -6,18 +6,27 @@ import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { browserWidgetUri, previousBrowserWidgetV3Uri, previousBrowserWidgetV2Uri, previousBrowserWidgetUri, readWidget, widgetMimeType } from './market-widget.js';
 
 export interface BrowserTradingOptions {
     origin: string;
     // when set, /relay-order requires this token (or the session cookie issued for it); when
     // absent the relay accepts any request from the signing origin to an allowlisted route
     token?: string;
+    // origins allowed to embed the signing page in an iframe (CSP frame-ancestors sources), so an
+    // MCP host can render it inline. Empty or absent = it can only be opened as its own tab.
+    frameAncestors?: string[];
 }
+
+// The hosts that render MCP widgets, and the sandbox origins they render them in. Every ancestor
+// of the signing page's frame has to be listed: the widget's sandbox origin AND the host page.
+export const DEFAULT_FRAME_ANCESTORS = [
+    'https://chatgpt.com', 'https://*.oaiusercontent.com',
+    'https://claude.ai', 'https://*.claudemcpcontent.com',
+];
 
 const require = createRequire (import.meta.url);
 const reviewFile = new URL ('../widgets/order-signing.html', import.meta.url);
-const widgetUri = 'ui://ccxt/browser-trading-v2.html';
-const previousWidgetUri = 'ui://ccxt/browser-trading.html';
 const exchanges = z.enum ([ 'binance', 'bybit' ]);
 const symbol = z.string ().regex (/^[A-Za-z0-9][A-Za-z0-9./:_-]{0,63}$/);
 const positive = z.number ().finite ().positive ();
@@ -34,26 +43,45 @@ const actions = {
     'browser_fetch_positions': { title: 'Review positions request', fields: { 'symbol': symbol.optional () } },
 };
 
-export function registerBrowserTrading (server: McpServer, options: BrowserTradingOptions): void {
-    const mimeType = 'text/html;profile=mcp-app';
-    for (const [ name, uri ] of [[ 'browser-trading-v2', widgetUri ], [ 'browser-trading', previousWidgetUri ]]) {
-        server.registerResource (name, uri, { mimeType }, async () => ({
-            'contents': [ { uri, mimeType,
-                'text': await readFile (new URL ('../widgets/order-launcher.html', import.meta.url), 'utf8'),
-                '_meta': { 'ui': { 'prefersBorder': true } },
-            } ],
+// The widget's signing steps. Passed in (not imported) so this file does not depend on browser-signing.ts.
+export type WidgetSigner = (input: { intent?: unknown; session?: string; apiKey?: string; signatures?: { id: string; signature: string }[] }) => Promise<Record<string, any>>;
+
+const signingField = z.object ({
+    'session': z.string ().max (64).optional (),
+    'apiKey': z.string ().max (200).optional (),
+    'signatures': z.array (z.object ({ 'id': z.string ().max (64), 'signature': z.string ().max (128) })).max (8).optional (),
+}).optional ().describe ('Internal: set only by the review widget while the user signs. Never set this yourself.');
+
+export function registerBrowserTrading (server: McpServer, options: BrowserTradingOptions, signer?: WidgetSigner): void {
+    // the launcher embeds the signing page, so the host has to allow that origin as a frame
+    // source of the widget (MCP Apps: ui.csp.frameDomains; ChatGPT: openai/widgetCSP.frame_domains)
+    const signingOrigin = new URL (options.origin).origin;
+    const embeds = (options.frameAncestors ?? []).length > 0;
+    for (const [ name, uri ] of [
+        [ 'browser-trading-v4', browserWidgetUri ], [ 'browser-trading-v3', previousBrowserWidgetV3Uri ], [ 'browser-trading-v2', previousBrowserWidgetV2Uri ],
+        [ 'browser-trading', previousBrowserWidgetUri ],
+    ]) {
+        server.registerResource (name, uri, { 'mimeType': widgetMimeType }, async () => ({
+            'contents': [ await readWidget (uri, 'resource', embeds ? signingOrigin : undefined) ],
         }));
     }
     for (const [ action, { title, fields } ] of Object.entries (actions)) {
         server.registerTool (action, {
             title,
             'description': action === 'browser_create_order'
-                ? 'Review a limit or market order on mainnet or testnet. Spot amount is in base currency. Supply a price only for limit orders.'
-                : 'Open a mainnet or testnet review page for local CCXT signing. Supply request details only.',
-            'inputSchema': { 'exchange': exchanges, 'network': z.enum ([ 'mainnet', 'testnet' ]), 'market': z.enum ([ 'spot', 'swap' ]).default ('spot'), ...fields },
-            '_meta': { 'ui': { 'resourceUri': widgetUri, 'visibility': [ 'model' ] }, 'openai/outputTemplate': widgetUri },
+                ? 'Review a limit or market order on mainnet or testnet. Spot amount is in base currency. Supply a price only for limit orders. Call this directly as the only tool call — no market lookup first; the widget it shows handles signing and the result.'
+                : 'Open a mainnet or testnet review widget for signing in the browser. Supply request details only. Call this directly as the only tool call; the widget handles signing and shows the result.',
+            'inputSchema': { 'exchange': exchanges, 'network': z.enum ([ 'mainnet', 'testnet' ]).default ('mainnet').describe ('Defaults to mainnet. Select testnet when requested.'), 'market': z.enum ([ 'spot', 'swap' ]).default ('spot'), ...fields, ...((signer !== undefined) ? { 'signing': signingField } : {}) },
+            // also callable by the widget it mounts: some hosts only let a widget call the tool that
+            // rendered it, so the signing steps can go through this same tool (the "signing" field)
+            '_meta': { 'ui': { 'resourceUri': browserWidgetUri, 'visibility': [ 'model', 'app' ] }, 'openai/outputTemplate': browserWidgetUri, 'openai/widgetAccessible': true },
             'annotations': { 'readOnlyHint': true },
-        }, async (input: { exchange: string; network: 'mainnet' | 'testnet'; market: string; type?: string; price?: number }) => {
+        }, async (input: { exchange: string; network: 'mainnet' | 'testnet'; market: string; type?: string; price?: number; signing?: { session?: string; apiKey?: string; signatures?: { id: string; signature: string }[] } }) => {
+            if (input.signing !== undefined && signer !== undefined) {
+                const { signing, ...request } = input;
+                const step = await signer ({ 'intent': { action, ...request }, ...signing });
+                return { 'structuredContent': step, 'content': [ { 'type': 'text' as const, 'text': (step.status === 'sign') ? 'Waiting for the browser signature.' : (step.status === 'done') ? 'Completed in the review widget.' : 'The request failed in the review widget.' } ] };
+            }
             if (action === 'browser_fetch_positions' && input.market !== 'swap') {
                 return { 'isError': true, 'content': [ { 'type': 'text' as const, 'text': 'Select a swap market for positions.' } ] };
             }
@@ -64,8 +92,10 @@ export function registerBrowserTrading (server: McpServer, options: BrowserTradi
                 return { 'isError': true, 'content': [ { 'type': 'text' as const, 'text': 'A limit order requires a price.' } ] };
             }
             const url = new URL ('/order-signing', options.origin);
-            url.hash = encodeURIComponent (JSON.stringify ({ action, title, ...input }));
-            const result = { title, action, ...input, 'url': url.href };
+            url.hash = encodeURIComponent (JSON.stringify ({ action, title, ...input, 'signing': undefined }));
+            // "inline" tells the launcher widget it may embed the signing page instead of only linking to it
+            const { 'signing': _unused, ...shown } = input;
+            const result = { title, action, ...shown, 'url': url.href, 'inline': embeds };
             return { 'structuredContent': result, 'content': [ { 'type': 'text' as const, 'text': title + ' (' + input.network + '): ' + url.href } ] };
         });
     }
@@ -95,6 +125,20 @@ const targets: Record<string, Record<string, readonly string[]>> = {
     },
     'bybit': { 'api.bybit.com': bybit, 'api-testnet.bybit.com': bybit },
 };
+
+// the one allowlist for requests this server forwards to an exchange, whichever way they were signed
+export function relayTargetAllowed (exchange: string, method: string, url: string): boolean {
+    let target: URL;
+    try {
+        target = new URL (url);
+    } catch {
+        return false;
+    }
+    const hosts = Object.prototype.hasOwnProperty.call (targets, exchange) ? targets[exchange] : undefined;
+    const paths = (hosts !== undefined && Object.prototype.hasOwnProperty.call (hosts, target.hostname)) ? hosts[target.hostname] : undefined;
+    return target.protocol === 'https:' && !target.port && !target.username && !target.password && !target.hash &&
+        paths !== undefined && paths.includes (method + ' ' + target.pathname);
+}
 const relayRequest = z.object ({
     'exchange': exchanges,
     'signedPayload': z.object ({
@@ -113,7 +157,7 @@ const forwardedHeaders = new Set ([
 // no header values, no query strings (they hold the signature), no request or response bodies —
 // only the exchange's own error code/message when it refuses a request.
 export interface SigningLogRecord {
-    step: 'page' | 'relay';
+    step: 'page' | 'relay' | 'inline'; // inline: a request signed inside the widget (browser-signing.ts)
     path: string;
     status: number; // the HTTP status this server answered with
     outcome: string; // served | forwarded | refused | failed
@@ -121,6 +165,8 @@ export interface SigningLogRecord {
     file?: string;
     bytes?: number;
     session?: string; // page: whether a relay session cookie was issued, and why not
+    embedded?: boolean; // page: true when it was requested as an iframe (rendered inline in a host)
+    embedder?: string; // page: origin of the frame that embedded it (from Referer), when the browser sent one
     auth?: string; // relay: which credential was accepted (token | session), or that none is required
     exchange?: string;
     target?: string; // relay: METHOD host/path of the exchange request
@@ -128,6 +174,14 @@ export interface SigningLogRecord {
     exchangeCode?: string; // relay: the exchange's error code, when it reports one
     exchangeMessage?: string;
     upstreamMs?: number;
+}
+
+function embedderOf (referer: string | undefined): string {
+    try {
+        return (referer === undefined) ? '(no Referer sent)' : new URL (referer).origin.slice (0, 200);
+    } catch {
+        return '(unparseable Referer)';
+    }
 }
 
 // the error code/message an exchange reply carries, if any (binance: code/msg, bybit: retCode/retMsg)
@@ -163,6 +217,12 @@ export function createBrowserTradingRoute (options: BrowserTradingOptions, readB
         return match !== null && Number (match[1]) > Math.floor (Date.now () / 1000) &&
             timingSafeEqual (Buffer.from (match[2]), Buffer.from (signSession (match[1])));
     };
+    // CSP source expressions only — a stray quote or semicolon here would rewrite the policy
+    const ancestors = (options.frameAncestors ?? []).filter ((source) => /^(\*|https?:\/\/[A-Za-z0-9.*:[\]-]+)$/.test (source));
+    if (ancestors.length !== (options.frameAncestors ?? []).length) {
+        throw new Error ('frameAncestors entries must be "*" or origins such as https://chatgpt.com or https://*.example.com');
+    }
+    const frameAncestors = (ancestors.length > 0) ? ancestors.join (' ') : "'none'";
     const seen = new Map<string, number> ();
     let bundle: Promise<Buffer> | undefined;
     return async (req: IncomingMessage, res: ServerResponse, path: string): Promise<void> => {
@@ -208,10 +268,13 @@ export function createBrowserTradingRoute (options: BrowserTradingOptions, readB
                     'Content-Type': html ? 'text/html; charset=utf-8' : 'text/javascript; charset=utf-8',
                     'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
                     'Referrer-Policy': 'no-referrer',
-                    'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+                    'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors " + frameAncestors + "; base-uri 'none'; form-action 'none'",
                 });
                 res.end (body);
                 report ({ step, path, 'status': 200, 'outcome': 'served', 'bytes': body.length, session,
+                    'embedded': html ? (req.headers['sec-fetch-dest'] === 'iframe') : undefined,
+                    // who is embedding it: the origin to add to frame-ancestors when the browser then blocks the frame
+                    'embedder': (html && req.headers['sec-fetch-dest'] === 'iframe') ? embedderOf (req.headers.referer) : undefined,
                     'file': html ? fileURLToPath (reviewFile) : (path === '/order-signing/app.js') ? fileURLToPath (new URL ('../widgets/order-signing.js', import.meta.url)) : 'ccxt.browser.min.js' });
                 return;
             }

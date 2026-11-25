@@ -6,10 +6,22 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { createServer, createSharedState, type CreateServerOptions, type SharedState } from './factory.js';
 import { HOSTED_SERVER_INSTRUCTIONS } from './tools/index.js';
 import { createBrowserTradingRoute, registerBrowserTrading, type BrowserTradingOptions, type SigningLogRecord } from './browser-trading.js';
+import { registerBrowserSigning, signStep } from './browser-signing.js';
 import { log } from './logging.js';
+import { instrumentServer } from './posthog.js';
+import type { PostHog } from 'posthog-node';
 import type { PoolsDeps } from './pools.js';
 import type { ResolvedConfig } from './types.js';
 import { requestContext, type ToolCallRecord, type HtmlServedRecord } from './request-context.js';
+
+// Appended when the browser-signing tools are registered. The base hosted instructions say the
+// server cannot trade and has no accounts — true of the server itself, but without this a model
+// reads it as "refuse orders" and never calls the browser_* tools.
+const BROWSER_TRADING_INSTRUCTIONS = `
+
+Exception — browser-signed requests on Binance and Bybit: for placing or cancelling an order, or reading the user's balance or swap positions, call browser_create_order, browser_cancel_order, browser_fetch_balance or browser_fetch_positions. These do not execute anything and need no account here: each returns a review widget where the user enters their API key in their own browser and signs the request there. Pass only the request details (exchange, network, market, symbol, side, type, amount, price). Still never ask for or accept API keys in chat.
+
+Be fast with these four tools: make the browser_* call your FIRST and ONLY tool call for the request. Do not call search_markets, describe_exchange, describe_method, read_market_widget or resources/read before or after it, and do not look up prices first — the widget needs nothing else. Write the symbol yourself in unified form from what the user said ("BTC/USDT" for spot, "BTC/USDT:USDT" for a USDT-margined swap). After the tool returns, reply with one short sentence at most: the widget shows the review, the signing and the outcome, so do not repeat the order details or explain the steps. If these tools are missing from your tool list, tell the user to refresh this connection's tools — do not substitute a plain link.`;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -40,6 +52,7 @@ export interface HostedOptions {
     poolsDeps: PoolsDeps;
     version: string;
     browserTrading?: BrowserTradingOptions;
+    posthog?: PostHog; // when set, MCP requests are reported to PostHog (see posthog.ts)
     path?: string; // MCP endpoint path, default /mcp
     allowedHosts?: string[]; // when set, requests whose Host header is not listed are refused
     router?: any; // tests inject a fake router
@@ -178,6 +191,9 @@ export function createHostedApp (options: HostedOptions): HostedApp {
     const config = hostedConfig ();
     const serverOptions: CreateServerOptions = {
         config,
+        'browserTradingEnabled': options.browserTrading !== undefined,
+        'browserFrameOrigin': options.browserTrading?.frameAncestors?.length
+            ? new URL (options.browserTrading.origin).origin : undefined,
         'ccxtModule': options.ccxtModule,
         'poolsDeps': options.poolsDeps,
         'version': options.version,
@@ -185,7 +201,7 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         // no mutating tool is registered here, so nothing is ever journaled — keep the
         // (unused) journal out of any home directory
         'journalDir': options.journalDir ?? path.join (os.tmpdir (), 'ccxt-mcp-hosted-journal'),
-        'instructions': HOSTED_SERVER_INSTRUCTIONS,
+        'instructions': (options.browserTrading !== undefined) ? HOSTED_SERVER_INSTRUCTIONS + BROWSER_TRADING_INSTRUCTIONS : HOSTED_SERVER_INSTRUCTIONS,
     };
     const shared = createSharedState (serverOptions);
     const endpoint = options.path ?? '/mcp';
@@ -200,11 +216,12 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         }
     };
 
-    const browserRoute = options.browserTrading && createBrowserTradingRoute (options.browserTrading, readBody, (signing) => {
+    const reportSigning = (signing: SigningLogRecord): void => {
         // same requestId as the request's http line, so the two can be joined
         const context = requestContext.getStore ();
         emit ({ 'event': 'signing', 'requestId': context?.requestId ?? '', 'ip': context?.ip, 'ms': signing.upstreamMs ?? 0, signing });
-    });
+    };
+    const browserRoute = options.browserTrading && createBrowserTradingRoute (options.browserTrading, readBody, reportSigning);
     const handleMcp = async (req: http.IncomingMessage, res: http.ServerResponse, info: RpcInfo): Promise<void> => {
         // the body is read here (not by the transport) so the access log can name the
         // JSON-RPC method; that makes the size cap and the parse error ours to enforce
@@ -226,7 +243,17 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         }
         describeRpc (body, info);
         const { server } = createServer ({ ...serverOptions, shared });
-        if (options.browserTrading) registerBrowserTrading (server, options.browserTrading);
+        if (options.browserTrading) {
+            // the widget signs in place — no nested frame, no browser request. It reaches the signing
+            // steps through browser_sign_step, or through the browser_* tool that mounted it
+            const signingDeps = { 'exchangeClass': (id: string) => options.poolsDeps.exchangeClass (id), 'report': reportSigning };
+            registerBrowserTrading (server, options.browserTrading, (input) => signStep (signingDeps, input));
+            registerBrowserSigning (server, signingDeps);
+        }
+        // server-side analytics, after every tool is registered so all of them are covered
+        if (options.posthog !== undefined) {
+            instrumentServer (server, options.posthog);
+        }
         const transport = new StreamableHTTPServerTransport ({
             'sessionIdGenerator': undefined, // stateless
             'enableJsonResponse': true, // plain JSON replies (curl-friendly), no SSE stream

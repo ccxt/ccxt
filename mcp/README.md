@@ -183,6 +183,8 @@ npx -y -p ccxt-mcp ccxt-mcp-http                # from the published package
 
 | `CCXT_MCP_HTTP_ACCESS_LOG` | `true` | set `false` to turn the access log off |
 | `CCXT_MCP_HTTP_TRUST_PROXY` | `false` | set `true` to log the caller IP from `X-Forwarded-For` — only behind a reverse proxy you control, since the header is otherwise caller-supplied |
+| `POSTHOG_PROJECT_TOKEN` | unset | set to a PostHog project token to report MCP requests (tool calls, listings, resource reads, errors) through `@posthog/mcp`. Server side only: nothing is added to the widgets or the signing page. The widget's signing steps are reported without their arguments or results, so exchange API keys, signatures and account data are never sent |
+| `POSTHOG_HOST` | `https://eu.i.posthog.com` | PostHog ingestion host; match your project's region |
 
 **Access log.** The hosted server writes to stderr one `http` line per request (HTTP method, path, status, duration, caller IP, plus the JSON-RPC method as `rpc` and — for a `tools/call` — the tool name; `/health` is skipped) and one `call` line per tool call (tool, exchange, ok / error code, duration), tied together by `requestId`. Every time a widget HTML file is served — through `resources/read` or the `read_market_widget` tool — an `html` line records the `ui://` resource, the **path of the file on disk**, its size and the caller; the request's own `http` line carries the same path in `served`. (The local stdio server writes the same `html` line to stderr.) Both lines carry the targeted symbol(s) in `symbols` (from the `symbol` / `symbols` arguments, or the first positional argument of `call_read_method`; at most 20). No other tool argument and no result is ever logged.
 
@@ -251,13 +253,32 @@ dedicated signing origin, and route `/order-signing`, `/order-signing/*`, and `/
 to this process. Restart the server and refresh the plugin connection to discover the
 new tools. Browser credentials are separate for each exchange, network, and market type.
 
-Each browser tool requires an explicit `network` of `mainnet` or `testnet`. Browser
+Browser tools default to `mainnet` when `network` is omitted. Set `network` to
+`testnet` to prepare a review for the exchange test environment. Browser
 CCXT builds and signs the request using the selected network. For Binance swaps,
 `testnet` selects Binance Futures Demo Trading. The relay validates the URL and
 method against its Binance and Bybit allowlist and forwards the supplied signed
 request. Both limit and market orders are supported. Spot amounts are in base currency.
 Bybit spot market buys in base currency require a Unified Trading Account. Use credentials from the matching
 exchange and network. If submission is uncertain, check the exchange before retrying.
+
+**Signing inside the widget.** The review widget carries its own sign-and-submit form, so
+it works inline in any host that renders MCP widgets, with no nested frame and no browser
+request to this server. The widget calls the `browser_sign_step` tool (hidden from the
+model): the server runs the ccxt call with the API key and a placeholder in place of each
+signature, pauses before sending, and returns the exact bytes to sign; the widget computes
+the HMAC with the secret it alone holds and sends back only the signature. The secret is
+never sent. Keys can optionally be remembered on the device, encrypted with a passphrase.
+The tab-based signing page below remains available from a link in the widget.
+
+**Embedding the signing page.** The review widget embeds the signing page itself, so a host that
+renders MCP widgets shows the whole review-and-sign form inline; an "Open in a new tab" link
+stays underneath as the fallback. The signing page may be framed only by the origins in
+`CCXT_MCP_SIGNING_FRAME_ANCESTORS` (comma-separated; default `https://chatgpt.com`,
+`https://*.oaiusercontent.com`, `https://claude.ai`, `https://*.claudemcpcontent.com`). Every
+ancestor of the frame must be listed — the host page and the sandbox origin it renders widgets
+in. Use `*` to allow any site, or `none` to make the page tab-only again. Credentials saved
+inline are stored per embedding site, separately from those saved in a tab.
 
 Each step of the flow writes a `signing` line to the access log, sharing its `requestId`
 with the request's `http` line: the page and its scripts being served (and whether a relay

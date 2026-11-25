@@ -37,7 +37,9 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@posthog/mcp": "^1.7.0",
     "ccxt": "^4.5.84",
+    "posthog-node": "^6.0.6",
     "zod": "^3.25.76"
   },
   "devDependencies": {

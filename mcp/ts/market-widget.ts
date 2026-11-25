@@ -13,7 +13,13 @@ const previousTableUri = 'ui://ccxt/market-data-v2.html';
 const previousWidgetUri = 'ui://ccxt/market-data.html';
 const candleUri = 'ui://ccxt/candles-v3.html';
 const previousCandleUri = 'ui://ccxt/candles-v2.html';
-const widgetMimeType = 'text/html;profile=mcp-app';
+// v4: the widget signs in place (no nested frame) — a new URI so hosts drop the cached v3
+export const browserWidgetUri = 'ui://ccxt/browser-trading-v4.html';
+export const previousBrowserWidgetV3Uri = 'ui://ccxt/browser-trading-v3.html';
+export const previousBrowserWidgetV2Uri = 'ui://ccxt/browser-trading-v2.html';
+export const previousBrowserWidgetUri = 'ui://ccxt/browser-trading.html';
+const browserWidgetFile = new URL ('../widgets/order-launcher.html', import.meta.url);
+export const widgetMimeType = 'text/html;profile=mcp-app';
 const widgetFile = new URL ('../widgets/market-data.html', import.meta.url);
 
 function widgetToolMeta (uri: string) {
@@ -37,21 +43,26 @@ function logHtmlServed (record: HtmlServedRecord): void {
     }
 }
 
-async function readWidget (uri: string, via: 'resource' | 'tool') {
-    const text = await readFile (widgetFile, 'utf8');
-    logHtmlServed ({ uri, 'file': fileURLToPath (widgetFile), 'bytes': Buffer.byteLength (text), via });
+export async function readWidget (uri: string, via: 'resource' | 'tool', frameOrigin?: string) {
+    const browserReview = [ browserWidgetUri, previousBrowserWidgetV3Uri, previousBrowserWidgetV2Uri, previousBrowserWidgetUri ].includes (uri);
+    const file = browserReview ? browserWidgetFile : widgetFile;
+    const text = await readFile (file, 'utf8');
+    logHtmlServed ({ uri, 'file': fileURLToPath (file), 'bytes': Buffer.byteLength (text), via });
     return {
         uri,
         'mimeType': widgetMimeType,
         text,
         '_meta': {
-            'ui': { 'prefersBorder': true },
-            'openai/widgetDescription': 'This widget displays the full CCXT market result. Once rendered, the widget is the entire response. If it cannot be displayed, return only a concise error.',
+            'ui': { 'prefersBorder': true, ...(browserReview && frameOrigin
+                ? { 'csp': { 'frameDomains': [ frameOrigin ] } } : {}) },
+            ...(browserReview && frameOrigin
+                ? { 'openai/widgetCSP': { 'connect_domains': [], 'resource_domains': [], 'frame_domains': [ frameOrigin ] } } : {}),
+            'openai/widgetDescription': browserReview ? 'The user reviews, signs and submits the CCXT request inside this widget. The widget shows the outcome; do not repeat the request.' : 'This widget displays the full CCXT market result. Once rendered, the widget is the entire response. If it cannot be displayed, return only a concise error.',
         },
     };
 }
 
-export function registerMarketWidget (server: McpServer): void {
+export function registerMarketWidget (server: McpServer, browserTradingEnabled = false, frameOrigin?: string): void {
     for (const [name, uri, title] of [
         [ 'market-data', widgetUri, 'CCXT market data' ],
         [ 'market-data-v2', previousTableUri, 'CCXT market data (v2 URI)' ],
@@ -67,14 +78,16 @@ export function registerMarketWidget (server: McpServer): void {
         }));
     }
 
+    const availableWidgets: [string, ...string[]] = [ widgetUri, previousTableUri, previousWidgetUri, candleUri, previousCandleUri ];
+    if (browserTradingEnabled) availableWidgets.push (browserWidgetUri, previousBrowserWidgetV3Uri, previousBrowserWidgetV2Uri, previousBrowserWidgetUri);
     server.registerTool ('read_market_widget', {
         'title': 'Read CCXT widget HTML',
-        'description': 'Inspect the HTML resource for a CCXT widget when your client only exposes tool calls. For market data or charts use the corresponding market-data tool.',
+        'description': 'Inspect the HTML resource for a CCXT widget when your client only exposes tool calls. Use the corresponding CCXT tool to obtain the data or review details for the widget.',
         'inputSchema': {
-            'uri': z.enum ([ widgetUri, previousTableUri, previousWidgetUri, candleUri, previousCandleUri ]).describe ('widget URI advertised in the market-data tool metadata'),
+            'uri': z.enum (availableWidgets).describe ('widget URI advertised in the CCXT tool metadata'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false, 'idempotentHint': true },
-    }, async ({ uri }) => run ({ 'tool': 'read_market_widget' }, async () => ok (await readWidget (uri, 'tool'))));
+    }, async ({ uri }) => run ({ 'tool': 'read_market_widget' }, async () => ok (await readWidget (uri, 'tool', frameOrigin))));
 }
 
 export async function runMarketWidget (context: ErrorContext, handler: () => Promise<Envelope>) {

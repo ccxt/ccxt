@@ -157,3 +157,20 @@ test ('without a relay token the relay needs only the signing origin, and still 
     assert.equal (upstream.mock.callCount (), 2);
     assert.throws (() => createBrowserTradingRoute ({ origin, 'token': 'short' }, async () => undefined));
 });
+
+test ('the signing page can be embedded only by the configured frame ancestors', async () => {
+    const policy = async (frameAncestors?: string[]) => {
+        const route = createBrowserTradingRoute ({ origin, frameAncestors }, async () => undefined);
+        let headers: Record<string, string> = {};
+        const request = { 'method': 'GET', 'headers': {}, 'socket': {} };
+        const response = { 'setHeader': () => undefined, 'writeHead': (_code: number, value: Record<string, string>) => { headers = value; }, 'end': () => undefined };
+        await route (request as unknown as IncomingMessage, response as unknown as ServerResponse, '/order-signing');
+        return headers['Content-Security-Policy'];
+    };
+    assert.match (await policy (), /frame-ancestors 'none';/);
+    assert.match (await policy ([]), /frame-ancestors 'none';/);
+    assert.match (await policy ([ 'https://chatgpt.com', 'https://*.oaiusercontent.com' ]), /frame-ancestors https:\/\/chatgpt\.com https:\/\/\*\.oaiusercontent\.com;/);
+    assert.match (await policy ([ '*' ]), /frame-ancestors \*;/);
+    // an entry that could rewrite the policy is refused outright
+    assert.throws (() => createBrowserTradingRoute ({ origin, 'frameAncestors': [ "https://a.test; script-src 'unsafe-inline'" ] }, async () => undefined));
+});
