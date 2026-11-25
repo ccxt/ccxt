@@ -379,12 +379,23 @@ export default class lighter extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
+                            // the venue enum is IOC, GTT and post-only, and createOrderRequest maps
+                            // only 'ioc' and 'gtt', so a GTC spelling would be dropped on the wire
+                            'GTC': false,
                             'IOC': true,
-                            'FOK': true,
+                            'FOK': false,
                             'PO': true,
                             'GTD': false,
                         },
+                        'hedged': false,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -392,6 +403,63 @@ export default class lighter extends Exchange {
                         'trailing': false,
                         'iceberg': false,
                     },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forPerps': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': false,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'triggerPrice': true,
+                            'type': true,
+                            'price': true,
+                        },
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': undefined,
                 },
             },
         });
