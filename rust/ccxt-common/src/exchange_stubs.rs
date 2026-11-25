@@ -3210,7 +3210,7 @@ impl Exchange {
     /// packed bytes of an action. Returning empty bytes here is enough
     /// to make the call compile; live signing won't be correct.
     /// `packb(value)` — MessagePack-encode a Value into a byte array.
-    pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
+    pub fn packb(&self, action: Value, _optional_args: &[Value]) -> crate::value::Bytes {
         // Narrowest-form MessagePack: non-negative ints as uint, negative as int, floats as f64.
         fn head(buf: &mut Vec<u8>, fix: u8, fix_max: u64, tags: [u8; 4], n: u64) {
             match n {
@@ -3242,7 +3242,7 @@ impl Exchange {
         }
         let mut buf: Vec<u8> = Vec::new();
         enc(&mut buf, &action);
-        Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect())
+        crate::value::Bytes::of(&buf)
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
@@ -3898,10 +3898,7 @@ mod packb_tests {
     use sha2::{Digest, Sha256};
 
     fn packb_bytes(v: Value) -> Vec<u8> {
-        match Exchange::new(None).packb(v, &[]) {
-            Value::Arr(a) => a.iter().map(|b| b.as_i64().expect("non-int byte") as u8).collect(),
-            other => panic!("packb returned {:?}", other),
-        }
+        Exchange::new(None).packb(v, &[]).0.iter().map(|b| b.as_i64().expect("non-int byte") as u8).collect()
     }
     fn hex(b: &[u8]) -> String { b.iter().map(|x| format!("{:02x}", x)).collect() }
     fn pack_json(j: &str) -> String { hex(&packb_bytes(Value::from_json(&serde_json::from_str(j).unwrap()))) }
