@@ -2078,7 +2078,7 @@ public partial class kraken : Exchange
         int baseIdEnd = 3;
         int quoteIdStart = 3;
         int quoteIdEnd = 6;
-        int idLength = id.Length;
+        int idLength = (id.Length - 0);
         if ((idLength == 8))
         {
             baseIdEnd = 4;

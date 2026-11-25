@@ -2181,7 +2181,20 @@ public partial class blofin : Exchange
             request["newSize"] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> query = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice"});
-        Dictionary<string, object> response = null;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
         if ((isTpsl == true))
         {
             string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -2210,7 +2223,8 @@ public partial class blofin : Exchange
                     request["newTpOrderPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
                 }
             }
-            response = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            Dictionary<string, object> tpslResponse = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            return this.parseOrder(this.safeDict(tpslResponse, "data", new Dictionary<string, object>() {}), market);
         } else if ((isTrigger == true))
         {
             string? triggerPrice = this.safeString(parameters, "triggerPrice");
@@ -2225,31 +2239,17 @@ public partial class blofin : Exchange
             {
                 request["newOrderPrice"] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            Dictionary<string, object> algoResponse = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            return this.parseOrder(this.safeDict(algoResponse, "data", new Dictionary<string, object>() {}), market);
         } else
         {
             if ((price != null))
             {
                 request["newPrice"] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            Dictionary<string, object> response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            return this.parseOrder(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
         }
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "Order modified",
-        //         "data": {
-        //             "orderId": "6000004088576",
-        //             "clientOrderId": "",
-        //             "requestId": "",
-        //             "msg": "Order modified",
-        //             "code": "0",
-        //             "ts": "1795184228537"
-        //         }
-        //     }
-        //
-        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
     }
 
     /**
