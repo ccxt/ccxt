@@ -908,7 +908,8 @@ export default class interactivebrokers extends Exchange {
         this.options['gatewayRegainScheduled'] = false;
         const useGateway = this.safeBool (this.options, 'useGateway', false);
         const lostTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp');
-        if (!useGateway || (lostTimestamp === undefined) || (this.ibkrGatewayRegainDelay () <= 0)) {
+        const regainDelay = this.ibkrGatewayRegainDelay ();
+        if (!useGateway || (lostTimestamp === undefined) || (regainDelay <= 0)) {
             return undefined; // already regained, or disabled
         }
         try {
