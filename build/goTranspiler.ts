@@ -18031,7 +18031,14 @@ function goStringHelperFilePass (filePath: string, content: string, guard: RegEx
     const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
     const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
     const pkgs = new Set<string> ();
-    let out = content.split (/(?=^func )/m).map ((part, i) => {
+    const parts: string[] = [];  // = content.split (/(?=^func )/m)
+    let from = 0;
+    for (let at = content.indexOf ('\nfunc '); at >= 0; at = content.indexOf ('\nfunc ', at + 1)) {
+        parts.push (content.substring (from, at + 1));
+        from = at + 1;
+    }
+    parts.push (content.substring (from));
+    let out = parts.map ((part, i) => {
         if (((i === 0) && !part.startsWith ('func ')) || ((guard !== undefined) && !guard.test (part))) {
             return part;
         }
