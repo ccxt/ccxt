@@ -298,8 +298,8 @@ impl crate::exchange::DerivedExchange for Zaif {
         let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1258: bool = true;
-            while { if !__for_first_1258 { i += 1; } __for_first_1258 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_1259: bool = true;
+            while { if !__for_first_1259 { i += 1; } __for_first_1259 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut balance: Option<String> = self.safe_string_opt(&funds, Value::from(currencyId.as_deref()), &[]);

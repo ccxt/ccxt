@@ -106,13 +106,18 @@ impl crate::exchange::DerivedExchange for Mercado {
         let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("amount".into()), Value::Str("quantity".into()), &[]);
-        let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_rate", &[]);
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        let mut feeRate: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_rate", &[]);
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost.is_some()) {
+        if (feeRate.is_some()) && (side.is_some()) {
+            let mut rate: Option<String> = crate::precise::Precise::stringDiv(&feeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
+            let mut isBuy: bool = side.as_deref() == Some("buy");
+            let mut feeBase: Option<String> = (if (isBuy) { amount.clone() } else { crate::precise::Precise::stringMul(&amount, &price).as_str().map(str::to_owned) });
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), Value::Null);
+                    m.insert("cost".to_string(), crate::precise::Precise::stringMul(&feeBase, &rate));
+                    m.insert("currency".to_string(), (if (isBuy) { crate::value::KeyRead::key_read(&&marketResolved, "base") } else { crate::value::KeyRead::key_read(&&marketResolved, "quote") }));
+                    m.insert("rate".to_string(), rate.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -185,7 +190,20 @@ impl crate::exchange::DerivedExchange for Mercado {
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "quantity", &[]);
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "executed_quantity", &[]);
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "updated_timestamp", &[]).as_i64();
-        let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]).into_list();
+        let mut operations: crate::value::List = self.safe_list_k(order.clone(), "operations", &[Value::from(vec![])]).into_list();
+        let mut rawTrades: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_999: bool = true;
+            while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (operations.len() as i64) } {
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.push(self.extend(operations.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("type".to_string(), Value::from(side.as_deref()));
+                m
+            })]));
+        }
+        }
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -209,7 +227,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map(fee));
-        m.insert("trades".to_string(), Value::Arr(rawTrades));
+        m.insert("trades".to_string(), Value::from(rawTrades));
     m
 }), Some(&marketResolved));
 
@@ -1644,13 +1662,13 @@ impl Mercado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1000: bool = true;
-            while { if !__for_first_1000 { i += 1; } __for_first_1000 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1001: bool = true;
+            while { if !__for_first_1001 { i += 1; } __for_first_1001 = false; i < (orders.len() as i64) } {
             let mut trades: crate::value::List = self.safe_list(self.safe_dict(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
             {
                                 let mut y: i64 = 0;
-                let mut __for_first_999: bool = true;
-                while { if !__for_first_999 { y += 1; } __for_first_999 = false; y < (trades.len() as i64) } {
+                let mut __for_first_1000: bool = true;
+                while { if !__for_first_1000 { y += 1; } __for_first_1000 = false; y < (trades.len() as i64) } {
                 result.push(trades.get(y as usize).cloned().unwrap_or(Value::Null));
             }
             }

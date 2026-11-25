@@ -531,8 +531,8 @@ impl crate::exchange::DerivedExchange for Onetrading {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { i += 1; } __for_first_1095 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { i += 1; } __for_first_1096 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1479,8 +1479,8 @@ impl Onetrading {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { i += 1; } __for_first_1091 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { i += 1; } __for_first_1092 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tierObject: crate::value::Dict = (if (market).spot { firstSpotTier.clone() } else { firstFuturesTier.clone() }).into_dict();
@@ -1568,8 +1568,8 @@ impl Onetrading {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1092: bool = true;
-            while { if !__for_first_1092 { i += 1; } __for_first_1092 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { i += 1; } __for_first_1093 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut makerFee: Option<String> = (if (market).spot { spotMakerFee.clone() } else { futuresMakerFee.clone() });
@@ -1598,8 +1598,8 @@ impl Onetrading {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { i += 1; } __for_first_1093 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (feeTiers.len() as i64) } {
             let mut tier: crate::value::Dict = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]).into_dict();
             let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k_opt(&tier, "taker_fee", &[]);
@@ -1709,8 +1709,8 @@ impl Onetrading {
         let mut rawTickers: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { i += 1; } __for_first_1095 = false; i < (rawTickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
             let mut symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
             if (symbol.is_some()) {

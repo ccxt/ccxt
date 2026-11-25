@@ -16,8 +16,8 @@ pub async fn testFetchMyTrades(mut exchange: Value, mut skippedProperties: Value
     let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1640: bool = true;
-        while { if !__for_first_1640 { i += 1; } __for_first_1640 = false; i < (trades.len() as i64) } {
+        let mut __for_first_1641: bool = true;
+        while { if !__for_first_1641 { i += 1; } __for_first_1641 = false; i < (trades.len() as i64) } {
         testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone(), Value::Bool(false));
     }
     }

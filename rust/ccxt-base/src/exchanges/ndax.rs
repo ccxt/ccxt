@@ -530,8 +530,8 @@ impl crate::exchange::DerivedExchange for Ndax {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
             let mut level: Option<crate::value::List> = self.safe_list(orderbook.clone(), Value::Int(i), &[]).into_opt_list();
             let mut newTimestamp: Option<i64> = self.safe_integer(&level, Value::Int(2), &[]).as_i64();
             if (newTimestamp.is_some()) && ((latestTimestamp.is_none()) || ((newTimestamp.is_some() && latestTimestamp.is_some() && newTimestamp > latestTimestamp))) {
@@ -2320,8 +2320,8 @@ impl Ndax {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (response.len() as i64) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (response.len() as i64) } {
             let mut accountId: Option<String> = self.safe_string_opt(&response, Value::Int(i), &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2349,8 +2349,8 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1053: bool = true;
-            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (response.len() as i64) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {

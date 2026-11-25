@@ -1279,8 +1279,8 @@ impl crate::exchange::DerivedExchange for Phemex {
         let mut minNotional: Option<i64> = Some(0);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1140: bool = true;
-            while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (riskLimits.len() as i64) } {
+            let mut __for_first_1141: bool = true;
+            while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (riskLimits.len() as i64) } {
             let mut tier: Option<crate::value::Dict> = self.safe_dict(&riskLimits, Value::Int(i), &[]).into_opt_dict();
             let mut maxNotional: Option<i64> = self.safe_integer_k(&tier, "limit", &[]).as_i64();
             let mut minNotionalResponse: Option<i64> = minNotional; // java req
@@ -3233,8 +3233,8 @@ impl Phemex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1134: bool = true;
-            while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (products.len() as i64) } {
+            let mut __for_first_1135: bool = true;
+            while { if !__for_first_1135 { i += 1; } __for_first_1135 = false; i < (products.len() as i64) } {
             let mut market: Value = products.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut type_var: Option<String> = self.safe_string_lower_k_opt(market.clone(), "type", &[]);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
@@ -3353,15 +3353,15 @@ impl Phemex {
         let mut sides: crate::value::List = std::sync::Arc::new(vec![bidsKey, asksKey]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1136: bool = true;
-            while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (sides.len() as i64) } {
+            let mut __for_first_1137: bool = true;
+            while { if !__for_first_1137 { i += 1; } __for_first_1137 = false; i < (sides.len() as i64) } {
             let mut side: Option<String> = sides.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut orders: Vec<Value> = Vec::new();
             let mut bidasks: crate::value::List = self.safe_list(orderbook.clone(), Value::from(side.as_deref()), &[Value::from(vec![])]).into_list();
             {
                                 let mut k: i64 = 0;
-                let mut __for_first_1135: bool = true;
-                while { if !__for_first_1135 { k += 1; } __for_first_1135 = false; k < (bidasks.len() as i64) } {
+                let mut __for_first_1136: bool = true;
+                while { if !__for_first_1136 { k += 1; } __for_first_1136 = false; k < (bidasks.len() as i64) } {
                 orders.push(self.custom_parse_bid_ask(bidasks.get(k as usize).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), market.clone()]));
             }
             }
@@ -3905,8 +3905,8 @@ impl Phemex {
         let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1137: bool = true;
-            while { if !__for_first_1137 { i += 1; } __for_first_1137 = false; i < (data.len() as i64) } {
+            let mut __for_first_1138: bool = true;
+            while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -6040,8 +6040,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1138: bool = true;
-            while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1139: bool = true;
+            while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (positions.len() as i64) } {
             let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, &position, None));
         }
@@ -6208,8 +6208,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1139: bool = true;
-            while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1140: bool = true;
+            while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "createTime", &[]).as_i64();
             let mut execFee: Option<String> = self.safe_string2_opt(&entry, Value::Str("execFeeEv".into()), Value::Str("execFeeRv".into()), &[]);
@@ -6979,8 +6979,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1141: bool = true;
-            while { if !__for_first_1141 { i += 1; } __for_first_1141 = false; i < (rates.len() as i64) } {
+            let mut __for_first_1142: bool = true;
+            while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (rates.len() as i64) } {
             let mut item: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&item, "fundingTime", &[]).as_i64();
             result.push(Value::Map({
@@ -7461,8 +7461,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1142: bool = true;
-            while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (ranks.len() as i64) } {
+            let mut __for_first_1143: bool = true;
+            while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (ranks.len() as i64) } {
             let mut rank: crate::value::Dict = ranks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_adl_rank(self, &rank, None));
         }

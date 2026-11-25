@@ -5580,6 +5580,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
                 m.insert("rejected".to_string(), Value::Str("rejected".into()));
                 m.insert("marginCanceled".to_string(), Value::Str("canceled".into()));
+                m.insert("scheduledCancel".to_string(), Value::Str("canceled".into()));
             m
         });
         if (status.as_str().unwrap_or("").ends_with("Rejected")) {
