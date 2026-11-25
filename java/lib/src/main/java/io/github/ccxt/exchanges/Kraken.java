@@ -2219,13 +2219,13 @@ public class Kraken extends KrakenApi
         Integer baseIdEnd = 3;
         Integer quoteIdStart = 3;
         Integer quoteIdEnd = 6;
-        Integer idLength = id.length();
-        if (java.util.Objects.equals(idLength, 8))
+        Long idLength = (((long) id.length()) - 0L);
+        if ((idLength != null && idLength == 8))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 8;
-        } else if (java.util.Objects.equals(idLength, 7))
+        } else if ((idLength != null && idLength == 7))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;

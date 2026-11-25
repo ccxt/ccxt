@@ -2250,6 +2250,8 @@ public class Blofin extends BlofinApi
      * @name blofin#editOrder
      * @description edit a trade order
      * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {string} type 'market' or 'limit'
@@ -2258,6 +2260,13 @@ public class Blofin extends BlofinApi
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
@@ -2276,10 +2285,18 @@ public class Blofin extends BlofinApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instId", market.get("id") );
         }};
+        Boolean isTrigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("clientOrderId", clientOrderId);
+        } else if (Boolean.TRUE.equals(isTpsl))
+        {
+            request.put("tpslId", id);
+        } else if (Boolean.TRUE.equals(isTrigger))
+        {
+            request.put("algoId", id);
         } else
         {
             request.put("orderId", id);
@@ -2288,11 +2305,7 @@ public class Blofin extends BlofinApi
         {
             request.put("newSize", this.amountToPrecision(symbol, amount));
         }
-        if (!java.util.Objects.equals(price, null))
-        {
-            request.put("newPrice", this.priceToPrecision(symbol, price));
-        }
-        Map<String, Object> response = (this.privatePostTradeAmendOrder(this.extend(request, this.omit(parameters, "clientOrderId")))).join();
+        Map<String, Object> query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice")));
         //
         //     {
         //         "code": "0",
@@ -2307,8 +2320,61 @@ public class Blofin extends BlofinApi
         //         }
         //     }
         //
-        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        if (Boolean.TRUE.equals(isTpsl))
+        {
+            String stopLossPrice = this.safeString(parameters, "stopLossPrice");
+            if (!java.util.Objects.equals(stopLossPrice, null))
+            {
+                request.put("newSlTriggerPrice", this.priceToPrecision(symbol, stopLossPrice));
+                String slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
+                if (java.util.Objects.equals(type, "market"))
+                {
+                    request.put("newSlOrderPrice", "-1");
+                } else if (!java.util.Objects.equals(slLimitPrice, null))
+                {
+                    request.put("newSlOrderPrice", this.priceToPrecision(symbol, slLimitPrice));
+                }
+            }
+            String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+            if (!java.util.Objects.equals(takeProfitPrice, null))
+            {
+                request.put("newTpTriggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                String tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
+                if (java.util.Objects.equals(type, "market"))
+                {
+                    request.put("newTpOrderPrice", "-1");
+                } else if (!java.util.Objects.equals(tpLimitPrice, null))
+                {
+                    request.put("newTpOrderPrice", this.priceToPrecision(symbol, tpLimitPrice));
+                }
+            }
+            Map<String, Object> tpslResponse = (this.privatePostTradeAmendTpsl(this.extend(request, query))).join();
+            return this.parseOrder(this.safeDict(tpslResponse, "data", new HashMap<String, Object>() {{}}), market);
+        } else if (Boolean.TRUE.equals(isTrigger))
+        {
+            String triggerPrice = this.safeString(parameters, "triggerPrice");
+            if (!java.util.Objects.equals(triggerPrice, null))
+            {
+                request.put("newTriggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            }
+            if (java.util.Objects.equals(type, "market"))
+            {
+                request.put("newOrderPrice", "-1");
+            } else if (!java.util.Objects.equals(price, null))
+            {
+                request.put("newOrderPrice", this.priceToPrecision(symbol, price));
+            }
+            Map<String, Object> algoResponse = (this.privatePostTradeAmendAlgo(this.extend(request, query))).join();
+            return this.parseOrder(this.safeDict(algoResponse, "data", new HashMap<String, Object>() {{}}), market);
+        } else
+        {
+            if (!java.util.Objects.equals(price, null))
+            {
+                request.put("newPrice", this.priceToPrecision(symbol, price));
+            }
+            Map<String, Object> response = (this.privatePostTradeAmendOrder(this.extend(request, query))).join();
+            return this.parseOrder(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), market);
+        }
 
     }
 
