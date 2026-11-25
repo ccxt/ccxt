@@ -2077,7 +2077,9 @@ export default class kraken extends Exchange {
             side = descriptionSide;
         }
         const rawType: Str = this.safeString (description, 'ordertype', descriptionType); // orderType has dash, e.g. trailing-stop
-        marketId = this.safeString (description, 'pair', marketId);
+        if (this.safeString (description, 'pair') !== undefined) {
+            marketId = this.safeString (description, 'pair');
+        }
         const marketResolved = this.resolveMarketByAltnameOrId (marketId, market);
         let symbol: Str = undefined;
         const timestamp = this.safeTimestamp (orderOmitted, 'opentm');
