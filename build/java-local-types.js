@@ -16189,7 +16189,13 @@ export function javaBooleanLocalWrite (printer, node) {
     if (value.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (value) && value.text === 'undefined')) {
         return true;
     }
-    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || javaPrimitiveBooleanExpression (printer, value);
+    return isBooleanLiteralNode (value) || javaAwaitedUtaCall (printer, value) || javaPrimitiveBooleanExpression (printer, value)
+        || javaPreciseRelationalWrite (printer, value);
+}
+
+// `Precise.stringLt (..)` and the other relational statics are declared `public static boolean` in Precise.java
+function javaPreciseRelationalWrite (printer, value) {
+    return ts.isCallExpression (value) && typeof printer.javaPreciseBooleanCall === 'function' && printer.javaPreciseBooleanCall (value) === true;
 }
 
 export function installJavaBooleanWriteLocals (transpiler) {
