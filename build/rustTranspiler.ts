@@ -4728,6 +4728,8 @@ function rustTypedSafeOrder (content: string): string {
             if (close >= content.length) continue;
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            // a local the generator already typed `Dict` takes the map as it is
+            else if (content.slice (0, s).endsWith (': crate::value::Dict = ')) continue;
             else if (owned && rest.startsWith ('.as_map().cloned().unwrap_or_default()')) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice ('.as_map().cloned().unwrap_or_default()'.length);
             else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
         }
@@ -4756,8 +4758,11 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     // an owned `Value` row slot (the trait keeps it boxed) is typed the same way: no rebinding local
     const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', (?:\\w+: impl Into<crate::Value>|mut \\w+: Value)' + (fam.startsWith ('prediction_') ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
     const safeRet = builder !== undefined ? 'Value::Dict(self.' + builder + '(' : 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
-    const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
+    // a local the generator already typed `Dict` from the same builder answers like the builder call
+    const builtLocals = (body: string) => new Set ([ ...body.matchAll (new RegExp ('^ *let (?:mut )?(\\w+): crate::value::Dict = ' + safeRet.slice ('Value::Dict('.length).replace (/[().]/g, '\\$&'), 'gm')) ].map ((m) => m[1]));
+    const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? [], ls = builtLocals (body); return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet) || ls.has (x.trim ().slice ('return Value::Dict('.length, -2)) && x.trim ().startsWith ('return Value::Dict(')); };
     const unbox = (body: string, wrap: string) => {
+        for (const n of builtLocals (body)) body = body.split ('return Value::Dict(' + n + ');').join ('return ' + (wrap ? wrap + '(' + n + ')' : n) + ';');
         let out = '', last = 0, at: number;
         while ((at = body.indexOf ('return ' + safeRet, last)) >= 0) {
             const open = at + ('return ' + safeRet).length;
@@ -5087,6 +5092,8 @@ function rustTypedParseTicker (content: string): string {
         if (close >= content.length) continue;
         const rest = content.slice (close + 1);
         if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+        // a local the generator already typed `Dict` takes the map as it is
+        else if (content.slice (0, s).endsWith (': crate::value::Dict = ')) continue;
         else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
         else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
     }
