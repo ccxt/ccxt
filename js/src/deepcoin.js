@@ -2549,6 +2549,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const marketSymbol = this.safeString(market, 'symbol', '');
         const instrumentType = this.convertToInstrumentType(this.safeString(market, 'type'));
         const request = {
             'instType': instrumentType,
@@ -2556,7 +2557,7 @@ export default class deepcoin extends Exchange {
         };
         const response = await this.privateGetDeepcoinAccountPositions(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
-        return this.parsePositions(data, [market['symbol']]);
+        return this.parsePositions(data, [marketSymbol]);
     }
     /**
      * @method

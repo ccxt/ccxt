@@ -1526,7 +1526,6 @@ export default class bithumb extends Exchange {
                 }
             }
         }
-        const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
         if (side === 'bid') {
             side = 'buy';
@@ -1561,7 +1560,7 @@ export default class bithumb extends Exchange {
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,

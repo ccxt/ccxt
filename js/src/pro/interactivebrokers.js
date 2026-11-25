@@ -127,7 +127,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 },
             };
             this.extendExchangeOptions(defaultOptions);
-            const originalHeaders = this.options['ws']['options']['headers'];
+            const wsOptions = this.safeDict(this.options, 'ws', {});
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             const userAgent = this.safeString(this.options, 'wsUserAgent', 'ClientPortalGW/1');
@@ -135,14 +135,14 @@ export default class interactivebrokers extends interactivebrokersRest {
             if (useGateway) {
                 cookie = 'api=' + this.json({ 'session': session });
             }
-            const headers = this.extend(originalHeaders, {
+            const headers = this.extend(this.safeDict(this.safeDict(wsOptions, 'options'), 'headers'), {
                 'Cookie': cookie,
                 'User-Agent': userAgent,
             });
-            this.options['ws']['options']['headers'] = headers;
+            this.options['ws'] = this.extend(wsOptions, { 'options': this.extend(this.safeDict(wsOptions, 'options'), { 'headers': headers }) });
             // instantiate client
             const newClient = this.client(url);
-            this.options['ws']['options']['headers'] = originalHeaders;
+            this.options['ws'] = wsOptions;
             const tickleInterval = this.safeInteger(this.options, 'tickleInterval', 240000);
             this.delay(tickleInterval, this.ibkrKeepAliveSession, newClient);
         }

@@ -1695,7 +1695,6 @@ export default class mexc extends Exchange {
         let orderId = undefined;
         let symbol = undefined;
         let fee = undefined;
-        const type = undefined;
         let side = undefined;
         let takerOrMaker = undefined;
         let priceString = undefined;
@@ -1830,7 +1829,7 @@ export default class mexc extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,

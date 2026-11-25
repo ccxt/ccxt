@@ -996,7 +996,6 @@ export default class latoken extends Exchange {
         //         "makerBuyer":false
         //     }
         //
-        const type = undefined;
         const timestamp = this.safeInteger(trade, 'timestamp');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
@@ -1047,7 +1046,7 @@ export default class latoken extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,

@@ -586,7 +586,9 @@ class lighter extends lighter$1["default"] {
             throw new errors.AuthenticationError(this.id + ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
         }
         const token = this.lighterCreateAuthToken(signer, request);
-        this.setAuthEntry(accountIndex, apiKeyIndex, { 'deadline': deadline, 'token': token });
+        if ((accountIndex !== undefined) && (apiKeyIndex !== undefined)) {
+            this.setAuthEntry(accountIndex, apiKeyIndex, { 'deadline': deadline, 'token': token });
+        }
         return token;
     }
     pow(n, m) {

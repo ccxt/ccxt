@@ -135,7 +135,7 @@ export default class extended extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(info: Dict, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name extended#fetchOpenInterestHistory

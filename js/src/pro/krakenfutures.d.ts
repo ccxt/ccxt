@@ -180,7 +180,7 @@ export default class krakenfutures extends krakenfuturesRest {
     pruneStaleBalanceKeys(balanceObject: Dict, seenKeys: Dict): Dict;
     handleMyTrades(client: Client, message: Dict): void;
     parseWsMyTrade(trade: Dict, market?: Market): Trade;
-    watchMultiHelper(unifiedName: string, channelName: string, symbols?: any, subscriptionArgs?: Dict | undefined, params?: Dict): Promise<any>;
+    watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: Dict | undefined, params?: Dict): Promise<any>;
     subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: Dict): boolean;

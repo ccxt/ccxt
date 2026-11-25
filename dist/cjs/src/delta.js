@@ -2567,10 +2567,8 @@ class delta extends delta$1["default"] {
         //
         const id = this.safeString(item, 'uuid');
         let direction = undefined;
-        const account = undefined;
         const metaData = this.safeDict(item, 'meta_data', {});
         const referenceId = this.safeString(metaData, 'transaction_id');
-        const referenceAccount = undefined;
         let type = this.safeString(item, 'transaction_type');
         if ((type === 'deposit') || (type === 'commission_rebate') || (type === 'referral_bonus') || (type === 'pnl') || (type === 'withdrawal_cancellation') || (type === 'promo_credit')) {
             direction = 'in';
@@ -2592,9 +2590,9 @@ class delta extends delta$1["default"] {
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': undefined,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber(amount),

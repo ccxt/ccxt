@@ -942,7 +942,6 @@ class upbit extends upbit$1["default"] {
         //         }
         //
         const id = this.safeString2(trade, 'sequential_id', 'uuid');
-        const orderId = undefined;
         let timestamp = this.safeInteger(trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601(this.safeString(trade, 'created_at'));
@@ -971,7 +970,7 @@ class upbit extends upbit$1["default"] {
         return this.safeTrade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],

@@ -1163,7 +1163,6 @@ class bitstamp extends bitstamp$1["default"] {
         let side = undefined;
         let priceString = this.safeString(trade, 'price');
         let amountString = this.safeString(trade, 'amount');
-        const type = undefined;
         let costString = this.safeString(trade, 'cost');
         let rawMarketId = undefined;
         // resolved in the key scan below, falling back to the passed market
@@ -1266,7 +1265,7 @@ class bitstamp extends bitstamp$1["default"] {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': this.safeString(trade, 'order_id'),
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,

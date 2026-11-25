@@ -3365,8 +3365,7 @@ class bitfinex extends bitfinex$1["default"] {
         const rates = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];
-            const rate = this.parseFundingRateHistory(fr, market);
-            rates.push(rate);
+            rates.push(this.parseFundingRateHistoryRow(fr, market));
         }
         const reversedArray = [];
         const rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
@@ -3431,7 +3430,7 @@ class bitfinex extends bitfinex$1["default"] {
             'interval': undefined,
         };
     }
-    parseFundingRateHistory(contract, market = undefined) {
+    parseFundingRateHistoryRow(contract, market = undefined) {
         //
         // [
         //     1691165494000,

@@ -943,7 +943,6 @@ export default class upbit extends Exchange {
         //         }
         //
         const id = this.safeString2(trade, 'sequential_id', 'uuid');
-        const orderId = undefined;
         let timestamp = this.safeInteger(trade, 'timestamp');
         if (timestamp === undefined) {
             timestamp = this.parse8601(this.safeString(trade, 'created_at'));
@@ -972,7 +971,7 @@ export default class upbit extends Exchange {
         return this.safeTrade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],

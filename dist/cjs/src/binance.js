@@ -9813,20 +9813,17 @@ class binance extends binance$1["default"] {
                 priceString = Precise["default"].stringDiv(costString, amountString);
             }
         }
-        const id = undefined;
         const amount = this.parseNumber(amountString);
         const price = this.parseNumber(priceString);
         const cost = this.parseNumber(costString);
-        const type = undefined;
-        const takerOrMaker = undefined;
         return {
-            'id': id,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': type,
-            'takerOrMaker': takerOrMaker,
+            'type': undefined,
+            'takerOrMaker': undefined,
             'side': side,
             'amount': amount,
             'price': price,

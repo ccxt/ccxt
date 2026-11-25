@@ -514,7 +514,7 @@ export default class gate extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     prepareOrdersByStatusRequest(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): [Dict, Dict];
-    fetchOrdersByStatus(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersByStatus(status: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelOrder

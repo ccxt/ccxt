@@ -1504,7 +1504,6 @@ export default class gemini extends Exchange {
         else {
             type = this.safeString(order, 'type');
         }
-        const fee = undefined;
         const marketId = this.safeString(order, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const id = this.safeString(order, 'order_id');
@@ -1546,7 +1545,7 @@ export default class gemini extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         }, market);
     }

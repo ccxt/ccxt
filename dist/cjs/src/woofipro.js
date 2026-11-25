@@ -3063,7 +3063,8 @@ class woofipro extends woofipro$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const marginModes = await this.fetchMarginModes([market['symbol']], params);
+        const marketSymbol = this.safeString(market, 'symbol', '');
+        const marginModes = await this.fetchMarginModes([marketSymbol], params);
         const marginMode = this.safeDict(marginModes, market['symbol']);
         if (marginMode === undefined) {
             throw new errors.BadSymbol(this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);

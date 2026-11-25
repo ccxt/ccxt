@@ -107,7 +107,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(rawItem: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(rawItem: Dict, market?: Market): FundingRateHistory;
     getSubAccountId(params: Dict): string;
     /**
      * @method

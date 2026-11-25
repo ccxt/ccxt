@@ -1525,7 +1525,6 @@ class bithumb extends bithumb$1["default"] {
                 }
             }
         }
-        const type = undefined;
         let side = this.safeStringLower2(trade, 'ask_bid', 'type');
         if (side === 'bid') {
             side = 'buy';
@@ -1560,7 +1559,7 @@ class bithumb extends bithumb$1["default"] {
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,

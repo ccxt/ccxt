@@ -651,9 +651,6 @@ class blofin extends blofin$1["default"] {
         if (swap) {
             symbol = base + '/' + quote + ':' + settle;
         }
-        const expiry = undefined;
-        const strikePrice = undefined;
-        const optionType = undefined;
         const tickSize = this.safeString(market, 'tickSize');
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         const taker = this.safeNumber(fees, 'taker');
@@ -693,10 +690,10 @@ class blofin extends blofin$1["default"] {
             'linear': contract ? (contractType === 'linear') : undefined,
             'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
-            'expiry': expiry,
-            'expiryDatetime': expiry,
-            'strike': strikePrice,
-            'optionType': optionType,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
             'created': this.safeInteger(market, 'listTime'),
             'precision': {
                 'amount': this.safeNumber(market, 'lotSize'),

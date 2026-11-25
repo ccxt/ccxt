@@ -661,7 +661,7 @@ export declare class BaseExchange {
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(info: Dict, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     parseWsTrade(trade: Dict, market?: Market): Trade;

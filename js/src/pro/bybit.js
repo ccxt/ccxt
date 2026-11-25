@@ -752,10 +752,10 @@ export default class bybit extends bybitRest {
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
-            const market = this.market(data[0]);
+            const data = this.safeList(symbolsAndTimeframes, i);
+            const market = this.market(this.safeString(data, 0, ''));
             const symbolString = this.safeString(market, 'symbol', '');
-            const unfiedTimeframe = data[1];
+            const unfiedTimeframe = this.safeString(data, 1, '');
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
             rawHashes.push('kline.' + timeframeId + '.' + marketId);
@@ -791,10 +791,10 @@ export default class bybit extends bybitRest {
         const subMessageHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
-            const market = this.market(data[0]);
+            const data = this.safeList(symbolsAndTimeframes, i);
+            const market = this.market(this.safeString(data, 0, ''));
             const symbolString = this.safeString(market, 'symbol', '');
-            const unfiedTimeframe = data[1];
+            const unfiedTimeframe = this.safeString(data, 1, '');
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
             rawHashes.push('kline.' + timeframeId + '.' + marketId);

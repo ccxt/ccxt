@@ -1816,10 +1816,8 @@ export default class hollaex extends Exchange {
         const amount = this.safeNumber(transaction, 'amount');
         let address = this.safeString(transaction, 'address');
         let addressTo = undefined;
-        const addressFrom = undefined;
         let tag = undefined;
         let tagTo = undefined;
-        const tagFrom = undefined;
         if (address !== undefined) {
             const parts = address.split(':');
             address = this.safeString(parts, 0);
@@ -1862,10 +1860,10 @@ export default class hollaex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': undefined,
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
             'address': address,
             'addressTo': addressTo,
-            'tagFrom': tagFrom,
+            'tagFrom': undefined,
             'tag': tag,
             'tagTo': tagTo,
             'type': type,

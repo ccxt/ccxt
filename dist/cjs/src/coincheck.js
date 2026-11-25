@@ -395,7 +395,6 @@ class coincheck extends coincheck$1["default"] {
         const amount = this.safeString(order, 'pending_amount');
         const remaining = this.safeString(order, 'pending_amount');
         const price = this.safeString(order, 'rate');
-        const status = undefined;
         const marketId = this.safeString(order, 'pair');
         const symbol = this.safeSymbol(marketId, market, '_');
         return this.safeOrder({
@@ -411,7 +410,7 @@ class coincheck extends coincheck$1["default"] {
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'status': status,
+            'status': undefined,
             'symbol': symbol,
             'price': price,
             'triggerPrice': undefined,

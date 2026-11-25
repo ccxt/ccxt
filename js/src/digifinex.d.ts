@@ -369,7 +369,7 @@ export default class digifinex extends Exchange {
         datetime: undefined;
         info: any;
     };
-    parseBorrowRates(info: any[], codeKey: Str): Dict;
+    parseBorrowRates(info: any[], codeKey: string): Dict;
     /**
      * @method
      * @name digifinex#fetchFundingRate

@@ -3741,16 +3741,17 @@ class weex extends weex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const marketSymbol = this.safeString(market, 'symbol', '');
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
-            return await this.fetchPositions([market['symbol']], params);
+            return await this.fetchPositions([marketSymbol], params);
         }
         const request = {
             'symbol': market['id'],
         };
         const response = await this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, params));
-        return this.parsePositions(response, [market['symbol']]);
+        return this.parsePositions(response, [marketSymbol]);
     }
     parsePosition(position, market = undefined) {
         //

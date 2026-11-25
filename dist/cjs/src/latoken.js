@@ -995,7 +995,6 @@ class latoken extends latoken$1["default"] {
         //         "makerBuyer":false
         //     }
         //
-        const type = undefined;
         const timestamp = this.safeInteger(trade, 'timestamp');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
@@ -1046,7 +1045,7 @@ class latoken extends latoken$1["default"] {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,

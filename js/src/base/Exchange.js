@@ -3748,7 +3748,7 @@ export class BaseExchange {
          * @returns {object} returns feature value
          */
         const market = this.market(symbol);
-        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, defaultValue);
+        return this.featureValueByType(this.safeString(market, 'type', ''), this.safeString(market, 'subType'), methodName, paramName, defaultValue);
     }
     featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, defaultValue = undefined) {
         /**
@@ -4490,7 +4490,10 @@ export class BaseExchange {
         }
         // we have trades with string values at this point so we will mutate them
         for (let i = 0; i < trades.length; i++) {
-            const entry = trades[i];
+            const entry = this.safeDict(trades, i);
+            if (entry === undefined) {
+                continue;
+            }
             entry['amount'] = this.safeNumber(entry, 'amount');
             entry['price'] = this.safeNumber(entry, 'price');
             entry['cost'] = this.safeNumber(entry, 'cost');

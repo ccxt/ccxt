@@ -1295,7 +1295,6 @@ class coinsph extends coinsph$1["default"] {
         const timestamp = this.safeInteger(trade, 'time');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'qty');
-        const type = undefined;
         let fee = {};
         const feeCost = this.safeString(trade, 'commission');
         if (feeCost !== undefined) {
@@ -1325,7 +1324,7 @@ class coinsph extends coinsph$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -2126,7 +2125,6 @@ class coinsph extends coinsph$1["default"] {
         const code = this.safeCurrencyCode(currencyId, currency);
         let timestamp = undefined;
         timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
-        const updated = undefined;
         let type = undefined;
         const withdrawOrderId = this.safeString(transaction, 'withdrawOrderId');
         const depositOrderId = this.safeString(transaction, 'depositOrderId');
@@ -2162,7 +2160,7 @@ class coinsph extends coinsph$1["default"] {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,

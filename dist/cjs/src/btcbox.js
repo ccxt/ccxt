@@ -513,7 +513,6 @@ class btcbox extends btcbox$1["default"] {
         const id = this.safeString(trade, 'tid');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
-        const type = undefined;
         const side = this.safeString(trade, 'type');
         return this.safeTrade({
             'info': trade,
@@ -522,7 +521,7 @@ class btcbox extends btcbox$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': priceString,

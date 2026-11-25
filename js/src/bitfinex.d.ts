@@ -388,7 +388,7 @@ export default class bitfinex extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
-    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistoryRow(contract: any, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name bitfinex#fetchOpenInterests

@@ -125,7 +125,7 @@ export default class bingx extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
+    parseFundingRateHistory(contract: Dict, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name bingx#fetchFundingHistory

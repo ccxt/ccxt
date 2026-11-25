@@ -2520,7 +2520,6 @@ class bitvavo extends bitvavo$1["default"] {
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        const id = undefined;
         const timestamp = this.safeInteger(transaction, 'timestamp');
         const currencyId = this.safeString(transaction, 'symbol');
         const code = this.safeCurrencyCode(currencyId, currency);
@@ -2546,7 +2545,7 @@ class bitvavo extends bitvavo$1["default"] {
         const tag = this.safeString(transaction, 'paymentId');
         return {
             'info': transaction,
-            'id': id,
+            'id': undefined,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
