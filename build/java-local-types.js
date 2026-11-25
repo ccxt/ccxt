@@ -9982,7 +9982,11 @@ function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
                     // parseMarkets prints List<Object> on every tier; BaseExchange.java `<T> List<T> filterBy`
                     || [ value, value !== undefined && ts.isAsExpression (value) ? unwrapParens (value.expression) : undefined ]
                         .some ((v) => isThisCall (v) && [ 'parseMarkets', 'filterBy' ].includes (v.expression.name.text))
-                    || (isThisCall (awaited) && listNames.has (awaited.expression.name.text)));
+                    || (isThisCall (awaited) && listNames.has (awaited.expression.name.text))
+                    // BaseExchange.java `java.util.List safeList(.., java.util.List<Object> defaultValue)`: a list on every path
+                    || [ value, value !== undefined && ts.isAsExpression (value) ? unwrapParens (value.expression) : undefined ]
+                        .some ((v) => isThisCall (v) && v.expression.name.text === 'safeList' && v.arguments.length === 3
+                            && ts.isArrayLiteralExpression (unwrapParens (v.arguments[2]))));
                 return;
             }
             node.forEachChild (walk);
