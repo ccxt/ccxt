@@ -239,185 +239,15 @@ function goStructReturnsPass (content: string): string {
 
 function goStructReturnsSelfTest (): string[] {
     const problems: string[] = [];
-    const src = [
-        'package ccxtpro',
-        '',
-        'func (this *X) ParseTicker(ticker any, optionalArgs ...any) map[string]any {',
-        '\tvar f = func() any {',
-        '\t\treturn 1',
-        '\t}',
-        '\t_ = f',
-        '\tif ticker == nil {',
-        '\t\treturn this.ParseContractTicker(ticker, "a(")',
-        '\t}',
-        '\treturn this.SafeTicker(map[string]any{',
-        '\t\t"symbol": nil,',
-        '\t}, nil)',
-        '}',
-        'func (this *X) Other() any {',
-        '\tvar t map[string]any = this.ParseTicker(this.SafeTicker(nil))',
-        '\treturn t',
-        '}',
-        'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {',
-        '\treturn this.Extend(ticker, map[string]any{})',
-        '}',
-        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {',
-        '\treturn map[string]any{\n\t\t"txid": nil,\n\t}',
-        '}',
-        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {',
-        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
-        '}',
-        'func (this *X) Ledger() any {',
-        '\treturn this.Extend(this.DerivedExchange.ParseLedgerEntry(nil), this.ParseTransaction(nil))',
-        '}',
-        '',
-    ].join ('\n');
-    const want = [
-        'package ccxtpro',
-        '',
-        'func (this *X) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
-        '\tvar f = func() any {',
-        '\t\treturn 1',
-        '\t}',
-        '\t_ = f',
-        '\tif ticker == nil {',
-        '\t\treturn this.ParseContractTicker(ticker, "a(")',
-        '\t}',
-        '\treturn this.SafeTicker(map[string]any{',
-        '\t\t"symbol": nil,',
-        '\t}, nil)',
-        '}',
-        'func (this *X) Other() any {',
-        '\tvar t map[string]any = ccxt.TickerToMap(this.ParseTicker(ccxt.TickerToMap(this.SafeTicker(nil))))',
-        '\treturn t',
-        '}',
-        'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
-        '\treturn ccxt.TickerFromMap(this.Extend(ticker, map[string]any{}))',
-        '}',
-        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) ccxt.Transaction {',
-        '\treturn ccxt.TransactionFromMap(map[string]any{\n\t\t"txid": nil,\n\t})',
-        '}',
-        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) ccxt.LedgerEntry {',
-        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
-        '}',
-        'func (this *X) Ledger() any {',
-        '\treturn this.Extend(ccxt.LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(nil)), ccxt.TransactionToMap(this.ParseTransaction(nil)))',
-        '}',
-        '',
-    ].join ('\n');
-    const src2 = [
-        'package ccxt',
-        '',
-        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {',
-        '\treturn map[string]any{',
-        '\t\t"info": depositAddress,',
-        '\t}',
-        '}',
-        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {',
-        '\treturn this.Extend(transfer, map[string]any{})',
-        '}',
-        'func (this *Y) Use() any {',
-        '\treturn []any{this.ParseDepositAddress(nil), this.ParseTransfer(nil)}',
-        '}',
-        '',
-    ].join ('\n');
-    const want2 = [
-        'package ccxt',
-        '',
-        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {',
-        '\treturn DepositAddressFromMap(map[string]any{',
-        '\t\t"info": depositAddress,',
-        '\t})',
-        '}',
-        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {',
-        '\treturn TransferEntryFromMap(this.Extend(transfer, map[string]any{}))',
-        '}',
-        'func (this *Y) Use() any {',
-        '\treturn []any{DepositAddressToMap(this.ParseDepositAddress(nil)), TransferEntryToMap(this.ParseTransfer(nil))}',
-        '}',
-        '',
-    ].join ('\n');
-    const posSrc = [
-        'package ccxt',
-        '',
-        'func (this *BaseExchange) SafePosition(position any) any {',
-        '\tposition = this.Extend(position, map[string]any{})',
-        '\treturn position',
-        '}',
-        'func (this *X) ParsePosition(position any, optionalArgs ...any) any {',
-        '\treturn this.SafePosition(map[string]any{',
-        '\t\t"info": position,',
-        '\t})',
-        '}',
-        'func (this *BaseExchange) ParsePositions(positions any) []any {',
-        '\tvar position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(positions), nil)',
-        '\treturn []any{position}',
-        '}',
-        '',
-    ].join ('\n');
-    const posWant = [
-        'package ccxt',
-        '',
-        'func (this *BaseExchange) SafePosition(position any) Position {',
-        '\tposition = this.Extend(position, map[string]any{})',
-        '\treturn PositionFromMap(position)',
-        '}',
-        'func (this *X) ParsePosition(position any, optionalArgs ...any) Position {',
-        '\treturn this.SafePosition(map[string]any{',
-        '\t\t"info": position,',
-        '\t})',
-        '}',
-        'func (this *BaseExchange) ParsePositions(positions any) []any {',
-        '\tvar position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positions)), nil)',
-        '\treturn []any{position}',
-        '}',
-        '',
-    ].join ('\n');
+    const src = 'package ccxtpro\n\nfunc (this *X) ParseTicker(ticker any, optionalArgs ...any) map[string]any {\n\tvar f = func() any {\n\t\treturn 1\n\t}\n\t_ = f\n\tif ticker == nil {\n\t\treturn this.ParseContractTicker(ticker, "a(")\n\t}\n\treturn this.SafeTicker(map[string]any{\n\t\t"symbol": nil,\n\t}, nil)\n}\nfunc (this *X) Other() any {\n\tvar t map[string]any = this.ParseTicker(this.SafeTicker(nil))\n\treturn t\n}\nfunc (this *X) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {\n\treturn this.Extend(ticker, map[string]any{})\n}\nfunc (this *X) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {\n\treturn map[string]any{\n\t\t"txid": nil,\n\t}\n}\nfunc (this *X) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {\n\treturn this.SafeLedgerEntry(map[string]any{}, nil)\n}\nfunc (this *X) Ledger() any {\n\treturn this.Extend(this.DerivedExchange.ParseLedgerEntry(nil), this.ParseTransaction(nil))\n}\n';
+    const want = 'package ccxtpro\n\nfunc (this *X) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {\n\tvar f = func() any {\n\t\treturn 1\n\t}\n\t_ = f\n\tif ticker == nil {\n\t\treturn this.ParseContractTicker(ticker, "a(")\n\t}\n\treturn this.SafeTicker(map[string]any{\n\t\t"symbol": nil,\n\t}, nil)\n}\nfunc (this *X) Other() any {\n\tvar t map[string]any = ccxt.TickerToMap(this.ParseTicker(ccxt.TickerToMap(this.SafeTicker(nil))))\n\treturn t\n}\nfunc (this *X) ParseContractTicker(ticker any, optionalArgs ...any) ccxt.Ticker {\n\treturn ccxt.TickerFromMap(this.Extend(ticker, map[string]any{}))\n}\nfunc (this *X) ParseTransaction(transaction any, optionalArgs ...any) ccxt.Transaction {\n\treturn ccxt.TransactionFromMap(map[string]any{\n\t\t"txid": nil,\n\t})\n}\nfunc (this *X) ParseLedgerEntry(item any, optionalArgs ...any) ccxt.LedgerEntry {\n\treturn this.SafeLedgerEntry(map[string]any{}, nil)\n}\nfunc (this *X) Ledger() any {\n\treturn this.Extend(ccxt.LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(nil)), ccxt.TransactionToMap(this.ParseTransaction(nil)))\n}\n';
+    const src2 = 'package ccxt\n\nfunc (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {\n\treturn map[string]any{\n\t\t"info": depositAddress,\n\t}\n}\nfunc (this *Y) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {\n\treturn this.Extend(transfer, map[string]any{})\n}\nfunc (this *Y) Use() any {\n\treturn []any{this.ParseDepositAddress(nil), this.ParseTransfer(nil)}\n}\n';
+    const want2 = 'package ccxt\n\nfunc (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {\n\treturn DepositAddressFromMap(map[string]any{\n\t\t"info": depositAddress,\n\t})\n}\nfunc (this *Y) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {\n\treturn TransferEntryFromMap(this.Extend(transfer, map[string]any{}))\n}\nfunc (this *Y) Use() any {\n\treturn []any{DepositAddressToMap(this.ParseDepositAddress(nil)), TransferEntryToMap(this.ParseTransfer(nil))}\n}\n';
+    const posSrc = 'package ccxt\n\nfunc (this *BaseExchange) SafePosition(position any) any {\n\tposition = this.Extend(position, map[string]any{})\n\treturn position\n}\nfunc (this *X) ParsePosition(position any, optionalArgs ...any) any {\n\treturn this.SafePosition(map[string]any{\n\t\t"info": position,\n\t})\n}\nfunc (this *BaseExchange) ParsePositions(positions any) []any {\n\tvar position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(positions), nil)\n\treturn []any{position}\n}\n';
+    const posWant = 'package ccxt\n\nfunc (this *BaseExchange) SafePosition(position any) Position {\n\tposition = this.Extend(position, map[string]any{})\n\treturn PositionFromMap(position)\n}\nfunc (this *X) ParsePosition(position any, optionalArgs ...any) Position {\n\treturn this.SafePosition(map[string]any{\n\t\t"info": position,\n\t})\n}\nfunc (this *BaseExchange) ParsePositions(positions any) []any {\n\tvar position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positions)), nil)\n\treturn []any{position}\n}\n';
     // FundingRate / OpenInterest (package ccxt: unqualified helpers)
-    const fundingOpenInterestSrc = [
-        'package ccxt',
-        '',
-        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
-        '\treturn map[string]any{',
-        '\t\t"info": contract,',
-        '\t}',
-        '}',
-        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {',
-        '\treturn this.SafeOpenInterest(map[string]any{',
-        '\t\t"info": interest,',
-        '\t}, nil)',
-        '}',
-        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) map[string]any {',
-        '\treturn this.Extend(interest, map[string]any{})',
-        '}',
-        'func (this *X) Fetch() any {',
-        '\tvar parsed any = this.DerivedExchange.ParseFundingRate(nil)',
-        '\treturn this.ParseOpenInterest(parsed)',
-        '}',
-        '',
-    ].join ('\n');
-    const want31 = [
-        'package ccxt',
-        '',
-        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {',
-        '\treturn FundingRateFromMap(map[string]any{',
-        '\t\t"info": contract,',
-        '\t})',
-        '}',
-        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
-        '\treturn this.SafeOpenInterest(map[string]any{',
-        '\t\t"info": interest,',
-        '\t}, nil)',
-        '}',
-        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
-        '\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))',
-        '}',
-        'func (this *X) Fetch() any {',
-        '\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))',
-        '\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))',
-        '}',
-        '',
-    ].join ('\n');
+    const fundingOpenInterestSrc = 'package ccxt\n\nfunc (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {\n\treturn map[string]any{\n\t\t"info": contract,\n\t}\n}\nfunc (this *X) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {\n\treturn this.SafeOpenInterest(map[string]any{\n\t\t"info": interest,\n\t}, nil)\n}\nfunc (this *X) SafeOpenInterest(interest any, optionalArgs ...any) map[string]any {\n\treturn this.Extend(interest, map[string]any{})\n}\nfunc (this *X) Fetch() any {\n\tvar parsed any = this.DerivedExchange.ParseFundingRate(nil)\n\treturn this.ParseOpenInterest(parsed)\n}\n';
+    const want31 = 'package ccxt\n\nfunc (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {\n\treturn FundingRateFromMap(map[string]any{\n\t\t"info": contract,\n\t})\n}\nfunc (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {\n\treturn this.SafeOpenInterest(map[string]any{\n\t\t"info": interest,\n\t}, nil)\n}\nfunc (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {\n\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))\n}\nfunc (this *X) Fetch() any {\n\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))\n\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))\n}\n';
     for (const [ label, input, expected ] of [ [ 'U30 ', src2, want2 ], [ '', src, want ], [ 'Position ', posSrc, posWant ], [ 'U31 ', fundingOpenInterestSrc, want31 ] ]) {
         const got = goStructReturnsPass (input);
         if (got !== expected) {
@@ -500,6 +330,8 @@ function goChanTable (): Map<string, string> {
 
 
 // comments and string/rune/raw literals blanked to spaces, newlines kept (offsets match the input; LRU-cached)
+const GO_MASK_RE = /"(?:[^"\\]|\\[\s\S]?)*(?:"|$)|'(?:[^'\\]|\\[\s\S]?)*(?:'|$)|`[^`]*(?:`|$)/g;
+const GO_MASK_RE_MC = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:[^"\\]|\\[\s\S]?)*(?:"|$)|'(?:[^'\\]|\\[\s\S]?)*(?:'|$)|`[^`]*(?:`|$)/g;
 const goMaskCache: { key: string; mc: boolean; out: string }[] = [];
 function goMaskGoCode (content: string, maskComments = true): string {
     for (let k = 0; k < goMaskCache.length; k++) {
@@ -507,44 +339,9 @@ function goMaskGoCode (content: string, maskComments = true): string {
             return goMaskCache[k].out;
         }
     }
-    const len = content.length;
-    const parts: string[] = [];
-    let seg = 0;
-    let i = 0;
-    const blank = (from: number, to: number) => {
-        if (from > seg) { parts.push (content.slice (seg, from)); }
-        const sub = content.slice (from, to);
-        parts.push ((sub.indexOf ('\n') < 0) ? ' '.repeat (to - from) : sub.replace (/[^\n]/g, ' '));
-        seg = to;
-    };
-    while (i < len) {
-        const ch = content.charCodeAt (i);
-        if (maskComments && (ch === 47)) {
-            const nx = content.charCodeAt (i + 1);
-            if (nx === 47) { const nl = content.indexOf ('\n', i + 2); const end = (nl < 0) ? len : nl; blank (i, end); i = end + 1; continue; }
-            if (nx === 42) { const cl = content.indexOf ('*/', i + 2); const end = (cl < 0) ? len : (cl + 2); blank (i, end); i = end; continue; }
-        } else if ((ch === 34) || (ch === 39)) {
-            const start = i++;
-            while (i < len) {
-                const c = content.charCodeAt (i);
-                if (c === 92) { i += 2; continue; }
-                if (c === ch) { i++; break; }
-                i++;
-            }
-            blank (start, Math.min (i, len));
-            continue;
-        } else if (ch === 96) {
-            const cl = content.indexOf ('`', i + 1);
-            const end = (cl < 0) ? len : (cl + 1);
-            blank (i, end);
-            i = end;
-            continue;
-        }
-        i++;
-    }
-    const out = (seg === 0) ? content : (seg < len ? (parts.push (content.slice (seg)), parts.join ('')) : parts.join (''));
+    const out = content.replace (maskComments ? GO_MASK_RE_MC : GO_MASK_RE, (m) => ((m.indexOf ('\n') < 0) ? ' '.repeat (m.length) : m.replace (/[^\n]/g, ' ')));
     goMaskCache.unshift ({ 'key': content, 'mc': maskComments, 'out': out });
-    if (goMaskCache.length > 4) { goMaskCache.pop (); }
+    if (goMaskCache.length > 16) { goMaskCache.pop (); }
     return out;
 }
 
@@ -583,6 +380,7 @@ function goChanQual (content: string): string {
 
 // the Go type of a sent expression, or a reason it is unproven. Only duplicable forms are admitted,
 // because the send spells the value twice (Value and Raw).
+const GO_CHAN_SEND_RES = new Map<string, RegExp[]> ();
 function goChanSendType (expr: string, fnMasked: string, signature: string, ownCall: (name: string) => string | undefined = () => undefined): { type?: string, bind?: boolean, nil?: boolean, reason?: string } {
     if (expr === 'nil') {
         return { 'nil': true };
@@ -615,19 +413,24 @@ function goChanSendType (expr: string, fnMasked: string, signature: string, ownC
         return { 'reason': (call !== null) ? 'call-send' : 'expr-send' };
     }
     const name = expr;
-    const param = new RegExp ('[(,]\\s*' + name + ' ([^,)]+)').exec (signature);
-    const decls = fnMasked.match (new RegExp ('(?<![.\\w])var ' + name + ' [^\\n=]+(?= =|\\n)', 'g')) || [];
-    const shortDecl = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=').test (fnMasked);
-    const closureParam = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked);
+    let re = GO_CHAN_SEND_RES.get (name);
+    if (re === undefined) {
+        re = [ new RegExp ('[(,]\\s*' + name + ' ([^,)]+)'), new RegExp ('(?<![.\\w])var ' + name + ' [^\\n=]+(?= =|\\n)', 'g'), new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:='), new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' '), new RegExp ('(?<![.\\w])var ' + name + ', _ = [^\\n]*\\.\\(((?:map\\[string\\]any|\\[\\]any))\\)\\n') ];
+        GO_CHAN_SEND_RES.set (name, re);
+    }
+    const param = re[0].exec (signature);
+    const decls = fnMasked.match (re[1]) || [];
+    const shortDecl = re[2].test (fnMasked);
+    const closureParam = re[3].test (fnMasked);
     // `var x, _ = e.(T)` (a comma-ok row read) declares x as T
-    const commaOk = (decls.length === 0) ? new RegExp ('(?<![.\\w])var ' + name + ', _ = [^\\n]*\\.\\(((?:map\\[string\\]any|\\[\\]any))\\)\\n', 'g').exec (fnMasked) : null;
+    const commaOk = (decls.length === 0) ? re[4].exec (fnMasked) : null;
     if ((commaOk !== null) && !param && !shortDecl && !closureParam) {
         return { 'type': commaOk[1] };
     }
     if (shortDecl || closureParam || (decls.length + (param ? 1 : 0) !== 1)) {
         return { 'reason': 'local-untyped' };
     }
-    const type = (param ? param[1] : decls[0].replace (new RegExp ('^var ' + name + ' '), '')).trim ();
+    const type = (param ? param[1] : decls[0].substring (5 + name.length)).trim ();
     if ((type === 'any') || (type === 'interface{}') || /^\.\.\./.test (type)) {
         return { 'reason': 'local-any' };
     }
@@ -647,13 +450,18 @@ function goChanOwnReturn (masked: string, receiver: string, name: string): strin
 }
 
 // ===== sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
-let GO_CHAN_BASE_RETURNS: { key: string, map: Map<string, string> } | undefined = undefined;
+let GO_CHAN_BASE_RETURNS: { key: string, map: Map<string, string>, epoch?: number, dir?: string } | undefined = undefined;
+// bumped per goChan3Pass: the disk key (readdir + stats) is re-checked once per pass, not per lookup
+let GO_CHAN_BASE_EPOCH = 0;
 let GO_CHAN_BASE_RETURNS_TEST: Map<string, string> | undefined = undefined;
 
 // `<Struct>.<method>` -> concrete return, for BaseExchange / Exchange / PredictionExchange in go/v4/exchange*.go
 function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4')): Map<string, string> {
     if (GO_CHAN_BASE_RETURNS_TEST !== undefined) {
         return GO_CHAN_BASE_RETURNS_TEST;
+    }
+    if ((GO_CHAN_BASE_RETURNS !== undefined) && (GO_CHAN_BASE_RETURNS.epoch === GO_CHAN_BASE_EPOCH) && (GO_CHAN_BASE_RETURNS.dir === dir)) {
+        return GO_CHAN_BASE_RETURNS.map;
     }
     const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => /^exchange.*\.go$/.test (f) && !f.endsWith ('_api.go')).sort () : [];
     const key = files.map ((f) => f + ':' + fs.statSync (path.join (dir, f)).mtimeMs).join ('|');
@@ -674,6 +482,8 @@ function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath
         seen.forEach ((t, k) => { if (t === undefined) { map.set (k, ''); } });
         GO_CHAN_BASE_RETURNS = { key, map };
     }
+    GO_CHAN_BASE_RETURNS.epoch = GO_CHAN_BASE_EPOCH;
+    GO_CHAN_BASE_RETURNS.dir = dir;
     return GO_CHAN_BASE_RETURNS.map;
 }
 
@@ -719,7 +529,15 @@ function goChanMethodReturn (masked: string, receiver: string, name: string): st
 // the concrete return of V.name for a REST venue V (go/v4/<v>.go), falling back to its Exchange/BaseExchange chain
 function goChanVenueReturn (venue: string, name: string): string | undefined {
     const file = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4', venue.toLowerCase () + '.go');
-    const masked = fs.existsSync (file) ? goMaskGoCode (fs.readFileSync (file, 'utf8')) : '';
+    let masked = GO_CHAN_VENUE_MASKED.get (file);
+    if ((masked === undefined) || (masked[0] !== GO_CHAN_BASE_EPOCH)) {
+        masked = [ GO_CHAN_BASE_EPOCH, fs.existsSync (file) ? goMaskGoCode (fs.readFileSync (file, 'utf8')) : '' ];
+        GO_CHAN_VENUE_MASKED.set (file, masked);
+    }
+    return goChanVenueMaskedReturn (masked[1], venue, name);
+}
+const GO_CHAN_VENUE_MASKED = new Map<string, [ number, string ]> ();
+function goChanVenueMaskedReturn (masked: string, venue: string, name: string): string | undefined {
     if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) {
         return undefined;
     }
@@ -842,9 +660,11 @@ function goErrListHolders (content: string): string {
 // the first receive arrow at/after `from` (a send's arrow follows an operand, a receive's does not)
 function goErrNextReceive (masked: string, from: number): number {
     for (let p = masked.indexOf ('<-', from); p >= 0; p = masked.indexOf ('<-', p + 2)) {
-        const before = masked.substring (0, p).replace (/[ \t]+$/, '');
-        const prev = before[before.length - 1];
-        if (((prev !== undefined) && /[\w)\]]/.test (prev)) || masked.startsWith ('<-chan', p)) {
+        let b = p - 1;
+        while ((b >= 0) && ((masked[b] === ' ') || (masked[b] === '\t'))) {
+            b--;
+        }
+        if (((b >= 0) && /[\w)\]]/.test (masked[b])) || masked.startsWith ('<-chan', p)) {
             continue;
         }
         return p;
@@ -1822,11 +1642,7 @@ function goChan3EndpointSendSelfTest (ok: (c: boolean, m: string) => void, run: 
     const mix = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n' + recv ('1', 'PostA').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r1.Value\n\t} else {\n' + recv ('2', 'PostE').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r2.Raw\n\t}\n\tif IsEqual(response, nil) {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
     ok (mix.includes ('\tvar response map[string]any = nil\n') && mix.includes ('response = MapTyped(r1.Value)\n') && mix.includes ('response = r2.Value\n') && mix.includes ('if response == nil {') && mix.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'mixed-stub endpoint join: ' + mix);
     ok (run (mix) === mix, 'mixed-stub idempotent');
-    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostL') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'list stub into map core throws');
-    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'Raw of untyped stub throws');
-    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostUnknown') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'unknown stub throws');
-    ok (throws ('package ccxt\n' + core ('Y', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'other receiver stub throws');
-    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'endpoint local other use throws');
+    for (const [ s, l ] of [ [ 'package ccxt\n' + core ('X', recv ('1', 'PostL') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'), 'list stub into map core throws' ], [ 'package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'), 'Raw of untyped stub throws' ], [ 'package ccxt\n' + core ('X', recv ('1', 'PostUnknown') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'), 'unknown stub throws' ], [ 'package ccxt\n' + core ('Y', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'), 'other receiver stub throws' ], [ 'package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'), 'endpoint local other use throws' ] ]) { ok (throws (s), l); }
     goChan3SetReceiverStubsForTest (undefined);
 }
 
@@ -1834,6 +1650,7 @@ function goChan3EndpointSendSelfTest (ok: (c: boolean, m: string) => void, run: 
 function goChan3Cores (content: string, masked: string, table: Map<string, string>, audit?: Report): GoChan3Core[] {
     const cores: GoChan3Core[] = [];
     const q = goChanQual (content);
+    const returns = new Map<string, string | undefined> ();
     const any = '(?:ccxt\\.)?AsyncResult\\[any\\]';
     const handDef = new RegExp ('^func \\(this \\*(\\w+)\\) (\\w+)Async\\([^\\n]*\\) <-chan ' + any + ' \\{\\n(?!\\tch := make\\(chan ' + any + ', 1\\)\\n\\tgo this\\.\\w+Body\\(ch)', 'gm');
     for (let m = handDef.exec (masked); m !== null; m = handDef.exec (masked)) {
@@ -1852,6 +1669,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
             continue;
         }
         const realType = goChan3Lookup (goChan3Table (), receiver, method);
+        const methodReturn = (name: string) => { const k = receiver + '.' + name; if (!returns.has (k)) { returns.set (k, goChanMethodReturn (masked, receiver, name)); } return returns.get (k); };
         const structCarrier = (realType !== undefined) && goChan3StructTypes ().has (goChan3BaseType (realType));
         const types = new Set<string> ();
         const reasons: string[] = [];
@@ -1981,7 +1799,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                     type = goChan3EndpointRawType (expr, fnMasked) as string;
                     edits.push ({ 'start': bodyStart + open + 1 + 7 + expr.length - 3, 'end': bodyStart + open + 1 + 7 + expr.length, 'text': 'Value' });
                 } else {
-                    let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+                    let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, methodReturn);
                     // `this.SafeDict(..)` under a map carrier: its typed twin SafeDictMap (exchange_safe.go) is the same read as a map (absent -> nil map)
                     const safeDict = /^this\.SafeDict(2|N)?\(/.exec (expr);
                     if ((proof.reason !== undefined) && (want === 'map[string]any') && (safeDict !== null) && (goChanClose (expr, safeDict[0].length - 1) === expr.length)) {
@@ -2007,7 +1825,7 @@ function goChan3Cores (content: string, masked: string, table: Map<string, strin
                         }
                         proof = (join.type !== undefined) ? { 'type': join.type } : { 'reason': join.reason || proof.reason };
                     }
-                    const bal = ((proof.reason !== undefined) && (want === 'map[string]any')) ? goChan3BalanceSend (expr, fnMasked, (name) => goChanMethodReturn (masked, receiver, name)) : undefined;
+                    const bal = ((proof.reason !== undefined) && (want === 'map[string]any')) ? goChan3BalanceSend (expr, fnMasked, methodReturn) : undefined;
                     if (bal !== undefined) {
                         if (bal.decl !== undefined) {
                             const d = bal.decl;
@@ -2295,8 +2113,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
     const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\((?:\[\]any\{|(\w+)\)\n)/gm;
     for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
         const taskList = goChan3PromiseAllTaskList (masked, m);
-        const h28g18 = goChan3H28G18AppendList (content, masked, m, stubs, q); if (h28g18 !== undefined) { edits.push (...h28g18); continue; }
-        const h29g16 = goChan3H29G16AppendList (content, masked, m, stubs, q); if (h29g16 !== undefined) { edits.push (...h29g16); continue; }
+        const appended = goChan3AppendList (content, masked, m, stubs, q, false) ?? goChan3AppendList (content, masked, m, stubs, q, true); if (appended !== undefined) { edits.push (...appended); continue; }
         if ((m[3] !== undefined) && (taskList === undefined)) {
             continue;
         }
@@ -2459,84 +2276,6 @@ function goChan3PromiseAllTypedSlot (masked: string, start: number, end: number,
 // ===== h28-H28-G18: promiseAll of a task list built only by `append` of one-T endpoint stubs =====
 // `var P []any = []any{}` + `P = append(P, [EndpointRaw(]this.Stub(..)[)])` lines (no closure in between) and a result
 // read only as `len(V)` or `SafeMapTyped|SafeListTyped(V, i)` inside `for i := 0; i < len(V); i++` -> typed channels
-function goChan3H28G18AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string): Edit[] | undefined {
-    const P = m[3];
-    if (P === undefined) {
-        return undefined;
-    }
-    const [ fs0, fe0 ] = goChan3Func (masked, m.index);
-    const fn = masked.substring (fs0, fe0);
-    const at = m.index - fs0;
-    const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + P + ' \\[\\]any = \\[\\]any\\{\\}\\n', 'g')) ];
-    if ((decl.length !== 1) || ((decl[0].index as number) > at) || (fn.substring (decl[0].index as number, at).indexOf ('func(') >= 0)) {
-        return undefined;
-    }
-    const appRe = new RegExp ('\\n\\t+' + P + ' = append\\(' + P + ', ', 'g');
-    const apps = [ ...fn.matchAll (appRe) ];
-    const uses = (fn.match (new RegExp ('(?<![\\w.])' + P + '(?!\\w)', 'g')) || []).length;
-    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length)) {
-        return undefined;
-    }
-    const edits: Edit[] = [];
-    let type: string | undefined = undefined;
-    for (const a of apps) {
-        const open = fs0 + (a.index as number) + a[0].length - P.length - 3;
-        const close = goChanClose (masked, open);
-        if ((close < 0) || (fs0 + (a.index as number) > m.index) || (masked[close] !== '\n')) {
-            return undefined;
-        }
-        const argStart = open + 1 + P.length + 2;
-        const arg = content.substring (argStart, close - 1);
-        const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (arg);
-        const call = ((w !== null) && (goChanClose (arg, arg.indexOf ('(')) === arg.length)) ? w[1] : arg;
-        const c = /^this\.(\w+)\(/.exec (call);
-        if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
-            return undefined;
-        }
-        const t = stubs.get (c[1]);
-        if ((t === undefined) || !goChan3FoldsAbsent (t) || ((type !== undefined) && (type !== t))) {
-            return undefined;
-        }
-        type = t;
-        if (call !== arg) {
-            edits.push ({ 'start': argStart, 'end': close - 1, 'text': call });
-        }
-    }
-    if (type === undefined) {
-        return undefined;
-    }
-    const ind = m[1];
-    const r = m[2];
-    const tail = masked.substring (m.index + m[0].length);
-    const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
-    if (head === null) {
-        return undefined;
-    }
-    const v = head[1];
-    const declEnd = m.index + m[0].length + head[0].length;
-    const rest = masked.substring (declEnd, fe0);
-    if (new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
-        return undefined;
-    }
-    const reader = (type === 'map[string]any') ? 'SafeMapTyped' : 'SafeListTyped';
-    const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, (\\w+)\\))?', 'g');
-    for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
-        if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) {
-            continue;
-        }
-        if ((u[1] === undefined) || (u[1] === 'len(') || (u[3] === undefined) || !goChan3H28G18LoopBound (rest, u.index, v, u[3])) {
-            return undefined;
-        }
-        edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + u[3] + ']' });
-    }
-    const carrier = q + 'EndpointResult[' + type + ']';
-    const d0 = fs0 + (decl[0].index as number) + 1;
-    edits.push ({ 'start': d0, 'end': d0 + decl[0][0].length - 2, 'text': decl[0][1] + 'var ' + P + ' []<-chan ' + carrier });
-    edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': m.index + m[0].length - 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + P + '...)' });
-    const varLine = head[0].split ('\n')[3];
-    edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
-    return edits;
-}
 
 // true when `at` lies inside `for i := 0; i < len(v); i++ {` and the body never writes i or v
 function goChan3H28G18LoopBound (rest: string, at: number, v: string, i: string): boolean {
@@ -2555,8 +2294,8 @@ function goChan3H28G18LoopBound (rest: string, at: number, v: string, i: string)
 // ===== end h28-H28-G18
 
 // ===== h29-H29-G16: append task lists read by arity-proven literal slots or bounds-guarded declarations =====
-// As goChan3H28G18AppendList, plus: `W(V, k)` with k below the count of unconditional appends (same indent as the
-function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string): Edit[] | undefined {
+// extend: as the plain form, plus: `W(V, k)` with k below the count of unconditional appends (same indent as the
+function goChan3AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string, extend: boolean): Edit[] | undefined {
     const P = m[3];
     if (P === undefined) {
         return undefined;
@@ -2573,7 +2312,7 @@ function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExec
     const apps = [ ...fn.matchAll (appRe) ];
     const uses = (fn.match (new RegExp ('(?<![\\w.])' + P + '(?!\\w)', 'g')) || []).length;
     const lens = (fn.match (new RegExp ('(?<![\\w.])len\\(' + P + '\\)', 'g')) || []).length;
-    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length + lens)) {
+    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length + (extend ? lens : 0))) {
         return undefined;
     }
     const edits: Edit[] = [];
@@ -2620,7 +2359,7 @@ function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExec
         return undefined;
     }
     const reader = (type === 'map[string]any') ? 'SafeMapTyped' : 'SafeListTyped';
-    const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, ([^()\\n]+)\\))?', 'g');
+    const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, (' + (extend ? '[^()\\n]+' : '\\w+') + ')\\))?', 'g');
     let extended = false;
     for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
         if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) {
@@ -2634,6 +2373,9 @@ function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExec
             edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
             continue;
         }
+        if (!extend) {
+            return undefined;
+        }
         if (/^\d+$/.test (k) && (Number (k) < arity)) {
             edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + k + ']' });
             extended = true;
@@ -2646,7 +2388,7 @@ function goChan3H29G16AppendList (content: string, masked: string, m: RegExpExec
         edits.push (g);
         extended = true;
     }
-    if (!extended) {
+    if (extend && !extended) {
         return undefined;
     }
     const carrier = q + 'EndpointResult[' + type + ']';
@@ -2723,12 +2465,7 @@ function goChan3H29G16SelfTest (): string[] {
     const idx = run (fn ('\tvar k int = len(ps)\n' + two, '\tvar x map[string]any = SafeMapTyped(v, k)\n\tvar y map[string]any = SafeMapTyped(v, k-1)\n'));
     ok (idx.includes ('\tvar x map[string]any\n\tif k >= 0 && k < len(v) {\n\t\tx = v[k]\n\t}\n') && idx.includes ('\tif k-1 >= 0 && k-1 < len(v) {\n\t\ty = v[k-1]\n\t}\n'), 'computed index guarded: ' + idx);
     const neg = (src: string, label: string) => ok (run (src) === src, label);
-    neg (fn ('\tif c {\n\t\tps = append(ps, this.PubGetA(p))\n\t}\n', '\tthis.Use(SafeMapTyped(v, 0))\n'), 'conditional slot read inline keeps the wrap');
-    neg (fn ('\tvar k int = len(ps)\n' + two, '\tk = 3\n\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'a rewritten index keeps the wrap');
-    neg (fn ('\tvar k any = 1\n' + two, '\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'an untyped index keeps the wrap');
-    neg (fn (two.replace ('PubGetB', 'PubGetL'), '\tvar x map[string]any = SafeMapTyped(v, 0)\n'), 'mixed stub types keep the wrap');
-    neg (fn (two, '\tvar x map[string]any = SafeMapTyped(v, 0)\n\tthis.Use(v)\n'), 'a whole-list read keeps the wrap');
-    neg (fn (two, '\tvar x []any = SafeListTyped(v, 0)\n'), 'a read as another type keeps the wrap');
+    for (const [ s, l ] of [ [ fn ('\tif c {\n\t\tps = append(ps, this.PubGetA(p))\n\t}\n', '\tthis.Use(SafeMapTyped(v, 0))\n'), 'conditional slot read inline keeps the wrap' ], [ fn ('\tvar k int = len(ps)\n' + two, '\tk = 3\n\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'a rewritten index keeps the wrap' ], [ fn ('\tvar k any = 1\n' + two, '\tvar x map[string]any = SafeMapTyped(v, k)\n'), 'an untyped index keeps the wrap' ], [ fn (two.replace ('PubGetB', 'PubGetL'), '\tvar x map[string]any = SafeMapTyped(v, 0)\n'), 'mixed stub types keep the wrap' ], [ fn (two, '\tvar x map[string]any = SafeMapTyped(v, 0)\n\tthis.Use(v)\n'), 'a whole-list read keeps the wrap' ], [ fn (two, '\tvar x []any = SafeListTyped(v, 0)\n'), 'a read as another type keeps the wrap' ] ]) { neg (s, l); }
     goChan3SetStubsForTest (undefined);
     return problems;
 }
@@ -3002,6 +2739,33 @@ function goChan3ConsumerWalk (content: string, masked: string, q: string, fresh:
     }
 }
 
+// PromiseAllTyped of same-T channels (shadow `PromiseAllTyped[S, AsyncResult[S]](..)`, S a regex source): retyped to T, the read re-boxed
+function goChan3PromiseAllRetype (masked: string, shadow: string, predictionFile: boolean, reg: Map<string, string>, pred: Map<string, string>, kind: string, typeOf: (T: string) => string, value: (T: string, v: string) => string, edits: Edit[]): [ number, number ][] {
+    const promiseArgs: [ number, number ][] = [];
+    const pall = new RegExp ('(?<![\\w.])((?:ccxt\\.)?PromiseAllTyped)\\[' + shadow + ', ((?:ccxt\\.)?)AsyncResult\\[' + shadow + '\\]\\]\\(', 'g');
+    const tailRe = new RegExp ('^\\n(\\t+)if (r\\d*)\\.Err != nil \\{\\n\\t+panic\\(\\2\\.Err\\)\\n\\t+\\}\\n\\t+var \\w+ \\[\\]' + shadow + ' = (\\2\\.Value)\\n');
+    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        const T = goChan3PromiseAllElem (masked, m.index, masked.substring (open + 1, close - 1), predictionFile, reg, pred, kind);
+        if (T === undefined) {
+            continue;
+        }
+        const QT = typeOf (T);
+        promiseArgs.push ([ open, close ]);
+        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + QT + ', ' + m[2] + 'AsyncResult[' + QT + ']]' });
+        const tail = tailRe.exec (masked.substring (close, close + 400));
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
+        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
+            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of ' + kind + ' channels');
+        }
+        const valueAt = close + tail[0].length - 1 - tail[3].length;
+        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': value (T, tail[3]) });
+    }
+    return promiseArgs;
+}
+
 function goChan3StructPass (content: string, table: Map<string, string>): string {
     const predictionFile = /^package ccxtprediction\s*$/m.test (content);
     const regStructs = goChan3StructEntries (table, false);
@@ -3088,30 +2852,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
     }
     const inStructCore = (at: number) => coreBodies.find (([ s, e ]) => (at >= s) && (at < e));
     // PromiseAllTyped of same-T struct channels (shadow `PromiseAllTyped[map[string]any, AsyncResult[map[string]any]](..)`)
-    const promiseArgs: [ number, number ][] = [];
-    const pall = /(?<![\w.])((?:ccxt\.)?PromiseAllTyped)\[map\[string\]any, ((?:ccxt\.)?)AsyncResult\[map\[string\]any\]\]\(/g;
-    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
-        const open = m.index + m[0].length - 1;
-        const close = goChanClose (masked, open);
-        const args = masked.substring (open + 1, close - 1);
-        const ts = goChan3PromiseAllElem (masked, m.index, args, predictionFile, regStructs, predStructs, 'struct');
-        if (ts === undefined) {
-            continue;
-        }
-        const st = ts;
-        const QT = goChan3StructQual (st, q);
-        const QH = q + goChan3StructHelper (st);
-        promiseArgs.push ([ open, close ]);
-        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + QT + ', ' + m[2] + 'AsyncResult[' + QT + ']]' });
-        const tail = /^\n(\t+)if (r\d*)\.Err != nil \{\n\t+panic\(\2\.Err\)\n\t+\}\n\t+var \w+ \[\]map\[string\]any = (\2\.Value)\n/.exec (masked.substring (close, close + 400));
-        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
-        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
-        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
-            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of struct channels');
-        }
-        const valueAt = close + tail[0].length - 1 - tail[3].length;
-        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructSliceToMaps(' + tail[3] + ', ' + QH + 'ToMap)' });
-    }
+    const promiseArgs = goChan3PromiseAllRetype (masked, 'map\\[string\\]any', predictionFile, regStructs, predStructs, 'struct', (T) => goChan3StructQual (T, q), (T, v) => q + 'StructSliceToMaps(' + v + ', ' + q + goChan3StructHelper (T) + 'ToMap)', edits);
     goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
         'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regStructs, predStructs),
         'inCore': inStructCore,
@@ -3201,6 +2942,7 @@ function goChan3StructPass (content: string, table: Map<string, string>): string
 
 // the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
 function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
+    GO_CHAN_BASE_EPOCH++;
     const shadow = goChan3Shadow (table);
     return goChan3StructRowNilReads (goChan3StructRowReads (goChan3StructRowRecv (goChan3StructListPass (goChan3StructPass (goChan3LowerAbsent (goChan3PassMarked (content, shadow), shadow), table), table))));
 }
@@ -3486,28 +3228,7 @@ function goChan3StructListPass (content: string, table: Map<string, string>): st
     }
     const inListCore = (at: number) => coreBodies.find (([ s, e ]) => (at >= s) && (at < e));
     // PromiseAllTyped of same-T list channels (shadow `PromiseAllTyped[[]any, AsyncResult[[]any]](..)`)
-    const promiseArgs: [ number, number ][] = [];
-    const pall = /(?<![\w.])((?:ccxt\.)?PromiseAllTyped)\[\[\]any, ((?:ccxt\.)?)AsyncResult\[\[\]any\]\]\(/g;
-    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
-        const open = m.index + m[0].length - 1;
-        const close = goChanClose (masked, open);
-        const args = masked.substring (open + 1, close - 1);
-        const ts = goChan3PromiseAllElem (masked, m.index, args, predictionFile, regLists, predLists, 'list-of-struct');
-        if (ts === undefined) {
-            continue;
-        }
-        const T = ts;
-        promiseArgs.push ([ open, close ]);
-        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + qt (T) + ', ' + m[2] + 'AsyncResult[' + qt (T) + ']]' });
-        const tail = /^\n(\t+)if (r\d*)\.Err != nil \{\n\t+panic\(\2\.Err\)\n\t+\}\n\t+var \w+ \[\]\[\]any = (\2\.Value)\n/.exec (masked.substring (close, close + 400));
-        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
-        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
-        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
-            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of list-of-struct channels');
-        }
-        const valueAt = close + tail[0].length - 1 - tail[3].length;
-        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructListsToLists(' + tail[3] + ', ' + q + helper (T).row + ')' });
-    }
+    const promiseArgs = goChan3PromiseAllRetype (masked, '\\[\\]any', predictionFile, regLists, predLists, 'list-of-struct', qt, (T, v) => q + 'StructListsToLists(' + v + ', ' + q + helper (T).row + ')', edits);
     goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
         'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regLists, predLists),
         'inCore': inListCore,
@@ -3644,13 +3365,7 @@ function goChan3SelfTest (): string[] {
     const pro = run ('package ccxtpro\n\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: this.ParseToInt(a)}\n\treturn nil\n', 'GetN', 'ccxt.'));
     ok (pro.includes ('<-chan ccxt.AsyncResult[int64] {') && pro.includes ('make(chan ccxt.AsyncResult[int64], 1)') && pro.includes ('ch <- ccxt.AsyncResult[int64]{Value: this.ParseToInt(a)}') && pro.includes ('(ch chan ccxt.AsyncResult[int64]'), 'pro qualification: ' + pro);
     // unprovable sends throw
-    ok (throws ('package ccxt\n' + core ('X', '\tvar r any = nil\n\tch <- AsyncResult[any]{Value: r}\n\treturn nil\n')), 'any local throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n')), 'any call throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: nil}\n\treturn nil\n', 'GetN')), 'nil into scalar throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tvar b bool = true\n\tch <- AsyncResult[any]{Value: b}\n\treturn nil\n')), 'wrong type throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tgo func() { ch <- AsyncResult[any]{} }()\n\treturn nil\n')), 'escaping channel throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tch <- <-this.OtherAsync(a)\n\treturn nil\n')), 'untabled forward throws');
-    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.OtherAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n')), 'untabled value forward throws');
+    for (const [ s, l ] of [ [ 'package ccxt\n' + core ('X', '\tvar r any = nil\n\tch <- AsyncResult[any]{Value: r}\n\treturn nil\n'), 'any local throws' ], [ 'package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n'), 'any call throws' ], [ 'package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: nil}\n\treturn nil\n', 'GetN'), 'nil into scalar throws' ], [ 'package ccxt\n' + core ('X', '\tvar b bool = true\n\tch <- AsyncResult[any]{Value: b}\n\treturn nil\n'), 'wrong type throws' ], [ 'package ccxt\n' + core ('X', '\tgo func() { ch <- AsyncResult[any]{} }()\n\treturn nil\n'), 'escaping channel throws' ], [ 'package ccxt\n' + core ('X', '\tch <- <-this.OtherAsync(a)\n\treturn nil\n'), 'untabled forward throws' ], [ 'package ccxt\n' + core ('X', '\tr := <-this.OtherAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n'), 'untabled value forward throws' ] ]) { ok (throws (s), l); }
     ok (!throws ('package ccxt\n' + core ('X', '\tpanic(NotSupported("x"))\n')), 'send-free base core');
     ok (throws ('package ccxt\n\nfunc (this *X) SetXAsync(a any) <-chan AsyncResult[any] {\n\tout := make(chan AsyncResult[any])\n\treturn out\n}\n'), 'hand shape throws');
     // same-T forwards stay
