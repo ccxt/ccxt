@@ -703,12 +703,12 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         previousTrades.push (trade);
                         previousOrder['trades'] = previousTrades;
                         previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                        let totalCost = '0';
-                        let totalAmount = '0';
+                        let totalCost: Str = '0';
+                        let totalAmount: Str = '0';
                         for (let i = 0; i < previousTrades.length; i++) {
                             const tradeEntry = this.safeDict (previousTrades, i);
-                            totalCost = this.safeString (tradeEntry, 'cost', '0');
-                            totalAmount = this.safeString (tradeEntry, 'amount', '0');
+                            totalCost = Precise.stringAdd (totalCost, this.safeString (tradeEntry, 'cost', '0'));
+                            totalAmount = Precise.stringAdd (totalAmount, this.safeString (tradeEntry, 'amount', '0'));
                         }
                         if (!Precise.stringEq (totalAmount, '0')) {
                             previousOrder['average'] = this.parseNumber (Precise.stringDiv (totalCost, totalAmount));
