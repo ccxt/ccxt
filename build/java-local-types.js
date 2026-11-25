@@ -10078,7 +10078,8 @@ const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ '
     [ '', 'aster', 'initializeClient', 'Bool', 'Boolean' ],
     [ '', 'kraken', 'fetchOrdersByIds', 'Order[]', 'List<Order>' ],
     [ '', 'mexc', 'fetchOrdersByIds', 'Order[]', 'List<Order>' ],
-    [ 'prediction', 'limitless', 'fetchOrdersByIds', 'PredictionOrder[]', 'List<PredictionOrder>' ] ];
+    [ 'prediction', 'limitless', 'fetchOrdersByIds', 'PredictionOrder[]', 'List<PredictionOrder>' ],
+    [ 'pro', 'kraken', 'authenticate' ], [ 'pro', 'lbank', 'authenticate' ], [ 'pro', 'mexc', 'authenticate' ], [ 'prediction', 'predictfun', 'authenticate' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
