@@ -768,8 +768,11 @@ export default class blofin extends blofinRest {
             newPositions.push (position);
             cache.append (position);
             if (channelName !== undefined) {
-                client.resolve (position, channelName + ':' + this.safeString (position, 'symbol', ''));
+                client.resolve ([ position ], channelName + ':' + this.safeString (position, 'symbol', ''));
             }
+        }
+        if (channelName !== undefined) {
+            client.resolve (newPositions, channelName);
         }
     }
 
