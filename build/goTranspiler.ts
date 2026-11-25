@@ -15514,21 +15514,21 @@ ${caseStatements.join('\n')}
 
         if (!isWs) {
             content = this.regexAll(content, [
-                [/base\.(\w+)\(/gm, "this.Exchange.$1("],
-                [/base\.Describe/gm, "this.Exchange.Describe"],
-                [/var (precise|preciseAmount) any = /gm, "$1 := "],
-                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'],
-                [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
-                [/<\-callDynamically/gm, '<-this.CallDynamically'],
-                [/callDynamically\(/gm, 'this.CallDynamically('],
-                [/toFixed/gm, 'ToFixed'],
-                [/throwDynamicException/gm, 'ThrowDynamicException'],
+                [/base\.(\w+)\(/gm, "this.Exchange.$1(", 'base.'],
+                [/base\.Describe/gm, "this.Exchange.Describe", 'base.Describe'],
+                [/var (precise|preciseAmount) any = /gm, "$1 := ", 'var precise'],
+                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")', 'binaryMessage'],
+                [/ToString\((precise\w*)\)/gm, "$1.ToString()", 'ToString(precise'],
+                [/<\-callDynamically/gm, '<-this.CallDynamically', '<-callDynamically'],
+                [/callDynamically\(/gm, 'this.CallDynamically(', 'callDynamically('],
+                [/toFixed/gm, 'ToFixed', 'toFixed'],
+                [/throwDynamicException/gm, 'ThrowDynamicException', 'throwDynamicException'],
                 // for-loops initialized from a transpiled (any-typed) variable need a
                 // numeric loop counter, e.g. `for i := startIndex;` -> `for i := int(ParseInt(startIndex));`
                 [/for (\w+) := ([a-zA-Z_]\w*); /g, 'for $1 := int(ParseInt($2)); '],
             ]);
             // `"\0"` is emitted as a raw NUL byte, which is not valid Go source: splice in
-            content = content.replace (/"\0"/gm, ((_match: string, offset: number) => (this.goGofmtArithmeticDepth (content, offset) > 1) ? '"//"+"0"' : '"//" + "0"') as any);
+            content = !content.includes ('"\0"') ? content : content.replace (/"\0"/gm, ((_match: string, offset: number) => (this.goGofmtArithmeticDepth (content, offset) > 1) ? '"//"+"0"' : '"//" + "0"') as any);
             if (this.isPrediction) {
                 // prediction cores embed PredictionExchange (which embeds BaseExchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
