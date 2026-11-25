@@ -8285,19 +8285,19 @@ export class BaseExchange {
                 keysToOmit.push ('triggerPrice');
                 keysToOmit.push ('stopPrice');
             }
-            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPrice));
+            triggerPriceStr = this.priceToPrecision (symbol, triggerPrice);
         }
         if (stopLossPrice !== undefined) {
             if (omitParams) {
                 keysToOmit.push ('stopLossPrice');
             }
-            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
             if (omitParams) {
                 keysToOmit.push ('takeProfitPrice');
             }
-            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
         }
         const keysToOmitLength = keysToOmit.length;
         const paramsOmitted = (keysToOmitLength > 0) ? this.omit (params, keysToOmit) : params;
