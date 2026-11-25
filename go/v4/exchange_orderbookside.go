@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 /**
@@ -64,10 +65,16 @@ type OrderBookSide struct {
 	Depth  int       `json:"-"`    // depth limit
 	Length int       `json:"-"`    // current Length
 	Side   bool      `json:"-"`    // false is asks, true is bids
-	// view carries the published side. The goroutine that mutates the book is
-	// its only owner: it copy-on-writes Data/Index and re-publishes, readers
-	// only ever read the published copy, so no critical section is needed.
+	// view carries the published side. A writer copy-on-writes Data/Index and
+	// re-publishes, readers only ever read the published copy, so readers need
+	// no critical section and never wait for a writer.
 	view chan sideView
+	// mu serializes the writers. There is more than one: the ws handler
+	// goroutine applies deltas, the consumer goroutine runs Limit() on the
+	// book watchOrderBook returned, and a spawned snapshot loader may Reset.
+	// Unserialized, their copy-on-write steps interleave and leave Data, Index
+	// and Length out of sync. Readers never take it.
+	mu sync.Mutex
 }
 
 // sideView is the immutable published state of one book side.
@@ -114,6 +121,33 @@ func (obs *OrderBookSide) ownData() {
 
 func (obs *OrderBookSide) ownIndex() {
 	obs.Index = append([]float64(nil), obs.Index...)
+}
+
+// sentinelIndex builds an empty price index of the given size.
+func sentinelIndex(size int) []float64 {
+	if size < len(SEED) {
+		size = len(SEED)
+	}
+	index := make([]float64, size)
+	for i := range index {
+		index[i] = math.MaxFloat64
+	}
+	return index
+}
+
+// replaceRows swaps the whole side for the given snapshot rows as one write:
+// no other writer can slip in between the wipe and the refill, and readers
+// keep the previous book until the new one is published complete.
+func (obs *OrderBookSide) replaceRows(rows []any) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
+	defer obs.publish()
+	obs.Data = [][]any{}
+	obs.Index = sentinelIndex(len(obs.Index))
+	obs.Length = 0
+	for _, row := range rows {
+		obs.storeRow(row)
+	}
 }
 
 // MarshalJSON emits the side as a plain array of price levels instead of the
@@ -225,11 +259,17 @@ func Init(obs IOrderBookSide, deltas any, depth any) IOrderBookSide {
 }
 
 func (obs *OrderBookSide) StoreArray(delta any) {
-
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.ownData()
 	obs.ownIndex()
 	defer obs.publish()
+	obs.storeRow(delta)
+}
 
+// storeRow applies one delta to arrays the caller already owns; the caller
+// holds mu and publishes afterwards.
+func (obs *OrderBookSide) storeRow(delta any) {
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
@@ -347,6 +387,8 @@ func (obs *OrderBookSide) Store(price any, size any) error {
 
 // Limit replaces stored orders with new values
 func (obs *OrderBookSide) Limit() {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.ownData()
 	obs.ownIndex()
 	defer obs.publish()
@@ -396,11 +438,31 @@ func (cobs *CountedOrderBookSide) Store(price any, size any) error {
 
 // StoreArray handles deltas with count (3 elements: price, size, count)
 func (obs *CountedOrderBookSide) StoreArray(delta any) {
-
+	obs.OrderBookSide.mu.Lock()
+	defer obs.OrderBookSide.mu.Unlock()
 	obs.OrderBookSide.ownData()
 	obs.OrderBookSide.ownIndex()
 	defer obs.OrderBookSide.publish()
+	obs.storeRow(delta)
+}
 
+// replaceRows is the counted variant of OrderBookSide.replaceRows.
+func (obs *CountedOrderBookSide) replaceRows(rows []any) {
+	base := obs.OrderBookSide
+	base.mu.Lock()
+	defer base.mu.Unlock()
+	defer base.publish()
+	base.Data = [][]any{}
+	base.Index = sentinelIndex(len(base.Index))
+	base.Length = 0
+	for _, row := range rows {
+		obs.storeRow(row)
+	}
+}
+
+// storeRow applies one delta to arrays the caller already owns; the caller
+// holds mu and publishes afterwards.
+func (obs *CountedOrderBookSide) storeRow(delta any) {
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
@@ -486,9 +548,12 @@ type IndexedOrderBookSide struct {
 	Depth   int             // depth limit
 	Length  int             // current Length
 	Side    bool            // false is asks, true is bids
-	// view publishes the shadowing Data/Index/Depth/Length fields; the owner
+	// view publishes the shadowing Data/Index/Depth/Length fields; a writer
 	// copy-on-writes them and re-publishes, readers read the published copy.
 	view chan sideView
+	// mu serializes the writers, see OrderBookSide.mu; the embedded side is
+	// nil here, so the indexed side carries its own.
+	mu sync.Mutex
 }
 
 func (iobs *IndexedOrderBookSide) publishIndexed() {
@@ -590,12 +655,32 @@ func (obs *IndexedOrderBookSide) findRowById(start int, id string) int {
 
 // StoreArray handles deltas with id (3 elements: price, size, id)
 func (obs *IndexedOrderBookSide) StoreArray(delta any) {
-
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.ownIndexedData()
 	obs.ownIndexedIndex()
 	obs.ownIndexedHashmap()
 	defer obs.publishIndexed()
+	obs.storeRow(delta)
+}
 
+// replaceRows is the indexed variant of OrderBookSide.replaceRows.
+func (obs *IndexedOrderBookSide) replaceRows(rows []any) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
+	defer obs.publishIndexed()
+	obs.Data = [][]any{}
+	obs.Index = sentinelIndex(len(obs.Index))
+	obs.Hashmap = make(map[any]float64)
+	obs.Length = 0
+	for _, row := range rows {
+		obs.storeRow(row)
+	}
+}
+
+// storeRow applies one delta to arrays the caller already owns; the caller
+// holds mu and publishes afterwards.
+func (obs *IndexedOrderBookSide) storeRow(delta any) {
 	deltaArray, isArray := delta.([]any)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]any)
@@ -760,6 +845,8 @@ func (obs *IndexedOrderBookSide) StoreArray(delta any) {
 
 // Limit replaces stored orders with new values
 func (iobs *IndexedOrderBookSide) Limit() {
+	iobs.mu.Lock()
+	defer iobs.mu.Unlock()
 	iobs.ownIndexedData()
 	iobs.ownIndexedIndex()
 	iobs.ownIndexedHashmap()
@@ -967,22 +1054,28 @@ func (iobs *IndexedOrderBookSide) CopySide() IOrderBookSide {
 	return out
 }
 func (obs *OrderBookSide) SetLen(length int) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Length = length
 	obs.publish()
 }
 func (obs *OrderBookSide) SetData(data [][]any) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Data = data
 	obs.publish()
 }
 
-// GetIndex hands back the live index for the owner-side reset path (Reset
-// zeroes it before refilling); a mutation through it must be followed by
-// SetData/SetLen so readers get the new published copy.
+// GetIndex hands back the live index, unguarded: it is only safe on a side no
+// other goroutine can reach yet (Init seeds a side under construction through
+// it). A shared side is wiped and refilled through replaceRows instead.
 func (obs *OrderBookSide) GetIndex() *[]float64 {
 	return &obs.Index
 }
 
 func (obs *OrderBookSide) SetDepth(depth int) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Depth = depth
 	obs.publish()
 }
@@ -1014,10 +1107,14 @@ func (obs *CountedOrderBookSide) GetValue(key string, defaultValue any) any {
 	return obs.OrderBookSide.GetValue(key, defaultValue)
 }
 func (obs *IndexedOrderBookSide) SetLen(length int) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Length = length
 	obs.publishIndexed()
 }
 func (obs *IndexedOrderBookSide) SetData(data [][]any) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Data = data
 	obs.publishIndexed()
 }
@@ -1091,6 +1188,8 @@ func (obs *IndexedOrderBookSide) Len() int {
 	return obs.snapshotIndexed().length
 }
 func (obs *IndexedOrderBookSide) SetDepth(depth int) {
+	obs.mu.Lock()
+	defer obs.mu.Unlock()
 	obs.Depth = depth
 	obs.publishIndexed()
 }
