@@ -9836,7 +9836,7 @@ function rustTypedDictEndpointsCrate (): Map<string, string> {
             if (!names.has (n)) continue;
             const before = c.slice (Math.max (0, m.index - 30), m.index);
             if (m[2] !== undefined && /(?:self|self\.parent)\.call_method_[to]\($/.test (before)) { dict.add (n); continue; }
-            const close = m[1] !== undefined && /self(?:\.parent)?$/.test (before) ? balancedCloseIndex (c, m.index + m[0].length) : c.length;
+            const close = m[1] !== undefined && /self(?:\.parent)*$/.test (before) ? balancedCloseIndex (c, m.index + m[0].length) : c.length;
             if (/^\.await\.into_(?:opt_)?dict\(\)/.test (c.slice (close + 1, close + 30))) { dict.add (n); continue; }
             blocked.add (n);
         }
@@ -9869,7 +9869,7 @@ function rustTypedDictEndpointsCrate (): Map<string, string> {
             n2 = res + n2.slice (last);
             // a wrapper already typed when this file was printed: `.into_dict()` is `.unwrap_or_default()`, `.into_opt_dict()` drops
             res = ''; last = 0;
-            const call = /\bself(?:\.parent)?\.([a-z0-9_]+)\(/g;
+            const call = /\bself(?:\.parent)*\.([a-z0-9_]+)\(/g;
             while ((m = call.exec (n2)) !== null) {
                 if (!typed.has (m[1])) continue;
                 const close = balancedCloseIndex (n2, m.index + m[0].length);
