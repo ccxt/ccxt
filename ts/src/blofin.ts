@@ -1414,6 +1414,7 @@ export default class blofin extends Exchange {
         const isMarketOrder = type === 'market';
         query = this.omit (query, [ 'timeInForce' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
+        const fok = (timeInForce === 'FOK') || (type === 'fok');
         const marketIOC = (isMarketOrder && ioc);
         if (isMarketOrder || marketIOC) {
             request['orderType'] = 'market';
@@ -1427,7 +1428,11 @@ export default class blofin extends Exchange {
         let postOnly = false;
         [ postOnly, query ] = this.handlePostOnly (isMarketOrder, type === 'post_only', query);
         if (postOnly) {
-            request['type'] = 'post_only';
+            request['orderType'] = 'post_only';
+        } else if (ioc && !marketIOC) {
+            request['orderType'] = 'ioc';
+        } else if (fok && !isMarketOrder) {
+            request['orderType'] = 'fok';
         }
         const stopLoss = this.safeDict (query, 'stopLoss');
         const takeProfit = this.safeDict (query, 'takeProfit');
