@@ -6848,7 +6848,8 @@ function omitDictionaryArmType (csharp, node, context) {
 // `c ? 'taker' : takerOrMaker` have a string natural type. Both arms are string references (or
 // null), so a `string?` declaration holds the very box the `object` one held.
 function stringParameterArmType (csharp, arm) {
-    const type = parameterArithmeticType (csharp, arm);
+    // also a `Str` parameter the printer itself prints `string` (unwritten, not ref-sunk)
+    const type = parameterArithmeticType (csharp, arm) ?? printedUnwrittenParameterType (csharp, arm);
     // always the nullable spelling: a `string` parameter still receives null from a caller, and the
     // non-null `string` answer would let a later `+` rule treat the local as never null
     return (type === 'string' || type === 'string?') ? 'string?' : undefined;
