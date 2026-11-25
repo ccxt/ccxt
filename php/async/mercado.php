@@ -486,12 +486,21 @@ class mercado extends Exchange {
         $side = $this->safe_string($trade, 'type');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'amount', 'quantity');
-        $feeCost = $this->safe_string($trade, 'fee_rate');
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        $feeRate = $this->safe_string($trade, 'fee_rate');
         $fee = null;
-        if ($feeCost !== null) {
+        if (($feeRate !== null) && ($side !== null)) {
+            $rate = Precise::string_div($feeRate, '100');
+            $isBuy = ($side === 'buy');
+            $feeBase = ($isBuy) ? $amount : Precise::string_mul($amount, $price);
+            $feeCurrency = $this->safe_string($marketResolved, 'quote');
+            if ($isBuy) {
+                $feeCurrency = $this->safe_string($marketResolved, 'base');
+            }
             $fee = array(
-                'cost' => $feeCost,
-                'currency' => null,
+                'cost' => Precise::string_mul($feeBase, $rate),
+                'currency' => $feeCurrency,
+                'rate' => $rate,
             );
         }
         return $this->safe_trade(array(
@@ -744,7 +753,12 @@ class mercado extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed_quantity');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
-        $rawTrades = $this->safe_list($order, 'operations', array());
+        $operations = $this->safe_list($order, 'operations', array());
+        $rawTrades = array();
+        for ($i = 0; $i < count($operations); $i++) {
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            $rawTrades[] = $this->extend($operations[$i], array( 'type' => $side ));
+        }
         $symbol = $this->safe_string($marketResolved, 'symbol');
         return $this->safe_order(array(
             'info' => $order,

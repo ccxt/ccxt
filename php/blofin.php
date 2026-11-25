@@ -1852,7 +1852,20 @@ class blofin extends Exchange {
             $request['newSize'] = $this->amount_to_precision($symbol, $amount);
         }
         $query = $this->omit($params, array( 'clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
-        $response = null;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
         if ($isTpsl) {
             $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
             if ($stopLossPrice !== null) {
@@ -1874,7 +1887,8 @@ class blofin extends Exchange {
                     $request['newTpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
                 }
             }
-            $response = $this->privatePostTradeAmendTpsl($this->extend($request, $query));
+            $tpslResponse = $this->privatePostTradeAmendTpsl($this->extend($request, $query));
+            return $this->parse_order($this->safe_dict($tpslResponse, 'data', array()), $market);
         } elseif ($isTrigger) {
             $triggerPrice = $this->safe_string($params, 'triggerPrice');
             if ($triggerPrice !== null) {
@@ -1885,29 +1899,15 @@ class blofin extends Exchange {
             } elseif ($price !== null) {
                 $request['newOrderPrice'] = $this->price_to_precision($symbol, $price);
             }
-            $response = $this->privatePostTradeAmendAlgo($this->extend($request, $query));
+            $algoResponse = $this->privatePostTradeAmendAlgo($this->extend($request, $query));
+            return $this->parse_order($this->safe_dict($algoResponse, 'data', array()), $market);
         } else {
             if ($price !== null) {
                 $request['newPrice'] = $this->price_to_precision($symbol, $price);
             }
             $response = $this->privatePostTradeAmendOrder($this->extend($request, $query));
+            return $this->parse_order($this->safe_dict($response, 'data', array()), $market);
         }
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "Order modified",
-        //         "data": {
-        //             "orderId": "6000004088576",
-        //             "clientOrderId": "",
-        //             "requestId": "",
-        //             "msg": "Order modified",
-        //             "code": "0",
-        //             "ts": "1795184228537"
-        //         }
-        //     }
-        //
-        $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
