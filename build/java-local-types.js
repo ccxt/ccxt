@@ -2505,12 +2505,18 @@ function integerLengthLocalPeer (scope, other) {
 // a local initialised from a non-`this` call the printer rewrites to a known Java shape
 // (string/array method calls, Math builtins) or from a `x.length` read
 function receiverMethodLocalType (initializer) {
-    const entry = receiverMethodLocalEntry (initializer);
+    const entry = receiverMethodLocalEntry (lengthMinusZeroOperand (initializer) ?? initializer);
     if (entry?.type === 'Integer' && ts.isVariableDeclaration (initializer.parent)
         && integerLocalHasBoxedEquality (initializer.parent)) {
         return undefined;
     }
     return entry;
+}
+
+// `x.length - 0` (an idiom that keeps PHP on strlen) prints as the bare length
+function lengthMinusZeroOperand (node) {
+    return ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.MinusToken && ts.isNumericLiteral (node.right)
+        && node.right.text === '0' && ts.isPropertyAccessExpression (unwrapParens (node.left)) ? unwrapParens (node.left) : undefined;
 }
 
 function receiverMethodLocalEntry (initializer) {
