@@ -2983,7 +2983,7 @@ export default class poloniex extends Exchange {
     /**
      * @method
      * @name poloniex#fetchFundingRateHistory
-     * @description fetches historical funding rate prices. The exchange chooses which rows it returns: the row limit defaults to 100, its ordering and boundaries are not documented, and its Chinese docs say the start time defaults to the start of the current day (timezone not stated, not verified live), so pass since to ask for older data. The result is not guaranteed to be complete or to start at since
+     * @description fetches historical funding rate prices. The exchange chooses which rows it returns: the row limit defaults to 100, its ordering and boundaries are not documented, and its Chinese docs say the start time defaults to the start of the current day (timezone not stated, not independently verified), so pass since to ask for older data. since and until are sent as milliseconds although the English docs say seconds. The result is not guaranteed to be complete or to start at since
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-the-historical-funding-rates
      * @param {string} symbol unified symbol of the swap market to fetch the funding rate history for (required)
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
@@ -3005,14 +3005,14 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
-            request['sT'] = this.parseToInt (since / 1000);
+            request['sT'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
-            request['eT'] = this.parseToInt (until / 1000);
+            request['eT'] = until;
         }
         const response = await this.swapPublicGetV3MarketFundingRateHistory (this.extend (request, this.omit (params, [ 'until', 'till' ])));
         //
