@@ -5873,6 +5873,8 @@ function rustStrParamCopyDrop (content: string): string {
                 if (info !== null && !local.some ((e) => e.text === `Value::from(${name})`)) { local.push ({ start: at, end: at + name.length + info[0].length, text: `Value::from(${name})` }); continue; }
                 // a reader's by-value copy (`x.clone(),`) takes the `Copy` borrow itself
                 if (/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\($/.test (lead) && after.startsWith ('.clone(),')) { local.push ({ start: at, end: at + name.length + '.clone()'.length, text: name }); continue; }
+                // a key test on the copy is the same test on the borrow (`Null` holds no key)
+                if (lead.endsWith ('matches!(&') && after.startsWith (', Value::Dict(__d) if __d.contains_key(')) { local.push ({ start: at - 1, end: at + name.length + ', Value::Dict(__d)'.length, text: `${name}, Some(__d)` }); continue; }
                 if (!(/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\(&?$/.test (lead) && after.startsWith (','))) ok = false;
                 continue;
             }
