@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -213,7 +214,12 @@ type BaseExchange struct {
 	Balance         map[string]any
 	Positions       WsArrayCache            // one cache object, nil until a handler creates it
 	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
-	// the ws client registry, a plain map keyed by url
+	// the ws client registry, keyed by url. clientsMu guards every read and
+	// write of Clients; ws client creation and deletion happen on concurrent
+	// subscription/close goroutines. Reads take the read lock, mutations the
+	// write lock; generated venue code reaches the map only through the
+	// exported WsClient* helpers in exchange_ws_cache.go.
+	clientsMu  sync.RWMutex
 	Clients    map[string]any
 	newUpdates bool
 	streaming  map[string]any

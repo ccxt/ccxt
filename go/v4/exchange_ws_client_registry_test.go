@@ -5,7 +5,9 @@ import (
 	"testing"
 )
 
-// The ws client registry is the plain map this.Clients, edited in place by the wsClient* helpers.
+// The ws client registry is this.Clients, a mutex-guarded map on BaseExchange: the
+// wsClient* helpers mutate it under the write lock and the exported WsClient*
+// accessors read it under the read lock.
 
 func newOwnedBaseExchange() *BaseExchange {
 	return &BaseExchange{}
@@ -87,5 +89,76 @@ func TestWsClientRegistryDrainHandsBackEveryClient(t *testing.T) {
 	}
 	if left := len(exchange.Clients); left != 0 {
 		t.Fatalf("drain must clear the registry, %d entries left", left)
+	}
+}
+
+func TestWsClientRegistrySnapshotIsACopy(t *testing.T) {
+	exchange := newOwnedBaseExchange()
+	first := NewWSClient("wss://a", nil, nil, nil, nil, "")
+	second := NewWSClient("wss://b", nil, nil, nil, nil, "")
+	exchange.wsClientGetOrCreate("wss://a", func() any { return first })
+	exchange.wsClientGetOrCreate("wss://b", func() any { return second })
+
+	if empty := newOwnedBaseExchange().WsClientSnapshot(); len(empty) != 0 {
+		t.Fatalf("empty registry snapshot has %d clients, want 0", len(empty))
+	}
+	snapshot := exchange.WsClientSnapshot()
+	if len(snapshot) != 2 {
+		t.Fatalf("snapshot has %d clients, want 2", len(snapshot))
+	}
+	seen := map[any]bool{}
+	for _, client := range snapshot {
+		seen[client] = true
+	}
+	if !seen[first] || !seen[second] {
+		t.Fatalf("snapshot is missing a registered client")
+	}
+	// the snapshot is taken under the read lock: later mutations must not change it
+	exchange.WsClientDelete("wss://a")
+	if len(snapshot) != 2 {
+		t.Fatalf("snapshot changed after a delete, %d clients left in the copy", len(snapshot))
+	}
+	if exchange.WsClientHas("wss://a") {
+		t.Fatalf("delete must remove the client from the registry")
+	}
+}
+
+func TestWsClientRegistryLookupGetHasIs(t *testing.T) {
+	exchange := newOwnedBaseExchange()
+	client := NewWSClient("wss://x", nil, nil, nil, nil, "")
+	other := NewWSClient("wss://x", nil, nil, nil, nil, "")
+	exchange.wsClientGetOrCreate("wss://x", func() any { return client })
+
+	if got := exchange.WsClientLookup("wss://x"); got != any(client) {
+		t.Fatalf("lookup = %v, want the registered client", got)
+	}
+	if got := exchange.WsClientLookup("wss://missing"); got != nil {
+		t.Fatalf("lookup of an unregistered url = %v, want nil", got)
+	}
+	// generated code can hand over a pointer-carried url (a SafeString result)
+	pointerUrl := "wss://x"
+	if got := exchange.WsClientLookup(&pointerUrl); got != any(client) {
+		t.Fatalf("lookup of a pointer-carried url = %v, want the registered client", got)
+	}
+	if got, ok := exchange.WsClientGet("wss://x"); !ok || got != any(client) {
+		t.Fatalf("get = %v, %v, want the registered client, true", got, ok)
+	}
+	if got, ok := exchange.WsClientGet("wss://missing"); ok || got != nil {
+		t.Fatalf("get of an unregistered url = %v, %v, want nil, false", got, ok)
+	}
+	if !exchange.WsClientHas("wss://x") {
+		t.Fatalf("has must report a registered client")
+	}
+	if exchange.WsClientHas("wss://missing") {
+		t.Fatalf("has must reject an unregistered url")
+	}
+	if !exchange.WsClientIs("wss://x", client) {
+		t.Fatalf("is must accept the registered client")
+	}
+	if exchange.WsClientIs("wss://x", other) {
+		t.Fatalf("is must reject a different client for the same url")
+	}
+	if exchange.WsClientIs("wss://missing", client) {
+		t.Fatalf("is must reject an unregistered url")
 	}
 }
