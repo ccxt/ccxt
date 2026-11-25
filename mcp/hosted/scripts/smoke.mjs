@@ -5,6 +5,7 @@
 //   node scripts/smoke.mjs --url http://127.0.0.1:8080/mcp   # check a running server
 //   node scripts/smoke.mjs --live                # also call market tools (needs exchange access)
 //   node scripts/smoke.mjs --require-ready       # fail unless /readyz turns 200
+//   node scripts/smoke.mjs --url https://docs.ccxt.com/mcp --live   # a deployed server (no /healthz, /readyz)
 //
 // Without --url it starts the bundle with EXCHANGES (default "kraken", or "kraken,coinbase,okx"
 // with --live: the live checks call those). The default checks
@@ -79,9 +80,16 @@ try {
         console.log ('started ' + bundle + ' (pid ' + child.pid + ') on ' + url);
     }
     const origin = new URL (url).origin;
-    check (await waitFor (origin + '/healthz', 200, 30000), '/healthz answers 200');
-    if (flag ('--require-ready') || flag ('--live')) {
-        check (await waitFor (origin + '/readyz', 200, 120000), '/readyz answers 200 (exchanges warm)');
+    // /healthz and /readyz are served on the service's own port only; nginx does not proxy
+    // them, so a public --url (https://docs.ccxt.com/mcp) skips them
+    const local = [ '127.0.0.1', 'localhost', '[::1]' ].includes (new URL (url).hostname);
+    if (local) {
+        check (await waitFor (origin + '/healthz', 200, 30000), '/healthz answers 200');
+        if (flag ('--require-ready') || flag ('--live')) {
+            check (await waitFor (origin + '/readyz', 200, 120000), '/readyz answers 200 (exchanges warm)');
+        }
+    } else {
+        console.log ('  --  ' + origin + ' is not local: /healthz and /readyz are not public, skipped');
     }
     for (const mode of [ 'legacy', 'auto' ]) {
         console.log ('client mode ' + mode);
@@ -99,7 +107,10 @@ try {
         check (view.contents[0].mimeType === 'text/html;profile=mcp-app' && view.contents[0].text.length > 10000, 'resources/read ' + chartUri + ' (' + view.contents[0].text.length + ' chars)');
         if (flag ('--live')) {
             // the server's own allowlist decides which venue answers the order book check
-            const served = Object.keys ((await (await fetch (origin + '/readyz')).json ()).exchanges ?? {});
+            // (from /readyz locally; through list_exchanges on a public URL, where /readyz is not proxied)
+            const served = local
+                ? Object.keys ((await (await fetch (origin + '/readyz')).json ()).exchanges ?? {})
+                : (envelope (await client.callTool ({ 'name': 'list_exchanges', 'arguments': {} }))?.data ?? []).map ((exchange) => exchange.id);
             check (served.includes ('kraken'), 'kraken is on the allowlist (' + served.join (',') + ')');
             const tickers = await client.callTool ({ 'name': 'get_tickers', 'arguments': { 'exchange': 'kraken', 'symbols': [ 'BTC/USD' ] } });
             const ticker = envelope (tickers);
