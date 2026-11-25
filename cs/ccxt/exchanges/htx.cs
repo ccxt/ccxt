@@ -4542,7 +4542,7 @@ public partial class htx : Exchange
             } else
             {
                 await this.loadAccounts();
-                string? accountId = await this.FetchAccountIdByType(type, null, null, paramsMarginMode);
+                string? accountId = await this.FetchAccountIdByType("spot", null, null, paramsMarginMode);
                 request["account-id"] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode));
             }
@@ -6315,7 +6315,7 @@ public partial class htx : Exchange
         (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
-        string? accountId = await this.FetchAccountIdByType(((string)(market.ContainsKey("type") ? market["type"] : null)), marginMode, symbol);
+        string? accountId = await this.FetchAccountIdByType(this.safeString(market, "type", ""), marginMode, symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", accountId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

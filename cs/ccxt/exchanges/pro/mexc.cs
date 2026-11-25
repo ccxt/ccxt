@@ -846,24 +846,23 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-        object orderbook = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
             (string?, IDictionary<string, object>) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = (frequencyparamsFrequencyVariable.Item2);
             string spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
-            orderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
+            ccxt.pro.IOrderBook spotOrderbook = ((ccxt.pro.IOrderBook)await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency));
+            return (spotOrderbook as IOrderBook).limit().Copy();
         } else
         {
             string channel = "sub.depth";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchSwapPublic(channel, messageHash, requestParams, parameters));
+            return (orderbook as IOrderBook).limit().Copy();
         }
-        orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
-        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message)

@@ -3721,7 +3721,7 @@ public partial class coinbaseinternational : Exchange
         }
         double? ratio = this.safeNumber(this.options, "accessTokenRefreshRatio");
         double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
-        Int64? tokenRefreshInMilliseconds = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio));
+        Int64? tokenRefreshInMilliseconds = this.parseToInt(((double?)(expiresIn * 1000) * refreshRatio));
         this.token = accessToken;
         this.options["v2AccessToken"] = accessToken;
         this.options["v2TokenExpires"] = this.sum(now, tokenRefreshInMilliseconds);

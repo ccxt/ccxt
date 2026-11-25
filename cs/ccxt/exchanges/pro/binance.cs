@@ -9,8 +9,7 @@ public partial class binance : ccxt.binance
 {
     public override Dictionary<string, object> describe()
     {
-        Dictionary<string, object> superDescribe = base.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(base.describe(), this.describeData());
     }
 
     public virtual Dictionary<string, object> describeData()
@@ -3961,7 +3960,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190602 && ((hxArr190602 is IList<object>) || (hxArr190602 is not null && hxArr190602.GetType().IsGenericType && hxArr190602.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190557 && ((hxArr190557 is IList<object>) || (hxArr190557 is not null && hxArr190557.GetType().IsGenericType && hxArr190557.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -6020,7 +6019,7 @@ public partial class binance : ccxt.binance
         // snapshot was in flight: a stale snapshot must not overwrite
         // the fresh one loaded for the new client
         WebSocketClient currentClient = ((WebSocketClient)this.safeValue(this.clients, client.url));
-        if (!isEqual(currentClient, client))
+        if (!(currentClient == client))
         {
             return;
         }

@@ -9160,7 +9160,7 @@ public partial class okx : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         // addMargin/reduceMargin
@@ -10453,7 +10453,7 @@ public partial class okx : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "instId");
             if ((entryMarketId == marketId))
             {

@@ -313,11 +313,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.trades.any.any." + interval);
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             channel = ((("user.trades." + this.safeString(market, "id", "")) + ".") + interval);
         }
         ccxt.pro.ArrayCache trades = await this.subscribe<ccxt.pro.ArrayCache>(new List<object>() {channel}, new List<object>() {channel}, true, paramsInterval);
@@ -399,11 +399,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? interval = intervalparamsIntervalVariable.Item1;
         IDictionary<string, object> paramsInterval = (intervalparamsIntervalVariable.Item2);
         string channel = ("user.orders.any.any." + interval);
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             channel = ((("user.orders." + this.safeString(market, "id", "")) + ".") + interval);
         }
         ccxt.pro.ArrayCache orders = await this.subscribe<ccxt.pro.ArrayCache>(new List<object>() {channel}, new List<object>() {channel}, true, paramsInterval);
@@ -1081,7 +1081,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49934 && ((hxArr49934 is IList<object>) || (hxArr49934 is not null && hxArr49934.GetType().IsGenericType && hxArr49934.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49970 && ((hxArr49970 is IList<object>) || (hxArr49970 is not null && hxArr49970.GetType().IsGenericType && hxArr49970.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1711,7 +1711,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         double? ratio = this.safeNumber(this.options, "wsAuthRefreshRatio");
         double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
         Int64 now = this.milliseconds();
-        this.options["wsAuthRefreshAt"] = this.sum(now, this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio)));
+        this.options["wsAuthRefreshAt"] = this.sum(now, this.parseToInt(((double?)(expiresIn * 1000) * refreshRatio)));
         client.lastPong = now;
         client.resolve(result, "authenticated");
     }

@@ -246,7 +246,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} outcomeId integer outcome id
      * @returns {string} the outcome
      */
-    public virtual string? buildOutcomeSymbol(IDictionary<string, object> desc, string? side, object outcomeId)
+    public virtual string? buildOutcomeSymbol(IDictionary<string, object> desc, Int64? side, object outcomeId)
     {
         string? underlying = this.safeString(desc, "underlying", ("OUTCOME" + outcomeId.ToString()));
         string? targetPrice = this.safeString(desc, "targetPrice", "");
@@ -259,7 +259,7 @@ public partial class hyperliquid : PredictionExchange
             expiryDate = ((string)(expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null));
         }
         string label = "NO";
-        if (isEqual(side, 0))
+        if ((side == 0))
         {
             label = "YES";
         }
@@ -2623,10 +2623,10 @@ public partial class hyperliquid : PredictionExchange
         if (config.ContainsKey("byType"))
         {
             string? type = this.safeString(parameters, "type");
-            object byType = config["byType"];
+            IDictionary<string, object> byType = this.safeDict(config, "byType", new Dictionary<string, object>() {});
             if ((type != null))
             {
-                if (inOp(byType, type))
+                if (((type != null) && byType.ContainsKey(type)))
                 {
                     return this.safeInteger(byType, type);
                 }

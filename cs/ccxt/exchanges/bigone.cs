@@ -1751,7 +1751,7 @@ public partial class bigone : Exchange
         bool? exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         bool? postOnly = null;
         IDictionary<string, object> query = null;
-        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(uppercaseType == "MARKET", exchangeSpecificParam, parameters);
+        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(uppercaseType == "MARKET", (exchangeSpecificParam == true), parameters);
         postOnly = (bool?)postOnlyqueryVariable[0];
         query = (IDictionary<string, object>)postOnlyqueryVariable[1];
         string? triggerPrice = this.safeStringN(query, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});

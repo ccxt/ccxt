@@ -2609,7 +2609,7 @@ public partial class krakenfutures : Exchange
                 { "status", "rejected" },
             });
         }
-        object details = null;
+        IDictionary<string, object> details = null;
         bool isPrior = false;
         bool fixedVar = false;
         string? statusId = null;
@@ -2629,7 +2629,7 @@ public partial class krakenfutures : Exchange
                 IDictionary<string, object> orderTrigger = this.safeDict(item, "orderTrigger");
                 if ((details == null))
                 {
-                    details = this.safeValue2(item, "new", "order", orderTrigger);
+                    details = this.safeDict2(item, "new", "order", orderTrigger);
                     if ((details != null))
                     {
                         isPrior = false;
@@ -2638,7 +2638,7 @@ public partial class krakenfutures : Exchange
                     {
                         string? executedPrice = this.safeString(item, "price");
                         IDictionary<string, object> orderPriorExecution = this.safeDict(item, "orderPriorExecution");
-                        details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
+                        details = this.safeDict2(item, "orderPriorExecution", "orderPriorEdit");
                         if ((executedPrice == null))
                         {
                             price = this.safeString(orderPriorExecution, "limitPrice");

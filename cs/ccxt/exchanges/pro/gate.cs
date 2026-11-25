@@ -9,8 +9,7 @@ public partial class gate : ccxt.gate
 {
     public override Dictionary<string, object> describe()
     {
-        Dictionary<string, object> superDescribe = base.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(base.describe(), this.describeData());
     }
 
     public virtual Dictionary<string, object> describeData()

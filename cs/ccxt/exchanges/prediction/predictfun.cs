@@ -2215,7 +2215,7 @@ public partial class predictfun : PredictionExchange
             { "strategy", strategy },
         };
         bool? postOnly = this.safeBool(paramsTaker, "isPostOnly", false);
-        IList<object> postOnlyOptionparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        IList<object> postOnlyOptionparamsPostOnlyVariable = (IList<object>)this.handlePostOnly(isMarket, (postOnly == true), paramsTaker);
         bool postOnlyOption = (bool)postOnlyOptionparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyOptionparamsPostOnlyVariable[1]);
         if (postOnlyOption)

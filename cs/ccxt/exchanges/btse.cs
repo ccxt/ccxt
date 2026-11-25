@@ -2121,7 +2121,7 @@ public partial class btse : Exchange
         bool isLimitOrder = (typeValue == "LIMIT");
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, query);
+        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, false, query);
         postOnly = (bool?)postOnlyqueryVariable[0];
         query = (IDictionary<string, object>)postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
         if ((postOnly == true))
@@ -2389,7 +2389,7 @@ public partial class btse : Exchange
         bool isLimitOrder = (typeValue == "LIMIT");
         bool? postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, postOnly, query);
+        IList<object> postOnlyqueryVariable = (IList<object>)this.handlePostOnly(isMarketOrder, false, query);
         postOnly = (bool?)postOnlyqueryVariable[0];
         query = (IDictionary<string, object>)postOnlyqueryVariable[1]; // this will remove PO from params.timeInForce if present
         if ((postOnly == true))

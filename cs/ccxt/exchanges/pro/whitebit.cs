@@ -552,13 +552,13 @@ public partial class whitebit : ccxt.whitebit
         if ((feeCost != null))
         {
             string? feeCurrencyId = this.safeString(trade, 10);
-            object feeCurrencyCode = null;
+            string? feeCurrencyCode = null;
             if ((feeCurrencyId != null))
             {
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             } else
             {
-                feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+                feeCurrencyCode = this.safeString(marketResolved, "quote");
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

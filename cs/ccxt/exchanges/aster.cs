@@ -3802,7 +3802,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToMarginModificationList(this.filterBySymbolSinceLimit(modifications, symbol, since, limit));
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {

@@ -3434,7 +3434,7 @@ public partial class bitrue : Exchange
         return response;
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         // setMargin

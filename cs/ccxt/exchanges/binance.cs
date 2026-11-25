@@ -5041,6 +5041,7 @@ public partial class binance : Exchange
         List<object> markets = new List<object>() {};
         this.options["crossMarginPairsData"] = new List<object>() {};
         this.options["isolatedMarginPairsData"] = new List<object>() {};
+        bool crossMarginStored = false;
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
             object res = this.safeValue(results, i);
@@ -5048,11 +5049,11 @@ public partial class binance : Exchange
             {
                 Dictionary<string, object> resBySymbol = this.indexBy(res, "symbol");
                 List<object> keysList = new List<object>(resBySymbol.Keys);
-                int length = getArrayLength((this.options != null && this.options.ContainsKey("crossMarginPairsData") ? this.options["crossMarginPairsData"] : null));
                 // first one is the cross-margin promise
-                if ((length == 0))
+                if (!crossMarginStored)
                 {
                     this.options["crossMarginPairsData"] = keysList;
+                    crossMarginStored = true;
                 } else
                 {
                     this.options["isolatedMarginPairsData"] = keysList;
@@ -10089,7 +10090,7 @@ public partial class binance : Exchange
             request["startTime"] = since;
         }
         // max 100
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if ((limit != null) && (stock == true))
         {
             limitResolved = Math.Min(limit.Value, 100);
@@ -11529,12 +11530,12 @@ public partial class binance : Exchange
         }
         bool isContractLimit = (type == "option") || (this.safeBool(market, "contract", false) == true);
         // above 1000, returns error
-        object limitContract = limit;
+        Int64? limitContract = limit;
         if ((limit != null) && isContractLimit)
         {
             limitContract = Math.Min(limit.Value, 1000);
         }
-        object limitResolved = limitContract;
+        Int64? limitResolved = limitContract;
         if ((limit != null) && (stock == true))
         {
             limitResolved = Math.Min(limit.Value, 100);
@@ -13416,10 +13417,10 @@ public partial class binance : Exchange
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    public async virtual Task<Dictionary<string, object>> futuresTransfer(string code, object amount, object type, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> futuresTransfer(string code, object amount, Int64 type, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((isLessThan(type, 1)) || (isGreaterThan(type, 4)))
+        if (((type < 1)) || ((type > 4)))
         {
             throw new ArgumentsRequired ((this.id + " type must be between 1 and 4")) ;
         }
@@ -16387,7 +16388,7 @@ public partial class binance : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         // add/reduce margin

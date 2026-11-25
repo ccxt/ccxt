@@ -2132,12 +2132,12 @@ public partial class okx : ccxt.okx
         }
         string messageHash = (channel + "::myTrades");
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         string? type = typeOption;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
             type = this.safeString(market, "type");
             messageHash = ((messageHash + "::") + this.safeString(market, "symbol", ""));
         }

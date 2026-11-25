@@ -178,7 +178,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
     public async virtual Task<object> ibkrKeepAliveSession(WebSocketClient client)
     {
         WebSocketClient current = ((WebSocketClient)this.safeValue(this.clients, client.url));
-        if (!isEqual(current, client))
+        if (!(current == client))
         {
             return null;  // the connection was closed or replaced
         }
@@ -779,7 +779,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Int64? minutes = this.parseToInt(((double?)((total + 59)) / 60));
         if ((minutes == null || minutes <= 30))
         {
-            return (this.numberToString(mathMax(minutes, 1)) + "min");
+            if (((minutes == null || minutes < 1)))
+            {
+                return "1min";
+            }
+            return (this.numberToString(minutes) + "min");
         }
         Int64? hours = this.parseToInt(((double?)((total + 3599)) / 3600));
         if ((hours == null || hours <= 8))
@@ -802,7 +806,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             return (this.numberToString(months) + "m");
         }
         Int64? years = this.parseToInt(((double?)((total + 31535999)) / 31536000));
-        return (this.numberToString(mathMin(years, 15)) + "y");
+        if (years > 15)
+        {
+            return "15y";  // the documented maximum period
+        }
+        return (this.numberToString(years) + "y");
     }
 
     /**

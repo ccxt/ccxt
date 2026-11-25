@@ -3147,7 +3147,7 @@ public partial class delta : Exchange
         return this.parseMarginModification(result, market);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {

@@ -1885,7 +1885,7 @@ public partial class xt : Exchange
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             request["startTime"] = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
         }
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if ((limit != null))
         {
             int maxLimit = (this.safeBool(market, "spot", false) == true) ? 1000 : 1500; // spot : derivatives max limit
@@ -5410,7 +5410,7 @@ public partial class xt : Exchange
         return this.parseMarginModification(response, market);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         return new Dictionary<string, object>() {
             { "info", data },

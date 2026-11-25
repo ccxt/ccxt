@@ -3680,7 +3680,7 @@ public partial class woofipro : Exchange
         return await this.v1PrivatePostClientMarginMode(this.extend(request, parameters));
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {

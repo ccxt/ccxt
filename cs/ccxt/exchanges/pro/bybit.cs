@@ -9,8 +9,7 @@ public partial class bybit : ccxt.bybit
 {
     public override Dictionary<string, object> describe()
     {
-        Dictionary<string, object> superDescribe = base.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(base.describe(), this.describeData());
     }
 
     public virtual Dictionary<string, object> describeData()
@@ -2032,7 +2031,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88750 && ((hxArr88750 is IList<object>) || (hxArr88750 is not null && hxArr88750.GetType().IsGenericType && hxArr88750.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88715 && ((hxArr88715 is IList<object>) || (hxArr88715 is not null && hxArr88715.GetType().IsGenericType && hxArr88715.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

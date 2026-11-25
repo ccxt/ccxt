@@ -6622,7 +6622,7 @@ public partial class BaseExchange
                 keysToOmit.Add("triggerPrice");
                 keysToOmit.Add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(((string)symbol), parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(((string)symbol), triggerPrice);
         }
         if ((stopLossPrice != null))
         {
@@ -6630,7 +6630,7 @@ public partial class BaseExchange
             {
                 keysToOmit.Add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(((string)symbol), parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(((string)symbol), stopLossPrice);
         }
         if ((takeProfitPrice != null))
         {
@@ -6638,7 +6638,7 @@ public partial class BaseExchange
             {
                 keysToOmit.Add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(((string)symbol), parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(((string)symbol), takeProfitPrice);
         }
         int keysToOmitLength = (keysToOmit?.Count ?? 0);
         object paramsOmitted = (keysToOmitLength > 0) ? this.omit(parameters, keysToOmit) : parameters;
@@ -7882,9 +7882,10 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        for (int i = 0; i < (greeks?.Count ?? 0); i++)
+        IList<object> greeksArray = greeks;
+        for (int i = 0; i < (greeksArray?.Count ?? 0); i++)
         {
-            results.Add(this.extend(this.parseGreeks(this.safeDict(greeks, i, new Dictionary<string, object>() {})), parameters));
+            results.Add(this.extend(this.parseGreeks(this.safeDict(greeksArray, i, new Dictionary<string, object>() {})), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -7893,12 +7894,13 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
+        Dictionary<string, object> greeksDict = this.extend(new Dictionary<string, object>() {}, greeks);
+        List<object> marketIds = new List<object>(greeksDict.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            results.Add(this.extend(this.parseGreeks(this.safeDict(greeks, marketId, new Dictionary<string, object>() {}), market), parameters));
+            results.Add(this.extend(this.parseGreeks(this.safeDict(greeksDict, marketId, new Dictionary<string, object>() {}), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -8131,7 +8133,7 @@ public partial class BaseExchange
         await Task.WhenAll(new Task[] {this.loadMarkets(), this.signIn()});
     }
 
-    public virtual Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         if ((data == null))
         {
@@ -8153,7 +8155,7 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.safeMarket(marketId, null, null,((string)marketType));
             if (((symbols == null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
-                marginModifications.Add(this.parseMarginModification((response != null && i < response.Count ? response[i] : null), market));
+                marginModifications.Add(this.parseMarginModification(this.safeDict(response, i, new Dictionary<string, object>() {}), market));
             }
         }
         return marginModifications;

@@ -6370,20 +6370,20 @@ public partial class bingx : Exchange
         //        "type": 1
         //    }
         //
-        object responseData = response;
         if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
         {
-            responseData = this.extend(new Dictionary<string, object>() {
-                { "amount", amountString },
-                { "type", type },
-            }, this.safeDict(response, "data", new Dictionary<string, object>() {}));
+            Dictionary<string, object> inverseResult = this.parseMarginModification(this.extend(new Dictionary<string, object>() {
+    { "amount", amountString },
+    { "type", type },
+}, this.safeDict(response, "data", new Dictionary<string, object>() {})), market);
+            return ccxt.BaseExchange.ToMarginModification(this.extend(inverseResult, new Dictionary<string, object>() {                 { "info", response },             }));
         }
-        Dictionary<string, object> result = this.parseMarginModification(responseData, market);
+        Dictionary<string, object> result = this.parseMarginModification(response, market);
         result["info"] = response;
         return ccxt.BaseExchange.ToMarginModification(result);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //    {

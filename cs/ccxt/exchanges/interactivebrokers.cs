@@ -1216,7 +1216,7 @@ public partial class interactivebrokers : Exchange
         {
             return 0;
         }
-        return this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(seconds, 1000));
+        return this.parseToInt(((double?)seconds * 1000));
     }
 
     /**
@@ -1283,7 +1283,8 @@ public partial class interactivebrokers : Exchange
         this.options["gatewayRegainScheduled"] = false;
         bool? useGateway = this.safeBool(this.options, "useGateway", false);
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if (useGateway != true || ((lostTimestamp == null)) || (isLessThanOrEqual(this.ibkrGatewayRegainDelay(), 0)))
+        Int64? regainDelay = this.ibkrGatewayRegainDelay();
+        if (useGateway != true || ((lostTimestamp == null)) || ((regainDelay == null || regainDelay <= 0)))
         {
             return null;  // already regained, or disabled
         }
@@ -1850,21 +1851,20 @@ public partial class interactivebrokers : Exchange
         }
         int chunkSize = 330; // above this number, response becomes unreliable
         List<object> promises = new List<object>() {};
-        object offset = 0;
-        while (isLessThan(offset, numDetails))
+        List<object> chunk = new List<object>() {};
+        for (int k = 0; k < numDetails; k++)
         {
-            object end = mathMin(this.sum(offset, chunkSize), numDetails);
-            List<object> chunk = new List<object>() {};
-            for (object k = offset; isLessThan(k, end); postFixIncrement(ref k))
+            string? detailId = this.safeString(detailIds, k, "");
+            chunk.Add(detailId);
+            int chunkLength = (chunk?.Count ?? 0);
+            if (((chunkLength == chunkSize)) || ((k == (numDetails - 1))))
             {
-                string? detailId = this.safeString(detailIds, k, "");
-                chunk.Add(detailId);
+                Dictionary<string, object> secdefRequest = new Dictionary<string, object>() {
+                    { "conids", String.Join(",", chunk.ToArray()) },
+                };
+                promises.Add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new Dictionary<string, object>() {}));
+                chunk = new List<object>() {};
             }
-            Dictionary<string, object> secdefRequest = new Dictionary<string, object>() {
-                { "conids", String.Join(",", chunk.ToArray()) },
-            };
-            promises.Add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new Dictionary<string, object>() {}));
-            offset = end;
         }
         List<object> responses = await promiseAll(promises);
         //
@@ -3560,7 +3560,7 @@ public partial class interactivebrokers : Exchange
         {
             maxLimit = configuredLimit;
         }
-        object requestLimit = maxLimit;
+        Int64? requestLimit = maxLimit;
         if ((limit != null))
         {
             requestLimit = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
@@ -3600,25 +3600,25 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
-    public virtual string? ibkrPeriod(Int64 duration, object limit)
+    public virtual string? ibkrPeriod(Int64 duration, Int64? limit)
     {
         // duration of one bar in seconds, the period is expressed in the largest fitting unit
-        object total = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, limit);
+        Int64? total = (duration * limit);
         if ((duration < 3600))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 60))) + "min");
+            return (this.numberToString(this.parseToInt(((double?)total / 60))) + "min");
         } else if ((duration < 86400))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 3600))) + "h");
+            return (this.numberToString(this.parseToInt(((double?)total / 3600))) + "h");
         } else if ((duration < 604800))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 86400))) + "d");
+            return (this.numberToString(this.parseToInt(((double?)total / 86400))) + "d");
         } else if ((duration < 2592000))
         {
-            return (this.numberToString(this.parseToInt(divide(total, 604800))) + "w");
+            return (this.numberToString(this.parseToInt(((double?)total / 604800))) + "w");
         }
         // monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
-        Int64? months = this.parseToInt(divide(total, 2592000));
+        Int64? months = this.parseToInt(((double?)total / 2592000));
         if ((months == null || months <= 12))
         {
             return (this.numberToString(months) + "m");
@@ -4749,7 +4749,7 @@ public partial class interactivebrokers : Exchange
         IList<object> currencyqueryVariable = (IList<object>)this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
         var currency = currencyqueryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)currencyqueryVariable[1]);
-        object days = this.safeInteger(options, "transactionsDays", 90);
+        Int64? days = this.safeInteger(options, "transactionsDays", 90);
         if ((since != null))
         {
             object daysPassed = divide((subtract(this.milliseconds(), since)), 86400000);

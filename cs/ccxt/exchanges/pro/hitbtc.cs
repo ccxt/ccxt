@@ -699,10 +699,10 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         Int64? timestamp = this.safeInteger(ticker, "t");
-        object bidAskSymbol = null;
+        string? bidAskSymbol = null;
         if ((market != null))
         {
-            bidAskSymbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+            bidAskSymbol = this.safeString(market, "symbol");
         }
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
@@ -1691,7 +1691,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72294))
+            if ((result is IList<object> hxList72312))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});

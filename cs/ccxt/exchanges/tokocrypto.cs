@@ -1592,7 +1592,7 @@ public partial class tokocrypto : Exchange
         string? price = this.safeString(parameters, "price");
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"price", "until"});
-        object limitValue = defaultLimit;
+        Int64? limitValue = defaultLimit;
         if ((limit != null))
         {
             limitValue = Math.Min(limit.Value, maxLimit);

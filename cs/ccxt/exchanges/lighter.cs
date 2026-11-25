@@ -3998,7 +3998,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(data, "predicted_execution_time_ms");
         return new Dictionary<string, object>() {

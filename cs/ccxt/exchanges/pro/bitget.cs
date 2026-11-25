@@ -1161,15 +1161,15 @@ public partial class bitget : ccxt.bitget
                     {
                         object bidLevel = (storedBids != null && i < storedBids.Count ? storedBids[i] : null);
                         object bidParts = getValue(bidLevel, 2);
-                        payloadArray.Add(getValue(bidParts, 0));
-                        payloadArray.Add(getValue(bidParts, 1));
+                        payloadArray.Add(this.safeString(bidParts, 0, ""));
+                        payloadArray.Add(this.safeString(bidParts, 1, ""));
                     }
                     if (i < asksLength)
                     {
                         object askLevel = (storedAsks != null && i < storedAsks.Count ? storedAsks[i] : null);
                         object askParts = getValue(askLevel, 2);
-                        payloadArray.Add(getValue(askParts, 0));
-                        payloadArray.Add(getValue(askParts, 1));
+                        payloadArray.Add(this.safeString(askParts, 0, ""));
+                        payloadArray.Add(this.safeString(askParts, 1, ""));
                     }
                 }
                 string payload = String.Join(":", payloadArray.ToArray());

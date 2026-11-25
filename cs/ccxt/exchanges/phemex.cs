@@ -1413,7 +1413,7 @@ public partial class phemex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
         string? valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Int64? valueScale = JsParse.parseInt(valueScaleString);
+        Int64? valueScale = this.safeInteger(rawCurrency, "valueScale");
         string? minValueEv = this.safeString(rawCurrency, "minValueEv");
         string? maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         double? minAmount = null;
@@ -3669,9 +3669,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList171185))
+        if ((data is IList<object> hxList171192))
         {
-            int numOrders = hxList171185.Count;
+            int numOrders = hxList171192.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -5070,7 +5070,7 @@ public partial class phemex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         //
         //     {

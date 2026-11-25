@@ -4380,7 +4380,7 @@ public partial class hashkey : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market), null, "swap");

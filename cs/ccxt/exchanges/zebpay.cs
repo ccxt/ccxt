@@ -2188,7 +2188,7 @@ public partial class zebpay : Exchange
         }, marketResolved);
     }
 
-    public override Dictionary<string, object> parseMarginModification(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseMarginModification(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //    {
