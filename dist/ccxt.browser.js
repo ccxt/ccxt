@@ -235056,7 +235056,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
                     'available balance is only': _base_errors_js__rspack_import_2.InsufficientFunds,
                     'not enough exchange balance': _base_errors_js__rspack_import_2.InsufficientFunds,
                     'Order not found': _base_errors_js__rspack_import_2.OrderNotFound,
-                    'symbol: invalid': _base_errors_js__rspack_import_2.BadSymbol
+                    'symbol: invalid': _base_errors_js__rspack_import_2.BadSymbol,
+                    'Min price step': _base_errors_js__rspack_import_2.InvalidOrder
                 }
             },
             'commonCurrencies': {
