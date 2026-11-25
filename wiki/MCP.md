@@ -26,7 +26,7 @@ Recommended exchange‑side backstops (they hold even if your machine is comprom
 
 ## Install
 
-Requires Node.js ≥ 18. The server runs with `npx -y ccxt-mcp` — no global install needed. Add it to your MCP host with one of the snippets below.
+Requires Node.js ≥ 20. The server runs with `npx -y ccxt-mcp` — no global install needed. Add it to your MCP host with one of the snippets below.
 
 ### Claude Code
 

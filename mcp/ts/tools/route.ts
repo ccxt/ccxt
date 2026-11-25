@@ -1,12 +1,12 @@
 import crypto from 'crypto';
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext, AccountConfig } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import { ok, project, type Envelope } from '../format.js';
 import { toErrorEnvelope } from '../errors.js';
 import { requireTier, SafetyError } from '../safety.js';
-import { run, confirmWrite, ArgError } from './common.js';
+import { run, confirmWrite, ArgError, accountNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_CODE_LENGTH } from './common.js';
 import { executeWrite, journalRejection, maybeInjectClientOrderId } from './write-common.js';
 import { log } from '../logging.js';
 
@@ -116,27 +116,27 @@ function routerMissing (): Envelope {
     return { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': 'the installed ccxt has no OrderRouter', 'retryable': false, 'hint': 'upgrade the ccxt dependency (OrderRouter ships in ccxt >= 4.5.84)' } };
 }
 
-const assetParam = (role: string) => z.string ().min (1).describe ('the asset ' + role + ', e.g. "USDT" — a currency code, not a market symbol');
+const assetParam = (role: string) => z.string ().min (1).max (MAX_CODE_LENGTH).describe ('the asset ' + role + ', e.g. "USDT" — a currency code, not a market symbol');
 
 export function registerRouteTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('fetch_route', {
         'title': 'Find the best execution route',
         'description': 'Ask the CCXT order router for the best way to convert one asset into another at a given size, across ~50 exchanges: walks live L2 books, accounts for fees and depth, can split across venues and bridge through USDT/USDC/BTC/ETH. A QUOTE, not an order — no account or keys needed. Use this instead of comparing get_orderbook/get_tickers across venues by hand. Read fillRatio before effectiveRate: a great rate on a partial fill is not a great route. An unroutable pair is a normal result carrying unroutableReason. The returned routeId can be executed with execute_route.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'from': assetParam ('being spent'),
             'to': assetParam ('being acquired'),
             'amountIn': z.number ().positive ().optional ().describe ('exact amount of "from" to spend — pass this OR amountOut, never both'),
             'amountOut': z.number ().positive ().optional ().describe ('exact amount of "to" to acquire — pass this OR amountIn, never both'),
             'strategy': z.enum ([ 'best_single', 'split_optimal', 'split_capped' ]).optional ().describe ('best_single: one venue per hop; split_optimal: split across venues; split_capped: split across at most maxVenues'),
             'maxVenues': z.number ().int ().positive ().optional ().describe ('per-hop venue cap for split_capped'),
-            'exchanges': z.array (z.string ()).optional ().describe ('venue allowlist (exchange ids) — e.g. only the exchanges you hold accounts on'),
-            'bridges': z.array (z.string ()).optional ().describe ('intermediary assets to consider, e.g. ["USDT","BTC"]'),
+            'exchanges': z.array (z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH)).max (200).optional ().describe ('venue allowlist (exchange ids) — e.g. only the exchanges you hold accounts on'),
+            'bridges': z.array (z.string ().min (1).max (MAX_CODE_LENGTH)).max (50).optional ().describe ('intermediary assets to consider, e.g. ["USDT","BTC"]'),
             'certified': z.boolean ().optional ().describe ('restrict to CCXT-certified venues'),
             'requireFullFill': z.boolean ().optional ().describe ('refuse partial fills instead of returning the largest fillable size'),
             'minLegNotional': z.number ().nonnegative ().optional ().describe ('suppress legs below this quote notional'),
             'includeQuotes': z.boolean ().optional ().describe ('also return the per-venue quote diagnostic for each hop (larger result)'),
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'fetch_route' }, async () => {
         if (ctx.router === undefined) {
             return routerMissing ();
@@ -318,18 +318,18 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
     server.registerTool ('execute_route', {
         'title': 'Execute a route',
         'description': 'Execute a route from fetch_route (by routeId) with ccxt\'s OrderRouter: places the orders on every venue the route uses, hop by hop, sizing each hop from the previous fill. Each venue needs a trading-enabled account — matched automatically when there is exactly one per exchange, otherwise pass "accounts". Every order is still bound by that account\'s caps, symbol lists, dryRun and confirm policy, and is journaled. Execution choices are yours and pass straight to OrderRouter: strategy, slippageBps (limit offset from the quoted price, default 25), allowMarketOrders (only used on venues that cannot do IOC — a market order has no price protection), maxPlanAgeMs (refuse a stale quote), dryRun. A route can be executed once; on a halt the result includes an unwind suggestion that is NOT executed.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'routeId': z.string ().describe ('routeId returned by fetch_route (kept for 15 minutes)'),
-            'accounts': z.array (z.string ()).optional ().describe ('account names to trade with, one per exchange the route uses — omit to auto-match the single trading account per exchange'),
+            'accounts': z.array (accountNameParam).max (50).optional ().describe ('account names to trade with, one per exchange the route uses — omit to auto-match the single trading account per exchange'),
             'strategy': z.enum ([ 'sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish' ]).optional ().describe ('how OrderRouter places the orders (default sequential: IOC limit orders one at a time)'),
             'slippageBps': z.number ().nonnegative ().optional ().describe ('how far each limit price sits from the quoted average price, in bps (default 25)'),
             'allowMarketOrders': z.boolean ().optional ().describe ('let a venue that cannot do IOC take a market order instead of failing the step (default false)'),
             'maxPlanAgeMs': z.number ().int ().positive ().optional ().describe ('refuse to execute if the quote is older than this'),
             'dryRun': z.boolean ().optional ().describe ('build, check and report the plan without placing anything'),
-            'options': z.record (z.any ()).optional ().describe ('further OrderRouter.execute options: ' + PASSTHROUGH_OPTIONS.join (', ')),
+            'options': z.record (z.string (), z.any ()).optional ().describe ('further OrderRouter.execute options: ' + PASSTHROUGH_OPTIONS.join (', ')),
             'confirm': z.string ().optional ().describe ('confirmation token from the preview response — repeat the identical call with this token to execute'),
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'execute_route' }, async (): Promise<Envelope> => {
         if (ctx.router === undefined) {
             return routerMissing ();

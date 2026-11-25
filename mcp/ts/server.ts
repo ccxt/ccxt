@@ -2,12 +2,13 @@
 // logging must be the first import: it re-routes console.* to stderr before anything
 // else loads, protecting the stdio JSON-RPC channel on stdout
 import { log, setLogRedactor } from './logging.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { ccxt, ccxtVersion, exchangeClass, isKnownExchange, allExchangeIds, closestMatches } from './ccxt-loader.js';
 import { loadConfig } from './config.js';
 import { redact } from './redact.js';
 import { isBenignStreamClose } from './errors.js';
-import { createServer } from './factory.js';
+import { createSharedState, buildServer } from './factory.js';
+import { tierSummary } from './tools/index.js';
 import { createRequire } from 'module';
 
 const require = createRequire (import.meta.url);
@@ -16,13 +17,15 @@ const packageJson = require ('../package.json');
 async function main (): Promise<void> {
     setLogRedactor (redact);
     const config = loadConfig ();
-    const { server, ctx } = createServer ({
+    // process-wide state is built once; the SDK's stdio entry builds the McpServer itself
+    // (one per connection, plus a throwaway one when it probes for the 2026-07-28 revision)
+    const shared = createSharedState ({
         config,
         'ccxtModule': ccxt,
         'poolsDeps': { exchangeClass, isKnownExchange, allExchangeIds, closestMatches },
         'version': packageJson.version,
     });
-    const pools = ctx.pools;
+    const pools = shared.pools;
 
     let shuttingDown = false;
     const shutdown = async (reason: string, code = 0): Promise<void> => {
@@ -32,7 +35,7 @@ async function main (): Promise<void> {
         shuttingDown = true;
         log ('info', 'shutting down (' + reason + ')');
         try {
-            await ctx.subscriptions.closeAll ();
+            await shared.subscriptions.closeAll ();
             await pools.closeAll ();
         } catch (e) {
             // nothing useful left to do on the way out
@@ -59,9 +62,14 @@ async function main (): Promise<void> {
         log ('error', 'unhandled rejection: ' + redact (String ((reason as any)?.stack ?? reason)));
     });
 
-    const transport = new StdioServerTransport ();
-    await server.connect (transport);
-    log ('info', 'ccxt-mcp ' + packageJson.version + ' (ccxt ' + ccxtVersion () + ') connected over stdio — accounts: ' + Object.keys (config.accounts).length);
+    // legacy: 'serve' keeps today's hosts (Claude Desktop, Claude Code, Cursor, VS Code), which
+    // open with the 2025 initialize handshake, working unchanged; 2026-07-28 clients are served
+    // on the same pipe. The era the client chose is handed to the factory per instance
+    serveStdio ((request) => buildServer (shared, { 'hosted': false, 'era': request.era, 'authInfo': request.authInfo }).server, {
+        'legacy': 'serve',
+        'onerror': (error) => log ('warning', 'stdio transport error: ' + redact (String (error?.message ?? error))),
+    });
+    log ('info', 'ccxt-mcp ' + packageJson.version + ' (ccxt ' + ccxtVersion () + ') serving over stdio — ' + tierSummary (config));
 
     // fire-and-forget markets prewarm for configured accounts; never delays startup
     pools.prewarm ();

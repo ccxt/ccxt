@@ -1,12 +1,11 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { ServerContext } from '../types.js';
+import type { McpServer } from '@modelcontextprotocol/server';
+import type { ServerContext, ResolvedConfig } from '../types.js';
 import { registerMarketTools } from './market.js';
 import { registerReadTools } from './read.js';
 import { registerTradeTools } from './trade.js';
 import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
 import { registerWatchTools } from './watch.js';
 import { registerRouteTools, registerRouteExecuteTool } from './route.js';
-import { log } from '../logging.js';
 
 // By default every tier's tools are listed so the model can discover them and, when a
 // private one is unusable, get a clear "configure an account" error it can relay to the
@@ -36,11 +35,17 @@ export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     if (!hideDisabled || implicitWritesEnabled) {
         registerImplicitWriteTool (server, ctx);
     }
-    log ('info', 'tools registered — accounts: ' + accounts.length
-        + ', hideDisabledTools: ' + hideDisabled
-        + ', enabled tiers — trading: ' + tradingEnabled
-        + ', funds: ' + fundsEnabled
-        + ', implicitWrites: ' + implicitWritesEnabled);
+}
+
+// one startup log line describing what the config enables; logged by the entry point, not
+// by registerAllTools, because a hosted server registers tools on every request
+export function tierSummary (config: ResolvedConfig): string {
+    const accounts = Object.values (config.accounts);
+    return 'accounts: ' + accounts.length
+        + ', hideDisabledTools: ' + (config.settings.hideDisabledTools === true)
+        + ', enabled tiers — trading: ' + accounts.some ((account) => (account.trading ?? false) !== false)
+        + ', funds: ' + accounts.some ((account) => (account.funds ?? false) !== false)
+        + ', implicitWrites: ' + accounts.some ((account) => account.implicitWrites === true);
 }
 
 export const SERVER_INSTRUCTIONS = `ccxt-mcp: unified access to 100+ cryptocurrency exchanges (and prediction markets) through the ccxt library. Full manual: https://docs.ccxt.com/
@@ -48,7 +53,7 @@ export const SERVER_INSTRUCTIONS = `ccxt-mcp: unified access to 100+ cryptocurre
 Conventions:
 - Exchange ids are plain strings validated server-side — discover them with list_exchanges.
 - Symbols are unified ccxt symbols ("BTC/USDT" spot, "BTC/USDT:USDT" swap) — resolve them with search_markets, never guess (to list many symbols cheaply pass fields: ["symbol"] — up to 1000 compact rows per call instead of 100 full ones). On prediction exchanges (polymarket, kalshi, limitless, myriad, hyperliquid with prediction=true) the symbol position takes an outcome handle from search_events.
-- Every exchange-touching tool accepts "params": extra exchange-specific parameters passed to ccxt unchanged. Discover supported keys and per-exchange behavior with describe_method.
+- Every exchange-touching tool accepts "params": extra exchange-specific parameters passed to ccxt unchanged (credential-like keys such as apiKey or secret are rejected). Discover supported keys and per-exchange behavior with describe_method.
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp (ms) and datetime (ISO8601).
 - List results are capped: search tools report meta.returned/offset/hasMore (or available); fetch tools report meta.count plus meta.hasMore when the count hit the limit — page with since/offset rather than assuming completeness. Host-oversized results are tail-trimmed and flagged meta.truncated.
 - To find the best price or execution route for converting an asset at a given size across exchanges, use fetch_route rather than comparing order books yourself — it is a quote, not an order. Read fillRatio before effectiveRate. To act on it, pass its routeId to execute_route (trading tier; every order still goes through the account's caps and confirmation).

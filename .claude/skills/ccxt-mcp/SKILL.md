@@ -14,7 +14,7 @@ Key property: **your API keys stay on your machine and the model never sees them
 
 ## Install
 
-Requires Node.js ≥ 18. Pick the host:
+Requires Node.js ≥ 20. Pick the host:
 
 - **Claude Code**: `claude mcp add ccxt -- npx -y ccxt-mcp`
 - **Claude Desktop** / **Cursor** / **Windsurf** — add to the host's MCP config:

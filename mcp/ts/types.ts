@@ -1,4 +1,11 @@
+import type { AuthInfo } from '@modelcontextprotocol/server';
+
 export type TierFlag = false | true | 'live';
+
+// the protocol era one McpServer instance serves: 'legacy' = the 2025 initialize handshake,
+// 'modern' = the 2026-07-28 per-request envelope. Chosen by the SDK's serving entry per
+// connection (stdio) or per request (HTTP); confirmations work differently in each
+export type ProtocolEra = 'legacy' | 'modern';
 
 export interface AccountConfig {
     name: string;
@@ -77,8 +84,17 @@ export interface ServerContext {
     router: any;   // ccxt.OrderRouter, or undefined when the installed ccxt predates it
     routes: any;   // RouteCache — routes returned by fetch_route, executable by routeId
     version: string;
+    // true on the hosted (public HTTP) server, false on the local stdio server. Shared helpers
+    // read it to tighten what leaves the process (error sanitising) — never to grant anything
+    hosted: boolean;
+    era: ProtocolEra;
+    // the verified caller identity: undefined on stdio and in hosted phase 1 (anonymous).
+    // Phase 2 resolves accounts from it instead of the local config file; tool handlers read it
+    // through requestAuthInfo (), which also sees a per-request ctx.http.authInfo
+    authInfo?: AuthInfo;
+    // whether the client declared form elicitation — read per request, because on the
+    // 2026-07-28 revision capabilities travel with each request instead of the handshake
     elicitationSupported: () => boolean;
-    elicit: (message: string, schema: any) => Promise<any>;
 }
 
 export function accountEnvironment (account: AccountConfig): 'live' | 'sandbox' | 'demo' {

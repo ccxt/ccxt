@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import { ok, project, ORDER_FIELDS } from '../format.js';
 import type { Envelope } from '../format.js';
-import { run, clampLimit, accountParam, paramsParam, confirmWrite, environmentMeta } from './common.js';
+import { run, clampLimit, accountParam, paramsParam, confirmWrite, environmentMeta, symbolParam, methodNameParam, MAX_TEXT_LENGTH, MAX_CODE_LENGTH } from './common.js';
 import { requireTier, SafetyError } from '../safety.js';
 import { executeWrite, journalRejection, maybeInjectClientOrderId } from './write-common.js';
 
@@ -24,18 +24,18 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('create_order', {
         'title': 'Place an order',
         'description': 'Place an order on a trading-enabled account (works on prediction exchanges with outcome handles as the symbol). Validated against market precision/limits and the account\'s notional caps. Whether it returns a preview + confirmToken first depends on the account\'s "confirm" policy: always = every order is previewed; live (the default) = only orders on a LIVE account are previewed, sandbox/demo execute immediately; never = no preview. So on a sandbox/demo account under the default policy an order executes without a confirm step. A stop/trigger order also returns meta.note flagging that conditional orders may not appear in get_orders even when live — confirm before treating the stop as guaranteed protection. Use "cost" instead of "amount" to market-buy by quote value where supported. Exchange-specific order params (triggerPrice, timeInForce, postOnly, reduceOnly, …): describe_method {"method": "createOrder", "exchange": ...}.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'symbol': z.string ().describe ('unified symbol (outcome handle on prediction exchanges)'),
-            'type': z.string ().describe ('order type — usually "limit" or "market"; exchange-specific types pass through'),
+            'symbol': symbolParam ('unified symbol (outcome handle on prediction exchanges)'),
+            'type': z.string ().min (1).max (MAX_CODE_LENGTH).describe ('order type — usually "limit" or "market"; exchange-specific types pass through'),
             'side': z.enum ([ 'buy', 'sell' ]),
             'amount': z.number ().positive ().optional ().describe ('amount in base currency / contracts / shares'),
             'cost': z.number ().positive ().optional ().describe ('spend this quote-currency value instead of specifying an amount (market buy/sell by cost, where the exchange supports it)'),
             'price': z.number ().positive ().optional ().describe ('limit price — required for limit orders'),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'create_order', 'account': args.account }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (args.account);
         return ctx.safety.withAccountLock (account.name, async (): Promise<Envelope> => {
@@ -145,18 +145,18 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('edit_order', {
         'title': 'Modify an open order',
         'description': 'Modify price/amount of an open order. On exchanges without native edit, ccxt emulates it as cancel-then-replace — queue position is lost and the cancel can succeed while the replace fails. Runs the full order validation and confirmation.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'id': z.string ().describe ('order id to modify'),
-            'symbol': z.string ().describe ('unified symbol of the order'),
-            'type': z.string ().optional (),
+            'id': z.string ().min (1).max (MAX_TEXT_LENGTH).describe ('order id to modify'),
+            'symbol': symbolParam ('unified symbol of the order'),
+            'type': z.string ().min (1).max (MAX_CODE_LENGTH).optional (),
             'side': z.enum ([ 'buy', 'sell' ]).optional (),
             'amount': z.number ().positive ().optional (),
             'price': z.number ().positive ().optional (),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'edit_order', 'account': args.account }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (args.account);
         return ctx.safety.withAccountLock (account.name, async (): Promise<Envelope> => {
@@ -225,13 +225,17 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('cancel_order', {
         'title': 'Cancel an order',
         'description': 'Cancel one open order by id. No confirmation step — canceling reduces risk and must never be blocked.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'id': z.string ().describe ('order id'),
-            'symbol': z.string ().optional ().describe ('unified symbol (required by many exchanges)'),
+            'id': z.string ().min (1).max (MAX_TEXT_LENGTH).describe ('order id'),
+            'symbol': symbolParam ('unified symbol (required by many exchanges)').optional (),
             'params': paramsParam,
-        },
-        'annotations': { 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': true },
+        }),
+        // MCP defines destructiveHint false as "performs only additive updates". A cancel
+        // deletes a resting order — the user loses its queue position and the fill it was
+        // waiting for, and nothing can restore that — so it is destructive, even though it
+        // usually reduces risk; hosts may ask the user before running it, which is fine
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'idempotentHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, id, symbol, params }) => run ({ 'tool': 'cancel_order', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireTier (account, 'trading');
@@ -255,13 +259,13 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('cancel_all_orders', {
         'title': 'Cancel all open orders',
         'description': 'Cancel every open order on an account, optionally restricted to one symbol. The preview lists the orders that would be canceled.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'symbol': z.string ().optional ().describe ('only cancel orders on this unified symbol'),
+            'symbol': symbolParam ('only cancel orders on this unified symbol').optional (),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'idempotentHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'idempotentHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, symbol, params, confirm }) => run ({ 'tool': 'cancel_all_orders', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireTier (account, 'trading');
@@ -312,14 +316,14 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('set_leverage', {
         'title': 'Set leverage',
         'description': 'Set the leverage multiplier for a derivatives symbol on a trading-enabled account. Changing leverage changes the risk of existing positions.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'leverage': z.number ().positive ().describe ('leverage multiplier, e.g. 5'),
-            'symbol': z.string ().optional ().describe ('unified symbol (required by most exchanges)'),
+            'symbol': symbolParam ('unified symbol (required by most exchanges)').optional (),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, leverage, symbol, params, confirm }) => run ({ 'tool': 'set_leverage', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireTier (account, 'trading');
@@ -342,14 +346,14 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('set_margin_mode', {
         'title': 'Set margin mode',
         'description': 'Set cross or isolated margin mode for a derivatives symbol on a trading-enabled account.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'marginMode': z.enum ([ 'cross', 'isolated' ]),
-            'symbol': z.string ().optional ().describe ('unified symbol (required by most exchanges)'),
+            'symbol': symbolParam ('unified symbol (required by most exchanges)').optional (),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, marginMode, symbol, params, confirm }) => run ({ 'tool': 'set_margin_mode', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireTier (account, 'trading');
@@ -372,14 +376,14 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('call_write_method', {
         'title': 'Call an allowlisted unified write method',
         'description': 'Dispatch the unified write long tail on a trading-enabled account: ' + [ ...WRITE_METHOD_ALLOWLIST ].join (', ') + '. Always previews and requires confirmation. Batch order placement is deliberately excluded — use create_order per order so the notional caps apply. Signatures: describe_method.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'method': z.string ().describe ('one of the allowlisted method names'),
-            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.any ()), z.record (z.any ()) ])).optional ().describe ('positional arguments per describe_method; null skips an optional argument'),
+            'method': methodNameParam ('one of the allowlisted method names'),
+            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.any ()), z.record (z.string (), z.any ()) ])).optional ().describe ('positional arguments per describe_method; null skips an optional argument'),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, method, args, params, confirm }) => run ({ 'tool': 'call_write_method', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireTier (account, 'trading');

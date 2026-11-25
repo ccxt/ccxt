@@ -1,6 +1,7 @@
 import { redact } from './redact.js';
 import { ccxt } from './ccxt-loader.js';
 import type { Envelope } from './format.js';
+import { currentRequestScope } from './request-scope.js';
 
 interface ErrorMapping {
     classes: string[];
@@ -114,6 +115,36 @@ export interface ErrorContext {
     tool?: string;
     mutating?: boolean;
     clientOrderId?: string;
+    hosted?: boolean; // defaults to the current request scope's deployment
+}
+
+export const HOSTED_ERROR_MESSAGE_MAX = 300;
+
+const URL_PATTERN = /\b(?:https?|wss?):\/\/[^\s"'<>]+/gi;
+// where an upstream body starts: an HTML/XML tag or a JSON object/array opening
+const BODY_START = /<(?:!doctype|\?xml|[a-z][a-z0-9]*[\s>\/])|[[{]\s*["{[\]}]/i;
+
+// The message an upstream (exchange or network) error may show the caller. ccxt messages
+// embed the request URL and the raw response body ("kraken GET https://… 403 <html>…",
+// "binance {"code":-1121,…}"). Locally that is the user's own diagnostic data and is
+// returned as is (redacted). On the hosted server it would hand any anonymous caller
+// arbitrary upstream pages and the exact URLs the server calls, so there the message keeps
+// only the leading prose: no URLs, no bodies, at most HOSTED_ERROR_MESSAGE_MAX characters.
+export function sanitizeUpstreamError (error: any, options: { hosted: boolean }): string {
+    const message = redact (String (error?.message ?? error));
+    if (!options.hosted) {
+        return message;
+    }
+    let text = message;
+    const bodyStart = text.search (BODY_START);
+    if (bodyStart !== -1) {
+        text = text.slice (0, bodyStart) + '[response body removed]';
+    }
+    text = text.replace (URL_PATTERN, '[url]').replace (/\s+/g, ' ').trim ();
+    if (text.length > HOSTED_ERROR_MESSAGE_MAX) {
+        text = text.slice (0, HOSTED_ERROR_MESSAGE_MAX - 1) + '…';
+    }
+    return text;
 }
 
 export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelope {
@@ -148,7 +179,8 @@ export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelo
     if (code === 'EXCHANGE_UNAVAILABLE' && /ENOTFOUND|EAI_AGAIN|getaddrinfo|ECONNRESET|ETIMEDOUT/i.test (String (error?.message ?? error))) {
         hint = 'could not reach ' + (context.exchange ?? 'the exchange') + ' — this looks like a LOCAL network/DNS failure (often DNS/threadpool exhaustion from too many concurrent cold market loads or watch_subscribe calls), NOT necessarily an exchange outage; reduce concurrency (a few at a time) and retry';
     }
-    const message = redact (String (error?.message ?? error));
+    const hosted = context.hosted ?? currentRequestScope ()?.hosted ?? false;
+    const message = sanitizeUpstreamError (error, { hosted });
     const errorBody: Record<string, any> = {
         code,
         'type': names[0] ?? 'Error',

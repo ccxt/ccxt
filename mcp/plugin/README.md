@@ -9,7 +9,7 @@ Installs the official [CCXT MCP server](https://github.com/ccxt/ccxt/tree/master
 /plugin install ccxt-mcp@ccxt
 ```
 
-This registers a stdio MCP server named `ccxt` (run via `npx -y ccxt-mcp`; requires Node.js ≥ 18) and loads the `ccxt-mcp` skill. Tools appear namespaced as `mcp__ccxt__<tool>`.
+This registers a stdio MCP server named `ccxt` (run via `npx -y ccxt-mcp`; requires Node.js ≥ 20) and loads the `ccxt-mcp` skill. Tools appear namespaced as `mcp__ccxt__<tool>`.
 
 ## What you get
 

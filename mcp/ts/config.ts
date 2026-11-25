@@ -37,7 +37,7 @@ const accountSchema = z.object ({
     'deniedSymbols': z.array (z.string ()).optional (),
     'confirm': z.enum ([ 'always', 'live', 'never' ]).optional (),
     'defaultType': z.string ().optional (),
-    'options': z.record (z.any ()).optional (),
+    'options': z.record (z.string (), z.any ()).optional (),
     'timeout': z.number ().positive ().optional (),
     'rateLimit': z.number ().positive ().optional (),
 }).passthrough ();
@@ -47,7 +47,7 @@ const settingsSchema = z.object ({
     'maxResults': z.number ().positive ().optional (),
     'strictPermissions': z.boolean ().optional (),
     'maxSubscriptions': z.number ().int ().nonnegative ().optional (), // 0 = unlimited (the default sentinel)
-    'exchangeOptions': z.record (z.record (z.any ())).optional (),
+    'exchangeOptions': z.record (z.string (), z.record (z.string (), z.any ())).optional (),
     // by default every tool (incl. trading/funds) is listed and a disabled tier errors at
     // call time; set true to hide disabled tiers from tools/list (a leaner, deliberately
     // read-only deployment) — execution is gated by the account either way

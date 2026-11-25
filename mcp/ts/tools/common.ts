@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { inputRequired } from '@modelcontextprotocol/server';
+import type { AuthInfo, InputRequiredResult } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import type { AccountConfig } from '../types.js';
@@ -7,13 +9,35 @@ import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
 import { log } from '../logging.js';
+import { currentRequestScope } from '../request-scope.js';
 
-export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean };
+export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean } | InputRequiredResult;
 
-export const exchangeParam = z.string ().describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
+// Length caps on free-text identifiers: generous for every real value (the longest ccxt
+// exchange id is ~20 characters; prediction outcome handles run to ~100), tight enough that
+// a caller cannot push kilobytes into URLs, cache keys or log lines through one argument
+export const MAX_EXCHANGE_ID_LENGTH = 64;
+export const MAX_SYMBOL_LENGTH = 256;
+export const MAX_METHOD_NAME_LENGTH = 128;
+export const MAX_ACCOUNT_NAME_LENGTH = 128;
+export const MAX_CODE_LENGTH = 64; // currency/network codes, order types, field names
+export const MAX_TEXT_LENGTH = 256; // search queries and other free text
+export const MAX_SYMBOLS = 50; // symbols per call: get_tickers fans out one request per symbol where fetchTickers is missing
+
+// mirrors MarketType in ts/src/base/types.ts (a unit test keeps the two in step). An enum,
+// not a free string: the value becomes options.defaultType and, through it, part of the
+// markets disk-cache file name — a free string there was a path traversal
+export const MARKET_TYPES = [ 'spot', 'margin', 'swap', 'future', 'option', 'delivery', 'index', 'prediction' ] as const;
+export type MarketTypeName = typeof MARKET_TYPES[number];
+
+export const exchangeParam = z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH).describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
+export const symbolParam = (description: string) => z.string ().min (1).max (MAX_SYMBOL_LENGTH).describe (description);
+export const methodNameParam = (description: string) => z.string ().min (1).max (MAX_METHOD_NAME_LENGTH).describe (description);
+export const accountNameParam = z.string ().min (1).max (MAX_ACCOUNT_NAME_LENGTH);
+export const marketTypeParam = z.enum (MARKET_TYPES).optional ().describe ('market type routing for exchanges with several ("spot", "swap" perpetuals, "future", "option", …) — sets options.defaultType on a dedicated instance');
 export const predictionParam = z.boolean ().optional ().describe ('set true to use the prediction-markets variant of an exchange that exists in both namespaces (e.g. hyperliquid)');
-export const paramsParam = z.record (z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
-export const accountParam = z.string ().describe ('configured account name — discover with list_accounts; credentials are never tool parameters');
+export const paramsParam = z.record (z.string (), z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
+export const accountParam = accountNameParam.describe ('configured account name — discover with list_accounts; credentials are never tool parameters');
 export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry to fetch: timestamp in ms, or an ISO8601 string like "2024-01-01T00:00:00Z"');
 
 export class ArgError extends Error {
@@ -44,11 +68,31 @@ export function parseSince (exchange: any, since: number | string | undefined): 
     throw new ArgError ('could not parse "since" value ' + JSON.stringify (since), 'pass an ISO8601 string like "2024-01-01T00:00:00Z" or a millisecond timestamp');
 }
 
+// thrown by confirmWrite on a 2026-07-28 request to hand an input_required result (the
+// human confirmation prompt) back through run () to the SDK, which has the client ask
+// the user and retry the call with the answer
+export class InputRequiredSignal extends Error {
+    result: InputRequiredResult;
+    constructor (result: InputRequiredResult) {
+        super ('input required');
+        this.result = result;
+    }
+}
+
+// the caller identity for this call: a per-request token (ctx.http.authInfo) wins over the
+// one the server instance was built with. Undefined on stdio and on hosted phase 1
+export function requestAuthInfo (ctx: ServerContext): AuthInfo | undefined {
+    return currentRequestScope ()?.authInfo ?? ctx.authInfo;
+}
+
 // uniform tool wrapper: envelope + error mapping + size budget in one place
 export async function run (context: ErrorContext, fn: () => Promise<Envelope>): Promise<ToolResult> {
     try {
         return toContent (await fn ());
     } catch (error: any) {
+        if (error instanceof InputRequiredSignal) {
+            return error.result;
+        }
         if (error instanceof SafetyError) {
             return toContent ({ 'ok': false, 'error': { 'code': error.code, 'message': error.message, 'retryable': false, 'hint': error.hint } });
         }
@@ -86,6 +130,8 @@ export function clampLimit (limit: number | undefined, defaultValue: number, max
     }
     return Math.max (1, Math.min (Math.floor (limit), max));
 }
+
+export const CONFIRM_PROMPT_TIMEOUT_MS = 300000;
 
 export interface AuthContext {
     exchange: any;
@@ -127,29 +173,58 @@ export async function confirmWrite (
     if (ctx.elicitationSupported ()) {
         const summary = action + ' on ' + account.exchange + ' (account ' + JSON.stringify (account.name) + ', ' + accountEnvironment (account).toUpperCase () + ')\n'
             + JSON.stringify (preview, null, 2);
+        const message = 'Confirm: ' + summary;
+        const requestedSchema = {
+            'type': 'object' as const,
+            'properties': {
+                'confirm': { 'type': 'boolean' as const, 'description': 'approve this action' },
+            },
+            'required': [ 'confirm' ],
+        };
+        const request: any = currentRequestScope ()?.request;
         let response: any;
-        try {
-            response = await ctx.elicit ('Confirm: ' + summary, {
-                'type': 'object',
-                'properties': {
-                    'confirm': { 'type': 'boolean', 'description': 'approve this action' },
-                },
-                'required': [ 'confirm' ],
-            });
-        } catch (e: any) {
-            // FAIL CLOSED: on an elicitation-capable host a failed/timed-out human prompt
-            // must never downgrade to the model-redeemable token flow — that would let the
-            // model confirm its own write
-            log ('warning', 'elicitation failed: ' + String (e?.message ?? e));
-            return {
-                'ok': false,
-                'error': {
-                    'code': 'CONFIRM_UNAVAILABLE',
-                    'message': 'the confirmation prompt could not be completed (' + String (e?.message ?? e) + ') — the ' + action + ' was NOT performed',
-                    'retryable': true,
-                    'hint': 'ask the user, then retry so they can answer the confirmation prompt',
-                },
-            };
+        if (ctx.era === 'modern') {
+            // 2026-07-28 has no server-to-client requests: return input_required, the client
+            // asks the human and retries this same call carrying the answer. The state is a
+            // single-use nonce bound to this exact payload, valid for the same 5 minutes the
+            // 2025-era prompt waits — a forged, replayed, stale or mismatched answer fails closed
+            const answer = request?.mcpReq?.inputResponses?.['confirm'];
+            if (answer === undefined) {
+                throw new InputRequiredSignal (inputRequired ({
+                    'inputRequests': { 'confirm': inputRequired.elicit ({ message, requestedSchema }) },
+                    'requestState': ctx.safety.issueConfirmState (payload),
+                }));
+            }
+            ctx.safety.redeemConfirmState (request.mcpReq.requestState (), payload);
+            // the answer is client-supplied data: anything but a well-formed accept reads as a dismissal
+            response = (answer !== null && typeof answer === 'object') ? answer : {};
+        } else {
+            try {
+                if (typeof request?.mcpReq?.elicitInput !== 'function') {
+                    throw new Error ('no request context to send the confirmation prompt on');
+                }
+                // humans reading a withdrawal preview take longer than the SDK's 60s default —
+                // give confirmations 5 minutes and keep resetting while the host reports progress
+                response = await request.mcpReq.elicitInput ({ message, requestedSchema }, {
+                    'timeout': CONFIRM_PROMPT_TIMEOUT_MS,
+                    'maxTotalTimeout': CONFIRM_PROMPT_TIMEOUT_MS,
+                    'resetTimeoutOnProgress': true,
+                });
+            } catch (e: any) {
+                // FAIL CLOSED: on an elicitation-capable host a failed/timed-out human prompt
+                // must never downgrade to the model-redeemable token flow — that would let the
+                // model confirm its own write
+                log ('warning', 'elicitation failed: ' + String (e?.message ?? e));
+                return {
+                    'ok': false,
+                    'error': {
+                        'code': 'CONFIRM_UNAVAILABLE',
+                        'message': 'the confirmation prompt could not be completed (' + String (e?.message ?? e) + ') — the ' + action + ' was NOT performed',
+                        'retryable': true,
+                        'hint': 'ask the user, then retry so they can answer the confirmation prompt',
+                    },
+                };
+            }
         }
         if (response.action === 'accept' && response.content?.confirm === true) {
             return 'confirmed';

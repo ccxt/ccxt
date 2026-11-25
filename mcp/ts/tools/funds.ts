@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import { ok, stripInfo } from '../format.js';
 import type { Envelope } from '../format.js';
-import { run, accountParam, paramsParam, confirmWrite, environmentMeta } from './common.js';
+import { run, accountParam, paramsParam, confirmWrite, environmentMeta, methodNameParam } from './common.js';
 import { requireTier, requireImplicitWrites, SafetyError } from '../safety.js';
 import { executeWrite, journalRejection } from './write-common.js';
 import { implicitVerb, isImplicitMethod } from '../introspect.js';
@@ -15,7 +15,7 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('withdraw', {
         'title': 'Withdraw funds',
         'description': 'Withdraw cryptocurrency from a funds-enabled account to an external address. Irreversible once dispatched. The preview echoes the exact destination address and network — verify them before confirming.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'code': z.string ().describe ('unified currency code, e.g. "USDT"'),
             'amount': z.number ().positive (),
@@ -24,8 +24,8 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
             'network': z.string ().optional ().describe ('unified network code, e.g. "TRC20" — check describe_method {"method": "withdraw", "exchange": ...}'),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'withdraw', 'account': args.account }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (args.account);
         return ctx.safety.withAccountLock (account.name, async (): Promise<Envelope> => {
@@ -80,7 +80,7 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('transfer', {
         'title': 'Transfer between account wallets',
         'description': 'Move funds between wallets of the same exchange account (e.g. spot ↔ swap, main ↔ funding) on a funds-enabled account. Wallet names are exchange-specific — see describe_method {"method": "transfer", "exchange": ...}.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'code': z.string ().describe ('unified currency code'),
             'amount': z.number ().positive (),
@@ -88,8 +88,8 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
             'toAccount': z.string ().describe ('destination wallet, e.g. "swap"'),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'transfer', 'account': args.account }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (args.account);
         return ctx.safety.withAccountLock (account.name, async (): Promise<Envelope> => {
@@ -135,12 +135,12 @@ export function registerFundsTools (server: McpServer, ctx: ServerContext): void
     server.registerTool ('get_deposit_address', {
         'title': 'Get a deposit address',
         'description': 'Deposit address for a currency on a funds-enabled account (creates one where none exists and the exchange supports creation). Gated behind the funds tier because transcript-visible addresses invite substitution scams — always verify addresses out-of-band before sending funds.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'code': z.string ().describe ('unified currency code'),
             'network': z.string ().optional ().describe ('unified network code'),
             'params': paramsParam,
-        },
+        }),
         // not readOnly: the createDepositAddress fallback creates an address server-side
         'annotations': { 'readOnlyHint': false, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ account: accountName, code, network, params }) => run ({ 'tool': 'get_deposit_address', 'account': accountName }, async () => {
@@ -174,13 +174,13 @@ export function registerImplicitWriteTool (server: McpServer, ctx: ServerContext
     server.registerTool ('call_implicit_write', {
         'title': 'Call a raw non-GET endpoint (implicit API)',
         'description': 'Call an exchange-specific implicit REST endpoint over POST/PUT/DELETE/PATCH on an account with "implicitWrites" enabled — covers exchange features the unified API does not (including account/key management). No unified validation exists for raw endpoints, so every call previews and requires confirmation, and is journaled. Endpoint names: describe_method {"query": ..., "exchange": ...}; payload per the exchange API reference (describe_exchange .urls.doc).',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'method': z.string ().describe ('implicit method name with a non-GET verb, e.g. "privatePostMarginOrder"'),
+            'method': methodNameParam ('implicit method name with a non-GET verb, e.g. "privatePostMarginOrder"'),
             'params': paramsParam,
             'confirm': confirmParam,
-        },
-        'annotations': { 'destructiveHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, method, params, confirm }) => run ({ 'tool': 'call_implicit_write', 'account': accountName }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         requireImplicitWrites (account);

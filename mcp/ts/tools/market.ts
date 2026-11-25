@@ -1,14 +1,12 @@
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import { resolveMarketFields, searchMarketsMaxLimit, marketTypeCounts, zeroMatchNotice, SEARCH_MARKETS_MAX_COMPACT } from '../market-search.js';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
+import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, methodNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_TEXT_LENGTH, MAX_CODE_LENGTH, MAX_SYMBOLS, accountNameParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
-
-const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
 
 const READ_METHOD_PATTERN = /^(fetch|load)[A-Z]/;
 // pattern, not an allowlist: ccxt grows address-returning methods over time
@@ -20,12 +18,12 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('list_exchanges', {
         'title': 'List supported exchanges',
         'description': 'List every exchange this server supports (built from ccxt.exchanges at runtime), with name, websocket and prediction-market availability. Filter by a name query or by support for a unified method.',
-        'inputSchema': {
-            'query': z.string ().optional ().describe ('case-insensitive substring match on the exchange id or name'),
-            'supports': z.string ().optional ().describe ('keep only exchanges supporting this unified method, e.g. "fetchOHLCV"'),
+        'inputSchema': z.object ({
+            'query': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('case-insensitive substring match on the exchange id or name'),
+            'supports': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('keep only exchanges supporting this unified method, e.g. "fetchOHLCV"'),
             'prediction': z.boolean ().optional ().describe ('true: only prediction-market exchanges; false: exclude them'),
-        },
-        'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async ({ query, supports, prediction }) => run ({ 'tool': 'list_exchanges' }, async () => {
         const predictionIds = new Set (ctx.ccxt.prediction !== undefined ? ctx.ccxt.prediction.exchanges : []);
         const wsIds = new Set (ctx.ccxt.pro !== undefined ? ctx.ccxt.pro.exchanges : []);
@@ -60,11 +58,11 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('describe_exchange', {
         'title': "Describe an exchange's capabilities",
         'description': "One exchange's supported unified methods, market types, timeframes, required credential fields, sandbox availability and documentation URLs. Per-method detail lives in describe_method.",
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
             'prediction': predictionParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async ({ exchange: exchangeId, prediction }) => run ({ 'tool': 'describe_exchange', 'exchange': exchangeId }, async () => {
         const exchange = ctx.pools.getBare (exchangeId, prediction ?? false);
         const urls = exchange.urls ?? {};
@@ -89,13 +87,13 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('describe_method', {
         'title': 'Search or describe unified ccxt methods',
         'description': 'Search unified method names by keyword, or get one method\'s signature and parameter documentation. With "exchange" it adds that exchange\'s own docs (including supported params.* keys and links to the exchange API reference), per-market-type feature support, and searches its implicit (exchange-specific) endpoints too. Full ccxt manual: https://docs.ccxt.com/',
-        'inputSchema': {
-            'method': z.string ().optional ().describe ('exact method name to describe, e.g. "fetchOHLCV" (or an implicit endpoint name when "exchange" is set)'),
-            'query': z.string ().optional ().describe ('keyword search over method names, e.g. "funding"'),
-            'exchange': z.string ().optional ().describe ('exchange id for per-exchange docs, feature support and implicit endpoints; when omitted a reference exchange (binance) is used, so implicit-endpoint results are binance-specific — pass "exchange" to search another'),
+        'inputSchema': z.object ({
+            'method': methodNameParam ('exact method name to describe, e.g. "fetchOHLCV" (or an implicit endpoint name when "exchange" is set)').optional (),
+            'query': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('keyword search over method names, e.g. "funding"'),
+            'exchange': z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH).optional ().describe ('exchange id for per-exchange docs, feature support and implicit endpoints; when omitted a reference exchange (binance) is used, so implicit-endpoint results are binance-specific — pass "exchange" to search another'),
             'prediction': predictionParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async ({ method, query, exchange: exchangeId, prediction }) => run ({ 'tool': 'describe_method', 'exchange': exchangeId }, async () => {
         if (method === undefined && query === undefined) {
             return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'pass either "method" (exact) or "query" (search)', 'retryable': false, 'hint': 'e.g. {"query": "funding"} or {"method": "fetchFundingRate"}' } };
@@ -167,21 +165,24 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('search_markets', {
         'title': 'Search markets on an exchange',
         'description': 'Search and filter the markets of one exchange (by text, base, quote, settle currency, market type), paginated. Use this to resolve unified symbols — there is deliberately no list-all-markets tool. Rows are full market objects (~450 chars each; max 100 per call) unless you pass "fields" — e.g. fields: ["symbol"] lists symbols compactly, up to 1000 per call. meta always carries returned/available/offset/hasMore, plus nextOffset when there is more and limitClamped when the limit was reduced; on zero matches meta.marketTypes lists the types the exchange has. On prediction exchanges use search_events instead.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'query': z.string ().optional ().describe ('case-insensitive substring match on the symbol or market id'),
-            'type': z.string ().optional ().describe ('market type filter: "spot", "swap" (perpetuals), "future", "option" — on zero matches meta.marketTypes lists the types this exchange has'),
-            'base': z.string ().optional ().describe ('base currency filter, e.g. "BTC"'),
-            'quote': z.string ().optional ().describe ('quote currency filter, e.g. "USDT"'),
-            'settle': z.string ().optional ().describe ('settle currency filter (derivatives)'),
+            'query': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('case-insensitive substring match on the symbol or market id'),
+            // a free (bounded) string on purpose, unlike marketType: it only filters rows in
+            // memory, and a near miss like "perpetual" earns a zero-match notice listing the
+            // types this exchange really has, which teaches more than a schema error
+            'type': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('market type filter: "spot", "swap" (perpetuals), "future", "option" — on zero matches meta.marketTypes lists the types this exchange has'),
+            'base': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('base currency filter, e.g. "BTC"'),
+            'quote': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('quote currency filter, e.g. "USDT"'),
+            'settle': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('settle currency filter (derivatives)'),
             'activeOnly': z.boolean ().optional ().describe ('only active markets (default true)'),
             'limit': z.number ().int ().optional ().describe ('max results (default 50, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
-            'fields': z.array (z.string ()).min (1).optional ().describe ('return only these market fields per row (symbol is always included), e.g. ["symbol"] or ["symbol", "contractSize", "limits"]. Valid: ' + MARKET_FIELDS.join (', ') + '. Compact rows lift the max limit from 100 up to 1000 (as many rows as fit a ~60k-char response); a reduced limit is reported in meta.limitClamped'),
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+            'fields': z.array (z.string ().max (MAX_CODE_LENGTH)).min (1).max (50).optional ().describe ('return only these market fields per row (symbol is always included), e.g. ["symbol"] or ["symbol", "contractSize", "limits"]. Valid: ' + MARKET_FIELDS.join (', ') + '. Compact rows lift the max limit from 100 up to 1000 (as many rows as fit a ~60k-char response); a reduced limit is reported in meta.limitClamped'),
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'search_markets', 'exchange': args.exchange }, async () => {
         const fields = resolveMarketFields (args.fields);
         const exchange = await ctx.pools.getPublic (args.exchange, undefined, args.prediction ?? false);
@@ -264,15 +265,15 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('get_tickers', {
         'title': 'Get price tickers',
         'description': '24h price tickers for one or more unified symbols on an exchange (outcome handles on prediction exchanges).',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'symbols': z.array (z.string ()).min (1).max (50).describe ('unified symbols, e.g. ["BTC/USDT"] — resolve with search_markets'),
+            'symbols': z.array (symbolParam ('unified symbol')).min (1).max (MAX_SYMBOLS).describe ('unified symbols, e.g. ["BTC/USDT"] — resolve with search_markets'),
             'includeInfo': z.boolean ().optional ().describe ('include the raw exchange payload (single symbol only)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbols, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'get_tickers', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         let tickers: any[];
@@ -313,16 +314,16 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('get_orderbook', {
         'title': 'Get order book',
         'description': 'Current order book (bids and asks) for one unified symbol.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol — resolve with search_markets'),
+            'symbol': symbolParam ('unified symbol — resolve with search_markets'),
             'limit': z.number ().int ().optional ().describe ('price levels per side (default 20, max 100)'),
             'depth': z.number ().int ().optional ().describe ('alias for limit (price levels per side)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbol, limit, depth, marketType, prediction, params }) => run ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit ?? depth, 20, 100);
@@ -345,17 +346,17 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('get_ohlcv', {
         'title': 'Get OHLCV candles',
         'description': 'Historical OHLCV candlestick data for a symbol and timeframe. Rows are [timestampMs, open, high, low, close, volume]. Page back with "since"; "params.until" bounds the end.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol'),
+            'symbol': symbolParam ('unified symbol'),
             'timeframe': z.string ().optional ().describe ('candle interval (default "1h") — valid values come from describe_exchange .timeframes'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('number of candles (default 100, max 500)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_ohlcv', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const frame = timeframe ?? '1h';
@@ -382,16 +383,16 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('get_trades', {
         'title': 'Get recent public trades',
         'description': 'Recent public trades for one unified symbol.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol'),
+            'symbol': symbolParam ('unified symbol'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('number of trades (default 50, max 200)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbol, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_trades', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const tradeLimit = clampLimit (limit, 50, 200);
@@ -408,17 +409,17 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('search_events', {
         'title': 'Search prediction-market events',
         'description': 'Search events on a prediction-market exchange (polymarket, kalshi, limitless, myriad, hyperliquid with prediction=true). A scoping filter is required: query, tags, or params.eventId/params.slug. Returns events with their markets and outcome handles — outcome handles are what you pass as the symbol to get_tickers/get_orderbook/create_order on prediction exchanges.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'query': z.string ().optional ().describe ('keyword search (required unless tags or params.eventId/params.slug are given)'),
-            'tags': z.array (z.string ()).optional ().describe ('filter by tags/categories'),
-            'status': z.string ().optional ().describe ('"active" (default), "closed" or "all"'),
-            'sort': z.string ().optional ().describe ('"volume", "liquidity" or "newest"'),
+            'query': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('keyword search (required unless tags or params.eventId/params.slug are given)'),
+            'tags': z.array (z.string ().max (MAX_TEXT_LENGTH)).max (50).optional ().describe ('filter by tags/categories'),
+            'status': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('"active" (default), "closed" or "all"'),
+            'sort': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('"volume", "liquidity" or "newest"'),
             'limit': z.number ().int ().optional ().describe ('max events (default 25, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, query, tags, status, sort, limit, offset, params }) => run ({ 'tool': 'search_events', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, undefined, true);
         if (!exchange.has?.['fetchEvents']) {
@@ -478,17 +479,17 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('call_read_method', {
         'title': 'Call any read-only unified ccxt method',
         'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate, fetchLedger, fetchOpenInterest, fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Docs: https://docs.ccxt.com/',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'method': z.string ().describe ('unified method name matching ^(fetch|load), e.g. "fetchFundingRate"'),
+            'method': methodNameParam ('unified method name matching ^(fetch|load), e.g. "fetchFundingRate"'),
             'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments per the describe_method usage line; ISO8601 strings become ms timestamps; null skips an optional argument'),
-            'account': z.string ().optional ().describe ('configured account name — required for private reads like fetchLedger'),
+            'account': accountNameParam.optional ().describe ('configured account name — required for private reads like fetchLedger'),
             'includeInfo': z.boolean ().optional ().describe ('keep the raw exchange payload inside unified structures'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
         if (method.startsWith ('watch') || method.endsWith ('Ws') || method.startsWith ('un')) {
             return { 'ok': false, 'error': { 'code': 'USE_WATCH_TOOLS', 'message': method + ' is a WebSocket/streaming method — call_read_method is for one-shot reads', 'retryable': false, 'hint': 'for live streaming use watch_subscribe (' + method + ') then watch_read; for a single snapshot use the fetch* equivalent (e.g. fetchTicker)' } };
@@ -522,14 +523,14 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('call_implicit_get', {
         'title': 'Call a raw GET endpoint (implicit API)',
         'description': 'Call an exchange-specific implicit REST endpoint over HTTP GET, for data the unified API does not cover. Pass the implicit method name in the "method" argument (e.g. "publicGetTickerPrice"); these are exchange-specific — find them with describe_method {"query": ..., "exchange": ...} (its results list the name to pass here). The response is the raw exchange payload. Consult the exchange API reference (describe_exchange .urls.doc) and the ccxt manual: https://docs.ccxt.com/',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'exchange': exchangeParam,
-            'method': z.string ().describe ('implicit method name whose HTTP verb is GET, e.g. "publicGetTickerPrice" (from describe_method)'),
-            'account': z.string ().optional ().describe ('configured account name for authenticated (private/signed) GET endpoints'),
+            'method': methodNameParam ('implicit method name whose HTTP verb is GET, e.g. "publicGetTickerPrice" (from describe_method)'),
+            'account': accountNameParam.optional ().describe ('configured account name for authenticated (private/signed) GET endpoints'),
             'prediction': predictionParam,
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, method, account: accountName, prediction, params }) => run ({ 'tool': 'call_implicit_get', 'exchange': exchangeId, 'account': accountName }, async () => {
         let exchange: any;
         if (accountName !== undefined) {
@@ -561,8 +562,8 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     server.registerTool ('get_safety_status', {
         'title': 'Show safety and configuration status',
         'description': 'What this server is currently allowed to do: configured accounts (names only — never credentials), enabled capability tiers, caps, sandbox/live environments, journal location, unresolved order intents, and any configuration problems.',
-        'inputSchema': {},
-        'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
+        'inputSchema': z.object ({}),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'get_safety_status' }, async () => {
         const accounts = Object.values (ctx.config.accounts).map ((account) => accountSummary (account as any));
         const unresolved = ctx.journal.unresolvedIntents ();

@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createServer } from '../../ts/factory.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 
@@ -103,8 +102,11 @@ test ('annotations: reads are readOnly, writes are destructive, cancel is the ex
     // fetch_route never takes the user's holdings — balances belong in a POST body from a
     // configured account, not a model-supplied parameter
     assert.ok (!('balances' in (byName.get ('fetch_route')?.inputSchema?.properties ?? {})), 'fetch_route must not expose balances');
-    // cancel_order is deliberately non-destructive (risk-reducing) and idempotent
-    assert.equal (byName.get ('cancel_order')?.annotations?.destructiveHint, false);
+    // cancel_order is the exception among writes in being idempotent. It is destructive by the
+    // MCP definition (destructiveHint false means "only additive updates"; a cancel deletes a
+    // resting order and its queue position for good), even though it usually reduces risk
+    assert.equal (byName.get ('cancel_order')?.annotations?.readOnlyHint, false);
+    assert.equal (byName.get ('cancel_order')?.annotations?.destructiveHint, true);
     assert.equal (byName.get ('cancel_order')?.annotations?.idempotentHint, true);
     // every tool name within the review limits
     for (const tool of tools) {

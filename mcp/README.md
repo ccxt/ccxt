@@ -11,7 +11,7 @@ claude mcp add ccxt -- npx -y ccxt-mcp
 Your API keys stay on your machine, and **the AI model never sees them**:
 
 - The server runs **locally over stdio**. Nothing is hosted; keys never transit any third-party service.
-- Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main").
+- Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main"). A credential-looking key pasted into free-form `params` (`apiKey`, `secret`, `password`, …) is refused before anything is sent to the exchange.
 - Keys leave the process only inside signed HTTPS requests to the exchange itself — the same as any trading bot.
 - Every tool result, error, and log line passes a **redaction filter** holding your loaded secret values (some exchanges echo signed URLs in error bodies — that path is closed). Raw request URLs/headers/bodies are never emitted. `verbose` is force-disabled.
 - **Capability tiers are opt-in and file-owned.** Out of the box the server does public market data only. Configuring an account enables private reads. `trading`, `funds` (withdraw/transfer), and `implicitWrites` (raw endpoints) must each be enabled per account **in the config file** — there is no tool that edits config, so a conversation can never grant itself permissions. Unregistered tiers do not even appear in the tool list.
@@ -23,7 +23,7 @@ One honest caveat: any local agent with filesystem access could read the config 
 
 ## Install
 
-Requires Node.js ≥ 18. The npm package is `ccxt-mcp`; the server binary is `npx -y ccxt-mcp`.
+Requires Node.js ≥ 20 (since the move to MCP TypeScript SDK v2; earlier releases ran on Node 18). The npm package is `ccxt-mcp`; the server binary is `npx -y ccxt-mcp`. It speaks both the 2025 MCP handshake that today's hosts use and the 2026-07-28 revision, on the same stdio pipe.
 
 ### Claude Code
 

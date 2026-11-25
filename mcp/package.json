@@ -6,7 +6,7 @@
   "type": "module",
   "mcpName": "io.github.ccxt/ccxt-mcp",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "tsc && node scripts/build-doc-manifest.mjs",
@@ -33,11 +33,13 @@
     "agent"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/server": "^2.4.0",
     "ccxt": "^4.5.84",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/sdk": "~1.32.2",
     "@types/node": "^22.20.1",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0"
