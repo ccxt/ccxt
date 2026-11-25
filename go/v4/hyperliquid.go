@@ -4785,12 +4785,13 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		return nil
 	}
 	var statuses map[string]any = map[string]any{
-		"triggered":      "open",
-		"filled":         "closed",
-		"open":           "open",
-		"canceled":       "canceled",
-		"rejected":       "rejected",
-		"marginCanceled": "canceled",
+		"triggered":       "open",
+		"filled":          "closed",
+		"open":            "open",
+		"canceled":        "canceled",
+		"rejected":        "rejected",
+		"marginCanceled":  "canceled",
+		"scheduledCancel": "canceled",
 	}
 	if strings.HasSuffix(*status, "Rejected") {
 		return "rejected"

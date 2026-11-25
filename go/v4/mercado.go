@@ -584,12 +584,27 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeString(trade, "type")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "amount", "quantity")
-	var feeCost *string = this.SafeString(trade, "fee_rate")
+	// fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+	var feeRate *string = this.SafeString(trade, "fee_rate")
 	var fee map[string]any = nil
-	if feeCost != nil {
+	if (feeRate != nil) && (side != nil) {
+		var rate *string = Precise.StringDiv(feeRate, "100")
+		var isBuy bool = (side != nil && *side == "buy")
+		var feeBase *string
+		if isBuy {
+			feeBase = amount
+		} else {
+			feeBase = Precise.StringMul(amount, price)
+		}
 		fee = map[string]any{
-			"cost":     feeCost,
-			"currency": nil,
+			"cost": Precise.StringMul(feeBase, rate),
+			"currency": func() any {
+				if isBuy {
+					return marketResolved["base"]
+				}
+				return marketResolved["quote"]
+			}(),
+			"rate": rate,
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -958,7 +973,14 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
-	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
+	var operations []any = SafeListTyped(order, "operations")
+	var rawTrades []any = []any{}
+	for i := 0; i < len(operations); i++ {
+		// operations carry no side, parseTrade reads it from 'type' like in public trades
+		rawTrades = append(rawTrades, this.Extend(operations[i], map[string]any{
+			"type": side,
+		}))
+	}
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
