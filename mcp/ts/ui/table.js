@@ -20,12 +20,17 @@
 //                 render     function (): draw what apply () took over
 //                 fallbackArgs  function () -> arguments for a reload when the host never
 //                               sent the original ones
+//                 defer      function (retry) -> true when the reload must wait (a live
+//                            poll is in flight) and retry () will be called, optional
+//                 connected  function (): the host handshake is done, optional
 //
-//   grid (options) -> { build, clear, built, place, restore, setActive, active, sort }
+//   grid (options) -> { build, update, clear, built, place, restore, setActive, active, sort }
 //                 the table itself: column headers that sort (a row without the value always
 //                 last; third press restores the original order), one tab stop with arrow /
 //                 Home / End movement between rows, the active (pointed at or focused) row,
 //                 and keeping focus, active row and scroll position across a rebuild.
+//                 update () refills the rows in place (same keys: false otherwise, and the
+//                 caller rebuilds), re-sorting them only when the order changed.
 //       options   board      the element the table is built into
 //                 columns    [ { key, label, hint, fill (cell, row) [, short, unit (),
 //                            className, text, left, header ] } ] — `text` sorts A→Z first and
@@ -74,7 +79,7 @@
         };
 
         self.reload = function () {
-            if (self.busy || !self.data) {
+            if (self.busy || !self.data || (options.defer && options.defer (self.reload))) {
                 return;
             }
             var request = {};
@@ -116,6 +121,9 @@
                 onContext: function () { options.render (); }
             }).then (function () {
                 nodes.refresh.hidden = !self.data || !app.canCallTools ();
+                if (options.connected) {
+                    options.connected ();
+                }
             }, function () {
                 self.setStatus ('Could not connect to the host.', true);
             });
@@ -170,6 +178,57 @@
             return (order * sort.direction) || (a.index - b.index);
         }
 
+        function fillLine (line, row) {
+            line.textContent = '';
+            columns.forEach (function (column) {
+                var cell = app.element (column.header ? 'th' : 'td', cellClass (column));
+                if (column.header) {
+                    cell.scope = 'row';
+                }
+                column.fill (cell, row);
+                line.appendChild (cell);
+            });
+        }
+
+        // New values for the same rows: the <tr> elements stay (and with them focus, the
+        // active row and the tab stop), only their cells are rebuilt
+        function update () {
+            if (!parts) {
+                return false;
+            }
+            var rows = options.rows ();
+            var lines = {};
+            var count = 0;
+            Array.prototype.forEach.call (parts.body.rows, function (line) {
+                lines['$' + line.getAttribute ('data-key')] = line;
+                count++;
+            });
+            var same = count === rows.length && Object.keys (lines).length === count && rows.every (function (row) {
+                return lines['$' + row.key] && Number (lines['$' + row.key].getAttribute ('data-index')) === row.index;
+            });
+            if (!same) {
+                return false;
+            }
+            var ordered = rows.slice ();
+            if (sort.key) {
+                ordered.sort (compare);
+            }
+            if (options.beforeRows) {
+                options.beforeRows (rows);
+            }
+            ordered.forEach (function (row) { fillLine (lines['$' + row.key], row); });
+            var moved = ordered.some (function (row, position) { return parts.body.rows[position] !== lines['$' + row.key]; });
+            if (moved) {
+                var kept = place ();
+                ordered.forEach (function (row) { parts.body.appendChild (lines['$' + row.key]); });
+                restore (kept);
+            }
+            if (active >= 0 && options.onActive) {
+                options.onActive (active, rows[active]);
+            }
+            return true;
+        }
+
         function fillBody () {
             var body = parts.body;
             var rows = options.rows ();
@@ -186,14 +245,7 @@
                 line.setAttribute ('data-index', row.index);
                 line.setAttribute ('data-key', row.key);
                 line.tabIndex = (position === 0) ? 0 : -1;
-                columns.forEach (function (column) {
-                    var cell = app.element (column.header ? 'th' : 'td', cellClass (column));
-                    if (column.header) {
-                        cell.scope = 'row';
-                    }
-                    column.fill (cell, row);
-                    line.appendChild (cell);
-                });
+                fillLine (line, row);
                 body.appendChild (line);
             });
             parts.heads.forEach (function (entry) {
@@ -331,6 +383,7 @@
 
         return {
             build: build,
+            update: update,
             // the board was emptied: the next build () starts a new table (the sort order stays)
             clear: function () { parts = null; },
             built: function () { return !!parts; },

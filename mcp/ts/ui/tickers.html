@@ -79,7 +79,7 @@ thead .short { display: none; }
         <div class="hero" id="hero" hidden><span class="value" id="last">–</span><span class="delta" id="change"></span><span class="context">24h change</span></div>
         <div class="asof" id="asof"></div>
     </div>
-    <div class="controls">
+    <div class="controls" id="controls">
         <button type="button" id="refresh" title="Fetch the latest prices" hidden>Refresh</button>
     </div>
 </div>
@@ -89,6 +89,7 @@ thead .short { display: none; }
 <script>
 /* @include bridge.js */
 /* @include table.js */
+/* @include live.js */
 </script>
 <script>
 (function () {
@@ -98,13 +99,15 @@ thead .short { display: none; }
     var labelled = table.labelled;
     var NUMERIC = [ 'last', 'percentage', 'change', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap', 'open', 'close', 'timestamp' ];
     var rows = [];
+    var raw = []; // the tickers rows were normalized from, live updates merged in
+    var offset = 0; // live_update takes 20 symbols: a larger board is polled 20 at a time
     var contracts = null;
     var maxChange = 0; // the largest 24h change on the board: the scale of the change bars
     var headerUnit = ''; // the volume unit every row shares, named once in the column header
     var source; // the loader (payload, Refresh, host connection) and the grid, built at the end
     var board;
     var nodes = {};
-    [ 'heading', 'venue', 'hero', 'last', 'change', 'asof', 'refresh', 'readout', 'board', 'status' ].forEach (function (id) {
+    [ 'heading', 'venue', 'hero', 'last', 'change', 'asof', 'refresh', 'readout', 'board', 'status', 'controls' ].forEach (function (id) {
         nodes[id] = document.getElementById (id);
     });
 
@@ -282,6 +285,9 @@ thead .short { display: none; }
         } },
         { key: 'last', label: 'Last', hint: 'Sort by last price', fill: function (cell, row) {
             cell.textContent = price (row.last, row.digits);
+            if (row.flash) {
+                cell.classList.add ('flash-' + row.flash);
+            }
             if (row.last === undefined) {
                 cell.classList.add ('missing');
             }
@@ -354,6 +360,16 @@ thead .short { display: none; }
         nodes.board.appendChild (wrap);
     }
 
+    function asOf () {
+        var newest;
+        rows.forEach (function (row) {
+            if (row.timestamp !== undefined && (newest === undefined || row.timestamp > newest)) {
+                newest = row.timestamp;
+            }
+        });
+        nodes.asof.textContent = (newest === undefined) ? '' : 'as of ' + app.dateTime (newest);
+    }
+
     function render () {
         var data = source.data;
         if (!data) {
@@ -362,15 +378,9 @@ thead .short { display: none; }
         var kept = board.place ();
         var single = rows.length === 1;
         var venue = data.exchangeName || data.exchange || '';
-        var newest;
-        rows.forEach (function (row) {
-            if (row.timestamp !== undefined && (newest === undefined || row.timestamp > newest)) {
-                newest = row.timestamp;
-            }
-        });
+        asOf ();
         nodes.heading.textContent = single ? rows[0].symbol : 'Prices';
         nodes.venue.textContent = single ? venue : (venue + (venue ? ' · ' : '') + rows.length + ((rows.length === 1) ? ' market' : ' markets'));
-        nodes.asof.textContent = (newest === undefined) ? '' : 'as of ' + app.dateTime (newest);
         nodes.hero.hidden = !single;
         nodes.readout.hidden = rows.length < 2;
         nodes.refresh.hidden = !app.canCallTools ();
@@ -382,6 +392,12 @@ thead .short { display: none; }
             nodes.board.appendChild (app.element ('div', 'empty', 'No prices were returned for these symbols.'));
         } else if (single) {
             nodes.last.textContent = price (rows[0].last, rows[0].digits);
+            nodes.last.classList.remove ('flash-up', 'flash-down');
+            if (rows[0].flash) {
+                // restart the animation on the same element
+                void nodes.last.offsetWidth;
+                nodes.last.classList.add ('flash-' + rows[0].flash);
+            }
             setDelta (nodes.change, rows[0].percentage);
             renderSingle (rows[0]);
         } else {
@@ -416,7 +432,10 @@ thead .short { display: none; }
         },
         apply: function (payload) {
             contracts = (payload.contracts && typeof payload.contracts === 'object') ? payload.contracts : null;
-            rows = payload.tickers.filter (function (ticker) { return ticker && typeof ticker === 'object'; }).map (normalize);
+            raw = payload.tickers.filter (function (ticker) { return ticker && typeof ticker === 'object'; });
+            rows = raw.map (normalize);
+            offset = 0;
+            live.restart ();
             var seen = {};
             rows.forEach (function (row) { seen['$' + row.symbol] = true; });
             var absent = (Array.isArray (payload.symbols) ? payload.symbols : []).filter (function (symbol) { return typeof symbol === 'string' && !seen['$' + symbol]; });
@@ -425,6 +444,95 @@ thead .short { display: none; }
         render: render,
         fallbackArgs: function () {
             return { exchange: source.data.exchange, symbols: source.data.symbols };
+        },
+        defer: function (retry) {
+            if (!live.inFlight ()) {
+                return false;
+            }
+            live.run (retry);
+            return true;
+        },
+        connected: function () {
+            if (source.data) {
+                live.start ();
+            }
+        }
+    });
+
+    function symbolsToPoll () {
+        var symbols = [];
+        rows.forEach (function (row) {
+            if (row.symbol !== '–' && symbols.indexOf (row.symbol) === -1) {
+                symbols.push (row.symbol);
+            }
+        });
+        return symbols;
+    }
+
+    var LIVE_FIELDS = [ 'last', 'bid', 'ask', 'percentage', 'baseVolume', 'quoteVolume', 'timestamp' ];
+
+    // the polled fields replace the held ones; the 24h range stretches to a last price
+    // outside it, every other field keeps its value from the full result
+    function merge (update) {
+        var all = symbolsToPoll ();
+        offset = (offset + 20 < all.length) ? offset + 20 : 0;
+        rows = raw.map (function (ticker, index) {
+            var fresh = (typeof ticker.symbol === 'string' && Object.prototype.hasOwnProperty.call (update, ticker.symbol)) ? update[ticker.symbol] : null;
+            if (!fresh || typeof fresh !== 'object') {
+                return normalize (ticker, index);
+            }
+            var next = {};
+            Object.keys (ticker).forEach (function (key) { next[key] = ticker[key]; });
+            LIVE_FIELDS.forEach (function (key) {
+                if (app.isNumber (fresh[key])) {
+                    next[key] = fresh[key];
+                }
+            });
+            if (app.isNumber (next.last)) {
+                if (app.isNumber (next.high) && next.last > next.high) {
+                    next.high = next.last;
+                }
+                if (app.isNumber (next.low) && next.last < next.low) {
+                    next.low = next.last;
+                }
+            }
+            raw[index] = next;
+            var row = normalize (next, index);
+            var before = app.isNumber (ticker.last) ? ticker.last : ticker.close;
+            if (app.isNumber (before) && row.last !== undefined && row.last !== before) {
+                row.flash = (row.last > before) ? 'up' : 'down';
+            }
+            return row;
+        });
+        var unit = headerUnit;
+        if (rows.length < 2 || sharedUnit () !== unit || !board.update ()) {
+            render ();
+        } else {
+            asOf ();
+        }
+        // a flash is shown once: a later sort or rebuild redraws the cell without it
+        rows.forEach (function (row) { delete row.flash; });
+    }
+
+    var live = window.ccxtLive.attach ({
+        view: 'tickers',
+        slot: nodes.controls,
+        busy: function () { return source.busy; },
+        request: function () {
+            var all = symbolsToPoll ();
+            if (!source.data || !all.length) {
+                return null;
+            }
+            var request = { exchange: source.data.exchange || (source.args && source.args.exchange), symbols: all.slice (offset, offset + 20) };
+            if (source.args && typeof source.args.marketType === 'string') {
+                request.marketType = source.args.marketType;
+            }
+            return request;
+        },
+        apply: function (content) {
+            if (content.tickers && typeof content.tickers === 'object') {
+                merge (content.tickers);
+            }
         }
     });
 

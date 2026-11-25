@@ -48,7 +48,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         <div class="title"><h1 id="symbol">Order book</h1><span class="venue" id="venue"></span></div>
         <div class="hero"><span class="value" id="mid">–</span><span class="context" id="spread"></span></div>
     </div>
-    <div class="controls">
+    <div class="controls" id="controls">
         <button type="button" id="refresh" title="Fetch the latest order book">Refresh</button>
         <button type="button" id="toggle" aria-pressed="false" title="List every level instead of the best 12 per side">All levels</button>
     </div>
@@ -60,6 +60,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
 <div class="status" id="status" role="status">Waiting for data…</div>
 <script>
 /* @include bridge.js */
+/* @include live.js */
 </script>
 <script>
 (function () {
@@ -80,8 +81,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
     var busy = false;
     var showAll = false;
     var layout = null;
+    var changed = null; // after a live update: 'bid|price' -> true for each new or resized level
     var nodes = {};
-    [ 'symbol', 'venue', 'mid', 'spread', 'refresh', 'toggle', 'legend', 'readout', 'plot', 'ladder', 'status' ].forEach (function (id) {
+    [ 'symbol', 'venue', 'mid', 'spread', 'refresh', 'toggle', 'legend', 'readout', 'plot', 'ladder', 'status', 'controls' ].forEach (function (id) {
         nodes[id] = document.getElementById (id);
     });
 
@@ -483,6 +485,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         table.appendChild (document.createElement ('thead')).appendChild (head);
         shown.forEach (function (level) {
             var row = document.createElement ('tr');
+            if (changed && changed[name + '|' + level.price]) {
+                row.className = 'flash';
+            }
             var total = app.element ('td', 'cum');
             var bar = app.element ('span', 'bar ' + name);
             bar.style.width = ((scale > 0) ? Math.max (0, Math.min (100, (level.cum / scale) * 100)).toFixed (1) : '0') + '%';
@@ -566,7 +571,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         return !!payload && payload.view === 'orderbook' && Array.isArray (payload.bids) && Array.isArray (payload.asks);
     }
 
-    function accept (payload) {
+    // isLive: a live update of the same book. The status line is a live region, so it then
+    // leaves out the time (the indicator shows it) and is only rewritten when it changes.
+    function accept (payload, isLive) {
         if (!usable (payload)) {
             if (!data) {
                 // nothing on screen yet: say so instead of waiting forever
@@ -574,18 +581,66 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
             }
             return;
         }
+        var before = isLive ? book : null;
         data = payload;
         book = buildBook (payload);
-        var parts = app.isNumber (payload.timestamp) ? [ 'As of ' + app.dateTime (payload.timestamp, { dateStyle: 'medium', timeStyle: 'medium' }) ] : [];
+        changed = null;
+        if (before) {
+            var held = {};
+            before.bids.concat (before.asks).forEach (function (level) { held[level.side + '|' + level.price] = level.amount; });
+            changed = {};
+            book.bids.concat (book.asks).forEach (function (level) {
+                var key = level.side + '|' + level.price;
+                if (held[key] !== level.amount) {
+                    changed[key] = true;
+                }
+            });
+        }
+        var parts = (app.isNumber (payload.timestamp) && !isLive) ? [ 'As of ' + app.dateTime (payload.timestamp, { dateStyle: 'medium', timeStyle: 'medium' }) ] : [];
         if (book.levels.length) {
             parts.push (book.bids.length + ' bid and ' + book.asks.length + ' ask levels');
         }
         if (book.outside) {
             parts.push (outsideNote ());
         }
-        setStatus (parts.join (' · '));
+        if (!isLive || parts.join (' · ') !== nodes.status.textContent) {
+            setStatus (parts.join (' · '));
+        }
         render ();
+        changed = null;
+        if (!isLive) {
+            live.restart ();
+        }
     }
+
+    var live = window.ccxtLive.attach ({
+        view: 'orderbook',
+        slot: nodes.controls,
+        busy: function () { return busy; },
+        request: function () {
+            if (!data || typeof data.symbol !== 'string') {
+                return null;
+            }
+            var wanted = (args && app.isNumber (args.limit)) ? args.limit : (app.isNumber (data.limit) ? data.limit : Math.max (book.bids.length, book.asks.length));
+            var request = { exchange: data.exchange || (args && args.exchange), symbol: data.symbol, depth: Math.max (1, Math.min (100, Math.round (wanted) || 50)) };
+            if (args && typeof args.marketType === 'string') {
+                request.marketType = args.marketType;
+            }
+            return request;
+        },
+        apply: function (content) {
+            var update = content.orderbook;
+            if (!data || !update || update.symbol !== data.symbol || !Array.isArray (update.bids) || !Array.isArray (update.asks)) {
+                return;
+            }
+            var next = {};
+            Object.keys (data).forEach (function (key) { next[key] = data[key]; });
+            next.bids = update.bids;
+            next.asks = update.asks;
+            next.timestamp = update.timestamp;
+            accept (next, true);
+        }
+    });
 
     function setBusy (value) {
         busy = value;
@@ -596,6 +651,10 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
 
     function reload () {
         if (busy || !data) {
+            return;
+        }
+        if (live.inFlight ()) {
+            live.run (reload);
             return;
         }
         var request = {};
@@ -644,6 +703,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
     }).then (function () {
         if (data) {
             renderControls ();
+            live.start ();
         }
     }, function () {
         setStatus ('Could not connect to the host.', true);

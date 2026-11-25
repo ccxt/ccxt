@@ -13,6 +13,7 @@
     --up: #008300;
     --down: #e34948;
     --accent: #2a78d6;
+    --warn: #b26b00;
     --bg: var(--color-background-primary, var(--fb-bg));
     --bg-2: var(--color-background-secondary, var(--fb-bg-2));
     --text: var(--color-text-primary, var(--fb-text));
@@ -35,6 +36,7 @@
         --up: #0ca30c;
         --down: #e66767;
         --accent: #3987e5;
+        --warn: #e0a030;
     }
 }
 :root[data-theme="dark"] {
@@ -48,6 +50,7 @@
     --up: #0ca30c;
     --down: #e66767;
     --accent: #3987e5;
+    --warn: #e0a030;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -102,4 +105,22 @@ svg text { fill: var(--text-3); font: 11px var(--sans); font-variant-numeric: ta
 .grid { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; }
 .cursor { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; shape-rendering: crispEdges; pointer-events: none; }
 [hidden] { display: none !important; }
-@media (prefers-reduced-motion: reduce) { .busy { transition: none; } }
+/* live mode (live.js): a fixed-width indicator, so its states never move the controls */
+.live { display: inline-flex; align-items: center; gap: 5px; min-width: 9.5em; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live.pending { visibility: hidden; }
+.live .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.live[data-state="live"] .dot { background: var(--up); animation: live-pulse 2s ease-in-out infinite; }
+.live[data-state="delayed"] .dot { background: var(--warn); }
+.live[data-state="offline"] .dot { background: var(--down); }
+.live .at { color: var(--text-3); }
+.live .resume { padding: 1px 7px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+@keyframes live-flash { from { background-color: var(--flash, var(--bg-2)); } }
+.flash { animation: live-flash 900ms ease-out; }
+.flash-up { --flash: color-mix(in srgb, var(--up) 24%, transparent); animation: live-flash 900ms ease-out; }
+.flash-down { --flash: color-mix(in srgb, var(--down) 24%, transparent); animation: live-flash 900ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+    .busy { transition: none; }
+    .live .dot, .flash, .flash-up, .flash-down { animation: none !important; }
+}

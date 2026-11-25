@@ -15,6 +15,7 @@
     var pending = {};
     var nextId = 1;
     var handlers = {};
+    var listeners = { teardown: [] };
     var hostContext = {};
     var hostCapabilities = {};
     var initialized = false;
@@ -42,7 +43,7 @@
             var timer = setTimeout (function () {
                 // a late answer finds no pending entry and is ignored
                 delete pending[id];
-                reject (new Error ('the host did not answer'));
+                reject (tagged ('the host did not answer', { timeout: true }));
             }, timeoutMs);
             pending[id] = { resolve: resolve, reject: reject, timer: timer };
             post ({ jsonrpc: '2.0', id: id, method: method, params: params || {} });
@@ -155,25 +156,67 @@
         return undefined;
     }
 
-    // a failed tool call carries the server's error envelope as JSON text
-    function errorMessage (result) {
-        var text = '';
+    function tagged (message, fields) {
+        var error = new Error (message);
+        for (var key in fields) {
+            if (Object.prototype.hasOwnProperty.call (fields, key)) {
+                error[key] = fields[key];
+            }
+        }
+        return error;
+    }
+
+    function textOf (result) {
         var content = (result && result.content) || [];
         for (var i = 0; i < content.length; i++) {
             if (content[i] && content[i].type === 'text' && typeof content[i].text === 'string') {
-                text = content[i].text;
-                break;
+                return content[i].text;
             }
         }
+        return '';
+    }
+
+    // the error body of the server's envelope ({ ok: false, error: { code, message, ... } },
+    // or the same fields flat), from structuredContent or the JSON text; undefined if none
+    function envelopeError (result) {
+        var candidates = [ result && result.structuredContent ];
         try {
-            var envelope = JSON.parse (text);
-            if (envelope && envelope.error && envelope.error.message) {
-                return String (envelope.error.message);
-            }
+            candidates.push (JSON.parse (textOf (result)));
         } catch (error) {
-            // not JSON — fall through to the raw text
+            // not JSON
         }
+        for (var i = 0; i < candidates.length; i++) {
+            var envelope = candidates[i];
+            var nested = !!envelope && typeof envelope === 'object' && !!envelope.error && typeof envelope.error === 'object';
+            if (nested || (envelope && typeof envelope === 'object' && envelope.ok === false)) {
+                var body = nested ? envelope.error : envelope;
+                if (body.message || body.code) {
+                    return body;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    // a failed tool call carries the server's error envelope as JSON text
+    function errorMessage (result) {
+        var body = envelopeError (result);
+        if (body && body.message) {
+            return String (body.message);
+        }
+        var text = textOf (result);
         return text ? text.slice (0, 300) : 'the request failed';
+    }
+
+    // the Error a failed tool call rejects with: the message, plus the envelope's code,
+    // retryable flag and retryAfterSeconds when the server sent them
+    function toolError (result) {
+        var body = envelopeError (result) || {};
+        return tagged (errorMessage (result), {
+            code: (typeof body.code === 'string') ? body.code : undefined,
+            retryable: (typeof body.retryable === 'boolean') ? body.retryable : undefined,
+            retryAfterSeconds: isNumber (body.retryAfterSeconds) ? body.retryAfterSeconds : undefined
+        });
     }
 
     window.addEventListener ('message', function (event) {
@@ -190,7 +233,9 @@
                 delete pending[message.id];
                 clearTimeout (entry.timer);
                 if (message.error) {
-                    entry.reject (new Error ((message.error && message.error.message) || 'request failed'));
+                    // the host refused the request itself (unknown tool, a tool the view may
+                    // not call, no server): not a result of the tool
+                    entry.reject (tagged ((message.error && message.error.message) || 'request failed', { rpc: true }));
                 } else {
                     entry.resolve (message.result);
                 }
@@ -201,6 +246,7 @@
             // a request from the host
             if (message.method === 'ui/resource-teardown') {
                 call ('onTeardown');
+                listeners.teardown.forEach (function (listener) { listener (); });
                 post ({ jsonrpc: '2.0', id: message.id, result: {} });
             } else if (message.method === 'ping') {
                 post ({ jsonrpc: '2.0', id: message.id, result: {} });
@@ -286,29 +332,35 @@
     }
 
     // re-run a tool on the ccxt-mcp server through the host (used for refresh / timeframe
-    // switches); resolves with the tool's structuredContent
-    function callTool (name, args) {
+    // switches and live updates); resolves with the tool's structuredContent. A rejection
+    // carries .rpc (the host refused the call), .timeout, or the envelope's .code,
+    // .retryable and .retryAfterSeconds.
+    function callTool (name, args, timeoutMs) {
         var promise;
+        var deadline = isNumber (timeoutMs) ? timeoutMs : timeouts.request;
         if (initialized) {
-            promise = request ('tools/call', { name: name, arguments: args || {} }, timeouts.request);
+            promise = request ('tools/call', { name: name, arguments: args || {} }, deadline);
         } else if (window.openai && typeof window.openai.callTool === 'function') {
             promise = new Promise (function (resolve, reject) {
-                var timer = setTimeout (function () { reject (new Error ('the host did not answer')); }, timeouts.request);
+                var timer = setTimeout (function () { reject (tagged ('the host did not answer', { timeout: true })); }, deadline);
                 var settle = function (done) {
                     return function (value) {
                         clearTimeout (timer);
                         done (value);
                     };
                 };
+                var refused = function (error) {
+                    reject (tagged ((error && error.message) || 'request failed', { rpc: true }));
+                };
                 // inside the executor, so a synchronous throw rejects as well
-                Promise.resolve (window.openai.callTool (name, args || {})).then (settle (resolve), settle (reject));
+                Promise.resolve (window.openai.callTool (name, args || {})).then (settle (resolve), settle (refused));
             });
         } else {
-            return Promise.reject (new Error ('this host does not let the view request new data — ask the assistant instead'));
+            return Promise.reject (tagged ('this host does not let the view request new data — ask the assistant instead', { rpc: true }));
         }
         return promise.then (function (result) {
-            if (!result || result.isError) {
-                throw new Error (errorMessage (result));
+            if (!result || result.isError || (result.structuredContent && result.structuredContent.ok === false)) {
+                throw toolError (result);
             }
             var missing = missingData (result.structuredContent);
             if (missing) {
@@ -504,6 +556,12 @@
         connect: connect,
         callTool: callTool,
         canCallTools: canCallTools,
+        // on ('teardown', fn): the host is about to remove the view
+        on: function (event, listener) {
+            if (listeners[event]) {
+                listeners[event].push (listener);
+            }
+        },
         context: function () { return hostContext; },
         timeouts: timeouts,
         isNumber: isNumber,

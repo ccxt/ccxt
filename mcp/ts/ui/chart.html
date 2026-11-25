@@ -32,7 +32,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         <div class="title"><h1 id="symbol">Chart</h1><span class="venue" id="venue"></span></div>
         <div class="hero"><span class="value" id="last">–</span><span class="delta" id="change"></span><span class="context" id="range"></span></div>
     </div>
-    <div class="controls">
+    <div class="controls" id="controls">
         <div class="segmented" id="timeframes" role="group" aria-label="Timeframe"></div>
         <button type="button" id="refresh" title="Fetch the latest candles">Refresh</button>
         <button type="button" id="toggle" aria-pressed="false" title="Show the candles as a table">Table</button>
@@ -44,6 +44,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
 <div class="status" id="status" role="status">Waiting for data…</div>
 <script>
 /* @include bridge.js */
+/* @include live.js */
 </script>
 <script>
 (function () {
@@ -62,8 +63,9 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
     var digits; // decimals shared by every price of the dataset (undefined: each value picks its own)
     var busy = false;
     var layout = null;
+    var history = 200; // candles kept while live updates append: what the result held, 50..1000
     var nodes = {};
-    [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'tablewrap', 'status' ].forEach (function (id) {
+    [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'tablewrap', 'status', 'controls' ].forEach (function (id) {
         nodes[id] = document.getElementById (id);
     });
 
@@ -496,6 +498,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
 
     function renderTable () {
         var wrap = nodes.tablewrap;
+        var scrolled = wrap.scrollTop;
         wrap.textContent = '';
         if (wrap.hidden || !data.candles.length) {
             return;
@@ -524,6 +527,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         }
         table.appendChild (body);
         wrap.appendChild (table);
+        wrap.scrollTop = scrolled;
     }
 
     // keepHover: the data has not changed, so the inspected candle is still the same one
@@ -558,12 +562,85 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         // The server only sends such rows, but a host can hand over a result it rebuilt
         // itself: a row that is not an array is left out instead of being dereferenced.
         data.candles = data.candles.filter (function (candle) { return Array.isArray (candle); });
+        history = Math.max (50, Math.min (1000, data.candles.length));
         setStatus ('');
         render ();
+        live.restart ();
     }
+
+    // A live update: every candle from the last one held on. The open candle is replaced,
+    // newer ones are appended, and the oldest drop off so the window keeps its length. The
+    // inspected candle stays the same candle; timeframe buttons and focus are left alone.
+    function merge (chart) {
+        if (!data || !chart || chart.symbol !== data.symbol || chart.timeframe !== data.timeframe || !Array.isArray (chart.candles)) {
+            return;
+        }
+        var incoming = chart.candles.filter (function (candle) { return Array.isArray (candle) && app.isNumber (candle[0]); });
+        incoming.sort (function (a, b) { return a[0] - b[0]; });
+        if (!incoming.length) {
+            return;
+        }
+        var candles = data.candles;
+        var count = candles.length;
+        var step = (count > 1) ? candles[count - 1][0] - candles[count - 2][0] : 0;
+        var held = count ? candles[count - 1][0] : -Infinity;
+        if (count && step > 0 && incoming[0][0] > held + step) {
+            // a gap the update does not cover (a long pause): start again from what it holds
+            candles = incoming.slice ();
+            hover = -1;
+        } else {
+            incoming.forEach (function (candle) {
+                for (var i = candles.length - 1; i >= 0 && candles[i][0] >= candle[0]; i--) {
+                    if (candles[i][0] === candle[0]) {
+                        candles[i] = candle;
+                        return;
+                    }
+                }
+                if (!candles.length || candle[0] > candles[candles.length - 1][0]) {
+                    candles.push (candle);
+                }
+            });
+        }
+        var excess = candles.length - history;
+        if (excess > 0) {
+            candles.splice (0, excess);
+            hover = (hover >= excess) ? hover - excess : -1;
+        }
+        data.candles = candles;
+        digits = priceDigits ();
+        renderHeader ();
+        redraw ();
+        renderTable ();
+    }
+
+    var live = window.ccxtLive.attach ({
+        view: 'chart',
+        slot: nodes.controls,
+        busy: function () { return busy; },
+        request: function () {
+            if (!data || typeof data.symbol !== 'string' || typeof data.timeframe !== 'string') {
+                return null;
+            }
+            var request = { exchange: data.exchange || (args && args.exchange), symbol: data.symbol, timeframe: data.timeframe };
+            if (args && typeof args.marketType === 'string') {
+                request.marketType = args.marketType;
+            }
+            var last = data.candles[data.candles.length - 1];
+            if (last) {
+                request.since = last[0];
+            }
+            return request;
+        },
+        apply: function (content) { merge (content.chart); }
+    });
 
     function reload (changes) {
         if (busy || !data) {
+            return;
+        }
+        if (live.inFlight ()) {
+            // one request at a time: this one goes out when the live poll has answered
+            live.run (function () { reload (changes); });
             return;
         }
         var request = {};
@@ -625,6 +702,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
     }).then (function () {
         if (data) {
             renderTimeframes ();
+            live.start ();
         }
     }, function () {
         setStatus ('Could not connect to the host.', true);
