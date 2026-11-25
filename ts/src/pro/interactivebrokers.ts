@@ -678,7 +678,10 @@ export default class interactivebrokers extends interactivebrokersRest {
         const total = duration * limit;
         const minutes = this.parseToInt ((total + 59) / 60);
         if (minutes <= 30) {
-            return this.numberToString (Math.max (minutes, 1)) + 'min';
+            if (minutes < 1) {
+                return '1min';
+            }
+            return this.numberToString (minutes) + 'min';
         }
         const hours = this.parseToInt ((total + 3599) / 3600);
         if (hours <= 8) {
@@ -697,7 +700,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             return this.numberToString (months) + 'm';
         }
         const years = this.parseToInt ((total + 31535999) / 31536000);
-        return this.numberToString (Math.min (years, 15)) + 'y';
+        if (years > 15) {
+            return '15y'; // the documented maximum period
+        }
+        return this.numberToString (years) + 'y';
     }
 
     /**
