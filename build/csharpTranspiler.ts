@@ -594,7 +594,9 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
         const integer = (o) => isName (o, CSHARP_OPERATOR_INTEGER_TYPES) || isName (o, CSHARP_OPERATOR_NULLABLE_INTEGER_TYPES) || (o.kind === 'integer-literal');
         const integerPair = integer (left) && integer (right)
             && ((left.kind === 'name') || (right.kind === 'name'));
-        if (stringPair || nullTest || boolPair || integerPair) {
+        // two WebSocketClient names: the class has no `==` overload, so the operator is reference identity
+        const clientPair = isName (left, [ 'WebSocketClient' ]) && isName (right, [ 'WebSocketClient' ]);
+        if (stringPair || nullTest || boolPair || integerPair || clientPair) {
             return `(${leftText} == ${rightText})`;
         }
         return objectNull ? csharpStringConstantPattern (left, right, leftText, rightText) : undefined;
@@ -1605,7 +1607,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'phemex': { 'FetchFundingHistory': [ 0 ], 'parseMarginStatus': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
     'poloniex': { 'FetchTransactionsHelper': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'orderRequest': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
     'prediction:binance': { 'parseOrderStatus': [ 0 ] },
-    'prediction:hyperliquid': { 'buildOutcomeSymbol': [ 1 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'prediction:hyperliquid': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
     'prediction:kalshi': { 'calculateFee': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ] },
     'prediction:limitless': { 'parseOrderSide': [ 0 ], 'parseOrderTimeInForce': [ 0 ] },
     'prediction:myriad': { 'FetchRawMarketById': [ 0 ], 'FetchRawQuestionById': [ 0 ], 'FetchTradeQuote': [ 1 ], 'buildOrderbookOrder': [ 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseTradeTx': [ 3 ] },
@@ -1676,6 +1678,8 @@ VENUE_STRING_ARGS['BaseExchange']['parseLeverageTiers'] = [ 2 ];
 const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id', 'marketId', 'scale' ];
 // intToRlpHex (value: Int): every caller passes a safeInteger / Int64? local
 VENUE_NUMERIC_ARG_NAMES.push ('value');
+// buildOutcomeSymbol (side: number): the body compares it with integer literals; no caller
+VENUE_NUMERIC_ARG_NAMES.push ('side');
 
 // Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue
 // class declares the method once and no file calls it by that venue's binding.
@@ -1745,6 +1749,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     // hitbtc / dydx / poloniex: since, limit are declared Int and every caller passes its own Int64? since / limit
     'FetchTransactionsHelper': { 1: 'Int64?', 2: 'Int64?', 3: 'Int64?' },
     'intToRlpHex': { 0: 'Int64?' },
+    'buildOutcomeSymbol': { 1: 'Int64?' },
 };
 
 // Shadow-local uses that stay identities when the shadow takes the parameter's own type (same box,
