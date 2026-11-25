@@ -1649,9 +1649,6 @@
             "fetchCurrencies": {
                 "type": "todo"
             },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
             "fetchTrades": {
                 "sideSequence": "todo check"
             },
