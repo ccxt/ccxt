@@ -943,7 +943,7 @@ class whitebit extends whitebit$1["default"] {
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
+                    const networkLength = networkId.length - 0;
                     const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
                     if (networkCode !== undefined) {
                         depositWithdrawFees[code]['networks'][networkCode] = {

@@ -416893,7 +416893,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        const idLength = id.length;
+        const idLength = id.length - 0;
         if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;
@@ -441395,7 +441395,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length;
+        const secretLength = secret.length - 0;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for(let i = 0; i <= fullLines; i++){
@@ -579805,9 +579805,9 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         }
         this.checkRequiredCredentials();
         const wsBaseUrl = this.safeString(this.urls['api'], 'ws', '');
-        const startIndex = wsBaseUrl.length;
+        const startIndex = wsBaseUrl.length - 0;
         const urlParamsIndex = url.indexOf('?');
-        const urlLength = url.length;
+        const urlLength = url.length - 0;
         const endIndex = urlParamsIndex >= 0 ? urlParamsIndex : urlLength;
         const request = url.slice(startIndex, endIndex);
         const payload = {
@@ -652429,7 +652429,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
                     'percentage': depositFee !== undefined ? false : undefined
                 };
                 if (networkId !== undefined) {
-                    const networkLength = networkId.length;
+                    const networkLength = networkId.length - 0;
                     const networkCode = this.networkIdToCode(networkId.slice(1, networkLength - 1), code);
                     if (networkCode !== undefined) {
                         depositWithdrawFees[code]['networks'][networkCode] = {

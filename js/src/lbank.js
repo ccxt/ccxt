@@ -3133,7 +3133,7 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length;
+        const secretLength = secret.length - 0;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i <= fullLines; i++) {
