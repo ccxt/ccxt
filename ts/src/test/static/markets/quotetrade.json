@@ -1,0 +1,140 @@
+{
+    "BTC/USD:USD": {
+        "id": "BTC",
+        "lowercaseId": null,
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 15,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "id": 1,
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "quantityScale": 6,
+            "minOrderQuantityScale": 3,
+            "executionQuantityScale": 6,
+            "minimumNotionalUsd": 15,
+            "chartPriceScale": 2
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "ETH/USD:USD": {
+        "id": "ETH",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": null,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 15,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "id": 2,
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "quantityScale": 6,
+            "minOrderQuantityScale": 2,
+            "executionQuantityScale": 6,
+            "minimumNotionalUsd": 15,
+            "chartPriceScale": 4
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

@@ -1,0 +1,227 @@
+{
+    "exchange": "quotetrade",
+    "apiKey": "fixture-key",
+    "secret": "fixture-secret",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "metadata uses admission step and excludes option contracts",
+                "method": "fetchMarkets",
+                "input": [],
+                "url": "https://app.quote.trade/api/getInstrumentPairs"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "public server milliseconds",
+                "method": "fetchTime",
+                "input": [],
+                "url": "https://app.quote.trade/api/status"
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "public operational status",
+                "method": "fetchStatus",
+                "input": [],
+                "url": "https://app.quote.trade/api/status"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "quotes have no fabricated last or volume",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "https://app.quote.trade/api/ticker?symbol=BTC"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "funding balances exclude the synthetic BTC short",
+                "method": "fetchBalance",
+                "input": [],
+                "url": "https://app.quote.trade/api/positions",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "negative native quantity becomes a short in base units",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USD:USD"
+                    ]
+                ],
+                "url": "https://app.quote.trade/api/positions",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "scaled status fields preserve 64-bit order id and FIX time",
+                "method": "fetchOrder",
+                "input": [
+                    "9007199254740993",
+                    "BTC/USD:USD"
+                ],
+                "url": "https://app.quote.trade/api/orderStatus",
+                "output": "{\"orderId\":\"9007199254740993\",\"symbol\":\"BTC\"}",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "native open-order list filters terminal statuses",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USD:USD",
+                    null,
+                    5
+                ],
+                "url": "https://app.quote.trade/api/getOrders",
+                "output": "{\"symbol\":\"BTC\"}",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            },
+            {
+                "description": "explicit V2 routing",
+                "input": [
+                    "BTC/USD:USD",
+                    null,
+                    null,
+                    {
+                        "apiVersion": "v2"
+                    }
+                ],
+                "url": "https://app.quote.trade/api/v2/getOrders",
+                "output": "{\"symbol\":\"BTC\"}",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "X-MBX-APIKEY": "fixture-key",
+                    "signature": "55927edbda2c5a9b1f1a51fddb07597ee54a0c8298dabc1742bee3573198a613"
+                }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "event history selects latest snapshot per order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USD:USD",
+                    1700000000000,
+                    5
+                ],
+                "url": "https://app.quote.trade/api/getUserHistory?type=order&symbol=BTC&timestamp=1700000000000&limit=5",
+                "output": "{}",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key",
+                    "signature": "7f8a8a9055772ffc1fad96818e6bb9977236571af3ceb1b6525ff799f61849ba"
+                },
+                "body": "{}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "immediate FOK limit request in exact base units",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.003,
+                    60000,
+                    {
+                        "account": "12345",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "https://app.quote.trade/api/order",
+                "output": "{\"timestamp\":1700000000000,\"liquidityOrder\":1,\"account\":12345,\"symbol\":\"BTC\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"timeInForce\":\"FOK\",\"price\":\"60000\",\"quantity\":\"0.003\",\"disableLeverage\":1,\"paymentCurrency\":\"USD\"}",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "legacy cancellation acknowledgement does not invent scaled fields",
+                "method": "cancelOrder",
+                "input": [
+                    "42",
+                    "BTC/USD:USD",
+                    {
+                        "account": "12345"
+                    }
+                ],
+                "url": "https://app.quote.trade/api/cancelOrder",
+                "output": "{\"account\":12345,\"symbol\":\"BTC\",\"orderId\":\"42\"}",
+                "headers": {
+                    "X-MBX-APIKEY": "fixture-key"
+                }
+            }
+        ],
+        "initializeMcp": [
+            {
+                "description": "native MCP initializeMcp request",
+                "input": [],
+                "url": "https://quote.trade/mcp",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream"
+                },
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"ccxt-quotetrade\",\"version\":\"1.0.0\"}}}",
+                "options": {
+                    "mcpRequestId": 0
+                }
+            }
+        ],
+        "fetchMcpTools": [
+            {
+                "description": "native MCP fetchMcpTools request",
+                "input": [],
+                "url": "https://quote.trade/mcp",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream"
+                },
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}",
+                "options": {
+                    "mcpRequestId": 0
+                }
+            }
+        ],
+        "callMcpTool": [
+            {
+                "description": "native MCP callMcpTool request",
+                "input": [
+                    "quote_trade_get_orders",
+                    {}
+                ],
+                "url": "https://quote.trade/mcp",
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "X-MBX-APIKEY": "fixture-key",
+                    "X-MBX-APISECRET": "fixture-secret"
+                },
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"quote_trade_get_orders\",\"arguments\":{}}}",
+                "options": {
+                    "mcpRequestId": 0,
+                    "mcpSendSecret": true
+                }
+            }
+        ]
+    }
+}
