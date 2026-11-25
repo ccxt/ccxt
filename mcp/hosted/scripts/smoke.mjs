@@ -24,7 +24,7 @@ const option = (name) => {
     return (index === -1) ? undefined : args[index + 1];
 };
 
-const EXPECTED = [ 'describe_exchange', 'get_balance', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders', 'get_positions', 'get_tickers', 'get_trades', 'list_exchanges', 'search_markets', 'show_chart', 'show_orderbook', 'show_tickers' ];
+const EXPECTED = [ 'describe_exchange', 'get_balance', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders', 'get_positions', 'get_tickers', 'get_trades', 'list_exchanges', 'live_update', 'search_markets', 'show_chart', 'show_orderbook', 'show_tickers' ];
 const UI = { 'extensions': { 'io.modelcontextprotocol/ui': { 'mimeTypes': [ 'text/html;profile=mcp-app' ] } } };
 
 function freePort () {
@@ -89,7 +89,7 @@ try {
         await client.connect (new StreamableHTTPClientTransport (new URL (url)));
         console.log ('  negotiated ' + client.getNegotiatedProtocolVersion ());
         const { tools } = await client.listTools ();
-        check (JSON.stringify (tools.map ((tool) => tool.name).sort ()) === JSON.stringify (EXPECTED), 'tools/list is the 14 hosted tools');
+        check (JSON.stringify (tools.map ((tool) => tool.name).sort ()) === JSON.stringify (EXPECTED), 'tools/list is the ' + EXPECTED.length + ' hosted tools');
         for (const stubArgs of [ { 'account': 'main' }, {}, { 'exchange': 'coinbase' } ]) {
             const stub = await client.callTool ({ 'name': 'get_balance', 'arguments': stubArgs });
             check (stub.isError === true && envelope (stub)?.error?.code === 'ACCOUNT_REQUIRED', 'get_balance ' + JSON.stringify (stubArgs) + ' answers ACCOUNT_REQUIRED');

@@ -46,7 +46,7 @@ Sources: [submission](https://claude.com/docs/connectors/building/submission), [
 | Public IPv4 `A` record ("Connectors are IPv4-only") | building/troubleshooting | DONE, recheck | `docs.ccxt.com` resolved to an A record from this sandbox on 2026-11-25. Recheck from outside after deploy. |
 | No WAF or CDN block on Anthropic egress (`160.79.104.0/21`); no strict `Origin` check | building/authentication; [IP addresses](https://platform.claude.com/docs/en/api/ip-addresses) | TODO (after deploy) | The runtime gives these ranges a higher budget (`mcp/hosted/src/config.ts`). Check docs.ccxt.com's nginx and any CDN in front of it. |
 | Every tool has a `title` and `readOnlyHint` / `destructiveHint` | review criteria; Policy §5.E | DONE | Pinned for the hosted tool list by `mcp/hosted/test/protocol.test.ts` (15/15 passed on 2026-11-25). |
-| Tool names ≤ 64 characters; no tool mixes safe and unsafe methods | review criteria | DONE | 14 tools, longest `describe_exchange`. |
+| Tool names ≤ 64 characters; no tool mixes safe and unsafe methods | review criteria | DONE | 15 tools (live_update is app-only), longest `describe_exchange`. |
 | Results ≤ ~150,000 characters; ≤ 240 s per call | building/index | DONE | Results are capped by the shared tools; per-call deadline 20 s (`REQUEST_DEADLINE_MS`). |
 | Authless allowed | building/authentication: "`none` — No authentication (authless server) — Supported by default" | DONE | Phase 1 is anonymous. |
 | Listing: name ≤ 100, one-liner ≤ 200, description ≤ 2,000, 1–5 categories, documentation URL, privacy policy URL, support contact, icon, permanent slug | submission, step 3 | TODO | Drafts in "Listing copy" below. The slug is permanent: DECIDE (`ccxt` proposed). |
