@@ -1793,7 +1793,7 @@ class kraken(Exchange, ImplicitAPI):
         baseIdEnd = 3
         quoteIdStart = 3
         quoteIdEnd = 6
-        idLength = len(id)
+        idLength = len(id) - 0
         if idLength == 8:
             baseIdEnd = 4
             quoteIdStart = 4

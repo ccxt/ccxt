@@ -908,9 +908,9 @@ class gemini(ccxt.async_support.gemini):
             return
         self.check_required_credentials()
         wsBaseUrl = self.safe_string(self.urls['api'], 'ws', '')
-        startIndex = len(wsBaseUrl)
+        startIndex = len(wsBaseUrl) - 0
         urlParamsIndex = url.find('?')
-        urlLength = len(url)
+        urlLength = len(url) - 0
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength
         request = url[startIndex:endIndex]
         payload = {

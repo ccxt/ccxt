@@ -941,7 +941,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'percentage': False if (depositFee is not None) else None,
                 }
                 if networkId is not None:
-                    networkLength = len(networkId)
+                    networkLength = len(networkId) - 0
                     networkCode = self.network_id_to_code(networkId[1:networkLength - 1], code)
                     if networkCode is not None:
                         depositWithdrawFees[code]['networks'][networkCode] = {
