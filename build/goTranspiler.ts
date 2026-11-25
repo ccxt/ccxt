@@ -14122,6 +14122,11 @@ class NewTranspiler {
         const methodNameCapitalized = capitalize(methodName);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // a core that carries *int64 (declared `Promise<int>`) returns int64: the wrapper derefs it instead of converting
+        const intCarrier = (unwrappedType === 'float64') && (goChan3Lookup (goChan3Table (), capitalize (exchangeName), capitalize (methodName)) === '*int64');
+        if (intCarrier) {
+            unwrappedType = 'int64';
+        }
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         let params = methodWrapper.parameters.map((param: any) => {
@@ -14181,7 +14186,7 @@ class NewTranspiler {
 
         const body = [
            `${defaultParams}`,
-            ...goNativeAwaitBody (two, unwrappedType, this.createReturnConverter (methodName, unwrappedType), `this.${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
+            ...goNativeAwaitBody (two, unwrappedType, intCarrier ? 'ParseInt' : this.createReturnConverter (methodName, unwrappedType), `this.${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
         ];
         const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
         if (!WRAPPER_METHODS[exchangeName]) {
