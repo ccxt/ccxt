@@ -1321,11 +1321,12 @@ impl Gemini {
         }
         self.check_required_credentials(&[]);
         let mut wsBaseUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut startIndex: i64 = (wsBaseUrl.chars().count() as i64);
+        let mut startIndex: i64 = (((wsBaseUrl.chars().count() as i64)) - 0);
         let mut urlParamsIndex: i64 = url.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1);
-        let mut urlLength: i64 = url.len() as i64;
-        let mut endIndex: i64 = (if (urlParamsIndex >= 0) { urlParamsIndex } else { urlLength });
-        let mut request: Value = (match (&(url), startIndex, Some(endIndex)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+        let mut urlLength: Value = (match (&(Value::Int(url.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut endIndex: Value = (if (urlParamsIndex >= 0) { Value::from(urlParamsIndex) } else { urlLength });
+        let mut request: Value = (match (&(url), startIndex, (match &(endIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
+            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
             __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         let mut payload: indexmap::IndexMap<String, Value> = ({

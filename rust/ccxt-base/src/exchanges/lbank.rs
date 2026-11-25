@@ -4480,8 +4480,8 @@ impl Lbank {
 
 
     pub fn convert_secret_to_pem(&self, mut secret: Value) -> Option<String> {
-        let mut secretLength: i64 = get_array_length(&secret).as_i64().unwrap_or_default();
-        let mut fullLines: Option<i64> = self.parse_to_int(Value::Float(((secretLength as f64) / 64.0)));
+        let mut secretLength: Value = (match (&(get_array_length(&secret)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut fullLines: Option<i64> = self.parse_to_int((match ((secretLength).as_f64(), (Value::Int(64)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut pem: String = "-----BEGIN PRIVATE KEY-----\n".to_string(); // eslint-disable-line
         {
                         let mut i: i64 = 0;

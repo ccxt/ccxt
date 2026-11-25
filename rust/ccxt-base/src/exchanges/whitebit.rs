@@ -2696,7 +2696,7 @@ impl Whitebit {
                     m
                 });
                 if (networkId.is_some()) {
-                    let mut networkLength: i64 = (networkId.as_deref().unwrap_or_default().chars().count() as i64);
+                    let mut networkLength: i64 = (((networkId.as_deref().unwrap_or_default().chars().count() as i64)) - 0);
                     let mut networkCode: Option<String> = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
                         __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
                     if (networkCode.is_some()) {
