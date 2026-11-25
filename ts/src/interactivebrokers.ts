@@ -1403,19 +1403,18 @@ export default class interactivebrokers extends Exchange {
         }
         const chunkSize = 330; // above this number, response becomes unreliable
         const promises = [];
-        let offset = 0;
-        while (offset < numDetails) {
-            const end = Math.min (this.sum (offset, chunkSize), numDetails);
-            const chunk: string[] = [];
-            for (let k = offset; k < end; k++) {
-                const detailId: string = this.safeString (detailIds, k, '');
-                chunk.push (detailId);
+        let chunk: string[] = [];
+        for (let k = 0; k < numDetails; k++) {
+            const detailId: string = this.safeString (detailIds, k, '');
+            chunk.push (detailId);
+            const chunkLength = chunk.length;
+            if ((chunkLength === chunkSize) || (k === numDetails - 1)) {
+                const secdefRequest: Dict = {
+                    'conids': chunk.join (','),
+                };
+                promises.push (this.marketsEndpointCall (secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
+                chunk = [];
             }
-            const secdefRequest: Dict = {
-                'conids': chunk.join (','),
-            };
-            promises.push (this.marketsEndpointCall (secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
-            offset = end;
         }
         const responses = await Promise.all (promises);
         //
