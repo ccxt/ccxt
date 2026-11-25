@@ -3712,16 +3712,14 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
+                        const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
                         return this.arraySlice (array, 0, limitResolved);
                     }
-                    return this.arraySlice (array, -limitResolved);
+                } else if (!ascending) {
+                    return this.arraySlice (array, 0, limit);
                 }
-                if (ascending) {
-                    return this.arraySlice (array, -limit);
-                }
-                return this.arraySlice (array, 0, limit);
+                return this.arraySlice (array, -limit);
             }
         }
         return array;
