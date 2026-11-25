@@ -10600,14 +10600,21 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
         const t = types.map ((x) => (x === 'string' || x === 'string?') ? 'object' : x);
         const bind = subMulTwinBind (m[1], t[0], t[1]);
         let native: string;
-        if (bind === 'object') {
+        const numeric = [ 'int', 'Int64', 'double', 'int?', 'Int64?', 'double?' ];
+        // parseToInt(object) reads Int64 N and double N.0 alike below 1e15 (decimal keeps 15 digits), so a numeric
+        // product by a small integer literal that parseToInt alone consumes needs no re-box
+        const smallLiteral = args.some ((a) => /^(\d{1,4}|\([A-Za-z_]\w* \* \d{1,4}\))$/.test (a.trim ()));
+        const intoParseToInt = smallLiteral && /this\.parseToInt\($/.test (text.slice (0, m.index)) && (text[close + 1] === ')') && t.every ((x) => numeric.includes (x));
+        if ((bind === 'object') && (m[1] === 'multiply') && intoParseToInt) {
+            native = '((double?)' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
+        } else if (bind === 'object') {
             native = subMulHelperBody (m[1]) + '(' + args[0].trim () + ', ' + args[1].trim () + ')';
         } else if (m[1] === 'subtract') {
             native = '(' + subMulAtom (args[0]) + ' - ' + subMulAtom (args[1]) + ')';
         } else {
             native = '((' + bind + ')' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
         }
-        results.set (native, bind);
+        results.set (native, native.startsWith ('((double?)') ? 'double?' : bind);
         out += native;
     }
     return out + text.slice (last);
@@ -10676,6 +10683,11 @@ function typedSubtractMultiplySnippetChecks (): string[] {
     check ('Int64? multiply lifted', '        Int64? a = this.safeInteger(o, "a");\n        object r = multiply(a, 1000);', 'object r = ((Int64?)a * 1000);');
     check ('for counter Int64 twin', '        for (int i = 0; i < 3; i++)\n        {\n            Int64 x = multiply(i, 5L);\n        }', 'Int64 x = ((Int64)i * 5L);');
     check ('double subtract twin', '        double a = 1.5;\n        int b = 2;\n        object r = subtract(a, b);', 'object r = (a - b);');
+    check ('double? product into parseToInt', '        double? a = this.safeNumber(o, "a");\n        Int64? r = this.parseToInt(multiply(a, 1000));', 'Int64? r = this.parseToInt(((double?)a * 1000));');
+    check ('scaled Int64? times double? into parseToInt', '        Int64? e = this.safeInteger(o, "e");\n        double? q = this.safeNumber(o, "q");\n        Int64? r = this.parseToInt(multiply((e * 1000), q));', 'Int64? r = this.parseToInt(((double?)(e * 1000) * q));');
+    check ('object operand into parseToInt keeps body', '        object v = getValue(o, "a");\n        Int64? r = this.parseToInt(multiply(v, 2));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(v, 2))');
+    check ('non-literal double product into parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        double b = 2.5;\n        Int64? r = this.parseToInt(multiply(a, b));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(a, b))');
+    check ('double? product outside parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        object r = multiply(a, 2);', 'object r = ' + subMulHelperBody ('multiply') + '(a, 2);');
     keep ('unknown operand', '        object r = subtract(this.foo(), 1);');
     const tests = wrap ('        object r = subtract(since, 1);', 'Tests');
     if (csharpTypedSubtractMultiply (true, tests) !== tests) problems.push ('typed subtract multiply snippet checks tests namespace changed');
