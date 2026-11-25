@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -39,6 +39,8 @@ export default class okx extends okxRest {
                 'watchFundingRates': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -195,8 +197,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -302,8 +304,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTradesForSymbols ([ symbol ], params);
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -489,8 +491,8 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTickers ([ symbol ], params);
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
     }
 
     /**
@@ -559,6 +561,56 @@ export default class okx extends okxRest {
             return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchMarkPrices ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const channel = this.handleOptionStringAndParams (params, 'watchMarkPrices', 'channel', 'mark-price')[0];
+        const topics: List = [];
+        const messageHashes: List = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
+            messageHashes.push ('unsubscribe:mark-price:' + symbol);
+            const marketId = this.marketId (symbol);
+            const topic: Dict = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+        }
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl (channel, 'public');
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     /**
@@ -863,7 +915,7 @@ export default class okx extends okxRest {
         //        ]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
@@ -964,7 +1016,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const rawLiquidations = this.safeList (message, 'data', []) as List;
+        const rawLiquidations: Dict[] = this.safeList (message, 'data', []) as List;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const eventType = this.safeString (rawLiquidation, 'eventType');
@@ -1108,8 +1160,8 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        return this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
     /**
@@ -1263,12 +1315,12 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         //
         // channel tiers: bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
         // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
-        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**
@@ -1409,8 +1461,8 @@ export default class okx extends okxRest {
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        return this.unWatchOrderBookForSymbols ([ symbol ], params);
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
     override handleDelta (bookside: any, delta: any) {
@@ -1567,7 +1619,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -2022,7 +2074,7 @@ export default class okx extends okxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
@@ -2252,7 +2304,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const rawOrders: Dict[] = this.safeList (message, 'data', []);
-        const filteredOrders: List = [];
+        const filteredOrders: Dict[] = [];
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
@@ -2292,11 +2344,11 @@ export default class okx extends okxRest {
         }
     }
 
-    requestId (): string {
+    requestId (): int {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         const ts = this.milliseconds ().toString ();
-        const randomNumber = this.randNumber (4);
-        const randomPart = randomNumber.toString ();
-        return ts + randomPart;
+        const randomPart = this.randNumber (3).toString ();
+        return this.parseToInt (ts + randomPart);
     }
 
     /**
@@ -2319,7 +2371,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const [ op, paramsOp ] = this.handleOptionStringAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
@@ -2398,7 +2450,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const [ op, paramsOp ] = this.handleOptionStringAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, paramsOp);
         const market = this.market (symbol);
@@ -2435,7 +2487,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         const paramsOmitted: Dict = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         const market = this.market (symbol);
@@ -2479,7 +2531,7 @@ export default class okx extends okxRest {
         }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const args: List = [];
         const market = this.market (symbol);
         const instIdCode = this.safeInteger (market, 'instIdCode');
@@ -2522,7 +2574,7 @@ export default class okx extends okxRest {
             throw new BadRequest (this.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.requestId ();
+        const messageHash: string = this.requestId ().toString ();
         const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -2819,6 +2871,15 @@ export default class okx extends okxRest {
         }
     }
 
+    handleUnsubscriptionMarkPrice (client: Client, symbol: string, channel: string) {
+        const subMessageHash = channel + '::' + symbol;
+        const messageHash = 'unsubscribe:mark-price:' + symbol;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
+
     handleUnsubscription (client: Client, message: Dict) {
         //
         // {
@@ -2844,6 +2905,8 @@ export default class okx extends okxRest {
             this.handleUnSubscriptionTrades (client, symbol, channel);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
             this.handleUnsubscriptionOrderBook (client, symbol, channel);
+        } else if (channel === 'mark-price') {
+            this.handleUnsubscriptionMarkPrice (client, symbol, channel);
         } else if (channel.indexOf ('tickers') > -1) {
             this.handleUnsubscriptionTicker (client, symbol, channel);
         } else if (channel.startsWith ('candle')) {

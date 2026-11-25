@@ -492,6 +492,7 @@ export default class bitfinex extends Exchange {
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
+                    'Min price step': InvalidOrder, // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 },
             },
             'commonCurrencies': {
@@ -2017,7 +2018,7 @@ export default class bitfinex extends Exchange {
         }
         const paramsOmitted = (cid !== undefined) ? this.omit(params, ['cid', 'clientOrderId']) : params;
         const response = await this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted));
-        const order = this.safeValue(response, 4);
+        const order = this.safeList(response, 4);
         const newOrder = { 'result': order };
         return this.parseOrder(newOrder, market);
     }

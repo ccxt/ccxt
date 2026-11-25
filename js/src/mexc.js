@@ -23,7 +23,7 @@ export default class mexc extends Exchange {
             'countries': ['SC'], // Seychelles
             'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v3',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -1939,15 +1939,15 @@ export default class mexc extends Exchange {
             }
             const priceType = this.safeString(paramsUntil, 'price', 'default');
             const paramsOmitted = this.omit(paramsUntil, 'price');
-            let response;
+            let swapResponse;
             if (priceType === 'default') {
-                response = await this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted));
             }
             else if (priceType === 'index') {
-                response = await this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted));
             }
             else if (priceType === 'mark') {
-                response = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted));
             }
             else {
                 throw new NotSupported(this.id + ' fetchOHLCV() not support this price type, [default, index, mark]');
@@ -1967,7 +1967,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(swapResponse, 'data');
             candles = this.convertTradingViewToOHLCV(data, 'time', 'open', 'high', 'low', 'close', 'vol');
         }
         return this.parseOHLCVs(candles, market, timeframe, since, limit);
@@ -2584,15 +2584,15 @@ export default class mexc extends Exchange {
             throw new InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
-        let orderType = this.parseToInt(0); // typed seed, every branch below assigns it
+        let orderType = 0; // typed seed, every branch below assigns it
         if (postOnly) {
-            orderType = this.parseToInt(2);
+            orderType = 2;
         }
         else if (type === 'limit') {
-            orderType = this.parseToInt(1);
+            orderType = 1;
         }
         else if (type === 'market') {
-            orderType = this.parseToInt(6);
+            orderType = 6;
         }
         else {
             orderType = this.parseToInt(type);
@@ -2941,15 +2941,15 @@ export default class mexc extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            let response;
+            let spotResponse;
             if (marginMode !== undefined) {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest(this.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                response = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
+                spotResponse = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
             }
             else {
-                response = await this.spotPrivateGetAllOrders(this.extend(request, queryInner));
+                spotResponse = await this.spotPrivateGetAllOrders(this.extend(request, queryInner));
             }
             //
             // spot
@@ -2999,7 +2999,7 @@ export default class mexc extends Exchange {
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(spotResponse, market, since, limit);
         }
         else {
             if (since !== undefined) {
@@ -3552,12 +3552,12 @@ export default class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let method = this.safeString(this.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             method = this.safeString(paramsMarketType, 'method', method);
-            let response = {};
+            let swapResponse = {};
             if (method === 'contractPrivatePostOrderCancelAll') {
-                response = await this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType));
+                swapResponse = await this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType));
             }
             else if (method === 'contractPrivatePostPlanorderCancelAll') {
-                response = await this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType));
+                swapResponse = await this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType));
             }
             //
             //     {
@@ -3565,7 +3565,7 @@ export default class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            const data = this.safeList(response, 'data', []);
+            const data = this.safeList(swapResponse, 'data', []);
             return this.parseOrders(data, market);
         }
     }
@@ -6457,19 +6457,19 @@ export default class mexc extends Exchange {
             else {
                 this.checkRequiredCredentials();
                 const timestamp = this.nonce().toString();
-                let auth = '';
+                let payload = '';
                 if (method === 'POST') {
-                    auth = this.json(paramsOmitted);
-                    requestBody = auth;
+                    payload = this.json(paramsOmitted);
+                    requestBody = payload;
                 }
                 else {
                     const paramsSorted = this.keysort(paramsOmitted);
                     if (Object.keys(paramsSorted).length > 0) {
-                        auth += this.urlencode(paramsSorted);
-                        url += '?' + auth;
+                        payload = this.urlencode(paramsSorted);
+                        url += '?' + payload;
                     }
                 }
-                auth = this.apiKey + timestamp + auth;
+                const auth = this.apiKey + timestamp + payload;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 requestHeaders = {
                     'ApiKey': this.apiKey,

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::okxus::OkxusCore;
+use super::okxus::Okxus;
 use crate::exchange::ExchangeRuntime;
 
-impl OkxusCore {
+impl Okxus {
     /// Auto-generated wrapper for the `publicGetMarketTickers` implicit endpoint.
     pub async fn public_get_market_tickers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_tickers".into()), optional_args).await
@@ -740,6 +740,11 @@ impl OkxusCore {
     /// Auto-generated wrapper for the `privateGetAssetDepositWithdrawStatus` implicit endpoint.
     pub async fn private_get_asset_deposit_withdraw_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_deposit_withdraw_status".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAssetTravelRuleGetLocked` implicit endpoint.
+    pub async fn private_get_asset_travel_rule_get_locked(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_asset_travel_rule_get_locked".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAssetMonthlyStatement` implicit endpoint.
@@ -1705,6 +1710,11 @@ impl OkxusCore {
     /// Auto-generated wrapper for the `privatePostAssetCancelWithdrawal` implicit endpoint.
     pub async fn private_post_asset_cancel_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_cancel_withdrawal".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAssetTravelRuleUnlock` implicit endpoint.
+    pub async fn private_post_asset_travel_rule_unlock(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_asset_travel_rule_unlock".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetConvertDustAssets` implicit endpoint.

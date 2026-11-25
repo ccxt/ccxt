@@ -114,7 +114,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "balance";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -175,7 +175,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //      "u": 2285311
         //    }
         //
-        List<Object> balances = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         this.parseWSBalances(balances);
         String messageHash = "balance";
         client.resolve(this.balance, messageHash);
@@ -200,9 +200,9 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }]
         //
         this.balance.put("info", balances);
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -257,7 +257,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
             }
-            Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -390,7 +390,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("orderbook:" + symbol);
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
             Object url = null;
             String channel = null;
             String cbId = null;
@@ -475,12 +475,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
+        Map<String, Object> tick = this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         Map<String, Object> parseable = tick;
         if (Boolean.TRUE.equals(isFutures))
         {
-            List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawAsks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBuys = this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("asks", this.parseContractBidsAsks(rawAsks, (String) (symbol)));
@@ -510,7 +510,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Map<String, Object> markets = this.markets;
         List<String> symbols = new ArrayList<String>(markets.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbolId = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object candidate = this.safeValue(markets, symbolId);
@@ -526,7 +526,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             if (java.util.Objects.equals((baseId + quoteId), wsBaseQuote))
             {
-                return candidate;
+                return this.market(symbolId);
             }
         }
         return null;
@@ -537,7 +537,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
-            List<Object> level = (List<Object>) this.safeList(bidsAsks, i, (Object) null);
+            List<Object> level = this.safeList(bidsAsks, i, null);
             Double price = this.safeNumber(level, 0, (Object) null);
             Double rawAmount = this.safeNumber(level, 1, (Object) null);
             Object amount = this.convertFromRawQuantity((String) (symbol), rawAmount);
@@ -640,7 +640,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbolValue);
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
             Object url = wsUrls.get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -736,11 +736,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             // an unsubscribe, so frames it sent before processing it can still arrive
             return;
         }
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
-        List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> tick = this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
+        List<Object> data = this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             if (java.util.Objects.equals(stored, null))
             {
@@ -809,7 +809,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((this.id + " watchOHLCV is only supported for swap markets")) ;
             }
-            Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(futuresTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(interval, null))
             {
@@ -820,7 +820,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
             Object url = wsUrls.get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -866,7 +866,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((this.id + " unWatchOHLCV is only supported for swap markets")) ;
             }
-            Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(futuresTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(interval, null))
             {
@@ -915,7 +915,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         String wsInterval = this.safeString(parts, 4);
-        Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         if (java.util.Objects.equals(timeframe, null))
         {
@@ -927,7 +927,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             // a late push for a channel that was unwatched, see handleTrades
             return;
         }
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
+        Map<String, Object> tick = this.safeDict(message, "tick", null);
         if (java.util.Objects.equals(tick, null))
         {
             return;
@@ -988,7 +988,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbol);
-            Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
             Object url = wsUrls.get("futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -1030,7 +1030,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
+        Map<String, Object> tick = this.safeDict(message, "tick", null);
         if (java.util.Objects.equals(tick, null))
         {
             return;
@@ -1169,7 +1169,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
     }
 
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<String> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1209,14 +1209,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     //         }
                     //     }
                     //
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     String key = this.safeString(data, "listenKey");
                     if (java.util.Objects.equals(key, null))
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
                     this.options.put("listenKey", key);
-                    Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
+                    Map<String, Object> wsUrls = this.safeDict(this.urls.get("api"), "ws", new HashMap<String, Object>() {{}});
                     String wsUrl = this.safeString(wsUrls, "private");
                     if (java.util.Objects.equals(wsUrl, null))
                     {

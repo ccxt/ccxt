@@ -970,10 +970,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
-            first = self.safe_list(entry, 0, [])
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(first, market)
+            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1125,7 +1124,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1250,7 +1249,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
-        until = self.safe_value_2(paramsPaginate, 'until', 'end')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
         cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
@@ -1466,7 +1465,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100
         if since is not None:
             request['start_date'] = self.iso8601(since)
-        until = self.safe_value_2(paramsPaginate, 'until', 'end_date')
+        until = self.safe_integer_2(paramsPaginate, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
@@ -1788,7 +1787,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
-        until = self.safe_value_2(params, 'until', 'end_date')
+        until = self.safe_integer_2(params, 'until', 'end_date')
         if until is not None:
             request['end_date'] = self.iso8601(until)
         paramsUntil = self.omit(params, ['until']) if (until is not None) else params
@@ -2034,7 +2033,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        accounts = self.safe_list(self.options, 'coinbaseAccounts')
         if accounts is None:
             accounts = self.privateGetCoinbaseAccounts()
             self.options['coinbaseAccounts'] = accounts  # cache it

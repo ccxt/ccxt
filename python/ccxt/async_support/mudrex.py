@@ -1074,7 +1074,7 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
-        amount = self.safe_value(params, 'amount')
+        amount = self.safe_string(params, 'amount')
         if positionId is None:
             positions = await self.fetch_positions([symbol], params)
             candidates = self.filter_by(positions, 'symbol', market['symbol'])
@@ -1173,8 +1173,8 @@ class mudrex(Exchange, ImplicitAPI):
         # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
         pageSize = 0 if (limit is None) else limit * 2
         allRows = []
-        transactionsCount = self.parse_to_int(0)
-        calls = self.parse_to_int(0)
+        transactionsCount = 0
+        calls = 0
         offset = 0
         paging = True
         while(paging):
@@ -1191,8 +1191,8 @@ class mudrex(Exchange, ImplicitAPI):
                 if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
                     # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                     if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
-                        transactionsCount = self.parse_to_int(transactionsCount + 1)
-            calls = self.parse_to_int(calls + 1)
+                        transactionsCount = transactionsCount + 1
+            calls = calls + 1
             paging = False
             # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if (limit is not None) and (dataLength == pageSize):

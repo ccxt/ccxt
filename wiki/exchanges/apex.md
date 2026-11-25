@@ -16,7 +16,9 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchOpenInterest](#fetchopeninterest)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingRates](#fetchfundingrates)
 * [createOrder](#createorder)
 * [transfer](#transfer)
 * [cancelAllOrders](#cancelallorders)
@@ -276,6 +278,27 @@ apex.fetchOpenInterest (symbol, params?)
 ```
 
 
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetches the current funding rate for a market
+
+**Kind**: instance method of [<code>apex</code>](#apex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+apex.fetchFundingRate (symbol, params?)
+```
+
+
 <a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
 
 ### fetchFundingRateHistory{docsify-ignore}
@@ -298,6 +321,27 @@ fetches historical funding rate prices
 
 ```javascript
 apex.fetchFundingRateHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetches the current funding rates for multiple markets
+
+**Kind**: instance method of [<code>apex</code>](#apex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbol
+
+**See**: https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+apex.fetchFundingRates (symbols?, params?)
 ```
 
 

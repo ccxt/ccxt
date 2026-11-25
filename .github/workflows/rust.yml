@@ -117,8 +117,6 @@ jobs:
             echo "Files to process: ${files[*]} (prediction: ${prediction[*]})"
             tsx build/granular-rust-build.ts "${files[@]}" --prediction "${prediction[@]}"
           fi
-      - name: Generate Rust typed wrappers
-        run: npm run emitRustTyped
       - name: Build
         run: npm run buildRust
       - name: Check ccxt package (isolated feature sets)

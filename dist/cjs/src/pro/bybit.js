@@ -47,6 +47,7 @@ class bybit extends bybit$1["default"] {
                 'watchTradesForSymbols': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchBidsAsks': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -476,8 +477,8 @@ class bybit extends bybit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol, params = {}) {
-        return this.unWatchTickers([symbol], params);
+    async unWatchTicker(symbol, params = {}) {
+        return await this.unWatchTickers([symbol], params);
     }
     handleTicker(client, message) {
         //
@@ -661,6 +662,34 @@ class bybit extends bybit$1["default"] {
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsValue);
     }
+    /**
+     * @method
+     * @name bybit#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async unWatchBidsAsks(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsValue = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds(symbolsValue);
+        const topics = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = this.safeString(marketIds, i, '');
+            const symbol = symbolsValue[i];
+            topics.push('orderbook.1.' + marketId);
+            subMessageHashes.push('bidask:' + symbol);
+            messageHashes.push('unsubscribe:bidask:' + symbol);
+        }
+        const url = await this.getUrlByMarketType(symbolsValue[0], false, 'watchBidsAsks', params);
+        return await this.unWatchTopics(url, 'bidsasks', symbolsValue, messageHashes, subMessageHashes, topics, params);
+    }
     parseWsBidAsk(orderbook, market = undefined) {
         const timestamp = this.safeInteger(orderbook, 'timestamp');
         const bids = this.sortBy(this.aggregate(orderbook['bids']), 0);
@@ -828,11 +857,10 @@ class bybit extends bybit$1["default"] {
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }
@@ -885,8 +913,8 @@ class bybit extends bybit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -986,8 +1014,8 @@ class bybit extends bybit$1["default"] {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol, params = {}) {
-        return this.unWatchOrderBookForSymbols([symbol], params);
+    async unWatchOrderBook(symbol, params = {}) {
+        return await this.unWatchOrderBookForSymbols([symbol], params);
     }
     handleOrderBook(client, message) {
         //
@@ -1085,8 +1113,8 @@ class bybit extends bybit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -1169,8 +1197,8 @@ class bybit extends bybit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    unWatchTrades(symbol, params = {}) {
-        return this.unWatchTradesForSymbols([symbol], params);
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
     }
     handleTrades(client, message) {
         //
@@ -1469,10 +1497,7 @@ class bybit extends bybit$1["default"] {
         const topic = this.safeString(message, 'topic', '');
         const spot = topic === 'ticketInfo';
         const executionFast = topic === 'execution.fast';
-        let data = this.safeList(message, 'data', []);
-        if (!Array.isArray(data)) {
-            data = this.safeList(data, 'result', []);
-        }
+        const data = this.safeList(message, 'data', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
@@ -2034,13 +2059,7 @@ class bybit extends bybit$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeList(message, 'data', []);
-        const first = this.safeDict(rawOrders, 0, {});
-        const category = this.safeString(first, 'category');
-        const isSpot = category === 'spot';
-        if (!isSpot) {
-            rawOrders = this.safeValue(rawOrders, 'result', rawOrders);
-        }
+        const rawOrders = this.safeList(message, 'data', []);
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
             const parsed = this.parseOrder(rawOrders[i]);

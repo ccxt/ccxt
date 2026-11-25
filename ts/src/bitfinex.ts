@@ -489,6 +489,7 @@ export default class bitfinex extends Exchange {
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
+                    'Min price step': InvalidOrder, // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 },
             },
             'commonCurrencies': {
@@ -1131,7 +1132,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency: Dict, type: string): Str {
+    convertDerivativesId (currency: Currency, type: string): Str {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
@@ -1187,7 +1188,7 @@ export default class bitfinex extends Exchange {
             'nonce': undefined,
         };
         const priceIndex = (this.safeString (fullRequest, 'precision') === 'R0') ? 1 : 0;
-        const orders = this.toArray (orderbook);
+        const orders: any[][] = this.toArray (orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const price = this.safeNumber (order, priceIndex);
@@ -2033,7 +2034,7 @@ export default class bitfinex extends Exchange {
         }
         const paramsOmitted = (cid !== undefined) ? this.omit (params, [ 'cid', 'clientOrderId' ]) : params;
         const response = await this.privatePostAuthWOrderCancel (this.extend (request, paramsOmitted));
-        const order = this.safeValue (response, 4);
+        const order = this.safeList (response, 4);
         const newOrder: Dict = { 'result': order };
         return this.parseOrder (newOrder, market);
     }
@@ -3363,7 +3364,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rawRatesData = this.toArray (response);
+        const rawRatesData: any[][] = this.toArray (response);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];
@@ -3381,7 +3382,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",

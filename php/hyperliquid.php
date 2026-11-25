@@ -787,9 +787,9 @@ class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             $decimalPart = $this->safe_string($priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            $leadingZeros = $this->parse_to_int(0);
+            $leadingZeros = 0;
             while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
-                $leadingZeros = $this->parse_to_int($leadingZeros + 1);
+                $leadingZeros = $leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             $pricePrecision = $leadingZeros . $significantDigits;
@@ -1420,7 +1420,7 @@ class hyperliquid extends Exchange {
         return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //     {
         //         "maxLeverage": "50",
@@ -3622,6 +3622,7 @@ class hyperliquid extends Exchange {
             'canceled' => 'canceled',
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
+            'scheduledCancel' => 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         );
         if (str_ends_with($status, 'Rejected')) {
             return 'rejected';
@@ -4119,11 +4120,7 @@ class hyperliquid extends Exchange {
         );
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if ($vaultAddress !== null) {
-            if (str_starts_with($vaultAddress, '0x')) {
-                $vaultAddress = str_replace('0x', '', $vaultAddress);
-            }
-        }
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -5292,12 +5289,11 @@ class hyperliquid extends Exchange {
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
         $isPost = ($method === 'POST');
-        $postHeaders = array(
-            'Content-Type' => 'application/json',
-        );
         $requestHeaders = null;
         if ($isPost) {
-            $requestHeaders = $postHeaders;
+            $requestHeaders = array(
+                'Content-Type' => 'application/json',
+            );
         }
         $requestBody = null;
         if ($isPost) {

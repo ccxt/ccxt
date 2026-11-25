@@ -51,7 +51,7 @@ class blofin extends blofin$1["default"] {
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -88,7 +88,7 @@ class blofin extends blofin$1["default"] {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
@@ -661,7 +661,6 @@ class blofin extends blofin$1["default"] {
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
-        const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -677,7 +676,7 @@ class blofin extends blofin$1["default"] {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': isMargin,
+            'margin': (spot && Precise["default"].stringGt(maxLeverage, '1')),
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -1522,7 +1521,10 @@ class blofin extends blofin$1["default"] {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, marketResolved, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeStringN(order, ['px', 'price', 'orderPrice']);
+        let price = this.safeStringN(order, ['px', 'price', 'orderPrice']);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
@@ -1570,6 +1572,7 @@ class blofin extends blofin$1["default"] {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -1798,6 +1801,119 @@ class blofin extends blofin$1["default"] {
         const response = await this.privatePostTradeBatchOrders(ordersRequests);
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
+    }
+    /**
+     * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const isTrigger = this.safeBool(params, 'trigger', false);
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        else if (isTpsl) {
+            request['tpslId'] = id;
+        }
+        else if (isTrigger) {
+            request['algoId'] = id;
+        }
+        else {
+            request['orderId'] = id;
+        }
+        if (amount !== undefined) {
+            request['newSize'] = this.amountToPrecision(symbol, amount);
+        }
+        const query = this.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice']);
+        let response = undefined;
+        if (isTpsl) {
+            const stopLossPrice = this.safeString(params, 'stopLossPrice');
+            if (stopLossPrice !== undefined) {
+                request['newSlTriggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
+                const slLimitPrice = this.safeString(params, 'stopLossLimitPrice');
+                if (type === 'market') {
+                    request['newSlOrderPrice'] = '-1';
+                }
+                else if (slLimitPrice !== undefined) {
+                    request['newSlOrderPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                }
+            }
+            const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+            if (takeProfitPrice !== undefined) {
+                request['newTpTriggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
+                const tpLimitPrice = this.safeString(params, 'takeProfitLimitPrice');
+                if (type === 'market') {
+                    request['newTpOrderPrice'] = '-1';
+                }
+                else if (tpLimitPrice !== undefined) {
+                    request['newTpOrderPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
+            }
+            response = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+        }
+        else if (isTrigger) {
+            const triggerPrice = this.safeString(params, 'triggerPrice');
+            if (triggerPrice !== undefined) {
+                request['newTriggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            }
+            if (type === 'market') {
+                request['newOrderPrice'] = '-1';
+            }
+            else if (price !== undefined) {
+                request['newOrderPrice'] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+        }
+        else {
+            if (price !== undefined) {
+                request['newPrice'] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
     }
     /**
      * @method
@@ -2151,8 +2267,7 @@ class blofin extends blofin$1["default"] {
         const currencies = Object.values(dataByCurrencyId);
         return this.parseCurrencies(currencies);
     }
-    parseCurrency(currency) {
-        const chains = currency;
+    parseCurrency(chains) {
         const firstChain = this.safeDict(chains, 0, {});
         const currencyId = this.safeString(firstChain, 'currency');
         const code = this.safeCurrencyCode(currencyId);
@@ -2361,7 +2476,7 @@ class blofin extends blofin$1["default"] {
         // venue ignores the filter and returns the latest records instead
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             if (this.safeString(entry, 'depositId') === id) {
                 return this.parseTransaction(entry, currency);
             }
@@ -2400,7 +2515,7 @@ class blofin extends blofin$1["default"] {
         // case the venue ignores the filter and returns the latest records
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             let matches = false;
             if (id !== undefined) {
                 matches = (this.safeString(entry, 'withdrawId') === id);
@@ -3021,7 +3136,7 @@ class blofin extends blofin$1["default"] {
         const entryPriceString = this.safeString2(position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const leverageString = this.safeString(position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentageString = undefined;
         let collateralString = undefined;
         let marginString = undefined;
         if (marginMode === 'cross') {
@@ -3029,7 +3144,7 @@ class blofin extends blofin$1["default"] {
             collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         }
         else if (marginMode === 'isolated') {
-            initialMarginPercentage = Precise["default"].stringDiv('1', leverageString);
+            initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString);
             const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
@@ -3040,11 +3155,10 @@ class blofin extends blofin$1["default"] {
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         const maintenanceMarginPercentageString = Precise["default"].stringDiv(maintenanceMarginString, notionalString);
-        if (initialMarginPercentage === undefined) {
-            initialMarginPercentage = this.parseNumber(Precise["default"].stringDiv(initialMarginString, notionalString, 4));
+        if (initialMarginPercentageString === undefined) {
+            initialMarginPercentageString = Precise["default"].stringDiv(initialMarginString, notionalString, 4);
         }
         else if (initialMarginString === undefined) {
-            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise["default"].stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
@@ -3092,12 +3206,70 @@ class blofin extends blofin$1["default"] {
             'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
-            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
+            'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    async fetchMarketLeverageTiers(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const [marginMode, query] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'marginMode': marginMode,
+        };
+        const response = await this.publicGetMarketPositionTiers(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseMarketLeverageTiers(data, market);
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = this.safeDict(info, i);
+            const marketId = this.safeString(tier, 'symbol');
+            tiers.push({
+                'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
+                'currency': this.safeString(market, 'quote'),
+                'minNotional': this.safeNumber(tier, 'minSize'),
+                'maxNotional': this.safeNumber(tier, 'maxSize'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber(tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
     /**
      * @method

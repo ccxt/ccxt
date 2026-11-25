@@ -1826,7 +1826,7 @@ export default class kraken extends Exchange {
     findMarketByAltnameOrId(id) {
         const marketsByAltname = this.safeDict(this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
-            return marketsByAltname[id];
+            return this.safeDict(marketsByAltname, id);
         }
         else {
             return this.safeMarket(id);
@@ -1845,7 +1845,7 @@ export default class kraken extends Exchange {
     }
     getDelistedMarketById(id) {
         if (id === undefined) {
-            return id;
+            return undefined;
         }
         let market = this.safeDict(this.options['delistedMarketsById'], id);
         if (market !== undefined) {
@@ -1855,7 +1855,7 @@ export default class kraken extends Exchange {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        const idLength = id.length;
+        const idLength = id.length - 0;
         if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;

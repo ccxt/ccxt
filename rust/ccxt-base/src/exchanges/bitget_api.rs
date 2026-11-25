@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitget::BitgetCore;
+use super::bitget::Bitget;
 use crate::exchange::ExchangeRuntime;
 
-impl BitgetCore {
+impl Bitget {
     /// Auto-generated wrapper for the `publicCommonGetV2PublicAnnoucements` implicit endpoint.
     pub async fn public_common_get_v2_public_annoucements(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_common_get_v2_public_annoucements".into()), optional_args).await

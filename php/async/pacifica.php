@@ -1223,7 +1223,7 @@ class pacifica extends Exchange {
         return $this->parse_funding_rates($result, $symbols);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //      {
         //         "funding": "0.00010529",
@@ -2990,7 +2990,7 @@ class pacifica extends Exchange {
          */
         $operationType = 'update_leverage';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());

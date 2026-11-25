@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::foxbit::FoxbitCore;
+use super::foxbit::Foxbit;
 use crate::exchange::ExchangeRuntime;
 
-impl FoxbitCore {
+impl Foxbit {
     /// Auto-generated wrapper for the `v3PublicGetCurrencies` implicit endpoint.
     pub async fn v3_public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_public_get_currencies".into()), optional_args).await

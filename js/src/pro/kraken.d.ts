@@ -1,5 +1,5 @@
 import krakenRest from '../kraken.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Market } from '../base/types.js';
+import type { Int, int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): Dict;
@@ -71,7 +71,7 @@ export default class kraken extends krakenRest {
     handleTicker(client: Client, message: Dict): void;
     handleTrades(client: Client, message: Dict): void;
     handleOHLCV(client: Client, message: Dict): void;
-    requestId(): number;
+    requestId(): int;
     /**
      * @method
      * @name kraken#watchTicker

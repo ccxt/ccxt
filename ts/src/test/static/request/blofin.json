@@ -3,6 +3,70 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit tpsl order",
+                "method": "editOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/amend-tpsl",
+                "input": [
+                    "10031298270",
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    null,
+                    null,
+                    {
+                        "tpsl": true,
+                        "stopLossPrice": 27.82,
+                        "takeProfitPrice": 53.18
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"tpslId\":\"10031298270\",\"newSlTriggerPrice\":\"27.82\",\"newSlOrderPrice\":\"-1\",\"newTpTriggerPrice\":\"53.18\",\"newTpOrderPrice\":\"-1\"}"
+            },
+            {
+                "description": "edit trigger order",
+                "method": "editOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/amend-algo",
+                "input": [
+                    "10031298518",
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.02,
+                    null,
+                    {
+                        "trigger": true,
+                        "triggerPrice": 27.95
+                    }
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"algoId\":\"10031298518\",\"newSize\":\"0.02\",\"newTriggerPrice\":\"27.95\",\"newOrderPrice\":\"-1\"}"
+            },
+            {
+                "description": "edit price and amount",
+                "method": "editOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/amend-order",
+                "input": [
+                    "6000004088597",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    24.5
+                ],
+                "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"6000004088597\",\"newSize\":\"0.2\",\"newPrice\":\"24.5\"}"
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://openapi.blofin.com/api/v1/market/position-tiers?instId=CATI-USDT&marginMode=cross",
+                "input": [
+                    "CATI/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMarkPrice": [
             {
                 "description": "fetch mark price",

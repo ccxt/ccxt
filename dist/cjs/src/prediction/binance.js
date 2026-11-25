@@ -206,7 +206,7 @@ class binance extends binance$1["default"] {
             maxTopicsResolved = this.parseToInt(maxTopics);
         }
         const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
-        let pageLimit = this.parseToInt(100);
+        let pageLimit = 100;
         if (pageLimitOption < 100) {
             pageLimit = this.parseToInt(pageLimitOption);
         }
@@ -445,13 +445,13 @@ class binance extends binance$1["default"] {
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        let limitValue = this.parseToInt(20);
+        let limitValue = 20;
         if (limit !== undefined) {
             limitValue = this.parseToInt(limit);
         }
         let limitResolved = limitValue;
         if (limitValue > 50) {
-            limitResolved = this.parseToInt(50);
+            limitResolved = 50;
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
@@ -781,8 +781,7 @@ class binance extends binance$1["default"] {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        const marketAny = market;
-        const outcomeObj = this.safeOutcome(this.safeString(marketAny, 'outcome'), marketAny);
+        const outcomeObj = this.safeOutcome(this.safeString(market, 'outcome'), market);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});

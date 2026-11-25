@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.93'
+__version__ = '4.5.94'
 
 # -----------------------------------------------------------------------------
 
@@ -299,6 +299,7 @@ class BaseExchange(object):
     isSandboxModeEnabled = False
     accounts = None
     positions = None
+    positionsByType = None
 
     status = None
 
@@ -373,6 +374,7 @@ class BaseExchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
+        self.positionsByType = dict() if self.positionsByType is None else self.positionsByType
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = None if self.liquidations is None else self.liquidations
@@ -489,6 +491,10 @@ class BaseExchange(object):
         except Exception:
             return False
 
+    def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def get_temp_dir(self):
         tmp = os.path.realpath(tempfile.gettempdir())
         return tmp if tmp.endswith(os.sep) else tmp + os.sep
@@ -498,7 +504,7 @@ class BaseExchange(object):
         exts = ['ccxtfile', 'pem', 'wasm']
         if any(sanitized.endswith('.' + ext) for ext in exts):
             return
-        raise ValueError(f'invalid file path: {file_path}')
+        raise ValueError(f'invalid file path: {file_path}, allowed extensions are: ' + ' | '.join(exts))
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
@@ -537,6 +543,10 @@ class BaseExchange(object):
     # json_parser.loads with no wrapper frame; subclass `def on_json_response(self, ...)`
     # overrides still take precedence through normal MRO lookup
     on_json_response = staticmethod(json_parser.loads)
+
+    def set_validate_server_ssl(self, validate):
+        """enables or disables server ssl certificate validation for REST and WS connections"""
+        self.validateServerSsl = validate
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1552,6 +1562,13 @@ class BaseExchange(object):
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), pad, algorithm))
 
     @staticmethod
+    def decrypt_private_key(encryption_priv_key, encryption_secret):
+        # RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+        # same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+        priv_key = load_pem_private_key(Exchange.encode(encryption_priv_key), None, backends.default_backend())
+        return priv_key.decrypt(base64.b64decode(encryption_secret), padding.PKCS1v15())
+
+    @staticmethod
     def eth_abi_encode(types, args):
         from ccxt.static_dependencies import ethabi
         return ethabi.encode(types, args)
@@ -2134,7 +2151,7 @@ class BaseExchange(object):
         return value is not None
 
     def array_slice(self, array, first, second=None):
-        return array[first:second] if second else array[first:]
+        return array[first:second] if second is not None else array[first:]
 
     def get_property(self, obj, property, defaultValue=None):
         return getattr(obj, property) if hasattr(obj, property) else defaultValue
@@ -2170,6 +2187,59 @@ class BaseExchange(object):
     def convert_to_safe_dictionary(self, dictionary):
         return dictionary
 
+    def read_dh_param(self, path):
+        # reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+        pem = self.read_file(path)
+        if pem is None:
+            raise ExchangeError(self.id + ' readDhParam() could not read the DH_param file: ' + str(path))
+        der = base64.b64decode(re.sub(r'-----[^-]+-----|\s', '', pem))
+        pos = 0
+
+        def read_byte():
+            nonlocal pos
+            if pos >= len(der):
+                raise ExchangeError(self.id + ' readDhParam() unexpected end of the DH_param file')
+            byte = der[pos]
+            pos += 1
+            return byte
+
+        def read_len():
+            length = read_byte()
+            if length & 0x80:
+                n = length & 0x7f
+                length = 0
+                for _ in range(n):
+                    length = (length << 8) | read_byte()
+            return length
+
+        def read_int():
+            nonlocal pos
+            if read_byte() != 0x02:
+                raise ExchangeError(self.id + ' readDhParam() expected INTEGER while reading DH_param file')
+            length = read_len()
+            hex_value = der[pos:pos + length].hex()
+            pos += length
+            return hex_value[2:] if hex_value.startswith('00') else hex_value  # strip sign byte
+
+        if read_byte() != 0x30:
+            raise ExchangeError(self.id + ' readDhParam() expected SEQUENCE while reading DH_param file')
+        read_len()
+        prime = read_int()
+        read_int()  # generator
+        return prime
+
+    def mod_pow(self, base, exponent, modulus):
+        return pow(self.convert_to_big_int(base), self.convert_to_big_int(exponent), self.convert_to_big_int(modulus))
+
+    def big_to_bytes(self, value):
+        # big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        hex_value = format(self.convert_to_big_int(value), 'x')
+        if (len(hex_value) % 2) == 1:
+            hex_value = '0' + hex_value
+        if int(hex_value[0], 16) >= 8:
+            hex_value = '00' + hex_value  # prepend the sign byte
+        return bytes.fromhex(hex_value)
+
     def check_option_string(self, methodName, optionName, value):
         # the statically typed ports throw on a present non-string value; here it passes through unchanged
         return value
@@ -2193,6 +2263,8 @@ class BaseExchange(object):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
     def close(self, clean_instance_data=False):
+        # a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        self.before_close()
         # ##### language-specific cleanup of REST resources #####
         # [REST]
         if clean_instance_data:
@@ -3130,6 +3202,12 @@ class BaseExchange(object):
         self.ohlcvs = self.create_safe_dictionary(True)
         self.myTrades = None
         self.positions = None
+        self.positionsByType = {}
+
+    def before_close(self) -> object:
+        # called first by close (), a derived exchange overrides it to stop its own background loops
+        # (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return None
 
     def safe_bool_n(self, dictionaryOrList: object, keys: list[NullableIndexType], defaultValue: Bool = None):
         """
@@ -3473,7 +3551,7 @@ class BaseExchange(object):
         shouldFilterFromStart = not tail and sinceIsDefined
         return self.filter_by_limit(result, limit, key, shouldFilterFromStart)
 
-    def filter_by_value_since_limit(self, array: list[object], field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
+    def filter_by_value_since_limit(self, array: list[object] | None, field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
         valueIsDefined = self.value_is_defined(value)
         sinceIsDefined = since is not None and since is not None
         parsedArray = self.to_array(array)
@@ -3617,7 +3695,7 @@ class BaseExchange(object):
     def parse_currency(self, rawCurrency: dict):
         raise NotSupported(self.id + ' parseCurrency() is not supported yet')
 
-    def parse_currencies(self, rawCurrencies: object):
+    def parse_currencies(self, rawCurrencies: list):
         result = {}
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
@@ -3631,7 +3709,7 @@ class BaseExchange(object):
     def parse_market(self, market: dict):
         raise NotSupported(self.id + ' parseMarket() is not supported yet')
 
-    def parse_markets(self, markets: object):
+    def parse_markets(self, markets: list):
         result = []
         for i in range(0, len(markets)):
             market = self.parse_market(markets[i])
@@ -3833,8 +3911,8 @@ class BaseExchange(object):
 
     def after_construct(self, userConfig: dict = {}):
         # networksById: inverse of options.networks, explicit options.networksById entries win
-        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))
-        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_value(self.options, 'networksById', {}))
+        networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_dict(self.options, 'networks', {}))
+        self.options['networksById'] = self.extend(networkIdsToCodesGenerated, self.safe_dict(self.options, 'networksById', {}))
         self.features_generator()
         self.has_autocorrect()
         # init predefined markets if any
@@ -4460,7 +4538,7 @@ class BaseExchange(object):
             # we parse trades as strings here!
             # i don't think this is needed anymore
             # (this as any).number = String;
-            firstTrade = self.safe_value(rawTrades, 0)
+            firstTrade = self.safe_dict(rawTrades, 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
@@ -4651,7 +4729,7 @@ class BaseExchange(object):
             'fee': self.safe_value(orderDict, 'fee'),
         })
 
-    def parse_orders(self, orders: dict | list[dict] | None, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_orders(self, orders: list, market: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         #
         # the value of orders is either a dict or a list
         #
@@ -4682,13 +4760,7 @@ class BaseExchange(object):
                 order = self.extend(parsed, params)
                 results.append(order)
         else:
-            ids = list(orders.keys())
-            for i in range(0, len(ids)):
-                id = ids[i]
-                idExtended = self.extend({'id': id}, orders[id])
-                parsedOrder = self.parse_order(idExtended, market)  # don't  inline these calls
-                order = self.extend(parsedOrder, params)
-                results.append(order)
+            return self.parse_orders(self.add_key_in_array_items(orders, 'id'), market, since, limit, params)
         results = self.sort_by(results, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(results, symbol, since, limit)
@@ -5428,7 +5500,7 @@ class BaseExchange(object):
             'nonce': None,
         }
 
-    def parse_ohlcvs(self, ohlcvs: list[object] | None, market: object = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs: list, market: Market = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
         if ohlcvs is None:
             return []
         results = []
@@ -5945,7 +6017,7 @@ class BaseExchange(object):
         filteredMarkets = self.filter_by_array(filteredMarkets, 'active', activeStatuses, False)
         return self.get_list_from_object_values(filteredMarkets, 'symbol')
 
-    def filter_by_array(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array(self, objects: dict | list[object] | None, key: IndexType, values: object = None, indexed=True):
         objectsValue = self.to_array(objects)
         # return all of them if no values were passed
         if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
@@ -6092,7 +6164,7 @@ class BaseExchange(object):
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                prevCandle = self.safe_value(ohlcvs, candle)
+                prevCandle = self.safe_list(ohlcvs, candle)
                 prevHigh = self.safe_value(prevCandle, i_high)
                 prevLow = self.safe_value(prevCandle, i_low)
                 ohlcvs[candle][i_high] = max(price if (prevHigh is None) else prevHigh, price)
@@ -6278,7 +6350,7 @@ class BaseExchange(object):
             # "mapping->") and turns ": " after a non-space into " => ".
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + ', '.join(keys))
 
-    def fetch_cross_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params: dict = {}):
         self.load_markets()
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
@@ -6887,13 +6959,13 @@ class BaseExchange(object):
         currencyResolved = self.safe_currency(currencyId, currency)
         return currencyResolved['code']
 
-    def filter_by_symbol_since_limit(self, array: object, symbol: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_symbol_since_limit(self, array: list[object] | None, symbol: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
 
-    def filter_by_currency_since_limit(self, array: object, code: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_currency_since_limit(self, array: list[object] | None, code: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
-    def filter_by_symbols_since_limit(self, array: object, symbols: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_symbols_since_limit(self, array: list[object] | None, symbols: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'symbol', symbols, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
@@ -6964,7 +7036,7 @@ class BaseExchange(object):
                 results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
         return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
-    def parse_deposit_addresses(self, addresses: object, codes: Strings = None, indexed=True, params: dict = {}):
+    def parse_deposit_addresses(self, addresses: list, codes: Strings = None, indexed=True, params: dict = {}):
         result = []
         for i in range(0, len(addresses)):
             address = self.extend(self.parse_deposit_address(addresses[i]), params)
@@ -6975,10 +7047,10 @@ class BaseExchange(object):
             result = self.to_array(self.filter_by_array(result, 'currency', None, indexed))
         return result
 
-    def parse_borrow_interests(self, response: object, market: Market = None):
+    def parse_borrow_interests(self, response: list, market: Market = None):
         interests = []
         for i in range(0, len(response)):
-            row = self.safe_value(response, i)
+            row = self.safe_dict(response, i, {})
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
@@ -6988,22 +7060,22 @@ class BaseExchange(object):
     def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
-            item = self.safe_value(response, i)
+            item = self.safe_dict(response, i)
             borrowRate = self.parse_borrow_rate(item)
             result.append(borrowRate)
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
-    def parse_isolated_borrow_rates(self, info: object):
+    def parse_isolated_borrow_rates(self, info: list):
         result = {}
         for i in range(0, len(info)):
-            item = self.safe_value(info, i)
+            item = self.safe_dict(info, i, {})
             borrowRate = self.parse_isolated_borrow_rate(item)
             symbol = self.safe_string(borrowRate, 'symbol')
             result[symbol] = borrowRate
         return result
 
-    def parse_funding_rate_histories(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_funding_rate_histories(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -7016,10 +7088,10 @@ class BaseExchange(object):
         marketResolved = self.safe_market(marketId, market, delimiter, marketType)
         return marketResolved['symbol']
 
-    def parse_funding_rate(self, contract: str, market: Market = None):
+    def parse_funding_rate(self, contract: dict, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response: object, symbols: Strings = None):
+    def parse_funding_rates(self, response: list, symbols: Strings = None):
         fundingRates = {}
         for i in range(0, len(response)):
             entry = response[i]
@@ -7031,7 +7103,7 @@ class BaseExchange(object):
     def parse_long_short_ratio(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
 
-    def parse_long_short_ratio_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_long_short_ratio_history(self, response: list, market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -7163,7 +7235,7 @@ class BaseExchange(object):
     def parse_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest () is not supported yet')
 
-    def parse_open_interests(self, response: object, symbols: Strings = None):
+    def parse_open_interests(self, response: list, symbols: Strings = None):
         result = {}
         for i in range(0, len(response)):
             entry = response[i]
@@ -7453,21 +7525,21 @@ class BaseExchange(object):
         else:
             raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
-    def filter_by_array_positions(self, objects: object, key: IndexType, values: object = None):
+    def filter_by_array_positions(self, objects: dict | list[object] | None, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.to_array(self.filter_by_array(objects, key, values, False))
 
-    def filter_by_array_tickers(self, objects: object, key: IndexType, values: object = None):
+    def filter_by_array_tickers(self, objects: dict | list[object] | None, key: IndexType, values: object = None):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.index_by(self.filter_by_array(objects, key, values, False), key)
 
-    def filter_by_array_adl_ranks(self, objects: object, key: IndexType, values: object = None, indexed=True):
+    def filter_by_array_adl_ranks(self, objects: dict | list[object] | None, key: IndexType, values: object = None, indexed=True):
         """
  @ignore
         Typed wrapper for filterByArray that returns a list of ADL Ranks
@@ -8704,7 +8776,7 @@ class Exchange(BaseExchange):
         order = self.fetchOrder(id, symbol, params)
         return self.safe_string(order, 'status')
 
-    def fetch_unified_order(self, order: object, params: dict = {}):
+    def fetch_unified_order(self, order: Order, params: dict = {}):
         return self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
@@ -8909,7 +8981,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     def cancel_unified_order(self, order: Order, params: dict = {}):
-        return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return self.cancel_order(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):

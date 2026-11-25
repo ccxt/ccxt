@@ -1562,6 +1562,9 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value any
 			return []any{}, nil
 		}
 
+		if strs, isStrings := value.([]string); isStrings {
+			value = StringSliceToList(strs)
+		}
 		arr, ok := value.([]any)
 		if !ok {
 			return nil, fmt.Errorf("expected array for %s", typeName)

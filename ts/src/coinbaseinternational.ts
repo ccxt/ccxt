@@ -764,7 +764,7 @@ export default class coinbaseinternational extends Exchange {
         const precision = this.parseNumber (this.parsePrecision (decimals));
         const networkFee = this.safeNumber (currency, 'network_fee');
         const withdrawalFee = this.safeNumber (currency, 'withdrawal_fee');
-        const rawNetworks = this.safeList (currency, 'coinbase_networks', []);
+        const rawNetworks: Dict[] = this.safeList (currency, 'coinbase_networks', []);
         const networks: Dict = {};
         for (let i = 0; i < rawNetworks.length; i++) {
             const rawNetwork = rawNetworks[i];
@@ -1007,7 +1007,7 @@ export default class coinbaseinternational extends Exchange {
         } as FundingRateHistory;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined) {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined) {
         //
         // fetchFundingRateHistory
         //
@@ -2002,11 +2002,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const logs = this.safeList (result, 'logs', []);
+        const logs: Dict[] = this.safeList (result, 'logs', []);
         if (!this.isNativeDeribitCredentials ()) {
             return this.parseTransactions (logs, currency, since, limit);
         }
-        const transactions = [];
+        const transactions: Dict[] = [];
         for (let i = 0; i < logs.length; i++) {
             const transaction = logs[i];
             const transactionType = this.safeString (transaction, 'type');
@@ -2474,7 +2474,7 @@ export default class coinbaseinternational extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',

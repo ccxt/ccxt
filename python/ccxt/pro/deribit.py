@@ -75,7 +75,7 @@ class deribit(ccxt.async_support.deribit):
             },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -875,7 +875,7 @@ class deribit(ccxt.async_support.deribit):
             if symbolsArray is None:
                 raise ArgumentsRequired(self.id + ' watchMultipleWrapper() symbolsArray is required')
             market = None
-            currentDescriptor = None
+            currentDescriptor = ''
             if isOHLCV:
                 currentPair = self.safe_list(symbolsArray, i, [])
                 market = self.market(self.safe_string(currentPair, 0))

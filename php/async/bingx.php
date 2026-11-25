@@ -1878,7 +1878,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rates($data, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -4189,7 +4189,6 @@ class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        $info = $order;
         $newOrder = $this->safe_dict_2($order, 'newOrderResponse', 'orderOpenResponse');
         $orderData = ($newOrder !== null) ? $newOrder : $order;
         $positionSide = $this->safe_string_2($orderData, 'positionSide', 'ps');
@@ -4262,7 +4261,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_order(array(
-            'info' => $info,
+            'info' => $order,
             'id' => $this->safe_string_n($orderData, array( 'orderId', 'i', 'mainOrderId' )),
             'clientOrderId' => $this->safe_string_n($orderData, array( 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' )),
             'symbol' => $this->safe_symbol($marketId, $marketResolved, '-', $marketType),
@@ -5783,7 +5782,7 @@ class bingx extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data');
+        $data = $this->safe_list($this->safe_dict($response, 'data'), 'data', array());
         $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
         return $this->index_by($parsed, 'network');
     }
@@ -6157,6 +6156,18 @@ class bingx extends Exchange {
     }
 
     private function do_add_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionSide] "LONG" or "SHORT", required for Coin-M
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
         $request = array(
             'type' => 1,
         );
@@ -6168,6 +6179,18 @@ class bingx extends Exchange {
     }
 
     private function do_reduce_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * remove margin from a position
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionSide] "LONG" or "SHORT", required for Coin-M
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
+         */
         $request = array(
             'type' => 2,
         );
@@ -7629,9 +7652,7 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = $requestBody;
-        $headersResult = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function nonce(): int {

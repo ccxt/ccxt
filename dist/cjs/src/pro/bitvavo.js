@@ -1460,8 +1460,8 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsWs(params = {}) {
-        return this.watchRequest('getMarkets', params);
+    async fetchMarketsWs(params = {}) {
+        return await this.watchRequest('getMarkets', params);
     }
     /**
      * @method
@@ -1499,7 +1499,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeList(message, 'response');
+        const response = this.safeList(message, 'response', []);
         const currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

@@ -1236,7 +1236,7 @@ class weex extends weex$1["default"] {
         }
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const rawTicker = this.safeValue(response, i);
+            const rawTicker = this.safeDict(response, i, {});
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString(rawTicker, 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1631,7 +1631,7 @@ class weex extends weex$1["default"] {
                 if (limit !== undefined && limit !== null && limit !== 0) {
                     historyLimit = this.parseToInt(Math.min(limit, maxHistoricalLimit));
                 }
-                const timeDelta = this.parseToInt(historyLimit * duration);
+                const timeDelta = historyLimit * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1791,7 +1791,7 @@ class weex extends weex$1["default"] {
             tradeMarketType = 'swap';
         }
         const marketResolved = this.safeMarket((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
-        let isSpot = undefined;
+        let isSpot = false;
         if (market === undefined) {
             isSpot = tradeMarketType === 'spot';
         }

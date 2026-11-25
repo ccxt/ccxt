@@ -261,7 +261,7 @@ class sxbet extends Exchange {
         $rawMarkets = array();
         $collectCap = $this->safe_integer(array( 'limit' => $userLimit ), 'limit');
         $paginationKey = null;
-        $page = $this->parse_to_int(0);
+        $page = 0;
         while (true) {
             $request = array( 'pageSize' => $pageSize );
             if ($paginationKey !== null) {
@@ -275,7 +275,7 @@ class sxbet extends Exchange {
                 $rawMarkets[] = $pageMarkets[$i];
             }
             $paginationKey = $this->safe_string($result, 'nextKey');
-            $page = $this->parse_to_int($page + 1);
+            $page = $page + 1;
             $collectedLength = $this->parse_to_int(strlen($rawMarkets));
             if (($pageMarketsLength < $pageSize) || ($page >= $maxPages) || ($paginationKey === null) || (($collectCap !== null) && ($collectedLength >= $collectCap))) {
                 break;
@@ -752,7 +752,7 @@ class sxbet extends Exchange {
         $digits = '0123456789abcdef';
         $lowerHex = strtolower($hex);
         $hexLength = count($lowerHex);
-        $result = $this->parse_to_int(0);
+        $result = 0;
         for ($i = 0; $i < $hexLength; $i++) {
             $ch = $lowerHex[$i];
             $digitValue = $this->parse_to_int(mb_strpos($digits, $ch));
@@ -2051,8 +2051,7 @@ class sxbet extends Exchange {
         //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
         //     }
         //
-        $marketAny = $market;
-        $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
+        $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
         $outcomeId = $this->safe_string($outcomeObj, 'outcomeId');
         $marketHash = $this->safe_string($raw, 'marketHash');
         $isOutcomeOne = ($outcomeId === $marketHash);
@@ -2200,7 +2199,7 @@ class sxbet extends Exchange {
         $this->options[$group] = $this->extend($this->safe_dict($this->options, $group, array()), $entry);
     }
 
-    public function request_id(?string $url): float {
+    public function request_id(?string $url): int {
         $existing = $this->safe_value($this->options, 'requestId');
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();

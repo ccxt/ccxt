@@ -1385,7 +1385,7 @@ class coinsph(Exchange, ImplicitAPI):
         orderType = self.safe_string(paramsOmitted, 'type', type)
         orderType = self.encode_order_type(orderType)
         paramsType = self.omit(paramsOmitted, 'type')
-        paramsQuote = None
+        paramsQuote = paramsType
         orderSide = self.encode_order_side(side)
         request = {
             'symbol': market['id'],
@@ -1393,7 +1393,7 @@ class coinsph(Exchange, ImplicitAPI):
             'side': orderSide,
         }
         options = self.safe_dict(self.options, 'createOrder', {})
-        newOrderRespTypes = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespTypes = self.safe_dict(options, 'newOrderRespType', {})
         newOrderRespType = 'FULL'
         # if limit order
         if orderType == 'LIMIT' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT_LIMIT' or orderType == 'LIMIT_MAKER':
@@ -1433,8 +1433,7 @@ class coinsph(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders')
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
-        paramsBase = paramsQuote if (paramsQuote is not None) else paramsType
-        paramsRequest = self.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
+        paramsRequest = self.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
         response = {}
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, paramsRequest))

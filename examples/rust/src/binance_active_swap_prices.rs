@@ -1,5 +1,5 @@
 // binance-active-swap-prices — swap markets → active ones → first 10 → prices,
-// entirely on the typed wrapper.
+// entirely on the typed `ccxt::Binance` API.
 //
 // The point of the typed layer is that none of this needs the dynamic `Value`
 // enum: `markets()` hands back `Vec<Market>` with real Rust fields (`swap`,
@@ -9,7 +9,7 @@
 //   cargo run --release --bin binance-active-swap-prices
 //   cargo run --release --bin binance-active-swap-prices -- 25    # first 25
 use ccxt::types::{Market, Ticker};
-use ccxt::{Binance, Config, Params};
+use ccxt::{Binance, Config, Params, ExchangeRuntime};
 
 fn f(v: Option<f64>) -> String {
     v.map(|x| format!("{x}")).unwrap_or_else(|| "—".to_string())
@@ -34,8 +34,13 @@ async fn run() {
     );
 
     // 2. Load the market table once.
-    binance.load_markets(false).await;
-    let all: Vec<Market> = binance.markets();
+    let all: Vec<Market> = match binance.load_markets(false, ()).await {
+        Ok(markets) => markets.iter().map(|(_, m)| m).collect(),
+        Err(e) => {
+            eprintln!("load_markets failed [{}]: {}", e.kind, e.message);
+            return;
+        }
+    };
     println!("loaded {} markets", all.len());
 
     // 3. Swap markets only — `Market::swap` is a plain `bool`.
@@ -44,7 +49,7 @@ async fn run() {
 
     // 4. Active only — the `active` flag on the market, no request needed.
     let (active, inactive): (Vec<Market>, Vec<Market>) =
-        swaps.into_iter().partition(|m| m.active);
+        swaps.into_iter().partition(|m| m.active != Some(false));
     println!("  of which active: {} (skipping {} inactive)", active.len(), inactive.len());
     if let Some(m) = inactive.first() {
         println!("  e.g. inactive:   {} ({})", m.symbol, contract_kind(m));

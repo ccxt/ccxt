@@ -45,7 +45,7 @@ class blofin extends Exchange {
                 'createStopOrder' => false,
                 'createTakeProfitOrder' => true,
                 'createTriggerOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -82,7 +82,7 @@ class blofin extends Exchange {
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => true,
                 'fetchMarginModes' => false,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMySettlementHistory' => false,
@@ -657,7 +657,6 @@ class blofin extends Exchange {
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
-        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         $contractType = $this->safe_string($market, 'contractType');
         $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
         $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -673,7 +672,7 @@ class blofin extends Exchange {
             'type' => $type,
             'spot' => $spot,
             'option' => $option,
-            'margin' => $isMargin,
+            'margin' => ($spot && Precise::string_gt($maxLeverage, '1')),
             'swap' => $swap,
             'future' => $future,
             'active' => $isActive,
@@ -1159,7 +1158,7 @@ class blofin extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -1528,6 +1527,9 @@ class blofin extends Exchange {
         $symbol = $this->safe_symbol($marketId, $marketResolved, '-');
         $filled = $this->safe_string($order, 'filledSize');
         $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
+        if ($price === '-1') {
+            $price = null; // trigger orders send orderPrice -1 for market execution
+        }
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -1575,6 +1577,7 @@ class blofin extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,
@@ -1798,6 +1801,112 @@ class blofin extends Exchange {
         $response = $this->privatePostTradeBatchOrders($ordersRequests);
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data);
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
+        /**
+         * edit a trade order
+         *
+         * @see https://docs.blofin.com/index.html#amend-order
+         * @see https://docs.blofin.com/index.html#amend-algo-order
+         * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, used instead of the $id argument
+         * @param {boolean} [$params->trigger] True if editing a trigger order
+         * @param {boolean} [$params->tpsl] True if editing a tpsl order
+         * @param {float} [$params->triggerPrice] the new trigger $price of a trigger order
+         * @param {float} [$params->stopLossPrice] the new stop loss trigger $price of a tpsl order
+         * @param {float} [$params->takeProfitPrice] the new take profit trigger $price of a tpsl order
+         * @param {float} [$params->stopLossLimitPrice] the new stop loss order $price of a tpsl order, when the $type is not $market
+         * @param {float} [$params->takeProfitLimitPrice] the new take profit order $price of a tpsl order, when the $type is not $market
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $isTrigger = $this->safe_bool($params, 'trigger', false);
+        $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        } elseif ($isTpsl) {
+            $request['tpslId'] = $id;
+        } elseif ($isTrigger) {
+            $request['algoId'] = $id;
+        } else {
+            $request['orderId'] = $id;
+        }
+        if ($amount !== null) {
+            $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $query = $this->omit($params, array( 'clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+        $response = null;
+        if ($isTpsl) {
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            if ($stopLossPrice !== null) {
+                $request['newSlTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+                if ($type === 'market') {
+                    $request['newSlOrderPrice'] = '-1';
+                } elseif ($slLimitPrice !== null) {
+                    $request['newSlOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                }
+            }
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+            if ($takeProfitPrice !== null) {
+                $request['newTpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+                if ($type === 'market') {
+                    $request['newTpOrderPrice'] = '-1';
+                } elseif ($tpLimitPrice !== null) {
+                    $request['newTpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                }
+            }
+            $response = $this->privatePostTradeAmendTpsl($this->extend($request, $query));
+        } elseif ($isTrigger) {
+            $triggerPrice = $this->safe_string($params, 'triggerPrice');
+            if ($triggerPrice !== null) {
+                $request['newTriggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+            if ($type === 'market') {
+                $request['newOrderPrice'] = '-1';
+            } elseif ($price !== null) {
+                $request['newOrderPrice'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = $this->privatePostTradeAmendAlgo($this->extend($request, $query));
+        } else {
+            if ($price !== null) {
+                $request['newPrice'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = $this->privatePostTradeAmendOrder($this->extend($request, $query));
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2155,8 +2264,7 @@ class blofin extends Exchange {
         return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $currency): array {
-        $chains = $currency;
+    public function parse_currency(array $chains): array {
         $firstChain = $this->safe_dict($chains, 0, array());
         $currencyId = $this->safe_string($firstChain, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -2369,7 +2477,7 @@ class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $this->safe_value($data, $i);
+            $entry = $this->safe_dict($data, $i, array());
             if ($this->safe_string($entry, 'depositId') === $id) {
                 return $this->parse_transaction($entry, $currency);
             }
@@ -2409,7 +2517,7 @@ class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $this->safe_value($data, $i);
+            $entry = $this->safe_dict($data, $i, array());
             $matches = false;
             if ($id !== null) {
                 $matches = ($this->safe_string($entry, 'withdrawId') === $id);
@@ -3033,14 +3141,14 @@ class blofin extends Exchange {
         $entryPriceString = $this->safe_string_2($position, 'averagePrice', 'openAveragePrice');
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $leverageString = $this->safe_string($position, 'leverage');
-        $initialMarginPercentage = null;
+        $initialMarginPercentageString = null;
         $collateralString = null;
         $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'initialMargin');
             $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
-            $initialMarginPercentage = Precise::string_div('1', $leverageString);
+            $initialMarginPercentageString = Precise::string_div('1', $leverageString);
             $isolatedMarginString = $this->omit_zero($this->safe_string_2($position, 'margin', 'initialMargin'));
             if ($isolatedMarginString !== null) {
                 $initialMarginString = $isolatedMarginString;
@@ -3051,10 +3159,9 @@ class blofin extends Exchange {
         $maintenanceMarginString = $this->safe_string($position, 'maintenanceMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $maintenanceMarginPercentageString = Precise::string_div($maintenanceMarginString, $notionalString);
-        if ($initialMarginPercentage === null) {
-            $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
+        if ($initialMarginPercentageString === null) {
+            $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString, 4);
         } elseif ($initialMarginString === null) {
-            $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
             $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
@@ -3102,12 +3209,72 @@ class blofin extends Exchange {
             'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
-            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'leverage' => $this->parse_number($leverageString),
             'marginRatio' => $marginRatio,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): array {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+         *
+         * @see https://docs.blofin.com/index.html#get-position-tiers
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'cross');
+        $request = array(
+            'instId' => $market['id'],
+            'marginMode' => $marginMode,
+        );
+        $response = $this->publicGetMarketPositionTiers($this->extend($request, $query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'quote'),
+                'minNotional' => $this->safe_number($tier, 'minSize'),
+                'maxNotional' => $this->safe_number($tier, 'maxSize'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): array {

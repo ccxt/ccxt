@@ -1296,6 +1296,89 @@
                 }
             },
             {
+                "description": "order canceled by the scheduled cancel (dead man's switch)",
+                "method": "fetchOrder",
+                "input": [
+                    "60816227852",
+                    "PURR/USDC"
+                ],
+                "httpResponse": {
+                    "status": "order",
+                    "order": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "scheduledCancel",
+                        "statusTimestamp": "1736094629472"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "order": {
+                            "coin": "PURR/USDC",
+                            "side": "A",
+                            "limitPx": "0.5",
+                            "sz": "50.0",
+                            "oid": "60816227852",
+                            "timestamp": "1736094308023",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "50.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "scheduledCancel",
+                        "statusTimestamp": "1736094629472"
+                    },
+                    "id": "60816227852",
+                    "clientOrderId": null,
+                    "timestamp": 1736094308023,
+                    "datetime": "2025-01-05T16:25:08.023Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1736094629472,
+                    "symbol": "PURR/USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 0.5,
+                    "triggerPrice": null,
+                    "amount": 50,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 50,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
                 "input": [

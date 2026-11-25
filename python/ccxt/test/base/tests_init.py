@@ -74,14 +74,15 @@ from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E
 from ccxt.test.base.test_clone import test_clone  # noqa E402
 from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
+from ccxt.test.base.test_array_slice import test_array_slice  # noqa E402
 from ccxt.test.base.test_incrementing_nonce import test_incrementing_nonce  # noqa E402
 from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
 from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
 from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
 from ccxt.test.base.test_is_dictionary import test_is_dictionary  # noqa E402
 from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
+from ccxt.test.base.test_mod_pow import test_mod_pow  # noqa E402
 
-# import testParseMarkets from './test.parseMarkets.js';
 async def base_tests_init():
     await test_language_specific()
     test_after_constructor()
@@ -98,6 +99,7 @@ async def base_tests_init():
     test_decimal_to_precision()
     test_capitalize()
     test_incrementing_nonce()
+    test_array_slice()
     test_is_dictionary()
     test_number_to_string()
     test_precise()
@@ -148,5 +150,6 @@ async def base_tests_init():
     test_io()
     test_is_json_encoded_object()
     test_encode_decode()
+    test_mod_pow()
     # testParseMarkets ();
     return True

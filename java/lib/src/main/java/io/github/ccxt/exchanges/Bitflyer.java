@@ -400,7 +400,7 @@ public class Bitflyer extends BitflyerApi
             List<Object> markets = (List<Object>) this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
             markets = (List<Object>) this.arrayConcat(markets, this.toArray(eu_markets));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "product_code");
@@ -411,8 +411,8 @@ public class Bitflyer extends BitflyerApi
                 Boolean spot = !Boolean.TRUE.equals(swap) && !Boolean.TRUE.equals(future);
                 String type = "spot";
                 String settle = null;
-                Object baseId = null;
-                Object quoteId = null;
+                String baseId = null;
+                String quoteId = null;
                 Object expiry = null;
                 if (Boolean.TRUE.equals(spot))
                 {
@@ -456,8 +456,8 @@ public class Bitflyer extends BitflyerApi
                     }
                     type = "future";
                 }
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
@@ -541,7 +541,7 @@ public class Bitflyer extends BitflyerApi
         }};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString(balance, "currency_code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1085,7 +1085,7 @@ public class Bitflyer extends BitflyerApi
             }
             List<Order> orders = (this.fetchOrders(symbol, (Long) null, 100L, new HashMap<String, Object>() {{}})).join();
             Map<String,Object> ordersById = this.indexBy(orders, "id");
-            Map<String, Object> found = (Map<String, Object>) this.safeDict(ordersById, id, (Object) null);
+            Map<String, Object> found = this.safeDict(ordersById, id, null);
             if (!java.util.Objects.equals(found, null))
             {
                 return found;

@@ -976,7 +976,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'datetime': fundingRate['datetime'],
         }
 
-    def parse_funding_rate(self, contract: object, market: Market = None):
+    def parse_funding_rate(self, contract: dict, market: Market = None):
         #
         # fetchFundingRateHistory
         #
@@ -2351,7 +2351,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'trades': self.safe_list(order, 'trades'),
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',

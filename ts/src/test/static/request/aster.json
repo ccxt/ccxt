@@ -567,7 +567,7 @@
                 "method": "fetchOpenOrder",
                 "url": "https://fapi.asterdex.com/fapi/v3/openOrder?symbol=BTCUSDT&orderId=1917641&nonce=1776857192869000&user=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signer=0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf&signature=0x4b9d85d5bada87b970f1b4944135aff80da58407860dd59a83da60dfe3395c912d49c7bdfe56f90ea556a87083a5de517908d6b70be319d0163e03eceb0896631b",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT:USDT"
                 ]
             }
@@ -768,7 +768,7 @@
                 "url": "https://fapi.asterdex.com/fapi/v3/batchOrders",
                 "input": [
                     [
-                        17338441758
+                        "17338441758"
                     ],
                     "ETH/USDT:USDT"
                 ],

@@ -486,7 +486,7 @@ class toobit extends toobit$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': false,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -521,7 +521,7 @@ class toobit extends toobit$1["default"] {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
@@ -2414,7 +2414,7 @@ class toobit extends toobit$1["default"] {
         const marketType = this.handleMarketTypeAndParams('fetchClosedOrders', market, paramsUntil)[0];
         let response = [];
         if (marketType === 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+            throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets');
         }
         else {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);
@@ -2727,9 +2727,8 @@ class toobit extends toobit$1["default"] {
         // }
         //
         const result = {};
-        const entry = response;
-        const marketResolved = this.safeMarket(this.safeString(entry, 'symbol'), market);
-        const fee = this.parseTradingFee(entry, marketResolved);
+        const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
+        const fee = this.parseTradingFee(response, marketResolved);
         result[marketResolved['symbol']] = fee;
         return result;
     }

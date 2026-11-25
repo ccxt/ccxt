@@ -1,9 +1,9 @@
 import bullishRest from '../bullish.js';
-import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, List, Order, OrderBook, Position, Str, Strings, Ticker, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bullish extends bullishRest {
     describe(): Dict;
-    requestId(): number;
+    requestId(): int;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;
     watchPublic(url: string, messageHash: string, request?: {}, params?: {}): Promise<any>;

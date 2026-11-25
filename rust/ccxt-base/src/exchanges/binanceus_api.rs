@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::binanceus::BinanceusCore;
+use super::binanceus::Binanceus;
 use crate::exchange::ExchangeRuntime;
 
-impl BinanceusCore {
+impl Binanceus {
     /// Auto-generated wrapper for the `sapiGetCopyTradingFuturesUserStatus` implicit endpoint.
     pub async fn sapi_get_copy_trading_futures_user_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_get_copy_trading_futures_user_status".into()), optional_args).await

@@ -584,12 +584,27 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeString(trade, "type")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "amount", "quantity")
-	var feeCost *string = this.SafeString(trade, "fee_rate")
+	// fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+	var feeRate *string = this.SafeString(trade, "fee_rate")
 	var fee map[string]any = nil
-	if feeCost != nil {
+	if (feeRate != nil) && (side != nil) {
+		var rate *string = Precise.StringDiv(feeRate, "100")
+		var isBuy bool = (side != nil && *side == "buy")
+		var feeBase *string
+		if isBuy {
+			feeBase = amount
+		} else {
+			feeBase = Precise.StringMul(amount, price)
+		}
 		fee = map[string]any{
-			"cost":     feeCost,
-			"currency": nil,
+			"cost": Precise.StringMul(feeBase, rate),
+			"currency": func() any {
+				if isBuy {
+					return marketResolved["base"]
+				}
+				return marketResolved["quote"]
+			}(),
+			"rate": rate,
 		}
 	}
 	return this.SafeTrade(map[string]any{
@@ -800,8 +815,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			}
 			var amountString *string = this.NumberToString(amount)
 			var priceString *string = this.NumberToString(price)
-			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
+			request["cost"] = this.PriceToPrecision(market["symbol"], this.ParseToNumeric(Precise.StringMul(amountString, priceString)))
 
 			r3 := <-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))
 			if r3.Err != nil {
@@ -822,7 +836,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	// TODO: replace this with a call to parseOrder for unification
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": response,
-		"id":   this.SafeString(this.SafeValue(this.SafeValue(response, "response_data"), "order"), "order_id"),
+		"id":   this.SafeString(this.SafeDict(this.SafeDict(response, "response_data"), "order"), "order_id"),
 	}, market)}
 	return nil
 }
@@ -836,12 +850,12 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mercado) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mercado) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -959,7 +973,14 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed_quantity")
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "updated_timestamp")
-	var rawTrades []any = SafeListTypedDefault(order, "operations", []any{})
+	var operations []any = SafeListTyped(order, "operations")
+	var rawTrades []any = []any{}
+	for i := 0; i < len(operations); i++ {
+		// operations carry no side, parseTrade reads it from 'type' like in public trades
+		rawTrades = append(rawTrades, this.Extend(operations[i], map[string]any{
+			"type": side,
+		}))
+	}
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1215,19 +1236,19 @@ func (this *Mercado) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"symbol":     *this.SafeString(market, "base", "") + "-" + *this.SafeString(market, "quote", ""),
 	}
 	// set some default limit, as it's required if user doesn't provide it
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
-		request["to"] = this.Sum(request["from"], (limitResolved * this.ParseTimeframe(timeframe)))
+		request["to"] = this.Sum(request["from"], limitResolved*this.ParseTimeframe(timeframe))
 	} else {
 		var to int64 = this.Seconds()
 		request["to"] = to
-		request["from"] = (to - (limitResolved * this.ParseTimeframe(timeframe)))
+		request["from"] = to - (limitResolved * this.ParseTimeframe(timeframe))
 	}
 
 	r1 := <-this.V4PublicNetGetCandles(this.Extend(request, params))
@@ -1407,7 +1428,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 func (this *Mercado) OrdersToTrades(orders []any) any {
 	var result []any = []any{}
 	for i := 0; i < len(orders); i++ {
-		var trades []any = SafeListTyped(this.SafeValue(orders, i), "trades")
+		var trades []any = SafeListTyped(this.SafeDict(orders, i), "trades")
 		for y := 0; y < len(trades); y++ {
 			result = append(result, trades[y])
 		}
@@ -1480,7 +1501,7 @@ func (this *Mercado) HandleErrors(code int64, reason string, url string, method 
 	//
 	//     {"status":503,"message":"Maintenancing, try again later","result":null}
 	//
-	var errorMessage any = this.SafeValue(response, "error_message")
+	var errorMessage *string = this.SafeString(response, "error_message")
 	if errorMessage != nil {
 		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}

@@ -59,6 +59,7 @@ import testUrlencodeNested from './test.urlencodeNested.js';
 import testClone from './test.clone.js';
 import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
+import testArraySlice from './test.arraySlice.js';
 import testIncrementingNonce from './test.incrementingNonce.js';
 import testBinaryConcat from './test.binaryConcat.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
@@ -66,6 +67,7 @@ import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
 import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
 // import testParseMarkets from './test.parseMarkets.js';
+import testModPow from './test.modPow.js';
 
 async function baseTestsInit () {
     await testLanguageSpecific ();
@@ -83,6 +85,7 @@ async function baseTestsInit () {
     testDecimalToPrecision ();
     testCapitalize ();
     testIncrementingNonce ();
+    testArraySlice ();
     testIsDictionary ();
     testNumberToString ();
     testPrecise ();
@@ -133,6 +136,7 @@ async function baseTestsInit () {
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
+    testModPow ();
     // testParseMarkets ();
     return true;
 }

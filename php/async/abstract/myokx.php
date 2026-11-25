@@ -886,6 +886,12 @@ abstract class myokx extends \ccxt\async\okx {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_asset_travel_rule_get_locked($params = array()) {
+        return $this->request('asset/travel-rule/get-locked', array('private'), 'GET', $params, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_asset_monthly_statement($params = array()) {
         return $this->request('asset/monthly-statement', array('private'), 'GET', $params, array("cost" => 2));
     }
@@ -2040,6 +2046,12 @@ abstract class myokx extends \ccxt\async\okx {
      */
     public function private_post_asset_cancel_withdrawal($params = array()) {
         return $this->request('asset/cancel-withdrawal', array('private'), 'POST', $params, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_asset_travel_rule_unlock($params = array()) {
+        return $this->request('asset/travel-rule/unlock', array('private'), 'POST', $params, array("cost" => 3.3333333333333335));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3712,6 +3724,12 @@ abstract class myokx extends \ccxt\async\okx {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetAssetTravelRuleGetLocked($params = array()) {
+        return $this->request('asset/travel-rule/get-locked', array('private'), 'GET', $params, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetAssetMonthlyStatement($params = array()) {
         return $this->request('asset/monthly-statement', array('private'), 'GET', $params, array("cost" => 2));
     }
@@ -4866,6 +4884,12 @@ abstract class myokx extends \ccxt\async\okx {
      */
     public function privatePostAssetCancelWithdrawal($params = array()) {
         return $this->request('asset/cancel-withdrawal', array('private'), 'POST', $params, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAssetTravelRuleUnlock($params = array()) {
+        return $this->request('asset/travel-rule/unlock', array('private'), 'POST', $params, array("cost" => 3.3333333333333335));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

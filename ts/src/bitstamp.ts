@@ -861,7 +861,7 @@ export default class bitstamp extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    override parseCurrencies (rawCurrencies: any): Currencies {
+    override parseCurrencies (rawCurrencies: List): Currencies {
         // each market row yields two currencies so the accumulation happens
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
@@ -1863,7 +1863,7 @@ export default class bitstamp extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -1893,7 +1893,7 @@ export default class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -2534,7 +2534,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "funding_rate": "0.0024",

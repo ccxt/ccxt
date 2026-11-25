@@ -1323,10 +1323,13 @@ class coinbase extends coinbase$1["default"] {
             priceString = v3Price;
         }
         if ((priceString !== undefined) && (amountString !== undefined)) {
-            cost = Precise["default"].stringMul(priceString, amountString);
+            const baseCost = Precise["default"].stringMul(priceString, amountString);
             const contractSize = this.safeString(marketResolved, 'contractSize');
             if (contractSize !== undefined) {
-                cost = Precise["default"].stringMul(cost, contractSize);
+                cost = Precise["default"].stringMul(baseCost, contractSize);
+            }
+            else {
+                cost = baseCost;
             }
         }
         else {
@@ -2463,14 +2466,14 @@ class coinbase extends coinbase$1["default"] {
         const totalUsdBalance = this.safeString(totalUsdBalanceData, 'value');
         const futuresBuyingPower = this.safeString(futuresBuyingPowerData, 'value');
         if ((totalUsdBalance !== undefined) || (futuresBuyingPower !== undefined)) {
-            const total = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
-            const free = (futuresBuyingPower !== undefined) ? futuresBuyingPower : total;
-            const used = Precise["default"].stringSub(total, free);
+            const usdTotal = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
+            const usdFree = (futuresBuyingPower !== undefined) ? futuresBuyingPower : usdTotal;
+            const usdUsed = Precise["default"].stringSub(usdTotal, usdFree);
             const balanceResult = { 'info': response };
             balanceResult['USD'] = {
-                'free': free,
-                'used': used,
-                'total': total,
+                'free': usdFree,
+                'used': usdUsed,
+                'total': usdTotal,
             };
             return this.safeBalance(balanceResult);
         }
@@ -2509,18 +2512,18 @@ class coinbase extends coinbase$1["default"] {
                 if (available !== undefined && hold !== undefined) {
                     const currencyId = this.safeString(available, 'currency');
                     const code = this.safeCurrencyCode(currencyId);
-                    const used = this.safeString(hold, 'value');
-                    const free = this.safeString(available, 'value');
-                    const total = Precise["default"].stringAdd(used, free);
+                    const v3Used = this.safeString(hold, 'value');
+                    const v3Free = this.safeString(available, 'value');
+                    const v3Total = Precise["default"].stringAdd(v3Used, v3Free);
                     let account = this.safeDict(result, code);
                     if (account === undefined) {
-                        account = this.extend(this.account(), { 'free': free, 'used': used, 'total': total });
+                        account = this.extend(this.account(), { 'free': v3Free, 'used': v3Used, 'total': v3Total });
                     }
                     else {
                         account = this.extend(account, {
-                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), free),
-                            'used': Precise["default"].stringAdd(this.safeString(account, 'used'), used),
-                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), total),
+                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), v3Free),
+                            'used': Precise["default"].stringAdd(this.safeString(account, 'used'), v3Used),
+                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), v3Total),
                         });
                     }
                     if (code !== undefined) {

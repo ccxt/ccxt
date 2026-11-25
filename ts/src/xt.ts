@@ -1200,7 +1200,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (swapAndFutureMarkets);
     }
 
-    override parseMarkets (markets: any) {
+    override parseMarkets (markets: List) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const parsed = this.parseMarket (this.safeValue (markets, i));
@@ -4363,6 +4363,7 @@ export default class xt extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -4880,7 +4881,6 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     override async fetchFundingInterval (symbol: string, params: Dict = {}): Promise<FundingRate> {
@@ -4931,7 +4931,7 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5116,7 +5116,7 @@ export default class xt extends Exchange {
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString (market, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,
@@ -5920,8 +5920,9 @@ export default class xt extends Exchange {
             const jsonBody = this.json (query);
             signedBody = isUndefinedBody ? undefined : jsonBody;
             let payloadString = '';
+            const timestampPart = '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
             if ((endpoint === 'spot') || (endpoint === 'user')) {
-                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
+                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + timestampPart;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;
@@ -5935,7 +5936,7 @@ export default class xt extends Exchange {
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
             } else {
-                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
+                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + timestampPart;
                 if (method === 'GET') {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;

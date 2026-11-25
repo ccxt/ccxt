@@ -1082,12 +1082,11 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'candles:' + timeframe + ':' + symbol
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        ohlcv = self.safe_value(symbolOhlcvs, timeframe)
+        ohlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             ohlcv = ArrayCacheByTimestamp(limit)
-            symbolOhlcvs[timeframe] = ohlcv
+            self.ohlcvs[symbol][timeframe] = ohlcv
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
         client.resolve(ohlcv, messageHash)
@@ -1404,13 +1403,17 @@ class pacifica(ccxt.async_support.pacifica):
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
-    def request_id(self) -> str:
-        return self.uuid()  # uuid v4
+    def request_id(self) -> int:
+        # millisecond timestamp plus 3 random digits stays a safe integer
+        ts = str(self.milliseconds())
+        randomPart = str(self.rand_number(3))
+        return self.parse_to_int(ts + randomPart)
 
     def wrap_as_post_action(self, operationType: Str, request: dict) -> dict:
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
-        requestId = self.request_id()
+        # the venue requires a full uuid v4 request id
+        requestId = self.uuid()
         postParams = {}
         postParams[operationType] = request
         payload = {

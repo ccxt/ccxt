@@ -102,6 +102,8 @@ pub mod htx;
 pub mod hyperliquid;
 #[cfg(feature = "independentreserve")]
 pub mod independentreserve;
+#[cfg(feature = "interactivebrokers")]
+pub mod interactivebrokers;
 #[cfg(feature = "kraken")]
 pub mod kraken;
 #[cfg(feature = "krakenfutures")]
@@ -160,3 +162,324 @@ pub mod woo;
 pub mod woofipro;
 #[cfg(feature = "xt")]
 pub mod xt;
+
+#[cfg(feature = "alpaca")]
+pub use alpaca::Alpaca;
+#[cfg(feature = "apex")]
+pub use apex::Apex;
+#[cfg(feature = "aster")]
+pub use aster::Aster;
+#[cfg(feature = "backpack")]
+pub use backpack::Backpack;
+#[cfg(feature = "bequant")]
+pub use bequant::Bequant;
+#[cfg(feature = "binance")]
+pub use binance::Binance;
+#[cfg(feature = "binancecoinm")]
+pub use binancecoinm::Binancecoinm;
+#[cfg(feature = "binanceus")]
+pub use binanceus::Binanceus;
+#[cfg(feature = "binanceusdm")]
+pub use binanceusdm::Binanceusdm;
+#[cfg(feature = "bingx")]
+pub use bingx::Bingx;
+#[cfg(feature = "bit2me")]
+pub use bit2me::Bit2me;
+#[cfg(feature = "bitfinex")]
+pub use bitfinex::Bitfinex;
+#[cfg(feature = "bitget")]
+pub use bitget::Bitget;
+#[cfg(feature = "bithumb")]
+pub use bithumb::Bithumb;
+#[cfg(feature = "bitopro")]
+pub use bitopro::Bitopro;
+#[cfg(feature = "bitrue")]
+pub use bitrue::Bitrue;
+#[cfg(feature = "bitstamp")]
+pub use bitstamp::Bitstamp;
+#[cfg(feature = "bittrade")]
+pub use bittrade::Bittrade;
+#[cfg(feature = "bitvavo")]
+pub use bitvavo::Bitvavo;
+#[cfg(feature = "blockchaincom")]
+pub use blockchaincom::Blockchaincom;
+#[cfg(feature = "blofin")]
+pub use blofin::Blofin;
+#[cfg(feature = "bullish")]
+pub use bullish::Bullish;
+#[cfg(feature = "bybit")]
+pub use bybit::Bybit;
+#[cfg(feature = "bybiteu")]
+pub use bybiteu::Bybiteu;
+#[cfg(feature = "bybitid")]
+pub use bybitid::Bybitid;
+#[cfg(feature = "cex")]
+pub use cex::Cex;
+#[cfg(feature = "coinbase")]
+pub use coinbase::Coinbase;
+#[cfg(feature = "coinbaseexchange")]
+pub use coinbaseexchange::Coinbaseexchange;
+#[cfg(feature = "coinbaseinternational")]
+pub use coinbaseinternational::Coinbaseinternational;
+#[cfg(feature = "coincheck")]
+pub use coincheck::Coincheck;
+#[cfg(feature = "coinone")]
+pub use coinone::Coinone;
+#[cfg(feature = "cryptocom")]
+pub use cryptocom::Cryptocom;
+#[cfg(feature = "deepcoin")]
+pub use deepcoin::Deepcoin;
+#[cfg(feature = "deribit")]
+pub use deribit::Deribit;
+#[cfg(feature = "derive")]
+pub use derive::Derive;
+#[cfg(feature = "dydx")]
+pub use dydx::Dydx;
+#[cfg(feature = "extended")]
+pub use extended::Extended;
+#[cfg(feature = "gate")]
+pub use gate::Gate;
+#[cfg(feature = "gateeu")]
+pub use gateeu::Gateeu;
+#[cfg(feature = "gemini")]
+pub use gemini::Gemini;
+#[cfg(feature = "grvt")]
+pub use grvt::Grvt;
+#[cfg(feature = "hashkey")]
+pub use hashkey::Hashkey;
+#[cfg(feature = "hitbtc")]
+pub use hitbtc::Hitbtc;
+#[cfg(feature = "hollaex")]
+pub use hollaex::Hollaex;
+#[cfg(feature = "htx")]
+pub use htx::Htx;
+#[cfg(feature = "hyperliquid")]
+pub use hyperliquid::Hyperliquid;
+#[cfg(feature = "independentreserve")]
+pub use independentreserve::Independentreserve;
+#[cfg(feature = "interactivebrokers")]
+pub use interactivebrokers::Interactivebrokers;
+#[cfg(feature = "kraken")]
+pub use kraken::Kraken;
+#[cfg(feature = "krakenfutures")]
+pub use krakenfutures::Krakenfutures;
+#[cfg(feature = "kucoin")]
+pub use kucoin::Kucoin;
+#[cfg(feature = "kucoinfutures")]
+pub use kucoinfutures::Kucoinfutures;
+#[cfg(feature = "lbank")]
+pub use lbank::Lbank;
+#[cfg(feature = "lighter")]
+pub use lighter::Lighter;
+#[cfg(feature = "luno")]
+pub use luno::Luno;
+#[cfg(feature = "mexc")]
+pub use mexc::Mexc;
+#[cfg(feature = "modetrade")]
+pub use modetrade::Modetrade;
+#[cfg(feature = "mudrex")]
+pub use mudrex::Mudrex;
+#[cfg(feature = "myokx")]
+pub use myokx::Myokx;
+#[cfg(feature = "nado")]
+pub use nado::Nado;
+#[cfg(feature = "ndax")]
+pub use ndax::Ndax;
+#[cfg(feature = "okx")]
+pub use okx::Okx;
+#[cfg(feature = "okxus")]
+pub use okxus::Okxus;
+#[cfg(feature = "onetrading")]
+pub use onetrading::Onetrading;
+#[cfg(feature = "p2b")]
+pub use p2b::P2b;
+#[cfg(feature = "pacifica")]
+pub use pacifica::Pacifica;
+#[cfg(feature = "paradex")]
+pub use paradex::Paradex;
+#[cfg(feature = "phemex")]
+pub use phemex::Phemex;
+#[cfg(feature = "poloniex")]
+pub use poloniex::Poloniex;
+#[cfg(feature = "polymarket")]
+pub use polymarket::Polymarket;
+#[cfg(feature = "toobit")]
+pub use toobit::Toobit;
+#[cfg(feature = "upbit")]
+pub use upbit::Upbit;
+#[cfg(feature = "weex")]
+pub use weex::Weex;
+#[cfg(feature = "whitebit")]
+pub use whitebit::Whitebit;
+#[cfg(feature = "woo")]
+pub use woo::Woo;
+#[cfg(feature = "woofipro")]
+pub use woofipro::Woofipro;
+#[cfg(feature = "xt")]
+pub use xt::Xt;
+
+/// Build the venue named `id` and run `visitor` on it; `None` for an id not compiled in.
+pub async fn with_exchange<V: crate::exchange::ExchangeVisitor>(id: &str, config: Option<crate::Value>, visitor: V) -> Option<V::Output> {
+    match id {
+        #[cfg(feature = "alpaca")]
+        "alpaca" => Some(visitor.visit(alpaca::Alpaca::new(config)).await),
+        #[cfg(feature = "apex")]
+        "apex" => Some(visitor.visit(apex::Apex::new(config)).await),
+        #[cfg(feature = "aster")]
+        "aster" => Some(visitor.visit(aster::Aster::new(config)).await),
+        #[cfg(feature = "backpack")]
+        "backpack" => Some(visitor.visit(backpack::Backpack::new(config)).await),
+        #[cfg(feature = "bequant")]
+        "bequant" => Some(visitor.visit(bequant::Bequant::new(config)).await),
+        #[cfg(feature = "binance")]
+        "binance" => Some(visitor.visit(binance::Binance::new(config)).await),
+        #[cfg(feature = "binancecoinm")]
+        "binancecoinm" => Some(visitor.visit(binancecoinm::Binancecoinm::new(config)).await),
+        #[cfg(feature = "binanceus")]
+        "binanceus" => Some(visitor.visit(binanceus::Binanceus::new(config)).await),
+        #[cfg(feature = "binanceusdm")]
+        "binanceusdm" => Some(visitor.visit(binanceusdm::Binanceusdm::new(config)).await),
+        #[cfg(feature = "bingx")]
+        "bingx" => Some(visitor.visit(bingx::Bingx::new(config)).await),
+        #[cfg(feature = "bit2me")]
+        "bit2me" => Some(visitor.visit(bit2me::Bit2me::new(config)).await),
+        #[cfg(feature = "bitfinex")]
+        "bitfinex" => Some(visitor.visit(bitfinex::Bitfinex::new(config)).await),
+        #[cfg(feature = "bitget")]
+        "bitget" => Some(visitor.visit(bitget::Bitget::new(config)).await),
+        #[cfg(feature = "bithumb")]
+        "bithumb" => Some(visitor.visit(bithumb::Bithumb::new(config)).await),
+        #[cfg(feature = "bitopro")]
+        "bitopro" => Some(visitor.visit(bitopro::Bitopro::new(config)).await),
+        #[cfg(feature = "bitrue")]
+        "bitrue" => Some(visitor.visit(bitrue::Bitrue::new(config)).await),
+        #[cfg(feature = "bitstamp")]
+        "bitstamp" => Some(visitor.visit(bitstamp::Bitstamp::new(config)).await),
+        #[cfg(feature = "bittrade")]
+        "bittrade" => Some(visitor.visit(bittrade::Bittrade::new(config)).await),
+        #[cfg(feature = "bitvavo")]
+        "bitvavo" => Some(visitor.visit(bitvavo::Bitvavo::new(config)).await),
+        #[cfg(feature = "blockchaincom")]
+        "blockchaincom" => Some(visitor.visit(blockchaincom::Blockchaincom::new(config)).await),
+        #[cfg(feature = "blofin")]
+        "blofin" => Some(visitor.visit(blofin::Blofin::new(config)).await),
+        #[cfg(feature = "bullish")]
+        "bullish" => Some(visitor.visit(bullish::Bullish::new(config)).await),
+        #[cfg(feature = "bybit")]
+        "bybit" => Some(visitor.visit(bybit::Bybit::new(config)).await),
+        #[cfg(feature = "bybiteu")]
+        "bybiteu" => Some(visitor.visit(bybiteu::Bybiteu::new(config)).await),
+        #[cfg(feature = "bybitid")]
+        "bybitid" => Some(visitor.visit(bybitid::Bybitid::new(config)).await),
+        #[cfg(feature = "cex")]
+        "cex" => Some(visitor.visit(cex::Cex::new(config)).await),
+        #[cfg(feature = "coinbase")]
+        "coinbase" => Some(visitor.visit(coinbase::Coinbase::new(config)).await),
+        #[cfg(feature = "coinbaseexchange")]
+        "coinbaseexchange" => Some(visitor.visit(coinbaseexchange::Coinbaseexchange::new(config)).await),
+        #[cfg(feature = "coinbaseinternational")]
+        "coinbaseinternational" => Some(visitor.visit(coinbaseinternational::Coinbaseinternational::new(config)).await),
+        #[cfg(feature = "coincheck")]
+        "coincheck" => Some(visitor.visit(coincheck::Coincheck::new(config)).await),
+        #[cfg(feature = "coinone")]
+        "coinone" => Some(visitor.visit(coinone::Coinone::new(config)).await),
+        #[cfg(feature = "cryptocom")]
+        "cryptocom" => Some(visitor.visit(cryptocom::Cryptocom::new(config)).await),
+        #[cfg(feature = "deepcoin")]
+        "deepcoin" => Some(visitor.visit(deepcoin::Deepcoin::new(config)).await),
+        #[cfg(feature = "deribit")]
+        "deribit" => Some(visitor.visit(deribit::Deribit::new(config)).await),
+        #[cfg(feature = "derive")]
+        "derive" => Some(visitor.visit(derive::Derive::new(config)).await),
+        #[cfg(feature = "dydx")]
+        "dydx" => Some(visitor.visit(dydx::Dydx::new(config)).await),
+        #[cfg(feature = "extended")]
+        "extended" => Some(visitor.visit(extended::Extended::new(config)).await),
+        #[cfg(feature = "gate")]
+        "gate" => Some(visitor.visit(gate::Gate::new(config)).await),
+        #[cfg(feature = "gateeu")]
+        "gateeu" => Some(visitor.visit(gateeu::Gateeu::new(config)).await),
+        #[cfg(feature = "gemini")]
+        "gemini" => Some(visitor.visit(gemini::Gemini::new(config)).await),
+        #[cfg(feature = "grvt")]
+        "grvt" => Some(visitor.visit(grvt::Grvt::new(config)).await),
+        #[cfg(feature = "hashkey")]
+        "hashkey" => Some(visitor.visit(hashkey::Hashkey::new(config)).await),
+        #[cfg(feature = "hitbtc")]
+        "hitbtc" => Some(visitor.visit(hitbtc::Hitbtc::new(config)).await),
+        #[cfg(feature = "hollaex")]
+        "hollaex" => Some(visitor.visit(hollaex::Hollaex::new(config)).await),
+        #[cfg(feature = "htx")]
+        "htx" => Some(visitor.visit(htx::Htx::new(config)).await),
+        #[cfg(feature = "hyperliquid")]
+        "hyperliquid" => Some(visitor.visit(hyperliquid::Hyperliquid::new(config)).await),
+        #[cfg(feature = "independentreserve")]
+        "independentreserve" => Some(visitor.visit(independentreserve::Independentreserve::new(config)).await),
+        #[cfg(feature = "interactivebrokers")]
+        "interactivebrokers" => Some(visitor.visit(interactivebrokers::Interactivebrokers::new(config)).await),
+        #[cfg(feature = "kraken")]
+        "kraken" => Some(visitor.visit(kraken::Kraken::new(config)).await),
+        #[cfg(feature = "krakenfutures")]
+        "krakenfutures" => Some(visitor.visit(krakenfutures::Krakenfutures::new(config)).await),
+        #[cfg(feature = "kucoin")]
+        "kucoin" => Some(visitor.visit(kucoin::Kucoin::new(config)).await),
+        #[cfg(feature = "kucoinfutures")]
+        "kucoinfutures" => Some(visitor.visit(kucoinfutures::Kucoinfutures::new(config)).await),
+        #[cfg(feature = "lbank")]
+        "lbank" => Some(visitor.visit(lbank::Lbank::new(config)).await),
+        #[cfg(feature = "lighter")]
+        "lighter" => Some(visitor.visit(lighter::Lighter::new(config)).await),
+        #[cfg(feature = "luno")]
+        "luno" => Some(visitor.visit(luno::Luno::new(config)).await),
+        #[cfg(feature = "mexc")]
+        "mexc" => Some(visitor.visit(mexc::Mexc::new(config)).await),
+        #[cfg(feature = "modetrade")]
+        "modetrade" => Some(visitor.visit(modetrade::Modetrade::new(config)).await),
+        #[cfg(feature = "mudrex")]
+        "mudrex" => Some(visitor.visit(mudrex::Mudrex::new(config)).await),
+        #[cfg(feature = "myokx")]
+        "myokx" => Some(visitor.visit(myokx::Myokx::new(config)).await),
+        #[cfg(feature = "nado")]
+        "nado" => Some(visitor.visit(nado::Nado::new(config)).await),
+        #[cfg(feature = "ndax")]
+        "ndax" => Some(visitor.visit(ndax::Ndax::new(config)).await),
+        #[cfg(feature = "okx")]
+        "okx" => Some(visitor.visit(okx::Okx::new(config)).await),
+        #[cfg(feature = "okxus")]
+        "okxus" => Some(visitor.visit(okxus::Okxus::new(config)).await),
+        #[cfg(feature = "onetrading")]
+        "onetrading" => Some(visitor.visit(onetrading::Onetrading::new(config)).await),
+        #[cfg(feature = "p2b")]
+        "p2b" => Some(visitor.visit(p2b::P2b::new(config)).await),
+        #[cfg(feature = "pacifica")]
+        "pacifica" => Some(visitor.visit(pacifica::Pacifica::new(config)).await),
+        #[cfg(feature = "paradex")]
+        "paradex" => Some(visitor.visit(paradex::Paradex::new(config)).await),
+        #[cfg(feature = "phemex")]
+        "phemex" => Some(visitor.visit(phemex::Phemex::new(config)).await),
+        #[cfg(feature = "poloniex")]
+        "poloniex" => Some(visitor.visit(poloniex::Poloniex::new(config)).await),
+        #[cfg(feature = "polymarket")]
+        "polymarket" => Some(visitor.visit(polymarket::Polymarket::new(config)).await),
+        #[cfg(feature = "toobit")]
+        "toobit" => Some(visitor.visit(toobit::Toobit::new(config)).await),
+        #[cfg(feature = "upbit")]
+        "upbit" => Some(visitor.visit(upbit::Upbit::new(config)).await),
+        #[cfg(feature = "weex")]
+        "weex" => Some(visitor.visit(weex::Weex::new(config)).await),
+        #[cfg(feature = "whitebit")]
+        "whitebit" => Some(visitor.visit(whitebit::Whitebit::new(config)).await),
+        #[cfg(feature = "woo")]
+        "woo" => Some(visitor.visit(woo::Woo::new(config)).await),
+        #[cfg(feature = "woofipro")]
+        "woofipro" => Some(visitor.visit(woofipro::Woofipro::new(config)).await),
+        #[cfg(feature = "xt")]
+        "xt" => Some(visitor.visit(xt::Xt::new(config)).await),
+        _ => None,
+    }
+}
+
+/// [`with_exchange`] with the typed [`crate::Config`] builder.
+pub async fn with_exchange_config<V: crate::exchange::ExchangeVisitor>(id: &str, config: crate::Config, visitor: V) -> Option<V::Output> {
+    with_exchange(id, config.into_option(), visitor).await
+}

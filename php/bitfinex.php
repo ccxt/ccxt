@@ -485,6 +485,7 @@ class bitfinex extends Exchange {
                     'not enough exchange balance' => '\\ccxt\\InsufficientFunds',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'symbol => invalid' => '\\ccxt\\BadSymbol',
+                    'Min price step' => '\\ccxt\\InvalidOrder', // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 ),
             ),
             'commonCurrencies' => array(
@@ -2026,7 +2027,7 @@ class bitfinex extends Exchange {
         }
         $paramsOmitted = ($cid !== null) ? $this->omit($params, array( 'cid', 'clientOrderId' )) : $params;
         $response = $this->privatePostAuthWOrderCancel($this->extend($request, $paramsOmitted));
-        $order = $this->safe_value($response, 4);
+        $order = $this->safe_list($response, 4);
         $newOrder = array( 'result' => $order );
         return $this->parse_order($newOrder, $market);
     }
@@ -3369,7 +3370,7 @@ class bitfinex extends Exchange {
         return $reversedArray;
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //       [
         //          "tBTCF0:USTF0",

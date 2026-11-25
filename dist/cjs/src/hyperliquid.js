@@ -786,9 +786,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             // Get the part after the decimal separator
             const decimalPart = this.safeString(priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt(0);
+            let leadingZeros = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = this.parseToInt(leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -3607,6 +3607,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'canceled': 'canceled',
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         };
         if (status.endsWith('Rejected')) {
             return 'rejected';
@@ -4099,11 +4100,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith('0x')) {
-                vaultAddress = vaultAddress.replace('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -5271,12 +5268,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         const url = this.implodeHostname(apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody = undefined;
         if (isPost) {

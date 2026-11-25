@@ -1694,12 +1694,12 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][timeframe] = stored
 		}
 	}
-	var ohlcv any
+	var ohlcv ccxt.WsArrayCache
 	if symbol != nil {
-		ohlcv = this.Ohlcvs[*symbol][timeframe]
+		ohlcv, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
-	ohlcv.(ccxt.Appender).Append(parsed)
+	ohlcv.Append(parsed)
 	var messageHash string = "candles:" + timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
@@ -2098,7 +2098,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 
 	r2 := <-this.Watch(url, messageHash, message, topic)
 	if r2.Err != nil {
@@ -2136,7 +2136,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var clearinghouseState map[string]any = ccxt.SafeMapTyped(data, "clearinghouseState")
 	var newPositions []any = []any{}
@@ -2145,7 +2145,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 		var rawPosition any = rawPositions[i]
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	var baseMessageHash string = "clearinghouseState::positions"
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), baseMessageHash))
@@ -2272,12 +2272,12 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 		market = this.Market(symbol)
 		messageHash = "order:" + *this.SafeString(market, "symbol", "")
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
@@ -2866,7 +2866,7 @@ func (this *Hyperliquid) HandlePong(client any, message map[string]any) any {
 	return message
 }
 func (this *Hyperliquid) RequestId() int64 {
-	var requestId int64 = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1).(int64)
+	var requestId int64 = *this.SafeInteger(this.Options, "requestId", 0) + 1
 	this.Options["requestId"] = requestId
 	return requestId
 }

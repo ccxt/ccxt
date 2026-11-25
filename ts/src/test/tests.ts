@@ -302,7 +302,7 @@ class testMainClass {
         }
         let skipMessage: Str = undefined;
         const supportedByExchange = (methodName in exchange.has) && (exchange.has[methodName] !== undefined) && (exchange.has[methodName] !== false);
-        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && (exchange.inArray (methodName, this.onlySpecificTests) !== true))) {
+        if (!isLoadMarkets && ((this.onlySpecificTests.length > 0) && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message

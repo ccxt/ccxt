@@ -15,9 +15,9 @@ pub fn testEncode() {
         m
     }));
     let mut input: Value = Value::Str("encode-test".into());
-    let mut encoded: Value = exchange.encode(input.clone());
-    let mut decoded: Value = exchange.decode(encoded.clone());
-    assert!(ccxt::runtime::is_true(&((decoded.as_str() == input.as_str()))));
+    let mut encoded: ccxt::value::Bytes = exchange.encode(input.clone());
+    let mut decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testDecode() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -26,9 +26,9 @@ pub fn testDecode() {
         m
     }));
     let mut input: Value = Value::Str("decode-test".into());
-    let mut encoded: Value = exchange.encode(input.clone());
-    let mut decoded: Value = exchange.decode(encoded.clone());
-    assert!(ccxt::runtime::is_true(&((decoded.as_str() == input.as_str()))));
+    let mut encoded: ccxt::value::Bytes = exchange.encode(input.clone());
+    let mut decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testEncodeDecode() {
     testEncode();

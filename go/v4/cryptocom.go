@@ -922,9 +922,9 @@ func (this *Cryptocom) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(currency, "network_list")
+	var chains []map[string]any = this.SafeListMapsTyped(currency, "network_list")
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "network_id")
 		var network *string = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1079,10 +1079,10 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//     }
 	//
 	var resultResponse map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(resultResponse, "data")
+	var data []map[string]any = this.SafeListMapsTyped(resultResponse, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = data[i]
+		var market map[string]any = data[i]
 		var inst_type *string = this.SafeString(market, "inst_type")
 		var spot bool = (inst_type != nil && *inst_type == "CCY_PAIR")
 		var swap bool = (inst_type != nil && *inst_type == "PERPETUAL_SWAP")
@@ -1134,12 +1134,12 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
 			typeVar = SafeStringPtr("option")
-			var symbolOptionType string = func() string {
-				if optionType != nil && *optionType == "call" {
-					return "C"
-				}
-				return "P"
-			}()
+			var symbolOptionType string
+			if optionType != nil && *optionType == "call" {
+				symbolOptionType = "C"
+			} else {
+				symbolOptionType = "P"
+			}
 			symbol = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry) + "-" + *this.SafeString(market, "strike", "") + "-" + symbolOptionType
 			contract = true
 		}
@@ -1623,7 +1623,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	if since != nil {
 		request["start_ts"] = (*since - (duration * 1000))
 		if limit != nil {
-			var countLimit int64 = this.ParseToInt(mathMin(limit, 300))
+			var countLimit int64 = this.ParseToInt(min(*limit, 300))
 			request["end_ts"] = this.Sum(since, (duration*countLimit)*1000)
 		} else {
 			request["end_ts"] = until
@@ -1699,7 +1699,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 		"instrument_name": market["id"],
 	}
 	if (limit != nil) && (limit == nil || *limit != 0) {
-		request["depth"] = mathMin(limit, 50) // max 50
+		request["depth"] = min(*limit, 50) // max 50
 	}
 
 	r1 := <-this.V1PublicGetPublicGetBook(this.Extend(request, params))
@@ -1933,7 +1933,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol string, typeVar string, side st
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginModeparamsValueVariable := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
 	var marginMode *string = SafeStringPtr(marginModeparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(marginModeparamsValueVariable[1])
+	var paramsValue map[string]any = marginModeparamsValueVariable[1].(map[string]any)
 	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
 	} else if marketType != nil && *marketType == "spot" {
@@ -2278,13 +2278,13 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 		request["type"] = uppercaseType
 	}
 	var isMarketBuy bool = (side != nil && *side == "buy") && ((uppercaseType == "MARKET") || (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT"))
-	var paramsMarketBuy any = params
+	var paramsMarketBuy map[string]any = params
 	if isMarketBuy {
 		// use createmarketBuy logic here
 		var quoteAmount any = nil
 		createMarketBuyOrderRequiresPrice, paramsCreateMarketBuy := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber2(paramsCreateMarketBuy, "cost", "notional")
-		paramsMarketBuy = this.Omit(paramsCreateMarketBuy, "cost")
+		paramsMarketBuy = this.OmitDict(paramsCreateMarketBuy, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2303,7 +2303,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsOmitted any = this.Omit(paramsMarketBuy, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketBuy, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -2442,12 +2442,12 @@ func (this *Cryptocom) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Cryptocom) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Cryptocom) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2502,12 +2502,12 @@ func (this *Cryptocom) cancelOrderBody(ch chan AsyncResult[Order], id any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Cryptocom) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Cryptocom) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Cryptocom) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2526,7 +2526,7 @@ func (this *Cryptocom) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 	}
 	var market map[string]any = this.Market(symbol)
 	var orderRequests []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		var id *string = this.SafeString(ids, i)
 		var order map[string]any = map[string]any{
 			"instrument_name": market["id"],
@@ -2865,7 +2865,7 @@ func (this *Cryptocom) withdrawBody(ch chan AsyncResult[Transaction], code strin
 		request["address_tag"] = *tagWithdrawTag
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkId any = this.NetworkCodeToId(networkCode, code)
+	var networkId *string = this.NetworkCodeToId(networkCode, code)
 	if networkId != nil {
 		request["network_id"] = networkId
 	}
@@ -3597,7 +3597,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, option
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "margin")
 	var marginMode *string = nil
-	var paramsMarginMode any = nil
+	var paramsMarginMode map[string]any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams(methodName, paramsOmitted)
 	if marginMode != nil {
 		if marginMode == nil || *marginMode != "cross" {
@@ -4032,7 +4032,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		market = this.Market(symbol)
 	}
 	var typeVar *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	typeVar, paramsMarketType = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if typeVar != nil && *typeVar == "option" {
@@ -4309,11 +4309,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(result, "data")
+	var data []map[string]any = this.SafeListMapsTyped(result, "data")
 	var marketId *string = this.SafeString(result, "instrument_name")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		rates = append(rates, map[string]any{
 			"info":        entry,

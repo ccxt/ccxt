@@ -5,7 +5,6 @@
 // Each base-test entry point is re-exported from `mod.rs`.
 use super::*;
 
-// import testParseMarkets from './test.parseMarkets.js';
 pub async fn baseTestsInit() {
     testAfterConstructor();
     testAggregate();
@@ -21,6 +20,7 @@ pub async fn baseTestsInit() {
     testDecimalToPrecision();
     testCapitalize();
     testIncrementingNonce();
+    testArraySlice();
     testIsDictionary();
     testNumberToString();
     testPrecise();
@@ -70,4 +70,5 @@ pub async fn baseTestsInit() {
     testIo();
     testIsJsonEncodedObject();
     testEncodeDecode();
+    testModPow();
 }

@@ -155,8 +155,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
@@ -168,8 +167,8 @@ export default class aster extends asterRest {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@ticker');
             messageHashes.push('ticker:' + this.safeString(market, 'symbol', ''));
         }
@@ -182,7 +181,7 @@ export default class aster extends asterRest {
             }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsList);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -205,8 +204,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
@@ -218,8 +216,8 @@ export default class aster extends asterRest {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@ticker');
             messageHashes.push('unsubscribe:ticker:' + this.safeString(market, 'symbol', ''));
         }
@@ -280,8 +278,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
@@ -295,8 +292,8 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         const use1sFreq = this.safeBool(paramsOmitted, 'use1sFreq', true);
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             let suffix = '';
             if (use1sFreq) {
                 suffix = '@1s';
@@ -313,7 +310,7 @@ export default class aster extends asterRest {
             }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbolsList);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -335,8 +332,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const paramsOmitted = this.omit(paramsCallerMethodName, 'callerMethodName');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
@@ -350,8 +346,8 @@ export default class aster extends asterRest {
             'params': subscriptionArgs,
         };
         const use1sFreq = this.safeBool(paramsOmitted, 'use1sFreq', true);
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             let suffix = '';
             if (use1sFreq) {
                 suffix = '@1s';
@@ -395,8 +391,7 @@ export default class aster extends asterRest {
         //     }
         //
         const marketType = this.getAccountTypeFromUrl(client.url);
-        const ticker = message;
-        const parsed = this.parseWsTicker(ticker, marketType);
+        const parsed = this.parseWsTicker(message, marketType);
         const symbol = this.safeString(parsed, 'symbol');
         if (symbol !== undefined) {
             const messageHash = 'ticker:' + symbol;
@@ -463,8 +458,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
@@ -476,8 +470,8 @@ export default class aster extends asterRest {
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@bookTicker');
             messageHashes.push('bidask:' + this.safeString(market, 'symbol', ''));
         }
@@ -490,7 +484,7 @@ export default class aster extends asterRest {
             }
             return result;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsList);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -512,8 +506,7 @@ export default class aster extends asterRest {
         if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
             throw new ArgumentsRequired(this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const symbolsList = symbolsNormalized;
-        const firstMarket = this.getMarketFromSymbols(symbolsList);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const type = this.safeString(firstMarket, 'type', 'swap');
         const url = this.safeString(this.urls['api']['ws']['public'], type);
         if (url === undefined) {
@@ -525,8 +518,8 @@ export default class aster extends asterRest {
             'method': 'UNSUBSCRIBE',
             'params': subscriptionArgs,
         };
-        for (let i = 0; i < symbolsList.length; i++) {
-            const market = this.market(this.safeString(symbolsList, i, ''));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(this.safeString(symbolsNormalized, i, ''));
             subscriptionArgs.push(this.safeStringLower(market, 'id', '') + '@bookTicker');
             messageHashes.push('unsubscribe:bidask:' + this.safeString(market, 'symbol', ''));
         }
@@ -547,10 +540,9 @@ export default class aster extends asterRest {
         //     }
         //
         const marketType = this.getAccountTypeFromUrl(client.url);
-        const data = message;
-        const marketId = this.safeString(data, 's');
+        const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const ticker = this.parseWsBidAsk(data, market);
+        const ticker = this.parseWsBidAsk(message, market);
         const symbol = this.safeString(ticker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
@@ -716,10 +708,9 @@ export default class aster extends asterRest {
         //     }
         //
         const marketType = this.getAccountTypeFromUrl(client.url);
-        const trade = message;
-        const marketId = this.safeString(trade, 's');
+        const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const parsed = this.parseWsTrade(trade, market);
+        const parsed = this.parseWsTrade(message, market);
         const symbol = this.safeString(parsed, 'symbol');
         if (symbol === undefined) {
             return;
@@ -1047,16 +1038,15 @@ export default class aster extends asterRest {
         //     }
         //
         const marketType = this.getAccountTypeFromUrl(client.url);
-        const data = message;
-        const marketId = this.safeString(data, 's');
-        const timestamp = this.safeInteger(data, 'T');
+        const marketId = this.safeString(message, 's');
+        const timestamp = this.safeInteger(message, 'T');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook(data, symbol, timestamp, 'b', 'a');
+        const snapshot = this.parseOrderBook(message, symbol, timestamp, 'b', 'a');
         orderbook.reset(snapshot);
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
@@ -1231,21 +1221,19 @@ export default class aster extends asterRest {
         //     }
         //
         const marketType = this.getAccountTypeFromUrl(client.url);
-        const data = message;
-        const marketId = this.safeString(data, 's');
+        const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const kline = this.safeDict(data, 'k');
+        const kline = this.safeDict(message, 'k');
         const timeframeId = this.safeString(kline, 'i');
         const timeframe = this.findTimeframe(timeframeId);
         if (timeframe === undefined) {
             return;
         }
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
-        if (ohlcvsByTimeframe === undefined) {
+        if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (this.safeValue(ohlcvsByTimeframe, timeframe) === undefined) {
+        if (this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
         }

@@ -1353,12 +1353,11 @@ class luno(Exchange, ImplicitAPI):
         # by default without entry number or limit number, return most recent entry
         entryValue = -1 if (entry is None) else entry
         limitValue = 1 if (limit is None) else limit
-        since = None
         request = {
             'min_row': entryValue,
             'max_row': self.sum(entryValue, limitValue),
         }
-        return self.fetch_ledger(code, since, limitValue, self.extend(request, params))
+        return self.fetch_ledger(code, None, limitValue, self.extend(request, params))
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -1658,7 +1657,7 @@ class luno(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
-        error = self.safe_value(response, 'error')
+        error = self.safe_string(response, 'error')
         if error is not None:
             feedback = self.id + ' ' + self.json(response)
             errorCode = self.safe_string(response, 'error_code')
