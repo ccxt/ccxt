@@ -8839,21 +8839,31 @@ function rustTypedVenueBuilders (content: string, venue: string): string {
     if (fns.length > 0) content = rustTypedRequestBuilders (content, fns);
     if (!RUST_SIGNING_DICT_VENUES.includes (venue)) return content;
     const typed = new Set<string> ();
-    for (const fn of [ 'sign_hash', 'sign_message', 'sign_l1_action' ]) {
+    const typeFn = (fn: string, strict: boolean): boolean => {
         const decl = new RegExp ('\\n    pub fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n').exec (content);
-        if (!decl) continue;
+        if (!decl) return false;
         const open = decl.index + decl[0].length, tail = '\n\n    Value::Null\n}', end = content.indexOf (tail, open);
-        if (end < 0) throw new Error (venue + ' ' + fn + ': declaration without the Value::Null tail');
-        const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (_l, r: string, e: string) => {
+        if (end < 0) { if (strict) throw new Error (venue + ' ' + fn + ': declaration without the Value::Null tail'); return false; }
+        let unproven: string | undefined;
+        const body = content.slice (open, end).replace (/^( *return )([^\n]*)$/gm, (l: string, r: string, e: string) => {
             if (e === 'Value::Map({') return r + 'std::sync::Arc::new({';
             const call = /^self\.(\w+)\(/.exec (e);
             if (call && typed.has (call[1]) && e.endsWith (');') && balancedCloseIndex (e, call[0].length) === e.length - 2) return r + e;
             const m = /^Value::Dict\((\w+)\);$/.exec (e);
-            if (m && new RegExp ('\\blet mut ' + m[1] + ': crate::value::Dict = ').test (content.slice (open, end))) return r + m[1] + ';';
-            throw new Error (venue + ' ' + fn + ': unproven return ' + e.slice (0, 80));
+            if (m && new RegExp ('\\blet (?:mut )?' + m[1] + ': crate::value::Dict = ').test (content.slice (open, end))) return r + m[1] + ';';
+            unproven = unproven ?? e;
+            return l;
         });
+        if (unproven !== undefined || !/^ *return /m.test (body)) { if (strict) throw new Error (venue + ' ' + fn + ': unproven return ' + String (unproven).slice (0, 80)); return false; }
         content = content.slice (0, decl.index) + decl[0].replace (') -> Value {', ') -> crate::value::Dict {') + body + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
         typed.add (fn);
+        return true;
+    };
+    for (const fn of [ 'sign_hash', 'sign_message', 'sign_l1_action' ]) typeFn (fn, true);
+    // a venue method whose every return is a signing dict (a typed call or a Dict local) returns `Dict` too
+    for (let grew = true; grew;) {
+        grew = false;
+        for (const d of [ ...content.matchAll (/\n    pub fn (\w+)\([^\n]*\) -> Value \{\n/g) ]) if (typeFn (d[1], false)) grew = true;
     }
     for (const fn of typed) {
         const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g'), starts: number[] = [];
@@ -8865,6 +8875,7 @@ function rustTypedVenueBuilders (content: string, venue: string): string {
             const before = content.slice (content.lastIndexOf ('\n', s) + 1, s);
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+            else if (/^ *return $/.test (before) && rest.startsWith (';') && /-> crate::value::Dict \{$/.test (content.slice (content.lastIndexOf ('\n    pub fn ', s), content.indexOf ('\n', content.lastIndexOf ('\n    pub fn ', s) + 1)))) continue;
             else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
         }
     }
