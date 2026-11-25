@@ -11533,76 +11533,83 @@ function goOpenFrameLevel (content: string, i: number, level: number): number {
 // the same level rule for the operators the printer printed, with the control-clause
 // parens dropped on the way through
 function goGofmtTightenSplicedArithmetic (content: string): string {
+    // unchanged runs are copied as slices (never empty ones, so the last piece ends in the last emitted char)
     const out: string[] = [];
-    const stack: { 'kind': string, 'level': number }[] = [];
+    const emit = (piece: string) => { if (piece !== '') { out.push (piece); } };
+    const stack: number[] = [];
     const strippedClosers = new Set<number> ();
     let level = 1;
     let lastChar = '';
+    let from = 0;
     let i = 0;
-    while (i < content.length) {
-        const char = content[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            const literal = content.slice (i, goSkipLiteralText (content, i) + 1);
-            out.push (literal);
-            lastChar = literal[literal.length - 1];
-            i += literal.length;
+    const len = content.length;
+    while (i < len) {
+        const c = content.charCodeAt (i);
+        if ((c === 34) || (c === 39) || (c === 96)) { // literal
+            i = goSkipLiteralText (content, i) + 1;
+            lastChar = content[i - 1];
             continue;
         }
-        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-            const comment = content.slice (i, goSkipCommentText (content, i) + 1);
-            out.push (comment);                                 // a line comment keeps its newline
-            i += comment.length;
+        if ((c === 47) && ((content.charCodeAt (i + 1) === 47) || (content.charCodeAt (i + 1) === 42))) {
+            i = goSkipCommentText (content, i) + 1;       // a line comment keeps its newline
             continue;
         }
-        if (strippedClosers.has (i)) {
-            i += 1;
+        if ((c === 41) && strippedClosers.has (i)) {
+            emit (content.slice (from, i));
+            from = i = i + 1;
             continue;
         }
-        if ((char === '(') && (level > 0)) {
-            const close = goControlClauseClose (content, i);
-            if (close > 0) {
-                strippedClosers.add (close);                    // stripParens(cond)
-                i += 1;
-                continue;
+        if ((c === 40) || (c === 91) || (c === 123)) { // ( [ {
+            if ((c === 40) && (level > 0)) {
+                const close = goControlClauseClose (content, i);
+                if (close > 0) {                           // stripParens(cond)
+                    strippedClosers.add (close);
+                    emit (content.slice (from, i));
+                    from = i = i + 1;
+                    continue;
+                }
             }
-        }
-        if (char === '(' || char === '[' || char === '{') {
-            stack.push ({ 'kind': char, 'level': level });
+            stack.push (level);
             level = goOpenFrameLevel (content, i, level);
-            out.push (char);
-            lastChar = char;
+            lastChar = content[i];
             i += 1;
             continue;
         }
-        if (char === ')' || char === ']' || char === '}') {
+        if ((c === 41) || (c === 93) || (c === 125)) { // ) ] }
             const frame = stack.pop ();
             if (frame !== undefined) {
-                level = frame.level;
+                level = frame;
             }
-            out.push (char);
-            lastChar = char;
+            lastChar = content[i];
             i += 1;
             continue;
         }
-        const operator = goLevel45OperatorText (content, i);
-        if ((operator !== null) && (level > 1) && GO_OPERAND_ENDER.test (lastChar)) {
-            const tightened = goTightenedOperatorText (content, i, operator);
-            if (tightened !== null) {
-                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
-                    out.pop ();
+        if ((level > 1) && (c !== 32) && (c !== 9) && (c !== 10)) {
+            const operator = goLevel45OperatorText (content, i);
+            if ((operator !== null) && GO_OPERAND_ENDER.test (lastChar)) {
+                const tightened = goTightenedOperatorText (content, i, operator);
+                if (tightened !== null) {
+                    emit (content.slice (from, i));
+                    const last = (out.length > 0) ? out[out.length - 1] : '';
+                    if (last.endsWith (' ') || last.endsWith ('\t')) {
+                        out[out.length - 1] = last.slice (0, -1);   // drop the one blank before it
+                    }
+                    out.push (operator);
+                    from = i = tightened.end;
+                    lastChar = '';
+                    continue;
                 }
-                out.push (operator);
-                i = tightened.end;
-                lastChar = '';
-                continue;
             }
         }
-        out.push (char);
-        if ((char !== ' ') && (char !== '\t')) {
-            lastChar = char;
+        if ((c !== 32) && (c !== 9)) {
+            lastChar = content[i];
         }
         i += 1;
     }
+    if (from === 0) {
+        return content;
+    }
+    emit (content.slice (from));
     return out.join ('');
 }
 
