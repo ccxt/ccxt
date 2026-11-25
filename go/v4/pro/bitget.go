@@ -1291,22 +1291,22 @@ func (this *Bitget) HandleOrderBook(client ccxt.ClientInterface, message map[str
 			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
 			var asksLength int = ccxt.IOrderBookSide.Len(storedAsks)
 			var bidsLength int = ccxt.IOrderBookSide.Len(storedBids)
-			var payloadArray []any = []any{}
+			var payloadArray []string = []string{}
 			for i := 0; i < 25; i++ {
 				if i < bidsLength {
 					var bidLevel any = storedBids.GetData()[i]
 					var bidParts any = ccxt.GetValue(bidLevel, 2)
-					payloadArray = append(payloadArray, this.SafeString(bidParts, 0, ""))
-					payloadArray = append(payloadArray, this.SafeString(bidParts, 1, ""))
+					payloadArray = append(payloadArray, *this.SafeString(bidParts, 0, ""))
+					payloadArray = append(payloadArray, *this.SafeString(bidParts, 1, ""))
 				}
 				if i < asksLength {
 					var askLevel any = storedAsks.GetData()[i]
 					var askParts any = ccxt.GetValue(askLevel, 2)
-					payloadArray = append(payloadArray, this.SafeString(askParts, 0, ""))
-					payloadArray = append(payloadArray, this.SafeString(askParts, 1, ""))
+					payloadArray = append(payloadArray, *this.SafeString(askParts, 0, ""))
+					payloadArray = append(payloadArray, *this.SafeString(askParts, 1, ""))
 				}
 			}
-			var payload string = ccxt.Join(payloadArray, ":")
+			var payload string = strings.Join(payloadArray, ":")
 			var calculatedChecksum int64 = this.Crc32(payload, true)
 			if responseChecksum == nil || *responseChecksum != calculatedChecksum {
 				this.Spawn(this.HandleCheckSumErrorAsync, client, *symbol, messageHash, this.OrderbookChecksumMessage(this.SafeString(market, "symbol", "")))

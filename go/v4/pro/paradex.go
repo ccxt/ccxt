@@ -1097,7 +1097,7 @@ func (this *Paradex) HandleTrade(client ccxt.ClientInterface, message map[string
 	if this.SafeString(data, "trade_type") != nil && *this.SafeString(data, "trade_type") == "LIQUIDATION" {
 		// one cache per market, kept in the options next to the request id counter: this.liquidations
 		// is typed as a single cache in some languages and initialized as a map in others
-		var liquidation any = this.ParseWsLiquidation(data)
+		var liquidation map[string]any = this.ParseWsLiquidation(data)
 		var caches map[string]any
 		caches, _ = this.Options["liquidationsBySymbol"].(map[string]any)
 		if caches == nil {
@@ -1194,7 +1194,7 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var deltas bool = (deltasOption == true) || ((limit != nil) && (*limit > 15))
 	var url string = this.GetWsUrl()
 	// an unwatch in flight decides which feed each market is on once acknowledged
-	var feeds []any = []any{}
+	var feeds []string = []string{}
 	for i := 0; i < symbolsLength; i++ {
 		var feedMarket map[string]any = this.Market(symbolsNormalized[i])
 		feeds = append(feeds, this.GetOrderBookChannel(*this.SafeString(feedMarket, "id", ""), true))

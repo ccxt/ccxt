@@ -13489,7 +13489,7 @@ func (this *Bybit) ParseLongShortRatio(info map[string]any, optionalArgs ...any)
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var timestamp any = this.SafeIntegerOmitZero(info, "timestamp")
+	var timestamp *int64 = this.SafeIntegerOmitZero(info, "timestamp")
 	var longString *string = this.SafeString(info, "buyRatio")
 	var shortString *string = this.SafeString(info, "sellRatio")
 	return LongShortRatioFromMap(map[string]any{

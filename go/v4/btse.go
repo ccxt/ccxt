@@ -1982,7 +1982,7 @@ func (this *Btse) ParseFundingRate(contract map[string]any, optionalArgs ...any)
 	var timestamp *int64 = this.SafeTimestamp(contract, "closeTime")
 	// dated futures carry a zero nextFundingTime as funding only applies to
 	// perpetuals, observed live, the zero means no next funding and is omitted
-	var nextFundingTimestamp any = this.SafeIntegerOmitZero(contract, "nextFundingTime")
+	var nextFundingTimestamp *int64 = this.SafeIntegerOmitZero(contract, "nextFundingTime")
 	var fundingIntervalMinutes *int64 = this.SafeInteger(contract, "fundingIntervalMinutes")
 	var interval *string = nil
 	// a wire value of zero minutes reaches this, and zero hours is not an

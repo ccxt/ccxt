@@ -5967,7 +5967,7 @@ func (this *Bitget) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var close *string = this.SafeString2(ticker, "lastPr", "lastPrice")
-	var timestamp any = this.SafeIntegerOmitZero(ticker, "ts") // exchange bitget provided 0
+	var timestamp *int64 = this.SafeIntegerOmitZero(ticker, "ts") // exchange bitget provided 0
 	var category *string = this.SafeString(ticker, "category")
 	var markPrice *string = this.SafeString(ticker, "markPrice")
 	var marketType string
@@ -16724,7 +16724,7 @@ func (this *Bitget) ParseLongShortRatio(info map[string]any, optionalArgs ...any
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var timestamp any = this.SafeIntegerOmitZero(info, "ts")
+	var timestamp *int64 = this.SafeIntegerOmitZero(info, "ts")
 	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeSymbol(marketId, market, nil, "contract"),

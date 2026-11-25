@@ -1121,7 +1121,7 @@ func (this *Deepcoin) ParseTicker(ticker map[string]any, optionalArgs ...any) Ti
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerOmitZero(ticker, "ts")
+	var timestamp *int64 = this.SafeIntegerOmitZero(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
 	var symbol *string = this.SafeString(marketResolved, "symbol")
@@ -2003,7 +2003,10 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"amount":      this.CurrencyToPrecision(code, amount),
 		"from_id":     fromId,
 		"to_id":       toId,
-		"uid":         userId,
+		"uid":         nil,
+	}
+	if userId != nil {
+		request["uid"] = *userId
 	}
 
 	r1 := <-this.PrivatePostDeepcoinAssetTransfer(this.Extend(request, paramsUserId))

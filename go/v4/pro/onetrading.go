@@ -1310,11 +1310,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		}
 	}
 	var typeVar string = "SUBSCRIBE"
-	var subscription any = map[string]any{}
+	var subscription map[string]any = map[string]any{}
 	if client != nil {
-		subscription = this.SafeDict(client.SubscriptionsSnapshot(), subscriptionHash)
+		subscription = client.SubscriptionDict(subscriptionHash)
 		if subscription != nil {
-			var ohlcvMarket map[string]any = ccxt.SafeMapTyped(subscription, marketId)
+			var ohlcvMarket, _ = subscription[marketId].(map[string]any)
 			var marketSubscribed *bool = this.SafeBool(ohlcvMarket, timeframe, false)
 			if !(marketSubscribed != nil && *marketSubscribed) {
 				typeVar = "UPDATE_SUBSCRIPTION"
@@ -1328,9 +1328,15 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	if timeframe != nil {
 		ccxt.AddElementToObject(marketTimeframes, timeframe, true)
 	}
-	ccxt.AddElementToObject(subscription, marketId, marketTimeframes)
+	subscription[marketId] = marketTimeframes
 	var properties []any = []any{}
-	var marketIds []string = ccxt.ObjectKeys(subscription)
+	var marketIds []string = nil
+	if subscription != nil {
+		marketIds = make([]string, 0, len(subscription))
+		for objectKey := range subscription {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketSubscription map[string]any = ccxt.SafeMapTyped(subscription, marketIds[i])
 		var marketIdtimeframes []string = nil
@@ -1605,9 +1611,9 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 		}
 	}
 	var typeVar string = "SUBSCRIBE"
-	var subscription any = map[string]any{}
+	var subscription map[string]any = map[string]any{}
 	if client != nil {
-		subscription = this.SafeDict(client.SubscriptionsSnapshot(), subscriptionHash)
+		subscription = client.SubscriptionDict(subscriptionHash)
 		if subscription != nil {
 			for i := 0; i < len(marketIds); i++ {
 				var marketId string = marketIds[i]
@@ -1623,10 +1629,16 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		ccxt.AddElementToObject(subscription, marketId, true)
+		subscription[marketId] = true
 	}
 	request["type"] = typeVar
-	var instrumentCodes []string = ccxt.ObjectKeys(subscription)
+	var instrumentCodes []string = nil
+	if subscription != nil {
+		instrumentCodes = make([]string, 0, len(subscription))
+		for objectKey := range subscription {
+			instrumentCodes = append(instrumentCodes, objectKey)
+		}
+	}
 	var channel map[string]any = this.Extend(this.SafeDict(this.SafeList(request, "channels", []any{}), 0, map[string]any{}), map[string]any{
 		"instrument_codes": ccxt.StringSliceToList(instrumentCodes),
 	})

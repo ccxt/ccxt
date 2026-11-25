@@ -59,13 +59,10 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 			panic(r.Err)
 		}
 	}
-	var symbolsRequested any
-	if ccxt.IsEqual(symbols, nil) {
-		symbolsRequested = this.Symbols
-	} else {
-		symbolsRequested = symbols
+	var symbolsNormalized []string = this.Symbols
+	if !ccxt.IsEqual(symbols, nil) {
+		symbolsNormalized = this.MarketSymbols(symbols)
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbolsRequested)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
@@ -856,7 +853,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"cost":     feeCost,
 		}
 	}
-	var literal59031 map[string]any = map[string]any{
+	var literal59231 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "trade_uuid"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -872,9 +869,9 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"info":         trade,
 	}
 	if cost != nil {
-		literal59031["cost"] = *cost
+		literal59231["cost"] = *cost
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal59031, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal59231, marketResolved))
 }
 func (this *Upbit) HandleMyOrder(client ccxt.ClientInterface, message map[string]any) {
 	// see: parseWsOrder

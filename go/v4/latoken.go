@@ -1092,7 +1092,7 @@ func (this *Latoken) ParseTicker(ticker map[string]any, optionalArgs ...any) Tic
 		symbol = &symbolStr
 	}
 	var last *string = this.SafeString(ticker, "lastPrice")
-	var timestamp any = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
+	var timestamp *int64 = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
 	// during venue incidents a deleted level leaks a signed aggregate into the
 	// best sizes - the quoted prices stay usable, so only negatives are dropped
 	var bidVolume *string = this.SafeString(ticker, "bestBidQuantity")

@@ -20844,7 +20844,7 @@ func (this *Binance) ParseLongShortRatio(info map[string]any, optionalArgs ...an
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var timestamp any = this.SafeIntegerOmitZero(info, "timestamp")
+	var timestamp *int64 = this.SafeIntegerOmitZero(info, "timestamp")
 	return LongShortRatioFromMap(map[string]any{
 		"info":           info,
 		"symbol":         this.SafeSymbol(marketId, market, nil, "contract"),

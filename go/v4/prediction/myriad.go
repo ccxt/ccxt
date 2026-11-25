@@ -3995,8 +3995,11 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			marketKeys = append(marketKeys, key)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-		var grouped any = outcomesByMarket[key]
-		ccxt.AppendToArray(&grouped, outcomeObj)
+		var grouped, _ = outcomesByMarket[key].([]any)
+		if grouped == nil {
+			grouped = []any{}
+		}
+		grouped = append(grouped, outcomeObj)
 		outcomesByMarket[key] = grouped
 	}
 	var promises []any = []any{}

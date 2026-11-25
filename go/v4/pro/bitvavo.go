@@ -2097,14 +2097,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan ccxt.AsyncResult[ccxt.Transaction], 
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if tagWithdrawTagPtr != nil {
-			return *tagWithdrawTagPtr
-		}
-		return nil
-	}()
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 

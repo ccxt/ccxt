@@ -1805,13 +1805,19 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
 		if !this.InArray(assetClass, positionAssetClasses) {
 			continue
 		}
-		var code any = this.IbkrBalanceCode(position)
-		if (IsEqual(code, nil)) || (InOp(result, code)) {
+		var code *string = this.IbkrBalanceCode(position)
+		var codeInResult bool
+		if code != nil {
+			_, codeInResult = result[*code]
+		}
+		if (code == nil) || (codeInResult) {
 			continue
 		}
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(position, "position")
-		AddElementToObject(result, code, account)
+		if code != nil {
+			result[*code] = account
+		}
 	}
 	// locked amounts, from the open orders: buy orders lock remaining * price of the quote currency, sell orders lock the remaining base amount
 	var used map[string]any = map[string]any{}
@@ -1900,7 +1906,7 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
  * @param {object} position a raw position from portfolio2/{accountId}/positions
  * @returns {string|undefined} the currency code
  */
-func (this *Interactivebrokers) IbkrBalanceCode(position any) any {
+func (this *Interactivebrokers) IbkrBalanceCode(position any) *string {
 	var marketId *string = this.SafeString(position, "conid")
 	var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var base *string
@@ -1920,7 +1926,8 @@ func (this *Interactivebrokers) IbkrBalanceCode(position any) any {
 		// "ETH CRYPTO" -> ETH
 		return this.SafeCurrencyCode(parts[0])
 	}
-	return strings.Join(parts, ".") // 'BRK B' -> 'BRK.B', as in parseMarket
+	retStrVal := strings.Join(parts, ".")
+	return &retStrVal // 'BRK B' -> 'BRK.B', as in parseMarket
 }
 
 /**
@@ -2030,11 +2037,11 @@ func (this *Interactivebrokers) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
  * @param {object[]} markets parsed markets
  * @returns {object[]} the markets with unique symbols
  */
-func (this *Interactivebrokers) IbkrDisambiguateContractSymbols(markets any) []any {
+func (this *Interactivebrokers) IbkrDisambiguateContractSymbols(markets []any) []any {
 	var seen map[string]any = map[string]any{}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market map[string]any = this.Extend(map[string]any{}, GetValue(markets, i))
+	for i := 0; i < len(markets); i++ {
+		var market map[string]any = this.Extend(map[string]any{}, markets[i])
 		var symbol *string = this.SafeString(market, "symbol")
 		var isContract *bool = this.SafeBool(market, "contract", false)
 		var has1 bool
@@ -3653,16 +3660,16 @@ func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], 
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var conids []any = []any{}
+	var conids []string = []string{}
 	for i := 0; i < len(symbols); i++ {
 		var market map[string]any = this.Market(symbols[i])
-		conids = append(conids, this.SafeString(market, "id", ""))
+		conids = append(conids, *this.SafeString(market, "id", ""))
 	}
 	var options, _ = this.Options["fetchTickers"].(map[string]any)
 	var retries int64 = *this.SafeInteger(options, "retries", 5)
 	var retryDelay *int64 = this.SafeInteger(options, "retryDelay", 500)
 	var request map[string]any = map[string]any{
-		"conids": Join(conids, ","),
+		"conids": strings.Join(conids, ","),
 		"fields": fields,
 	}
 	var response any = []any{}

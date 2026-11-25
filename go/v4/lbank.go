@@ -4299,7 +4299,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 }
 func (this *Lbank) ConvertSecretToPem(secret string) string {
-	var secretLength int64 = int64(len(secret)) - 0
+	var secretLength int = len(secret)
 	var fullLines int64 = this.ParseToInt(float64(secretLength) / 64)
 	var pem string = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
 	for i := 0; int64(i) <= fullLines; i++ {

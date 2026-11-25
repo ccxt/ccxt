@@ -2802,7 +2802,7 @@ func (this *Gate) HandleLiquidation(client ccxt.ClientInterface, message map[str
 	var liquidationsBySymbol map[string]any = map[string]any{}
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = rawLiquidations[i]
-		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
+		var liquidation map[string]any = this.ParseWsLiquidation(rawLiquidation)
 		cache.Append(liquidation)
 		newLiquidations = append(newLiquidations, liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")

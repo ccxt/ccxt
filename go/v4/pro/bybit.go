@@ -2681,7 +2681,7 @@ func (this *Bybit) HandleLiquidation(client ccxt.ClientInterface, message map[st
 			var marketId *string = this.SafeString(rawLiquidation, "s")
 			var market map[string]any = this.SafeMarket(marketId, nil, "", "contract")
 			var symbol string = *this.SafeString(market, "symbol", "")
-			var liquidation any = this.ParseWsLiquidation(rawLiquidation, market)
+			var liquidation map[string]any = this.ParseWsLiquidation(rawLiquidation, market)
 			if this.Liquidations == nil {
 				var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 				this.Liquidations = ccxt.NewArrayCache(limit)
@@ -2700,7 +2700,7 @@ func (this *Bybit) HandleLiquidation(client ccxt.ClientInterface, message map[st
 		var marketId *string = this.SafeString(rawLiquidation, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, "", "contract")
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var liquidation any = this.ParseWsLiquidation(rawLiquidation, market)
+		var liquidation map[string]any = this.ParseWsLiquidation(rawLiquidation, market)
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)

@@ -1123,16 +1123,16 @@ func (this *Blofin) HandleOrders(client ccxt.ClientInterface, message map[string
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any
 	data, _ = message["data"].([]any)
-	var symbols []any = []any{}
+	var symbols []string = []string{}
 	for i := 0; i < len(data); i++ {
 		var order map[string]any = this.ParseWsOrder(this.SafeDict(data, i, map[string]any{}))
 		orders.Append(order)
-		symbols = append(symbols, this.SafeString(order, "symbol", ""))
+		symbols = append(symbols, *this.SafeString(order, "symbol", ""))
 	}
 	// resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
 	for i := 0; i < len(symbols); i++ {
 		if channelName != nil {
-			client.Resolve(orders, *channelName+":"+*this.SafeString(symbols, i, ""))
+			client.Resolve(orders, *channelName+":"+symbols[i])
 		}
 		client.Resolve(orders, channelName)
 	}

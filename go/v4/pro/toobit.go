@@ -108,7 +108,7 @@ func (this *Toobit) HandleListMessage(client ccxt.ClientInterface, message []any
 		}
 	}
 }
-func (this *Toobit) HandleMessage(client ccxt.ClientInterface, message any) {
+func (this *Toobit) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// public
 	//
@@ -1743,7 +1743,7 @@ func (this *Toobit) GetUserStreamUrl() string {
 	var listenKey string = *this.SafeString(this.Options["ws"], "listenKey", "")
 	return wsBaseUrl + "/api/v1/ws/" + listenKey
 }
-func (this *Toobit) HandleErrorMessage(client ccxt.ClientInterface, message any) bool {
+func (this *Toobit) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        "code": '-100010',

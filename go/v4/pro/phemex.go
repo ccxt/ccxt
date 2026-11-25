@@ -1353,7 +1353,7 @@ func (this *Phemex) HandleMyTrades(client ccxt.ClientInterface, message []any) {
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var marketIds map[string]any = map[string]any{}
-	var typeVar any = nil
+	var typeVar *string = nil
 	for i := 0; i < tradesLength; i++ {
 		var rawTrade any = ccxt.DerefScalar(message[i])
 		var marketId *string = this.SafeString(rawTrade, "symbol")
@@ -1364,9 +1364,10 @@ func (this *Phemex) HandleMyTrades(client ccxt.ClientInterface, message []any) {
 		if typeVar == nil {
 			var marketSettle *string = this.SafeString(market, "settle")
 			if marketSettle != nil && *marketSettle == "USDT" {
-				typeVar = "perpetual"
+				typeVarStr := "perpetual"
+				typeVar = &typeVarStr
 			} else {
-				typeVar = market["type"]
+				typeVar = this.SafeString(market, "type")
 			}
 		}
 		if symbol != nil {
@@ -1386,7 +1387,11 @@ func (this *Phemex) HandleMyTrades(client ccxt.ClientInterface, message []any) {
 		client.Resolve(cachedTrades, hash)
 	}
 	// generic subscription
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+":", typeVar))
+	var messageHash *string = nil
+	if typeVar != nil {
+		messageHashValue := channel + ":" + *typeVar
+		messageHash = &messageHashValue
+	}
 	client.Resolve(cachedTrades, messageHash)
 }
 
@@ -1642,11 +1647,11 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 		}
 		trades = ccxt.ArrayTyped(this.SafeList(ordersDict, "fills", []any{}))
 		for i := 0; i < len(orders); i++ {
-			ordersDict131653, _ := orders[i].(map[string]any)
-			if ordersDict131653 == nil {
-				ordersDict131653 = map[string]any{}
+			ordersDict132053, _ := orders[i].(map[string]any)
+			if ordersDict132053 == nil {
+				ordersDict132053 = map[string]any{}
 			}
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(ordersDict131653))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(ordersDict132053))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {
@@ -1672,7 +1677,7 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 	if this.Orders == nil {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var stored ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(parsedOrders); i++ {
 		var parsed any = parsedOrders[i]
@@ -1682,9 +1687,10 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 		if typeVar == nil {
 			var isUsdt bool = (market["settle"] == "USDT")
 			if isUsdt {
-				typeVar = "perpetual"
+				typeVarStr := "perpetual"
+				typeVar = &typeVarStr
 			} else {
-				typeVar = market["type"]
+				typeVar = this.SafeString(market, "type")
 			}
 		}
 		marketIds[symbol] = true
@@ -1701,7 +1707,11 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 		client.Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", typeVar))
+	var messageHash *string = nil
+	if typeVar != nil {
+		messageHashValue := "orders:" + *typeVar
+		messageHash = &messageHashValue
+	}
 	client.Resolve(this.Orders, messageHash)
 }
 func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {

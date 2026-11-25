@@ -718,7 +718,7 @@ func (this *BaseExchange) WatchOHLCV(symbol string, options ...WatchOHLCVOptions
 	var res []OHLCV = r.Value
 	return res, nil
 }
-func (this *BaseExchange) FetchWebEndpoint(method string, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
+func (this *BaseExchange) FetchWebEndpoint(method string, endpointMethod any, returnAsJson bool, options ...FetchWebEndpointOptions) (map[string]any, error) {
 
 	opts := FetchWebEndpointOptionsStruct{}
 

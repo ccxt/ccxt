@@ -790,13 +790,9 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	var trade []any = this.SafeListSlice(tradeResult, "result", []any{})
 	var numFields int = len(trade)
 	var isPublic bool = (numFields <= 8)
-	var marketId any = nil
+	var marketId *string = nil
 	if !isPublic {
-		if derefPtr := this.SafeString(trade, 1); derefPtr != nil {
-			marketId = *derefPtr
-		} else {
-			marketId = nil
-		}
+		marketId = this.SafeString(trade, 1)
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var createdKey int
@@ -817,7 +813,7 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 	} else {
 		amountKey = 4
 	}
-	marketId = marketResolved["id"]
+	marketId = this.SafeString(marketResolved, "id")
 	var typeVar *string = this.SafeString(trade, 6)
 	if typeVar != nil {
 		if func() int {
@@ -1675,7 +1671,7 @@ func (this *Bitfinex) HandleOrders(client ccxt.ClientInterface, message []any, s
 			return
 		}
 		for i := 0; i < len(data); i++ {
-			var parsed map[string]any = this.ParseWsOrder(ccxt.DerefScalar(data[i]))
+			var parsed map[string]any = this.ParseWsOrderRow(this.SafeList(data, i, []any{}))
 			var symbol *string = this.SafeString(parsed, "symbol", "")
 			if symbol != nil {
 				symbolIds[*symbol] = true
@@ -1683,7 +1679,7 @@ func (this *Bitfinex) HandleOrders(client ccxt.ClientInterface, message []any, s
 			orders.Append(parsed)
 		}
 	} else {
-		var parsed map[string]any = this.ParseWsOrder(data)
+		var parsed map[string]any = this.ParseWsOrderRow(data)
 		orders.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol", "")
 		if symbol != nil {
@@ -1719,7 +1715,7 @@ func (this *Bitfinex) ParseWsOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseWsOrderRow(order any, optionalArgs ...any) map[string]any {
 	//
 	//   [
 	//       97084883506, // order id
@@ -1857,7 +1853,7 @@ func (this *Bitfinex) HandleListMessage(client ccxt.ClientInterface, message []a
 		ccxt.CallDynamically(method, client, message, subscription)
 	}
 }
-func (this *Bitfinex) HandleMessage(client ccxt.ClientInterface, message any) {
+func (this *Bitfinex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     [
 	//         1231,

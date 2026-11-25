@@ -3604,13 +3604,11 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id str
 			return nil
 		}
 	}
-	var reference any
-	if hasId {
-		reference = withdrawId
-	} else if derefPtr := clientId; derefPtr != nil {
-		reference = *derefPtr
+	var reference string = withdrawId
+	if !hasId {
+		reference = *this.SafeString(params, "clientId", "")
 	}
-	panic(ExchangeError(Add(this.Id+" fetchWithdrawal() could not find withdrawal ", reference)))
+	panic(ExchangeError(this.Id + " fetchWithdrawal() could not find withdrawal " + reference))
 }
 
 /**
@@ -3765,11 +3763,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes265919 []any = r1.Value
-		if retRes265919 == nil {
+		var retRes266219 []any = r1.Value
+		if retRes266219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes265919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes266219)}
 		}
 		return nil
 	}
@@ -3871,7 +3869,7 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var feeCurrencyId *string = this.SafeString(transaction, "feeCurrency")
 	var feeCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var literal274815 map[string]any = map[string]any{
+	var literal275115 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"currency":    code,
@@ -3897,12 +3895,12 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 		},
 	}
 	if id != nil {
-		literal274815["id"] = *id
+		literal275115["id"] = *id
 	}
 	if status != nil {
-		literal274815["status"] = *status
+		literal275115["status"] = *status
 	}
-	return TransactionFromMap(literal274815)
+	return TransactionFromMap(literal275115)
 }
 func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4946,11 +4944,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes350119 []any = r1.Value
-		if retRes350119 == nil {
+		var retRes350419 []any = r1.Value
+		if retRes350419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes350119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes350419)}
 		}
 		return nil
 	}
@@ -5190,12 +5188,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr364128 string = "net_mode"
+	var ternaryStr364428 string = "net_mode"
 	if hedged {
-		ternaryStr364128 = "long_short_mode"
+		ternaryStr364428 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr364128,
+		"positionMode": ternaryStr364428,
 	}
 
 	//
@@ -5317,7 +5315,7 @@ func (this *Blofin) ParseADLRank(info map[string]any, optionalArgs ...any) map[s
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "instId")
-	var timestamp any = this.SafeIntegerOmitZero(info, "createTime")
+	var timestamp *int64 = this.SafeIntegerOmitZero(info, "createTime")
 	return map[string]any{
 		"info":       info,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),

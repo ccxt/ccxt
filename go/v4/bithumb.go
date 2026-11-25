@@ -2492,7 +2492,13 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			//
 			var orders []any
 			orders, _ = response["orders"].([]any)
-			data = this.SafeDictMap(orders, 0, map[string]any{})
+			data = nil
+			if 0 < len(orders) {
+				data, _ = orders[0].(map[string]any)
+			}
+			if data == nil {
+				data = map[string]any{}
+			}
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
 			var paramsClientOrderId map[string]any

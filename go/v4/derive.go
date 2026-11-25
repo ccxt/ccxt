@@ -1937,7 +1937,7 @@ func (this *Derive) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerOmitZero(ticker, "t")
+	var timestamp *int64 = this.SafeIntegerOmitZero(ticker, "t")
 	var stats, _ = ticker["stats"].(map[string]any)
 	var change *string = this.SafeString(stats, "p")
 	var percentage *string = nil
@@ -3750,7 +3750,7 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 	}
 	var triggerType *string = this.SafeString(order, "trigger_type")
 	var stopLossPrice *string = nil
-	var takeProfitPrice any = nil
+	var takeProfitPrice *string = nil
 	var triggerPrice *string = nil
 	if triggerType != nil {
 		triggerPrice = this.SafeString(order, "trigger_price")
@@ -3779,7 +3779,7 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 		"side":                side,
 		"price":               price,
 		"triggerPrice":        triggerPrice,
-		"takeProfitPrice":     takeProfitPrice,
+		"takeProfitPrice":     nil,
 		"stopLossPrice":       nil,
 		"average":             average,
 		"amount":              amount,
@@ -3792,6 +3792,9 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 			"currency": "USDC",
 		},
 		"info": order,
+	}
+	if takeProfitPrice != nil {
+		literal283931["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
 		literal283931["stopLossPrice"] = *stopLossPrice

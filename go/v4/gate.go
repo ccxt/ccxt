@@ -10897,11 +10897,9 @@ func (this *Gate) ParseLedgerEntry(item map[string]any, optionalArgs ...any) Led
 	var rawTimestampLength int = len(rawTimestamp)
 	var timestamp *int64 = nil
 	if rawTimestampLength > 10 {
-		timestampValue := ParseInt(rawTimestamp)
-		timestamp = &timestampValue
+		timestamp = this.SafeInteger(item, "time")
 	} else {
-		timestampValue2 := ParseInt(rawTimestamp) * 1000
-		timestamp = &timestampValue2
+		timestamp = this.SafeTimestamp(item, "time")
 	}
 	var balanceString *string = this.SafeString(item, "balance")
 	var changeString *string = this.SafeString(item, "change")

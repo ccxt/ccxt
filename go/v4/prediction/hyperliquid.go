@@ -1466,7 +1466,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput string) any {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
 	var sideHint any = this.ParseOutcomeInputSideHint(&outcomeInput)
-	var candidates []any = []any{outcomeInput}
+	var candidates []string = []string{outcomeInput}
 	if strings.HasPrefix(outcomeInput, "+") {
 		candidates = append(candidates, "#"+outcomeInput[1:])
 	}
@@ -1487,16 +1487,12 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput string) any {
 		candidates = append(candidates, this.OutcomeCoin(this.OutcomeEncoding(numeric, 1))) // raw outcome id -> NO encoding
 	}
 	for i := 0; i < len(candidates); i++ {
-		var key *string = ccxt.SafeStringPtr(candidates[i])
-		if key != nil {
-			if _, ok := this.Outcomes[*key]; ok {
-				return this.SafeDict(this.Outcomes, key, map[string]any{})
-			}
+		var key string = candidates[i]
+		if _, ok := this.Outcomes[key]; ok {
+			return this.SafeDict(this.Outcomes, key, map[string]any{})
 		}
-		if key != nil {
-			if _, ok := this.Outcomes_by_id[*key]; ok {
-				return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
-			}
+		if _, ok := this.Outcomes_by_id[key]; ok {
+			return this.SafeDict(this.Outcomes_by_id, key, map[string]any{})
 		}
 	}
 	_, has3 := this.Markets[outcomeInput]

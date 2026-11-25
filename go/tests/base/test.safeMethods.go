@@ -258,7 +258,7 @@ func TestSafeInteger() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerN(inputList, []any{3, 2, 1}), 2))
 	// safeIntegerOmitZero
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "i"), 1))
-	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "f"), nil))
+	Assert((exchange.SafeIntegerOmitZero(inputDict, "f") == nil))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputDict, "strNumber"), 3))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerOmitZero(inputList, 1), 2))
 	// safeIntegerProduct

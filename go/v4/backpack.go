@@ -733,7 +733,8 @@ func (this *Backpack) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	for i := 0; i < len(response); i++ {
 		var currency map[string]any = this.ParseCurrency(this.SafeDict(response, i, map[string]any{}))
 		if !stock || (this.SafeString(currency, "type") != nil && *this.SafeString(currency, "type") == "stock") {
-			AddElementToObject(currencies, currency["code"], currency)
+			var currencyCode string = *this.SafeString(currency, "code", "")
+			currencies[currencyCode] = currency
 		}
 	}
 
@@ -785,15 +786,15 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 		deposit = false
 		withdraw = false
 	}
-	var ternaryStr63020 string = "crypto"
+	var ternaryStr63120 string = "crypto"
 	if stock {
-		ternaryStr63020 = "stock"
+		ternaryStr63120 = "stock"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-		"type":      ternaryStr63020,
+		"type":      ternaryStr63120,
 		"name":      this.SafeString(rawCurrency, "displayName"),
 		"active":    active,
 		"deposit":   deposit,
@@ -1164,7 +1165,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	} else {
 		active = (orderBookState != nil && *orderBookState == "Open")
 	}
-	var literal94441 map[string]any = map[string]any{
+	var literal94541 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1217,11 +1218,11 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if rfq {
-		literal94441["executionModel"] = "rfq"
+		literal94541["executionModel"] = "rfq"
 	} else {
-		literal94441["executionModel"] = nil
+		literal94541["executionModel"] = nil
 	}
-	return this.SafeMarketStructure(literal94441)
+	return this.SafeMarketStructure(literal94541)
 }
 
 /**
@@ -1388,7 +1389,7 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	var literal111815 map[string]any = map[string]any{
+	var literal111915 map[string]any = map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1399,16 +1400,16 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 		"fee":          this.SafeNumber(fee, "cost"),
 	}
 	if fromIsBase {
-		literal111815["fromAmount"] = filled
+		literal111915["fromAmount"] = filled
 	} else {
-		literal111815["fromAmount"] = cost
+		literal111915["fromAmount"] = cost
 	}
 	if fromIsBase {
-		literal111815["toAmount"] = cost
+		literal111915["toAmount"] = cost
 	} else {
-		literal111815["toAmount"] = filled
+		literal111915["toAmount"] = filled
 	}
-	return ConversionFromMap(literal111815)
+	return ConversionFromMap(literal111915)
 }
 
 /**
@@ -1525,7 +1526,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 
-	var literal120415 map[string]any = map[string]any{
+	var literal120515 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
@@ -1536,16 +1537,16 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		"fee":          nil,
 	}
 	if fromIsBase {
-		literal120415["fromAmount"] = baseAmount
+		literal120515["fromAmount"] = baseAmount
 	} else {
-		literal120415["fromAmount"] = quoteAmount
+		literal120515["fromAmount"] = quoteAmount
 	}
 	if fromIsBase {
-		literal120415["toAmount"] = quoteAmount
+		literal120515["toAmount"] = quoteAmount
 	} else {
-		literal120415["toAmount"] = baseAmount
+		literal120515["toAmount"] = baseAmount
 	}
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120415)}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120515)}
 	return nil
 }
 
@@ -2148,43 +2149,46 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		"interval": interval,
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(this.Omit(dataRequest, "symbol"), "fetchOHLCV", "until")
-	until := func() any {
-		if p, _ := untilparamsUntilVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var until *int64 = nil
+	if p, ok := untilparamsUntilVariable[0].(*int64); ok {
+		until = p
+	}
 	paramsUntil := untilparamsUntilVariable[1]
-	if until != nil {
-		request["endTime"] = this.ParseToInt(Divide(until, 1000)) // convert milliseconds to seconds
-	}
-	var defaultLimit int = 100
-	var windowLimit any
-	if limit == nil {
-		windowLimit = defaultLimit
-	} else {
-		windowLimit = mathMin(limit, 2000)
-	}
-	var limitResolved any = nil
+	var windowLimit int64 = 100
 	if limit != nil {
-		limitResolved = windowLimit
+		windowLimit = this.ParseToInt(min(*limit, 2000))
+	}
+	var limitResolved *int64 = nil
+	if limit != nil {
+		limitResolvedValue := windowLimit
+		limitResolved = &limitResolvedValue
 	}
 	var now int64 = this.Milliseconds()
-	var startTime any = since
-	var untilValue any = until
-	if IsEqual(startTime, nil) {
-		if IsEqual(untilValue, nil) {
-			untilValue = now
+	var windowLength int64 = windowLimit * duration
+	var untilResolved int64
+	if until != nil {
+		untilResolved = *until
+	} else {
+		untilResolved = now
+	}
+	var defaultStart int64 = untilResolved - windowLength
+	var startSeconds int64 = this.ParseToInt(float64(defaultStart) / 1000) // convert milliseconds to seconds
+	if since != nil {
+		startSeconds = this.ParseToInt(float64(*since) / 1000)
+	}
+	var endSeconds int64 = this.ParseToInt(float64(untilResolved) / 1000)
+	if (since != nil) && (until == nil) {
+		var windowEnd int64 = this.ParseToInt(*since + windowLength)
+		var cappedEnd int64
+		if windowEnd > now {
+			cappedEnd = now
+		} else {
+			cappedEnd = windowEnd
 		}
-		startTime = Subtract(untilValue, (Multiply(windowLimit, duration)))
+		endSeconds = this.ParseToInt(float64(cappedEnd) / 1000)
 	}
-	request["startTime"] = this.ParseToInt(Divide(startTime, 1000))
-	// set until value
-	if IsEqual(untilValue, nil) {
-		var windowEnd any = this.Sum(startTime, Multiply(windowLimit, duration))
-		untilValue = mathMin(now, windowEnd)
-	}
-	request["endTime"] = this.ParseToInt(Divide(untilValue, 1000))
+	request["startTime"] = startSeconds
+	request["endTime"] = endSeconds
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted any
 	if price != nil {
@@ -4692,7 +4696,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		headersResolved = nil
 	}
-	var bodyResolved any = nil
+	var bodyResolved *string = nil
 	if (apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
 	}

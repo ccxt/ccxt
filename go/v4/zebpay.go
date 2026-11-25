@@ -743,7 +743,13 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//
 		var responseData []any
 		responseData, _ = response["data"].([]any)
-		data = this.SafeDictMap(responseData, 0, map[string]any{})
+		data = nil
+		if 0 < len(responseData) {
+			data, _ = responseData[0].(map[string]any)
+		}
+		if data == nil {
+			data = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}

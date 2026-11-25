@@ -3957,7 +3957,13 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		var data, _ = response["data"].(map[string]any)
 		var resultList []any
 		resultList, _ = data["list"].([]any)
-		result = this.SafeDictMap(resultList, 0, map[string]any{})
+		result = nil
+		if 0 < len(resultList) {
+			result, _ = resultList[0].(map[string]any)
+		}
+		if result == nil {
+			result = map[string]any{}
+		}
 	} else if *this.SafeBool(market, "contract", false) {
 
 		r2 := <-this.FuturesPublicGetTicker(this.Extend(request, paramsMarketType))

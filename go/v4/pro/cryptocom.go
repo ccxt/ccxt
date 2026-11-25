@@ -214,7 +214,11 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	var bookParams map[string]any = this.SafeDictMap(paramsBookSubscriptionType2, "params", map[string]any{})
-	ccxt.AddElementToObject(bookParams, "bookSubscriptionType", bookSubscriptionType2)
+	if bookSubscriptionType2 != nil {
+		bookParams["bookSubscriptionType"] = *bookSubscriptionType2
+	} else {
+		bookParams["bookSubscriptionType"] = nil
+	}
 	var paramsWithBook map[string]any = this.Extend(paramsBookSubscriptionType2, map[string]any{
 		"params": bookParams,
 	})
@@ -222,7 +226,11 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 	if bookUpdateFrequency2 != nil {
-		ccxt.AddElementToObject(frequencyParams, "bookSubscriptionType", bookUpdateFrequency2)
+		if bookUpdateFrequency2 != nil {
+			frequencyParams["bookSubscriptionType"] = *bookUpdateFrequency2
+		} else {
+			frequencyParams["bookSubscriptionType"] = nil
+		}
 	}
 	var paramsWithFrequency map[string]any = this.Extend(paramsBookUpdateFrequency2, map[string]any{
 		"params": frequencyParams,
@@ -286,7 +294,11 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	bookSubscriptionType, paramsBookSubscriptionType := this.HandleOptionStringAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType2, paramsBookSubscriptionType2 := this.HandleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	var bookParams map[string]any = this.SafeDictMap(paramsBookSubscriptionType2, "params", map[string]any{})
-	ccxt.AddElementToObject(bookParams, "bookSubscriptionType", bookSubscriptionType2)
+	if bookSubscriptionType2 != nil {
+		bookParams["bookSubscriptionType"] = *bookSubscriptionType2
+	} else {
+		bookParams["bookSubscriptionType"] = nil
+	}
 	var paramsWithBook map[string]any = this.Extend(paramsBookSubscriptionType2, map[string]any{
 		"params": bookParams,
 	})
@@ -294,7 +306,11 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 	if bookUpdateFrequency2 != nil {
-		ccxt.AddElementToObject(frequencyParams, "bookSubscriptionType", bookUpdateFrequency2)
+		if bookUpdateFrequency2 != nil {
+			frequencyParams["bookSubscriptionType"] = *bookUpdateFrequency2
+		} else {
+			frequencyParams["bookSubscriptionType"] = nil
+		}
 	}
 	var paramsWithFrequency map[string]any = this.Extend(paramsBookUpdateFrequency2, map[string]any{
 		"params": frequencyParams,

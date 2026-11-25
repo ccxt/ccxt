@@ -9909,8 +9909,10 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	var data any = this.SafeValue(response, "data")
 	var rates []any = []any{}
 	if *this.SafeBool(market, "linear", false) {
-		for i := 0; i < GetArrayLength(data); i++ {
-			var entry any = GetValue(data, i)
+		var linearRates []any
+		linearRates, _ = response["data"].([]any)
+		for i := 0; i < len(linearRates); i++ {
+			var entry any = linearRates[i]
 			var marketId *string = this.SafeString(entry, "contract_code")
 			var symbolInner *string = this.SafeSymbol(marketId, market)
 			var timestamp *int64 = this.SafeInteger(entry, "funding_time")
@@ -10066,7 +10068,13 @@ func (this *Htx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 	if *this.SafeBool(market, "linear", false) {
 		var data []any
 		data, _ = response["data"].([]any)
-		result = this.SafeDictMap(data, 0, map[string]any{})
+		result = nil
+		if 0 < len(data) {
+			result, _ = data[0].(map[string]any)
+		}
+		if result == nil {
+			result = map[string]any{}
+		}
 	} else {
 		result, _ = response["data"].(map[string]any)
 		if result == nil {
@@ -11259,11 +11267,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes858119 []any = r1.Value
-		if retRes858119 == nil {
+		var retRes858219 []any = r1.Value
+		if retRes858219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858119)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858219)}
 		}
 		return nil
 	}

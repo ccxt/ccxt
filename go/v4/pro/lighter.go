@@ -113,12 +113,12 @@ func (this *Lighter) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageH
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Lighter) SubscribePublicMultipleAsync(messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Lighter) SubscribePublicMultipleAsync(messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.subscribePublicMultipleBody(ch, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes any, optionalArgs ...any) any {
+func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -128,7 +128,7 @@ func (this *Lighter) subscribePublicMultipleBody(ch chan ccxt.AsyncResult[map[st
 		"type": "subscribe",
 	}
 	var subscription map[string]any = map[string]any{
-		"messageHashes": messageHashes,
+		"messageHashes": ccxt.StringSliceToList(messageHashes),
 		"params":        params,
 	}
 
@@ -591,7 +591,7 @@ func (this *Lighter) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var symbolsLength int = 0
 	if symbolsNormalized != nil {
 		symbolsLength = len(symbolsNormalized)

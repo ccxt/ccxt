@@ -116,15 +116,15 @@ func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	}
 	var extraScopeParams []any = SafeListTyped(this.Options, "eventScopeParams")
 	var extraScopeParamsLength int = len(extraScopeParams)
-	var extraNames any = ""
+	var extraNames string = ""
 	for i := 0; i < extraScopeParamsLength; i++ {
 		var scopeKey any = extraScopeParams[i]
 		if InOp(params, scopeKey) {
 			return nil
 		}
-		extraNames = Add(Add(extraNames, ", "), scopeKey)
+		extraNames = extraNames + ", " + *this.SafeString(extraScopeParams, i, "")
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" fetchEvents() requires at least one of query, queries, tags, eventId, slug", extraNames), " to scope the search")))
+	panic(ArgumentsRequired(this.Id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug" + extraNames + " to scope the search"))
 }
 func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs ...any) []any {
 	// applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)

@@ -2249,7 +2249,7 @@ func (this *Kraken) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedN
 
 		return nil
 	}
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var eventTrigger *string = this.SafeString(params, "event_trigger")
 		if eventTrigger != nil {

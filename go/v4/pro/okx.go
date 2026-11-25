@@ -1383,7 +1383,7 @@ func (this *Okx) HandleLiquidation(client ccxt.ClientInterface, message map[stri
 		if rawLiquidationsDict91757 == nil {
 			rawLiquidationsDict91757 = map[string]any{}
 		}
-		var liquidation any = this.ParseWsLiquidation(rawLiquidationsDict91757)
+		var liquidation map[string]any = this.ParseWsLiquidation(rawLiquidationsDict91757)
 		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -1527,7 +1527,7 @@ func (this *Okx) HandleMyLiquidation(client ccxt.ClientInterface, message map[st
 		if eventType == nil || *eventType != "liquidation" {
 			return
 		}
-		var liquidation any = this.ParseWsMyLiquidation(rawLiquidations[i])
+		var liquidation map[string]any = this.ParseWsMyLiquidation(rawLiquidations[i])
 		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -2227,8 +2227,16 @@ func (this *Okx) HandleOrderBookMessage(client ccxt.ClientInterface, message map
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var asks []any = this.SafeListSlice(message, "asks", []any{})
-	var bids []any = this.SafeListSlice(message, "bids", []any{})
+	var asks []any
+	asks, _ = message["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = message["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	var marketId *string = this.SafeString(message, "instId")

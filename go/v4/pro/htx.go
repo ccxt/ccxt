@@ -3700,16 +3700,19 @@ func (this *Htx) subscribePrivateBody(ch chan ccxt.AsyncResult[any], channel any
 	var isV5 *bool = this.SafeBool(subscriptionParams, "isV5", false)
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5)
 	var hostnames, _ = this.Urls["hostnames"].(map[string]any)
-	var hostname any = nil
+	var hostname *string = nil
 	if ccxt.IsEqual(typeVar, "spot") {
-		hostname = hostnames["spot"]
+		hostname = this.SafeString(hostnames, "spot")
 	} else {
-		hostname = hostnames["contract"]
+		hostname = this.SafeString(hostnames, "contract")
 	}
 	var authParams map[string]any = map[string]any{
 		"type":     typeVar,
 		"url":      url,
-		"hostname": hostname,
+		"hostname": nil,
+	}
+	if hostname != nil {
+		authParams["hostname"] = *hostname
 	}
 
 	r := <-this.AuthenticateAsync(authParams)

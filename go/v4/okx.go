@@ -11401,11 +11401,12 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		//
 		var instrumentData []any
 		instrumentData, _ = response["data"].([]any)
-		if instrumentData == nil {
-			instrumentData = []any{}
+		var instrumentInterests []any = []any{}
+		for i := 0; i < len(instrumentData); i++ {
+			instrumentInterests = append(instrumentInterests, OpenInterestToMap(this.ParseOpenInterestRow(this.SafeList(instrumentData, i, []any{}), market)))
 		}
 
-		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(instrumentData, market, since, limit))}
+		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.FilterBySymbolSinceLimit(this.SortBy(instrumentInterests, "timestamp"), this.SafeString(market, "symbol"), since, limit))}
 		return nil
 	}
 	if typeVar != nil && *typeVar == "option" {
@@ -11452,12 +11453,64 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	//
 	var data []any
 	data, _ = response["data"].([]any)
-	if data == nil {
-		data = []any{}
+	var interests []any = []any{}
+	for i := 0; i < len(data); i++ {
+		interests = append(interests, OpenInterestToMap(this.ParseOpenInterestRow(this.SafeList(data, i, []any{}), nil)))
 	}
 
-	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(data, nil, since, limit))}
+	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.FilterBySymbolSinceLimit(this.SortBy(interests, "timestamp"), nil, since, limit))}
 	return nil
+}
+func (this *Okx) ParseOpenInterestRow(interest any, optionalArgs ...any) OpenInterest {
+	//
+	// fetchOpenInterestHistory
+	//
+	//    [
+	//        "1648221300000",  // timestamp
+	//        "2183354317.945",  // open interest (USD) - (coin) for options
+	//        "74285877.617",  // volume (USD) - (coin) for options
+	//    ]
+	//
+	// fetchOpenInterestHistory for a swap or future market
+	//
+	//    [
+	//        "1790550000000",  // timestamp
+	//        "2800476.45",  // open interest (contracts)
+	//        "28006.5419",  // open interest (base currency)
+	//        "2360916466.88",  // open interest (USD)
+	//    ]
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
+	var timestamp *int64 = this.SafeInteger(interest, 0)
+	var baseVolume *float64 = nil
+	var quoteVolume *float64 = nil
+	var openInterestAmount *float64 = nil
+	var openInterestValue *float64 = nil
+	var typeVar *string = this.SafeString(this.Options, "defaultType")
+	var numFields int = GetArrayLength(interest)
+	if numFields > 3 {
+		openInterestAmount = this.SafeNumber(interest, 1)
+		baseVolume = this.SafeNumber(interest, 2)
+		openInterestValue = this.SafeNumber(interest, 3)
+	} else if typeVar != nil && *typeVar == "option" {
+		openInterestAmount = this.SafeNumber(interest, 1)
+		baseVolume = this.SafeNumber(interest, 2)
+	} else {
+		openInterestValue = this.SafeNumber(interest, 1)
+		quoteVolume = this.SafeNumber(interest, 2)
+	}
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             this.SafeSymbol(nil),
+		"baseVolume":         baseVolume,
+		"quoteVolume":        quoteVolume,
+		"openInterestAmount": openInterestAmount,
+		"openInterestValue":  openInterestValue,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, marketResolved)
 }
 
 /**
@@ -11532,23 +11585,6 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period st
 }
 func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	//
-	// fetchOpenInterestHistory
-	//
-	//    [
-	//        "1648221300000",  // timestamp
-	//        "2183354317.945",  // open interest (USD) - (coin) for options
-	//        "74285877.617",  // volume (USD) - (coin) for options
-	//    ]
-	//
-	// fetchOpenInterestHistory for a swap or future market
-	//
-	//    [
-	//        "1790550000000",  // timestamp
-	//        "2800476.45",  // open interest (contracts)
-	//        "28006.5419",  // open interest (base currency)
-	//        "2360916466.88",  // open interest (USD)
-	//    ]
-	//
 	// fetchOpenInterest
 	//
 	//     {
@@ -11564,37 +11600,13 @@ func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) OpenIntere
 	_ = market
 	var id *string = this.SafeString(interest, "instId")
 	var marketResolved map[string]any = this.SafeMarket(id, market)
-	var time *int64 = this.SafeInteger(interest, "ts")
-	var timestamp *int64 = this.SafeInteger(interest, 0, time)
-	var baseVolume *float64 = nil
-	var quoteVolume *float64 = nil
-	var openInterestAmount *float64 = nil
-	var openInterestValue *float64 = nil
-	var typeVar *string = this.SafeString(this.Options, "defaultType")
-	if IsArray(interest) {
-		var numFields int = GetArrayLength(interest)
-		if numFields > 3 {
-			openInterestAmount = this.SafeNumber(interest, 1)
-			baseVolume = this.SafeNumber(interest, 2)
-			openInterestValue = this.SafeNumber(interest, 3)
-		} else if typeVar != nil && *typeVar == "option" {
-			openInterestAmount = this.SafeNumber(interest, 1)
-			baseVolume = this.SafeNumber(interest, 2)
-		} else {
-			openInterestValue = this.SafeNumber(interest, 1)
-			quoteVolume = this.SafeNumber(interest, 2)
-		}
-	} else {
-		baseVolume = this.SafeNumber(interest, "oiCcy")
-		openInterestAmount = this.SafeNumber(interest, "oi")
-		openInterestValue = this.SafeNumber(interest, "oiUsd")
-	}
+	var timestamp *int64 = this.SafeInteger(interest, "ts")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeSymbol(id),
-		"baseVolume":         baseVolume,
-		"quoteVolume":        quoteVolume,
-		"openInterestAmount": openInterestAmount,
-		"openInterestValue":  openInterestValue,
+		"baseVolume":         this.SafeNumber(interest, "oiCcy"),
+		"quoteVolume":        nil,
+		"openInterestAmount": this.SafeNumber(interest, "oi"),
+		"openInterestValue":  this.SafeNumber(interest, "oiUsd"),
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"info":               interest,
@@ -12427,14 +12439,14 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict912532 map[string]any
+	var dataDict914232 map[string]any
 	if len(data) > 0 {
-		dataDict912532, _ = data[0].(map[string]any)
+		dataDict914232, _ = data[0].(map[string]any)
 	}
-	if dataDict912532 == nil {
-		dataDict912532 = map[string]any{}
+	if dataDict914232 == nil {
+		dataDict914232 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict912532, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict914232, market)}
 	return nil
 }
 

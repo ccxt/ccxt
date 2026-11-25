@@ -933,7 +933,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int6
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		// and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-		pricePrecision = min(decimalsLeft, 5)
+		pricePrecision = 5
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5
@@ -946,8 +946,6 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int6
 		}
 		// Calculate price precision based on leading zeros and significant digits
 		pricePrecision = leadingZeros + significantDigits
-		// Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-		pricePrecision = mathMin(decimalsLeft, pricePrecision)
 	} else {
 		// Count the numbers before the decimal separator
 		var integerPart string = *this.SafeString(priceSplitted, 0, "")
@@ -957,8 +955,10 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int6
 		if len(integerPart) <= 5 {
 			digitsLeft = 5 - (len(integerPart))
 		}
-		pricePrecision = mathMin(decimalsLeft, digitsLeft)
+		pricePrecision = digitsLeft
 	}
+	// cap by maxDecimals - szDecimals
+	pricePrecision = mathMin(decimalsLeft, pricePrecision)
 	return this.ParseToInt(pricePrecision)
 }
 

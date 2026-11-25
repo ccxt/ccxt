@@ -286,7 +286,7 @@ func (this *Gemini) HandleTrades(client ccxt.ClientInterface, message map[string
 	//
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var trades []any = ccxt.SafeListTyped(message, "trades")
+	var trades, _ = message["trades"].([]any)
 	if trades != nil {
 		var symbol string = *this.SafeString(market, "symbol", "")
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -406,7 +406,7 @@ func (this *Gemini) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Gemini) HandleOHLCV(client ccxt.ClientInterface, message any) any {
+func (this *Gemini) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "candles_15m_updates",
@@ -444,7 +444,7 @@ func (this *Gemini) HandleOHLCV(client ccxt.ClientInterface, message any) any {
 	var marketId string = strings.ToLower(*this.SafeString(message, "symbol", ""))
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var changes []any = ccxt.SafeListTyped(message, "changes")
+	var changes, _ = message["changes"].([]any)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		if symbol != nil {
@@ -537,7 +537,7 @@ func (this *Gemini) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	_, has2 := message["trades"]
 	_, has3 := message["changes"]
 	var isInitial bool = has1 && has2 && has3
-	var changes []any = ccxt.SafeListTyped(message, "changes")
+	var changes, _ = message["changes"].([]any)
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -1087,13 +1087,13 @@ func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Gemini) HandleError(client ccxt.ClientInterface, message any) {
+func (this *Gemini) HandleError(client ccxt.ClientInterface, message map[string]any) {
 	panic(ccxt.ExchangeError(this.Json(message)))
 }
 func (this *Gemini) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	this.HandleOrder(client, message)
 }
-func (this *Gemini) HandleMessage(client ccxt.ClientInterface, message any) {
+func (this *Gemini) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  public
 	//     {
@@ -1152,7 +1152,7 @@ func (this *Gemini) HandleMessage(client ccxt.ClientInterface, message any) {
 	if typeVar == "update" {
 		var ts *int64 = this.SafeInteger(message, "timestampms", this.Milliseconds())
 		var eventId *int64 = this.SafeInteger(message, "eventId")
-		var events []any = ccxt.SafeListTyped(message, "events")
+		var events, _ = message["events"].([]any)
 		if events == nil {
 			return
 		}
@@ -1213,16 +1213,16 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	}
 	this.CheckRequiredCredentials()
 	var wsBaseUrl string = *this.SafeString(this.Urls["api"], "ws", "")
-	var startIndex int64 = int64(len(wsBaseUrl)) - 0
+	var startIndex int = len(wsBaseUrl)
 	var urlParamsIndex int = strings.Index(*url, "?")
-	var urlLength int64 = int64(ccxt.GetLength(url)) - 0
-	var endIndex any
+	var urlLength int = len(*url)
+	var endIndex int
 	if urlParamsIndex >= 0 {
 		endIndex = urlParamsIndex
 	} else {
 		endIndex = urlLength
 	}
-	var request string = ccxt.Slice(url, startIndex, endIndex)
+	var request string = (*url)[startIndex+len((*url))*min(max(-startIndex, 0), 1) : min(endIndex+len((*url))*min(max(-endIndex, 0), 1), len((*url)))]
 	var payload map[string]any = map[string]any{
 		"request": request,
 		"nonce":   this.IncrementingNonce(),

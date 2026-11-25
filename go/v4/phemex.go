@@ -6089,7 +6089,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	url = this.ImplodeHostname(baseApiUrl) + url
 	var isPrivatePost bool = (apiName == "private") && (method == "POST")
-	var bodyResolved any = nil
+	var bodyResolved *string = nil
 	if isPrivatePost {
 		bodyResolved = requestBody
 	}
@@ -6099,12 +6099,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	return map[string]any{
+	var literal482315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResolved,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if bodyResolved != nil {
+		literal482315["body"] = *bodyResolved
+	}
+	return literal482315
 }
 
 /**

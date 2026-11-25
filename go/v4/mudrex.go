@@ -2052,7 +2052,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	}
 	// a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
 	var rebateKeys []any = []any{}
-	var rebateAmounts []any = []any{}
+	var rebateAmounts []string = []string{}
 	var transactions []any = []any{}
 	var transactionKeys []string = []string{}
 	for i := 0; i < len(allRows); i++ {
@@ -2064,7 +2064,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			transactionKeys = append(transactionKeys, pairKey)
 		} else if feeType != nil && *feeType == "REBATE" {
 			rebateKeys = append(rebateKeys, pairKey)
-			rebateAmounts = append(rebateAmounts, this.SafeString(entry, "fee_amount", "0"))
+			rebateAmounts = append(rebateAmounts, *this.SafeString(entry, "fee_amount", "0"))
 		}
 	}
 	var rows []any = []any{}

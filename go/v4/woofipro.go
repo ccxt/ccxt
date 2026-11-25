@@ -1110,7 +1110,8 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		if parsed == nil {
 			panic(ExchangeError(this.Id + " fetchCurrencies() could not resolve parsed"))
 		}
-		AddElementToObject(result, parsed["code"], parsed)
+		var parsedCode string = *this.SafeString(parsed, "code", "")
+		result[parsedCode] = parsed
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: result}
@@ -1943,11 +1944,11 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes135519 []any = r1.Value
-		if retRes135519 == nil {
+		var retRes135619 []any = r1.Value
+		if retRes135619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes135519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes135619)}
 		}
 		return nil
 	}
@@ -2086,11 +2087,11 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes145819 []any = r1.Value
-		if retRes145819 == nil {
+		var retRes145919 []any = r1.Value
+		if retRes145919 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes145819)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes145919)}
 		}
 		return nil
 	}
@@ -3425,11 +3426,11 @@ func (this *Woofipro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes242619 []any = r1.Value
-		if retRes242619 == nil {
+		var retRes242719 []any = r1.Value
+		if retRes242719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes242619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes242719)}
 		}
 		return nil
 	}
@@ -3561,11 +3562,11 @@ func (this *Woofipro) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes251415 []any = OrdersToList(r1.Value)
-	if retRes251415 == nil {
+	var retRes251515 []any = OrdersToList(r1.Value)
+	if retRes251515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes251415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes251515)}
 	}
 	return nil
 }
@@ -3618,11 +3619,11 @@ func (this *Woofipro) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes253915 []any = OrdersToList(r1.Value)
-	if retRes253915 == nil {
+	var retRes254015 []any = OrdersToList(r1.Value)
+	if retRes254015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes253915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes254015)}
 	}
 	return nil
 }
@@ -3750,11 +3751,11 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261119 []any = r1.Value
-		if retRes261119 == nil {
+		var retRes261219 []any = r1.Value
+		if retRes261219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes261119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes261219)}
 		}
 		return nil
 	}
@@ -4136,11 +4137,11 @@ func (this *Woofipro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes287915 []any = TransactionsToList(r.Value)
-	if retRes287915 == nil {
+	var retRes288015 []any = TransactionsToList(r.Value)
+	if retRes288015 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes288015)}
 	}
 	return nil
 }
@@ -4180,11 +4181,11 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes289715 []any = TransactionsToList(r.Value)
-	if retRes289715 == nil {
+	var retRes289815 []any = TransactionsToList(r.Value)
+	if retRes289815 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289815)}
 	}
 	return nil
 }
@@ -4600,9 +4601,9 @@ func (this *Woofipro) ParseMarginModification(data map[string]any, optionalArgs 
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var success *bool = this.SafeBool(data, "success", false)
-	var ternaryStr316822 string = "failed"
+	var ternaryStr316922 string = "failed"
 	if success != nil && *success {
-		ternaryStr316822 = "ok"
+		ternaryStr316922 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -4612,7 +4613,7 @@ func (this *Woofipro) ParseMarginModification(data map[string]any, optionalArgs 
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status":     ternaryStr316822,
+		"status":     ternaryStr316922,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}

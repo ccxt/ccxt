@@ -3766,9 +3766,9 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 			typeVar = symbol
 		}
 	}
-	var accountName any = this.ParseKrakenAccountName(*typeVar)
+	var accountName string = this.ParseKrakenAccountName(*typeVar)
 	var accounts map[string]any = SafeMapTyped(response, "accounts")
-	var account map[string]any = SafeMapTyped(accounts, accountName)
+	var account, _ = accounts[accountName].(map[string]any)
 	if account == nil {
 		if typeVar == nil {
 			typeVarStr2 := ""
@@ -4604,7 +4604,7 @@ func (this *Krakenfutures) ParseTransfer(transfer map[string]any, optionalArgs .
 		"status":      this.SafeString(transfer, "result"),
 	})
 }
-func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
+func (this *Krakenfutures) ParseKrakenAccountName(account string) string {
 	var accountByType map[string]any = map[string]any{
 		"main":                         "cash",
 		"funding":                      "cash",
@@ -4616,7 +4616,8 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
 		"multiCollateralMargin":        "flex",
 	}
 	if _, ok := accountByType[account]; ok {
-		return accountByType[account]
+		var accountName string = *this.SafeString(accountByType, account, "")
+		return accountName
 	} else if _, ok := this.Markets[account]; (this.Markets != nil) && ok {
 		var market map[string]any = this.Market(account)
 		var marketId string = *this.SafeString(market, "id", "")

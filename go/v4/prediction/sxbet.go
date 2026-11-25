@@ -3231,7 +3231,7 @@ func (this *Sxbet) HandleTextMessage(client ccxt.ClientInterface, message string
 		}
 	}
 }
-func (this *Sxbet) HandleMessage(client ccxt.ClientInterface, message any) {
+func (this *Sxbet) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	// Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
 	// base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
 	this.HandleCentrifugoFrame(client, message)
