@@ -137,11 +137,8 @@ export default class gemini extends geminiRest {
      * @returns {boolean} true once the unsubscribe request has been sent (gemini does not acknowledge it)
      */
     override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        return await this.unSubscribeL2 (market, params);
+        // trades and the order book are one l2 subscription on gemini
+        return await this.unWatchOrderBook (symbol, params);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
@@ -564,19 +561,6 @@ export default class gemini extends geminiRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        return await this.unSubscribeL2 (market, params);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @name gemini#unSubscribeL2
-     * @description drops the l2 subscription of a market, the channel carries both the order book and the trades
-     * @param {object} market the market to unsubscribe from
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {boolean} true
-     */
-    async unSubscribeL2 (market: Market, params: Dict = {}) {
         const marketSymbol = this.safeString (market, 'symbol', '');
         const symbols = [ marketSymbol ];
         const tradesSubscription: Dict = {
