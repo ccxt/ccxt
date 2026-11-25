@@ -11938,15 +11938,21 @@ function gofmtSelfTest (ok: SelfTestOk): void {
 
 // A TS undefined-check next to the printer's own nil-guard yields `(x != nil) && (x != nil ...`,
 // which `go vet` rejects ("redundant and/or"): collapse the duplicated operand.
+const GO_NIL_COLLAPSE_ID = '([A-Za-z_][A-Za-z0-9_]*)';
+const GO_NIL_COLLAPSE_RULES: [ string, RegExp, string ][] = [
+    // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
+    [ ' != nil) && (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (' ],
+    [ ' == nil) || (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (' ],
+    // (x != nil) && (x != nil)          ->  (x != nil)
+    [ ' != nil) && (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)' ],
+    [ ' == nil) || (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)' ],
+];
+
 export function collapseRedundantNilChecks (content: string): string {
-    const id = '([A-Za-z_][A-Za-z0-9_]*)';
-    return content
-        // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
-        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (')
-        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (')
-        // (x != nil) && (x != nil)          ->  (x != nil)
-        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)')
-        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
+    for (const [ token, rx, replacement ] of GO_NIL_COLLAPSE_RULES) {
+        content = content.includes (token) ? content.replace (rx, replacement) : content;
+    }
+    return content;
 }
 
 // Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
@@ -12290,8 +12296,8 @@ function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): s
 }
 
 export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner = goCompositeKeyAligner ()): string {
-    const code = goMaskGoCode (content).split ('\n');
-    const commentFree = goMaskGoCode (content, false).split ('\n');
+    // a live line starts in code state, so masking it alone equals its slice of the whole-file mask
+    const blockHead = /^\t*(?:if|for|switch|select)\b/;
     const live = goTextCodeLineStarts (content);
     const lines = content.split ('\n');
     const out: string[] = [];
@@ -12308,7 +12314,7 @@ export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner
             out.push ('');
             continue;
         }
-        const expanded = goGofmtExpandBlockLine (line, code[i], commentFree[i]);
+        const expanded = blockHead.test (line) ? goGofmtExpandBlockLine (line, goMaskGoCode (line), goMaskGoCode (line, false)) : null;
         if (expanded !== null) {
             out.push (...expanded);
             continue;
