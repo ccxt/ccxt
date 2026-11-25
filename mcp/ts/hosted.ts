@@ -204,6 +204,15 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         'instructions': (options.browserTrading !== undefined) ? HOSTED_SERVER_INSTRUCTIONS + BROWSER_TRADING_INSTRUCTIONS : HOSTED_SERVER_INSTRUCTIONS,
     };
     const shared = createSharedState (serverOptions);
+    const posthog = options.posthog;
+    if (posthog !== undefined) {
+        log ('info', 'PostHog instrumentation active: every MCP request will be reported');
+        posthog.capture ({ 'distinctId': 'ccxt-mcp-server', 'event': 'ccxt_mcp_server_started', 'properties': { 'version': options.version, '$process_person_profile': false } });
+        posthog.flush ().then (
+            () => log ('info', 'PostHog flush complete'),
+            (error: any) => log ('warning', 'PostHog flush failed: ' + String (error?.message ?? error)),
+        );
+    }
     const endpoint = options.path ?? '/mcp';
     const allowedHosts = (options.allowedHosts !== undefined && options.allowedHosts.length > 0) ? options.allowedHosts : undefined;
 
@@ -250,10 +259,11 @@ export function createHostedApp (options: HostedOptions): HostedApp {
             registerBrowserTrading (server, options.browserTrading, (input) => signStep (signingDeps, input));
             registerBrowserSigning (server, signingDeps);
         }
-        // server-side analytics, after every tool is registered so all of them are covered
-        if (options.posthog !== undefined) {
-            instrumentServer (server, options.posthog);
+        // after every tool is registered, so all of them are covered
+        if (posthog !== undefined) {
+            instrumentServer (server, posthog);
         }
+
         const transport = new StreamableHTTPServerTransport ({
             'sessionIdGenerator': undefined, // stateless
             'enableJsonResponse': true, // plain JSON replies (curl-friendly), no SSE stream

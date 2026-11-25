@@ -37,9 +37,6 @@ async function main (): Promise<void> {
         log ('warning', 'CCXT_MCP_HTTP_ALLOWED_HOSTS is not set — Host headers are not validated; set it to the public hostname(s) of this deployment');
     }
     let signingOrigin = process.env['CCXT_MCP_SIGNING_ORIGIN'];
-    // The relay token is NOT required for now: /relay-order accepts any request from the signing
-    // origin to an allowlisted exchange route. Set CCXT_MCP_RELAY_REQUIRE_TOKEN=true together
-    // with CCXT_MCP_RELAY_TOKEN to enforce it again.
     const requireRelayToken = process.env['CCXT_MCP_RELAY_REQUIRE_TOKEN'] === 'true';
     const relayToken = requireRelayToken ? process.env['CCXT_MCP_RELAY_TOKEN'] : undefined;
     const browserTradingEnabled = process.env['CCXT_MCP_BROWSER_TRADING'] !== 'false';
@@ -57,6 +54,8 @@ async function main (): Promise<void> {
     if (posthog !== undefined) {
         log ('info', 'PostHog MCP analytics on (' + (process.env['POSTHOG_HOST'] ?? 'https://eu.i.posthog.com') + ')');
     }
+
+    
     const app = createHostedApp ({
         posthog,
         'browserTrading': browserTradingEnabled && signingOrigin !== undefined ? { 'origin': signingOrigin, 'token': relayToken, frameAncestors } : undefined,
