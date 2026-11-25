@@ -109,3 +109,4 @@ PR_RESPONSE.md
 
 /pnpm-lock.yaml
 /pnpm-workspace.yaml
+/.kilo/kilo.jsonc
