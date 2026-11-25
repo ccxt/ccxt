@@ -266,13 +266,10 @@ public partial class BaseExchange
     }
 
     // same shape as formatSignedLighterTx: { privateKey, publicKey } list, every path a list
-    public List<object> lighterGenerateApiKey(object signer)
+    public List<string> lighterGenerateApiKey(object signer)
     {
         var (PrivateKey, PublicKey) = ((LighterSigner.Signer)signer).GenerateAPIKey();
-        List<object> res = new List<object>() { };
-        ((IList<object>)res).Add(PrivateKey);
-        ((IList<object>)res).Add(PublicKey);
-        return res;
+        return new List<string>() { PrivateKey, PublicKey };
     }
 
     public List<object> lighterSignChangePubkey(object signer, IDictionary<string, object> request)

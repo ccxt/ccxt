@@ -14928,6 +14928,35 @@ const DESTRUCTURING_TEMP_RE = /^([ \t]*)var ([A-Za-z_]\w*) = (.*);\n/;
 // <name> through the exact cast this rewrite hoists: `((IList<object>)<name>)[i]`.
 // The reads prove the holder holds a List<object> box at that point, so declaring it
 // `IList<object>` with the same cast keeps every value and every failure identical.
+// `this.<name> (..)` whose hand-written cs/ccxt/base declaration returns `List<string>` (one
+// declaration, never regenerated): the destructuring holder is that list and its slots are strings
+let runtimeStringListMethods;
+function runtimeStringListCall (node) {
+    const callee = (node?.kind === ts.SyntaxKind.CallExpression) ? node.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (runtimeStringListMethods === undefined) {
+        const counts = new Map ();
+        let names = [];
+        try {
+            names = fs.readdirSync (CSHARP_TYPED_CORE_FOLDER).filter ((n) => n.endsWith ('.cs') && n !== 'Exchange.BaseMethods.cs');
+        } catch (e) {
+            names = [];
+        }
+        for (const name of names) {
+            for (const line of fs.readFileSync (path.join (CSHARP_TYPED_CORE_FOLDER, name), 'utf8').split ('\n')) {
+                const m = /^\s*public (?:virtual |override )?([\w<>?, ]+?) (\w+)\(/.exec (line);
+                if (m !== null) {
+                    counts.set (m[2], (counts.get (m[2]) ?? []).concat ([ m[1] ]));
+                }
+            }
+        }
+        runtimeStringListMethods = new Set ([ ...counts ].filter (([ , types ]) => types.length === 1 && types[0] === 'List<string>').map (([ n ]) => n));
+    }
+    return runtimeStringListMethods.has (callee.name?.text) ? 'List<string>' : undefined;
+}
+
 function retypeDestructuringTemp (csharp, scope, printed) {
     const match = DESTRUCTURING_TEMP_RE.exec (printed);
     if (match === null) {
@@ -15660,6 +15689,9 @@ export function installCsharpLocalTypes (transpiler) {
         }
         return 'IList<object>';
     };
+    const handleTempType = csharp.csharpDestructuringTempType;
+    csharp.csharpDestructuringTempType = (initializer) => handleTempType (initializer) ?? runtimeStringListCall (initializer);
+    csharp.csharpDestructuringTempNeedsCast = (initializer) => runtimeStringListCall (initializer) === undefined;
     installTypedDictElementAccess (csharp);
     // slot 1 of a `handle*AndParams` destructuring that retypeElement1Params prints IDictionary
     csharp.csharpDestructuredDictSlotType = (element) => (element1ParamsBinding (csharp, element) ? CSHARP_ELEMENT_1_TYPE : undefined);
