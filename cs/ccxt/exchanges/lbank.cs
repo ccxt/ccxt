@@ -3483,7 +3483,7 @@ public partial class lbank : Exchange
 
     public virtual string? convertSecretToPem(object secret)
     {
-        int secretLength = getArrayLength(secret);
+        int secretLength = (getArrayLength(secret) - 0);
         Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (int i = 0; (i <= fullLines); i++)
