@@ -4538,10 +4538,10 @@ public class BaseExchange {
         return new Pair<>(subType, parameters);
     }
 
-    public Pair<java.util.Map<String, Object>, java.util.Map<String, Object>> handleUntilOption(Object key, java.util.Map<String, Object> request, java.util.Map<String, Object> parameters, Object multiplier) {
+    public Pair<java.util.Map<String, Object>, java.util.Map<String, Object>> handleUntilOption(Object key, java.util.Map<String, Object> request, java.util.Map<String, Object> parameters, double multiplier) {
         Long until = this.safeInteger2(parameters, "until", "till");
         if (until != null) {
-            request.put((String) key, this.parseToInt(((java.util.function.BinaryOperator<Object>) (j36a, j36b) -> { if (j36a instanceof Integer) j36a = Long.valueOf(((Integer) j36a).longValue()); if (j36b instanceof Integer) j36b = Long.valueOf(((Integer) j36b).longValue()); if (j36a == null || j36b == null) return null; if (j36a instanceof Long && j36b instanceof Long) return (Object) (((Long) j36a) * ((Long) j36b)); java.util.function.ToDoubleFunction<Object> j36d = j36o -> { if (j36o instanceof Double) return (Double) j36o; if (j36o instanceof Float) return ((Float) j36o).doubleValue(); if (j36o instanceof Long) return ((Long) j36o).doubleValue(); if (j36o instanceof Integer) return ((Integer) j36o).doubleValue(); if (j36o instanceof java.math.BigDecimal) return ((java.math.BigDecimal) j36o).doubleValue(); try { return Double.parseDouble(String.valueOf(j36o)); } catch (NumberFormatException j36e) { return 0.0; } }; double j36r = j36d.applyAsDouble(j36a) * j36d.applyAsDouble(j36b); if (new java.math.BigDecimal(String.valueOf(j36r)).stripTrailingZeros().scale() <= 0) return (Object) ((long) j36r); return (Object) j36r; }).apply(until, java.util.Objects.requireNonNullElse(multiplier, 1))));
+            request.put((String) key, this.parseToInt(until * multiplier));
             return new Pair<>(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till"))));
         }
         return new Pair<>(request, parameters);
