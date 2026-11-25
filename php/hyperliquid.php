@@ -3622,6 +3622,7 @@ class hyperliquid extends Exchange {
             'canceled' => 'canceled',
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
+            'scheduledCancel' => 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         );
         if (str_ends_with($status, 'Rejected')) {
             return 'rejected';
