@@ -7487,7 +7487,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // for every type; any other prefix operator prints through prefixUnaryNeg as
             // well, so the numeric families bind there exactly as they do for `object`.
             if (parent.operator !== ts.SyntaxKind.ExclamationToken && !isInt && !isDouble
-                && !guardedNullableDoubleNegation (csharp, parent, csharpType)) {
+                && !guardedNullableDoubleNegation (csharp, parent, csharpType)
+                && !declaredIntNullableNegation (declaration, parent, csharpType)) {
                 return false; // prefixUnaryNeg/Plus(ref x) without a twin for this type
             }
             // The twin returns int / Int64, so if that result is an operand of `-` the
@@ -21096,6 +21097,16 @@ function guardedNullableDoubleNegation (csharp, node, csharpType) {
         && (node.operand?.kind === ts.SyntaxKind.Identifier)
         && (typeof csharp?.csharpNullGuardAdmitsRead === 'function')
         && csharp.csharpNullGuardAdmitsRead (node, node.operand);
+}
+
+// `-x` on an `Int64?` local the TypeScript declares `int` (a parseToInt read): the printer emits the
+// lifted in-place negation `(x = -x)` (csharpDeclaredIntNegation), so the local keeps `Int64?`.
+function declaredIntNullableNegation (declaration, node, csharpType) {
+    return (csharpType === 'Int64?')
+        && (declaration?.type?.getText?.()?.trim () === 'int')
+        && (node?.kind === ts.SyntaxKind.PrefixUnaryExpression)
+        && (node.operator === ts.SyntaxKind.MinusToken)
+        && (node.operand?.kind === ts.SyntaxKind.Identifier);
 }
 
 // Return-path-proven list producers: single-definition names (getSettlementCurrencies,
