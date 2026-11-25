@@ -272,7 +272,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             channel = 'user.trades.' + self.safe_string(market, 'id', '') + '.' + interval
         trades = await self.subscribe([channel], [channel], True, paramsInterval)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limit, True)
@@ -334,7 +334,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             channel = 'user.orders.' + self.safe_string(market, 'id', '') + '.' + interval
         orders = await self.subscribe([channel], [channel], True, paramsInterval)
         limitResolved = limit

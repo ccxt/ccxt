@@ -20,8 +20,7 @@ from ccxt.base.precise import Precise
 class bybit(ccxt.async_support.bybit):
 
     def describe(self) -> dict:
-        superDescribe = super(bybit, self).describe()
-        return self.deep_extend(superDescribe, self.describe_data())
+        return self.deep_extend(super(bybit, self).describe(), self.describe_data())
 
     def describe_data(self) -> object:
         return {

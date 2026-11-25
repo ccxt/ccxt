@@ -773,19 +773,18 @@ class mexc(ccxt.async_support.mexc):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
-        orderbook = None
         if self.safe_bool(market, 'spot', False):
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             spotChannel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
-            orderbook = await self.watch_spot_public(spotChannel, messageHash, paramsFrequency)
+            spotOrderbook = await self.watch_spot_public(spotChannel, messageHash, paramsFrequency)
+            return spotOrderbook.limit()
         else:
             channel = 'sub.depth'
             requestParams = {
                 'symbol': market['id'],
             }
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
-        orderbook = self.require_value(orderbook, 'watchOrderBook() orderbook is required')
-        return orderbook.limit()
+            return orderbook.limit()
 
     def handle_order_book_subscription(self, client: Client, message: dict):
         # the ack echoes the subscribed channel, the market id is always its last segment

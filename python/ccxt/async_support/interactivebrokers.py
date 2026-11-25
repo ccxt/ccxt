@@ -874,7 +874,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         self.options['gatewayRegainScheduled'] = False
         useGateway = self.safe_bool(self.options, 'useGateway', False)
         lostTimestamp = self.safe_integer(self.options, 'gatewaySessionLostTimestamp')
-        if not useGateway or (lostTimestamp is None) or (self.ibkr_gateway_regain_delay() <= 0):
+        regainDelay = self.ibkr_gateway_regain_delay()
+        if not useGateway or (lostTimestamp is None) or (regainDelay <= 0):
             return None  # already regained, or disabled
         try:
             await self.authenticate()
@@ -1290,18 +1291,17 @@ class interactivebrokers(Exchange, ImplicitAPI):
             return entries
         chunkSize = 330  # above this number, response becomes unreliable
         promises = []
-        offset = 0
-        while(offset < numDetails):
-            end = min(self.sum(offset, chunkSize), numDetails)
-            chunk = []
-            for k in range(offset, end):
-                detailId = self.safe_string(detailIds, k, '')
-                chunk.append(detailId)
-            secdefRequest = {
-                'conids': ','.join(chunk),
-            }
-            promises.append(self.markets_endpoint_call(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}))
-            offset = end
+        chunk = []
+        for k in range(0, numDetails):
+            detailId = self.safe_string(detailIds, k, '')
+            chunk.append(detailId)
+            chunkLength = len(chunk)
+            if (chunkLength == chunkSize) or (k == numDetails - 1):
+                secdefRequest = {
+                    'conids': ','.join(chunk),
+                }
+                promises.append(self.markets_endpoint_call(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}))
+                chunk = []
         responses = await asyncio.gather(*promises)
         #
         #     {

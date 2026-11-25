@@ -5744,13 +5744,13 @@ class bingx(Exchange, ImplicitAPI):
         #        "type": 1
         #    }
         #
-        responseData = response
         if market['inverse'] is True:
-            responseData = self.extend({
+            inverseResult = self.parse_margin_modification(self.extend({
                 'amount': amountString,
                 'type': type,
-            }, self.safe_dict(response, 'data', {}))
-        result = self.parse_margin_modification(responseData, market)
+            }, self.safe_dict(response, 'data', {})), market)
+            return self.extend(inverseResult, {'info': response})
+        result = self.parse_margin_modification(response, market)
         result['info'] = response
         return result
 

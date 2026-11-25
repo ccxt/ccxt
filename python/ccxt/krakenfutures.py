@@ -2258,14 +2258,14 @@ class krakenfutures(Exchange, ImplicitAPI):
                 # Final order (after placement / editing / execution / canceling)
                 orderTrigger = self.safe_dict(item, 'orderTrigger')
                 if details is None:
-                    details = self.safe_value_2(item, 'new', 'order', orderTrigger)
+                    details = self.safe_dict_2(item, 'new', 'order', orderTrigger)
                     if details is not None:
                         isPrior = False
                         fixed = True
                     elif not fixed:
                         executedPrice = self.safe_string(item, 'price')
                         orderPriorExecution = self.safe_dict(item, 'orderPriorExecution')
-                        details = self.safe_value_2(item, 'orderPriorExecution', 'orderPriorEdit')
+                        details = self.safe_dict_2(item, 'orderPriorExecution', 'orderPriorEdit')
                         if executedPrice is None:
                             price = self.safe_string(orderPriorExecution, 'limitPrice')
                         else:

@@ -1558,7 +1558,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeSpecificParam = self.safe_bool(params, 'post_only', False)
         postOnly = None
         query = None
-        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam, params)
+        postOnly, query = self.handle_post_only(uppercaseType == 'MARKET', exchangeSpecificParam is True, params)
         triggerPrice = self.safe_string_n(query, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required

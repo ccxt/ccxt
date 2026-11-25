@@ -3331,7 +3331,7 @@ class htx(Exchange, ImplicitAPI):
                     response = self.spotPrivateGetV1CrossMarginAccountsBalance(self.extend(request, paramsMarginMode))
             else:
                 self.load_accounts()
-                accountId = self.fetch_account_id_by_type(type, None, None, paramsMarginMode)
+                accountId = self.fetch_account_id_by_type('spot', None, None, paramsMarginMode)
                 request['account-id'] = accountId
                 response = self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, paramsMarginMode))
         elif inverse:
@@ -4857,7 +4857,7 @@ class htx(Exchange, ImplicitAPI):
         sideStr = side
         market = self.market(symbol)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', params)
-        accountId = self.fetch_account_id_by_type(market['type'], marginMode, symbol)
+        accountId = self.fetch_account_id_by_type(self.safe_string(market, 'type', ''), marginMode, symbol)
         request = {
             # spot -----------------------------------------------------------
             'account-id': accountId,

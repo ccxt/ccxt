@@ -690,10 +690,12 @@ class deepcoin(Exchange, ImplicitAPI):
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = self.parse_to_int(since + (duration * numberOfCandles) * 1000)
-                if until is not None:
-                    endTime = min(endTime, until)
+                if (until is not None) and (until < endTime):
+                    endTime = until
                 now = self.milliseconds()
-                request['after'] = min(endTime, now)
+                if now < endTime:
+                    endTime = now
+                request['after'] = endTime
         response = None
         if price == 'mark':
             response = self.publicGetDeepcoinMarketMarkPriceCandles(self.extend(request, paramsOmitted))

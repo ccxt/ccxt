@@ -20,8 +20,7 @@ from ccxt.base.precise import Precise
 class binance(ccxt.async_support.binance):
 
     def describe(self) -> dict:
-        superDescribe = super(binance, self).describe()
-        return self.deep_extend(superDescribe, self.describe_data())
+        return self.deep_extend(super(binance, self).describe(), self.describe_data())
 
     def describe_data(self):
         return {

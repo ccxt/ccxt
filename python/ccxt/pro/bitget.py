@@ -962,13 +962,13 @@ class bitget(ccxt.async_support.bitget):
                     if i < bidsLength:
                         bidLevel = storedBids[i]
                         bidParts = bidLevel[2]
-                        payloadArray.append(bidParts[0])
-                        payloadArray.append(bidParts[1])
+                        payloadArray.append(self.safe_string(bidParts, 0, ''))
+                        payloadArray.append(self.safe_string(bidParts, 1, ''))
                     if i < asksLength:
                         askLevel = storedAsks[i]
                         askParts = askLevel[2]
-                        payloadArray.append(askParts[0])
-                        payloadArray.append(askParts[1])
+                        payloadArray.append(self.safe_string(askParts, 0, ''))
+                        payloadArray.append(self.safe_string(askParts, 1, ''))
                 payload = ':'.join(payloadArray)
                 calculatedChecksum = self.crc32(payload, True)
                 if calculatedChecksum != responseChecksum:

@@ -1859,7 +1859,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (typeValue == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, query = self.handle_post_only(isMarketOrder, postOnly, query)  # this will remove PO from params.timeInForce if present
+        postOnly, query = self.handle_post_only(isMarketOrder, False, query)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(query)
@@ -2061,7 +2061,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (typeValue == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, query = self.handle_post_only(isMarketOrder, postOnly, query)  # this will remove PO from params.timeInForce if present
+        postOnly, query = self.handle_post_only(isMarketOrder, False, query)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(query)

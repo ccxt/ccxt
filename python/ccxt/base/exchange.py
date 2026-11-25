@@ -7162,15 +7162,15 @@ class BaseExchange(object):
             if omitParams:
                 keysToOmit.append('triggerPrice')
                 keysToOmit.append('stopPrice')
-            triggerPriceStr = self.price_to_precision(symbol, float(triggerPrice))
+            triggerPriceStr = self.price_to_precision(symbol, triggerPrice)
         if stopLossPrice is not None:
             if omitParams:
                 keysToOmit.append('stopLossPrice')
-            stopLossPriceStr = self.price_to_precision(symbol, float(stopLossPrice))
+            stopLossPriceStr = self.price_to_precision(symbol, stopLossPrice)
         if takeProfitPrice is not None:
             if omitParams:
                 keysToOmit.append('takeProfitPrice')
-            takeProfitPriceStr = self.price_to_precision(symbol, float(takeProfitPrice))
+            takeProfitPriceStr = self.price_to_precision(symbol, takeProfitPrice)
         keysToOmitLength = len(keysToOmit)
         paramsOmitted = self.omit(params, keysToOmit) if (keysToOmitLength > 0) else params
         return [triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted]
@@ -7965,17 +7965,19 @@ class BaseExchange(object):
 
     def parse_all_greeks_list(self, greeks: list[dict], symbols: Strings = None, params: dict = {}):
         results = []
-        for i in range(0, len(greeks)):
-            results.append(self.extend(self.parse_greeks(self.safe_dict(greeks, i, {})), params))
+        greeksArray = self.to_array(greeks)
+        for i in range(0, len(greeksArray)):
+            results.append(self.extend(self.parse_greeks(self.safe_dict(greeksArray, i, {})), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_all_greeks_dict(self, greeks: dict, symbols: Strings = None, params: dict = {}):
         results = []
-        marketIds = list(greeks.keys())
+        greeksDict = self.extend({}, greeks)
+        marketIds = list(greeksDict.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            results.append(self.extend(self.parse_greeks(self.safe_dict(greeks, marketId, {}), market), params))
+            results.append(self.extend(self.parse_greeks(self.safe_dict(greeksDict, marketId, {}), market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
@@ -8147,7 +8149,7 @@ class BaseExchange(object):
             marketId = None if (symbolKey is None) else self.safe_string(response[i], symbolKey)
             market = self.safe_market(marketId, None, None, marketType)
             if (symbols is None) or self.in_array(market['symbol'], symbols):
-                marginModifications.append(self.parse_margin_modification(response[i], market))
+                marginModifications.append(self.parse_margin_modification(self.safe_dict(response, i, {}), market))
         return marginModifications
 
     def fetch_transfer(self, id: str, code: Str = None, params: dict = {}):

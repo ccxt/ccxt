@@ -597,7 +597,9 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         total = duration * limit
         minutes = self.parse_to_int((total + 59) / 60)
         if minutes <= 30:
-            return self.number_to_string(max(minutes, 1)) + 'min'
+            if minutes < 1:
+                return '1min'
+            return self.number_to_string(minutes) + 'min'
         hours = self.parse_to_int((total + 3599) / 3600)
         if hours <= 8:
             return self.number_to_string(hours) + 'h'
@@ -611,7 +613,9 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         if months <= 182:
             return self.number_to_string(months) + 'm'
         years = self.parse_to_int((total + 31535999) / 31536000)
-        return self.number_to_string(min(years, 15)) + 'y'
+        if years > 15:
+            return '15y'  # the documented maximum period
+        return self.number_to_string(years) + 'y'
 
     async def ibkr_cancel_history(self, client: Client, serverId: str) -> object:
         """

@@ -616,7 +616,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         timestamp = self.safe_integer(ticker, 't')
         bidAskSymbol = None
         if market is not None:
-            bidAskSymbol = market['symbol']
+            bidAskSymbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,

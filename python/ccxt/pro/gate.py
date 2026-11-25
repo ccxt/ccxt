@@ -20,8 +20,7 @@ from ccxt.base.precise import Precise
 class gate(ccxt.async_support.gate):
 
     def describe(self) -> dict:
-        superDescribe = super(gate, self).describe()
-        return self.deep_extend(superDescribe, self.describe_data())
+        return self.deep_extend(super(gate, self).describe(), self.describe_data())
 
     def describe_data(self) -> object:
         return {

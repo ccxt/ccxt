@@ -1922,7 +1922,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'strategy': strategy,
         }
         postOnly = self.safe_bool(paramsTaker, 'isPostOnly', False)
-        postOnlyOption, paramsPostOnly = self.handle_post_only(isMarket, postOnly, paramsTaker)
+        postOnlyOption, paramsPostOnly = self.handle_post_only(isMarket, postOnly is True, paramsTaker)
         if postOnlyOption:
             data['isPostOnly'] = postOnlyOption
         timeInForce = self.safe_string_upper(paramsPostOnly, 'timeInForce')

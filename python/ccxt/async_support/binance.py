@@ -3455,15 +3455,16 @@ class binance(Exchange, ImplicitAPI):
         markets = []
         self.options['crossMarginPairsData'] = []
         self.options['isolatedMarginPairsData'] = []
+        crossMarginStored = False
         for i in range(0, len(results)):
             res = self.safe_value(results, i)
             if (fetchMargins) and isinstance(res, list):
                 resBySymbol = self.index_by(res, 'symbol')
                 keysList = list(resBySymbol.keys())
-                length = len(self.options['crossMarginPairsData'])
                 # first one is the cross-margin promise
-                if length == 0:
+                if not crossMarginStored:
                     self.options['crossMarginPairsData'] = keysList
+                    crossMarginStored = True
                 else:
                     self.options['isolatedMarginPairsData'] = keysList
             else:

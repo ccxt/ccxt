@@ -1172,7 +1172,7 @@ class phemex(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         valueScaleString = self.safe_string(rawCurrency, 'valueScale')
-        valueScale = int(valueScaleString)
+        valueScale = self.safe_integer(rawCurrency, 'valueScale')
         minValueEv = self.safe_string(rawCurrency, 'minValueEv')
         maxValueEv = self.safe_string(rawCurrency, 'maxValueEv')
         minAmount = None

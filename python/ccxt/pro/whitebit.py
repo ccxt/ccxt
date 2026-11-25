@@ -486,7 +486,7 @@ class whitebit(ccxt.async_support.whitebit):
             if feeCurrencyId is not None:
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             else:
-                feeCurrencyCode = marketResolved['quote']
+                feeCurrencyCode = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
