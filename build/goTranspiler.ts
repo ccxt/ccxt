@@ -12794,6 +12794,11 @@ function goLateTypedMapRowReads (content: string): string {
                 continue;
             }
             const decl = goAccessSingleDeclaration (maskedFunc, lines[start], m[3]);
+            if ((decl?.type === '[]any') && (decl.index !== undefined) && /^\d+$/.test (m[4])) {
+                // a []any local at a literal index: out of range or a non-map element reads nil, as SafeValue does
+                lines[k] = m[1] + 'var ' + m[2] + ' map[string]any' + m[5] + '\n' + m[1] + 'if ' + m[4] + ' < len(' + m[3] + ') {\n' + m[1] + '\t' + m[2] + ', _ = ' + m[3] + '[' + m[4] + '].(map[string]any)\n' + m[1] + '}';
+                continue;
+            }
             const key = m[4].startsWith ('"') ? undefined : goAccessSingleDeclaration (maskedFunc, lines[start], m[4]);
             if ((decl?.type === 'map[string]any') && (key?.type === '*string')) {
                 // a nil key reads as absent (nil) in SafeValue: guard it, then read the pointed-to key
@@ -12817,6 +12822,9 @@ function goLateTypedMapRowReadsCheck (ok: SelfTestOk): void {
     ok (f ('r any, s *string', '\tvar d map[string]any = SafeMapTyped(r, s)\n').includes ('SafeMapTyped(r, s)'), 'pointer key on a boxed receiver keeps the wrap');
     ok (f ('r map[string]any, s *int64', '\tvar d map[string]any = SafeMapTyped(r, s)\n').includes ('SafeMapTyped(r, s)'), 'numeric pointer key keeps the wrap');
     ok (f ('r []any', '\tvar d map[string]any = SafeMapTyped(r, 0)\n').includes ('SafeMapTyped(r, 0)'), 'list receiver keeps the wrap');
+    ok (f ('p any', '\tvar v []any = p.([]any)\n\tvar d map[string]any = SafeMapTyped(v, 1)\n').includes ('\tvar d map[string]any\n\tif 1 < len(v) {\n\t\td, _ = v[1].(map[string]any)\n\t}\n'), 'typed list local, literal index reads behind a bounds test');
+    ok (f ('p any, i int', '\tvar v []any = p.([]any)\n\tvar d map[string]any = SafeMapTyped(v, i)\n').includes ('SafeMapTyped(v, i)'), 'typed list local, variable index keeps the wrap');
+    ok (f ('p any', '\tvar v any = p\n\tvar d map[string]any = SafeMapTyped(v, 0)\n').includes ('SafeMapTyped(v, 0)'), 'boxed list local keeps the wrap');
     ok (f ('p any', '\tvar r map[string]any = nil\n\tif p != nil {\n\t\tr := map[string]any{}\n\t\tthis.U(r)\n\t}\n\tvar d map[string]any = SafeMapTyped(r, "data")\n').includes ('SafeMapTyped(r, "data")'), 'shadowed receiver keeps the wrap');
 }
 
