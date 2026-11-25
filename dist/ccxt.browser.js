@@ -405247,7 +405247,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'open': 'open',
             'canceled': 'canceled',
             'rejected': 'rejected',
-            'marginCanceled': 'canceled'
+            'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled'
         };
         if (status.endsWith('Rejected')) {
             return 'rejected';
