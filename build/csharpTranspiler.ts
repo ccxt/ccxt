@@ -10611,7 +10611,10 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
         // product by a small integer literal that parseToInt alone consumes needs no re-box
         const smallLiteral = args.some ((a) => /^(\d{1,4}|\([A-Za-z_]\w* \* \d{1,4}\))$/.test (a.trim ()));
         const intoParseToInt = smallLiteral && /this\.parseToInt\($/.test (text.slice (0, m.index)) && (text[close + 1] === ')') && t.every ((x) => numeric.includes (x));
-        if ((bind === 'object') && (m[1] === 'multiply') && intoParseToInt) {
+        // divide(object, object) converts a re-boxed Int64 product back to the same double, so a product with a
+        // double operand that is divide's first argument needs no re-box either
+        const intoDivide = /(?<![\w.])divide\($/.test (text.slice (0, m.index)) && (text[close + 1] === ',') && t.every ((x) => numeric.includes (x)) && t.some ((x) => x.startsWith ('double'));
+        if ((bind === 'object') && (m[1] === 'multiply') && (intoParseToInt || intoDivide)) {
             native = '((double?)' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
         } else if (bind === 'object') {
             native = subMulHelperBody (m[1]) + '(' + args[0].trim () + ', ' + args[1].trim () + ')';
@@ -10691,6 +10694,11 @@ function typedSubtractMultiplySnippetChecks (): string[] {
     check ('double subtract twin', '        double a = 1.5;\n        int b = 2;\n        object r = subtract(a, b);', 'object r = (a - b);');
     check ('double? product into parseToInt', '        double? a = this.safeNumber(o, "a");\n        Int64? r = this.parseToInt(multiply(a, 1000));', 'Int64? r = this.parseToInt(((double?)a * 1000));');
     check ('scaled Int64? times double? into parseToInt', '        Int64? e = this.safeInteger(o, "e");\n        double? q = this.safeNumber(o, "q");\n        Int64? r = this.parseToInt(multiply((e * 1000), q));', 'Int64? r = this.parseToInt(((double?)(e * 1000) * q));');
+    check ('Int64? times double into divide', '        Int64? a = this.safeInteger(o, "a");\n        double b = 2.5;\n        double c = 10;\n        object r = divide(multiply(a, b), c);', 'object r = divide(((double?)a * b), c);');
+    check ('int times int keeps twin into divide', '        int a = 2;\n        int b = 3;\n        double c = 10;\n        object r = divide(multiply(a, b), c);', 'object r = divide(((Int64)a * b), c);');
+    check ('object operand into divide keeps body', '        object v = getValue(o, "a");\n        double c = 10;\n        object r = divide(multiply(v, 2.5), c);', 'divide(' + subMulHelperBody ('multiply') + '(v, 2.5), c)');
+    check ('Int64? times Int64? into divide keeps twin', '        Int64? a = this.safeInteger(o, "a");\n        double c = 10;\n        object r = divide(multiply(a, a), c);', 'divide(((Int64?)a * a), c)');
+    check ('double product as divide divisor keeps body', '        double? a = this.safeNumber(o, "a");\n        double c = 10;\n        object r = divide(c, multiply(a, 3));', 'divide(c, ' + subMulHelperBody ('multiply') + '(a, 3))');
     check ('object operand into parseToInt keeps body', '        object v = getValue(o, "a");\n        Int64? r = this.parseToInt(multiply(v, 2));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(v, 2))');
     check ('non-literal double product into parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        double b = 2.5;\n        Int64? r = this.parseToInt(multiply(a, b));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(a, b))');
     check ('double? product outside parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        object r = multiply(a, 2);', 'object r = ' + subMulHelperBody ('multiply') + '(a, 2);');
