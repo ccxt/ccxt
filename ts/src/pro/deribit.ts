@@ -1403,7 +1403,20 @@ export default class deribit extends deribitRest {
         //
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (error));
+            const exception = new ExchangeError (this.id + ' ' + this.json (error));
+            // an error reply to an unsubscribe request rejects the pending unWatch call
+            const errorId = this.safeString (message, 'id', '');
+            const pending = this.safeDict (client.subscriptions, errorId);
+            if ((pending !== undefined) && this.safeBool (pending, 'unsubscribe', false)) {
+                const pendingHashes = this.safeList (pending, 'messageHashes', []);
+                for (let i = 0; i < pendingHashes.length; i++) {
+                    const pendingHash = this.safeString (pendingHashes, i, '');
+                    client.reject (exception, pendingHash);
+                }
+                delete client.subscriptions[errorId];
+                return;
+            }
+            throw exception;
         }
         const params = this.safeDict (message, 'params');
         const channel = this.safeString (params, 'channel');
