@@ -56,7 +56,7 @@ public class Mexc extends MexcApi
             put( "countries", new ArrayList<Object>(Arrays.asList("SC")) );
             put( "rateLimit", 50 );
             put( "version", "v3" );
-            put( "certified", true );
+            put( "certified", false );
             put( "pro", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );

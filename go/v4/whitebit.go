@@ -1336,7 +1336,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				}(),
 			}
 			if networkId != nil {
-				var networkLength int = len(*networkId)
+				var networkLength int64 = int64(GetLength(networkId)) - 0
 				var networkCode *string = this.NetworkIdToCode(Slice(networkId, 1, networkLength-1), code)
 				if networkCode != nil {
 					AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{

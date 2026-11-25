@@ -394,7 +394,12 @@ edit a trade order
 **Kind**: instance method of [<code>blofin</code>](#blofin)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.blofin.com/index.html#amend-order  
+**See**
+
+- https://docs.blofin.com/index.html#amend-order
+- https://docs.blofin.com/index.html#amend-algo-order
+- https://docs.blofin.com/index.html#amend-tp%2Fsl-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -406,6 +411,13 @@ edit a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id, used instead of the id argument |
+| params.trigger | <code>boolean</code> | No | True if editing a trigger order |
+| params.tpsl | <code>boolean</code> | No | True if editing a tpsl order |
+| params.triggerPrice | <code>float</code> | No | the new trigger price of a trigger order |
+| params.stopLossPrice | <code>float</code> | No | the new stop loss trigger price of a tpsl order |
+| params.takeProfitPrice | <code>float</code> | No | the new take profit trigger price of a tpsl order |
+| params.stopLossLimitPrice | <code>float</code> | No | the new stop loss order price of a tpsl order, when the type is not market |
+| params.takeProfitLimitPrice | <code>float</code> | No | the new take profit order price of a tpsl order, when the type is not market |
 
 
 ```javascript

@@ -5,6 +5,135 @@
     "methods": {
         "editOrder": [
             {
+                "description": "edit tpsl order",
+                "method": "editOrder",
+                "input": [
+                    "10031298270",
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    null,
+                    null,
+                    {
+                        "tpsl": true,
+                        "stopLossPrice": 27.82,
+                        "takeProfitPrice": 53.18
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "tpslId": "10031298270",
+                        "clientOrderId": null,
+                        "requestId": null,
+                        "msg": null,
+                        "code": "0",
+                        "ts": "1795520502093"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tpslId": "10031298270",
+                        "clientOrderId": null,
+                        "requestId": null,
+                        "msg": null,
+                        "code": "0",
+                        "ts": "1795520502093"
+                    },
+                    "id": "10031298270",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "edit trigger order",
+                "method": "editOrder",
+                "input": [
+                    "10031298518",
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.02,
+                    null,
+                    {
+                        "trigger": true,
+                        "triggerPrice": 27.95
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": {
+                        "algoId": "10031298518",
+                        "clientOrderId": null,
+                        "requestId": null,
+                        "msg": null,
+                        "code": "0",
+                        "ts": "1795521022174"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoId": "10031298518",
+                        "clientOrderId": null,
+                        "requestId": null,
+                        "msg": null,
+                        "code": "0",
+                        "ts": "1795521022174"
+                    },
+                    "id": "10031298518",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "edit price and amount",
                 "method": "editOrder",
                 "input": [
