@@ -671,7 +671,7 @@ export default class blofin extends blofinRest {
             } else {
                 // updated orders move to the end of the shared cache, so the newest entries across all
                 // symbols are exactly this read's updates; take them before filtering by symbol
-                const newCount = orders.getLimit (undefined, undefined);
+                const newCount: Int = orders.getLimit (undefined, undefined);
                 if (newCount === 0) {
                     // another watcher already took the count, and a limit of 0 would return the whole cache
                     newest = [];
