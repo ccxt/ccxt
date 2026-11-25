@@ -8204,9 +8204,35 @@ export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string)
     const pattern = new RegExp (side + ' (&&|\\|\\|) ' + side, 'g');
     // true when the side tests "is nil"
     const isNil = (not: string, eq: string): boolean => (eq === undefined) ? (not === '') : (eq === '=');
+    // a match never spans a newline: only scan lines holding `nil` and a boolean operator (the
+    // callback still sees absolute offsets into the whole text, exactly as a global replace would)
+    const replaceLines = (all: string, fn: any): string => {
+        let out = '';
+        let from = 0;
+        for (let ls = 0; ls < all.length;) {
+            let le = all.indexOf ('\n', ls);
+            if (le < 0) {
+                le = all.length;
+            }
+            const line = all.slice (ls, le);
+            if (line.includes ('nil') && (line.includes ('&&') || line.includes ('||'))) {
+                const next = line.replace (pattern, ((...a: any[]) => {
+                    a[a.length - 2] += ls;
+                    a[a.length - 1] = all;
+                    return fn (...a);
+                }) as any);
+                if (next !== line) {
+                    out += all.slice (from, ls) + next;
+                    from = le;
+                }
+            }
+            ls = le + 1;
+        }
+        return (from === 0) ? all : (out + all.slice (from));
+    };
     for (let changed = true; changed;) {
         changed = false;
-        text = text.replace (pattern, ((m: string, o1: string, n1: string, h1: string, v1: string, e1: string, c1: string, op: string, o2: string, n2: string, h2: string, v2: string, e2: string, c2: string, at: number, all: string) => {
+        text = replaceLines (text, ((m: string, o1: string, n1: string, h1: string, v1: string, e1: string, c1: string, op: string, o2: string, n2: string, h2: string, v2: string, e2: string, c2: string, at: number, all: string) => {
             const or = (op === '||');
             // parens opened before side 1 / closed after side 2 belong to the enclosing group
             const lead = o1.length - c1.length;
