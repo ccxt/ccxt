@@ -127,7 +127,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
-        return await this.unWatchMultiHelper ('orderbook', 'book', symbols, params);
+        return await this.unsubscribeMultiHelper ('orderbook', 'book', symbols, params);
     }
 
     /**
@@ -288,7 +288,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        return await this.unWatchMultiHelper ('ticker', 'ticker', symbols, params);
+        return await this.unsubscribeMultiHelper ('ticker', 'ticker', symbols, params);
     }
 
     /**
@@ -323,7 +323,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        return await this.unWatchMultiHelper ('bidask', 'ticker_lite', symbols, params);
+        return await this.unsubscribeMultiHelper ('bidask', 'ticker_lite', symbols, params);
     }
 
     /**
@@ -386,7 +386,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
-        return await this.unWatchMultiHelper ('trade', 'trade', symbols, params);
+        return await this.unsubscribeMultiHelper ('trade', 'trade', symbols, params);
     }
 
     /**
@@ -1894,7 +1894,7 @@ export default class krakenfutures extends krakenfuturesRest {
     /**
      * @ignore
      * @method
-     * @name krakenfutures#unWatchMultiHelper
+     * @name krakenfutures#unsubscribeMultiHelper
      * @description sends one unsubscribe request for a list of symbols, the exchange acknowledges each product separately
      * @param {string} unifiedName unified element name used in the message hashes: orderbook, trade, ticker, bidask
      * @param {string} channelName exchange feed name
@@ -1902,7 +1902,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    async unsubscribeMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
