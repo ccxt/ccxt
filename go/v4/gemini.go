@@ -751,28 +751,26 @@ func (this *Gemini) ParseCurrency(rawCurrency any) map[string]any {
 	if networkId != nil {
 		networkCode = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
-			if networkCode != nil {
-				networks[*networkCode] = map[string]any{
-					"info":      rawCurrency,
-					"id":        networkId,
-					"network":   networkCode,
-					"active":    nil,
-					"deposit":   nil,
-					"withdraw":  nil,
-					"fee":       nil,
-					"precision": precision,
-					"limits": map[string]any{
-						"deposit": map[string]any{
-							"min": nil,
-							"max": nil,
-						},
-						"withdraw": map[string]any{
-							"min": nil,
-							"max": nil,
-						},
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      rawCurrency,
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       nil,
+				"precision": precision,
+				"limits": map[string]any{
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
 					},
-				}
-			}
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+				},
+			})
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{

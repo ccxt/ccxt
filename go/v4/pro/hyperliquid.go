@@ -2046,14 +2046,12 @@ func (this *Hyperliquid) ParseWsBalance(balance map[string]any, optionalArgs ...
 			accountBalance = map[string]any{}
 		}
 		if code != nil {
-			if code != nil {
-				accountBalance[*code] = account
-			}
+			ccxt.AddElementToObject(accountBalance, code, account)
 		}
 		this.Balance[*accountType] = accountBalance
 	} else {
 		if code != nil {
-			this.Balance[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 }

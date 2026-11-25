@@ -4692,7 +4692,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		headersResolved = nil
 	}
-	var bodyResolved *string = nil
+	var bodyResolved any = nil
 	if (apiName == "private") && (method != "GET") {
 		bodyResolved = bodySigned
 	}

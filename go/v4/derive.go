@@ -3750,7 +3750,7 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 	}
 	var triggerType *string = this.SafeString(order, "trigger_type")
 	var stopLossPrice *string = nil
-	var takeProfitPrice *string = nil
+	var takeProfitPrice any = nil
 	var triggerPrice *string = nil
 	if triggerType != nil {
 		triggerPrice = this.SafeString(order, "trigger_price")
@@ -3779,7 +3779,7 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 		"side":                side,
 		"price":               price,
 		"triggerPrice":        triggerPrice,
-		"takeProfitPrice":     nil,
+		"takeProfitPrice":     takeProfitPrice,
 		"stopLossPrice":       nil,
 		"average":             average,
 		"amount":              amount,
@@ -3792,9 +3792,6 @@ func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Ord
 			"currency": "USDC",
 		},
 		"info": order,
-	}
-	if takeProfitPrice != nil {
-		literal283931["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
 		literal283931["stopLossPrice"] = *stopLossPrice

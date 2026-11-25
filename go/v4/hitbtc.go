@@ -1103,24 +1103,22 @@ func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 			networkCode = code // as hitbtc is white label, ensure we safeguard from possible bugs
 		}
 		if networkCode != nil {
-			if networkCode != nil {
-				networks[*networkCode] = map[string]any{
-					"info":      rawNetwork,
-					"id":        networkId,
-					"network":   networkCode,
-					"active":    nil,
-					"fee":       this.SafeNumber(rawNetwork, "payout_fee"),
-					"deposit":   this.SafeBool(rawNetwork, "payin_enabled"),
-					"withdraw":  this.SafeBool(rawNetwork, "payout_enabled"),
-					"precision": this.SafeNumber(rawNetwork, "precision_payout"),
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": nil,
-							"max": nil,
-						},
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      rawNetwork,
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    nil,
+				"fee":       this.SafeNumber(rawNetwork, "payout_fee"),
+				"deposit":   this.SafeBool(rawNetwork, "payin_enabled"),
+				"withdraw":  this.SafeBool(rawNetwork, "payout_enabled"),
+				"precision": this.SafeNumber(rawNetwork, "precision_payout"),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
 					},
-				}
-			}
+				},
+			})
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
@@ -5186,15 +5184,13 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 			result["withdraw"] = withdrawResult
 		}
 		if networkCode != nil {
-			if networkCode != nil {
-				networkFees[*networkCode] = map[string]any{
-					"withdraw": withdrawResult,
-					"deposit": map[string]any{
-						"fee":        nil,
-						"percentage": nil,
-					},
-				}
-			}
+			AddElementToObject(networkFees, networkCode, map[string]any{
+				"withdraw": withdrawResult,
+				"deposit": map[string]any{
+					"fee":        nil,
+					"percentage": nil,
+				},
+			})
 		}
 	}
 	result["networks"] = networkFees

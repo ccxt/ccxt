@@ -2003,10 +2003,7 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"amount":      this.CurrencyToPrecision(code, amount),
 		"from_id":     fromId,
 		"to_id":       toId,
-		"uid":         nil,
-	}
-	if userId != nil {
-		request["uid"] = *userId
+		"uid":         userId,
 	}
 
 	r1 := <-this.PrivatePostDeepcoinAssetTransfer(this.Extend(request, paramsUserId))

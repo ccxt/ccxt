@@ -2478,7 +2478,7 @@ func (this *Hollaex) ParseTransaction(transaction map[string]any, optionalArgs .
 	var address *string = this.SafeString(transaction, "address")
 	var addressTo *string = nil
 	var tag *string = nil
-	var tagTo *string = nil
+	var tagTo any = nil
 	if address != nil {
 		var parts []string = strings.Split(*address, ":")
 		address = this.SafeString(parts, 0)
