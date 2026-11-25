@@ -1176,11 +1176,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         this.checkRequiredCredentials(true);
         String wsBaseUrl = this.safeString(this.urls.get("api"), "ws", "");
-        Long startIndex = (((long) wsBaseUrl.length()) - 0L);
+        Integer startIndex = wsBaseUrl.length();
         Integer urlParamsIndex = ((String)url).indexOf("?");
-        Object urlLength = (((long) url.length()) - 0L);
-        Object endIndex = (((((urlParamsIndex != null && urlParamsIndex >= 0))))) ? urlParamsIndex : urlLength;
-        String request = Helpers.slice(url, startIndex, endIndex);
+        Integer urlLength = url.length();
+        Integer endIndex = (((((urlParamsIndex != null && urlParamsIndex >= 0))))) ? urlParamsIndex : urlLength;
+        String request = (url == null ? null : url.substring((int) Math.min(Math.min(Math.max(startIndex < 0 ? url.length() + startIndex : startIndex, 0), url.length()), Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())), (int) Math.min(endIndex < 0 ? url.length() + endIndex : endIndex, url.length())));
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "request", request );
             put( "nonce", Gemini.this.incrementingNonce() );

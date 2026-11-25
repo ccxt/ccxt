@@ -1733,7 +1733,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3174,7 +3174,11 @@ public class Blofin extends BlofinApi
                 return this.parseTransaction(entry, currency);
             }
         }
-        String reference = ((Boolean.TRUE.equals(hasId))) ? withdrawId : clientId;
+        String reference = withdrawId;
+        if (!Boolean.TRUE.equals(hasId))
+        {
+            reference = this.safeString(parameters, "clientId", "");
+        }
         throw new ExchangeError(((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
 
     }
@@ -3517,7 +3521,7 @@ public class Blofin extends BlofinApi
             return (List<Object>) (new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(",")))));
         } else
         {
-            return (List<Object>) (this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0))));
+            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
         }
     }
 

@@ -1041,7 +1041,7 @@ public class Hibachi extends HibachiApi
         return message;
     }
 
-    public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(Object nonce, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {

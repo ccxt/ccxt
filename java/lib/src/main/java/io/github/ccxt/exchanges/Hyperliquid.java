@@ -906,7 +906,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = Math.min(decimalsLeft, 5);
+            pricePrecision = 5L;
         } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
@@ -921,8 +921,6 @@ public class Hyperliquid extends HyperliquidApi
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + ((long) significantDigits));
-            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = (decimalsLeft == null || pricePrecision == null ? null : Math.min(decimalsLeft, pricePrecision));
         } else
         {
             // Count the numbers before the decimal separator
@@ -934,8 +932,10 @@ public class Hyperliquid extends HyperliquidApi
             {
                 digitsLeft = (5L - ((long) (integerPart.length())));
             }
-            pricePrecision = Math.min(decimalsLeft, digitsLeft);
+            pricePrecision = digitsLeft;
         }
+        // cap by maxDecimals - szDecimals
+        pricePrecision = (decimalsLeft == null || pricePrecision == null ? null : Math.min(decimalsLeft, pricePrecision));
         return this.parseToInt(pricePrecision);
     }
 
@@ -3181,7 +3181,7 @@ public class Hyperliquid extends HyperliquidApi
          * @returns {object} the raw request object to be sent to the exchange
          */
         Map<String, Object> market = this.market(symbol);
-        List<Object> clientOrderIds = (List<Object>) this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+        List<Object> clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "fast")));
         Long nonce = this.incrementingNonce();

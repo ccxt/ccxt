@@ -647,7 +647,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Boolean isStock = (Boolean) market.get("stock");
         Map<String, Object> paramsStock = this.omit(paramsUta, "stock");
         Boolean isStockSpot = Boolean.TRUE.equals(isStock) && (java.util.Objects.equals(market.get("spot"), true));
-        Object isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || Boolean.TRUE.equals(uta));
+        Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || Boolean.TRUE.equals(uta));
         Pair<String, Map<String, Object>> instTypeparamsInstTypeVariable = this.getInstType("watchOHLCV", market, isStockOrUta, paramsStock);
         String instType = instTypeparamsInstTypeVariable.first();
         Map<String, Object> paramsInstType = instTypeparamsInstTypeVariable.second();
@@ -1078,7 +1078,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false);
         Boolean uta = utaparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
-        Object isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || Boolean.TRUE.equals(uta));
+        Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || Boolean.TRUE.equals(uta));
         String channel = "books";
         Boolean incrementalFeed = true;
         if (((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50)))
@@ -1234,21 +1234,21 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (storedOrderBook == null ? null : storedOrderBook.get("asks"));
                 io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (storedOrderBook == null ? null : storedOrderBook.get("bids"));
-                Integer asksLength = ((List<?>)storedAsks).size();
-                Integer bidsLength = ((List<?>)storedBids).size();
+                Integer asksLength = storedAsks.size();
+                Integer bidsLength = storedBids.size();
                 List<String> payloadArray = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; i < 25; i++)
                 {
                     if ((bidsLength != null && i < bidsLength))
                     {
-                        Object bidLevel = (storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i));
+                        Object bidLevel = (storedBids == null || i < 0 || i >= storedBids.size() ? null : storedBids.get(i));
                         Object bidParts = Helpers.GetValue(bidLevel, 2);
                         payloadArray.add(this.safeString(bidParts, 0, ""));
                         payloadArray.add(this.safeString(bidParts, 1, ""));
                     }
                     if ((asksLength != null && i < asksLength))
                     {
-                        Object askLevel = (storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i));
+                        Object askLevel = (storedAsks == null || i < 0 || i >= storedAsks.size() ? null : storedAsks.get(i));
                         Object askParts = Helpers.GetValue(askLevel, 2);
                         payloadArray.add(this.safeString(askParts, 0, ""));
                         payloadArray.add(this.safeString(askParts, 1, ""));
@@ -2891,7 +2891,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams(paramsUta, "watchBalance", "stock", false);
         Boolean stock = stockparamsStockVariable.first();
         Map<String, Object> paramsStock = stockparamsStockVariable.second();
-        Object isStockOrUta = (Boolean.TRUE.equals(stock) || Boolean.TRUE.equals(uta));
+        Boolean isStockOrUta = (Boolean.TRUE.equals(stock) || Boolean.TRUE.equals(uta));
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", null, paramsStock, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();

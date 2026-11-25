@@ -1944,7 +1944,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -1981,7 +1981,7 @@ public class Deepcoin extends DeepcoinApi
         }
     }
 
-    public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createRegularOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -2113,7 +2113,7 @@ public class Deepcoin extends DeepcoinApi
         return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
-    public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createTriggerOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method

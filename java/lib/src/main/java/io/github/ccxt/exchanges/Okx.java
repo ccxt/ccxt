@@ -4421,7 +4421,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -4568,7 +4568,7 @@ public class Okx extends OkxApi
                     Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                     Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                     Double notionalParam = this.safeNumber2(paramsRequiresPrice, "cost", "sz", null);
-                    Object notional = notionalParam;
+                    Double notional = notionalParam;
                     orderParams = this.omit(paramsRequiresPrice, new ArrayList<Object>(Arrays.asList("cost", "sz")));
                     if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
@@ -5332,7 +5332,7 @@ public class Okx extends OkxApi
             return (List<Object>) (new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(",")))));
         } else
         {
-            return (List<Object>) (this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0))));
+            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
         }
     }
 
@@ -10269,7 +10269,12 @@ public class Okx extends OkxApi
             //    }
             //
             List<Object> instrumentData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterestsHistory(instrumentData, market, since, limit);
+            List<Object> instrumentInterests = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < instrumentData.size(); i++)
+            {
+                ((List<Object>)instrumentInterests).add(this.parseOpenInterestRow(this.safeList(instrumentData, i, new ArrayList<Object>(Arrays.asList())), market));
+            }
+            return this.filterBySymbolSinceLimit(this.sortBy(instrumentInterests, "timestamp"), this.safeString(market, "symbol"), since, limit, false);
         }
         if (java.util.Objects.equals(type, "option"))
         {
@@ -10303,8 +10308,67 @@ public class Okx extends OkxApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOpenInterestsHistory(data, null, since, limit);
+        List<Object> interests = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < data.size(); i++)
+        {
+            ((List<Object>)interests).add(this.parseOpenInterestRow(this.safeList(data, i, new ArrayList<Object>(Arrays.asList())), null));
+        }
+        return this.filterBySymbolSinceLimit(this.sortBy(interests, "timestamp"), null, since, limit, false);
 
+    }
+
+    public Map<String, Object> parseOpenInterestRow(List<Object> interest, Map<String, Object> market)
+    {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
+        Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
+        Long timestamp = this.safeInteger(interest, 0);
+        Double baseVolume = null;
+        Double quoteVolume = null;
+        Double openInterestAmount = null;
+        Double openInterestValue = null;
+        String type = this.safeString(this.options, "defaultType");
+        Integer numFields = interest.size();
+        if ((numFields != null && numFields > 3))
+        {
+            openInterestAmount = this.safeNumber(interest, 1, null);
+            baseVolume = this.safeNumber(interest, 2, null);
+            openInterestValue = this.safeNumber(interest, 3, null);
+        } else if (java.util.Objects.equals(type, "option"))
+        {
+            openInterestAmount = this.safeNumber(interest, 1, null);
+            baseVolume = this.safeNumber(interest, 2, null);
+        } else
+        {
+            openInterestValue = this.safeNumber(interest, 1, null);
+            quoteVolume = this.safeNumber(interest, 2, null);
+        }
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("symbol", this.safeSymbol(null, null, null, null));
+        mapLiteral9.put("baseVolume", baseVolume);
+        mapLiteral9.put("quoteVolume", quoteVolume);
+        mapLiteral9.put("openInterestAmount", openInterestAmount);
+        mapLiteral9.put("openInterestValue", openInterestValue);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("info", interest);
+        return this.safeOpenInterest(mapLiteral9, marketResolved);
     }
 
     /**
@@ -10375,23 +10439,6 @@ public class Okx extends OkxApi
     public Map<String, Object> parseOpenInterest(Object interest, Map<String, Object> market)
     {
         //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
-        //
         // fetchOpenInterest
         //
         //     {
@@ -10405,46 +10452,17 @@ public class Okx extends OkxApi
         //
         String id = this.safeString(interest, "instId");
         Map<String, Object> marketResolved = this.safeMarket(id, market, null, null);
-        Long time = this.safeInteger(interest, "ts");
-        Long timestamp = this.safeInteger(interest, 0, time);
-        Double baseVolume = null;
-        Double quoteVolume = null;
-        Double openInterestAmount = null;
-        Double openInterestValue = null;
-        String type = this.safeString(this.options, "defaultType");
-        if ((interest instanceof List))
-        {
-            Integer numFields = ((List<?>)interest).size();
-            if ((numFields != null && numFields > 3))
-            {
-                openInterestAmount = this.safeNumber(interest, 1, null);
-                baseVolume = this.safeNumber(interest, 2, null);
-                openInterestValue = this.safeNumber(interest, 3, null);
-            } else if (java.util.Objects.equals(type, "option"))
-            {
-                openInterestAmount = this.safeNumber(interest, 1, null);
-                baseVolume = this.safeNumber(interest, 2, null);
-            } else
-            {
-                openInterestValue = this.safeNumber(interest, 1, null);
-                quoteVolume = this.safeNumber(interest, 2, null);
-            }
-        } else
-        {
-            baseVolume = this.safeNumber(interest, "oiCcy", null);
-            openInterestAmount = this.safeNumber(interest, "oi", null);
-            openInterestValue = this.safeNumber(interest, "oiUsd", null);
-        }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("symbol", this.safeSymbol(id, null, null, null));
-        mapLiteral9.put("baseVolume", baseVolume);
-        mapLiteral9.put("quoteVolume", quoteVolume);
-        mapLiteral9.put("openInterestAmount", openInterestAmount);
-        mapLiteral9.put("openInterestValue", openInterestValue);
-        mapLiteral9.put("timestamp", timestamp);
-        mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("info", interest);
-        return this.safeOpenInterest(mapLiteral9, marketResolved);
+        Long timestamp = this.safeInteger(interest, "ts");
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
+            put( "symbol", Okx.this.safeSymbol(id, null, null, null) );
+            put( "baseVolume", Okx.this.safeNumber(interest, "oiCcy", null) );
+            put( "quoteVolume", null );
+            put( "openInterestAmount", Okx.this.safeNumber(interest, "oi", null) );
+            put( "openInterestValue", Okx.this.safeNumber(interest, "oiUsd", null) );
+            put( "timestamp", timestamp );
+            put( "datetime", Okx.this.iso8601(timestamp) );
+            put( "info", interest );
+        }}, marketResolved);
     }
 
     public void setSandboxMode(Boolean enable)

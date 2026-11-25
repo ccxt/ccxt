@@ -2035,12 +2035,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("unsubscribe:ticker:" + market.get("symbol"));
-        Object url = null;
+        String url = null;
         String channel = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             parameters.put("unsubscribed", true);
             this.watchSpotPublic(channel, messageHash, parameters);
         } else
@@ -2049,7 +2049,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         Client client = this.client(url);
@@ -2196,17 +2196,17 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageHash = ((("unsubscribe:candles:" + this.safeString(market, "symbol", "")) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        Object url = null;
+        String url = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             String spotTimeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), "");
             String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             parameters.put("unsubscribed", true);
             this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             String channel = "unsub.kline";
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2243,10 +2243,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
-        Object url = null;
+        String url = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             String frequency = frequencyparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
@@ -2255,7 +2255,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             String channel = "unsub.depth";
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2291,16 +2291,16 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("unsubscribe:trades:" + this.safeString(market, "symbol", ""));
-        Object url = null;
+        String url = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
             String channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             parameters.put("unsubscribed", true);
             this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
-            url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");
+            url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "swap");
             String channel = "unsub.deal";
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );

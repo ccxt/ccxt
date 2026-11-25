@@ -2585,7 +2585,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
+        List<Object> messageHashes = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(messageHashes, null))
         {
@@ -3473,13 +3473,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Boolean isV5 = (Boolean) this.safeBool(subscriptionParams, "isV5", false);
         String url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         Map<String, Object> hostnames = this.safeDict(this.urls, "hostnames", new HashMap<String, Object>() {{}});
-        Object hostname = null;
+        String hostname = null;
         if (java.util.Objects.equals(type, "spot"))
         {
-            hostname = hostnames.get("spot");
+            hostname = this.safeString(hostnames, "spot");
         } else
         {
-            hostname = hostnames.get("contract");
+            hostname = this.safeString(hostnames, "contract");
         }
         Map<String, Object> authParams = new HashMap<String, Object>();
         authParams.put("type", type);

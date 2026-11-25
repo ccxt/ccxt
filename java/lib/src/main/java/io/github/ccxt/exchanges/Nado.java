@@ -568,12 +568,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the place_order execute
      */
-    public CompletableFuture<Map<String, Object>> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createOrderRequestCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Map<String, Object> createOrderRequestCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createOrderRequestCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         Map<String, Object> market = this.market(symbol);

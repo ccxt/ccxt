@@ -5624,7 +5624,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters, Object isUTA)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters, Object isUTA)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -5678,7 +5678,7 @@ public class Bybit extends BybitApi
             throw new ArgumentsRequired((this.id + " createOrder requires a price argument for limit orders")) ;
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
-        Object amountValue = null;
+        Double amountValue = null;
         if (Precise.stringGt(this.numberToString(amount), "0"))
         {
             amountValue = amount;

@@ -1183,7 +1183,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return this.safeTicker(mapLiteral2, market);
     }
 
-    public Object parseTickerList(Object ticker, Map<String, Object> market)
+    public Object parseTickerList(List<Object> ticker, Map<String, Object> market)
     {
         //
         //      [

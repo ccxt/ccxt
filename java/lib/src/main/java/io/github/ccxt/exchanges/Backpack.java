@@ -759,7 +759,8 @@ public class Backpack extends BackpackApi
             Map<String, Object> currency = (Map<String, Object>) this.parseCurrency(this.safeDict(response, i, new HashMap<String, Object>() {{}}));
             if (!Boolean.TRUE.equals(stock) || (java.util.Objects.equals(this.safeString(currency, "type"), "stock")))
             {
-                currencies.put((String)currency.get("code"), currency);
+                String currencyCode = this.safeString(currency, "code", "");
+                currencies.put(currencyCode, currency);
             }
         }
         return currencies;
@@ -2073,36 +2074,34 @@ public class Backpack extends BackpackApi
         List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until", null);
         Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
         Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
-        if (!java.util.Objects.equals(until, null))
+        Long windowLimit = 100L;
+        if (!java.util.Objects.equals(limit, null))
         {
-            request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
+            windowLimit = this.parseToInt(Math.min(limit, 2000));
         }
-        Long defaultLimit = 100L;
-        Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : Math.min(limit, 2000);
         Long limitResolved = null;
         if (!java.util.Objects.equals(limit, null))
         {
             limitResolved = windowLimit;
         }
         Long now = this.milliseconds();
-        Long startTime = since;
-        Long untilValue = until;
-        if (java.util.Objects.equals(startTime, null))
+        Long windowLength = (windowLimit * duration);
+        Long untilResolved = (((!java.util.Objects.equals(until, null)))) ? until : now;
+        Long defaultStart = (untilResolved - windowLength);
+        Long startSeconds = this.parseToInt((((double) defaultStart) / ((double) 1000))); // convert milliseconds to seconds
+        if (!java.util.Objects.equals(since, null))
         {
-            if (java.util.Objects.equals(untilValue, null))
-            {
-                untilValue = now;
-            }
-            startTime = (untilValue == null ? null : untilValue - (windowLimit * duration));
+            startSeconds = this.parseToInt((((double) since) / ((double) 1000)));
         }
-        request.put("startTime", this.parseToInt((startTime == null ? null : ((Number) startTime).doubleValue() / ((double) 1000))));
-        // set until value
-        if (java.util.Objects.equals(untilValue, null))
+        Long endSeconds = this.parseToInt((((double) untilResolved) / ((double) 1000)));
+        if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
         {
-            Long windowEnd = this.sum(startTime, (windowLimit * duration));
-            untilValue = Math.min(now, windowEnd);
+            Long windowEnd = this.parseToInt(this.sum(since, windowLength));
+            Long cappedEnd = ((((windowEnd != null && (now == null || windowEnd > now))))) ? now : windowEnd;
+            endSeconds = this.parseToInt((((double) cappedEnd) / ((double) 1000)));
         }
-        request.put("endTime", this.parseToInt((untilValue == null ? null : ((double) untilValue) / ((double) 1000))));
+        request.put("startTime", startSeconds);
+        request.put("endTime", endSeconds);
         String price = this.safeString(paramsUntil, "price");
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
         if (!java.util.Objects.equals(price, null))
@@ -3386,7 +3385,7 @@ public class Backpack extends BackpackApi
      * @param {object} [params] exchange-specific order parameters
      * @returns {object} venue order payload
      */
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {

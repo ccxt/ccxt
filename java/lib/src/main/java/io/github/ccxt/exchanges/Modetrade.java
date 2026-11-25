@@ -2262,7 +2262,7 @@ public class Modetrade extends ModetradeApi
         return this.safeStringLower(types, type, type);
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(side, null))
         {

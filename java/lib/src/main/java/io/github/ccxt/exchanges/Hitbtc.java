@@ -2970,7 +2970,7 @@ public class Hitbtc extends HitbtcApi
 
     }
 
-    public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
+    public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Double amount, Double price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", null);

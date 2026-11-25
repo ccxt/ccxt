@@ -1519,7 +1519,7 @@ public class Krakenfutures extends KrakenfuturesApi
         return this.safeTrade(mapLiteral2, null);
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3447,7 +3447,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 type = symbol;
             }
         }
-        Object accountName = this.parseKrakenAccountName(type);
+        String accountName = this.parseKrakenAccountName(type);
         Map<String, Object> accounts = this.safeDict(response, "accounts", null);
         Map<String, Object> account = this.safeDict(accounts, accountName, null);
         if (java.util.Objects.equals(account, null))
@@ -4214,7 +4214,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object parseKrakenAccountName(String account)
+    public String parseKrakenAccountName(String account)
     {
         Map<String, Object> accountByType = new HashMap<String, Object>() {{
             put( "main", "cash" );
@@ -4228,7 +4228,8 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
         if (accountByType.containsKey(account))
         {
-            return (accountByType == null || account == null ? null : accountByType.get(account));
+            String accountName = this.safeString(accountByType, account, "");
+            return accountName;
         } else if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(account)))
         {
             Map<String, Object> market = this.market(account);

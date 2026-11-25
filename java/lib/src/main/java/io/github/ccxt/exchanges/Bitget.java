@@ -8237,7 +8237,7 @@ public class Bitget extends BitgetApi
         return this.extend(request, paramsProductType);
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -10214,7 +10214,7 @@ public class Bitget extends BitgetApi
         Object data = this.safeValue(response, "data");
         if (java.util.Objects.equals(uta, true))
         {
-            Object result = null;
+            List<Object> result = null;
             if (java.util.Objects.equals(trigger, true))
             {
                 result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));

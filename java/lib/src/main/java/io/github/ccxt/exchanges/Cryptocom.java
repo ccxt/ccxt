@@ -1763,7 +1763,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = type.toUpperCase();

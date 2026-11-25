@@ -1250,7 +1250,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(type, null))
             {
                 String marketSettle = this.safeString(market, "settle");
-                type = java.util.Objects.toString((((java.util.Objects.equals(marketSettle, "USDT")))) ? "perpetual" : market.get("type"), null);
+                if (java.util.Objects.equals(marketSettle, "USDT"))
+                {
+                    type = "perpetual";
+                } else
+                {
+                    type = this.safeString(market, "type");
+                }
             }
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1550,7 +1556,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(type, null))
             {
                 Boolean isUsdt = java.util.Objects.equals(market.get("settle"), "USDT");
-                type = java.util.Objects.toString(((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : market.get("type"), null);
+                if (Boolean.TRUE.equals(isUsdt))
+                {
+                    type = "perpetual";
+                } else
+                {
+                    type = this.safeString(market, "type");
+                }
             }
             marketIds.put(symbol, true);
         }

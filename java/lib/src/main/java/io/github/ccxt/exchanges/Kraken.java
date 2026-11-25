@@ -2219,7 +2219,7 @@ public class Kraken extends KrakenApi
         Integer baseIdEnd = 3;
         Integer quoteIdStart = 3;
         Integer quoteIdEnd = 6;
-        Long idLength = (((long) id.length()) - 0L);
+        Integer idLength = id.length();
         if ((idLength != null && idLength == 8))
         {
             baseIdEnd = 4;
@@ -2434,7 +2434,10 @@ public class Kraken extends KrakenApi
             side = descriptionSide;
         }
         String rawType = this.safeString(description, "ordertype", descriptionType); // orderType has dash, e.g. trailing-stop
-        marketId = this.safeString(description, "pair", marketId);
+        if (!java.util.Objects.equals(this.safeString(description, "pair"), null))
+        {
+            marketId = this.safeString(description, "pair");
+        }
         Map<String, Object> marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         String symbol = null;
         Long timestamp = this.safeTimestamp(orderOmitted, "opentm");

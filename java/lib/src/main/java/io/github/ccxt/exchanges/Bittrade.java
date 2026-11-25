@@ -2298,7 +2298,7 @@ public class Bittrade extends BittradeApi
         //    }
         //
         String successes = this.safeString(orders, "successes");
-        Object success = null;
+        List<Object> success = null;
         if (!java.util.Objects.equals(successes, null))
         {
             success = new ArrayList<Object>(Arrays.asList(((String)successes).split(java.util.regex.Pattern.quote(","))));
@@ -2308,7 +2308,7 @@ public class Bittrade extends BittradeApi
         }
         List<Object> failed = (List<Object>) this.safeList2(orders, "errors", "failed", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)success).size(); i++)
+        for (var i = 0; i < success.size(); i++)
         {
             String order = this.safeString(success, i);
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{

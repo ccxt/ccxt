@@ -440,12 +440,12 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    public Boolean reduceOrderVolume(Object orderSide, String orderId, String tradedAmount)
+    public Boolean reduceOrderVolume(io.github.ccxt.ws.OrderBookSide orderSide, String orderId, String tradedAmount)
     {
-        Integer sideLength = (switch ((Object)(orderSide)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
+        Integer sideLength = orderSide.size();
         for (var i = 0; (sideLength != null && i < sideLength); i++)
         {
-            Object order = Helpers.GetValue(orderSide, i);
+            Object order = (orderSide == null || i < 0 || i >= orderSide.size() ? null : orderSide.get(i));
             String entryId = this.safeString(order, 2);
             if (java.util.Objects.equals(entryId, orderId))
             {
@@ -455,10 +455,10 @@ public class Luno extends io.github.ccxt.exchanges.Luno
                 if (Precise.stringLe(remainingAmount, "0"))
                 {
                     // fully filled, storing a zero amount deletes the order
-                    ((io.github.ccxt.ws.OrderBookSide) orderSide).storeArray(new ArrayList<Object>(Arrays.asList(price, 0, orderId)));
+                    orderSide.storeArray(new ArrayList<Object>(Arrays.asList(price, 0, orderId)));
                 } else
                 {
-                    ((io.github.ccxt.ws.OrderBookSide) orderSide).storeArray(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(remainingAmount), orderId)));
+                    orderSide.storeArray(new ArrayList<Object>(Arrays.asList(price, this.parseNumber(remainingAmount), orderId)));
                 }
                 return true;
             }

@@ -260,7 +260,7 @@ public class Hyperliquid extends HyperliquidApi
             if ((colonIndex != null && colonIndex > -1))
             {
                 String key = (part == null ? null : part.substring(0, (int) Math.min(colonIndex < 0 ? part.length() + colonIndex : colonIndex, part.length())));
-                String value = (part == null ? null : part.substring((int) Math.min(Math.max(((((long) colonIndex) + 1L)) < 0 ? part.length() + ((((long) colonIndex) + 1L)) : ((((long) colonIndex) + 1L)), 0), part.length())));
+                String value = (part == null ? null : part.substring((int) Math.min(((((long) colonIndex) + 1L)), part.length())));
                 result.put(key, value);
             }
         }
@@ -1351,7 +1351,7 @@ public class Hyperliquid extends HyperliquidApi
         Integer colonIndex = outcomeInput.indexOf(":");
         if ((colonIndex != null && colonIndex > -1) && ((colonIndex == null || colonIndex < (((long) outcomeInput.length()) - 1L))))
         {
-            String side = ((String)Helpers.slice(outcomeInput, (((long) colonIndex) + 1L), null)).toUpperCase();
+            String side = ((String)(outcomeInput == null ? null : outcomeInput.substring((int) Math.min(((((long) colonIndex) + 1L)), outcomeInput.length())))).toUpperCase();
             if (java.util.Objects.equals(side, "YES") || java.util.Objects.equals(side, "NO"))
             {
                 return side;
@@ -1660,7 +1660,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Long assetId = this.safeInteger(outcomeInfo, "assetId");
         Long nonce = this.incrementingNonce();
-        List<Object> clientOrderIds = (List<Object>) this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
+        List<Object> clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> cancelAction = new HashMap<String, Object>() {{

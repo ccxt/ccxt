@@ -3120,7 +3120,7 @@ public class Xt extends XtApi
 
     }
 
-    public Balances parseBalanceList(Object response)
+    public Balances parseBalanceList(List<Object> response)
     {
         //
         // spot
@@ -3151,7 +3151,7 @@ public class Xt extends XtApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> balance = this.safeDict(response, i, null);
             String currencyId = this.safeString2(balance, "currency", "coin");
@@ -6537,7 +6537,7 @@ public class Xt extends XtApi
         //     }
         //
         List<Object> positions = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
+        Map<String, Object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList())));
         for (var i = 0; i < positions.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
@@ -6635,7 +6635,7 @@ public class Xt extends XtApi
         //     }
         //
         List<Object> positions = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
+        Map<String, Object> breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList())));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {

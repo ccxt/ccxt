@@ -6038,7 +6038,7 @@ public class Gate extends GateApi
         return amountString;
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -9893,13 +9893,13 @@ public class Gate extends GateApi
         String type = this.safeString(item, "type");
         String rawTimestamp = this.safeString(item, "time", "");
         Integer rawTimestampLength = rawTimestamp.length();
-        Object timestamp = null;
+        Long timestamp = null;
         if ((rawTimestampLength != null && rawTimestampLength > 10))
         {
-            timestamp = Long.parseLong(rawTimestamp);
+            timestamp = this.safeInteger(item, "time");
         } else
         {
-            timestamp = (Long.parseLong(rawTimestamp) * 1000L);
+            timestamp = this.safeTimestamp(item, "time");
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");

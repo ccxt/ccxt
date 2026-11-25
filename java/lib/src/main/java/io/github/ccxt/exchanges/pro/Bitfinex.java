@@ -659,7 +659,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Integer createdKey = ((Boolean.TRUE.equals(isPublic))) ? 1 : 2;
         Integer priceKey = ((Boolean.TRUE.equals(isPublic))) ? 3 : 5;
         Integer amountKey = ((Boolean.TRUE.equals(isPublic))) ? 2 : 4;
-        marketId = java.util.Objects.toString(marketResolved.get("id"), null);
+        marketId = this.safeString(marketResolved, "id");
         String type = this.safeString(trade, 6);
         if (!java.util.Objects.equals(type, null))
         {
@@ -1183,7 +1183,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel, "");
         Map<String, Object> subscription = this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), null);
         client.subscriptions.remove(unSubChannel);
-        List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
+        List<Object> messageHashes = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(messageHashes, null))
         {
@@ -1402,14 +1402,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             }
             for (var i = 0; i < data.size(); i++)
             {
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), null);
+                Order parsed = this.parseWsOrderRow(this.safeList(data, i, new ArrayList<Object>(Arrays.asList())), null);
                 String symbol = this.safeString(parsed, "symbol", "");
                 symbolIds.put(symbol, true);
                 orders.append(parsed);
             }
         } else
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), null);
+            Order parsed = this.parseWsOrderRow(data, null);
             orders.append(parsed);
             String symbol = this.safeString(parsed, "symbol", "");
             symbolIds.put(symbol, true);
@@ -1438,7 +1438,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return this.safeString(statuses, status, status);
     }
 
-    public Order parseWsOrder(Map<String, Object> order, Map<String, Object> market)
+    public Order parseWsOrderRow(List<Object> order, Map<String, Object> market)
     {
         //
         //   [

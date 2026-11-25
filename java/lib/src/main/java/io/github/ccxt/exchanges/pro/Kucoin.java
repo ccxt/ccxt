@@ -597,7 +597,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchTickers", "uta", false);
         Boolean uta = utaparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
-        Object isFuturesMethod = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
+        Boolean isFuturesMethod = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
         if ((Boolean.TRUE.equals(isFuturesMethod) || Boolean.TRUE.equals(uta)) && java.util.Objects.equals(symbolsNormalized, null))
         {
             throw new ArgumentsRequired((((this.id + " watchTickers() requires a list of symbols for ") + marketType) + " markets and unified trading account (uta)")) ;
@@ -2078,7 +2078,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 for (var i = 0; i < subscriptions.size(); i++)
                 {
                     String key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-                    if ((Helpers.getIndexOf(key, ((String)topicSymbol)) >= 0) && (Helpers.getIndexOf(key, ((String)topicChannel)) >= 0))
+                    if ((key.indexOf(topicSymbol) >= 0) && (key.indexOf(topicChannel) >= 0))
                     {
                         subscription = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));
                         break;
@@ -2260,27 +2260,27 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
     public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         Long limit = this.safeInteger(subscription, "limit");
-        List<Object> symbols = this.safeList(subscription, "symbols", null);
+        List<Object> symbols = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("symbols", "symbol")));
         if (java.util.Objects.equals(symbols, null))
         {
-            symbols = new ArrayList<Object>(Arrays.asList(this.safeString(subscription, "symbol")));
+            return;
         }
         Map<String, Object> limits = this.safeDict(this.options, "orderBookLimits", new HashMap<String, Object>() {{}});
         for (var i = 0; i < symbols.size(); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            String symbol = (String) (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Long storedLimit = this.safeInteger(limits, symbol);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
-            if (!((symbol != null && this.orderbooks.containsKey(symbol))) || (!java.util.Objects.equals(storedLimit, limit)))
+            if (!(this.orderbooks.containsKey(symbol)) || (!java.util.Objects.equals(storedLimit, limit)))
             {
-                ((Map<Object, Object>) (Map<?, ?>) this.orderbooks).put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             } else
             {
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
                 orderbook.put("nonce", null);
                 orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));
             }
-            Helpers.addElementToObject(limits, symbol, limit);
+            limits.put(symbol, limit);
         }
         this.options.put("orderBookLimits", limits);
     }
@@ -2316,7 +2316,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Boolean isUnSub = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSub))
         {
-            List<Object> messageHashes = (List<Object>) this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
+            List<Object> messageHashes = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
             List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(messageHashes, null))
             {
@@ -2443,7 +2443,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
+            Boolean isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
             String url = (this.negotiate(true, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
             String topic = "/spotMarket/tradeOrders";
             if (java.util.Objects.equals(trigger, true))
@@ -2894,7 +2894,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Object isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
+        Boolean isFuturesMethod = ((!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin")));
         Boolean utaEnabled = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
         Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchMyTrades", "uta", utaEnabled);
         Boolean uta = utaparamsUtaVariable.first();

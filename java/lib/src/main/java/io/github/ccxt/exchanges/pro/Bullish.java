@@ -421,8 +421,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        List<Object> bids = this.separateBidsOrAsks((List<Object>) (this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()))));
-        List<Object> asks = this.separateBidsOrAsks((List<Object>) (this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()))));
+        List<Object> bids = this.separateBidsOrAsks(this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        List<Object> asks = this.separateBidsOrAsks(this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
         Map<String, Object> snapshot = new HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );

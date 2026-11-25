@@ -5116,7 +5116,7 @@ public Map<String, Object> describe()
         return defaultValue;
     }
 
-    public Object safeStringList(Object dictionaryOrList, Object keys)
+    public List<Object> safeStringList(Object dictionaryOrList, Object keys)
     {
         /**
          * @ignore
@@ -5129,7 +5129,7 @@ public Map<String, Object> describe()
         {
             return new ArrayList<Object>(Arrays.asList(str));
         }
-        return this.safeListN(dictionaryOrList, keys, null);
+        return (List<Object>) (this.safeListN(dictionaryOrList, keys, null));
     }
 
     public Object safeList(Object dictionaryOrList, Object key, Object defaultValue)
@@ -5458,18 +5458,16 @@ public Map<String, Object> describe()
                 }
                 if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(fromStart, false)))
                 {
-                    Object limitResolved = (((((arrayLength == null || limit > arrayLength))))) ? arrayLength : limit;
                     if (Boolean.TRUE.equals(ascending))
                     {
+                        Object limitResolved = (((((arrayLength == null || limit > arrayLength))))) ? arrayLength : limit;
                         return (List<Object>) this.arraySlice(array, 0, limitResolved);
                     }
-                    return (List<Object>) this.arraySlice(array, ((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(limitResolved));
-                }
-                if (Boolean.TRUE.equals(ascending))
+                } else if (!Boolean.TRUE.equals(ascending))
                 {
-                    return (List<Object>) this.arraySlice(array, (-limit));
+                    return (List<Object>) this.arraySlice(array, 0, limit);
                 }
-                return (List<Object>) this.arraySlice(array, 0, limit);
+                return (List<Object>) this.arraySlice(array, (-limit));
             }
         }
         return (List<Object>) array;
@@ -12074,7 +12072,7 @@ public Map<String, Object> describe()
         {
             result = this.arrayConcat(result, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
         }
-        Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result, true));
+        Object uniqueResults = this.removeRepeatedElementsFromArray(result, true);
         Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
         return this.filterBySinceLimit(uniqueResults, since, limit, key, false);
 

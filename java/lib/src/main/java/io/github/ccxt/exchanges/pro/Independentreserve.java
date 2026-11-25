@@ -283,21 +283,21 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         {
             io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-            Integer asksLength = ((List<?>)storedAsks).size();
-            Integer bidsLength = ((List<?>)storedBids).size();
+            Integer asksLength = storedAsks.size();
+            Integer bidsLength = storedBids.size();
             String payload = "";
             for (var i = 0; i < 10; i++)
             {
                 if ((bidsLength != null && i < bidsLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1, null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= storedBids.size() ? null : storedBids.get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedBids == null || i < 0 || i >= storedBids.size() ? null : storedBids.get(i)), 1, null)));
                 }
             }
             for (var i = 0; i < 10; i++)
             {
                 if ((asksLength != null && i < asksLength))
                 {
-                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1, null)));
+                    payload = ((payload + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= storedAsks.size() ? null : storedAsks.get(i)), 0, null))) + this.valueToChecksum(this.safeNumber((storedAsks == null || i < 0 || i >= storedAsks.size() ? null : storedAsks.get(i)), 1, null)));
                 }
             }
             Long calculatedChecksum = this.crc32(payload, false);

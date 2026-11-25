@@ -4165,12 +4165,12 @@ public class Interactivebrokers extends InteractivebrokersApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> createTestOrder(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createTestOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTestOrderCore(symbol, type, side, amount, price, parameters));
     }
 
-    private Map<String, Object> createTestOrderCore(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
+    private Map<String, Object> createTestOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -4216,7 +4216,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the order ticket
      */
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
@@ -4406,7 +4406,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         String accountId = accountIdqueryVariable.first();
         Map<String, Object> query = accountIdqueryVariable.second();
-        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, query);
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, (Double) (amount), price, query);
         orderRequest.put("acctId", accountId);
         orderRequest.put("accountId", accountId);
         orderRequest.put("orderId", id);

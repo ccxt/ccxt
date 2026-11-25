@@ -1120,7 +1120,8 @@ public class Woofipro extends WoofiproApi
             {
                 throw new ExchangeError((this.id + " fetchCurrencies() could not resolve parsed")) ;
             }
-            result.put((String)parsed.get("code"), parsed);
+            String parsedCode = this.safeString(parsed, "code", "");
+            result.put(parsedCode, parsed);
         }
         return result;
 
@@ -2354,7 +2355,7 @@ public class Woofipro extends WoofiproApi
         return this.safeStringLower(types, type, type);
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {

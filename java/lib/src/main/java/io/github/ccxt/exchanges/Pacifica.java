@@ -1257,7 +1257,7 @@ public class Pacifica extends PacificaApi
         //   "error": null,
         //   "code": null
         // }
-        return this.parseAccountSettings((List<Object>) (this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()))));
+        return this.parseAccountSettings(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
 
     }
 
@@ -1969,7 +1969,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {

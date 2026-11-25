@@ -1034,7 +1034,7 @@ public class Lighter extends LighterApi
         this.options.put("chainId", ((Boolean.TRUE.equals(enable))) ? 300 : 304);
     }
 
-    public List<Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public List<Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -1214,7 +1214,7 @@ public class Lighter extends LighterApi
             // amount should be 0 for child orders
             if (!java.util.Objects.equals(stopLoss, null))
             {
-                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
+                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0.0, stopLossOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
                     put( "stopLossPrice", stopLossOrderTriggerPrice );
                     put( "reduceOnly", true );
                 }})), 0, new HashMap<String, Object>() {{}});
@@ -1223,7 +1223,7 @@ public class Lighter extends LighterApi
             }
             if (!java.util.Objects.equals(takeProfit, null))
             {
-                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
+                Map<String, Object> orderObj = this.safeDict(this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0.0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
                     put( "takeProfitPrice", takeProfitOrderTriggerPrice );
                     put( "reduceOnly", true );
                 }})), 0, new HashMap<String, Object>() {{}});
@@ -1269,12 +1269,12 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> signAndCreateOrder(String method, String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Object> signAndCreateOrder(String method, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.signAndCreateOrderCore(method, symbol, type, side, amount, price, parameters));
     }
 
-    private Object signAndCreateOrderCore(String method, String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
+    private Object signAndCreateOrderCore(String method, String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

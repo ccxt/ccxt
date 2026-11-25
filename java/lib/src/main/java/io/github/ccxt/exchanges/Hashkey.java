@@ -3028,7 +3028,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3052,7 +3052,7 @@ public class Hashkey extends HashkeyApi
         }
     }
 
-    public Map<String, Object> createSpotOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createSpotOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -3120,7 +3120,7 @@ public class Hashkey extends HashkeyApi
         return (Map<String, Object>) (this.extend(request, paramsClientOrderId));
     }
 
-    public Map<String, Object> createSwapOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Map<String, Object> createSwapOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         /**
          * @method

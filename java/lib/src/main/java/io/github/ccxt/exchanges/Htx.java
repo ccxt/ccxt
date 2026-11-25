@@ -7843,7 +7843,7 @@ public class Htx extends HtxApi
         //     }
         //
         String successes = this.safeString(orders, "successes");
-        Object success = null;
+        List<Object> success = null;
         if (!java.util.Objects.equals(successes, null))
         {
             success = new ArrayList<Object>(Arrays.asList(((String)successes).split(java.util.regex.Pattern.quote(","))));
@@ -7864,7 +7864,7 @@ public class Htx extends HtxApi
                 put( "clientOrderId", Htx.this.safeString(order, "client_order_id") );
             }}, null));
         }
-        for (var i = 0; i < ((List<?>)success).size(); i++)
+        for (var i = 0; i < success.size(); i++)
         {
             String order = this.safeString(success, i);
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -9027,9 +9027,10 @@ public class Htx extends HtxApi
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
+            List<Object> linearRates = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < linearRates.size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (linearRates == null || i < 0 || i >= linearRates.size() ? null : linearRates.get(i));
                 String marketId = this.safeString(entry, "contract_code");
                 String symbolInner = this.safeSymbol(marketId, market, null, null);
                 Long timestamp = this.safeInteger(entry, "funding_time");
