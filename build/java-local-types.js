@@ -11641,6 +11641,10 @@ function nullScalarWriteType (printer, node) {
             return JAVA_DATAFLOW_STRING;
         }
     }
+    const literalDefault = nullSeedLiteralDefaultContainer (printer, value);
+    if (literalDefault !== undefined) {
+        return literalDefault;
+    }
     const r84 = nullSeedWriteType (printer, value);
     if (r84 !== undefined) {
         NULL_SEED_R84_WRITES.add (node);
@@ -11657,6 +11661,32 @@ function nullScalarWriteType (printer, node) {
     return undefined;
 }
 const NULL_SEED_CAST_WRITES = new WeakSet ();
+// base `safeList (x, k, [])` / `safeDict (x, k, {})`: the literal default binds the hand-written List / Map
+// overload (a container on every path), and a native `s.split (sep)` prints a fresh ArrayList
+function nullSeedLiteralDefaultContainer (printer, value) {
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const args = value.arguments;
+    if (isThisCall (value) && args.length === 3 && nullSeedResolvedInBase (printer, value)) {
+        const fallback = unwrapParens (args[2]);
+        if (name === 'safeList' && ts.isArrayLiteralExpression (fallback) && fallback.elements.length === 0) {
+            return JAVA_ARRAY_TYPE;
+        }
+        if (name === 'safeDict' && ts.isObjectLiteralExpression (fallback) && fallback.properties.length === 0) {
+            return JAVA_STRUCTURE_TYPE;
+        }
+        return undefined;
+    }
+    const receiver = value.expression.expression;
+    if (name === 'split' && args.length === 1 && typeof printer.javaScalarFamily === 'function'
+        && !ts.isConditionalExpression (unwrapParens (receiver))
+        && printer.javaScalarFamily (receiver) === 'string' && printer.javaScalarFamily (args[0]) === 'string') {
+        return JAVA_ARRAY_TYPE;
+    }
+    return undefined;
+}
 // `market['baseId']` on a never-written `market: Market` parameter: MarketInterface declares the key `public String`
 // (the write prints Objects.toString, so a non-String raw value still converts as the String-slot use did)
 function nullSeedMarketParamKeyRead (printer, value) {
