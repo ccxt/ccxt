@@ -7371,7 +7371,8 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
         }
         // a use that would move a `this.<async>()` argument onto a typed wrapper overload
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)
-            && !((isMap || isList || isString) && literalFeedsVenueOwnAsyncCall (printer, n, scope))) {
+            && !((isMap || isList || isString || javaType === LITERAL_BOOLEAN_TYPE)
+                && literalFeedsVenueOwnAsyncCall (printer, n, scope))) {
             return false;
         }
         switch (parent.kind) {
