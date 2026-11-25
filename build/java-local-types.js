@@ -2066,6 +2066,8 @@ const VENUE_RETURN_KINDS = {
     'handleTradeType': [ 'String' ], 'ibkrParseValue': [ 'String' ],
     // okx / blofin `parseIds (ids): Strings`: a split list or safeStringList (a List or null)
     'parseIds': [ 'java.util.List<Object>' ],
+    // base `safeStringList (..): Strings` (no override): a fresh one-string list, the safeListN list, or undefined
+    'safeStringList': [ 'java.util.List<Object>' ],
 };
 const H29T07_MAP_VIEW_RETURNS = new Set ([ 'safePosition', 'safeTrade' ]);
 // base parsePosition / safePredictionTrade are Map returns (H30T07_MAP_RETURN_METHODS)
@@ -2218,6 +2220,10 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     // ral-87j5: a local the printer / layer already declares with the method's own type needs no checkcast
     if (ts.isIdentifier (expression) && venueReturnLocalDeclaredAs (printer, expression, javaType)) {
+        return undefined;
+    }
+    // a this-call whose own venue-typed return is the method's type needs no checkcast
+    if (javaType === 'java.util.List<Object>' && venueCallJavaType (printer, expression) === javaType) {
         return undefined;
     }
     return '(' + javaType + ')';
@@ -21310,7 +21316,8 @@ function j6ReaderValue (printer, node, family) {
         || !resolvesToBaseOrStrippedAccessor (printer, value, name) || (!noDefault && !j6DefaultIsFamily (printer, value.arguments[defaultAt], family))) {
         return undefined;
     }
-    return { cast: !javaSafeDict2MapOverload (printer, value) };
+    // safeStringList prints its declared List<Object> return (VENUE_RETURN_KINDS): no checkcast
+    return { cast: !javaSafeDict2MapOverload (printer, value) && !noDefault };
 }
 
 function j6ReaderLocal (printer, declaration) {
