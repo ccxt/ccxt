@@ -1808,6 +1808,8 @@ class blofin extends Exchange {
          * edit a trade order
          *
          * @see https://docs.blofin.com/index.html#amend-order
+         * @see https://docs.blofin.com/index.html#amend-algo-order
+         * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1817,6 +1819,13 @@ class blofin extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order $id, used instead of the $id argument
+         * @param {boolean} [$params->trigger] True if editing a trigger order
+         * @param {boolean} [$params->tpsl] True if editing a tpsl order
+         * @param {float} [$params->triggerPrice] the new trigger $price of a trigger order
+         * @param {float} [$params->stopLossPrice] the new stop loss trigger $price of a tpsl order
+         * @param {float} [$params->takeProfitPrice] the new take profit trigger $price of a tpsl order
+         * @param {float} [$params->stopLossLimitPrice] the new stop loss order $price of a tpsl order, when the $type is not $market
+         * @param {float} [$params->takeProfitLimitPrice] the new take profit order $price of a tpsl order, when the $type is not $market
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1826,19 +1835,62 @@ class blofin extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $isTrigger = $this->safe_bool($params, 'trigger', false);
+        $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
+        } elseif ($isTpsl) {
+            $request['tpslId'] = $id;
+        } elseif ($isTrigger) {
+            $request['algoId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
         if ($amount !== null) {
             $request['newSize'] = $this->amount_to_precision($symbol, $amount);
         }
-        if ($price !== null) {
-            $request['newPrice'] = $this->price_to_precision($symbol, $price);
+        $query = $this->omit($params, array( 'clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+        $response = null;
+        if ($isTpsl) {
+            $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+            if ($stopLossPrice !== null) {
+                $request['newSlTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+                if ($type === 'market') {
+                    $request['newSlOrderPrice'] = '-1';
+                } elseif ($slLimitPrice !== null) {
+                    $request['newSlOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                }
+            }
+            $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+            if ($takeProfitPrice !== null) {
+                $request['newTpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+                if ($type === 'market') {
+                    $request['newTpOrderPrice'] = '-1';
+                } elseif ($tpLimitPrice !== null) {
+                    $request['newTpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                }
+            }
+            $response = $this->privatePostTradeAmendTpsl($this->extend($request, $query));
+        } elseif ($isTrigger) {
+            $triggerPrice = $this->safe_string($params, 'triggerPrice');
+            if ($triggerPrice !== null) {
+                $request['newTriggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            }
+            if ($type === 'market') {
+                $request['newOrderPrice'] = '-1';
+            } elseif ($price !== null) {
+                $request['newOrderPrice'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = $this->privatePostTradeAmendAlgo($this->extend($request, $query));
+        } else {
+            if ($price !== null) {
+                $request['newPrice'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = $this->privatePostTradeAmendOrder($this->extend($request, $query));
         }
-        $response = $this->privatePostTradeAmendOrder($this->extend($request, $this->omit($params, 'clientOrderId')));
         //
         //     {
         //         "code": "0",
