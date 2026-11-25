@@ -21556,6 +21556,15 @@ function goPairMapSlotDeclaration (maskedFunc: string, name: string): any {
     if ((file === undefined) || !/^\w+$/.test (name)) {
         return undefined;
     }
+    // only a name bound by a `a, b := this.M(` / `var a, b map[string]any` line can answer (one cached scan per func)
+    const cache: any = goPairMapSlotDeclaration;
+    if (cache._k !== maskedFunc) {
+        cache._k = maskedFunc;
+        cache._v = new Set ([ ...maskedFunc.matchAll (/^\s*(?:(\w+), (\w+) := this\.\w+\(|var (\w+), (\w+) map\[string\]any$)/gm) ].flatMap ((m) => [ m[1] ?? m[3], m[2] ?? m[4] ]));
+    }
+    if (!cache._v.has (name)) {
+        return undefined;
+    }
     const lines = maskedFunc.split ('\n');
     const decls = lines.map ((l, i) => [ l, i ] as [string, number]).filter (([ l ]) => new RegExp ('\\bvar\\s+(?:\\w+,\\s*)?' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*:=|\\bfunc\\b[^\\n]*[(,]\\s*' + n + ' |&' + n + '\\b').test (l));
     if ((decls.length !== 1) || (decls[0][1] === 0)) {
