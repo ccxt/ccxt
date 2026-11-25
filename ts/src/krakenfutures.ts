@@ -2366,14 +2366,14 @@ export default class krakenfutures extends Exchange {
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeDict (item, 'orderTrigger');
                 if (details === undefined) {
-                    details = this.safeValue2 (item, 'new', 'order', orderTrigger);
+                    details = this.safeDict2 (item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
                         isPrior = false;
                         fixed = true;
                     } else if (!fixed) {
                         const executedPrice = this.safeString (item, 'price');
                         const orderPriorExecution = this.safeDict (item, 'orderPriorExecution');
-                        details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
+                        details = this.safeDict2 (item, 'orderPriorExecution', 'orderPriorEdit');
                         if (executedPrice === undefined) {
                             price = this.safeString (orderPriorExecution, 'limitPrice');
                         } else {

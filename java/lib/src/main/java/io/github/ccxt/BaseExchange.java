@@ -1621,6 +1621,10 @@ public class BaseExchange {
     public java.util.Map<String, Object> safeDict(Object dictionaryOrList, Object key, java.util.Map<String, Object> defaultValue) {
         return (java.util.Map<String, Object>) this.safeDict(dictionaryOrList, key, (Object) defaultValue);
     }
+    // a Map default: the transpiled safeDict2 hands back a Map value or this default, so the result is a Map
+    public java.util.Map<String, Object> safeDict2(Object dictionaryOrList, Object key1, Object key2, java.util.Map<String, Object> defaultValue) {
+        return (java.util.Map<String, Object>) this.safeDict2(dictionaryOrList, key1, key2, (Object) defaultValue);
+    }
     // a List default: the transpiled safeList hands back a List value or this default, so the result is a List
     // (raw, so a `(List<String>)` cast of the call still compiles)
     @SuppressWarnings("rawtypes")

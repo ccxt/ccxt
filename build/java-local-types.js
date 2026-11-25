@@ -477,8 +477,26 @@ function safeDictLocalType (printer, initializer, name) {
     // later Map producer writes (extend/deepExtend/safeDict/awaits) join; their checkcast is printed by the write hook
     const writeOk = (right) => accumulatorWriteInfo (printer, right)?.type === JAVA_SAFE_DICT_TYPE;
     // a `{}` or absent default binds the hand-written Map-default safeDict overload: the call is already a Map
-    const mapDefault = name === 'safeDict';
+    const mapDefault = name === 'safeDict' || javaSafeDict2MapOverload (printer, initializer);
     return { type: JAVA_SAFE_DICT_TYPE, cast: mapDefault ? undefined : '(' + JAVA_SAFE_DICT_TYPE + ')', noCastAssertions: true, writeOk };
+}
+
+// a base safeDict2 call whose default prints null, a plain `{..}` or a declared Map binds the hand-written
+// Map-default safeDict2 overload of BaseExchange.java: the call is already a Map
+function javaSafeDict2MapOverload (printer, call) {
+    if (!isThisCall (call) || String (call.expression.name.text) !== 'safeDict2' || call.arguments.length < 3 || call.arguments.length > 4
+        || call.arguments.some ((a) => ts.isSpreadElement (a)) || !resolvesToBaseOrStrippedAccessor (printer, call, 'safeDict2')) {
+        return false;
+    }
+    const fallback = unwrapParens (call.arguments[3]);
+    if (fallback === undefined || isNullishInitializer (fallback)) {
+        return true;
+    }
+    if (ts.isObjectLiteralExpression (fallback)) {
+        return literalObjectLiteralIsPlain (fallback);
+    }
+    const declared = ts.isIdentifier (fallback) ? String (printer.javaDeclaredTypeOf?.(fallback) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '') : '';
+    return declared === 'Map<String,Object>' && printer.printNode (fallback, 0) === fallback.text;
 }
 
 // ===== parse* structure locals =====
@@ -5896,7 +5914,7 @@ export function installJavaLocalTypes (transpiler) {
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType
                 && !JAVA_STRING_RETURN_METHODS_CAST.has (call))
             || (javaType === JAVA_STRUCTURE_TYPE && ((STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
-                && !JAVA_MAP_RETURN_METHODS.has (call)) || SAFE_DICT_ACCESSORS.has (call)))
+                && !JAVA_MAP_RETURN_METHODS.has (call)) || (SAFE_DICT_ACCESSORS.has (call) && !javaSafeDict2MapOverload (printer, right))))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'));
         const cast = !needsCast ? ''
             : (javaType === 'String' ? '(String)'
@@ -17895,6 +17913,9 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
         if (name === 'safeDict' && fallback !== undefined && ts.isObjectLiteralExpression (unwrapParens (fallback)) && literalObjectLiteralIsPlain (unwrapParens (fallback))) {
             return { cast: false };
         }
+        if (javaSafeDict2MapOverload (printer, value)) {
+            return { cast: false };
+        }
         return fallback === undefined || javaMapLocalValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
     }
     const collection = collectionCallInfo (printer, value);
@@ -21250,7 +21271,7 @@ function j6ReaderValue (printer, node, family) {
         || !resolvesToBaseOrStrippedAccessor (printer, value, name) || (!noDefault && !j6DefaultIsFamily (printer, value.arguments[defaultAt], family))) {
         return undefined;
     }
-    return { cast: true };
+    return { cast: !javaSafeDict2MapOverload (printer, value) };
 }
 
 function j6ReaderLocal (printer, declaration) {
@@ -30126,6 +30147,9 @@ function h28j03FrameParam (param, depth) {
 // `x = this.safeDict (a, k[, {}])` binds the hand-written Map-default overload (safeDictLocalType's
 // `cast: undefined`), which already returns Map<String, Object>: the write needs no checkcast.
 function h28j04SafeDictMapWrite (printer, value, name) {
+    if (name === 'safeDict2' && javaSafeDict2MapOverload (printer, value)) {
+        return { type: JAVA_STRUCTURE_TYPE, cast: '' };
+    }
     if (name !== 'safeDict') {
         return undefined;
     }
