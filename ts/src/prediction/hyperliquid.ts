@@ -1184,7 +1184,7 @@ export default class hyperliquid extends Exchange {
             throw new ExchangeError (this.id + ' outcomes not loaded');
         }
         const sideHint = this.parseOutcomeInputSideHint (outcomeInput);
-        const candidates = [ outcomeInput ];
+        const candidates: string[] = [ outcomeInput ];
         if (outcomeInput.startsWith ('+')) {
             candidates.push ('#' + outcomeInput.slice (1));
         }
