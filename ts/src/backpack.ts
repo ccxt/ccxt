@@ -573,7 +573,8 @@ export default class backpack extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = this.parseCurrency (this.safeDict (response, i, {}));
             if (!stock || (this.safeString (currency, 'type') === 'stock')) {
-                currencies[currency['code']] = currency;
+                const currencyCode: string = this.safeString (currency, 'code', '');
+                currencies[currencyCode] = currency;
             }
         }
         return currencies;
