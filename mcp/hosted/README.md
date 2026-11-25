@@ -48,6 +48,7 @@ All configuration comes from environment variables. [`.env.example`](.env.exampl
 |---|---|---|
 | `PUBLIC_BASE_URL`, `MCP_PATH` | `https://docs.ccxt.com`, `/mcp` | Together they form the canonical MCP URL. It is also the phase-2 OAuth resource, the input of Claude's `ui.domain` hash and the registry URL: never change it once published. |
 | `HOST`, `PORT` | `127.0.0.1`, `8080` | Listening address. Compose sets `0.0.0.0` inside the container. |
+| `HOST_PORT` | `8080` | Compose only: the loopback port on the machine the container is published on. nginx's upstream must match. |
 | `ALLOWED_HOSTS` | public host + `localhost`, `127.0.0.1`, `[::1]` | `Host` header allowlist. Any other host gets 403 (DNS-rebinding protection). |
 | `TRUSTED_PROXY` | `none` | Where the client IP comes from: `none` (socket peer), `nginx-x-real-ip`, or a hop count `N` for `X-Forwarded-For` (read N entries from the right; the leftmost is never used). Headers are believed only from a loopback or private peer. Compose sets `nginx-x-real-ip`. |
 | `CORS_ALLOWED_ORIGINS` | empty | Browser origins allowed to read responses. Empty means no CORS headers: MCP hosts call from their servers, and the `Origin` header is not used to reject anyone. |
@@ -169,7 +170,7 @@ claude mcp add --transport http ccxt https://docs.ccxt.com/mcp && claude mcp lis
 - runs as the non-root `node` user, with all capabilities dropped and `no-new-privileges`;
 - 1.5 GB memory limit, `NODE_OPTIONS=--max-old-space-size=1024`;
 - `restart: unless-stopped`, plus the `autoheal` service, which restarts it when its health check fails (Docker itself never acts on an unhealthy status);
-- port bound to `127.0.0.1:8080` only.
+- port bound to `127.0.0.1:8080` only (`HOST_PORT` in `.env` moves it when 8080 is taken on the machine; change the upstream in `ccxt-mcp-http.conf` to match, and use that port in the `curl` checks here).
 
 The image is the single bundle on `node:22-bookworm-slim`, with no `node_modules` and no package managers (npm, npx, corepack and yarn are removed).
 

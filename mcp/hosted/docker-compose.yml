@@ -2,7 +2,7 @@
 #   cp .env.example .env    # then edit; .env is never committed
 #   sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env
 #   docker compose up -d --build
-# nginx on the host proxies https://docs.ccxt.com/mcp to 127.0.0.1:8080
+# nginx on the host proxies https://docs.ccxt.com/mcp to 127.0.0.1:${HOST_PORT} (default 8080)
 # (deploy/nginx/). README.md, "Deploy", has the whole procedure.
 name: ccxt-mcp
 
@@ -33,8 +33,9 @@ services:
       PORT: "8080"
       TRUSTED_PROXY: nginx-x-real-ip
     ports:
-      # loopback only: the public entry point is nginx, never this port
-      - "127.0.0.1:8080:8080"
+      # loopback only: the public entry point is nginx, never this port. HOST_PORT (.env)
+      # moves it when 8080 is taken on the machine; nginx's upstream must name the same port
+      - "127.0.0.1:${HOST_PORT:-8080}:8080"
     read_only: true # the bundle writes nothing; markets are kept in memory
     mem_limit: 1536m
     memswap_limit: 1536m
