@@ -1,0 +1,894 @@
+{
+    "BTC": {
+        "info": {
+            "color": "f7931a",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "btc-wo8KSCg7jl.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2017-02-14T00:00:00Z",
+            "name": "Bitcoin",
+            "networks": [
+                "btc"
+            ],
+            "precision": 8,
+            "step": "0.00000001",
+            "symbol": "btc",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "2",
+                "min_once": "0.00006"
+            },
+            "id": "btc",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 10,
+                    "explorer": {
+                        "address": "https://www.blockchain.com/explorer/addresses/btc/${address}",
+                        "transaction": "https://www.blockchain.com/explorer/transactions/btc/${tx}"
+                    },
+                    "name": "Bitcoin (BTC)",
+                    "network_type": "btc",
+                    "symbol": "btc",
+                    "validations": {
+                        "address_regex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^[(bc1q)|(bc1p)][0-9A-Za-z]{37,62}$"
+                    },
+                    "id": "btc",
+                    "withdraw_fee": "0.00005"
+                }
+            ]
+        },
+        "id": "btc",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00005,
+        "fees": {},
+        "networks": {
+            "BTC": {
+                "id": "btc",
+                "network": "BTC",
+                "name": "Bitcoin (BTC)",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00005,
+                "precision": 1e-8,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.00006,
+                        "max": 2
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 10,
+                    "explorer": {
+                        "address": "https://www.blockchain.com/explorer/addresses/btc/${address}",
+                        "transaction": "https://www.blockchain.com/explorer/transactions/btc/${tx}"
+                    },
+                    "name": "Bitcoin (BTC)",
+                    "network_type": "btc",
+                    "symbol": "btc",
+                    "validations": {
+                        "address_regex": "^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^[(bc1q)|(bc1p)][0-9A-Za-z]{37,62}$"
+                    },
+                    "id": "btc",
+                    "withdraw_fee": "0.00005"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00006,
+                "max": 2
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "color": "8094F9",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "eth-SRK7jtbsdk.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2018-10-17T00:00:00Z",
+            "name": "Ethereum",
+            "networks": [
+                "eth"
+            ],
+            "precision": 8,
+            "step": "0.00000001",
+            "symbol": "eth",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "23",
+                "min_once": "0.0002"
+            },
+            "id": "eth",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "0.0001"
+                }
+            ]
+        },
+        "id": "eth",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "fees": {},
+        "networks": {
+            "ETH": {
+                "id": "eth",
+                "network": "ETH",
+                "name": "Ethereum (ERC-20)",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0001,
+                "precision": 1e-8,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0002,
+                        "max": 23
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "0.0001"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0002,
+                "max": 23
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "color": "00ADAD",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "usdt-SHRkIpqt59.png",
+            "labels": [
+                "stable",
+                "crypto"
+            ],
+            "listing_date": "2019-01-29T00:00:00Z",
+            "name": "Tether",
+            "networks": [
+                "arb",
+                "trx",
+                "eth"
+            ],
+            "precision": 2,
+            "step": "0.01",
+            "symbol": "usdt",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "150000",
+                "min_once": "2"
+            },
+            "id": "usdt",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://arbiscan.io/address/${address}",
+                        "transaction": "https://arbiscan.io/tx/${tx}"
+                    },
+                    "name": "Arbitrum One",
+                    "network_type": "eth",
+                    "symbol": "arb",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "arb",
+                    "withdraw_fee": "0.25"
+                },
+                {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://tronscan.org/#/address/${address}",
+                        "transaction": "https://tronscan.org/#/transaction/${tx}"
+                    },
+                    "name": "Tron (TRC-20)",
+                    "network_type": "trx",
+                    "symbol": "trx",
+                    "validations": {
+                        "address_regex": "^T[1-9A-HJ-NP-Za-km-z]{33}$"
+                    },
+                    "id": "trx",
+                    "withdraw_fee": "5"
+                },
+                {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "1.5"
+                }
+            ]
+        },
+        "id": "usdt",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.25,
+        "fees": {},
+        "networks": {
+            "ARBITRUM": {
+                "id": "arb",
+                "network": "ARBITRUM",
+                "name": "Arbitrum One",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.25,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://arbiscan.io/address/${address}",
+                        "transaction": "https://arbiscan.io/tx/${tx}"
+                    },
+                    "name": "Arbitrum One",
+                    "network_type": "eth",
+                    "symbol": "arb",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "arb",
+                    "withdraw_fee": "0.25"
+                }
+            },
+            "TRC20": {
+                "id": "trx",
+                "network": "TRC20",
+                "name": "Tron (TRC-20)",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://tronscan.org/#/address/${address}",
+                        "transaction": "https://tronscan.org/#/transaction/${tx}"
+                    },
+                    "name": "Tron (TRC-20)",
+                    "network_type": "trx",
+                    "symbol": "trx",
+                    "validations": {
+                        "address_regex": "^T[1-9A-HJ-NP-Za-km-z]{33}$"
+                    },
+                    "id": "trx",
+                    "withdraw_fee": "5"
+                }
+            },
+            "ERC20": {
+                "id": "eth",
+                "network": "ERC20",
+                "name": "Ethereum (ERC-20)",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.5,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "1.5"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 150000
+            }
+        }
+    },
+    "TRY": {
+        "info": {
+            "color": "7D89A1",
+            "deposit_limits": {
+                "min_amount": "5"
+            },
+            "hide_if_void": false,
+            "icon": "tl-PsIukb097H.png",
+            "labels": [
+                "fiat"
+            ],
+            "listing_date": "2026-02-06T00:00:00Z",
+            "name": "Türk Lirası",
+            "networks": [
+                "banktr"
+            ],
+            "precision": 2,
+            "step": "0.01",
+            "symbol": "tl",
+            "type": "fiat",
+            "withdraw_limits": {
+                "max_daily": "15000000",
+                "max_monthly": "150000000",
+                "max_once": "5000000",
+                "min_once": "10"
+            },
+            "id": "tl",
+            "chains": [
+                {
+                    "explorer": {},
+                    "name": "Bank TR",
+                    "network_type": "bank",
+                    "symbol": "banktr",
+                    "validations": {},
+                    "id": "banktr",
+                    "withdraw_fee": "0"
+                }
+            ]
+        },
+        "id": "tl",
+        "numericId": null,
+        "code": "TRY",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "Türk Lirası",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "banktr": {
+                "id": "banktr",
+                "network": "banktr",
+                "name": "Bank TR",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 5000000
+                    }
+                },
+                "info": {
+                    "explorer": {},
+                    "name": "Bank TR",
+                    "network_type": "bank",
+                    "symbol": "banktr",
+                    "validations": {},
+                    "id": "banktr",
+                    "withdraw_fee": "0"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 5,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 5000000
+            }
+        }
+    },
+    "XRP": {
+        "info": {
+            "color": "7c89a1",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "xrp-Fx6Dxl1Sdl.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2018-10-15T00:00:00Z",
+            "name": "Ripple",
+            "networks": [
+                "xrp"
+            ],
+            "precision": 1,
+            "step": "0.1",
+            "symbol": "xrp",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "33642",
+                "min_once": "2"
+            },
+            "id": "xrp",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://bithomp.com/en/account/${address}",
+                        "transaction": "https://bithomp.com/en/tx/${tx}"
+                    },
+                    "name": "Ripple (XRP)",
+                    "network_type": "xrp",
+                    "symbol": "xrp",
+                    "tag": "destination",
+                    "validations": {
+                        "address_regex": "^r[1-9A-HJ-NP-Za-km-z]{25,34}$",
+                        "tag_regex": "^[0-9]{1,10}$"
+                    },
+                    "id": "xrp",
+                    "withdraw_fee": "0.2"
+                }
+            ]
+        },
+        "id": "xrp",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.1,
+        "type": "crypto",
+        "name": "Ripple",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.2,
+        "fees": {},
+        "networks": {
+            "XRP": {
+                "id": "xrp",
+                "network": "XRP",
+                "name": "Ripple (XRP)",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 0.1,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 33642
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 1,
+                    "explorer": {
+                        "address": "https://bithomp.com/en/account/${address}",
+                        "transaction": "https://bithomp.com/en/tx/${tx}"
+                    },
+                    "name": "Ripple (XRP)",
+                    "network_type": "xrp",
+                    "symbol": "xrp",
+                    "tag": "destination",
+                    "validations": {
+                        "address_regex": "^r[1-9A-HJ-NP-Za-km-z]{25,34}$",
+                        "tag_regex": "^[0-9]{1,10}$"
+                    },
+                    "id": "xrp",
+                    "withdraw_fee": "0.2"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 33642
+            }
+        }
+    },
+    "AGIX": {
+        "info": {
+            "color": "2E1C89",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "deposit_suspended": "system_messages.currency_deposit_closed",
+            "hidden": true,
+            "hide_if_void": true,
+            "icon": "agix-nhTknt34Ql.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2026-02-06T00:00:00Z",
+            "name": "SingularityNET",
+            "networks": [
+                "eth"
+            ],
+            "precision": 2,
+            "step": "0.01",
+            "symbol": "agix",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "70588",
+                "min_once": "24"
+            },
+            "withdraw_suspended": "system_messages.currency_withdraw_closed",
+            "id": "agix",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "12"
+                }
+            ]
+        },
+        "id": "agix",
+        "numericId": null,
+        "code": "AGIX",
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "SingularityNET",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 12,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "id": "eth",
+                "network": "ERC20",
+                "name": "Ethereum (ERC-20)",
+                "active": null,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 12,
+                "precision": 0.01,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 24,
+                        "max": 70588
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": "12"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 24,
+                "max": 70588
+            }
+        }
+    },
+    "BJK": {
+        "info": {
+            "color": "7c89a1",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "bjk-L23tk6hyjf.png",
+            "labels": [
+                "fan",
+                "crypto"
+            ],
+            "listing_date": "2023-10-03T00:00:00Z",
+            "name": "Beşiktaş",
+            "networks": [
+                "eth"
+            ],
+            "precision": 4,
+            "step": "0.0001",
+            "symbol": "bjk",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "102128",
+                "min_once": "55"
+            },
+            "withdraw_suspended": "system_messages.currency_withdraw_closed",
+            "id": "bjk",
+            "chains": [
+                {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": null
+                }
+            ]
+        },
+        "id": "bjk",
+        "numericId": null,
+        "code": "BJK",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": "Beşiktaş",
+        "active": true,
+        "deposit": true,
+        "withdraw": false,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "id": "eth",
+                "network": "ERC20",
+                "name": "Ethereum (ERC-20)",
+                "active": null,
+                "deposit": true,
+                "withdraw": false,
+                "fee": null,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 55,
+                        "max": 102128
+                    }
+                },
+                "info": {
+                    "estimated_arrival_minutes": 13,
+                    "explorer": {
+                        "address": "https://etherscan.io/address/${address}",
+                        "transaction": "https://etherscan.io/tx/${tx}"
+                    },
+                    "name": "Ethereum (ERC-20)",
+                    "network_type": "eth",
+                    "symbol": "eth",
+                    "validations": {
+                        "address_regex": "^(0x)[0-9A-Fa-f]{40}$"
+                    },
+                    "id": "eth",
+                    "withdraw_fee": null
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 55,
+                "max": 102128
+            }
+        }
+    }
+}
