@@ -3692,7 +3692,7 @@ impl Digifinex {
             response = self.private_spot_post_margin_order_cancel(&[&__ws_arg_12]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_13 = self.extend(&request, &[&query]);
-            response = self.call_method_o("private_spot_post_spot_order_cancel", &[&__ws_arg_13]).await;
+            response = self.private_spot_post_spot_order_cancel(&[&__ws_arg_13]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&query]);
             response = self.private_swap_post_trade_cancel_order(&[&__ws_arg_14]).await;
@@ -3847,8 +3847,8 @@ impl Digifinex {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: Value = self.private_spot_post_spot_order_cancel(&[&__ws_arg_15]).await;
-        return Value::Arr(self.parse_cancel_orders(response, &[]));
+        let response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[&__ws_arg_15]).await.unwrap_or_default();
+        return Value::Arr(self.parse_cancel_orders(&response, &[]));
         Value::Null
         }).await?))
     }
@@ -3974,8 +3974,8 @@ impl Digifinex {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let response: Value = self.private_spot_post_spot_order_cancel(&[&__ws_arg_16]).await;
-        return Value::Arr(self.parse_cancel_orders(response, &[Value::Map(symbolsById)]));
+        let response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[&__ws_arg_16]).await.unwrap_or_default();
+        return Value::Arr(self.parse_cancel_orders(&response, &[Value::Map(symbolsById)]));
         Value::Null
         }).await?))
     }
@@ -4687,7 +4687,7 @@ impl Digifinex {
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let addresses: crate::value::Dict = self.index_by(self.parse_deposit_addresses(&data, &[Value::from(vec![self.safe_string_k(&currency, "code", &[Value::Str("".into())])]), Value::Bool(false)]), Value::Str("currency".into()));
-        let mut address: Option<crate::value::Dict> = self.safe_dict_o(&addresses, &code);
+        let mut address: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = addresses.get(code.as_str().unwrap_or_default()) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (address.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() did not return an address for ").into()), code).into()), " - create the deposit address in the user settings on the exchange website first.")));
         }

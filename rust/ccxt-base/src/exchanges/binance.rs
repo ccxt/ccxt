@@ -15176,14 +15176,14 @@ impl Binance {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " transfer () does not allow transfers between ").into()), fromAccount).into()), " and ").into()), toAccount)));
                 }  else if toSpot && fromIsolated {
                     fromId = Value::Str("ISOLATED_MARGIN".into());
-                    request.insert("fromSymbol".into(), isolatedSymbol.clone());
+                    request.insert("fromSymbol".into(), isolatedSymbol);
                 }  else if fromSpot && toIsolated {
                     toId = Value::Str("ISOLATED_MARGIN".into());
-                    request.insert("toSymbol".into(), isolatedSymbol.clone());
+                    request.insert("toSymbol".into(), isolatedSymbol);
                 }  else {
                     if fromIsolated && toIsolated {
-                        request.insert("fromSymbol".into(), fromId.clone());
-                        request.insert("toSymbol".into(), toId.clone());
+                        request.insert("fromSymbol".into(), fromId);
+                        request.insert("toSymbol".into(), toId);
                         fromId = Value::Str("ISOLATEDMARGIN".into());
                         toId = Value::Str("ISOLATEDMARGIN".into());
                     }  else {
@@ -19011,7 +19011,7 @@ if _try_result.is_err() {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("REPAY".into()));
             let __ws_arg_205 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.call_method_o("sapi_post_margin_borrow_repay", &[&__ws_arg_205]).await;
+            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_205]).await;
         }
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
@@ -19054,8 +19054,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_206 = self.extend(Value::Map(request), &[&params]);
-        let response: Value = self.sapi_post_margin_borrow_repay(&[&__ws_arg_206]).await;
-        return Value::Dict(self.parse_margin_loan(response, Some(&currency)));
+        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_206]).await.unwrap_or_default();
+        return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
         }).await?))
     }
@@ -19105,7 +19105,7 @@ if _try_result.is_err() {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("BORROW".into()));
             let __ws_arg_208 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.call_method_o("sapi_post_margin_borrow_repay", &[&__ws_arg_208]).await;
+            response = self.sapi_post_margin_borrow_repay(&[&__ws_arg_208]).await;
         }
         return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
@@ -19148,8 +19148,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_209 = self.extend(Value::Map(request), &[&params]);
-        let response: Value = self.sapi_post_margin_borrow_repay(&[&__ws_arg_209]).await;
-        return Value::Dict(self.parse_margin_loan(response, Some(&currency)));
+        let response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[&__ws_arg_209]).await.unwrap_or_default();
+        return Value::Dict(self.parse_margin_loan(&response, Some(&currency)));
         Value::Null
         }).await?))
     }

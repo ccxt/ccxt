@@ -13064,7 +13064,7 @@ impl Kucoin {
         let config = config.as_map().unwrap_or(&__config_empty);
         let versions: crate::value::Dict = self.safe_dict_k_t(&self.options, "versions");
         let apiVersions: crate::value::Dict = self.safe_dict_t(&versions, self.safe_string(&api, Value::Int(0), &[]));
-        let methodVersions: crate::value::Dict = self.safe_dict_t(&apiVersions, Value::from(method));
+        let methodVersions: crate::value::Dict = (if let Some(Value::Dict(__m)) = apiVersions.get(method) { std::sync::Arc::clone(__m) } else { Default::default() });
         let defaultVersion: Option<String> = self.safe_string_opt(&methodVersions, &path, &[&self.options.get("version").cloned().unwrap_or(Value::Null)]);
         let version: Option<String> = self.safe_string_k_opt(&params, "version", &[&defaultVersion]);
         if (self.safe_string(api, Value::Int(0), &[]).as_str() == Some("utaV2")) && (path == "market/orderbook") {

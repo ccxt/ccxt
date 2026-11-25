@@ -1526,7 +1526,7 @@ impl Bitflyer {
         }
         let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let ordersById: crate::value::Dict = self.index_by(crate::types::IntoRaw::into_raw(orders), Value::Str("id".into()));
-        let mut found: Option<crate::value::Dict> = self.safe_dict_o(&ordersById, &id);
+        let mut found: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = ordersById.get(id.as_str().unwrap_or_default()) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (found.is_some()) {
             return found.map_or(Value::Null, Value::Dict);
         }

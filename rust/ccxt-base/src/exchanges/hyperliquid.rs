@@ -2062,7 +2062,7 @@ impl Hyperliquid {
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = i64::min(decimalsLeft, 5);
+            pricePrecision = 5;
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let significantDigits: i64 = 5;
@@ -2075,8 +2075,6 @@ impl Hyperliquid {
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + significantDigits);
-            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = i64::min(decimalsLeft, pricePrecision);
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2086,8 +2084,10 @@ impl Hyperliquid {
             if ((integerPart.chars().count() as i64)) <= 5 {
                 digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = i64::min(decimalsLeft, digitsLeft);
+            pricePrecision = digitsLeft;
         }
+        // cap by maxDecimals - szDecimals
+        pricePrecision = i64::min(decimalsLeft, pricePrecision);
         return Value::from(self.parse_to_int(Value::from(pricePrecision)));
 
     Value::Null
@@ -4299,7 +4299,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub async fn cancel_orders_for_symbols(&mut self, orders: Vec<crate::types::CancellationRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let orders = __it.next().unwrap_or_default();
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(std::sync::Arc::new(__it.next().unwrap_or_default().as_array().cloned().unwrap_or_default()));
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -4330,7 +4330,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
             if (clientOrderId.is_some()) {
                 cancelByCloid = true;
@@ -6717,7 +6717,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return None;
         }
         let hi3TokensByname: crate::value::Dict = self.safe_dict_k_t(&self.options, "hip3TokensByName");
-        let hip3Dict: Option<crate::value::Dict> = self.safe_dict_o(&hi3TokensByname, Value::from(coin));
+        let hip3Dict: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = hi3TokensByname.get(coin.unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (hip3Dict.is_some()) {
             let quote: String = self.safe_string_k(&hip3Dict, "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
             let code: Option<String> = self.safe_string_k_opt(&hip3Dict, "code", &[&coin]);

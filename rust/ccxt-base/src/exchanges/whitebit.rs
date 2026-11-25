@@ -3558,7 +3558,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 results = self.array_concat(results, &parsed);
             }
             }
-            results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+            results = Value::Arr(self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]));
             return Value::Arr(self.filter_by_since_limit(results, since, limit, &[Value::Str("timestamp".into())]));
         }
         Value::Null

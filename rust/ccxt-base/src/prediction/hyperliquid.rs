@@ -2346,7 +2346,7 @@ impl Hyperliquid {
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
                 if !(matches!(oid.as_deref(), Some(__k) if deduped.contains_key(__k))) {
-                    deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone());
+                    deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw);
                 }  else {
                     let existingTs: Option<i64> = self.safe_integer(deduped.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();
                     let currentTs: Option<i64> = self.safe_integer_k(&raw, "statusTimestamp", &[]).as_i64();

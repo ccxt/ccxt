@@ -664,7 +664,7 @@ impl Blofin {
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), Some(&firstMarket), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
-        let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
+        let typeUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__p2)) = __p1.get("ws") { if let Some(Value::Dict(__m)) = __p2.get(marketType.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
@@ -947,7 +947,7 @@ impl Blofin {
             m
         });
         let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)]));
-        let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
+        let typeUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__p2)) = __p1.get("ws") { if let Some(Value::Dict(__m)) = __p2.get(marketType.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
         let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
@@ -1271,7 +1271,7 @@ impl Blofin {
             m
         });
         let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)]));
-        let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
+        let typeUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__p2)) = __p1.get("ws") { if let Some(Value::Dict(__m)) = __p2.get(marketType.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
         let __ws_arg_4 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
@@ -1382,7 +1382,7 @@ impl Blofin {
         if (Some(isPublic) == Some(true)) {
             privateOrPublic = "public".to_string();
         }
-        let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
+        let typeUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__p2)) = __p1.get("ws") { if let Some(Value::Dict(__m)) = __p2.get(marketType.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_opt(&typeUrls, &privateOrPublic, &[]);
         let __ws_arg_5 = self.deep_extend(request, &[&paramsMarketType]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;

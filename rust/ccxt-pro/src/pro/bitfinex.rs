@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "handle_system_status" => crate::Value::Dict(self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_balance" => Value::Dict(self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_order_row" => Value::Dict(self.parse_ws_order_row(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
@@ -111,7 +111,7 @@ impl Bitfinex {
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_balance" => { Value::Dict(self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
-            "parse_ws_order" => { Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_order_row" => { Value::Dict(self.parse_ws_order_row(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "subscribe" => crate::exchange_stubs::enqueue_spawn("subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -804,15 +804,15 @@ impl Bitfinex {
         let trade: crate::value::List = tradeResult.key_list("result");
         let numFields: i64 = trade.len() as i64;
         let isPublic: bool = numFields <= 8;
-        let mut marketId: Value = Value::Null;
+        let mut marketId: Option<String> = None;
         if !isPublic {
-            marketId = self.safe_string(&trade, Value::Int(1), &[]);
+            marketId = self.safe_string_opt(&trade, Value::Int(1), &[]);
         }
-        let marketResolved: crate::types::Market = self.safe_market(marketId.as_str(), market, &[]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let createdKey: i64 = (if isPublic { 1 } else { 2 });
         let priceKey: i64 = (if isPublic { 3 } else { 5 });
         let amountKey: i64 = (if isPublic { 2 } else { 4 });
-        marketId = crate::value::KeyRead::key_read(&&marketResolved, "id");
+        marketId = self.safe_string_k_opt(&marketResolved, "id", &[]);
         let mut type_var: Option<String> = self.safe_string_opt(&trade, Value::Int(6), &[]);
         if (type_var.is_some()) {
             if type_var.as_deref().unwrap_or_default().contains("LIMIT") {
@@ -834,7 +834,7 @@ impl Bitfinex {
         if (amount.is_some()) {
             side = (if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
-        let symbol: Option<String> = self.safe_symbol(marketId.as_str(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let feeValue: Option<String> = self.safe_string_opt(&trade, Value::Int(9), &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeValue.is_some()) {
@@ -1558,14 +1558,14 @@ impl Bitfinex {
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-                let parsed: crate::value::Dict = self.parse_ws_order(data.get(i as usize).cloned().unwrap_or(Value::Null), None);
+                let parsed: crate::value::Dict = self.parse_ws_order_row(self.safe_list(&data, Value::Int(i), &[Value::from(vec![])]), None);
                 let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 symbolIds.insert(symbol, Value::Bool(true));
                 self.orders.append(Value::Dict(parsed));
             }
             }
         }  else {
-            let parsed: crate::value::Dict = self.parse_ws_order(Value::Arr(data), None);
+            let parsed: crate::value::Dict = self.parse_ws_order_row(Value::Arr(data), None);
             self.orders.append(Value::from(&parsed));
             let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             symbolIds.insert(symbol, Value::Bool(true));
@@ -1598,7 +1598,7 @@ impl Bitfinex {
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
-    pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_order_row(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let order: Value = order.into();
         //
         //   [

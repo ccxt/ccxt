@@ -1160,7 +1160,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             let ts: Option<String> = self.number_to_string(Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
             let recvWindow: String = self.safe_string2(&self.options, Value::Str("recvWindow".into()), Value::Str("X-Window".into()), &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
             let optionInstructions: crate::value::Dict = self.safe_dict_k_t(&self.options, "instructions");
-            let optionPathInstructions: crate::value::Dict = self.safe_dict_t(&optionInstructions, Value::from(path));
+            let optionPathInstructions: crate::value::Dict = (if let Some(Value::Dict(__m)) = optionInstructions.get(path) { std::sync::Arc::clone(__m) } else { Default::default() });
             let mut instruction: String = self.safe_string(&optionPathInstructions, &method, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut payload: Option<String> = Some("".to_string());
             if (path == "api/v1/orders") && (method.as_str() == Some("POST")) {
@@ -2307,12 +2307,13 @@ impl Backpack {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
-            let currency: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_currency(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let currency: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})])).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+})])).unwrap_or_default();
             if !stock || (self.safe_string_k(&currency, "type", &[]).as_str() == Some("stock")) {
-                currencies.insert(crate::runtime::stringify_param(&(currency.get("code").cloned().unwrap_or(Value::Null))), Value::Map(currency.clone()));
+                let currencyCode: String = self.safe_string_k(&currency, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                currencies.insert(currencyCode, Value::Dict(currency));
             }
         }
         }
@@ -3208,31 +3209,30 @@ impl Backpack {
         let untilparamsUntilVariable = self.handle_option_integer_and_params(self.omit(&dataRequest, Value::Str("symbol".into()), &[]), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]);
         let until: Option<i64> = untilparamsUntilVariable.0;
         let paramsUntil: crate::value::Dict = untilparamsUntilVariable.1;
-        if (until.is_some()) {
-            request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert milliseconds to seconds
+        let mut windowLimit: Option<i64> = Some(100);
+        if (limit.is_some()) {
+            windowLimit = self.parse_to_int(crate::runtime::Math::min(&Value::from(limit), &Value::Int(2000)));
         }
-        let defaultLimit: i64 = 100;
-        let windowLimit: Option<i64> = (if (limit.is_none()) { Some(defaultLimit) } else { (if let Some(__m0) = limit { Some(i64::min(__m0, 2000)) } else { None }) });
         let mut limitResolved: Option<i64> = None;
         if (limit.is_some()) {
             limitResolved = windowLimit;
         }
         let now: i64 = self.milliseconds();
-        let mut startTime: Option<i64> = since;
-        let mut untilValue: Option<i64> = until;
-        if (startTime.is_none()) {
-            if (untilValue.is_none()) {
-                untilValue = Some(now);
-            }
-            startTime = (if let (Some(__l), Some(__r)) = (untilValue, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None });
+        let windowLength: Option<i64> = (if let Some(__l) = windowLimit { Some(__l * duration) } else { None });
+        let untilResolved: i64 = until.unwrap_or(now);
+        let defaultStart: Option<i64> = (if let Some(__r) = windowLength { Some(untilResolved - __r) } else { None });
+        let mut startSeconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = defaultStart { Some((__l as f64) / 1000.0) } else { None }))); // convert milliseconds to seconds
+        if (since.is_some()) {
+            startSeconds = self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }
-        request.insert("startTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = startTime { Some((__l as f64) / 1000.0) } else { None })))));
-        // set until value
-        if (untilValue.is_none()) {
-            let windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
-            untilValue = (if let Some(__m1) = windowEnd { Some(i64::min(now, __m1)) } else { None });
+        let mut endSeconds: Option<i64> = self.parse_to_int(Value::Float(((untilResolved as f64) / 1000.0)));
+        if (since.is_some()) && (until.is_none()) {
+            let windowEnd: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (since, windowLength) { Some((__m0 + __m1)) } else { None })));
+            let cappedEnd: Option<i64> = (if (windowEnd > Some(now)) { Some(now) } else { windowEnd });
+            endSeconds = self.parse_to_int(Value::from((if let Some(__l) = cappedEnd { Some((__l as f64) / 1000.0) } else { None })));
         }
-        request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = untilValue { Some((__l as f64) / 1000.0) } else { None })))));
+        request.insert("startTime".into(), Value::from(startSeconds));
+        request.insert("endTime".into(), Value::from(endSeconds));
         let price: Option<String> = self.safe_string_k_opt(&paramsUntil, "price", &[]);
         let paramsOmitted: crate::value::Dict = (if (price.is_some()) { self.omit_t(&paramsUntil, Value::Str("price".into()), &[]) } else { paramsUntil });
         if (price.is_some()) {

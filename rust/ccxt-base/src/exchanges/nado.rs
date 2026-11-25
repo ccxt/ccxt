@@ -1602,7 +1602,7 @@ impl Nado {
             });
             let oracleKey: String = format!("{}{}", "oracle_price_", directionSuffix);
             priceRequirement.insert(oracleKey, triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
-            let trigger: Value = Value::Map({
+            let trigger: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1611,7 +1611,7 @@ impl Nado {
 }));
                 m
             });
-            placeOrder.insert("trigger".into(), trigger);
+            placeOrder.insert("trigger".into(), Value::Map(trigger));
         }  else if isStopLossOrder || isTakeProfitOrder {
             let mut oracleSide: String = "".to_string();
             if isBuy {
@@ -1631,7 +1631,7 @@ impl Nado {
             });
             let oracleKey: String = format!("{}{}", "oracle_price_", oracleSide);
             priceRequirement.insert(oracleKey, triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
-            let trigger: Value = Value::Map({
+            let trigger: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1640,7 +1640,7 @@ impl Nado {
 }));
                 m
             });
-            placeOrder.insert("trigger".into(), trigger);
+            placeOrder.insert("trigger".into(), Value::Map(trigger));
         }
         let mut rawAppendix: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "appendix", &[]);
         if (rawAppendix.is_none()) {

@@ -3268,7 +3268,7 @@ impl Extended {
             return self.safe_string_k_opt(&currency, "code", &[]);
         }
         let currenciesByNumericId: crate::value::Dict = self.safe_dict_k_t(&self.options, "currenciesByNumericId");
-        let currencyByNumericId: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, Value::from(assetId));
+        let currencyByNumericId: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = currenciesByNumericId.get(assetId.unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (currencyByNumericId.is_some()) {
             return self.safe_string_k_opt(&currencyByNumericId, "code", &[]);
         }

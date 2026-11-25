@@ -2017,7 +2017,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  */
     pub fn sign_orderbook_typed_data(&self, mut types: Value, mut message: Value, networkId: &str) -> Option<String> {
         let chains: crate::value::Dict = self.safe_dict_k_t(&self.options, "chains");
-        let chainConfig: crate::value::Dict = self.safe_dict_t(&chains, Value::from(networkId));
+        let chainConfig: crate::value::Dict = (if let Some(Value::Dict(__m)) = chains.get(networkId) { std::sync::Arc::clone(__m) } else { Default::default() });
         let exchangeAddress: Option<String> = self.safe_string_k_opt(&chainConfig, "obExchangeAddress", &[]);
         if (exchangeAddress.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " order book trading is not configured for network ").into()), Value::from(networkId))));

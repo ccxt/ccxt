@@ -178,8 +178,8 @@ impl Poloniex {
     }
 
     /// Auto-generated wrapper for the `privateGetWalletsAddresses` implicit endpoint.
-    pub async fn private_get_wallets_addresses(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallets_addresses".into()), optional_args).await
+    pub async fn private_get_wallets_addresses(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_wallets_addresses", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletsAddressesCurrency` implicit endpoint.

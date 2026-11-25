@@ -1419,13 +1419,17 @@ impl Phemex {
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < tradesLength } {
             let rawTrade: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let marketId: Option<String> = self.safe_string_k_opt(&rawTrade, "symbol", &[]);
-            let mut market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
+            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let parsed: crate::value::Dict = self.parse_trade(rawTrade, None);
             cachedTrades.append(Value::from(&parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (type_var.is_none()) {
                 let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
-                type_var = (if (marketSettle.as_deref() == Some("USDT")) { Some("perpetual".to_string()) } else { market.raw.at("type").as_str().map(str::to_owned) });
+                if (marketSettle.as_deref() == Some("USDT")) {
+                    type_var = Some("perpetual".to_string());
+                }  else {
+                    type_var = self.safe_string_k_opt(&market, "type", &[]);
+                }
             }
             if (symbol.is_some()) {
                 marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1739,7 +1743,11 @@ impl Phemex {
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (type_var.is_none()) {
                 let isUsdt: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-                type_var = (if isUsdt { Some("perpetual".to_string()) } else { Some((market).market_type.clone()) });
+                if isUsdt {
+                    type_var = Some("perpetual".to_string());
+                }  else {
+                    type_var = Some((market).market_type.clone());
+                }
             }
             marketIds.insert(symbol, Value::Bool(true));
         }

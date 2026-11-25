@@ -1081,10 +1081,9 @@ impl crate::exchange::DerivedExchange for Gate {
         let rawTimestampLength: i64 = (rawTimestamp.chars().count() as i64);
         let mut timestamp: Option<i64> = None;
         if rawTimestampLength > 10 {
-            timestamp = rawTimestamp.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null).as_i64();
+            timestamp = self.safe_integer_k(item, "time", &[]).as_i64();
         }  else {
-            timestamp = (match (&(rawTimestamp.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
+            timestamp = self.safe_timestamp_k(item, "time", &[]).as_i64();
         }
         let balanceString: Option<String> = self.safe_string_k_opt(item, "balance", &[]);
         let changeString: Option<String> = self.safe_string_k_opt(item, "change", &[]);
@@ -5992,8 +5991,8 @@ if _try_result.is_err() {
 }
 
     pub fn get_settlement_currencies(&self, type_var: Option<&str>, method: Option<&str>) -> Value {
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(type_var)); // [ 'BTC', 'USDT' ] unified codes
-        let fetchMarketsContractOptions: crate::value::Dict = self.safe_dict_t(&options, Value::from(method));
+        let options: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(type_var.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() }); // [ 'BTC', 'USDT' ] unified codes
+        let fetchMarketsContractOptions: crate::value::Dict = (if let Some(Value::Dict(__m)) = options.get(method.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let defaultSettle: Value = (if (type_var == Some("swap")) { Value::from(vec![Value::Str("usdt".into())]) } else { Value::from(vec![Value::Str("btc".into())]) });
         return self.safe_list_k(&fetchMarketsContractOptions, "settlementCurrencies", &[defaultSettle]);
 
@@ -9243,7 +9242,7 @@ if _try_result.is_err() {
     pub async fn cancel_orders_for_symbols(&mut self, orders: Vec<crate::types::CancellationRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let orders = __it.next().unwrap_or_default();
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(std::sync::Arc::new(__it.next().unwrap_or_default().as_array().cloned().unwrap_or_default()));
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -9260,7 +9259,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(market).spot {
@@ -9384,10 +9383,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9426,7 +9422,7 @@ if _try_result.is_err() {
             request.insert("settle".into(), crate::value::KeyRead::key_read(&&currency, "id")); // todo: currencies have network-junctions
         }
         let isMarginTransfer: bool = (fromId.as_str() == Some("margin")) || (toId.as_str() == Some("margin"));
-        let mut query: crate::value::Dict = params.into_dict();
+        let mut query: crate::value::Dict = params;
         if isMarginTransfer {
             query = self.omit_t(&query, Value::Str("symbol".into()), &[]);
         }

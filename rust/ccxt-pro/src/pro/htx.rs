@@ -3597,21 +3597,18 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let isLinear: bool = subtype == Some("linear");
         let isV5: bool = self.safe_bool_k_opt(subscriptionParams, "isV5", &[Value::Bool(false)]).unwrap_or(false);
         let url: Option<String> = self.get_url_by_market_type(Value::from(type_var), &[&Value::Bool(isLinear), &Value::Bool(true), &Value::Bool(false), &Value::Bool(isV5)]);
-        let hostnames: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.urls, "hostnames", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
-        let mut hostname: Value = Value::Null;
+        let hostnames: crate::value::Dict = self.safe_dict_k_t(&self.urls, "hostnames");
+        let mut hostname: Option<String> = None;
         if (type_var == Some("spot")) {
-            hostname = hostnames.get("spot").cloned().unwrap_or(Value::Null);
+            hostname = self.safe_string_k_opt(&hostnames, "spot", &[]);
         }  else {
-            hostname = hostnames.get("contract").cloned().unwrap_or(Value::Null);
+            hostname = self.safe_string_k_opt(&hostnames, "contract", &[]);
         }
         let authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(type_var));
                 m.insert("url".to_string(), Value::from(url.as_deref()));
-                m.insert("hostname".to_string(), hostname);
+                m.insert("hostname".to_string(), hostname.map(Value::from).unwrap_or(Value::Null));
             m
         });
         self.authenticate(&[&Value::Map(authParams)]).await;

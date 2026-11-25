@@ -2999,7 +2999,7 @@ impl Derive {
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
+        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }
@@ -5018,15 +5018,15 @@ impl Derive {
                 while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (collaterals.len() as i64) } {
                 let balance: crate::value::Dict = collaterals.get(j as usize).cloned().unwrap_or_default();
                 let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]).as_str(), None);
-                let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
-                if (account == Value::Null) {
-                    account = Value::Dict(self.account());
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "amount", &[])); }
+                let mut account: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = result.get(code.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
+                if (account.is_none()) {
+                    account = Value::Dict(self.account()).into_opt_dict();
+                    if let Some(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "amount", &[])); }
                 }  else {
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(&account, "total", &[]), &self.safe_string_k(&balance, "amount", &[])); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(&account, "total", &[]), &self.safe_string_k(&balance, "amount", &[])); if let Some(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); }; }
                 }
                 if (code.is_some()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), account);
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.map_or(Value::Null, Value::Dict));
                 }
             }
             }

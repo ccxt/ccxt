@@ -1791,7 +1791,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value);
             }
-            result.insert(key.as_deref().unwrap_or("null").to_string(), value.clone());
+            result.insert(key.as_deref().unwrap_or("null").to_string(), value);
         }
         }
         return Value::Map(result);

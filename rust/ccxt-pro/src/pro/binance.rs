@@ -1067,7 +1067,7 @@ impl Binance {
     m
 }), &[&paramsValue]);
         self.authenticate(&[&__ws_arg_2]).await;
-        let optionsType: crate::value::Dict = self.safe_dict_t(&self.options, &type_var);
+        let optionsType: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(type_var.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let listenKey: Option<String> = self.safe_string_k_opt(&optionsType, "listenKey", &[]);
         let url: Option<String> = self.get_private_ws_url(type_var.as_deref(), listenKey.as_deref());
         let newLiquidations: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), Value::Null, Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
@@ -4038,7 +4038,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(marketType));
+        let options: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(marketType) { std::sync::Arc::clone(__m) } else { Default::default() });
         let lastAuthenticatedTime: i64 = self.safe_integer_k(&options, "lastAuthenticatedTime", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let listenTokenRefreshRate: i64 = self.safe_integer_k(&self.options, "listenTokenRefreshRate", &[Value::Int(82800000)]).as_i64().unwrap_or(82800000); // 23 hours default
         let time: i64 = self.milliseconds();

@@ -3563,7 +3563,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), Value::from(limit));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let response: Value = self.public_get_funding_rate_history(&[&__ws_arg_20]).await;
+        let response: crate::value::Dict = self.public_get_funding_rate_history(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         // {
         //   "success": true,
@@ -3582,7 +3582,7 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let data: Vec<Value> = self.add_pagination_cursor_to_result(response).to_vec();
+        let data: Vec<Value> = self.add_pagination_cursor_to_result(&response).to_vec();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

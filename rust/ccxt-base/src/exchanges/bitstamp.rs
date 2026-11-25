@@ -3421,10 +3421,7 @@ impl Bitstamp {
         let tradingFeesByMarketId: crate::value::Dict = self.index_by(response, Value::Str("currency_pair".into()));
         let mut tradingFee: Option<crate::value::Dict> = self.safe_dict_o(&tradingFeesByMarketId, Value::from((market).id.as_deref()));
         if (tradingFee.is_none()) {
-            tradingFee = Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}).into_opt_dict();
+            tradingFee = Some(crate::value::Dict::default());
         }
         return Value::Dict(self.parse_trading_fee(&tradingFee, Some(&market)));
         Value::Null
@@ -3598,8 +3595,8 @@ impl Bitstamp {
         //         ...
         //     ]
         //
-        let responseByCurrencyId: Value = Value::Dict(self.group_by(response, Value::Str("currency".into()), &[]));
-        return self.parse_deposit_withdraw_fees(responseByCurrencyId, &[Value::from(codes)]);
+        let responseByCurrencyId: crate::value::Dict = self.group_by(response, Value::Str("currency".into()), &[]);
+        return self.parse_deposit_withdraw_fees(&responseByCurrencyId, &[Value::from(codes)]);
         Value::Null
         }).await?))
     }

@@ -1577,11 +1577,11 @@ impl Latoken {
             let mut bindings: Option<crate::value::List> = self.safe_list_k_o(&bindingEntry, "bindings");
             let mut mergedCurrency: Option<crate::value::Dict> = rawCurrency.clone();
             if (bindings.is_some()) {
-                mergedCurrency = self.extend(rawCurrency, &[Value::Map({
+                mergedCurrency = Some(self.extend_t(rawCurrency, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("bindings".to_string(), bindings.map_or(Value::Null, Value::Arr));
     m
-})]).into_opt_dict();
+})]));
             }
             merged.push(mergedCurrency.map_or(Value::Null, Value::Dict));
         }

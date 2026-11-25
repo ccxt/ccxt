@@ -4174,10 +4174,7 @@ impl Polymarket {
         }
         let mut eventForParsing: Option<crate::value::Dict> = self.safe_dict_k_or_o(&response, "event", response.clone().map_or(Value::Null, Value::Dict));
         if (eventForParsing.is_none()) {
-            eventForParsing = Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}).into_opt_dict();
+            eventForParsing = Some(crate::value::Dict::default());
         }
         let __ws_arg_21 = self.extend(Value::Map({
             let m = indexmap::IndexMap::new();

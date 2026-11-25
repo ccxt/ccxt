@@ -2413,16 +2413,17 @@ impl Woofipro {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (tokenRows.len() as i64) } {
             let token: crate::value::Dict = tokenRows.get(i as usize).cloned().unwrap_or_default();
-            let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, Value::Map({
+            let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_token".to_string(), Value::Dict(token));
                     m.insert("_indexedChains".to_string(), Value::from(&indexedChains));
                 m
-            })).map_or(Value::Null, Value::Dict);
-            if (parsed == Value::Null) {
+            })).unwrap_or_default();
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchCurrencies() could not resolve parsed")));
             }
-            result.insert(crate::runtime::stringify_param(&(parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))), parsed);
+            let parsedCode: String = self.safe_string_k(&parsed, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(parsedCode, Value::Dict(parsed));
         }
         }
         return Value::Map(result);
@@ -4002,10 +4003,7 @@ impl Woofipro {
         //
         let mut parsedOrders: Option<crate::value::Dict> = self.safe_dict_k_or_o(&response, "data", response.clone().map_or(Value::Null, Value::Dict));
         if (parsedOrders.is_none()) {
-            parsedOrders = Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}).into_opt_dict();
+            parsedOrders = Some(crate::value::Dict::default());
         }
         let __ws_arg_26 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();

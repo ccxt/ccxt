@@ -1591,8 +1591,8 @@ impl Lighter {
 
     pub fn get_lighter_private_key(&self, strAccountIndex: &str, strApiKeyIndex: &str) -> Value {
         let auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
-        let accountAuths: crate::value::Dict = self.safe_dict_t(&auths, Value::from(strAccountIndex));
-        let apiKeyAuths: crate::value::Dict = self.safe_dict_t(&accountAuths, Value::from(strApiKeyIndex));
+        let accountAuths: crate::value::Dict = (if let Some(Value::Dict(__m)) = auths.get(strAccountIndex) { std::sync::Arc::clone(__m) } else { Default::default() });
+        let apiKeyAuths: crate::value::Dict = (if let Some(Value::Dict(__m)) = accountAuths.get(strApiKeyIndex) { std::sync::Arc::clone(__m) } else { Default::default() });
         return self.safe_string_k(&apiKeyAuths, "lighterPrivateKey", &[]);
 
     Value::Null

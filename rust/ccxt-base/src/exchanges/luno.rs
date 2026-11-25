@@ -2166,7 +2166,7 @@ impl Luno {
             }
             currency = Some(self.currency(code.as_str()));
             let accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
-            let account: Option<crate::value::Dict> = self.safe_dict_o(&accountsByCurrencyCode, &code);
+            let account: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = accountsByCurrencyCode.get(code.as_str().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (account.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchLedger() could not find account id for ").into()), code)));
             }

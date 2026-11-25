@@ -1355,24 +1355,7 @@ impl crate::exchange::DerivedExchange for Okx {
     None
 }
     fn parse_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let mut interest: Value = interest.into();
-        //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
+        let interest: Value = interest.into();
         //
         // fetchOpenInterest
         //
@@ -1387,38 +1370,14 @@ impl crate::exchange::DerivedExchange for Okx {
         //
         let id: Option<String> = self.safe_string_k_opt(&interest, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(id.as_deref(), market, &[]);
-        let time: Option<i64> = self.safe_integer_k(&interest, "ts", &[]).as_i64();
-        let timestamp: Option<i64> = self.safe_integer(&interest, Value::Int(0), &[Value::from(time)]).as_i64();
-        let mut baseVolume: Option<f64> = None;
-        let mut quoteVolume: Option<f64> = None;
-        let mut openInterestAmount: Option<f64> = None;
-        let mut openInterestValue: Option<f64> = None;
-        let type_var: Option<String> = self.safe_string_k_opt(&self.options, "defaultType", &[]);
-        if (matches!(&interest, Value::Arr(_))) {
-            let numFields: i64 = interest.len() as i64;
-            if numFields > 3 {
-                openInterestAmount = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
-                baseVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
-                openInterestValue = self.safe_number(&interest, Value::Int(3), &[]).as_f64();
-            }  else if (type_var.as_deref() == Some("option")) {
-                openInterestAmount = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
-                baseVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
-            }  else {
-                openInterestValue = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
-                quoteVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
-            }
-        }  else {
-            baseVolume = self.safe_number_k(&interest, "oiCcy", &[]).as_f64();
-            openInterestAmount = self.safe_number_k(&interest, "oi", &[]).as_f64();
-            openInterestValue = self.safe_number_k(&interest, "oiUsd", &[]).as_f64();
-        }
+        let timestamp: Option<i64> = self.safe_integer_k(&interest, "ts", &[]).as_i64();
         return Some(self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(id.as_deref(), None, &[]));
-        m.insert("baseVolume".to_string(), Value::from(baseVolume));
-        m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
-        m.insert("openInterestAmount".to_string(), Value::from(openInterestAmount));
-        m.insert("openInterestValue".to_string(), Value::from(openInterestValue));
+        m.insert("baseVolume".to_string(), self.safe_number_k(&interest, "oiCcy", &[]));
+        m.insert("quoteVolume".to_string(), Value::Null);
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(&interest, "oi", &[]));
+        m.insert("openInterestValue".to_string(), self.safe_number_k(&interest, "oiUsd", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
@@ -2166,6 +2125,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_open_interest_row" => Value::Dict(self.parse_open_interest_row(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_option" => Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -8129,7 +8089,7 @@ impl Okx {
     pub async fn cancel_orders_for_symbols(&mut self, orders: Vec<crate::types::CancellationRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let orders = __it.next().unwrap_or_default();
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(std::sync::Arc::new(__it.next().unwrap_or_default().as_array().cloned().unwrap_or_default()));
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -8154,7 +8114,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             let clientOrderId: Option<String> = self.safe_string2_opt(&order, Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -11778,7 +11738,15 @@ impl Okx {
             //    }
             //
             let instrumentData: crate::value::List = self.safe_list_k_t(&response, "data");
-            return self.parse_open_interests_history(&instrumentData, market.as_ref(), &[Value::from(since), Value::from(limit)]);
+            let mut instrumentInterests: Vec<Value> = Vec::new();
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_28: bool = true;
+                while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (instrumentData.len() as i64) } {
+                instrumentInterests.push(Value::Dict(self.parse_open_interest_row(self.safe_list(&instrumentData, Value::Int(i), &[Value::from(vec![])]), market.as_ref())));
+            }
+            }
+            return Value::Arr(self.filter_by_symbol_since_limit(self.sort_by(Value::from(instrumentInterests), Value::Str("timestamp".into()), &[]), (self.safe_string_k(&market, "symbol", &[])).as_str(), since, limit, &[]));
         }
         if (type_var.as_deref() == Some("option")) {
             let __ws_arg_82 = self.extend(&request, &[&paramsMarketType]);
@@ -11810,10 +11778,72 @@ impl Okx {
         //    }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_open_interests_history(&data, None, &[Value::from(since), Value::from(limit)]);
+        let mut interests: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (data.len() as i64) } {
+            interests.push(Value::Dict(self.parse_open_interest_row(self.safe_list(&data, Value::Int(i), &[Value::from(vec![])]), None)));
+        }
+        }
+        return Value::Arr(self.filter_by_symbol_since_limit(self.sort_by(Value::from(interests), Value::Str("timestamp".into()), &[]), None, since, limit, &[]));
         Value::Null
         }).await?))
     }
+
+    pub fn parse_open_interest_row(&self, mut interest: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
+        let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
+        let timestamp: Option<i64> = self.safe_integer(&interest, Value::Int(0), &[]).as_i64();
+        let mut baseVolume: Option<f64> = None;
+        let mut quoteVolume: Option<f64> = None;
+        let mut openInterestAmount: Option<f64> = None;
+        let mut openInterestValue: Option<f64> = None;
+        let type_var: Option<String> = self.safe_string_k_opt(&self.options, "defaultType", &[]);
+        let numFields: i64 = interest.len() as i64;
+        if numFields > 3 {
+            openInterestAmount = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
+            baseVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
+            openInterestValue = self.safe_number(&interest, Value::Int(3), &[]).as_f64();
+        }  else if (type_var.as_deref() == Some("option")) {
+            openInterestAmount = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
+            baseVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
+        }  else {
+            openInterestValue = self.safe_number(&interest, Value::Int(1), &[]).as_f64();
+            quoteVolume = self.safe_number(&interest, Value::Int(2), &[]).as_f64();
+        }
+        return self.safe_open_interest(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), self.safe_symbol(None, None, &[]));
+        m.insert("baseVolume".to_string(), Value::from(baseVolume));
+        m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
+        m.insert("openInterestAmount".to_string(), Value::from(openInterestAmount));
+        m.insert("openInterestValue".to_string(), Value::from(openInterestValue));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("info".to_string(), interest);
+    m
+}), Some(&marketResolved));
+
+    Default::default()
+}
 
 /*
  * @ignore
@@ -12011,8 +12041,8 @@ impl Okx {
         let codesValue: Option<crate::value::List> = self.market_codes(&[codes]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let feeInfo: Value = get_value(&response, &Value::Int(i));
             let currencyId: Option<String> = self.safe_string_k_opt(&feeInfo, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
@@ -12077,8 +12107,8 @@ impl Okx {
         let depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (depositWithdrawCodes.len() as i64) } {
+            let mut __for_first_31: bool = true;
+            while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (depositWithdrawCodes.len() as i64) } {
             let code: Option<&str> = depositWithdrawCodes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             { let __be_tmp = Value::Dict(self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))])); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
@@ -12220,8 +12250,8 @@ impl Okx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_30: bool = true;
-            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (data.len() as i64) } {
+            let mut __for_first_32: bool = true;
+            while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (data.len() as i64) } {
             let __ws_arg_88 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -12286,15 +12316,15 @@ impl Okx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_32: bool = true;
-            while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_34: bool = true;
+            while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (settlements.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&settlements, Value::Int(i));
             let timestamp: Option<i64> = self.safe_integer_k(&entry, "ts", &[]).as_i64();
             let details: crate::value::List = self.safe_list_k_t(&entry, "details");
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_31: bool = true;
-                while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (details.len() as i64) } {
+                let mut __for_first_33: bool = true;
+                while { if !__for_first_33 { j += 1; } __for_first_33 = false; j < (details.len() as i64) } {
                 let __ws_arg_89 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -12435,8 +12465,8 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_33: bool = true;
-            while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (data.len() as i64) } {
+            let mut __for_first_35: bool = true;
+            while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "instId", &[]);
             if (entryMarketId.as_deref() == Some(marketId.as_str())) {
@@ -13101,8 +13131,8 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_34: bool = true;
-            while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (data.len() as i64) } {
+            let mut __for_first_36: bool = true;
+            while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&entry, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
@@ -13183,8 +13213,8 @@ impl Okx {
             let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_35: bool = true;
-                while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (data.len() as i64) } {
+                let mut __for_first_37: bool = true;
+                while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (data.len() as i64) } {
                 let error: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                 let errorCode: Option<String> = self.safe_string_k_opt(&error, "sCode", &[]);
                 let message: Option<String> = self.safe_string_k_opt(&error, "sMsg", &[]);
@@ -13478,8 +13508,8 @@ impl Okx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_36: bool = true;
-            while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (data.len() as i64) } {
+            let mut __for_first_38: bool = true;
+            while { if !__for_first_38 { i += 1; } __for_first_38 = false; i < (data.len() as i64) } {
             let entry: crate::value::List = self.safe_list_t(&data, Value::Int(i));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

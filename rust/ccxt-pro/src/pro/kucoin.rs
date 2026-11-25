@@ -2498,9 +2498,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>, mut subscription: Value) {
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
-        let mut symbols: Option<crate::value::List> = self.safe_list_k_o(&subscription, "symbols");
+        let symbols: Option<crate::value::List> = self.safe_string_list(subscription, Value::from(vec![Value::Str("symbols".into()), Value::Str("symbol".into())]));
         if (symbols.is_none()) {
-            symbols = Some(std::sync::Arc::new(vec![self.safe_string_k(subscription, "symbol", &[])]));
+            return;
         }
         let mut limits: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "orderBookLimits", &[Value::Map({
             let m = indexmap::IndexMap::new();
@@ -2510,8 +2510,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let symbol: Value = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let storedLimit: Option<i64> = self.safe_integer(&limits, &symbol, &[]).as_i64();
+            let symbol: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let storedLimit: Option<i64> = self.safe_integer(&limits, Value::from(symbol.as_deref()), &[]).as_i64();
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
             if !(self.orderbooks.has(&symbol)) || (storedLimit != limit) {
                 { let __cv = self.order_book(&[Value::Map({
@@ -2523,7 +2523,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 orderbook.set_book_meta("nonce", Value::Null);
                 orderbook.set_book_meta("cache", Value::from(vec![]));
             }
-            limits.insert(crate::runtime::stringify_param(&symbol), Value::from(limit));
+            limits.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(limit));
         }
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("orderBookLimits".into(), Value::Map(limits)); }

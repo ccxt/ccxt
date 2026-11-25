@@ -4077,8 +4077,8 @@ impl Blofin {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let response: crate::value::Dict = self.private_get_asset_currencies(&[&params]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let dataByCurrencyId: Value = Value::Dict(self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]));
-        return self.parse_deposit_withdraw_fees(dataByCurrencyId, &[Value::from(codes)]);
+        let dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
+        return self.parse_deposit_withdraw_fees(&dataByCurrencyId, &[Value::from(codes)]);
         Value::Null
         }).await?))
     }
@@ -4202,8 +4202,11 @@ impl Blofin {
             }
         }
         }
-        let reference: Option<String> = (if hasId { Some(withdrawId) } else { clientId });
-        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchWithdrawal() could not find withdrawal ").into()), reference.as_deref().unwrap_or("null"))));
+        let mut reference: String = withdrawId;
+        if !hasId {
+            reference = self.safe_string_k(&params, "clientId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        }
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchWithdrawal() could not find withdrawal ").into()), reference)));
         Value::Null
         }).await?))
     }

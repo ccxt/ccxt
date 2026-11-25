@@ -1605,7 +1605,7 @@ impl Revolutx {
                 limitConfig.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
             if (executionInstructions != Value::Null) {
-                limitConfig.insert("execution_instructions".into(), executionInstructions.clone());
+                limitConfig.insert("execution_instructions".into(), executionInstructions);
             }
             orderConfiguration.insert("limit".into(), Value::Map(limitConfig));
         }  else if (type_var.as_str() == Some("market")) {

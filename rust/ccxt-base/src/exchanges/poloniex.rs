@@ -4424,18 +4424,18 @@ impl Poloniex {
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let networkEntry: crate::value::Dict = self.safe_dict_k_t(&prepared, "networkEntry");
         let __ws_arg_37 = self.extend(request, &[&paramsValue]);
-        let response: Value = self.private_get_wallets_addresses(&[&__ws_arg_37]).await;
+        let response: crate::value::Dict = self.private_get_wallets_addresses(&[&__ws_arg_37]).await.unwrap_or_default();
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let length: i64 = keys.len() as i64;
         if length < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")));
         }
-        return self.parse_deposit_address_special(response, crate::Value::from(Some(&currency)), &networkEntry);
+        return self.parse_deposit_address_special(&response, crate::Value::from(Some(&currency)), &networkEntry);
         Value::Null
         }).await?))
     }

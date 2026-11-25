@@ -404,7 +404,9 @@ impl crate::exchange::DerivedExchange for Kraken {
             side = descriptionSide.take();
         }
         let rawType: Option<String> = self.safe_string_k_opt(&description, "ordertype", &[&descriptionType]); // orderType has dash, e.g. trailing-stop
-        marketId = self.safe_string_k_opt(&description, "pair", &[&marketId]);
+        if (self.safe_string_k(&description, "pair", &[]) != Value::Null) {
+            marketId = self.safe_string_k_opt(&description, "pair", &[]);
+        }
         let marketResolved: Value = self.resolve_market_by_altname_or_id(marketId.as_deref(), &[&crate::Value::from(market)]);
         let mut symbol: Option<String> = None;
         let timestamp: Option<i64> = self.safe_timestamp_k(&orderOmitted, "opentm", &[]).as_i64();
@@ -3549,10 +3551,7 @@ impl Kraken {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3563,7 +3562,7 @@ impl Kraken {
                 m.insert("txid".to_string(), id.clone());
             m
         });
-        let mut query: crate::value::Dict = params.into_dict();
+        let mut query: crate::value::Dict = params;
         if (clientOrderId != Value::Null) {
             request.insert("userref".into(), clientOrderId);
             query = self.omit_t(&query, &["userref", "clientOrderId"], &[]);

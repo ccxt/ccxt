@@ -2410,10 +2410,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2432,7 +2429,7 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("network".into()), &[]);
         }
@@ -2471,10 +2468,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2493,7 +2487,7 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("network".into()), &[]);
         }

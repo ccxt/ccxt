@@ -1262,7 +1262,7 @@ impl Bingx {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets.")));
         }
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, &marketType);
+        let options: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(marketType.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&options, "timeframes");
         let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[&timeframe]);
         let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from((market).symbol.clone()), &timeframe]);

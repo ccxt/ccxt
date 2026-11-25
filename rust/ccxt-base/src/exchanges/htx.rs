@@ -9850,7 +9850,7 @@ impl Htx {
             if (clientOrderIds == Value::Null) {
                 request.insert("order-ids".into(), ids);
             }  else {
-                request.insert("client-order-ids".into(), clientOrderIds.clone());
+                request.insert("client-order-ids".into(), clientOrderIds);
                 query = self.omit_t(Value::Dict(query), &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
             }
             let __ws_arg_94 = self.extend(&request, &[&query]);
@@ -11053,20 +11053,21 @@ impl Htx {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchFundingRateHistory() supports inverse and linear swaps only")));
         }
-        let data: Value = self.safe_value_k(&response, "data", &[]);
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut rates: Vec<Value> = Vec::new();
         if ((market).linear == Some(true)) {
+            let linearRates: crate::value::List = self.safe_list_k_t(&response, "data");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_21: bool = true;
-                while { if !__for_first_21 { i += 1; } __for_first_21 = false; (i as f64) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let entry: Value = get_value(&data, &Value::Int(i));
+                while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (linearRates.len() as i64) } {
+                let entry: Option<crate::value::Dict> = (match linearRates.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
                 let marketId: Option<String> = self.safe_string_k_opt(&entry, "contract_code", &[]);
                 let symbolInner: Value = self.safe_symbol(marketId.as_deref(), Some(&market), &[]);
                 let timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_time", &[]).as_i64();
                 rates.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), entry.clone());
+                        m.insert("info".to_string(), entry.clone().map_or(Value::Null, Value::Dict));
                         m.insert("symbol".to_string(), symbolInner);
                         m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));

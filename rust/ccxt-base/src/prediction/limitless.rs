@@ -3921,7 +3921,7 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let positions: crate::value::Dict = self.safe_dict_k_t(&entry, "positions");
-        let position: crate::value::Dict = self.safe_dict_t(&positions, Value::from(label));
+        let position: crate::value::Dict = (if let Some(Value::Dict(__m)) = positions.get(label.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let rawMarket: crate::value::Dict = self.safe_dict_k_t(&entry, "market");
         let slug: Option<String> = self.safe_string_k_opt(&rawMarket, "slug", &[]);
         let outcomeObj: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), label, None);

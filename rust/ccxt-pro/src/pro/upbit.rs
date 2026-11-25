@@ -168,9 +168,11 @@ impl Upbit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsRequested: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbolsRequested]);
-        let marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
+        let mut symbolsNormalized: Value = Value::Arr(self.symbols.clone());
+        if (symbols != Value::Null) {
+            symbolsNormalized = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
+        }
+        let marketIds: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_array());
         let url: String = self.implode_params(self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
@@ -189,7 +191,7 @@ impl Upbit {
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsNormalized.len() as i64) } {
             let marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), symbol).into());

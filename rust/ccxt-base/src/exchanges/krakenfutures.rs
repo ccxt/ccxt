@@ -4333,9 +4333,9 @@ impl Krakenfutures {
                 type_var = symbol.clone();
             }
         }
-        let accountName: Value = self.parse_kraken_account_name(type_var.as_deref().unwrap_or_default());
+        let accountName: Option<String> = self.parse_kraken_account_name(type_var.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
         let accounts: crate::value::Dict = self.safe_dict_k_t(&response, "accounts");
-        let account: Option<crate::value::Dict> = self.safe_dict_o(&accounts, accountName);
+        let account: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = accounts.get(accountName.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (account.is_none()) {
             if (type_var.is_none()) {
                 type_var = Some("".to_string());
@@ -4738,7 +4738,8 @@ impl Krakenfutures {
             m
         });
         if (matches!((&accountByType, &Value::from(account)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return (if let (Some(__m), Some(__k)) = (accountByType.as_map(), Some(account)) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let accountName: String = self.safe_string(&accountByType, Value::from(account), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            return Value::from(accountName);
         }  else if (self.markets.is_some()) && (matches!((&self.markets, &Value::from(account)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut market: crate::types::Market = (match self.market(account) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

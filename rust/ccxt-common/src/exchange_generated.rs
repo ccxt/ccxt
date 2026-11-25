@@ -982,16 +982,14 @@ pub trait ExchangeBase:
                     }
                 }
                 if fromStart.as_bool() == Some(true) {
-                    let limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > (arrayLength as f64)) { Value::from(arrayLength) } else { limit.clone() });
                     if ascending {
+                        let limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > (arrayLength as f64)) { Value::from(arrayLength) } else { limit.clone() });
                         return self.array_slice(&array, Value::Int(0), &[limitResolved]);
                     }
-                    return self.array_slice(&array, (match &(limitResolved) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
+                }  else if !ascending {
+                    return self.array_slice(&array, Value::Int(0), &[limit]);
                 }
-                if ascending {
-                    return self.array_slice(&array, (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
-                }
-                return self.array_slice(&array, Value::Int(0), &[limit]);
+                return self.array_slice(&array, (match &(limit) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
             }
         }
         return array.into_list();
@@ -4414,7 +4412,7 @@ pub trait ExchangeBase:
                 let splitted_by_end: Vec<Value> = split(&content, &endRegex).as_array().cloned().unwrap_or_default();
                 content = splitted_by_end.get(0).cloned().unwrap_or(Value::Null); // we need first part after start
             }
-            if ((match &(returnAsJson) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (matches!(&content, Value::Str(_))) {
+            if (returnAsJson.as_bool() == Some(true)) && (matches!(&content, Value::Str(_))) {
                 let jsoned: Value = self.parse_json_value(content.as_str().map(|__s| Value::Str(__s.trim().to_string().into())).unwrap_or(Value::Null)); // content should be trimmed before json parsing
                 if (jsoned != Value::Null) && (jsoned != Value::Null) {
                     return jsoned;
@@ -5405,7 +5403,7 @@ pub trait ExchangeBase:
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
+        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }

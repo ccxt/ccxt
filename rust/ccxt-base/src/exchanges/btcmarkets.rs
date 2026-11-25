@@ -1527,10 +1527,7 @@ impl Btcmarkets {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1584,7 +1581,7 @@ impl Btcmarkets {
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsTriggerPrice: crate::value::Dict = params.into_dict();
+        let mut paramsTriggerPrice: crate::value::Dict = params;
         if triggerPriceIsRequired {
             paramsTriggerPrice = self.omit_t(&paramsTriggerPrice, Value::Str("triggerPrice".into()), &[]);
         }

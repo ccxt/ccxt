@@ -2313,7 +2313,7 @@ impl Deribit {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let defaultCode: String = self.safe_string_k(&self.options, "code", &[Value::Str("BTC".into())]).as_str().unwrap_or("BTC").to_string();
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from(methodName));
+        let options: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(methodName.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let code: Option<String> = self.safe_string_k_opt(&options, "code", &[&defaultCode]);
         return (match params.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => code.map(Value::from).unwrap_or(Value::Null) }).as_str().map(str::to_owned);
 }

@@ -152,7 +152,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if (matches!((&params, &scopeKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return Value::Null;
             }
-            extraNames = format!("{}{}", Value::Str(format!("{}{}", extraNames, ", ").into()), scopeKey);
+            extraNames = format!("{}{}", Value::Str(format!("{}{}", extraNames, ", ").into()), self.safe_string(&extraScopeParams, Value::Int(i), &[Value::Str("".into())]));
         }
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug").into()), extraNames).into()), " to scope the search")));
@@ -2360,7 +2360,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
         }
-        results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]).into_list();
+        results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
         return self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]);
 }
