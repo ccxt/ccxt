@@ -26919,6 +26919,7 @@ export function installJavaR92j2StringSlotLocals (transpiler) {
 function j92j7ReadAsList (printer, call) {
     const declaration = call.parent;
     if (h30j07FeedsObjectListSink (printer, call)) return true;
+    if (h50j36FeedsBaseObjectSink (printer, call)) return true;
     if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
         return false;
     }
@@ -26944,6 +26945,7 @@ function j92j7ReadAsList (printer, call) {
 // the declaration whose initializer is `call` has a use of its own binding handed to a Map-typed core parameter
 function j92j7FeedsMapSlot (printer, call) {
     const declaration = call.parent;
+    if (h50j36FeedsBaseObjectSink (printer, call)) return true;
     if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
         return false;
     }
@@ -30438,3 +30440,41 @@ export function installJavaBaseMapReturnSites (transpiler) {
     };
 }
 // ===== end base Map return sites
+
+// ===== h50-J36
+// base sinks whose Java parameter 0 is `Object` (indexBy is a field alias, so it never resolves to a method)
+const H50J36_OBJECT_SINKS = new Set ([ 'indexBy', 'filterByArrayTickers' ]);
+// a const result local whose every use is argument 0 of such a sink: the typed value reaches an Object slot unchanged
+function h50j36FeedsBaseObjectSink (printer, call) {
+    const declaration = call.parent;
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer !== call
+        || !ts.isIdentifier (declaration.name) || !ts.isVariableDeclarationList (declaration.parent)
+        || (declaration.parent.flags & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    try {
+        const checker = printer.getChecker ();
+        const symbol = checker.getSymbolAtLocation (declaration.name);
+        const scope = enclosingFunction (declaration);
+        let uses = 0;
+        for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.text) ?? [])) {
+            if (n === declaration.name || checker.getSymbolAtLocation (n) !== symbol) {
+                continue;
+            }
+            const parent = n.parent;
+            if (parent === undefined || !ts.isCallExpression (parent) || parent.arguments[0] !== n || !isThisCall (parent)
+                || !H50J36_OBJECT_SINKS.has (parent.expression.name.text)) {
+                return false;
+            }
+            const member = checker.getSymbolAtLocation (parent.expression)?.valueDeclaration?.resolve ();
+            if (member === undefined || !BASE_SOURCE_FILE.test (member.getSourceFile ().fileName) || javaRedeclaredByDescendant (member)) {
+                return false;
+            }
+            uses++;
+        }
+        return uses > 0;
+    } catch (e) {
+        return false;
+    }
+}
+// ===== end h50-J36
