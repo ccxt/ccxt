@@ -1052,15 +1052,13 @@ class gemini extends \ccxt\async\gemini {
         // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
-        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
-        $originalHeaders = $this->safe_dict($wsSubOptions, 'headers', array());
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
             'X-GEMINI-PAYLOAD' => $b64,
             'X-GEMINI-SIGNATURE' => $signature,
         );
-        $this->options['ws']['options']['headers'] = $headers;
+        $this->options['ws'] = $this->extend($wsOptions, array( 'options' => $this->extend($this->safe_dict($wsOptions, 'options'), array( 'headers' => $headers )) ));
         $this->client($url);
-        $this->options['ws']['options']['headers'] = $originalHeaders;
+        $this->options['ws'] = $wsOptions;
     }
 }

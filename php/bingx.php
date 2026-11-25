@@ -1923,7 +1923,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",

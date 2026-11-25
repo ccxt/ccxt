@@ -9743,20 +9743,17 @@ class binance extends Exchange {
                 $priceString = Precise::string_div($costString, $amountString);
             }
         }
-        $id = null;
         $amount = $this->parse_number($amountString);
         $price = $this->parse_number($priceString);
         $cost = $this->parse_number($costString);
-        $type = null;
-        $takerOrMaker = null;
         return array(
-            'id' => $id,
+            'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
-            'type' => $type,
-            'takerOrMaker' => $takerOrMaker,
+            'type' => null,
+            'takerOrMaker' => null,
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -11452,7 +11449,7 @@ class binance extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",

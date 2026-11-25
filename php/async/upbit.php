@@ -994,7 +994,6 @@ class upbit extends Exchange {
         //         }
         //
         $id = $this->safe_string_2($trade, 'sequential_id', 'uuid');
-        $orderId = null;
         $timestamp = $this->safe_integer($trade, 'timestamp');
         if ($timestamp === null) {
             $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
@@ -1022,7 +1021,7 @@ class upbit extends Exchange {
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
-            'order' => $orderId,
+            'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],

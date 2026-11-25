@@ -1567,7 +1567,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parsePosition() is not supported yet');
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(array $info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
     }
 
@@ -1940,7 +1940,7 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @return {array} returns feature value
          */
         $market = $this->market($symbol);
-        return $this->feature_value_by_type($market['type'], $market['subType'], $methodName, $paramName, $defaultValue);
+        return $this->feature_value_by_type($this->safe_string($market, 'type', ''), $this->safe_string($market, 'subType'), $methodName, $paramName, $defaultValue);
     }
 
     public function feature_value_by_type(string $marketType, ?string $subType, ?string $methodName = null, ?string $paramName = null, mixed $defaultValue = null) {
@@ -2676,7 +2676,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
         // we have trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry = $trades[$i];
+            $entry = $this->safe_dict($trades, $i);
+            if ($entry === null) {
+                continue;
+            }
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');

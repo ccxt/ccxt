@@ -799,8 +799,9 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         if ($this->safe_bool($market, 'swap', false)) {
-            $responseForSwap = $this->fetch_tickers(array( $market['symbol'] ), $params);
+            $responseForSwap = $this->fetch_tickers(array( $marketSymbol ), $params);
             $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
             return $swapTicker;
         }
@@ -1425,7 +1426,8 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $responseForSwap = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $responseForSwap = $this->fetch_funding_rates(array( $marketSymbol ), $params);
         $fundingRate = $this->safe_dict($responseForSwap, $market['symbol']);
         return $fundingRate;
     }

@@ -3310,17 +3310,17 @@ class bitfinex extends Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches historical funding $rate prices
+         * fetches historical funding rate prices
          *
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] timestamp in ms of the earliest funding $rate entry
-         * @param {int} [$limit] max number of funding $rate entrys to return
+         * @param {int} [$since] timestamp in ms of the earliest funding rate entry
+         * @param {int} [$limit] max number of funding rate entrys to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] timestamp in ms of the latest funding $rate
+         * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$rate-structure funding $rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
@@ -3375,8 +3375,7 @@ class bitfinex extends Exchange {
         $rates = array();
         for ($i = 0; $i < count($rawRatesData); $i++) {
             $fr = $rawRatesData[$i];
-            $rate = $this->parse_funding_rate_history($fr, $market);
-            $rates[] = $rate;
+            $rates[] = $this->parse_funding_rate_history_row($fr, $market);
         }
         $reversedArray = array();
         $rawRates = $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
@@ -3443,7 +3442,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history_row(mixed $contract, ?array $market = null): array {
         //
         // [
         //     1691165494000,

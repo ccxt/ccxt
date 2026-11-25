@@ -4496,7 +4496,7 @@ class whitebit extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_timestamp($info, 'fundingTime');

@@ -883,7 +883,6 @@ class indodax extends Exchange {
             $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
-        $fee = null;
         $id = $this->safe_string($order, 'order_id');
         return $this->safe_order(array(
             'info' => $order,
@@ -905,7 +904,7 @@ class indodax extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => null,
         ));
     }

@@ -131,7 +131,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
                 ),
             );
             $this->extend_exchange_options($defaultOptions);
-            $originalHeaders = $this->options['ws']['options']['headers'];
+            $wsOptions = $this->safe_dict($this->options, 'ws', array());
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             $userAgent = $this->safe_string($this->options, 'wsUserAgent', 'ClientPortalGW/1');
@@ -139,14 +139,14 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             if ($useGateway) {
                 $cookie = 'api=' . $this->json(array( 'session' => $session ));
             }
-            $headers = $this->extend($originalHeaders, array(
+            $headers = $this->extend($this->safe_dict($this->safe_dict($wsOptions, 'options'), 'headers'), array(
                 'Cookie' => $cookie,
                 'User-Agent' => $userAgent,
             ));
-            $this->options['ws']['options']['headers'] = $headers;
+            $this->options['ws'] = $this->extend($wsOptions, array( 'options' => $this->extend($this->safe_dict($wsOptions, 'options'), array( 'headers' => $headers )) ));
             // instantiate client
             $newClient = $this->client($url);
-            $this->options['ws']['options']['headers'] = $originalHeaders;
+            $this->options['ws'] = $wsOptions;
             $tickleInterval = $this->safe_integer($this->options, 'tickleInterval', 240000);
             $this->delay($tickleInterval, array($this, 'ibkr_keep_alive_session'), $newClient);
         }

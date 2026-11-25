@@ -1517,7 +1517,6 @@ class bithumb extends Exchange {
                 }
             }
         }
-        $type = null;
         $side = $this->safe_string_lower_2($trade, 'ask_bid', 'type');
         if ($side === 'bid') {
             $side = 'buy';
@@ -1550,7 +1549,7 @@ class bithumb extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
             'order' => null,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,

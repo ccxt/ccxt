@@ -1736,7 +1736,6 @@ class mexc extends Exchange {
         $orderId = null;
         $symbol = null;
         $fee = null;
-        $type = null;
         $side = null;
         $takerOrMaker = null;
         $priceString = null;
@@ -1869,7 +1868,7 @@ class mexc extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $priceString,

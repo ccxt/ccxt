@@ -538,7 +538,6 @@ class btcbox extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $type = null;
         $side = $this->safe_string($trade, 'type');
         return $this->safe_trade(array(
             'info' => $trade,
@@ -547,7 +546,7 @@ class btcbox extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,

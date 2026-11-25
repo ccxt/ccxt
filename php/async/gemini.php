@@ -1578,7 +1578,6 @@ class gemini extends Exchange {
         } else {
             $type = $this->safe_string($order, 'type');
         }
-        $fee = null;
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $id = $this->safe_string($order, 'order_id');
@@ -1618,7 +1617,7 @@ class gemini extends Exchange {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
-            'fee' => $fee,
+            'fee' => null,
             'trades' => null,
         ), $market);
     }

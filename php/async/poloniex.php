@@ -1383,11 +1383,12 @@ class poloniex extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'contract', false)) {
-            $tickers = Async\await($this->fetch_tickers(array( $market['symbol'] ), $params));
+            $tickers = Async\await($this->fetch_tickers(array( $marketSymbol ), $params));
             $contractTicker = $this->safe_dict($tickers, $symbol);
             return $contractTicker;
         }

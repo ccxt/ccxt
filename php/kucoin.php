@@ -10376,7 +10376,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rate_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
         //
         // uta
         //     {

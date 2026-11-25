@@ -1200,7 +1200,6 @@ class bitstamp extends Exchange {
         $side = null;
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $type = null;
         $costString = $this->safe_string($trade, 'cost');
         $rawMarketId = null;
         // resolved in the key scan below, falling back to the passed market
@@ -1297,7 +1296,7 @@ class bitstamp extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
             'order' => $this->safe_string($trade, 'order_id'),
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $priceString,
@@ -2099,7 +2098,7 @@ class bitstamp extends Exchange {
         return $this->parse_funding_rate_histories($values, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "funding_rate": "0.0024",

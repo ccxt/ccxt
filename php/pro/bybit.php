@@ -821,10 +821,10 @@ class bybit extends \ccxt\async\bybit {
         $rawHashes = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
-            $market = $this->market($data[0]);
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
+            $market = $this->market($this->safe_string($data, 0, ''));
             $symbolString = $this->safe_string($market, 'symbol', '');
-            $unfiedTimeframe = $data[1];
+            $unfiedTimeframe = $this->safe_string($data, 1, '');
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $marketId = $this->safe_string($market, 'id', '');
             $rawHashes[] = 'kline.' . $timeframeId . '.' . $marketId;
@@ -865,10 +865,10 @@ class bybit extends \ccxt\async\bybit {
         $subMessageHashes = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $data = $symbolsAndTimeframes[$i];
-            $market = $this->market($data[0]);
+            $data = $this->safe_list($symbolsAndTimeframes, $i);
+            $market = $this->market($this->safe_string($data, 0, ''));
             $symbolString = $this->safe_string($market, 'symbol', '');
-            $unfiedTimeframe = $data[1];
+            $unfiedTimeframe = $this->safe_string($data, 1, '');
             $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
             $marketId = $this->safe_string($market, 'id', '');
             $rawHashes[] = 'kline.' . $timeframeId . '.' . $marketId;

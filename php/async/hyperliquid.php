@@ -1409,7 +1409,8 @@ class hyperliquid extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $rates = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $rates = Async\await($this->fetch_funding_rates(array( $marketSymbol ), $params));
         $rate = $this->safe_dict($rates, $market['symbol']);
         if ($rate === null) {
             throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);

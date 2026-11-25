@@ -997,7 +997,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_funding_rate_histories($rawRates, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
         $fundingRate = $this->parse_funding_rate($this->extend(array(), $info), $market);
         return array(
             'info' => $info,

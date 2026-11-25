@@ -2682,10 +2682,8 @@ class delta extends Exchange {
         //
         $id = $this->safe_string($item, 'uuid');
         $direction = null;
-        $account = null;
         $metaData = $this->safe_dict($item, 'meta_data', array());
         $referenceId = $this->safe_string($metaData, 'transaction_id');
-        $referenceAccount = null;
         $type = $this->safe_string($item, 'transaction_type');
         if (($type === 'deposit') || ($type === 'commission_rebate') || ($type === 'referral_bonus') || ($type === 'pnl') || ($type === 'withdrawal_cancellation') || ($type === 'promo_credit')) {
             $direction = 'in';
@@ -2706,9 +2704,9 @@ class delta extends Exchange {
             'info' => $item,
             'id' => $id,
             'direction' => $direction,
-            'account' => $account,
+            'account' => null,
             'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
+            'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
             'amount' => $this->parse_number($amount),

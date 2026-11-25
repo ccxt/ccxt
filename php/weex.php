@@ -1997,7 +1997,7 @@ class weex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -3741,16 +3741,17 @@ class weex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
-            return $this->fetch_positions(array( $market['symbol'] ), $params);
+            return $this->fetch_positions(array( $marketSymbol ), $params);
         }
         $request = array(
             'symbol' => $market['id'],
         );
         $response = $this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params));
-        return $this->parse_positions($response, array( $market['symbol'] ));
+        return $this->parse_positions($response, array( $marketSymbol ));
     }
 
     public function parse_position(array $position, ?array $market = null): array {

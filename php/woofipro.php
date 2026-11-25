@@ -3094,7 +3094,8 @@ class woofipro extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $marginModes = $this->fetch_margin_modes(array( $market['symbol'] ), $params);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $marginModes = $this->fetch_margin_modes(array( $marketSymbol ), $params);
         $marginMode = $this->safe_dict($marginModes, $market['symbol']);
         if ($marginMode === null) {
             throw new BadSymbol($this->id . ' fetchMarginMode() did not return a margin mode for ' . $market['symbol']);

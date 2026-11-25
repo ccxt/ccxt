@@ -1291,7 +1291,7 @@ class grvt extends Exchange {
         return $this->parse_funding_rate_histories($result, $market);
     }
 
-    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null): array {
+    public function parse_funding_rate_history(array $rawItem, ?array $market = null): array {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",

@@ -647,9 +647,6 @@ class blofin extends Exchange {
         if ($swap) {
             $symbol = $base . '/' . $quote . ':' . $settle;
         }
-        $expiry = null;
-        $strikePrice = null;
-        $optionType = null;
         $tickSize = $this->safe_string($market, 'tickSize');
         $fees = $this->safe_dict_2($this->fees, $type, 'trading', array());
         $taker = $this->safe_number($fees, 'taker');
@@ -689,10 +686,10 @@ class blofin extends Exchange {
             'linear' => $contract ? ($contractType === 'linear') : null,
             'inverse' => $contract ? ($contractType === 'inverse') : null,
             'contractSize' => $contract ? $this->safe_number($market, 'contractValue') : null,
-            'expiry' => $expiry,
-            'expiryDatetime' => $expiry,
-            'strike' => $strikePrice,
-            'optionType' => $optionType,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
             'created' => $this->safe_integer($market, 'listTime'),
             'precision' => array(
                 'amount' => $this->safe_number($market, 'lotSize'),

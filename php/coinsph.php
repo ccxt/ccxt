@@ -1295,7 +1295,6 @@ class coinsph extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
-        $type = null;
         $fee = array();
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
@@ -1325,7 +1324,7 @@ class coinsph extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $priceString,
@@ -2139,7 +2138,6 @@ class coinsph extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
-        $updated = null;
         $type = null;
         $withdrawOrderId = $this->safe_string($transaction, 'withdrawOrderId');
         $depositOrderId = $this->safe_string($transaction, 'depositOrderId');
@@ -2174,7 +2172,7 @@ class coinsph extends Exchange {
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
+            'updated' => null,
             'internal' => $internal,
             'comment' => null,
             'fee' => $fee,

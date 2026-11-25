@@ -2558,6 +2558,7 @@ class deepcoin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $instrumentType = $this->convert_to_instrument_type($this->safe_string($market, 'type'));
         $request = array(
             'instType' => $instrumentType,
@@ -2565,7 +2566,7 @@ class deepcoin extends Exchange {
         );
         $response = $this->privateGetDeepcoinAccountPositions($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_positions($data, array( $market['symbol'] ));
+        return $this->parse_positions($data, array( $marketSymbol ));
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
@@ -2925,7 +2926,7 @@ class deepcoin extends Exchange {
         return $this->parse_funding_rate_histories($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate_history(array $info, ?array $market = null): array {
         //
         //     {
         //         "instrumentID": "ETHUSD",

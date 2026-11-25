@@ -646,7 +646,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $outcomesList = $this->safe_list($market, 'outcomes', array());
         for ($j = 0; $j < count($outcomesList); $j++) {
-            $oc = $outcomesList[$j];
+            $oc = $this->safe_dict($outcomesList, $j);
+            if ($oc === null) {
+                continue;
+            }
             $ocSymbol = $this->safe_string_2($oc, 'outcome', 'symbol');
             $ocId = $this->safe_string_2($oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present

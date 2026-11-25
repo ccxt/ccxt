@@ -1841,10 +1841,8 @@ class hollaex extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $addressTo = null;
-        $addressFrom = null;
         $tag = null;
         $tagTo = null;
-        $tagFrom = null;
         if ($address !== null) {
             $parts = explode(':', $address);
             $address = $this->safe_string($parts, 0);
@@ -1884,10 +1882,10 @@ class hollaex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
-            'addressFrom' => $addressFrom,
+            'addressFrom' => null,
             'address' => $address,
             'addressTo' => $addressTo,
-            'tagFrom' => $tagFrom,
+            'tagFrom' => null,
             'tag' => $tag,
             'tagTo' => $tagTo,
             'type' => $type,

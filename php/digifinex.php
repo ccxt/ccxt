@@ -3520,7 +3520,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function parse_borrow_rates(array $info, ?string $codeKey): array {
+    public function parse_borrow_rates(array $info, string $codeKey): array {
         //
         //     {
         //         "valuation_rate": 1,

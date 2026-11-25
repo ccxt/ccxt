@@ -1212,7 +1212,7 @@ class phemex extends Exchange {
         }
         $amount = $this->safe_string($bidask, $amountKey);
         if ($this->safe_bool($market, 'spot', false)) {
-            $amount = $this->from_ev($amount, $market);
+            $amount = $this->from_ev($this->safe_string($bidask, $amountKey), $market);
         }
         return array(
             $this->parse_number($this->from_ep($this->safe_string($bidask, $priceKey), $market)),
@@ -1929,12 +1929,14 @@ class phemex extends Exchange {
                 $id = $this->safe_string($trade, $tradeLength - 4);
             }
             $side = $this->safe_string_lower($trade, $tradeLength - 3);
-            $priceString = $this->safe_string($trade, $tradeLength - 2);
-            $amountString = $this->safe_string($trade, $tradeLength - 1);
-            $priceAmount = $trade[$tradeLength - 2];
+            $priceIndex = $tradeLength - 2;
+            $amountIndex = $tradeLength - 1;
+            $priceString = $this->safe_string($trade, $priceIndex);
+            $amountString = $this->safe_string($trade, $amountIndex);
+            $priceAmount = $trade[$priceIndex];
             if ((is_float($priceAmount) || is_int($priceAmount))) {
-                $priceString = $this->from_ep($priceString, $marketResolved);
-                $amountString = $this->from_ev($amountString, $marketResolved);
+                $priceString = $this->from_ep($this->safe_string($trade, $priceIndex), $marketResolved);
+                $amountString = $this->from_ev($this->safe_string($trade, $amountIndex), $marketResolved);
             }
         } else {
             $timestamp = $this->safe_integer_product($trade, 'transactTimeNs', 0.000001);
@@ -3814,7 +3816,6 @@ class phemex extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
-        $tag = null;
         $txid = $this->safe_string($transaction, 'txHash');
         $currencyId = $this->safe_string($transaction, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
@@ -3849,8 +3850,8 @@ class phemex extends Exchange {
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
+            'tag' => null,
+            'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,

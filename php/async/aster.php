@@ -2078,7 +2078,7 @@ class aster extends Exchange {
         return $this->parse_funding_rate_histories($response, $market);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",

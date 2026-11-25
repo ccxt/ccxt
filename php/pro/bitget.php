@@ -2781,11 +2781,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function un_watch_private(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    public function un_watch_private(bool $uta, mixed $messageHash, mixed $args, $params = array()) {
         return Async\async(self::do_un_watch_private(...))($uta, $messageHash, $args, $params);
     }
 
-    private function do_un_watch_private(mixed $uta, mixed $messageHash, mixed $args, $params = array()) {
+    private function do_un_watch_private(bool $uta, mixed $messageHash, mixed $args, $params = array()) {
         $isUta = ($uta === true);
         $url = $isUta ? $this->urls['api']['ws']['utaPrivate'] : $this->urls['api']['ws']['private'];
         $sandboxMode = $this->safe_bool_2($this->options, 'sandboxMode', 'sandbox', false);

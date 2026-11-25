@@ -1009,7 +1009,7 @@ class btse extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate_history(array $contract, ?array $market = null): array {
         //
         //     {
         //         "timestamp": 1786003200911,

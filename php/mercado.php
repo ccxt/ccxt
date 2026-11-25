@@ -463,7 +463,6 @@ class mercado extends Exchange {
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'executed_timestamp');
         $marketResolved = $this->safe_market(null, $market);
         $id = $this->safe_string_2($trade, 'tid', 'operation_id');
-        $type = null;
         $side = $this->safe_string($trade, 'type');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'amount', 'quantity');
@@ -482,7 +481,7 @@ class mercado extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $marketResolved['symbol'],
             'order' => null,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,

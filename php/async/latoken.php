@@ -1036,7 +1036,6 @@ class latoken extends Exchange {
         //         "makerBuyer":false
         //     }
         //
-        $type = null;
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
@@ -1085,7 +1084,7 @@ class latoken extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $orderId,
-            'type' => $type,
+            'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $priceString,

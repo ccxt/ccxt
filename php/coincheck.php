@@ -395,7 +395,6 @@ class coincheck extends Exchange {
         $amount = $this->safe_string($order, 'pending_amount');
         $remaining = $this->safe_string($order, 'pending_amount');
         $price = $this->safe_string($order, 'rate');
-        $status = null;
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         return $this->safe_order(array(
@@ -411,7 +410,7 @@ class coincheck extends Exchange {
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
-            'status' => $status,
+            'status' => null,
             'symbol' => $symbol,
             'price' => $price,
             'triggerPrice' => null,

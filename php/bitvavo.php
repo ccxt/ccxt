@@ -2555,7 +2555,6 @@ class bitvavo extends Exchange {
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        $id = null;
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -2580,7 +2579,7 @@ class bitvavo extends Exchange {
         $tag = $this->safe_string($transaction, 'paymentId');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
