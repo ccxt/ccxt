@@ -4426,7 +4426,15 @@ function goGofmtBinarySpacing (content: string): string {
     const lines = content.split ('\n');
     const ctx = goLayoutLineContexts (lines);
     for (let l = 0; l < lines.length; l++) {
-        const toks = goLexLine (lines[l]);
+        const line = lines[l];
+        const maybeLitCall = !ctx.inBody[l] && line.trimStart ().startsWith ('}(');
+        if (!ctx.inBody[l] && !maybeLitCall) {
+            continue;
+        }
+        if (!/[+\-*/%&|^<>=!:]/.test (line)) {
+            continue;
+        }
+        const toks = goLexLine (line);
         if (toks === null) {
             continue;
         }
@@ -4442,7 +4450,7 @@ function goGofmtBinarySpacing (content: string): string {
         }
         const layout = goLayoutStatement (code, literalCall ? ctx.depths[l] + 1 : 1);
         if (layout !== null && (layout.blank.size > 0 || layout.colon.size > 0)) {
-            lines[l] = goApplyLayout (lines[l], toks, layout);
+            lines[l] = goApplyLayout (line, toks, layout);
         }
     }
     return lines.join ('\n');
@@ -9005,12 +9013,18 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
 
 function goAccessSingleDeclarationScan (maskedFunc: string, signature: string, name: string): any {
     const n = goAccessEscape (name);
-    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ]
-        .concat ([ ...maskedFunc.matchAll (new RegExp (GO_COMMA_OK_DECL_HEAD + n + GO_COMMA_OK_DECL_TAIL, 'g')) ]);
-    const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
-    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1]));
-    const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
-    const sigParam = new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0)));
+    const hasVar = maskedFunc.includes ('var ' + name);
+    const hasCommaOk = maskedFunc.includes (', _ =');
+    const vars = (hasVar ? [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ] : [])
+        .concat (hasCommaOk ? [ ...maskedFunc.matchAll (new RegExp (GO_COMMA_OK_DECL_HEAD + n + GO_COMMA_OK_DECL_TAIL, 'g')) ] : []);
+    const hasShort = maskedFunc.includes (':=');
+    const shortDecls = hasShort ? (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? []) : [];
+    const literalParams = maskedFunc.includes ('func(') || maskedFunc.includes ('func (')
+        ? [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1])) : [];
+    const rangeDecls = (hasShort && maskedFunc.includes ('range'))
+        ? (maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? []) : [];
+    const sigParam = signature.includes (name)
+        ? new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0))) : null;
     const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
     if (count !== 1) {
         return undefined;
@@ -9157,7 +9171,20 @@ function goAnyObjectKeysLengthSelfTest (ok: SelfTestOk): void {
     ok (typed.includes ('len(query)'), 'goAnyObjectKeysLength: typed map regressed: ' + typed);
 }
 
+const GO_ACCESS_TYPED_HELPER_RX = /\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|ObjectKeys)\(/;
+const GO_ACCESS_DEREF_CONSUMER_CALL_RX = new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + GO_ACCESS_DEREF_CONSUMERS.join ('|') + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g');
+
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
+    let hasCandidate = false;
+    for (let k = start + 1; k < end; k++) {
+        if (GO_ACCESS_TYPED_HELPER_RX.test (masked[k])) {
+            hasCandidate = true;
+            break;
+        }
+    }
+    if (!hasCandidate) {
+        return;
+    }
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const lineOffsets: number[] = [];
     let offset = 0;
@@ -9166,12 +9193,18 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         offset += masked[k].length + 1;
     }
     const cache = new Map<string, any> ();
-    // goPairMapSlotDeclaration answers only from a `a, b := this.M(` / `var a, b map[string]any` line
-    const pairBinds = /^\s*\w+, \w+ := this\.\w+\(|^\s*var \w+, \w+ map\[string\]any$/m.test (maskedFunc);
+    let pairBinds: boolean | undefined = undefined;
+    const hasPairBinds = () => {
+        if (pairBinds === undefined) {
+            pairBinds = /^\s*\w+, \w+ := this\.\w+\(|^\s*var \w+, \w+ map\[string\]any$/m.test (maskedFunc);
+        }
+        return pairBinds;
+    };
     const declOf = (name: string) => {
         if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines)
-                ?? (pairBinds ? goPairMapSlotDeclaration (maskedFunc, name) : undefined));
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name)
+                ?? (maskedFunc.includes (name + ', ') ? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines) : undefined)
+                ?? (hasPairBinds () ? goPairMapSlotDeclaration (maskedFunc, name) : undefined));
         }
         return cache.get (name);
     };
@@ -9190,24 +9223,25 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         }
         return rebound.get (name);
     };
-    const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
         const original = line;
         const m = masked[k];
-        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
+        if (m.includes ('InOp(') && goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
             continue;
         }
         if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|ObjectKeys)\(/.test (m)) {
             continue;
         }
         const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
-        line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
-            const t = typeAt (name, k);
-            return (isCode (all, at) && (t !== undefined) && GO_ARRLEN_NATIVE_TYPES.test (t)) ? 'len(' + name + ')' : all;
-        });
-        if (line.length === lines[k].length) {
-            line = line.replace (new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + consumers + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g'), (all: string, head: string, name: string, key: string, at: number) =>
+        if (m.includes ('GetArrayLength(')) {
+            line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
+                const t = typeAt (name, k);
+                return (isCode (all, at) && (t !== undefined) && GO_ARRLEN_NATIVE_TYPES.test (t)) ? 'len(' + name + ')' : all;
+            });
+        }
+        if ((line.length === lines[k].length) && m.includes ('GetValue(')) {
+            line = line.replace (GO_ACCESS_DEREF_CONSUMER_CALL_RX, (all: string, head: string, name: string, key: string, at: number) =>
                 ((isCode (head, at) && (typeAt (name, k) === 'map[string]any')) ? head + name + '[' + key + ']' : all));
         }
         if (line === lines[k]) {
@@ -9215,7 +9249,7 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         } else {
             lines[k] = line;
         }
-        if ((lines[k] === original) && /\bObjectKeys\(/.test (m)) {
+        if ((lines[k] === original) && m.includes ('ObjectKeys(')) {
             lines[k] = goNativeObjectKeysLength (lines[k], m, typeAt, k);
             if (lines[k] === original) {
                 lines[k] = goAnyObjectKeysLength (lines, masked, start, end, k, typeAt);
