@@ -943,7 +943,7 @@ class whitebit extends Exchange {
                     'percentage' => ($depositFee !== null) ? false : null,
                 );
                 if ($networkId !== null) {
-                    $networkLength = count($networkId);
+                    $networkLength = strlen($networkId) - 0;
                     $networkCode = $this->network_id_to_code(mb_substr($networkId, 1, $networkLength - 1 - 1), $code);
                     if ($networkCode !== null) {
                         $depositWithdrawFees[$code]['networks'][$networkCode] = array(

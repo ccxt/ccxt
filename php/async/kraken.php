@@ -1950,7 +1950,7 @@ class kraken extends Exchange {
         $baseIdEnd = 3;
         $quoteIdStart = 3;
         $quoteIdEnd = 6;
-        $idLength = count($id);
+        $idLength = strlen($id) - 0;
         if ($idLength === 8) {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
