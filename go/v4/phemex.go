@@ -1509,7 +1509,7 @@ func (this *Phemex) CustomParseBidAsk(bidask any, optionalArgs ...any) []any {
 		amount = *derefPtr
 	}
 	if *this.SafeBool(market, "spot", false) {
-		amount = this.FromEv(amount, market)
+		amount = this.FromEv(this.SafeString(bidask, amountKey), market)
 	}
 	return []any{this.ParseNumber(this.FromEp(this.SafeString(bidask, priceKey), market)), this.ParseNumber(amount)}
 }
@@ -1669,8 +1669,8 @@ func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	}
 	return this.ToEn(price, this.SafeInteger(this.SafeDict(market, "info"), "priceScale"))
 }
-func (this *Phemex) FromEn(en any, scale *int64) any {
-	if (IsEqual(en, nil)) || (scale == nil) {
+func (this *Phemex) FromEn(en *string, scale *int64) any {
+	if (en == nil) || (scale == nil) {
 		return nil
 	}
 	precise := NewPrecise(en)
@@ -1678,18 +1678,18 @@ func (this *Phemex) FromEn(en any, scale *int64) any {
 	precise.Reduce()
 	return precise.ToString()
 }
-func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
+func (this *Phemex) FromEp(ep *string, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(ep, nil)) || (market == nil) {
+	if (ep == nil) || (market == nil) {
 		return ep
 	}
 	return this.FromEn(ep, this.SafeInteger(this.SafeDict(market, "info"), "priceScale"))
 }
-func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
+func (this *Phemex) FromEv(ev *string, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(ev, nil)) || (market == nil) {
+	if (ev == nil) || (market == nil) {
 		return ev
 	}
 	return this.FromEn(ev, this.SafeInteger(this.SafeDict(market, "info"), "valueScale"))
@@ -2420,20 +2420,22 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			id = this.SafeString(trade, tradeLength-4)
 		}
 		side = this.SafeStringLower(trade, tradeLength-3)
-		if derefPtr := this.SafeString(trade, tradeLength-2); derefPtr != nil {
+		var priceIndex int64 = int64(tradeLength) - 2
+		var amountIndex int64 = int64(tradeLength) - 1
+		if derefPtr := this.SafeString(trade, priceIndex); derefPtr != nil {
 			priceString = *derefPtr
 		} else {
 			priceString = nil
 		}
-		if derefPtr := this.SafeString(trade, tradeLength-1); derefPtr != nil {
+		if derefPtr := this.SafeString(trade, amountIndex); derefPtr != nil {
 			amountString = *derefPtr
 		} else {
 			amountString = nil
 		}
-		var priceAmount any = GetValue(trade, tradeLength-2)
+		var priceAmount any = GetValue(trade, priceIndex)
 		if IsNumber(priceAmount) {
-			priceString = this.FromEp(priceString, marketResolved)
-			amountString = this.FromEv(amountString, marketResolved)
+			priceString = this.FromEp(this.SafeString(trade, priceIndex), marketResolved)
+			amountString = this.FromEv(this.SafeString(trade, amountIndex), marketResolved)
 		}
 	} else {
 		timestamp = this.SafeIntegerProduct(trade, "transactTimeNs", 0.000001)
@@ -2539,7 +2541,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal202731 map[string]any = map[string]any{
+	var literal202931 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"symbol":       symbol,
@@ -2555,15 +2557,15 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal202731["id"] = *id
+		literal202931["id"] = *id
 	}
 	if orderId != nil {
-		literal202731["order"] = *orderId
+		literal202931["order"] = *orderId
 	}
 	if typeVar != nil {
-		literal202731["type"] = *typeVar
+		literal202931["type"] = *typeVar
 	}
-	return this.SafeTrade(literal202731, marketResolved)
+	return this.SafeTrade(literal202931, marketResolved)
 }
 func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//
@@ -4859,7 +4861,6 @@ func (this *Phemex) ParseTransaction(transaction map[string]any, optionalArgs ..
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
 	var address *string = this.SafeString(transaction, "address")
-	var tag any = nil
 	var txid *string = this.SafeString(transaction, "txHash")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
@@ -4895,8 +4896,8 @@ func (this *Phemex) ParseTransaction(transaction map[string]any, optionalArgs ..
 		"address":     address,
 		"addressTo":   address,
 		"addressFrom": nil,
-		"tag":         tag,
-		"tagTo":       tag,
+		"tag":         nil,
+		"tagTo":       nil,
 		"tagFrom":     nil,
 		"type":        typeVar,
 		"amount":      amount,
@@ -5332,9 +5333,9 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
-	var ternaryStr426326 string = "isolated"
+	var ternaryStr426426 string = "isolated"
 	if isCross != nil && *isCross {
-		ternaryStr426326 = "cross"
+		ternaryStr426426 = "cross"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5360,7 +5361,7 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode":                  ternaryStr426326,
+		"marginMode":                  ternaryStr426426,
 		"side":                        side,
 		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":                  nil,
@@ -6095,16 +6096,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	var literal482215 map[string]any = map[string]any{
+	var literal482315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if bodyResolved != nil {
-		literal482215["body"] = *bodyResolved
+		literal482315["body"] = *bodyResolved
 	}
-	return literal482215
+	return literal482315
 }
 
 /**
@@ -6533,11 +6534,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511419 []any = r1.Value
-		if retRes511419 == nil {
+		var retRes511519 []any = r1.Value
+		if retRes511519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511519)}
 		}
 		return nil
 	}

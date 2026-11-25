@@ -1092,18 +1092,10 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	var rawHashes []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(func() any {
-			if 0 >= 0 && 0 < len(data) {
-				return data[0]
-			}
-			return nil
-		}()))
+		var data []any = symbolsAndTimeframes[i]
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(this.SafeString(data, 0, "")))
 		var symbolString string = market.Symbol
-		var unfiedTimeframe *string = nil
-		if 1 >= 0 && 1 < len(data) {
-			unfiedTimeframe = ccxt.SafeStringPtr(data[1])
-		}
+		var unfiedTimeframe *string = this.SafeString(data, 1, "")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		var marketId string = ""
 		if market.Id != nil {
@@ -1170,18 +1162,10 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	var subMessageHashes []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(func() any {
-			if 0 >= 0 && 0 < len(data) {
-				return data[0]
-			}
-			return nil
-		}()))
+		var data []any = symbolsAndTimeframes[i]
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(this.SafeString(data, 0, "")))
 		var symbolString string = market.Symbol
-		var unfiedTimeframe *string = nil
-		if 1 >= 0 && 1 < len(data) {
-			unfiedTimeframe = ccxt.SafeStringPtr(data[1])
-		}
+		var unfiedTimeframe *string = this.SafeString(data, 1, "")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		var marketId string = ""
 		if market.Id != nil {

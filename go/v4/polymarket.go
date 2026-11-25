@@ -1891,7 +1891,10 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		panic(r1.Err)
 	}
 	var orders []any = OrdersToList(r1.Value)
-	var first map[string]any = SafeMapTyped(orders, 0)
+	var first map[string]any
+	if 0 < len(orders) {
+		first, _ = orders[0].(map[string]any)
+	}
 	var firstStatus *string = this.SafeString(first, "status")
 	if firstStatus != nil && *firstStatus == "rejected" {
 		var firstInfo map[string]any
@@ -1905,7 +1908,10 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorId, feedback)
 		panic(InvalidOrder(feedback))
 	}
-	var created map[string]any = SafeMapTyped(orders, 0)
+	var created map[string]any
+	if 0 < len(orders) {
+		created, _ = orders[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(created)}
 	return nil

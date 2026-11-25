@@ -2477,10 +2477,8 @@ func (this *Hollaex) ParseTransaction(transaction map[string]any, optionalArgs .
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
 	var addressTo *string = nil
-	var addressFrom any = nil
 	var tag *string = nil
 	var tagTo *string = nil
-	var tagFrom any = nil
 	if address != nil {
 		var parts []string = strings.Split(*address, ":")
 		address = this.SafeString(parts, 0)
@@ -2520,10 +2518,10 @@ func (this *Hollaex) ParseTransaction(transaction map[string]any, optionalArgs .
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"network":     nil,
-		"addressFrom": addressFrom,
+		"addressFrom": nil,
 		"address":     address,
 		"addressTo":   addressTo,
-		"tagFrom":     tagFrom,
+		"tagFrom":     nil,
 		"tag":         tag,
 		"tagTo":       tagTo,
 		"type":        typeVar,

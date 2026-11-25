@@ -3582,6 +3582,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var instrumentType *string = this.ConvertToInstrumentType(this.SafeString(market, "type"))
 	var request map[string]any = map[string]any{
 		"instType": instrumentType,
@@ -3599,7 +3600,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position
 		data = []any{}
 	}
 
-	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, []any{market["symbol"]}))}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, []any{marketSymbol}))}
 	return nil
 }
 
@@ -4162,11 +4163,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes298819 []any = r1.Value
-		if retRes298819 == nil {
+		var retRes298919 []any = r1.Value
+		if retRes298919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298919)}
 		}
 		return nil
 	}
@@ -4286,11 +4287,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes306415 []any = TradesToList(r1.Value)
-	if retRes306415 == nil {
+	var retRes306515 []any = TradesToList(r1.Value)
+	if retRes306515 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306415)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306515)}
 	}
 	return nil
 }
@@ -4363,14 +4364,14 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict310332 map[string]any
+	var dataDict310432 map[string]any
 	if len(data) > 0 {
-		dataDict310332, _ = data[0].(map[string]any)
+		dataDict310432, _ = data[0].(map[string]any)
 	}
-	if dataDict310332 == nil {
-		dataDict310332 = map[string]any{}
+	if dataDict310432 == nil {
+		dataDict310432 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict310332, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict310432, market)}
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
@@ -4414,16 +4415,16 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		privateHeaders["DC-ACCESS-SIGN"] = signature
-		var literal314019 map[string]any = map[string]any{
+		var literal314119 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
 			"body":    nil,
 			"headers": privateHeaders,
 		}
 		if requestBody != nil {
-			literal314019["body"] = *requestBody
+			literal314119["body"] = *requestBody
 		}
-		return literal314019
+		return literal314119
 	}
 	return map[string]any{
 		"url":     url,

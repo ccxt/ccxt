@@ -214,7 +214,7 @@ func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message map[string
 			this.Ohlcvs[symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
@@ -314,7 +314,7 @@ func (this *Hashkey) HandleTicker(client ccxt.ClientInterface, message map[strin
 	//         "shared": false
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var dataDict23741 map[string]any
 	if len(data) > 0 {
 		dataDict23741, _ = data[0].(map[string]any)
@@ -413,7 +413,7 @@ func (this *Hashkey) HandleTrades(client ccxt.ClientInterface, message map[strin
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	if data != nil {
 		data = this.SortBy(data, "t")
 		for i := 0; i < len(data); i++ {
@@ -508,7 +508,7 @@ func (this *Hashkey) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	var dataEntry map[string]any
 	if 0 < len(data) {
 		dataEntry, _ = data[0].(map[string]any)
@@ -1120,7 +1120,7 @@ func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message map[stri
 	//     }
 	//
 	var event *string = this.SafeString(message, "e")
-	var data []any = ccxt.SafeListTyped(message, "B")
+	var data, _ = message["B"].([]any)
 	var balanceUpdate map[string]any
 	if 0 < len(data) {
 		balanceUpdate, _ = data[0].(map[string]any)

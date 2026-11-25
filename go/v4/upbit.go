@@ -1258,7 +1258,6 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString2(trade, "sequential_id", "uuid")
-	var orderId any = nil
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(trade, "created_at"))
@@ -1288,7 +1287,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
-		"order":        orderId,
+		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
@@ -3283,17 +3282,17 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	var literal248015 map[string]any = map[string]any{
+	var literal247915 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if apiName == "private" {
-		literal248015["headers"] = headers
+		literal247915["headers"] = headers
 	} else {
-		literal248015["headers"] = nil
+		literal247915["headers"] = nil
 	}
-	return literal248015
+	return literal247915
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

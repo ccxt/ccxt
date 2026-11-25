@@ -1846,7 +1846,6 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 	}
-	var typeVar any = nil
 	var side *string = this.SafeStringLower2(trade, "ask_bid", "type")
 	if side != nil && *side == "bid" {
 		sideStr := "buy"
@@ -1886,7 +1885,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
 		"order":        nil,
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
 		"price":        priceString,
@@ -2491,7 +2490,8 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			//         ]
 			//     }
 			//
-			var orders []any = SafeListTyped(response, "orders")
+			var orders []any
+			orders, _ = response["orders"].([]any)
 			data = this.SafeDictMap(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
@@ -2821,7 +2821,7 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		timeInForce = &timeInForceStr
 		postOnly = true
 	}
-	var literal229431 map[string]any = map[string]any{
+	var literal229331 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2845,9 +2845,9 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"trades":             rawTrades,
 	}
 	if symbol != nil {
-		literal229431["symbol"] = *symbol
+		literal229331["symbol"] = *symbol
 	}
-	return this.SafeOrder(literal229431, marketResolved)
+	return this.SafeOrder(literal229331, marketResolved)
 }
 
 /**
@@ -2901,12 +2901,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var response map[string]any = nil
 	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-		var ternaryStr2346115 string = "wait"
+		var ternaryStr2345115 string = "wait"
 		if twap != nil && *twap {
-			ternaryStr2346115 = "progress"
+			ternaryStr2345115 = "progress"
 		}
 		r1 := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(paramsGeneration, map[string]any{
-			"state": ternaryStr2346115,
+			"state": ternaryStr2345115,
 		}))
 		if r1.Err != nil {
 			panic(r1.Err)
@@ -4335,16 +4335,16 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal341415 map[string]any = map[string]any{
+	var literal341315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal341415["body"] = *requestBody
+		literal341315["body"] = *requestBody
 	}
-	return literal341415
+	return literal341315
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

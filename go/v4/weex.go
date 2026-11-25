@@ -5090,19 +5090,20 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 		}
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var marketSymbol string = market.Symbol
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode {
 
-		r1 := <-this.FetchPositionsAsync([]any{market.Symbol}, params)
+		r1 := <-this.FetchPositionsAsync([]any{marketSymbol}, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375219 []any = PositionsToList(r1.Value)
+		var retRes375319 []any = PositionsToList(r1.Value)
 		// the demo trading API does not provide a single-position endpoint
-		if retRes375219 == nil {
+		if retRes375319 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes375219)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes375319)}
 		}
 		return nil
 	}
@@ -5119,7 +5120,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	}
 	var response []any = responseRecv.Value
 
-	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{market.Symbol}))}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{marketSymbol}))}
 	return nil
 }
 func (this *Weex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
@@ -6132,16 +6133,16 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + endpoint
-	var literal444815 map[string]any = map[string]any{
+	var literal444915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal444815["body"] = *requestBody
+		literal444915["body"] = *requestBody
 	}
-	return literal444815
+	return literal444915
 }
 func (this *Weex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	//

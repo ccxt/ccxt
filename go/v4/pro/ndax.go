@@ -455,7 +455,13 @@ func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var timeframes []string = ccxt.ObjectKeys(this.SafeDict(updates, marketId, map[string]any{}))
+		var timeframes []string = []string{}
+		if objectEntry, ok := updates[marketId].(map[string]any); ok {
+			timeframes = make([]string, 0, len(objectEntry))
+			for objectKey := range objectEntry {
+				timeframes = append(timeframes, objectKey)
+			}
+		}
 		for j := 0; j < len(timeframes); j++ {
 			var timeframe string = timeframes[j]
 			var messageHash string = name + ":" + timeframe + ":" + marketId

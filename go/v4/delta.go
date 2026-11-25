@@ -3279,10 +3279,8 @@ func (this *Delta) ParseLedgerEntry(item map[string]any, optionalArgs ...any) Le
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
 	var direction *string = nil
-	var account any = nil
 	var metaData, _ = item["meta_data"].(map[string]any)
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
-	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
 	if (typeVar != nil && *typeVar == "deposit") || (typeVar != nil && *typeVar == "commission_rebate") || (typeVar != nil && *typeVar == "referral_bonus") || (typeVar != nil && *typeVar == "pnl") || (typeVar != nil && *typeVar == "withdrawal_cancellation") || (typeVar != nil && *typeVar == "promo_credit") {
 		directionStr := "in"
@@ -3305,9 +3303,9 @@ func (this *Delta) ParseLedgerEntry(item map[string]any, optionalArgs ...any) Le
 		"info":             item,
 		"id":               id,
 		"direction":        direction,
-		"account":          account,
+		"account":          nil,
 		"referenceId":      referenceId,
-		"referenceAccount": referenceAccount,
+		"referenceAccount": nil,
 		"type":             typeVar,
 		"currency":         code,
 		"amount":           this.ParseNumber(amount),

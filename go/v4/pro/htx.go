@@ -3346,7 +3346,7 @@ func (this *Htx) HandleMyTrade(client ccxt.ClientInterface, message map[string]a
 			}
 			var dataList []any = ccxt.SafeListTyped(message, "data")
 			for i := 0; i < len(dataList); i++ {
-				var parsed any = this.ParseWsTrade(dataList[i], market)
+				var parsed map[string]any = this.ParseWsTrade(dataList[i], market)
 				var symbol *string = this.SafeString(parsed, "symbol")
 				if symbol != nil {
 					cachedTrades.Append(parsed)
@@ -3354,7 +3354,7 @@ func (this *Htx) HandleMyTrade(client ccxt.ClientInterface, message map[string]a
 			}
 			var dataDict, _ = message["data"].(map[string]any)
 			if dataDict != nil {
-				var parsed any = this.ParseWsTrade(dataDict, market)
+				var parsed map[string]any = this.ParseWsTrade(dataDict, market)
 				var symbol *string = this.SafeString(parsed, "symbol")
 				if symbol != nil {
 					cachedTrades.Append(parsed)

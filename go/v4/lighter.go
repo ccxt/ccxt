@@ -521,7 +521,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 			panic(r.Err)
 		}
 		signer = r.Value
-		this.SetAuthEntry(accountIndex, apiKeyIndex, map[string]any{
+		this.SetAuthEntry(*accountIndex, *apiKeyIndex, map[string]any{
 			"signer": signer,
 		})
 
@@ -540,7 +540,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 			panic(r1.Err)
 		}
 		signer = r1.Value
-		this.SetAuthEntry(accountIndex, apiKeyIndex, map[string]any{
+		this.SetAuthEntry(*accountIndex, *apiKeyIndex, map[string]any{
 			"signer": signer,
 		})
 
@@ -562,11 +562,11 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 	ch <- AsyncResult[any]{Value: signer}
 	return nil
 }
-func (this *Lighter) SetAuthEntry(accIdx any, keyIdx any, entry map[string]any) {
+func (this *Lighter) SetAuthEntry(accIdx string, keyIdx string, entry map[string]any) {
 	var updated map[string]any = map[string]any{}
-	AddElementToObject(updated, keyIdx, this.Extend(this.SafeDict(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), accIdx, map[string]any{}), keyIdx, map[string]any{}), entry))
+	updated[keyIdx] = this.Extend(this.SafeDict(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), accIdx, map[string]any{}), keyIdx, map[string]any{}), entry)
 	var auths map[string]any = map[string]any{}
-	AddElementToObject(auths, accIdx, this.Extend(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), accIdx, map[string]any{}), updated))
+	auths[accIdx] = this.Extend(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), accIdx, map[string]any{}), updated)
 	this.Options["auths"] = this.Extend(this.SafeDict(this.Options, "auths", map[string]any{}), auths)
 }
 func (this *Lighter) InitAuthObject(strAccountIndex string, strApiKeyIndex string) {
@@ -813,10 +813,12 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 		panic(AuthenticationError(this.Id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt"))
 	}
 	var token any = this.LighterCreateAuthToken(signer, request)
-	this.SetAuthEntry(accountIndex, apiKeyIndex, map[string]any{
-		"deadline": deadline,
-		"token":    token,
-	})
+	if (accountIndex != nil) && (apiKeyIndex != nil) {
+		this.SetAuthEntry(*accountIndex, *apiKeyIndex, map[string]any{
+			"deadline": deadline,
+			"token":    token,
+		})
+	}
 	return token
 }
 func (this *Lighter) Pow(n string, m any) *string {
@@ -1092,7 +1094,7 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	this.SetAuthEntry(strAccountIndex, strApiKeyIndex, map[string]any{
+	this.SetAuthEntry(*strAccountIndex, *strApiKeyIndex, map[string]any{
 		"lighterPrivateKey": privateKey,
 		"signer":            signer,
 	}) // reassign signer in go
@@ -1666,12 +1668,12 @@ func (this *Lighter) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//     }
 	//
 	var status *string = this.SafeString(response, "status")
-	var ternaryStr113722 string = "error"
+	var ternaryStr113922 string = "error"
 	if status != nil && *status == "200" {
-		ternaryStr113722 = "ok"
+		ternaryStr113922 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status":  ternaryStr113722,
+		"status":  ternaryStr113922,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1880,7 +1882,7 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			return this.ParseNumber(this.ParsePrecision(priceDecimals))
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
-		var literal128925 map[string]any = map[string]any{
+		var literal129125 map[string]any = map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -1930,16 +1932,16 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			"info":    market,
 		}
 		if typeVar != nil && *typeVar == "swap" {
-			literal128925["linear"] = true
+			literal129125["linear"] = true
 		} else {
-			literal128925["linear"] = nil
+			literal129125["linear"] = nil
 		}
 		if typeVar != nil && *typeVar == "swap" {
-			literal128925["inverse"] = false
+			literal129125["inverse"] = false
 		} else {
-			literal128925["inverse"] = nil
+			literal129125["inverse"] = nil
 		}
-		result = append(result, literal128925)
+		result = append(result, literal129125)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -2316,14 +2318,14 @@ func (this *Lighter) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	}
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
 
-	var tickersDict163833 map[string]any
+	var tickersDict164033 map[string]any
 	if len(tickers) > 0 {
-		tickersDict163833, _ = tickers[0].(map[string]any)
+		tickersDict164033, _ = tickers[0].(map[string]any)
 	}
-	if tickersDict163833 == nil {
-		tickersDict163833 = map[string]any{}
+	if tickersDict164033 == nil {
+		tickersDict164033 = map[string]any{}
 	}
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickersDict163833, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickersDict164033, market)}
 	return nil
 }
 
@@ -3080,13 +3082,13 @@ func (this *Lighter) ParseAccount(account map[string]any) map[string]any {
 	//     }
 	//
 	var accountType *string = this.SafeString(account, "account_type")
-	var ternaryStr219720 string = "subaccount"
+	var ternaryStr219920 string = "subaccount"
 	if accountType != nil && *accountType == "0" {
-		ternaryStr219720 = "main"
+		ternaryStr219920 = "main"
 	}
 	return map[string]any{
 		"id":   this.SafeString(account, "account_index"),
-		"type": ternaryStr219720,
+		"type": ternaryStr219920,
 		"code": nil,
 		"info": account,
 	}
@@ -3680,11 +3682,11 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261419 []any = r1.Value
-		if retRes261419 == nil {
+		var retRes261619 []any = r1.Value
+		if retRes261619 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes261419)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes261619)}
 		}
 		return nil
 	}
@@ -3843,11 +3845,11 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271719 []any = r1.Value
-		if retRes271719 == nil {
+		var retRes271919 []any = r1.Value
+		if retRes271919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271919)}
 		}
 		return nil
 	}
@@ -3960,11 +3962,11 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes277919 []any = r.Value
-		if retRes277919 == nil {
+		var retRes278119 []any = r.Value
+		if retRes278119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277919)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278119)}
 		}
 		return nil
 	}
@@ -4323,11 +4325,11 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes300719 []any = r1.Value
-		if retRes300719 == nil {
+		var retRes300919 []any = r1.Value
+		if retRes300919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300919)}
 		}
 		return nil
 	}
@@ -4507,7 +4509,7 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	var literal312931 map[string]any = map[string]any{
+	var literal313131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
@@ -4523,9 +4525,9 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          nil,
 	}
 	if orderId != nil {
-		literal312931["order"] = *orderId
+		literal313131["order"] = *orderId
 	}
-	return this.SafeTrade(literal312931, marketResolved)
+	return this.SafeTrade(literal313131, marketResolved)
 }
 
 /**
@@ -4564,11 +4566,11 @@ func (this *Lighter) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes316615 map[string]any = r.Value
-	if retRes316615 == nil {
+	var retRes316815 map[string]any = r.Value
+	if retRes316815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes316615}
+		ch <- AsyncResult[map[string]any]{Value: retRes316815}
 	}
 	return nil
 }
@@ -4609,11 +4611,11 @@ func (this *Lighter) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes318915 map[string]any = r.Value
-	if retRes318915 == nil {
+	var retRes319115 map[string]any = r.Value
+	if retRes319115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes318915}
+		ch <- AsyncResult[map[string]any]{Value: retRes319115}
 	}
 	return nil
 }

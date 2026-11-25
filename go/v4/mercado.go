@@ -586,7 +586,6 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "executed_timestamp")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var id *string = this.SafeString2(trade, "tid", "operation_id")
-	var typeVar any = nil
 	var side *string = this.SafeString(trade, "type")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "amount", "quantity")
@@ -605,7 +604,7 @@ func (this *Mercado) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
 		"order":        nil,
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
 		"price":        price,

@@ -1238,17 +1238,23 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var wsOptions, _ = this.Options["ws"].(map[string]any)
-	var wsSubOptions, _ = wsOptions["options"].(map[string]any)
-	var originalHeaders map[string]any = this.SafeDictMap(wsSubOptions, "headers", map[string]any{})
+	var wsOptions map[string]any
+	wsOptions, _ = this.Options["ws"].(map[string]any)
+	if wsOptions == nil {
+		wsOptions = map[string]any{}
+	}
 	var headers map[string]any = map[string]any{
 		"X-GEMINI-APIKEY":    this.ApiKey,
 		"X-GEMINI-PAYLOAD":   b64,
 		"X-GEMINI-SIGNATURE": signature,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
+	this.Options["ws"] = this.Extend(wsOptions, map[string]any{
+		"options": this.Extend(this.SafeDict(wsOptions, "options"), map[string]any{
+			"headers": headers,
+		}),
+	})
 	this.Client(url)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
+	this.Options["ws"] = wsOptions
 	return nil
 }
 

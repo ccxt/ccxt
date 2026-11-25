@@ -4515,8 +4515,9 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 		}
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var marketSymbol string = market.Symbol
 
-	r1 := <-this.FetchMarginModesAsync([]any{market.Symbol}, params)
+	r1 := <-this.FetchMarginModesAsync([]any{marketSymbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4599,9 +4600,9 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var success *bool = this.SafeBool(data, "success", false)
-	var ternaryStr316722 string = "failed"
+	var ternaryStr316822 string = "failed"
 	if success != nil && *success {
-		ternaryStr316722 = "ok"
+		ternaryStr316822 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -4611,7 +4612,7 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status":     ternaryStr316722,
+		"status":     ternaryStr316822,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}

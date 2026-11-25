@@ -3808,12 +3808,15 @@ func (this *Dydx) FetchDydxAccount() (map[string]any, error) {
 	var res map[string]any = r.Value
 	return res, nil
 }
-func (this *Dydx) FetchLatestBlockHeight(params ...any) (float64, error) {
+func (this *Dydx) FetchLatestBlockHeight(params ...any) (int64, error) {
 	r := <-this.FetchLatestBlockHeightAsync(params...)
 	if r.Err != nil {
-		return float64(-1), r.Err
+		return -1, r.Err
 	}
-	var res float64 = ToFloat64(r.Value)
+	var res int64 = 0
+	if r.Value != nil {
+		res = *r.Value
+	}
 	return res, nil
 }
 

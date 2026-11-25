@@ -304,7 +304,7 @@ func (this *Opinion) FetchOutcomeAsync(outcomeSymbol any) <-chan ccxt.AsyncResul
 func (this *Opinion) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOutcome], outcomeSymbol any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil) {
+	if this.OutcomeSearchQuery(outcomeSymbol) == nil {
 
 		r := <-this.LoadOutcomesAsync()
 		if r.Err != nil {
@@ -1948,7 +1948,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		var marketId *int64 = this.SafeInteger(trades[i], "marketId")
 		if (tokenId == nil) && (marketId != nil) {
 
-			r3 := <-this.LoadTradeMarketAsync(marketId)
+			r3 := <-this.LoadTradeMarketAsync(*marketId)
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
@@ -1979,12 +1979,12 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {int} marketId the numeric market id
  * @returns {object} the parsed market
  */
-func (this *Opinion) LoadTradeMarketAsync(marketId any) <-chan ccxt.AsyncResult[ccxt.MarketInterface] {
+func (this *Opinion) LoadTradeMarketAsync(marketId int64) <-chan ccxt.AsyncResult[ccxt.MarketInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.MarketInterface], 1)
 	go this.loadTradeMarketBody(ch, marketId)
 	return ch
 }
-func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInterface], marketId any) any {
+func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInterface], marketId int64) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var cacheKey string = "tradeMarketsById"
@@ -1993,7 +1993,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	if cached == nil {
 		cached = map[string]any{}
 	}
-	var idStr string = ccxt.ToString(marketId)
+	var idStr string = strconv.FormatInt(marketId, 10)
 	var existing map[string]any = this.SafeDictMap(cached, idStr)
 	if existing != nil {
 

@@ -712,7 +712,7 @@ func (this *Bitfinex) HandleTrades(client ccxt.ClientInterface, message []any, s
 		var length int = len(trades)
 		for i := 0; i < length; i++ {
 			var index int64 = (int64(length) - int64(i)) - 1
-			var parsed any = this.ParseWsTrade(map[string]any{
+			var parsed map[string]any = this.ParseWsTrade(map[string]any{
 				"result": this.SafeList(trades, index),
 			}, market)
 			stored.Append(parsed)
@@ -732,7 +732,7 @@ func (this *Bitfinex) HandleTrades(client ccxt.ClientInterface, message []any, s
 		if trade == nil {
 			trade = []any{}
 		}
-		var parsed any = this.ParseWsTrade(map[string]any{
+		var parsed map[string]any = this.ParseWsTrade(map[string]any{
 			"result": trade,
 		}, market)
 		stored.Append(parsed)
@@ -1675,7 +1675,7 @@ func (this *Bitfinex) HandleOrders(client ccxt.ClientInterface, message []any, s
 			return
 		}
 		for i := 0; i < len(data); i++ {
-			var parsed any = this.ParseWsOrder(ccxt.DerefScalar(data[i]))
+			var parsed map[string]any = this.ParseWsOrder(ccxt.DerefScalar(data[i]))
 			var symbol *string = this.SafeString(parsed, "symbol", "")
 			if symbol != nil {
 				symbolIds[*symbol] = true
@@ -1683,7 +1683,7 @@ func (this *Bitfinex) HandleOrders(client ccxt.ClientInterface, message []any, s
 			orders.Append(parsed)
 		}
 	} else {
-		var parsed any = this.ParseWsOrder(data)
+		var parsed map[string]any = this.ParseWsOrder(data)
 		orders.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol", "")
 		if symbol != nil {

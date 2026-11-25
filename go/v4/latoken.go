@@ -1288,7 +1288,6 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var typeVar any = nil
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "quantity")
@@ -1344,14 +1343,14 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": quote,
 		}
 	}
-	var literal105031 map[string]any = map[string]any{
+	var literal104931 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       nil,
 		"id":           id,
 		"order":        orderId,
-		"type":         typeVar,
+		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,
 		"price":        priceString,
@@ -1360,9 +1359,9 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if symbol != nil {
-		literal105031["symbol"] = *symbol
+		literal104931["symbol"] = *symbol
 	}
-	return this.SafeTrade(literal105031, marketResolved)
+	return this.SafeTrade(literal104931, marketResolved)
 }
 
 /**
@@ -1756,7 +1755,7 @@ func (this *Latoken) ParseOrder(order map[string]any, optionalArgs ...any) Order
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "condition"))
-	var literal135131 map[string]any = map[string]any{
+	var literal135031 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"info":               order,
@@ -1780,9 +1779,9 @@ func (this *Latoken) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"trades":             nil,
 	}
 	if side != nil {
-		literal135131["side"] = *side
+		literal135031["side"] = *side
 	}
-	return this.SafeOrder(literal135131, marketResolved)
+	return this.SafeOrder(literal135031, marketResolved)
 }
 
 /**
@@ -2728,16 +2727,16 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestString
-	var literal204415 map[string]any = map[string]any{
+	var literal204315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal204415["body"] = *requestBody
+		literal204315["body"] = *requestBody
 	}
-	return literal204415
+	return literal204315
 }
 func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

@@ -1029,7 +1029,10 @@ func (this *Grvt) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		panic(r.Err)
 	}
 	var results []any = r.Value
-	var response map[string]any = SafeMapTyped(results, 0)
+	var response map[string]any
+	if 0 < len(results) {
+		response, _ = results[0].(map[string]any)
+	}
 	var result []any = this.SafeListSlice(response, "result", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}

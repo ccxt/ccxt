@@ -2082,7 +2082,6 @@ func (this *Gemini) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 	} else {
 		typeVar = this.SafeString(order, "type")
 	}
-	var fee any = nil
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var id *string = this.SafeString(order, "order_id")
@@ -2122,7 +2121,7 @@ func (this *Gemini) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"amount":             amount,
 		"filled":             filled,
 		"remaining":          remaining,
-		"fee":                fee,
+		"fee":                nil,
 		"trades":             nil,
 	}, market)
 }

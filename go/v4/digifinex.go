@@ -4717,7 +4717,7 @@ func (this *Digifinex) fetchCrossBorrowRatesBody(ch chan AsyncResult[map[string]
 	var result []any
 	result, _ = response["list"].([]any)
 
-	ch <- AsyncResult[map[string]CrossBorrowRate]{Value: CrossBorrowRateMapFromMap(this.ParseBorrowRates(result, SafeStringPtr("currency")))}
+	ch <- AsyncResult[map[string]CrossBorrowRate]{Value: CrossBorrowRateMapFromMap(this.ParseBorrowRates(result, "currency"))}
 	return nil
 }
 func (this *Digifinex) ParseBorrowRate(info any, optionalArgs ...any) map[string]any {
@@ -4741,7 +4741,7 @@ func (this *Digifinex) ParseBorrowRate(info any, optionalArgs ...any) map[string
 		"info":      info,
 	}
 }
-func (this *Digifinex) ParseBorrowRates(info []any, codeKey *string) map[string]any {
+func (this *Digifinex) ParseBorrowRates(info []any, codeKey string) map[string]any {
 	//
 	//     {
 	//         "valuation_rate": 1,

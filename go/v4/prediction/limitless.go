@@ -2602,7 +2602,10 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		panic(r1.Err)
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
-	var account map[string]any = ccxt.SafeMapTyped(accounts, 0)
+	var account map[string]any
+	if 0 < len(accounts) {
+		account, _ = accounts[0].(map[string]any)
+	}
 	var accountInfo, _ = account["info"].(map[string]any)
 	// the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
 	// the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the

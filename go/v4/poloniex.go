@@ -1707,12 +1707,13 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	if *this.SafeBool(market, "contract", false) {
 
-		r1 := <-this.FetchTickersAsync([]any{market["symbol"]}, params)
+		r1 := <-this.FetchTickersAsync([]any{marketSymbol}, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -2024,11 +2025,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158619 []any = r1.Value
-		if retRes158619 == nil {
+		var retRes158719 []any = r1.Value
+		if retRes158719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158719)}
 		}
 		return nil
 	}
@@ -3062,11 +3063,11 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		//        }
 		//    }
 		//
-		rawDict239736, _ := raw["data"].(map[string]any)
-		if rawDict239736 == nil {
-			rawDict239736 = map[string]any{}
+		rawDict239836, _ := raw["data"].(map[string]any)
+		if rawDict239836 == nil {
+			rawDict239836 = map[string]any{}
 		}
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(rawDict239736)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(rawDict239836)}
 		return nil
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")

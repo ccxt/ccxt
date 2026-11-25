@@ -2212,7 +2212,11 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
 	//         "timestamp": 1786038156772
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = this.Extend(response, data)
 	if isByClientOrder {
 		order["clientOrderId"] = clientOrderIdExchangeSpecific

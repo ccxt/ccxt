@@ -4701,7 +4701,10 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan AsyncResult[*string], typeVar 
 			return nil
 		}
 	}
-	var defaultAccount map[string]any = SafeMapTyped(accounts, 0)
+	var defaultAccount map[string]any
+	if 0 < len(accounts) {
+		defaultAccount, _ = accounts[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(defaultAccount, "id")}
 	return nil

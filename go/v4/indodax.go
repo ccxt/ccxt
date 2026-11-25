@@ -1082,9 +1082,8 @@ func (this *Indodax) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		filled = this.SafeString(order, "receive_"+baseId)
 	}
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
-	var fee any = nil
 	var id *string = this.SafeString(order, "order_id")
-	var literal85531 map[string]any = map[string]any{
+	var literal85431 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1104,22 +1103,22 @@ func (this *Indodax) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"filled":             nil,
 		"remaining":          nil,
 		"status":             status,
-		"fee":                fee,
+		"fee":                nil,
 		"trades":             nil,
 	}
 	if cost != nil {
-		literal85531["cost"] = *cost
+		literal85431["cost"] = *cost
 	}
 	if amount != nil {
-		literal85531["amount"] = *amount
+		literal85431["amount"] = *amount
 	}
 	if filled != nil {
-		literal85531["filled"] = *filled
+		literal85431["filled"] = *filled
 	}
 	if remaining != nil {
-		literal85531["remaining"] = *remaining
+		literal85431["remaining"] = *remaining
 	}
-	return this.SafeOrder(literal85531)
+	return this.SafeOrder(literal85431)
 }
 
 /**
@@ -1872,9 +1871,9 @@ func (this *Indodax) ParseTransaction(transaction map[string]any, optionalArgs .
 			"rate":     nil,
 		}
 	}
-	var ternaryStr140620 string = "deposit"
+	var ternaryStr140520 string = "deposit"
 	if depositId == nil {
-		ternaryStr140620 = "withdraw"
+		ternaryStr140520 = "withdraw"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString2(transaction, "withdraw_id", "deposit_id"),
@@ -1886,7 +1885,7 @@ func (this *Indodax) ParseTransaction(transaction map[string]any, optionalArgs .
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type":        ternaryStr140620,
+		"type":        ternaryStr140520,
 		"currency":    this.SafeCurrencyCode(nil, currency),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,

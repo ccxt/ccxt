@@ -1689,7 +1689,6 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeInteger(trade, "time")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
-	var typeVar any = nil
 	var fee map[string]any = map[string]any{}
 	var feeCost *string = this.SafeString(trade, "commission")
 	if feeCost != nil {
@@ -1725,13 +1724,13 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if orderId != nil {
 		costString = this.SafeString(trade, "quoteQty")
 	}
-	var literal132231 map[string]any = map[string]any{
+	var literal132131 map[string]any = map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        priceString,
@@ -1741,9 +1740,9 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"info":         trade,
 	}
 	if costString != nil {
-		literal132231["cost"] = *costString
+		literal132131["cost"] = *costString
 	}
-	return this.SafeTrade(literal132231, marketResolved)
+	return this.SafeTrade(literal132131, marketResolved)
 }
 
 /**
@@ -2839,7 +2838,6 @@ func (this *Coinsph) ParseTransaction(transaction map[string]any, optionalArgs .
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = nil
 	timestamp = this.SafeInteger2(transaction, "insertTime", "applyTime")
-	var updated any = nil
 	var typeVar *string = nil
 	var withdrawOrderId *string = this.SafeString(transaction, "withdrawOrderId")
 	var depositOrderId *string = this.SafeString(transaction, "depositOrderId")
@@ -2879,7 +2877,7 @@ func (this *Coinsph) ParseTransaction(transaction map[string]any, optionalArgs .
 		"amount":      amount,
 		"currency":    code,
 		"status":      status,
-		"updated":     updated,
+		"updated":     nil,
 		"internal":    internal,
 		"comment":     nil,
 		"fee":         fee,

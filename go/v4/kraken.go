@@ -706,7 +706,10 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var responses []any = r.Value
-	var assetsResponse map[string]any = SafeMapTyped(responses, 0)
+	var assetsResponse map[string]any
+	if 0 < len(responses) {
+		assetsResponse, _ = responses[0].(map[string]any)
+	}
 	//
 	//     {
 	//         "error": [],
@@ -3277,7 +3280,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	var result []any = []any{}
 	for j := 0; j < len(batches); j++ {
 		var request map[string]any = map[string]any{
-			"txid": DerefScalar(batches[j]),
+			"txid": batches[j],
 		}
 
 		r1 := <-this.PrivatePostQueryTrades(request)
@@ -4589,7 +4592,10 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		}
 		// if depositMethod was not specified, fallback to the first available deposit method
 		if depositMethod == nil {
-			var firstDepositMethod map[string]any = SafeMapTyped(depositMethods, 0)
+			var firstDepositMethod map[string]any
+			if 0 < len(depositMethods) {
+				firstDepositMethod, _ = depositMethods[0].(map[string]any)
+			}
 			depositMethod = this.SafeString(firstDepositMethod, "method")
 		}
 	}

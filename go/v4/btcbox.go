@@ -665,7 +665,6 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = this.SafeString(trade, "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
-	var typeVar any = nil
 	var side *string = this.SafeString(trade, "type")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -674,7 +673,7 @@ func (this *Btcbox) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
 		"price":        priceString,
@@ -1087,11 +1086,11 @@ func (this *Btcbox) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes79615 []any = OrdersToList(r.Value)
-	if retRes79615 == nil {
+	var retRes79515 []any = OrdersToList(r.Value)
+	if retRes79515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes79615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes79515)}
 	}
 	return nil
 }
@@ -1128,11 +1127,11 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes81115 []any = OrdersToList(r.Value)
-	if retRes81115 == nil {
+	var retRes81015 []any = OrdersToList(r.Value)
+	if retRes81015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes81115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes81015)}
 	}
 	return nil
 }

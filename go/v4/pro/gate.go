@@ -661,7 +661,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
 	}
-	request, requestParams := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
+	request, requestParams := this.PrepareOrdersByStatusRequest(&status, symbolResolved, since, limit, params)
 	var newRequest map[string]any = ccxt.MapTyped(this.Omit(request, []any{"settle"}))
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".order_list"

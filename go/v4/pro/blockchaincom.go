@@ -699,11 +699,11 @@ func (this *Blockchaincom) HandleOrders(client ccxt.ClientInterface, message map
 		var orders, _ = message["orders"].([]any)
 		for i := 0; i < len(orders); i++ {
 			var order any = orders[i]
-			var parsedOrder any = this.ParseWsOrder(order)
+			var parsedOrder map[string]any = this.ParseWsOrder(order)
 			cachedOrders.Append(parsedOrder)
 		}
 	} else if event != nil && *event == "updated" {
-		var parsedOrder any = this.ParseWsOrder(message)
+		var parsedOrder map[string]any = this.ParseWsOrder(message)
 		cachedOrders.Append(parsedOrder)
 	}
 	this.Orders = cachedOrders

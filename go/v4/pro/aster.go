@@ -235,14 +235,14 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@ticker")
 		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
@@ -315,14 +315,14 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@ticker")
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
@@ -471,10 +471,6 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -484,6 +480,10 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		}
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@markPrice"+suffix)
 		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes)
@@ -556,10 +556,6 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
@@ -569,6 +565,10 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 		}
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@markPrice"+suffix)
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes)
@@ -719,14 +719,14 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@bookTicker")
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
@@ -796,14 +796,14 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@bookTicker")
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
@@ -990,11 +990,6 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-		"id":     1,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		var marketId *string = this.SafeStringLower(market, "id")
@@ -1003,6 +998,11 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		}
 		subscriptionArgs = append(subscriptionArgs, *marketId+"@aggTrade")
 		messageHashes = append(messageHashes, "trade::"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
+		"id":     1,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
@@ -1070,14 +1070,14 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@aggTrade")
 		messageHashes = append(messageHashes, "unsubscribe:trade:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
@@ -1419,10 +1419,6 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	var depthSuffix string = "@depth20"
 	if limit != nil && *limit == 5 {
 		depthSuffix = "@depth5"
@@ -1433,6 +1429,10 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "orderbook:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
@@ -1492,10 +1492,6 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	var limit *float64 = this.SafeNumber(paramsOmitted, "limit")
 	var depthSuffix string = "@depth20"
 	if limit != nil && *limit == 5 {
@@ -1507,6 +1503,10 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		var market map[string]any = this.Market(symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+*this.SafeString(market, "symbol", ""))
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsOmitted, "limit")), messageHashes)
@@ -1720,10 +1720,6 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "SUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < symbolsLength; i++ {
 		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
@@ -1736,6 +1732,10 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@kline_"+*timeframeId)
 		messageHashes = append(messageHashes, "ohlcv:"+*this.SafeString(market, "symbol", "")+":"+*unfiedTimeframe)
+	}
+	var request map[string]any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)
 	if r1.Err != nil {
@@ -1802,10 +1802,6 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
-	var request map[string]any = map[string]any{
-		"method": "UNSUBSCRIBE",
-		"params": subscriptionArgs,
-	}
 	for i := 0; i < symbolsLength; i++ {
 		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
@@ -1818,6 +1814,10 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@kline_"+*timeframeId)
 		messageHashes = append(messageHashes, "unsubscribe:ohlcv:"+*this.SafeString(market, "symbol", "")+":"+*unfiedTimeframe)
+	}
+	var request map[string]any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subscriptionArgs,
 	}
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Omit(paramsCallerMethodName, "callerMethodName")), messageHashes)

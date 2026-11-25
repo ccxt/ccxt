@@ -11429,13 +11429,15 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	var data map[string]any = SafeMapTyped(response, "data")
 	if marketType != nil && *marketType == "spot" {
 		if (marginMode != nil) || (trigger != nil && *trigger == true) {
-			var orderList []any = SafeListTyped(data, "orderList")
+			var orderList []any
+			orderList, _ = data["orderList"].([]any)
 
 			ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orderList, market, sinceResolved, limit))}
 			return nil
 		}
 	} else {
-		var entrustedList []any = SafeListTyped(data, "entrustedList")
+		var entrustedList []any
+		entrustedList, _ = data["entrustedList"].([]any)
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(entrustedList, market, sinceResolved, limit))}
 		return nil

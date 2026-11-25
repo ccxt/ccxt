@@ -856,9 +856,6 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 			symbol = nil
 		}
 	}
-	var expiry any = nil
-	var strikePrice any = nil
-	var optionType any = nil
 	var tickSize *string = this.SafeString(market, "tickSize")
 	var fees map[string]any = SafeDict2Typed(this.Fees, typeVar, "trading")
 	var taker *float64 = this.SafeNumber(fees, "taker")
@@ -876,7 +873,7 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 	if contract {
 		costLimits["max"] = nil
 	}
-	var literal67541 map[string]any = map[string]any{
+	var literal67241 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -895,10 +892,10 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 		"taker":          taker,
 		"maker":          maker,
 		"contract":       contract,
-		"expiry":         expiry,
-		"expiryDatetime": expiry,
-		"strike":         strikePrice,
-		"optionType":     optionType,
+		"expiry":         nil,
+		"expiryDatetime": nil,
+		"strike":         nil,
+		"optionType":     nil,
 		"created":        this.SafeInteger(market, "listTime"),
 		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "lotSize"),
@@ -922,21 +919,21 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 		"info": market,
 	}
 	if contract {
-		literal67541["linear"] = (contractType != nil && *contractType == "linear")
+		literal67241["linear"] = (contractType != nil && *contractType == "linear")
 	} else {
-		literal67541["linear"] = nil
+		literal67241["linear"] = nil
 	}
 	if contract {
-		literal67541["inverse"] = (contractType != nil && *contractType == "inverse")
+		literal67241["inverse"] = (contractType != nil && *contractType == "inverse")
 	} else {
-		literal67541["inverse"] = nil
+		literal67241["inverse"] = nil
 	}
 	if contract {
-		literal67541["contractSize"] = this.SafeNumber(market, "contractValue")
+		literal67241["contractSize"] = this.SafeNumber(market, "contractValue")
 	} else {
-		literal67541["contractSize"] = nil
+		literal67241["contractSize"] = nil
 	}
-	return this.SafeMarketStructure(literal67541)
+	return this.SafeMarketStructure(literal67241)
 }
 
 /**
@@ -1472,11 +1469,11 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes108819 []any = r1.Value
-		if retRes108819 == nil {
+		var retRes108519 []any = r1.Value
+		if retRes108519 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108519)}
 		}
 		return nil
 	}
@@ -1565,11 +1562,11 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes113519 []any = r1.Value
-		if retRes113519 == nil {
+		var retRes113219 []any = r1.Value
+		if retRes113219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113219)}
 		}
 		return nil
 	}
@@ -2099,7 +2096,7 @@ func (this *Blofin) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 	var takeProfitPrice *float64 = this.SafeNumber(order, "tpTriggerPrice")
 	var reduceOnlyRaw *string = this.SafeString(order, "reduceOnly")
 	var reduceOnly bool = (reduceOnlyRaw != nil && *reduceOnlyRaw == "true")
-	var literal157631 map[string]any = map[string]any{
+	var literal157331 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
@@ -2127,9 +2124,9 @@ func (this *Blofin) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"reduceOnly":          reduceOnly,
 	}
 	if cost != nil {
-		literal157631["cost"] = *cost
+		literal157331["cost"] = *cost
 	}
-	return this.SafeOrder(literal157631, marketResolved)
+	return this.SafeOrder(literal157331, marketResolved)
 }
 
 /**
@@ -2676,11 +2673,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193919 []any = r1.Value
-		if retRes193919 == nil {
+		var retRes193619 []any = r1.Value
+		if retRes193619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193619)}
 		}
 		return nil
 	}
@@ -2776,11 +2773,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes198919 []any = r1.Value
-		if retRes198919 == nil {
+		var retRes198619 []any = r1.Value
+		if retRes198619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes198919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes198619)}
 		}
 		return nil
 	}
@@ -2890,11 +2887,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes205819 []any = r1.Value
-		if retRes205819 == nil {
+		var retRes205519 []any = r1.Value
+		if retRes205519 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205519)}
 		}
 		return nil
 	}
@@ -2970,11 +2967,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes209819 []any = r1.Value
-		if retRes209819 == nil {
+		var retRes209519 []any = r1.Value
+		if retRes209519 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes209819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes209519)}
 		}
 		return nil
 	}
@@ -3694,11 +3691,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes261019 []any = r1.Value
-		if retRes261019 == nil {
+		var retRes260719 []any = r1.Value
+		if retRes260719 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes261019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes260719)}
 		}
 		return nil
 	}
@@ -3800,7 +3797,7 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var feeCurrencyId *string = this.SafeString(transaction, "feeCurrency")
 	var feeCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var literal269915 map[string]any = map[string]any{
+	var literal269615 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"currency":    code,
@@ -3826,12 +3823,12 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 		},
 	}
 	if id != nil {
-		literal269915["id"] = *id
+		literal269615["id"] = *id
 	}
 	if status != nil {
-		literal269915["status"] = *status
+		literal269615["status"] = *status
 	}
-	return TransactionFromMap(literal269915)
+	return TransactionFromMap(literal269615)
 }
 func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4875,11 +4872,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes345219 []any = r1.Value
-		if retRes345219 == nil {
+		var retRes344919 []any = r1.Value
+		if retRes344919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes345219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes344919)}
 		}
 		return nil
 	}
@@ -5119,12 +5116,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr359228 string = "net_mode"
+	var ternaryStr358928 string = "net_mode"
 	if hedged {
-		ternaryStr359228 = "long_short_mode"
+		ternaryStr358928 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr359228,
+		"positionMode": ternaryStr358928,
 	}
 
 	//

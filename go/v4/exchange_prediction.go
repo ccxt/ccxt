@@ -708,14 +708,29 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 	}
 	var outcomesList []any = SafeListTyped(market, "outcomes")
 	for j := 0; j < len(outcomesList); j++ {
-		var oc any = outcomesList[j]
+		var oc, _ = outcomesList[j].(map[string]any)
+		if oc == nil {
+			continue
+		}
 		var ocSymbol *string = this.SafeString2(oc, "outcome", "symbol")
 		var ocId *string = this.SafeString2(oc, "outcomeId", "id")
 		// assign unconditionally — safeString2 keeps the canonical key when present
 		// and falls back to the legacy one, so this never clobbers and avoids a
 		// missing-key access that throws in Python/PHP, unlike TS undefined
-		AddElementToObject(oc, "outcomeId", ocId)
-		AddElementToObject(oc, "market", this.SafeString2(oc, "market", "marketSymbol"))
+		if oc != nil {
+			if ocId != nil {
+				oc["outcomeId"] = *ocId
+			} else {
+				oc["outcomeId"] = nil
+			}
+		}
+		if oc != nil {
+			if ptrValue := this.SafeString2(oc, "market", "marketSymbol"); ptrValue != nil {
+				oc["market"] = *ptrValue
+			} else {
+				oc["market"] = nil
+			}
+		}
 		if ocSymbol != nil {
 			// shortenSlug is lossy, so two different markets can produce the same handle.
 			// on a real collision of same handle but different outcomeId, disambiguate the
@@ -735,10 +750,22 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 					ocSymbol = &ocSymbolStr
 				}
 			}
-			AddElementToObject(oc, "outcome", ocSymbol)
+			if oc != nil {
+				if ocSymbol != nil {
+					oc["outcome"] = *ocSymbol
+				} else {
+					oc["outcome"] = nil
+				}
+			}
 			AddElementToObject(this.Outcomes, ocSymbol, oc)
 		} else {
-			AddElementToObject(oc, "outcome", ocSymbol)
+			if oc != nil {
+				if ocSymbol != nil {
+					oc["outcome"] = *ocSymbol
+				} else {
+					oc["outcome"] = nil
+				}
+			}
 		}
 		if ocId != nil {
 			this.Outcomes_by_id[*ocId] = oc
@@ -954,7 +981,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOu
 	ch <- AsyncResult[PredictionOutcome]{Value: r1.Value}
 	return nil
 }
-func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
+func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) *string {
 	// derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
 	// cache miss can be resolved through the venue's scoped search instead of a bulk listing
 	// download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
@@ -1001,7 +1028,8 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 		// a purely numeric/symbolic handle is an id, not searchable text
 		return nil
 	}
-	return strings.Join(words, " ")
+	retStrVal := strings.Join(words, " ")
+	return &retStrVal
 }
 func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome], 1)
@@ -1016,7 +1044,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan AsyncResult[PredictionO
 	// through the venue's own scoped fetchEvents (which caches everything it finds), then
 	// re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
 	// token id) override this with a cheaper single fetch and fall back to super on a miss.
-	var searchQuery any = this.OutcomeSearchQuery(outcomeSymbol)
+	var searchQuery *string = this.OutcomeSearchQuery(outcomeSymbol)
 	if (searchQuery != nil) && (this.SafeBool(this.Has, "fetchEvents", false) != nil && *this.SafeBool(this.Has, "fetchEvents", false)) {
 		var searchLimit *int64 = this.SafeInteger(this.Options, "fetchOutcomeSearchLimit", 10)
 
@@ -2144,11 +2172,11 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict157454, _ := rows[i].(map[string]any)
-		if rowsDict157454 == nil {
-			rowsDict157454 = map[string]any{}
+		rowsDict157754, _ := rows[i].(map[string]any)
+		if rowsDict157754 == nil {
+			rowsDict157754 = map[string]any{}
 		}
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rowsDict157454, outcomeObj)
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rowsDict157754, outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
 		results = append(results, trade)
 	}
@@ -2182,11 +2210,11 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict160054, _ := rows[i].(map[string]any)
-		if rowsDict160054 == nil {
-			rowsDict160054 = map[string]any{}
+		rowsDict160354, _ := rows[i].(map[string]any)
+		if rowsDict160354 == nil {
+			rowsDict160354 = map[string]any{}
 		}
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rowsDict160054, outcomeObj)
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rowsDict160354, outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
 		results = append(results, order)
 	}
@@ -2214,11 +2242,11 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict162657, _ := rows[i].(map[string]any)
-		if rowsDict162657 == nil {
-			rowsDict162657 = map[string]any{}
+		rowsDict162957, _ := rows[i].(map[string]any)
+		if rowsDict162957 == nil {
+			rowsDict162957 = map[string]any{}
 		}
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rowsDict162657)
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rowsDict162957)
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}

@@ -739,7 +739,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 		var restPromises []any = []any{}
 		for pi := 0; pi < len(remainingPages); pi++ {
 			var pageRequest map[string]any = map[string]any{
-				"page": ccxt.DerefScalar(remainingPages[pi]),
+				"page": remainingPages[pi],
 			}
 			pageRequest = this.Extend(this.Extend(pageRequest, baseRequest), rest)
 			restPromises = append(restPromises, this.GammaPublicGetPublicSearch(pageRequest))
@@ -1257,7 +1257,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	// non-ids) and falls through to the search path and its local ccxt.BadSymbol below.
 	// absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
 	// `=== -1` passes through and never matches mb_strpos's false return
-	if (ccxt.GetIndexOf(outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
+	if (ccxt.GetIndexOf(outcomeSymbol, ":") < 0) && (this.OutcomeSearchQuery(outcomeSymbol) == nil) {
 
 		r := <-this.GammaPublicGetMarkets(map[string]any{
 			"clob_token_ids": outcomeSymbol,
@@ -1329,7 +1329,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 		// see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
 		// maps that to `=== false`, while a literal `=== -1` passes through and never
 		// matches mb_strpos's false return
-		if (strings.Index(outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
+		if (strings.Index(outcomeSymbol, ":") < 0) && (this.OutcomeSearchQuery(outcomeSymbol) == nil) {
 			tokenIds = append(tokenIds, outcomeSymbol)
 		}
 	}
@@ -3604,7 +3604,8 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 		}
 		response = r3.Value
 	}
-	var canceled []any = ccxt.SafeListTyped(response, "canceled")
+	var canceled []any
+	canceled, _ = response["canceled"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(canceled); i++ {
 		orders = append(orders, this.SafePredictionOrder(map[string]any{

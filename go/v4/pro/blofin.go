@@ -406,8 +406,16 @@ func (this *Blofin) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		orderBookSnapshot["nonce"] = this.SafeInteger(data, "seqId")
 		orderbook.Reset(orderBookSnapshot)
 	} else {
-		var asks []any = this.SafeListSlice(data, "asks", []any{})
-		var bids []any = this.SafeListSlice(data, "bids", []any{})
+		var asks []any
+		asks, _ = data["asks"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = data["bids"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks)
 		this.HandleDeltasWithKeys(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)

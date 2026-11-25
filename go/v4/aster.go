@@ -1242,9 +1242,15 @@ func (this *Aster) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		panic(r.Err)
 	}
 	var results []any = r.Value
-	var sapiResult map[string]any = SafeMapTyped(results, 0)
+	var sapiResult map[string]any
+	if 0 < len(results) {
+		sapiResult, _ = results[0].(map[string]any)
+	}
 	var sapiRows []any = this.SafeListSlice(sapiResult, "symbols", []any{})
-	var fapiResult map[string]any = SafeMapTyped(results, 1)
+	var fapiResult map[string]any
+	if 1 < len(results) {
+		fapiResult, _ = results[1].(map[string]any)
+	}
 	var fapiRows []any = SafeListTyped(fapiResult, "symbols")
 	//
 	// example:

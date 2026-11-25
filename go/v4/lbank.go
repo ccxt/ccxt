@@ -1017,9 +1017,10 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	if *this.SafeBool(market, "swap", false) {
 
-		r1 := <-this.FetchTickersAsync([]any{market["symbol"]}, params)
+		r1 := <-this.FetchTickersAsync([]any{marketSymbol}, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1828,8 +1829,9 @@ func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 		}
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var marketSymbol string = market.Symbol
 
-	r1 := <-this.FetchFundingRatesAsync([]any{market.Symbol}, params)
+	r1 := <-this.FetchFundingRatesAsync([]any{marketSymbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2423,7 +2425,7 @@ func (this *Lbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		amountString = this.SafeString2(order, "origQty", "amount")
 	}
 	var filledString *string = this.SafeString2(order, "executedQty", "deal_amount")
-	var literal187531 map[string]any = map[string]any{
+	var literal187731 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"datetime":           this.Iso8601(timestamp),
@@ -2447,9 +2449,9 @@ func (this *Lbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"average":            nil,
 	}
 	if amountString != nil {
-		literal187531["amount"] = *amountString
+		literal187731["amount"] = *amountString
 	}
-	return this.SafeOrder(literal187531, marketResolved)
+	return this.SafeOrder(literal187731, marketResolved)
 }
 
 /**
@@ -2632,14 +2634,14 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan AsyncResult[Order], id string, 
 	var numOrders int = len(result)
 	if numOrders == 1 {
 
-		var resultDict200136 map[string]any
+		var resultDict200336 map[string]any
 		if len(result) > 0 {
-			resultDict200136, _ = result[0].(map[string]any)
+			resultDict200336, _ = result[0].(map[string]any)
 		}
-		if resultDict200136 == nil {
-			resultDict200136 = map[string]any{}
+		if resultDict200336 == nil {
+			resultDict200336 = map[string]any{}
 		}
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(resultDict200136)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(resultDict200336)}
 		return nil
 	} else {
 		panic(BadRequest(this.Id + " fetchOrder() can only fetch one order at a time"))
@@ -3441,7 +3443,7 @@ func (this *Lbank) ParseTransaction(transaction map[string]any, optionalArgs ...
 			"currency": code,
 		}
 	}
-	var literal253915 map[string]any = map[string]any{
+	var literal254115 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -3464,12 +3466,12 @@ func (this *Lbank) ParseTransaction(transaction map[string]any, optionalArgs ...
 		"fee":         fee,
 	}
 	if addressTo != nil {
-		literal253915["addressTo"] = *addressTo
+		literal254115["addressTo"] = *addressTo
 	}
 	if addressFrom != nil {
-		literal253915["addressFrom"] = *addressFrom
+		literal254115["addressFrom"] = *addressFrom
 	}
-	return TransactionFromMap(literal253915)
+	return TransactionFromMap(literal254115)
 }
 
 /**
@@ -3682,11 +3684,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes270023 map[string]any = r1.Value
-			if retRes270023 == nil {
+			var retRes270223 map[string]any = r1.Value
+			if retRes270223 == nil {
 				ch <- AsyncResult[map[string]any]{Value: nil}
 			} else {
-				ch <- AsyncResult[map[string]any]{Value: retRes270023}
+				ch <- AsyncResult[map[string]any]{Value: retRes270223}
 			}
 			return nil
 		}
@@ -3695,11 +3697,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes270219 map[string]any = r2.Value
-		if retRes270219 == nil {
+		var retRes270419 map[string]any = r2.Value
+		if retRes270419 == nil {
 			ch <- AsyncResult[map[string]any]{Value: nil}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes270219}
+			ch <- AsyncResult[map[string]any]{Value: retRes270419}
 		}
 		return nil
 	}
@@ -3708,11 +3710,11 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes270415 map[string]any = r3.Value
-	if retRes270415 == nil {
+	var retRes270615 map[string]any = r3.Value
+	if retRes270615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes270415}
+		ch <- AsyncResult[map[string]any]{Value: retRes270615}
 	}
 	return nil
 }

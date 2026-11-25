@@ -516,7 +516,8 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
 	_ = question
 	var description *string = this.SafeString(outcomeInfo, "description", "")
 	var name *string = this.SafeString(outcomeInfo, "name", "")
-	var sideSpecs []any = ccxt.SafeListTyped(outcomeInfo, "sideSpecs")
+	var sideSpecs []any
+	sideSpecs, _ = outcomeInfo["sideSpecs"].([]any)
 	var desc map[string]any = this.ParseOutcomeDescription(description)
 	var parentSymbol any = this.BuildOutcomeParentSymbol(desc, outcomeKey, name, question)
 	var yesEncoding any = this.OutcomeEncoding(outcomeId, 0)
@@ -1293,7 +1294,10 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 		panic(r2.Err)
 	}
 	var results []any = r2.Value
-	var response map[string]any = ccxt.SafeMapTyped(results, 0)
+	var response map[string]any
+	if 0 < len(results) {
+		response, _ = results[0].(map[string]any)
+	}
 	var midsResponse any = results[1]
 	var balances []any = ccxt.SafeListTyped(response, "balances")
 	var allMids any = this.InfoDict(midsResponse)

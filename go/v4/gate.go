@@ -7780,7 +7780,7 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
-func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) (map[string]any, map[string]any) {
+func (this *Gate) PrepareOrdersByStatusRequest(status *string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -7813,11 +7813,16 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	if spot && (trigger == true) {
 		request = this.OmitDict(request, "account")
 	}
-	var requestStatus any = status
-	if IsEqual(status, "closed") {
-		requestStatus = "finished"
+	var requestStatus *string = status
+	if status != nil && *status == "closed" {
+		requestStatusStr := "finished"
+		requestStatus = &requestStatusStr
 	}
-	AddElementToObject(request, "status", requestStatus)
+	if requestStatus != nil {
+		request["status"] = *requestStatus
+	} else {
+		request["status"] = nil
+	}
 	if limit != nil {
 		request["limit"] = *limit
 	}
@@ -7837,12 +7842,12 @@ func (this *Gate) PrepareOrdersByStatusRequest(status any, optionalArgs ...any) 
 	}
 	return request, finalParams
 }
-func (this *Gate) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Gate) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status any, optionalArgs ...any) any {
+func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7878,9 +7883,9 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status a
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
 	typeVar, _ := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	// don't omit here, omits done in prepareOrdersByStatusRequest
-	request, requestParams := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
+	request, requestParams := this.PrepareOrdersByStatusRequest(&status, symbolResolved, since, limit, params)
 	var spot bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
-	var openStatus bool = (IsEqual(status, "open"))
+	var openStatus bool = (status == "open")
 	var openSpotOrders bool = spot && openStatus && (trigger == nil || *trigger != true)
 	var response []any = nil
 	if spot {

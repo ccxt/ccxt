@@ -2566,7 +2566,10 @@ func (this *Derive) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	//         }
 	//     ]
 	//
-	var data map[string]any = SafeMapTyped(response, 0)
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data)}
 	return nil

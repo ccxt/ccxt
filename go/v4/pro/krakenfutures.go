@@ -366,7 +366,7 @@ func (this *Krakenfutures) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.A
 func (this *Krakenfutures) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -924,11 +924,11 @@ func (this *Krakenfutures) HandleTrade(client ccxt.ClientInterface, message map[
 				} else {
 					item = nil
 				}
-				var trade any = this.ParseWsTrade(item)
+				var trade map[string]any = this.ParseWsTrade(item)
 				tradesArray.Append(trade)
 			}
 		} else {
-			var trade any = this.ParseWsTrade(message)
+			var trade map[string]any = this.ParseWsTrade(message)
 			tradesArray.Append(trade)
 		}
 		client.Resolve(tradesArray, messageHash)
@@ -2166,7 +2166,7 @@ func (this *Krakenfutures) WatchMultiHelperAsync(unifiedName string, channelName
 func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedName string, channelName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var subscriptionArgs map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)
 	_ = subscriptionArgs

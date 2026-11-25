@@ -7494,7 +7494,10 @@ func (this *Bybit) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, o
 	if length > 1 {
 		panic(InvalidOrder(this.Id + " returned more than one order"))
 	}
-	var order map[string]any = SafeMapTyped(result, 0)
+	var order map[string]any
+	if 0 < len(result) {
+		order, _ = result[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil

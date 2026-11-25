@@ -564,7 +564,6 @@ func (this *Coincheck) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 	var amount *string = this.SafeString(order, "pending_amount")
 	var remaining *string = this.SafeString(order, "pending_amount")
 	var price *string = this.SafeString(order, "rate")
-	var status any = nil
 	var marketId *string = this.SafeString(order, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	return this.SafeOrder(map[string]any{
@@ -580,7 +579,7 @@ func (this *Coincheck) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"status":             status,
+		"status":             nil,
 		"symbol":             symbol,
 		"price":              price,
 		"triggerPrice":       nil,
@@ -802,7 +801,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 		amountString = this.SafeString(trade, "amount")
 		side = this.SafeString(trade, "order_type")
 	}
-	var literal59131 map[string]any = map[string]any{
+	var literal59031 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"datetime":     this.Iso8601(timestamp),
@@ -818,18 +817,18 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if side != nil {
-		literal59131["side"] = *side
+		literal59031["side"] = *side
 	}
 	if orderId != nil {
-		literal59131["order"] = *orderId
+		literal59031["order"] = *orderId
 	}
 	if amountString != nil {
-		literal59131["amount"] = *amountString
+		literal59031["amount"] = *amountString
 	}
 	if costString != nil {
-		literal59131["cost"] = *costString
+		literal59031["cost"] = *costString
 	}
-	return this.SafeTrade(literal59131, marketResolved)
+	return this.SafeTrade(literal59031, marketResolved)
 }
 
 /**

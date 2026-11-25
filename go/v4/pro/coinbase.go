@@ -1523,7 +1523,13 @@ func (this *Coinbase) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 	}
 	_, has1 := firstEvent["subscriptions"]
 	var isUnsub bool = has1
-	var subKeys []string = ccxt.ObjectKeys(this.SafeDict(firstEvent, "subscriptions", map[string]any{}))
+	var subKeys []string = []string{}
+	if objectEntry, ok := firstEvent["subscriptions"].(map[string]any); ok {
+		subKeys = make([]string, 0, len(objectEntry))
+		for objectKey := range objectEntry {
+			subKeys = append(subKeys, objectKey)
+		}
+	}
 	var subKeysLength int = len(subKeys)
 	if isUnsub && (subKeysLength == 0) {
 		var unSubObject map[string]any

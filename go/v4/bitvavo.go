@@ -3413,7 +3413,6 @@ func (this *Bitvavo) ParseTransaction(transaction map[string]any, optionalArgs .
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var id any = nil
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -3438,7 +3437,7 @@ func (this *Bitvavo) ParseTransaction(transaction map[string]any, optionalArgs .
 	var tag *string = this.SafeString(transaction, "paymentId")
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
-		"id":          id,
+		"id":          nil,
 		"txid":        txid,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -3615,16 +3614,16 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	var literal273415 map[string]any = map[string]any{
+	var literal273315 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal273415["body"] = *requestBody
+		literal273315["body"] = *requestBody
 	}
-	return literal273415
+	return literal273315
 }
 func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

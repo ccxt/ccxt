@@ -1831,7 +1831,6 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side any = nil
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
-	var typeVar any = nil
 	var costString *string = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
 	// resolved in the key scan below, falling back to the passed market
@@ -1932,14 +1931,14 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrency,
 		}
 	}
-	var literal126731 map[string]any = map[string]any{
+	var literal126631 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       nil,
 		"order":        this.SafeString(trade, "order_id"),
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
 		"price":        priceString,
@@ -1948,9 +1947,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if symbol != nil {
-		literal126731["symbol"] = *symbol
+		literal126631["symbol"] = *symbol
 	}
-	return this.SafeTrade(literal126731, marketResolved)
+	return this.SafeTrade(literal126631, marketResolved)
 }
 
 /**
@@ -3063,11 +3062,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes198219 []any = r.Value
-		if retRes198219 == nil {
+		var retRes198119 []any = r.Value
+		if retRes198119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes198219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes198119)}
 		}
 		return nil
 	}
@@ -4174,16 +4173,16 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = privateHeaders
 	}
-	var literal284115 map[string]any = map[string]any{
+	var literal284015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal284115["body"] = *requestBody
+		literal284015["body"] = *requestBody
 	}
-	return literal284115
+	return literal284015
 }
 func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

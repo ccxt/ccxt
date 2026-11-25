@@ -1218,7 +1218,7 @@ func (this *Onetrading) HandleAccountUpdate(client ccxt.ClientInterface, message
 	client.Resolve(this.Balance, "balance")
 	// update trades
 	if updateType != nil && *updateType == "TRADE_SETTLED" {
-		var parsed any = ccxt.TradeToMap(this.ParseTrade(update))
+		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(update))
 		symbol = this.SafeString(parsed, "symbol", "")
 		var myTrades ccxt.WsArrayCache = this.MyTrades
 		myTrades.Append(parsed)

@@ -146,7 +146,11 @@ func (this *Interactivebrokers) ibkrConnectBody(ch chan ccxt.AsyncResult[any]) a
 			},
 		}
 		this.ExtendExchangeOptions(defaultOptions)
-		var originalHeaders any = ccxt.GetValue(ccxt.GetValue(this.Options["ws"], "options"), "headers")
+		var wsOptions map[string]any
+		wsOptions, _ = this.Options["ws"].(map[string]any)
+		if wsOptions == nil {
+			wsOptions = map[string]any{}
+		}
 		// with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
 		// client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
 		var userAgent *string = this.SafeString(this.Options, "wsUserAgent", "ClientPortalGW/1")
@@ -156,14 +160,18 @@ func (this *Interactivebrokers) ibkrConnectBody(ch chan ccxt.AsyncResult[any]) a
 				"session": session,
 			})
 		}
-		var headers map[string]any = this.Extend(originalHeaders, map[string]any{
+		var headers map[string]any = this.Extend(this.SafeDict(this.SafeDict(wsOptions, "options"), "headers"), map[string]any{
 			"Cookie":     cookie,
 			"User-Agent": userAgent,
 		})
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
+		this.Options["ws"] = this.Extend(wsOptions, map[string]any{
+			"options": this.Extend(this.SafeDict(wsOptions, "options"), map[string]any{
+				"headers": headers,
+			}),
+		})
 		// instantiate client
 		var newClient ccxt.ClientInterface = this.Client(url)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
+		this.Options["ws"] = wsOptions
 		var tickleInterval *int64 = this.SafeInteger(this.Options, "tickleInterval", 240000)
 		this.Delay(tickleInterval, this.IbkrKeepAliveSessionAsync, newClient)
 	}

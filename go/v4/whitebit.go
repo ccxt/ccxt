@@ -1641,8 +1641,14 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		panic(r1.Err)
 	}
 	var responses []any = r1.Value
-	var currenciesData map[string]any = SafeMapTyped(responses, 0)
-	var feesData map[string]any = SafeMapTyped(responses, 1)
+	var currenciesData map[string]any
+	if 0 < len(responses) {
+		currenciesData, _ = responses[0].(map[string]any)
+	}
+	var feesData map[string]any
+	if 1 < len(responses) {
+		feesData, _ = responses[1].(map[string]any)
+	}
 	//
 	// Currencies response structure (from fetchCurrencies):
 	//     {

@@ -4676,8 +4676,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var rates []any = []any{}
 	for i := 0; i < len(rawRatesData); i++ {
 		var fr any = rawRatesData[i]
-		var rate any = FundingRateHistoryToMap(this.ParseFundingRateHistory(fr, market))
-		rates = append(rates, rate)
+		rates = append(rates, this.ParseFundingRateHistoryRow(fr, market))
 	}
 	var reversedArray []any = []any{}
 	var rawRates []any = this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
@@ -4746,7 +4745,7 @@ func (this *Bitfinex) ParseFundingRate(contract map[string]any, optionalArgs ...
 		"interval":                 nil,
 	})
 }
-func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
+func (this *Bitfinex) ParseFundingRateHistoryRow(contract any, optionalArgs ...any) any {
 	//
 	// [
 	//     1691165494000,
@@ -4777,13 +4776,13 @@ func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any)
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, 0)
-	return FundingRateHistoryFromMap(map[string]any{
+	return map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(nil, market),
 		"fundingRate": this.SafeNumber(contract, 11),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	})
+	}
 }
 
 /**
@@ -4982,11 +4981,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes362219 []any = r1.Value
-		if retRes362219 == nil {
+		var retRes362119 []any = r1.Value
+		if retRes362119 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes362219)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes362119)}
 		}
 		return nil
 	}
@@ -5161,11 +5160,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376019 []any = r1.Value
-		if retRes376019 == nil {
+		var retRes375919 []any = r1.Value
+		if retRes375919 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes376019)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375919)}
 		}
 		return nil
 	}
