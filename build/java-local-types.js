@@ -1751,6 +1751,12 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'includes':    { type: 'Boolean', match: /\.contains\(/, args: [ 1, 2 ] },
     'toString':    { type: 'String', prefixes: [ 'String.valueOf(' ], args: [ 0 ], nonNull: true },
 };
+// the native String.indexOf on a guarded native substring target is an int as well
+{
+    const indexOfMatch = RECEIVER_METHOD_LOCAL_ENTRIES.indexOf.match;
+    const slicedTarget = /^\w+\.indexOf\(\((\w+) == null \? null : \1\.substring\(/;
+    RECEIVER_METHOD_LOCAL_ENTRIES.indexOf.match = { test: (text) => indexOfMatch.test (text) || slicedTarget.test (text) };
+}
 
 // Math.<name>(...) -> the printer's Java rewrite (see the block comment above)
 const MATH_LOCAL_ENTRIES = {
