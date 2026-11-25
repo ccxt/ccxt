@@ -119,7 +119,8 @@ public class Main {
     public static void setCredentials(BaseExchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
         var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
-        // later files override earlier ones (keys.local.json deep-extends keys.json)
+        // later files override earlier ones: keys.local.json replaces whole top-level exchange
+        // entries of keys.json (shallow), matching cli/ts/helpers.ts and cs/cli/Program.cs LoadSettings
         String[] keysFileNames = { "keys.json", "keys.local.json" };
 
         Map<String, Object> keysJsonContent = null;
@@ -133,7 +134,10 @@ public class Main {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 Map<String, Object> fileContent = mapper.readValue(content, Map.class);
-                keysJsonContent = (keysJsonContent == null) ? fileContent : deepExtend(keysJsonContent, fileContent);
+                if (keysJsonContent == null) {
+                    keysJsonContent = new java.util.LinkedHashMap<>();
+                }
+                keysJsonContent.putAll(fileContent);
             } catch (Exception e) {
                 System.out.println("Error parsing " + keysFileName + ": " + e.getMessage());
             }
