@@ -468,6 +468,7 @@ const GO_CHAN_CALL_TYPES: { [callee: string]: string } = Object.fromEntries ([
     ...goChanBoth (goChanRows ([ 'InsertMissingCandles', 'ParseTradingViewOHLCV', 'ParseBorrowRateHistory', 'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers',
         'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts',
         'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', 'ParsePredictionPositions', 'ParseDepositAddresses', 'ParseTransfers' ], GO_LIST)),
+    ...goChanBoth (goChanRows ([ 'ParseBorrowInterests', 'ParseMarginModifications' ], GO_LIST)),
 ]);
 let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
 
@@ -12146,7 +12147,8 @@ function goProvenListMethods (): string[] {
         'ParseDepositAddresses',
         'ParseDepositMethodIds', 'ParsePortfolioDetails',
         'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList',
-        'ParseOrderBookBidsAsks' ];
+        'ParseOrderBookBidsAsks',
+        'ParseBorrowInterests', 'ParseMarginModifications' ];
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
