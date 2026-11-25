@@ -47,7 +47,8 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 | `client_hash` | See "Who is counted". |
 | `auth_state` | `anonymous` |
 | `deployment` | `DEPLOYMENT_ENV` (e.g. `production`) |
-| `sample_rate` | The success sampling rate in force, so counts can be scaled back up. |
+| `sample_rate` | The success sampling rate in force (`POSTHOG_SAMPLE_RATE`, or `LIVE_TELEMETRY_SAMPLE_RATE` for `live_update`), on every event, errors included. |
+| `effective_sample_rate` | The rate THIS event was kept at: `sample_rate` for a success, `1` for an error (errors are never sampled). Scale counts by `1 / effective_sample_rate`, never by `1 / sample_rate`, which overcounts errors. |
 | `$mcp_server_name`, `$mcp_server_version`, `$mcp_server_build` | This server. The version carries the build id (`BUILD_ID`, the git commit, in the compose deployment). The build is `SERVER_BUILD` / `GIT_SHA` when set; the compose file passes `SERVER_BUILD` from `BUILD_ID`. |
 | `$mcp_protocol_version` | The protocol revision the request used. |
 | `$mcp_client_name`, `$mcp_client_version` | The client's self-declared name, e.g. `claude-ai`. Present on 2026-07-28 requests and on `initialize`. 2025-era stateless tool calls do not carry it. |
@@ -118,7 +119,7 @@ The hosted server also rejects unknown arguments, so a credential sent as an arg
 
 - Errors and their `$exception` events are always kept.
 - The decision hashes the session id. Today that id is one per request, so a request's events are kept or dropped together, and the same id always gets the same answer.
-- **`live_update`** (the views' refresh poll, every few seconds per open view) uses `LIVE_TELEMETRY_SAMPLE_RATE` (default `0.01`) for its successes instead. Its errors are always kept. `sample_rate` on each event is the rate that applied, so counts scale back up.
+- **`live_update`** (the views' refresh poll, every few seconds per open view) uses `LIVE_TELEMETRY_SAMPLE_RATE` (default `0.01`) for its successes instead. Its errors are always kept. `sample_rate` on each event is the success rate in force, also on errors, which were not sampled: to scale counts back up, weight each event by `1 / effective_sample_rate` (1 for errors). Both rates must be numbers from 0 to 1; anything else (`1%`, `0,05`, `5`) fails at start-up.
 
 ## Logs
 
@@ -142,8 +143,8 @@ Each log record is one JSON line on standard output. When a token is set, the sa
 |---|---|
 | `request_id`, `client_hash`, `auth_state` | On every record written inside a request. |
 | `posthogDistinctId`, `sessionId` | The same values as that request's events, so PostHog links a log line to its events. |
-| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name`. For `live_update` the line is at `debug` unless the call failed for a reason other than its rate limit: the polls are summarised by the hub's stats line instead. |
-| `live hub stats` (every `LIVE_STATS_INTERVAL_MS` while views are live) | `streams`, `streams_by_exchange`, `instances`, `polls_stream`, `polls_cache`, `polls_rest`, `fallbacks`, `opened`, `closed_idle`, `stream_errors`, `disabled_exchanges`. Counts only: no symbol, no client. |
+| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name`. `limited_by` (`client`, `host`, `busy`, `draining`) when this server's own budget answered before the tools ran. For `live_update` the line is at `debug` when the poll succeeded or was refused by this server's own budget (`limited_by` set): the polls are summarised by the hub's stats line instead. Any other failure of a poll — an exchange throttling this server (`RATE_LIMITED` from upstream), a full queue, an outage — stays at `warn`. |
+| `live hub stats` (every `LIVE_STATS_INTERVAL_MS` while views are live) | `streams`, `streams_by_exchange`, `abandoned`, `instances`, `polls_stream`, `polls_cache`, `polls_rest`, `polls_failed`, `polls_failed_by_code`, `refused`, `refused_by_reason`, `fallbacks`, `opened`, `closed_idle`, `recycled`, `unrenewed`, `stream_errors`, `disabled_exchanges`: totals since the process started (a rate needs the difference between two lines), plus `polls_stream_delta`, `polls_cache_delta`, `polls_rest_delta`, `polls_failed_delta` and `refused_delta` since the previous line. Counts only: no symbol, no client. |
 | Other lines | Server life-cycle events (listening, draining, circuit breaker), and errors as `name: message` of at most 300 characters (never a stack). |
 
 ### What is never logged

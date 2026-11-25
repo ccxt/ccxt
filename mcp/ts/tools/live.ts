@@ -5,7 +5,7 @@ import { ok } from '../format.js';
 import { ToolError } from '../errors.js';
 import { redact } from '../redact.js';
 import { redactDeep } from '../ui.js';
-import { run, badTimeframe, hasOwn, ArgError, exchangeParam, symbolParam, marketTypeParam, MAX_CODE_LENGTH, type ToolResult } from './common.js';
+import { run, badTimeframe, hasOwn, ArgError, exchangeParam, symbolParam, marketTypeParam, predictionParam, MAX_CODE_LENGTH, type ToolResult } from './common.js';
 import type { LiveServed, LiveView } from '../live/hub.js';
 
 // live_update: the app-only refresh tool of the three views. A view on screen calls it every
@@ -51,6 +51,9 @@ export const LIVE_INPUT = z.object ({
     'since': z.number ().int ().min (0).optional ().describe ('chart: ms timestamp of the last candle the view holds'),
     'depth': z.number ().int ().min (1).max (LIVE_MAX_DEPTH).optional ().describe ('orderbook levels per side, default ' + LIVE_DEFAULT_DEPTH),
     'marketType': marketTypeParam,
+    // the render call's prediction flag: the same exchange id names a different class (and
+    // markets) on prediction venues. The hosted profile removes it, like on the render tools
+    'prediction': predictionParam,
 });
 
 export const LIVE_OUTPUT = z.object ({
@@ -59,6 +62,8 @@ export const LIVE_OUTPUT = z.object ({
     'exchange': z.string (),
     'source': z.enum ([ 'stream', 'cache', 'rest' ]),
     'asOf': z.number (),
+    // the data is a stream's last, served because neither the stream nor REST had fresher
+    'stale': z.boolean ().optional (),
     'nextPollMs': z.number ().int ().min (1000).max (30000),
     'chart': z.object ({ 'symbol': z.string (), 'timeframe': z.string (), 'candles': z.array (level) }).optional (),
     'orderbook': z.object ({ 'symbol': z.string (), 'bids': z.array (level), 'asks': z.array (level), 'timestamp': nullableNumber }).optional (),
@@ -133,6 +138,9 @@ export function shapeLive (view: LiveView, exchangeId: string, served: LiveServe
         'asOf': Math.round (served.asOf),
         'nextPollMs': Math.round (served.nextPollMs),
     };
+    if (served.stale === true) {
+        out['stale'] = true;
+    }
     if (view === 'chart') {
         out['chart'] = {
             'symbol': request.symbol,
@@ -176,10 +184,11 @@ export function registerLiveTool (server: McpServer, ctx: ServerContext): void {
     }, async (args) => {
         let result: ToolResult | undefined;
         const failure = await run ({ 'tool': LIVE_TOOL, 'exchange': args.exchange }, async () => {
-            const exchange = await ctx.pools.getPublic (args.exchange, args.marketType, false);
+            const prediction = args.prediction === true;
+            const exchange = await ctx.pools.getPublic (args.exchange, args.marketType, prediction);
             const exchangeId = String (exchange.id);
             const view = args.view as LiveView;
-            const request: any = { view, exchangeId, 'marketType': args.marketType };
+            const request: any = { view, exchangeId, 'marketType': args.marketType, prediction };
             if (view === 'chart') {
                 request.symbol = requireSymbol (exchange, args.symbol, view);
                 request.timeframe = args.timeframe ?? LIVE_DEFAULT_TIMEFRAME;

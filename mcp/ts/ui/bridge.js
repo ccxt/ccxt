@@ -235,7 +235,7 @@
                 if (message.error) {
                     // the host refused the request itself (unknown tool, a tool the view may
                     // not call, no server): not a result of the tool
-                    entry.reject (tagged ((message.error && message.error.message) || 'request failed', { rpc: true }));
+                    entry.reject (tagged ((message.error && message.error.message) || 'request failed', { rpc: true, rpcCode: message.error && message.error.code }));
                 } else {
                     entry.resolve (message.result);
                 }

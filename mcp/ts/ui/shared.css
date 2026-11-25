@@ -106,14 +106,16 @@ svg text { fill: var(--text-3); font: 11px var(--sans); font-variant-numeric: ta
 .cursor { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; shape-rendering: crispEdges; pointer-events: none; }
 [hidden] { display: none !important; }
 /* live mode (live.js): a fixed-width indicator, so its states never move the controls */
-.live { display: inline-flex; align-items: center; gap: 5px; min-width: 9.5em; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live { display: inline-flex; flex: none; align-items: center; gap: 5px; width: 11.5em; overflow: hidden; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live .label { flex: none; }
+.live .at { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .live.pending { visibility: hidden; }
 .live .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
 .live[data-state="live"] .dot { background: var(--up); animation: live-pulse 2s ease-in-out infinite; }
 .live[data-state="delayed"] .dot { background: var(--warn); }
 .live[data-state="offline"] .dot { background: var(--down); }
 .live .at { color: var(--text-3); }
-.live .resume { padding: 1px 7px; }
+.live .resume { padding: 1px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes live-pulse { 50% { opacity: 0.35; } }
 @keyframes live-flash { from { background-color: var(--flash, var(--bg-2)); } }

@@ -65,16 +65,18 @@ All configuration comes from environment variables. [`.env.example`](.env.exampl
 | `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_BURST` | `60`, `30` | Per-client token bucket (an IPv4 address, or an IPv6 /64). A tool call costs 1; list and read requests cost 0.25. |
 | `HOST_RATE_LIMIT_PER_MINUTE`, `HOST_RATE_LIMIT_BURST` | `3000`, `600` | Budget for Anthropic's and OpenAI's egress addresses, which all their users share. |
 | `LIVE_STREAMS` | `on` | Live views: `on` lets the hub open shared ccxt.pro streams; `off` answers every `live_update` poll from REST (through the same guard, cache and limits). |
-| `LIVE_IDLE_MS` | `60000` | A stream no view polled for this long is closed (unWatch where ccxt supports it; the WebSocket instance closes with its last stream). |
-| `LIVE_MAX_STREAMS`, `LIVE_MAX_STREAMS_PER_EXCHANGE` | `200`, `50` | Stream caps (one stream per exchange, market type, channel, symbol and timeframe). At a cap, polls are served from REST and told to poll less often. |
+| `LIVE_IDLE_MS` | `60000` | A stream no view polled for this long is closed (unWatch where ccxt supports it; the WebSocket instance closes with its last stream). At least 45000 (the slowest poll, 30 s, plus a margin); less fails at start-up. |
+| `LIVE_MAX_STREAMS`, `LIVE_MAX_STREAMS_PER_EXCHANGE` | `200`, `50` | Stream caps (one stream per exchange, market type, channel, symbol and timeframe), abandoned subscriptions included (below). At a cap, polls are served from REST and told to poll less often. The per-exchange cap may not exceed the global one. |
+| `LIVE_MAX_STREAMS_PER_CLIENT`, `LIVE_STREAM_OPENS_PER_CLIENT_PER_MINUTE` | `30`, `20` | Per rate-limit identity (a ChatGPT user, an IP address; not a host egress address): streams it keeps alive, and stream opens per minute. Past them its polls are answered from existing streams or REST and renew nothing. 0 = no per-client limit. |
+| `LIVE_MAX_ABANDONED_PER_INSTANCE` | `8` | Channels without unWatch (kraken, coinbase, bitget, gate for some channels) cannot unsubscribe one stream: a closed one stays subscribed on its socket. After this many, the WebSocket instance is recycled (live streams move to a new one, the old one closes). |
 | `LIVE_STREAM_OPENS_PER_MINUTE` | `30` | Stream opens per exchange per minute; also refused while the exchange's breaker is not closed. |
 | `LIVE_WS_FAILURE_THRESHOLD`, `LIVE_WS_COOLDOWN_MS` | `5`, `300000` | That many stream failures on one exchange within two minutes pause its streams for the cooldown; polls go to REST meanwhile. |
 | `LIVE_STALE_MS` | `30000` | Stream data older than this is not served (REST is tried first). |
-| `LIVE_POLL_STREAM_MS`, `LIVE_POLL_REST_MS` | `2000`, `5000` | The `nextPollMs` a view is given when served from a stream, or from REST/cache (never below the cache TTL; longer at a cap or under load; always 1–30 s). |
+| `LIVE_POLL_STREAM_MS`, `LIVE_POLL_REST_MS` | `2000`, `5000` | The `nextPollMs` a view is given when served from a stream, or from REST/cache (never below the cache TTL; longer at a cap or under load; always 1–30 s). Each must be 1000–30000; anything else fails at start-up. |
 | `LIVE_RATE_LIMIT_PER_MINUTE`, `LIVE_RATE_LIMIT_BURST` | `120`, `30` | Per-client bucket for `live_update` only, separate from the tool-call budget: four views at the 2 s stream cadence. Past it a poll gets the tool error `RATE_LIMITED` with `retryAfterSeconds` (HTTP 200), never a 429 that would stop the view. |
 | `LIVE_HOST_RATE_LIMIT_PER_MINUTE`, `LIVE_HOST_RATE_LIMIT_BURST` | `12000`, `1200` | The same for a host egress address (all Claude users share Anthropic's). |
 | `LIVE_MAX_CONCURRENT` | `32` | `live_update` calls in flight at once, beside `MAX_CONCURRENT_REQUESTS` (polls cannot take the tool calls' slots). |
-| `LIVE_STATS_INTERVAL_MS` | `60000` | Period of the `live hub stats` log line (0 = never). |
+| `LIVE_STATS_INTERVAL_MS` | `60000` | Period of the `live hub stats` log line (0 = never). Its counters are totals since start; `*_delta` fields are per interval. |
 | `UI_WHEN_UNKNOWN` | `attach` | What a `show_*` result does when the client did not state its capabilities: attach the view payload, or omit it. |
 | `CCXT_MCP_UI` | `auto` | View mode for `show_*` results: `auto` (follow the client's stated capabilities, else `UI_WHEN_UNKNOWN`), `always` (send the dataset to every client, reported as `displayed`) or `off`. Any other value falls back to `auto`. |
 | `OPENAI_APPS_CHALLENGE` | unset | Token served at `/.well-known/openai-apps-challenge`. |
@@ -145,12 +147,12 @@ curl -s http://127.0.0.1:8080/readyz | head -c 400
 
 **nginx** ([`deploy/nginx/`](deploy/nginx/)):
 
-- [`ccxt-mcp-http.conf`](deploy/nginx/ccxt-mcp-http.conf) goes in the `http {}` context (`/etc/nginx/conf.d/`): the upstream, the per-address `limit_conn` / `limit_req` zones, and the `ccxt_mcp` log format.
+- [`ccxt-mcp-http.conf`](deploy/nginx/ccxt-mcp-http.conf) goes in the `http {}` context (`/etc/nginx/conf.d/`): the upstream, the per-address `limit_conn` / `limit_req` zones (Anthropic's and OpenAI's egress ranges exempt: generated by `scripts/refresh-egress-ranges.mjs`, checked by `test/nginx.test.ts`), and the `ccxt_mcp` log format.
 - [`ccxt-mcp-locations.conf`](deploy/nginx/ccxt-mcp-locations.conf) goes inside the existing `server {}` for docs.ccxt.com (`include /etc/nginx/snippets/ccxt-mcp-locations.conf;`). Add `client_header_timeout 10s;` to that server block too.
 - Then run `nginx -t && systemctl reload nginx`. `test/nginx.test.ts` loads both files in a real nginx and exercises them (CI installs nginx for it).
 - It proxies only `/mcp` and the two reserved `/.well-known` paths, with these settings:
   - responses unbuffered (`proxy_buffering off`, for SSE), requests buffered (`proxy_request_buffering on`, `client_body_timeout 10s`): a client trickling a body holds an nginx connection, never one of the app's;
-  - at most 20 open connections and 10 requests/s (burst 40) per client address, 429 beyond;
+  - at most 20 open connections and 10 requests/s (burst 40) per client address, 429 beyond — except from the Claude and ChatGPT egress ranges, which carry every user of those hosts and are budgeted by the app per host (or per ChatGPT user);
   - a 300 s read timeout, `Host` passed through, `X-Real-IP` overwritten with `$remote_addr`, a 256 KB body cap;
   - its own access log, `/var/log/nginx/ccxt-mcp.log`, in a format without the client address (the privacy text promises no IP addresses in logs); `$request_id` joins it to the app's lines;
   - while the container is being recreated, a JSON-RPC 503 with `Retry-After: 5` instead of nginx's HTML 502.
@@ -216,7 +218,7 @@ Nothing in the container alerts anyone; an outage is otherwise reported by users
 - one `request` line per HTTP request, carrying `request_id`, method, tool, exchange, status, `error_code`, duration, cache outcome and protocol era;
 - `markets loaded` / `refreshed` / `failed` lines;
 - `breaker_open` warnings;
-- `live hub stats` lines while views are live (streams per exchange, polls by source, fallbacks); `live_update` request lines are at `debug`;
+- `live hub stats` lines while views are live (streams per exchange, abandoned subscriptions, polls by source, failed polls by code, refused polls by reason, fallbacks; totals since start plus per-interval `*_delta` fields); `live_update` request lines are at `debug`, except failures that were not this server's own budget refusals (an exchange throttling this server stays at `warn`);
 - `draining` / `drained` lines.
 
 Lines are also mirrored to PostHog Logs when a token is set (see Telemetry). nginx's `$request_id` arrives as `X-Request-Id`, and the `ccxt_mcp` log format writes it to `/var/log/nginx/ccxt-mcp.log`, so nginx and app lines join on it. An incoming `X-Request-Id` is used only under the same rule as the client-IP headers (`TRUSTED_PROXY` set and a loopback or private peer); otherwise the server makes its own, because the id also becomes the analytics session id.

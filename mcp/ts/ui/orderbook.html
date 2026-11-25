@@ -88,6 +88,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
     });
 
     function setStatus (text, isError) {
+        // announced: a full render, a load, an error
+        nodes.status.setAttribute ('role', 'status');
+        nodes.status.removeAttribute ('aria-live');
         nodes.status.textContent = text || '';
         nodes.status.className = 'status' + (isError ? ' error' : '');
     }
@@ -571,8 +574,10 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         return !!payload && payload.view === 'orderbook' && Array.isArray (payload.bids) && Array.isArray (payload.asks);
     }
 
-    // isLive: a live update of the same book. The status line is a live region, so it then
-    // leaves out the time (the indicator shows it) and is only rewritten when it changes.
+    // isLive: a live update of the same book. The status line is a live region (role=status)
+    // for full renders; during live updates it is taken out of the accessibility live regions,
+    // so level counts that move with every poll are not announced again and again (the
+    // indicator announces the live state), and it leaves out the time (the indicator shows it).
     function accept (payload, isLive) {
         if (!usable (payload)) {
             if (!data) {
@@ -603,8 +608,14 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         if (book.outside) {
             parts.push (outsideNote ());
         }
-        if (!isLive || parts.join (' · ') !== nodes.status.textContent) {
+        if (!isLive) {
             setStatus (parts.join (' · '));
+        } else if (parts.join (' · ') !== nodes.status.textContent) {
+            // shown, not announced
+            nodes.status.removeAttribute ('role');
+            nodes.status.setAttribute ('aria-live', 'off');
+            nodes.status.textContent = parts.join (' · ');
+            nodes.status.className = 'status';
         }
         render ();
         changed = null;
@@ -618,13 +629,17 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         slot: nodes.controls,
         busy: function () { return busy; },
         request: function () {
-            if (!data || typeof data.symbol !== 'string') {
+            // a render with exchange params cannot be repeated by live_update: stay static
+            if (!data || typeof data.symbol !== 'string' || (args && args.params && typeof args.params === 'object' && Object.keys (args.params).length)) {
                 return null;
             }
             var wanted = (args && app.isNumber (args.limit)) ? args.limit : (app.isNumber (data.limit) ? data.limit : Math.max (book.bids.length, book.asks.length));
             var request = { exchange: data.exchange || (args && args.exchange), symbol: data.symbol, depth: Math.max (1, Math.min (100, Math.round (wanted) || 50)) };
             if (args && typeof args.marketType === 'string') {
                 request.marketType = args.marketType;
+            }
+            if (args && args.prediction === true) {
+                request.prediction = true;
             }
             return request;
         },

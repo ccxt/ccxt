@@ -88,12 +88,18 @@ function flag (value: string | undefined, fallback: boolean): boolean {
     return /^(1|true|yes|on)$/i.test (value.trim ());
 }
 
-function rate (value: string | undefined, fallback = 1): number {
-    const parsed = Number (value);
-    if (value === undefined || value.trim () === '' || !Number.isFinite (parsed)) {
+// a sampling rate: a plain number from 0 to 1, or unset. Anything else ("1%", "0,05", "5")
+// fails at start-up, like an unknown on/off value, instead of becoming a rate nobody chose
+function rate (name: string, value: string | undefined, fallback = 1): number {
+    if (value === undefined || value.trim () === '') {
         return fallback;
     }
-    return Math.min (1, Math.max (0, parsed));
+    const trimmed = value.trim ();
+    const parsed = Number (trimmed);
+    if (!/^(0|1|0?\.[0-9]+|1\.0*)$/.test (trimmed) || !Number.isFinite (parsed) || parsed < 0 || parsed > 1) {
+        throw new Error (name + ' must be a number from 0 to 1 (e.g. 0.05), got ' + JSON.stringify (value));
+    }
+    return parsed;
 }
 
 function level (value: string | undefined): LogLevel {
@@ -107,8 +113,8 @@ export function telemetryConfigFromEnv (env: Record<string, string | undefined> 
     return {
         'token': (token === '') ? undefined : token,
         'host': (env['POSTHOG_HOST'] ?? '').trim ().replace (/\/+$/, '') || DEFAULT_HOST,
-        'sampleRate': rate (env['POSTHOG_SAMPLE_RATE']),
-        'liveSampleRate': rate (env['LIVE_TELEMETRY_SAMPLE_RATE'], 0.01),
+        'sampleRate': rate ('POSTHOG_SAMPLE_RATE', env['POSTHOG_SAMPLE_RATE']),
+        'liveSampleRate': rate ('LIVE_TELEMETRY_SAMPLE_RATE', env['LIVE_TELEMETRY_SAMPLE_RATE'], 0.01),
         'serviceName': env['SERVICE_NAME'] || 'ccxt-mcp-hosted',
         'serviceVersion': env['SERVICE_VERSION'] || 'dev',
         'serverBuild': env['SERVER_BUILD'] || env['GIT_SHA'] || undefined,

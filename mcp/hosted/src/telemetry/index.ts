@@ -45,6 +45,9 @@ export interface RequestSummary {
     cache?: 'hit' | 'miss' | 'coalesced';
     protocolEra?: 'legacy' | 'modern';
     clientName?: string;
+    // answered by one of this server's own budgets before the MCP handler (per-client or
+    // host rate limit, the live concurrency cap, a drain): an expected refusal, not a fault
+    limitedBy?: 'client' | 'host' | 'busy' | 'draining';
 }
 
 export interface TelemetryStatus {
@@ -368,8 +371,11 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
         recent.delete (summary.requestId);
         let level: LogLevel = (summary.status >= 500) ? 'error' : ((summary.status >= 400 || summary.ok === false) ? 'warn' : 'info');
         // a live view polls every few seconds: its request lines are debug detail (the live hub
-        // logs aggregate stats at info instead); real failures stay visible
-        if (summary.toolName === LIVE_TOOL_NAME && level !== 'error' && (summary.ok !== false || summary.errorCode === 'RATE_LIMITED')) {
+        // logs aggregate stats at info instead, refusals and failures included). Only this
+        // server's own budget refusals are lowered too; anything else that failed — an
+        // exchange throttling this server (RATE_LIMITED from upstream), a full queue, an
+        // outage — stays visible
+        if (summary.toolName === LIVE_TOOL_NAME && level !== 'error' && (summary.ok !== false || summary.limitedBy !== undefined)) {
             level = 'debug';
         }
         const attributes: Record<string, unknown> = {
@@ -384,6 +390,7 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
             'protocol_era': summary.protocolEra,
             // the client's self-declared name, not the User-Agent header: logs carry no header values
             'client_name': (summary.clientName === undefined) ? undefined : truncateString (summary.clientName, 128),
+            'limited_by': summary.limitedBy,
         };
         const fallback: RequestState = state ?? { 'info': { 'requestId': summary.requestId, 'clientKey': '', 'clientHash': '', 'authState': 'anonymous' } };
         log (level, 'request', attributes, fallback);

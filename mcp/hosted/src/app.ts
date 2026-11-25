@@ -67,16 +67,19 @@ function rpcError (c: Context, status: number, code: number, message: string, id
     return c.json ({ 'jsonrpc': '2.0', 'error': { code, message }, 'id': (typeof id === 'string' || typeof id === 'number') ? id : null }, status as any, headers);
 }
 
-// A live_update poll refused by the per-client limit or the live concurrency cap is answered
-// IN-BAND, as the tool's own RATE_LIMITED error with retryAfterSeconds, not as HTTP 429/503:
-// a view treats a failed tools/call (a JSON-RPC error) as "this host cannot poll" and stops
-// for good, while a tool error is something it can wait out. Shaped like the SDK's own result
-// for the era (2026-07-28 adds resultType and the server info)
-function liveRefusal (c: Context, facts: MessageFacts, retryAfterSeconds: number, message: string): Response {
+const SERVER_INFO_META = 'io.modelcontextprotocol/serverInfo';
+
+// A live_update poll refused by the per-client limit or the live concurrency cap, or one that
+// arrives while the server drains or fails internally, is answered IN-BAND, as the tool's own
+// error (RATE_LIMITED, LIVE_UNAVAILABLE) with retryAfterSeconds, not as an HTTP 429/503/500
+// JSON-RPC error: a view may read a failed tools/call as "this host cannot poll" and stop,
+// while a tool error is something it waits out. Shaped like the SDK's own result for the era:
+// 2026-07-28 adds resultType and, as every result there, the server info in _meta
+function liveRefusal (c: Context, facts: MessageFacts, retryAfterSeconds: number, message: string, version: string, code: 'RATE_LIMITED' | 'LIVE_UNAVAILABLE' = 'RATE_LIMITED', headers: Record<string, string> = {}): Response {
     const envelope = {
         'ok': false,
         'error': {
-            'code': 'RATE_LIMITED',
+            code,
             message,
             'retryable': true,
             'hint': 'the view waits retryAfterSeconds and polls again; nothing for the model to do',
@@ -86,9 +89,13 @@ function liveRefusal (c: Context, facts: MessageFacts, retryAfterSeconds: number
     const result: Record<string, unknown> = { 'content': [ { 'type': 'text', 'text': JSON.stringify (envelope) } ], 'isError': true };
     if (facts.modern) {
         result['resultType'] = 'complete';
+        result['_meta'] = { [SERVER_INFO_META]: { 'name': SERVER_NAME, version } };
     }
-    return c.json ({ 'jsonrpc': '2.0', 'id': (typeof facts.id === 'string' || typeof facts.id === 'number') ? facts.id : null, result }, 200, { 'retry-after': String (retryAfterSeconds) });
+    return c.json ({ 'jsonrpc': '2.0', 'id': (typeof facts.id === 'string' || typeof facts.id === 'number') ? facts.id : null, result }, 200, { 'retry-after': String (retryAfterSeconds), ...headers });
 }
+
+// the name buildServer gives the McpServer (ts/factory.ts)
+const SERVER_NAME = 'ccxt-mcp';
 
 interface MessageFacts {
     id: unknown;
@@ -326,10 +333,18 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         const requestId = String ((c as any).get ('requestId'));
         const ip = String ((c as any).get ('clientIp'));
         const started = now ();
+        const body = (c as any).get ('parsedBody');
         if (draining) {
+            // a view's poll is answered in-band, so a restart never turns its live mode off
+            if (body !== undefined && !Array.isArray (body)) {
+                const drainFacts = messageFacts (body, c.req.raw.headers, exchanges.allowlist);
+                if (drainFacts.method === 'tools/call' && drainFacts.toolName === LIVE_TOOL) {
+                    shared.live?.countRefused?.('draining');
+                    return liveRefusal (c, drainFacts, 5, 'this server is restarting', config.version, 'LIVE_UNAVAILABLE', { 'connection': 'close' });
+                }
+            }
             return rpcError (c, 503, -32000, 'server is restarting, retry shortly', null, { 'retry-after': '5', 'connection': 'close' });
         }
-        const body = (c as any).get ('parsedBody');
         if (body === undefined) {
             return rpcError (c, 415, -32700, 'Content-Type must be application/json');
         }
@@ -357,8 +372,10 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         const retryAfter = limiter.take (bucketKey, budget, requestCost (facts.method));
         if (retryAfter !== undefined) {
             if (live) {
-                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
-                return liveRefusal (c, facts, retryAfter, 'too many live updates from this client: the views poll more often than this server allows');
+                const limitedBy = (identity.budget === 'host') ? 'host' : 'client';
+                shared.live?.countRefused?.(limitedBy);
+                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', limitedBy, 'durationMs': now () - started });
+                return liveRefusal (c, facts, retryAfter, 'too many live updates from this client: the views poll more often than this server allows', config.version);
             }
             void early ({ requestId, 'status': 429, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
             return rpcError (c, 429, -32000, 'rate limit exceeded for this client: retry after ' + retryAfter + ' s', facts.id, { 'retry-after': String (retryAfter) });
@@ -369,8 +386,9 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         const busy = live ? (liveInflight >= config.live.maxConcurrent) : ((inflight - liveInflight) >= config.maxConcurrentRequests);
         if (!listen && busy) {
             if (live) {
-                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
-                return liveRefusal (c, facts, 2, 'this server is answering too many live updates right now');
+                shared.live?.countRefused?.('busy');
+                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'limitedBy': 'busy', 'durationMs': now () - started });
+                return liveRefusal (c, facts, 2, 'this server is answering too many live updates right now', config.version);
             }
             void early ({ requestId, 'status': 503, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'ok': false, 'errorCode': 'OVERLOADED', 'durationMs': now () - started });
             return rpcError (c, 503, -32000, 'server busy, retry shortly', facts.id, { 'retry-after': '1' });
@@ -395,6 +413,7 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         const scope: CallScope & { era?: 'legacy' | 'modern' } = {
             requestId,
             'clientKey': identity.key,
+            'clientBudget': identity.budget,
             deadlineAt,
             'signal': AbortSignal.any (signals),
             'upstreamCalls': 0,
@@ -473,6 +492,9 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
             release ();
             finish ();
             telemetry.log ('error', 'request failed', { requestId, 'error': String (error?.message ?? error).slice (0, 300) });
+            if (live) {
+                return liveRefusal (c, facts, 10, 'this server could not answer the live update', config.version, 'LIVE_UNAVAILABLE');
+            }
             return rpcError (c, 500, -32603, 'internal error', facts.id);
         }
         const summarise = (text: string) => {

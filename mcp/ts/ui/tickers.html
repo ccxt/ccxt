@@ -474,10 +474,15 @@ thead .short { display: none; }
     }
 
     var LIVE_FIELDS = [ 'last', 'bid', 'ask', 'percentage', 'baseVolume', 'quoteVolume', 'timestamp' ];
+    // A stream's change % and volumes may cover another window than the REST ticker the board
+    // was rendered from (kraken: REST from today's open, WebSocket over a rolling 24 h), so a
+    // cell would switch meaning between polls: from a stream only the prices are taken
+    var STREAM_FIELDS = [ 'last', 'bid', 'ask', 'timestamp' ];
 
     // the polled fields replace the held ones; the 24h range stretches to a last price
     // outside it, every other field keeps its value from the full result
-    function merge (update) {
+    function merge (update, fromStream) {
+        var fields = fromStream ? STREAM_FIELDS : LIVE_FIELDS;
         var all = symbolsToPoll ();
         offset = (offset + 20 < all.length) ? offset + 20 : 0;
         rows = raw.map (function (ticker, index) {
@@ -487,7 +492,7 @@ thead .short { display: none; }
             }
             var next = {};
             Object.keys (ticker).forEach (function (key) { next[key] = ticker[key]; });
-            LIVE_FIELDS.forEach (function (key) {
+            fields.forEach (function (key) {
                 if (app.isNumber (fresh[key])) {
                     next[key] = fresh[key];
                 }
@@ -524,18 +529,23 @@ thead .short { display: none; }
         busy: function () { return source.busy; },
         request: function () {
             var all = symbolsToPoll ();
-            if (!source.data || !all.length) {
+            var args = source.args;
+            // a render with exchange params cannot be repeated by live_update: stay static
+            if (!source.data || !all.length || (args && args.params && typeof args.params === 'object' && Object.keys (args.params).length)) {
                 return null;
             }
-            var request = { exchange: source.data.exchange || (source.args && source.args.exchange), symbols: all.slice (offset, offset + 20) };
-            if (source.args && typeof source.args.marketType === 'string') {
-                request.marketType = source.args.marketType;
+            var request = { exchange: source.data.exchange || (args && args.exchange), symbols: all.slice (offset, offset + 20) };
+            if (args && typeof args.marketType === 'string') {
+                request.marketType = args.marketType;
+            }
+            if (args && args.prediction === true) {
+                request.prediction = true;
             }
             return request;
         },
         apply: function (content) {
             if (content.tickers && typeof content.tickers === 'object') {
-                merge (content.tickers);
+                merge (content.tickers, content.source === 'stream');
             }
         }
     });

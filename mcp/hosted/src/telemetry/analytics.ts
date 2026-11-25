@@ -189,7 +189,10 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
     if (!isError && !sampledIn (sampleKey (event), rate)) {
         return null;
     }
+    // sample_rate: the success sampling rate in force. effective_sample_rate: the rate THIS
+    // event was kept at (1 for errors, which are never sampled) — weight by its inverse
     props['sample_rate'] = rate;
+    props['effective_sample_rate'] = isError ? 1 : rate;
     const accountTool = isAccountTool (props);
     if ('$mcp_parameters' in props) {
         const exchange = exchangeOf (props['$mcp_parameters']);

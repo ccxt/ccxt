@@ -63,7 +63,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
     var digits; // decimals shared by every price of the dataset (undefined: each value picks its own)
     var busy = false;
     var layout = null;
-    var history = 200; // candles kept while live updates append: what the result held, 50..1000
+    var history = 200; // candles kept while live updates append: the requested limit (at least what the result held), up to 1000
     var nodes = {};
     [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'tablewrap', 'status', 'controls' ].forEach (function (id) {
         nodes[id] = document.getElementById (id);
@@ -562,10 +562,32 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         // The server only sends such rows, but a host can hand over a result it rebuilt
         // itself: a row that is not an array is left out instead of being dereferenced.
         data.candles = data.candles.filter (function (candle) { return Array.isArray (candle); });
-        history = Math.max (50, Math.min (1000, data.candles.length));
+        // the window the user asked for: a limit of 10 stays 10 candles, and a short-history
+        // market (fewer candles than asked for) may still grow to the limit
+        history = Math.min (1000, Math.max (data.candles.length, (app.isNumber (data.limit) && data.limit > 0) ? data.limit : data.candles.length));
         setStatus ('');
         render ();
         live.restart ();
+    }
+
+    // Live updates follow the open candle. A chart of a past window (show_chart with since,
+    // ending more than two candles ago) stays as it is, with Refresh: live data would replace
+    // it with the latest candles. So does a render with exchange params, which live_update
+    // cannot repeat (it would show a different series)
+    function staticChart () {
+        if (args && args.params && typeof args.params === 'object' && Object.keys (args.params).length) {
+            return true;
+        }
+        if (!args || args.since === undefined || args.since === null || args.since === '') {
+            return false;
+        }
+        var candles = data.candles;
+        var count = candles.length;
+        if (count < 2) {
+            return true;
+        }
+        var step = candles[count - 1][0] - candles[count - 2][0];
+        return !(step > 0) || candles[count - 1][0] < window.ccxtLive.config.now () - 2 * step;
     }
 
     // A live update: every candle from the last one held on. The open candle is replaced,
@@ -618,12 +640,15 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         slot: nodes.controls,
         busy: function () { return busy; },
         request: function () {
-            if (!data || typeof data.symbol !== 'string' || typeof data.timeframe !== 'string') {
+            if (!data || typeof data.symbol !== 'string' || typeof data.timeframe !== 'string' || staticChart ()) {
                 return null;
             }
             var request = { exchange: data.exchange || (args && args.exchange), symbol: data.symbol, timeframe: data.timeframe };
             if (args && typeof args.marketType === 'string') {
                 request.marketType = args.marketType;
+            }
+            if (args && args.prediction === true) {
+                request.prediction = true;
             }
             var last = data.candles[data.candles.length - 1];
             if (last) {

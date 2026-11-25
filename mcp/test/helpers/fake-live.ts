@@ -5,6 +5,8 @@
 export class NetworkError extends Error {}
 export class RateLimitExceeded extends NetworkError {}
 export class NotSupported extends Error {}
+export class BadRequest extends Error {}
+export class BadSymbol extends BadRequest {}
 
 export interface WsControl {
     instances: FakeWs[];
@@ -14,10 +16,19 @@ export interface WsControl {
     tickMs: number;
     unwatched: string[];
     watchCalls: number;
+    // every watch* call with its arguments
+    calls: { method: string, args: any[] }[];
+    // capabilities every new instance gets on top of the defaults (e.g. no unWatchTicker)
+    has: Record<string, any>;
 }
 
 export function wsControl (): WsControl {
-    return { 'instances': [], 'data': new Map (), 'fail': undefined, 'tickMs': 3, 'unwatched': [], 'watchCalls': 0 };
+    return { 'instances': [], 'data': new Map (), 'fail': undefined, 'tickMs': 3, 'unwatched': [], 'watchCalls': 0, 'calls': [], 'has': {} };
+}
+
+// an order book side of `levels` levels
+export function bookOf (levels: number, timestamp = 1): any {
+    return { 'bids': Array.from ({ 'length': levels }, (_, i) => [ 99 - i, 1 ]), 'asks': Array.from ({ 'length': levels }, (_, i) => [ 101 + i, 1 ]), timestamp };
 }
 
 export class FakeWs {
@@ -28,19 +39,42 @@ export class FakeWs {
     control: WsControl;
     marketType: string | undefined;
 
+    // the watch futures waiting for their next tick: drop () rejects them all at once
+    private waiting = new Set<(error: any) => void> ();
+
     constructor (control: WsControl, id = 'fakex', marketType?: string, has: Record<string, any> = {}) {
         this.control = control;
         this.id = id;
         this.marketType = marketType;
-        this.has = { 'watchOHLCV': true, 'watchOrderBook': true, 'watchTicker': true, 'unWatchOHLCV': true, 'unWatchOrderBook': true, 'unWatchTicker': true, ...has };
+        this.has = { 'watchOHLCV': true, 'watchOrderBook': true, 'watchTicker': true, 'unWatchOHLCV': true, 'unWatchOrderBook': true, 'unWatchTicker': true, ...control.has, ...has };
         control.instances.push (this);
+    }
+
+    // what ccxt does when a socket closes, or when it cannot tell which subscription an
+    // error answers: every pending future rejects with the SAME error object
+    drop (error: any): number {
+        const waiting = [ ...this.waiting ];
+        this.waiting.clear ();
+        for (const reject of waiting) {
+            reject (error);
+        }
+        return waiting.length;
+    }
+
+    pending (): number {
+        return this.waiting.size;
     }
 
     private async tick (method: string, key: string, args: any[]): Promise<any> {
         this.control.watchCalls += 1;
-        await new Promise<void> ((resolve) => {
-            const timer = setTimeout (resolve, this.control.tickMs);
+        this.control.calls.push ({ method, args });
+        await new Promise<void> ((resolve, reject) => {
+            const timer = setTimeout (() => {
+                this.waiting.delete (reject);
+                resolve ();
+            }, this.control.tickMs);
             timer.unref?.();
+            this.waiting.add (reject);
         });
         if (this.closed) {
             const error = new Error ('connection closed by user');
@@ -54,6 +88,7 @@ export class FakeWs {
         const value = this.control.data.get (key);
         if (value === undefined) {
             // no data yet: behave like a quiet socket (wait for the next tick)
+            this.control.calls.pop ();
             return this.tick (method, key, args);
         }
         return value;
@@ -63,8 +98,8 @@ export class FakeWs {
         return this.tick ('watchOHLCV', 'ohlcv|' + symbol + '|' + timeframe, [ symbol, timeframe ]);
     }
 
-    watchOrderBook (symbol: string): Promise<any> {
-        return this.tick ('watchOrderBook', 'orderbook|' + symbol, [ symbol ]);
+    watchOrderBook (symbol: string, limit?: number): Promise<any> {
+        return this.tick ('watchOrderBook', 'orderbook|' + symbol, (limit === undefined) ? [ symbol ] : [ symbol, limit ]);
     }
 
     watchTicker (symbol: string): Promise<any> {

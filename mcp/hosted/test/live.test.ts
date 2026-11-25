@@ -261,9 +261,12 @@ test ('config: live variables', () => {
     assert.equal (defaults.live.maxStreamsPerExchange, 50);
     assert.equal (defaults.rateLimit.livePerMinute, 120);
     assert.equal (defaults.rateLimit.liveHostPerMinute, 12000);
-    const set = loadConfig ({ 'LIVE_STREAMS': 'off', 'LIVE_IDLE_MS': '5000', 'LIVE_MAX_STREAMS': '7', 'LIVE_MAX_STREAMS_PER_EXCHANGE': '3', 'LIVE_RATE_LIMIT_PER_MINUTE': '9' }, 'test');
+    const set = loadConfig ({ 'LIVE_STREAMS': 'off', 'LIVE_IDLE_MS': '90000', 'LIVE_MAX_STREAMS': '7', 'LIVE_MAX_STREAMS_PER_EXCHANGE': '3', 'LIVE_MAX_STREAMS_PER_CLIENT': '2', 'LIVE_RATE_LIMIT_PER_MINUTE': '9' }, 'test');
     assert.equal (set.live.enabled, false);
-    assert.equal (set.live.idleMs, 5000);
+    assert.equal (set.live.idleMs, 90000);
+    assert.equal (set.live.maxStreamsPerClient, 2);
+    assert.equal (defaults.live.maxStreamsPerClient, 30);
+    assert.equal (defaults.live.maxOpensPerClientPerMinute, 20);
     assert.equal (set.live.maxStreams, 7);
     assert.equal (set.live.maxStreamsPerExchange, 3);
     assert.equal (set.rateLimit.livePerMinute, 9);
@@ -289,6 +292,73 @@ test ('live: the in-band RATE_LIMITED refusal is an ordinary tool result for the
             assert.ok (parsed.error.retryAfterSeconds >= 1, mode);
             await client.close ();
         }
+    } finally {
+        await h.close ();
+    }
+});
+
+test ('config: live settings that contradict each other fail at start-up instead of being clamped', () => {
+    // a cadence above the 30 s every view is held to
+    assert.throws (() => loadConfig ({ 'LIVE_POLL_STREAM_MS': '40000' }, 'test'), /LIVE_POLL_STREAM_MS must be at most 30000/);
+    assert.throws (() => loadConfig ({ 'LIVE_POLL_REST_MS': '60000' }, 'test'), /LIVE_POLL_REST_MS must be at most 30000/);
+    // a lease shorter than the slowest poll: the stream would expire between two polls
+    assert.throws (() => loadConfig ({ 'LIVE_IDLE_MS': '30000' }, 'test'), /LIVE_IDLE_MS must be at least 45000/);
+    assert.throws (() => loadConfig ({ 'LIVE_IDLE_MS': '5000' }, 'test'), /LIVE_IDLE_MS/);
+    // a per-exchange or per-client cap above the global one
+    assert.throws (() => loadConfig ({ 'LIVE_MAX_STREAMS': '10', 'LIVE_MAX_STREAMS_PER_EXCHANGE': '20' }, 'test'), /LIVE_MAX_STREAMS_PER_EXCHANGE \(20\) must not exceed LIVE_MAX_STREAMS \(10\)/);
+    assert.throws (() => loadConfig ({ 'LIVE_MAX_STREAMS': '10', 'LIVE_MAX_STREAMS_PER_EXCHANGE': '5', 'LIVE_MAX_STREAMS_PER_CLIENT': '11' }, 'test'), /LIVE_MAX_STREAMS_PER_CLIENT/);
+    assert.equal (loadConfig ({ 'LIVE_POLL_REST_MS': '30000', 'LIVE_IDLE_MS': '45000' }, 'test').live.restPollMs, 30000);
+});
+
+test ('live: the in-band refusal carries the 2026-07-28 server info, and is counted in the hub stats', async () => {
+    const h = await startHarness ({ 'LIVE_RATE_LIMIT_PER_MINUTE': '1', 'LIVE_RATE_LIMIT_BURST': '1' });
+    try {
+        const modern = { 'mcp-protocol-version': '2026-07-28' };
+        await callTool (h.url, 'live_update', BOARD, modern);
+        const refused = await callTool (h.url, 'live_update', BOARD, modern);
+        assert.equal (refused.envelope.error.code, 'RATE_LIMITED');
+        assert.equal (refused.result.resultType, 'complete');
+        assert.deepEqual (refused.result._meta?.['io.modelcontextprotocol/serverInfo'], { 'name': 'ccxt-mcp', 'version': 'test' });
+        // a 2025-era client gets neither
+        const legacy = await callTool (h.url, 'live_update', BOARD);
+        assert.equal (legacy.envelope.error.code, 'RATE_LIMITED');
+        assert.equal (legacy.result._meta, undefined);
+        assert.equal (legacy.result.resultType, undefined);
+        assert.equal (h.server.runtime.live.stats ().refused.client, 2);
+        const summaries = h.telemetry.summaries.filter ((summary) => summary.toolName === 'live_update' && summary.errorCode === 'RATE_LIMITED');
+        assert.ok (summaries.length === 2 && summaries.every ((summary) => summary.limitedBy === 'client'), JSON.stringify (summaries));
+    } finally {
+        await h.close ();
+    }
+});
+
+test ('live: while the server drains, a poll is answered in-band (the view keeps polling), other calls get the 503', async () => {
+    const h = await startHarness ();
+    try {
+        await h.server.hosted.drain (100);
+        const poll = await callTool (h.url, 'live_update', BOARD);
+        assert.equal (poll.status, 200);
+        assert.equal (poll.result.isError, true);
+        assert.equal (poll.envelope.error.code, 'LIVE_UNAVAILABLE');
+        assert.equal (poll.envelope.error.retryable, true);
+        assert.equal (poll.envelope.error.retryAfterSeconds, 5);
+        assert.equal (poll.headers.get ('retry-after'), '5');
+        const other = await callTool (h.url, 'get_tickers', { 'exchange': 'alpha', 'symbols': [ 'BTC/USDT' ] });
+        assert.equal (other.status, 503);
+        assert.equal (h.server.runtime.live.stats ().refused.draining, 1);
+    } finally {
+        await h.close ();
+    }
+});
+
+test ('live: one client (an IP address, a ChatGPT user) can keep only LIVE_MAX_STREAMS_PER_CLIENT streams alive', async () => {
+    const h = await startHarness ({ 'LIVE_MAX_STREAMS_PER_CLIENT': '1' });
+    try {
+        const first = await callTool (h.url, 'live_update', BOARD);
+        assert.equal (first.result.isError, undefined);
+        assert.equal (Object.keys (first.result.structuredContent.tickers).length, 2, 'answered in full');
+        assert.equal (h.server.runtime.live.stats ().streams, 1, 'the second symbol opened no stream');
+        assert.equal (h.server.runtime.live.stats ().fallbacks.quota, 1);
     } finally {
         await h.close ();
     }

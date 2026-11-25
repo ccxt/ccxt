@@ -5,17 +5,17 @@ import os from 'os';
 import path from 'path';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createServer } from '../../ts/factory.js';
-import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
+import { fakeCcxtModule, fakePoolsDeps, makeConfig, FakeExchange } from '../helpers/fake-ccxt.js';
 import type { ServerContext } from '../../ts/types.js';
 
 // live_update on the local stdio server: the same hub module as the hosted server, over the
 // pooled public REST instances and a separate public stream instance (no network: fake ccxt).
 
-async function connect (settings: Record<string, any> = {}): Promise<{ client: Client, ctx: ServerContext }> {
+async function connect (settings: Record<string, any> = {}, poolsDeps: any = fakePoolsDeps): Promise<{ client: Client, ctx: ServerContext }> {
     const { server, ctx } = createServer ({
         'config': makeConfig ({}, settings),
         'ccxtModule': fakeCcxtModule,
-        'poolsDeps': fakePoolsDeps,
+        'poolsDeps': poolsDeps,
         'version': 'test',
         'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-live-')),
     });
@@ -50,7 +50,7 @@ test ('live_update: listed with app-only visibility, read-only annotations and a
     assert.deepEqual (tool._meta, { 'ui': { 'visibility': [ 'app' ] }, 'openai/visibility': 'private', 'openai/widgetAccessible': true });
     assert.deepEqual (tool.annotations, { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true, 'idempotentHint': true });
     assert.equal (tool.outputSchema?.type, 'object');
-    assert.deepEqual (Object.keys (tool.inputSchema.properties).sort (), [ 'depth', 'exchange', 'marketType', 'since', 'symbol', 'symbols', 'timeframe', 'view' ]);
+    assert.deepEqual (Object.keys (tool.inputSchema.properties).sort (), [ 'depth', 'exchange', 'marketType', 'prediction', 'since', 'symbol', 'symbols', 'timeframe', 'view' ]);
     assert.deepEqual (tool.inputSchema.required, [ 'view', 'exchange' ]);
     // the views that poll it may call tools themselves in ChatGPT
     for (const name of [ 'show_chart', 'show_orderbook', 'show_tickers' ]) {
@@ -156,4 +156,28 @@ test ('live_update: CCXT_MCP_LIVE_STREAMS=off serves from REST only; the core pr
     assert.ok ((await withLive.client.listTools ()).tools.some ((tool: any) => tool.name === 'live_update'));
     await withLive.ctx.live.close ();
     await withLive.client.close ();
+});
+
+// the prediction-market class of an exchange id has other markets than the regular one
+class FakePrediction extends FakeExchange {
+    constructor (config: any = {}) {
+        super (config);
+        this.markets = { 'WIN-YES/USDC': { 'symbol': 'WIN-YES/USDC', 'id': 'winyes', 'base': 'WIN-YES', 'quote': 'USDC', 'type': 'prediction', 'spot': false, 'active': true } };
+    }
+}
+
+test ('live_update: a view of a prediction market polls the prediction class (not BAD_SYMBOL from the regular one)', async () => {
+    const deps = { ...fakePoolsDeps, 'exchangeClass': (_id: string, prediction = false) => (prediction ? FakePrediction : FakeExchange) };
+    const { client, ctx } = await connect ({}, deps);
+    try {
+        const regular: any = await live (client, { 'view': 'tickers', 'exchange': 'fakex', 'symbols': [ 'WIN-YES/USDC' ] });
+        assert.equal (regular.isError, true, 'the regular class does not list it');
+        assert.equal (JSON.parse (regular.content[0].text).error.code, 'BAD_SYMBOL');
+        const prediction: any = await live (client, { 'view': 'tickers', 'exchange': 'fakex', 'symbols': [ 'WIN-YES/USDC' ], 'prediction': true });
+        assert.equal (prediction.isError, undefined, prediction.content?.[0]?.text);
+        assert.deepEqual (Object.keys (prediction.structuredContent.tickers), [ 'WIN-YES/USDC' ]);
+    } finally {
+        await ctx.live.close ();
+        await client.close ();
+    }
 });

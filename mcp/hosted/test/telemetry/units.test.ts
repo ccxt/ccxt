@@ -141,16 +141,22 @@ test ('config: safe defaults and env parsing', () => {
     assert.equal (defaults.sampleRate, 1);
     assert.equal (defaults.logLevel, 'info');
     assert.deepEqual (defaults.analytics, { 'context': true, 'captureModel': false, 'conversationId': false, 'sendToolsListEvent': true, 'sendInitializeEvent': true, 'exceptionAutocapture': true });
-    const custom = telemetryConfigFromEnv ({ 'POSTHOG_PROJECT_TOKEN': ' t ', 'POSTHOG_HOST': 'https://us.i.posthog.com/', 'POSTHOG_SAMPLE_RATE': '7', 'LOG_LEVEL': 'DEBUG', 'POSTHOG_CONTEXT': '0', 'POSTHOG_CAPTURE_MODEL': 'true', 'POSTHOG_EXPECTED_ERROR_CODES': 'CIRCUIT_OPEN, OVERLOADED' });
+    const custom = telemetryConfigFromEnv ({ 'POSTHOG_PROJECT_TOKEN': ' t ', 'POSTHOG_HOST': 'https://us.i.posthog.com/', 'POSTHOG_SAMPLE_RATE': '0.25', 'LOG_LEVEL': 'DEBUG', 'POSTHOG_CONTEXT': '0', 'POSTHOG_CAPTURE_MODEL': 'true', 'POSTHOG_EXPECTED_ERROR_CODES': 'CIRCUIT_OPEN, OVERLOADED' });
     assert.equal (custom.token, 't');
     assert.equal (custom.host, 'https://us.i.posthog.com');
-    assert.equal (custom.sampleRate, 1, 'clamped to 0..1');
+    assert.equal (custom.sampleRate, 0.25);
     assert.equal (custom.logLevel, 'debug');
     assert.equal (custom.analytics.context, false);
     assert.equal (custom.analytics.captureModel, true);
     assert.ok (custom.expectedErrorCodes.includes ('OVERLOADED'));
-    assert.equal (telemetryConfigFromEnv ({ 'POSTHOG_SAMPLE_RATE': 'abc' }).sampleRate, 1);
     assert.equal (telemetryConfigFromEnv ({ 'POSTHOG_SAMPLE_RATE': '0' }).sampleRate, 0);
+    assert.equal (telemetryConfigFromEnv ({ 'POSTHOG_SAMPLE_RATE': '1' }).sampleRate, 1);
+    assert.equal (telemetryConfigFromEnv ({ 'LIVE_TELEMETRY_SAMPLE_RATE': '.05' }).liveSampleRate, 0.05);
+    // a rate nobody chose is a start-up error, not a silent fallback or clamp
+    for (const bad of [ 'abc', '1%', '0,05', '5', '-1', '1e-2', 'NaN' ]) {
+        assert.throws (() => telemetryConfigFromEnv ({ 'POSTHOG_SAMPLE_RATE': bad }), /POSTHOG_SAMPLE_RATE must be a number from 0 to 1/, bad);
+        assert.throws (() => telemetryConfigFromEnv ({ 'LIVE_TELEMETRY_SAMPLE_RATE': bad }), /LIVE_TELEMETRY_SAMPLE_RATE must be a number from 0 to 1/, bad);
+    }
 });
 
 test ('endpointKind: classifies the PostHog paths status () watches', () => {

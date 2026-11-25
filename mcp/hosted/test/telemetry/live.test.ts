@@ -102,3 +102,23 @@ test ('live telemetry end to end: no per-poll event or info log line, errors kep
     // nothing about symbols or clients in the stats line
     assert.ok (!JSON.stringify (stats[0]).includes ('BTC/USDT'));
 });
+
+test ('live telemetry: only this server\'s own budget refusals of a poll are lowered to debug; an upstream RATE_LIMITED stays warn', async () => {
+    const lines: string[] = [];
+    const telemetry = await createTelemetry ({ 'deployment': 'test', 'clientHashSecret': 'offline-test-secret', 'stdout': (line) => lines.push (line) });
+    try {
+        const base = { 'status': 200, 'mcpMethod': 'tools/call', 'toolName': 'live_update', 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': 1 };
+        telemetry.requestDone ({ ...base, 'requestId': 'own-limit', 'limitedBy': 'client' });
+        telemetry.requestDone ({ ...base, 'requestId': 'own-busy', 'limitedBy': 'busy' });
+        // the exchange throttling this server (ccxt RateLimitExceeded), or the guard's full queue
+        telemetry.requestDone ({ ...base, 'requestId': 'upstream' });
+        telemetry.requestDone ({ ...base, 'requestId': 'served', 'ok': true, 'errorCode': undefined });
+    } finally {
+        await telemetry.shutdown (1000);
+    }
+    const requests = lines.map ((line) => JSON.parse (line)).filter ((line) => line.msg === 'request');
+    assert.equal (requests.length, 1, JSON.stringify (requests));
+    assert.equal (requests[0].level, 'warn');
+    assert.equal (requests[0].error_code, 'RATE_LIMITED');
+    assert.equal (requests[0].limited_by, undefined);
+});

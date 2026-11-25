@@ -98,7 +98,7 @@ const SUCCESS_TOOL_CALL_PROPERTIES = [
     '$mcp_interface', '$mcp_is_error', '$mcp_parameters', '$mcp_protocol_version', '$mcp_resource_name',
     '$mcp_server_name', '$mcp_server_version', '$mcp_session_source', '$mcp_source', '$mcp_tool_description',
     '$mcp_tool_name',
-    'auth_state', 'cache', 'client_hash', 'deployment', 'exchange', 'request_id', 'response_bytes', 'sample_rate',
+    'auth_state', 'cache', 'client_hash', 'deployment', 'effective_sample_rate', 'exchange', 'request_id', 'response_bytes', 'sample_rate',
 ].sort ();
 
 test ('events: exact events and properties for success, expected and unexpected errors', async () => {
@@ -223,6 +223,8 @@ test ('sampling: rate 0 keeps only errors, rate 1 keeps everything, decisions ar
         for (const event of kept) {
             assert.ok (event.event === '$exception' || event.properties['$mcp_is_error'] === true, 'a success event survived rate 0: ' + event.event);
             assert.equal (event.properties['sample_rate'], 0);
+            // the rate this event was kept at: errors are never sampled
+            assert.equal (event.properties['effective_sample_rate'], 1);
         }
         assert.equal (byRequest.get ('call-success'), undefined);
         assert.deepEqual ((byRequest.get ('call-thrown') ?? []).map ((event) => event.event), [ '$mcp_tool_call', '$exception' ]);

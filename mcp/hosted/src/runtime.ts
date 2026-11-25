@@ -68,6 +68,12 @@ export function createLiveHub (config: HostedConfig, exchanges: HostedExchanges,
     const { maxConcurrent: _maxConcurrent, streamOpensPerMinute: _opens, ...options } = config.live;
     return new LiveHub ({
         'openStreamInstance': (exchangeId, marketType) => exchanges.streamInstance (exchangeId, marketType),
+        // the per-client stream quota counts rate-limit identities of one user (a ChatGPT
+        // subject, an IP address); a host egress address is every user of that host at once
+        'client': () => {
+            const scope = currentCallScope ();
+            return (scope !== undefined && scope.clientBudget !== 'host') ? scope.clientKey : undefined;
+        },
         'admitStream': (exchangeId) => guard.admitStream (exchangeId),
         'reportStreamError': (exchangeId, error) => guard.reportStreamError (exchangeId, error),
         // a REST fallback answered from the response cache costs the exchange nothing

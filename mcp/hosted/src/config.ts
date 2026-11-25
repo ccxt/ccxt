@@ -1,5 +1,5 @@
 import { OPENAI_CONNECTOR_RANGES } from './data/openai-egress.js';
-import type { LiveOptions } from '../../ts/live/hub.js';
+import { LIVE_MAX_POLL_MS, type LiveOptions } from '../../ts/live/hub.js';
 
 // Runtime configuration of the hosted server, read from the environment once at start-up.
 // Every default is safe to deploy; .env.example lists the same variables. Telemetry has its
@@ -123,6 +123,30 @@ export function parseTrustedProxy (raw: string | undefined): TrustedProxy {
     throw new Error ('TRUSTED_PROXY must be "none", "nginx-x-real-ip" or a hop count 1-10, got ' + JSON.stringify (raw));
 }
 
+// A view polls at most every LIVE_MAX_POLL_MS (30 s), up to 10% later, plus the request's own
+// time: a stream lease shorter than that runs out between two polls of a view that is still
+// on screen, and every poll then reopens the stream
+export const LIVE_IDLE_MIN_MS = LIVE_MAX_POLL_MS + 15000;
+
+// the live settings that only make sense together; a misconfiguration fails at start-up
+// instead of being clamped or silently ignored
+export function checkLiveConfig (live: HostedConfig['live']): void {
+    for (const [ name, value ] of [ [ 'LIVE_POLL_STREAM_MS', live.streamPollMs ], [ 'LIVE_POLL_REST_MS', live.restPollMs ] ] as const) {
+        if (value > LIVE_MAX_POLL_MS) {
+            throw new Error (name + ' must be at most ' + LIVE_MAX_POLL_MS + ' (a view never polls less often than that), got ' + value);
+        }
+    }
+    if (live.idleMs < LIVE_IDLE_MIN_MS) {
+        throw new Error ('LIVE_IDLE_MS must be at least ' + LIVE_IDLE_MIN_MS + ' (the slowest poll cadence, ' + LIVE_MAX_POLL_MS + ' ms, plus a margin), got ' + live.idleMs);
+    }
+    if (live.maxStreamsPerExchange > live.maxStreams) {
+        throw new Error ('LIVE_MAX_STREAMS_PER_EXCHANGE (' + live.maxStreamsPerExchange + ') must not exceed LIVE_MAX_STREAMS (' + live.maxStreams + ')');
+    }
+    if (live.maxStreamsPerClient > live.maxStreams) {
+        throw new Error ('LIVE_MAX_STREAMS_PER_CLIENT (' + live.maxStreamsPerClient + ') must not exceed LIVE_MAX_STREAMS (' + live.maxStreams + ')');
+    }
+}
+
 export function loadConfig (env: Record<string, string | undefined> = process.env, version = '0.0.0'): HostedConfig {
     const publicBaseUrl = (env['PUBLIC_BASE_URL'] ?? 'https://docs.ccxt.com').replace (/\/+$/, '');
     try {
@@ -141,7 +165,7 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
         throw new Error ('UI_WHEN_UNKNOWN must be "attach" or "omit"');
     }
     const challenge = (env['OPENAI_APPS_CHALLENGE'] ?? '').trim ();
-    return {
+    const config: HostedConfig = {
         'port': int (env, 'PORT', 8080, 0),
         'host': env['HOST'] ?? '127.0.0.1',
         publicBaseUrl,
@@ -199,6 +223,11 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
             'idleMs': int (env, 'LIVE_IDLE_MS', 60000, 1000),
             'maxStreams': int (env, 'LIVE_MAX_STREAMS', 200, 0),
             'maxStreamsPerExchange': int (env, 'LIVE_MAX_STREAMS_PER_EXCHANGE', 50, 0),
+            // per rate-limit identity (a ChatGPT user, an IP address; not a host egress
+            // address, which every user of that host shares): streams it keeps alive, opens
+            'maxStreamsPerClient': int (env, 'LIVE_MAX_STREAMS_PER_CLIENT', 30, 0),
+            'maxOpensPerClientPerMinute': int (env, 'LIVE_STREAM_OPENS_PER_CLIENT_PER_MINUTE', 20, 0),
+            'maxAbandonedPerInstance': int (env, 'LIVE_MAX_ABANDONED_PER_INSTANCE', 8, 1),
             'staleMs': int (env, 'LIVE_STALE_MS', 30000, 1000),
             'streamPollMs': int (env, 'LIVE_POLL_STREAM_MS', 2000, 1000),
             'restPollMs': int (env, 'LIVE_POLL_REST_MS', 5000, 1000),
@@ -218,6 +247,8 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
         'drainTimeoutMs': int (env, 'DRAIN_TIMEOUT_MS', 25000, 0),
         version,
     };
+    checkLiveConfig (config.live);
+    return config;
 }
 
 // the canonical MCP URL: the phase-2 OAuth resource identifier, the input of Claude's

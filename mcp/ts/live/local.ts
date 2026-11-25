@@ -22,7 +22,7 @@ export function localLiveOptions (env: NodeJS.ProcessEnv = process.env): Partial
 
 export function localLiveBackend (pools: any): LiveBackend {
     return {
-        'openStreamInstance': (exchangeId, marketType, rest) => ((typeof pools?.createLiveInstance === 'function') ? pools.createLiveInstance (exchangeId, marketType, rest) : undefined),
+        'openStreamInstance': (exchangeId, marketType, rest, prediction) => ((typeof pools?.createLiveInstance === 'function') ? pools.createLiveInstance (exchangeId, marketType, rest, prediction) : undefined),
         'log': (level, message, attributes) => {
             // per-stream lines are debug detail; stderr gets the warnings and the stats line
             if (level !== 'debug') {

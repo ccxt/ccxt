@@ -780,3 +780,325 @@ test ('live: the views animate nothing under prefers-reduced-motion', () => {
     const animated = [ ...css.matchAll (/([^{}\n]+)\{[^}]*\banimation:\s*live-/g) ].map ((match) => match[1].trim ());
     assert.deepEqual (animated, [ '.live[data-state="live"] .dot', '.flash', '.flash-up', '.flash-down' ]);
 });
+
+// ---- review findings ----
+
+test ('live chart: a historical window (since, ending in the past) stays static; a since window reaching the open candle goes live', { 'skip': DOM_SKIP }, async () => {
+    // the preview candles end at 2026-11-23 12:00, days before the test clock
+    const historical = await openLive ('chart', { ...ARGS.chart, 'since': '2026-11-01T00:00:00Z' }, chartPayload ());
+    try {
+        await historical.clock.advance (120000);
+        assert.equal (historical.polls ().length, 0, 'no live_update for a past window');
+        assert.equal (historical.document.getElementById ('last').textContent, historical.window.ccxtApp.price (chartPayload ().candles.at (-1)[4], 2), 'the chart keeps the window it was asked for');
+        assert.equal (historical.document.getElementById ('refresh').hidden, false, 'Refresh still works');
+        assert.deepEqual (historical.errors, []);
+    } finally {
+        await historical.close ();
+    }
+    const payload = chartPayload ();
+    const shift = Math.floor (Date.now () / STEP['1h']) * STEP['1h'] - payload.candles.at (-1)[0];
+    payload.candles = payload.candles.map ((candle: number[]) => [ candle[0] + shift, ...candle.slice (1) ]);
+    const current = await openLive ('chart', { ...ARGS.chart, 'since': payload.candles[0][0] }, payload);
+    try {
+        await firstPoll (current);
+        assert.equal (current.polls ()[0].params.arguments.since, payload.candles.at (-1)[0]);
+    } finally {
+        await current.close ();
+    }
+});
+
+test ('live: a render with exchange params stays static (live_update cannot repeat them); prediction is passed on', { 'skip': DOM_SKIP }, async () => {
+    for (const [ view, args, payload ] of [
+        [ 'chart', { ...ARGS.chart, 'params': { 'price': 'mark' } }, chartPayload () ],
+        [ 'orderbook', { ...ARGS.orderbook, 'params': { 'aggregation': 10 } }, bookPayload () ],
+        [ 'tickers', { ...ARGS.tickers, 'params': { 'type': 'swap' } }, tickersPayload () ],
+    ] as const) {
+        const host = await openLive (view, args, payload);
+        try {
+            await host.clock.advance (60000);
+            assert.equal (host.polls ().length, 0, view + ': no live_update for a render with params');
+        } finally {
+            await host.close ();
+        }
+    }
+    for (const [ view, args, payload ] of [
+        [ 'chart', { ...ARGS.chart, 'prediction': true }, chartPayload () ],
+        [ 'orderbook', { ...ARGS.orderbook, 'prediction': true }, bookPayload () ],
+        [ 'tickers', { ...ARGS.tickers, 'prediction': true }, tickersPayload () ],
+    ] as const) {
+        const host = await openLive (view, args, payload);
+        try {
+            const request = await firstPoll (host);
+            assert.equal (request.params.arguments.prediction, true, view);
+        } finally {
+            await host.close ();
+        }
+    }
+    // and a regular render sends no prediction key at all
+    const plainHost = await openLive ('orderbook', ARGS.orderbook, bookPayload ());
+    try {
+        assert.equal ('prediction' in (await firstPoll (plainHost)).params.arguments, false);
+    } finally {
+        await plainHost.close ();
+    }
+});
+
+test ('live: after a permanent error stops polling, a fresh full render (Refresh) re-arms it', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('chart', ARGS.chart, chartPayload ());
+    try {
+        await firstPoll (host);
+        await host.reject (LIVE_ERROR ('BAD_SYMBOL', { 'retryable': false, 'message': 'no such market' }));
+        assert.equal (host.label (), 'Offline');
+        await host.clock.advance (60000);
+        assert.equal (host.polls ().length, 1);
+        host.document.getElementById ('refresh').click ();
+        await host.settle ();
+        await host.respond (host.requests ('tools/call').at (-1), { 'content': [], 'structuredContent': chartPayload () });
+        await host.clock.advance (3000);
+        assert.equal (host.polls ().length, 2, 'polling starts over after the new render');
+        await host.answer (chartUpdate ([ chartPayload ().candles.at (-1) ]));
+        assert.equal (host.label (), 'Live');
+        assert.deepEqual (host.errors, []);
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live: a pending "offline" announcement is cancelled when the view is back to Live', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('chart', ARGS.chart, chartPayload ());
+    try {
+        const say = host.document.querySelector ('.sr[aria-live="polite"]');
+        await firstPoll (host);
+        await host.answer (chartUpdate ([ chartPayload ().candles.at (-1) ], { 'nextPollMs': 1000 }));
+        assert.equal (say.textContent, 'Live updates on');
+        await host.clock.advance (1000);
+        await host.reject (LIVE_ERROR ('LIVE_UNAVAILABLE'));
+        // one transient failure, then live again inside the 10 s throttle window
+        await host.clock.advance (2000);
+        await host.answer (chartUpdate ([ chartPayload ().candles.at (-1) ], { 'nextPollMs': 1000 }));
+        assert.equal (host.label (), 'Live');
+        await host.clock.advance (15000);
+        assert.equal (say.textContent, 'Live updates on', 'never announced offline while it is live');
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live: a server error on the first poll (restarting, internal error) is retried; a host refusal still disables at once', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('orderbook', ARGS.orderbook, bookPayload ());
+    try {
+        const request = await firstPoll (host);
+        await host.fail (request, 'server is restarting, retry shortly');
+        assert.notEqual (host.label (), '(none)', 'live mode is not given up on one server error');
+        await host.clock.advance (10000);
+        assert.equal (host.polls ().length, 2, 'retried');
+        const book = bookPayload ();
+        await host.answer (bookUpdate (book.bids, book.asks));
+        assert.equal (host.label (), 'Live');
+    } finally {
+        await host.close ();
+    }
+    // three failures in a row before any success: a static view after all
+    const failing = await openLive ('orderbook', ARGS.orderbook, bookPayload ());
+    try {
+        for (let i = 0; i < 3; i++) {
+            while (failing.polls ().length === i) {
+                await failing.clock.advance (500);
+            }
+            await failing.fail (failing.polls ().at (-1), 'internal error');
+        }
+        assert.equal (failing.label (), '(none)');
+        await failing.clock.advance (600000);
+        assert.equal (failing.polls ().length, 3);
+    } finally {
+        await failing.close ();
+    }
+    // the host says the tool may not be called: disabled on the first poll, by code or by text
+    const refused = await openLive ('orderbook', ARGS.orderbook, bookPayload ());
+    try {
+        const first = await firstPoll (refused);
+        await refused.post ({ 'jsonrpc': '2.0', 'id': first.id, 'error': { 'code': -32601, 'message': 'method not available' } });
+        assert.equal (refused.label (), '(none)');
+        await refused.clock.advance (600000);
+        assert.equal (refused.polls ().length, 1);
+    } finally {
+        await refused.close ();
+    }
+});
+
+test ('live: an update that arrives while text is selected is held until the selection ends (copying a price works)', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('tickers', ARGS.tickers, tickersPayload ());
+    try {
+        const document = host.document;
+        await firstPoll (host);
+        const row = rowsOf (document).find ((candidate: any) => candidate.getAttribute ('data-key') === 'BTC/USDT');
+        const cell = row.cells[1];
+        const before = cell.textContent;
+        const selection = host.window.getSelection ();
+        const range = document.createRange ();
+        range.selectNodeContents (cell);
+        selection.removeAllRanges ();
+        selection.addRange (range);
+        assert.equal (String (selection), before);
+        await host.answer (tickersUpdate ({ 'BTC/USDT': { 'last': 12345.5, 'timestamp': NOW + 1000 } }));
+        assert.ok (row.cells[1] === cell, 'the selected cell was not rebuilt');
+        assert.equal (cell.textContent, before);
+        assert.equal (String (host.window.getSelection ()), before, 'the selection survives');
+        assert.equal (host.label (), 'Delayed', 'the poll itself succeeded');
+        // the next poll goes out on time; its answer is held too
+        await host.clock.advance (5000);
+        assert.equal (host.polls ().length, 2);
+        await host.answer (tickersUpdate ({ 'BTC/USDT': { 'last': 12346.5, 'timestamp': NOW + 2000 } }));
+        assert.equal (cell.textContent, before);
+        // the selection ends: the newest update is drawn
+        selection.removeAllRanges ();
+        document.dispatchEvent (new host.window.Event ('selectionchange'));
+        await host.settle ();
+        const updated = rowsOf (document).find ((candidate: any) => candidate.getAttribute ('data-key') === 'BTC/USDT');
+        assert.equal (updated.cells[1].textContent, '12,346.50');
+        assert.deepEqual (host.errors, []);
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live orderbook: level counts that change with each poll are shown but not announced (the status leaves the live regions)', { 'skip': DOM_SKIP }, async () => {
+    const payload = bookPayload (50);
+    const host = await openLive ('orderbook', ARGS.orderbook, payload);
+    try {
+        const status = host.document.getElementById ('status');
+        assert.equal (status.getAttribute ('role'), 'status');
+        await firstPoll (host);
+        for (let i = 0; i < 6; i++) {
+            const depth = 50 - (i % 3);
+            if (i > 0) {
+                await host.clock.advance (2000);
+            }
+            await host.answer (bookUpdate (payload.bids.slice (0, depth), payload.asks.slice (0, depth)));
+            assert.equal (status.textContent, depth + ' bid and ' + depth + ' ask levels', 'the text follows');
+            assert.equal (status.getAttribute ('role'), null, 'not a live region while live');
+            assert.equal (status.getAttribute ('aria-live'), 'off');
+        }
+        // a full render (Refresh) is announced again
+        host.document.getElementById ('refresh').click ();
+        await host.settle ();
+        assert.equal (status.getAttribute ('role'), 'status', 'Loading… is announced');
+        assert.deepEqual (host.errors, []);
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live: coming back on screen after 10+ minutes off screen resumes polling instead of the idle pause', { 'skip': DOM_SKIP }, async () => {
+    let observer: any = undefined;
+    const host = await openLive ('tickers', ARGS.tickers, tickersPayload (), {
+        'before': (window) => {
+            window.IntersectionObserver = class {
+                callback: any;
+                constructor (callback: any) {
+                    this.callback = callback;
+                    observer = this;
+                }
+
+                observe () {}
+
+                disconnect () {}
+            };
+        },
+    });
+    try {
+        await firstPoll (host);
+        await host.answer (tickersUpdate ({}));
+        observer.callback ([ { 'isIntersecting': false } ]);
+        await host.settle ();
+        await host.clock.advance (11 * 60000);
+        // scrolled back into view by the page (no input inside the view)
+        observer.callback ([ { 'isIntersecting': true } ]);
+        await host.clock.advance (0);
+        assert.equal (host.polls ().length, 2, 'the overdue poll goes out');
+        assert.notEqual (host.label (), 'Live paused — resume');
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live chart: the live window keeps the requested limit (10 stays 10), and a short history may grow to it', { 'skip': DOM_SKIP }, async () => {
+    const payload = chartPayload ('1h', 10);
+    const host = await openLive ('chart', { ...ARGS.chart, 'limit': 10 }, payload);
+    try {
+        host.document.getElementById ('toggle').click ();
+        await firstPoll (host);
+        let last = payload.candles.at (-1);
+        for (let i = 0; i < 5; i++) {
+            const next = [ last[0] + STEP['1h'], last[4], last[4] + 1, last[4] - 1, last[4], 1 ];
+            await host.answer (chartUpdate ([ last, next ]));
+            await host.clock.advance (2000);
+            last = next;
+        }
+        assert.equal (rowsOf (host.document).length, 10);
+    } finally {
+        await host.close ();
+    }
+    // a new market: 5 candles held, 200 asked for
+    const young = chartPayload ('1h', 5);
+    young.limit = 200;
+    const growing = await openLive ('chart', ARGS.chart, young);
+    try {
+        growing.document.getElementById ('toggle').click ();
+        await firstPoll (growing);
+        let last = young.candles.at (-1);
+        for (let i = 0; i < 3; i++) {
+            const next = [ last[0] + STEP['1h'], last[4], last[4] + 1, last[4] - 1, last[4], 1 ];
+            await growing.answer (chartUpdate ([ last, next ]));
+            await growing.clock.advance (2000);
+            last = next;
+        }
+        assert.equal (rowsOf (growing.document).length, 8);
+    } finally {
+        await growing.close ();
+    }
+});
+
+test ('live tickers: a stream update moves prices only; change % and volumes keep the meaning of the ticker the board was rendered from', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('tickers', ARGS.tickers, tickersPayload ());
+    try {
+        const document = host.document;
+        const row = () => rowsOf (document).find ((candidate: any) => candidate.getAttribute ('data-key') === 'BTC/USDT');
+        const change = row ().cells[2].textContent;
+        await firstPoll (host);
+        await host.answer (tickersUpdate ({ 'BTC/USDT': { 'last': 95000.5, 'bid': 95000, 'ask': 95001, 'percentage': -7.77, 'baseVolume': 1, 'quoteVolume': 1, 'timestamp': NOW + 1000 } }, { 'source': 'stream', 'nextPollMs': 2000 }));
+        assert.equal (row ().cells[1].textContent, '95,000.50', 'the price moves');
+        assert.equal (row ().cells[2].textContent, change, 'the change % is not replaced by a different window');
+        assert.doesNotMatch (row ().cells[2].textContent, /7\.77/);
+        // a REST answer is the same kind of ticker as the render: it updates everything
+        await host.clock.advance (2000);
+        await host.answer (tickersUpdate ({ 'BTC/USDT': { 'last': 95001.5, 'percentage': 3.33, 'timestamp': NOW + 2000 } }));
+        assert.match (row ().cells[2].textContent, /3\.33/);
+        assert.deepEqual (host.errors, []);
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live: stale stream data is shown as Delayed, not Live', { 'skip': DOM_SKIP }, async () => {
+    const host = await openLive ('orderbook', ARGS.orderbook, bookPayload ());
+    try {
+        const book = bookPayload ();
+        await firstPoll (host);
+        await host.answer (bookUpdate (book.bids, book.asks, { 'stale': true }));
+        assert.equal (host.label (), 'Delayed');
+        assert.match (host.indicator ().title, /last streamed data/);
+    } finally {
+        await host.close ();
+    }
+});
+
+test ('live: the indicator has a fixed width, so its states never move the controls', () => {
+    const css = fs.readFileSync (path.join (path.dirname (fileURLToPath (import.meta.url)), '..', '..', 'ts', 'ui', 'shared.css'), 'utf8');
+    const rule = /\.live \{([^}]*)\}/.exec (css);
+    assert.ok (rule !== null);
+    assert.match (rule[1], /(^|[ ;])width: [0-9.]+em;/, 'a width, not only a min-width');
+    assert.match (rule[1], /overflow: hidden;/);
+    assert.match (rule[1], /flex: none;/);
+    assert.match (css, /\.live \.at \{[^}]*text-overflow: ellipsis;/);
+});

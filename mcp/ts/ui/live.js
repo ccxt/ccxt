@@ -2,8 +2,12 @@
 // view polls the app-only tool live_update through the host: one request in flight, at the
 // server's nextPollMs (clamped 1..30 s), jittered exponential backoff on errors and
 // retryAfterSeconds on RATE_LIMITED. It pauses while the document is hidden, the view is
-// off screen, or after 10 minutes without input; it stops on teardown, on a permanent error,
-// and for good when the host refuses the tool. No tools/call: no live mode, no controls.
+// off screen, or after 10 minutes without input; it stops on teardown and on a permanent
+// error (a later full render, e.g. Refresh, re-arms it), and for good when the host refuses
+// the tool. No tools/call: no live mode, no controls. request () returning null keeps the
+// view static (a historical chart, a render the poll cannot reproduce). An update that
+// arrives while the user has text selected in the view is held until the selection ends:
+// redrawing would wipe it.
 //
 // ccxtLive.attach ({ view, slot, request () -> args | null, apply (content), busy () })
 //   -> { start, restart, run (fn): fn once no poll is in flight, stop, state, inFlight }
@@ -29,10 +33,29 @@
     var SPOKEN = { live: 'Live updates on', delayed: 'Live updates delayed', offline: 'Live updates offline', idle: 'Live updates paused after 10 minutes without activity', stopped: 'Live updates stopped' };
     // focus is left out: the views move focus themselves when they redraw
     var INPUT = [ 'pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart' ];
+    // a JSON-RPC error that says the host will not let the view call the tool at all (not a
+    // server or network failure): live mode is switched off at once on the first poll
+    var REFUSED_CODES = { '-32601': 1, '-32602': 1 };
+    var REFUSED_TEXT = /not found|unknown tool|no such tool|not allowed|not permitted|forbidden|visibility|does not let|not available|unsupported|denied/i;
+    // first polls that fail some other way (a server restarting, an internal error) before
+    // live mode is given up on this host
+    var FIRST_POLL_TRIES = 3;
+
+    // whether the user has text selected in the view (the whole document is the view)
+    function selecting () {
+        try {
+            var selection = window.getSelection ? window.getSelection () : null;
+            return !!selection && selection.rangeCount > 0 && !selection.isCollapsed && String (selection).length > 0;
+        } catch (error) {
+            return false;
+        }
+    }
 
     function attach (options) {
         var started = false;
         var stopped = false;
+        var halted = false; // stopped by a permanent error: a new full render re-arms it
+        var held = null; // an update waiting for the user's text selection to end
         var timer = null;
         var dueAt = 0;
         var inFlight = false;
@@ -72,12 +95,17 @@
             document.body.appendChild (ui.say);
         }
 
-        // spoken politely, at most once per config.announceMs (the last word wins)
+        // spoken politely, at most once per config.announceMs (the last word wins). A pending
+        // announcement is dropped first: coming back to what was last said cancels it
         function announce (text) {
-            if (!ui || text === spoken.text) {
+            if (!ui) {
                 return;
             }
             clearTimeout (spoken.timer);
+            spoken.timer = null;
+            if (text === spoken.text) {
+                return;
+            }
             var speak = function () {
                 spoken = { text: text, at: config.now (), timer: null };
                 ui.say.textContent = text;
@@ -168,37 +196,70 @@
             });
         }
 
+        function draw (content) {
+            try {
+                options.apply (content);
+                return true;
+            } catch (error) {
+                if (window.console) {
+                    console.warn ('[ccxt view] a live update could not be drawn', error);
+                }
+                return false;
+            }
+        }
+
+        // the selection ended: draw what arrived meanwhile
+        function selectionChanged () {
+            if (held && !selecting ()) {
+                var content = held;
+                held = null;
+                draw (content);
+            }
+        }
+
         function received (content) {
             if (!content || content.ok === false || content.view !== options.view) {
                 failed ({ message: 'the server sent an update this view cannot use' });
                 return;
             }
-            try {
-                options.apply (content);
-            } catch (error) {
-                if (window.console) {
-                    console.warn ('[ccxt view] a live update could not be drawn', error);
+            if (selecting ()) {
+                // the newest update replaces an older held one: each is the whole picture
+                held = content;
+            } else {
+                held = null;
+                if (!draw (content)) {
+                    failed ({ message: 'the update could not be drawn' });
+                    return;
                 }
-                failed ({ message: 'the update could not be drawn' });
-                return;
             }
             successes++;
             failures = 0;
-            var streaming = content.source === 'stream';
+            // the last streamed data, served because nothing fresher could be had, is delayed
+            var streaming = content.source === 'stream' && content.stale !== true;
             var next = app.isNumber (content.nextPollMs) ? content.nextPollMs : (streaming ? config.defaultStreamMs : config.defaultRestMs);
             cadence = Math.max (config.minMs, Math.min (config.maxMs, next));
             if (ui && app.isNumber (content.asOf)) {
                 ui.at.textContent = app.dateTime (content.asOf, { timeStyle: 'medium' });
             }
             var every = ', refreshed every ' + Math.round (cadence / 1000) + ' s';
-            show (streaming ? 'live' : 'delayed', streaming ? 'Streaming from the exchange' + every : 'Polled from the exchange (' + String (content.source || 'rest') + ')' + every);
+            var detail = streaming ? 'Streaming from the exchange' + every : ((content.stale === true) ? 'The last streamed data: the exchange could not be reached' + every : 'Polled from the exchange (' + String (content.source || 'rest') + ')' + every);
+            show (streaming ? 'live' : 'delayed', detail);
             // never earlier than the server asked; up to 10% later, so views drift apart
             schedule (cadence + config.random () * cadence * 0.1);
         }
 
+        function refusedByHost (error) {
+            return !!error.rpc && (REFUSED_CODES[String (error.rpcCode)] === 1 || REFUSED_TEXT.test (String (error.message || '')));
+        }
+
         function failed (error) {
-            if (!successes && (error.rpc || (!error.code && !error.timeout))) {
+            if (!successes && (refusedByHost (error) || (!error.rpc && !error.code && !error.timeout))) {
                 // no live_update for this view on this host or server: stay a static view
+                disable ();
+                return;
+            }
+            if (!successes && error.rpc && failures + 1 >= FIRST_POLL_TRIES) {
+                // the first polls keep failing (server errors): give live mode up here
                 disable ();
                 return;
             }
@@ -255,6 +316,7 @@
             var method = on ? 'addEventListener' : 'removeEventListener';
             INPUT.forEach (function (name) { window[method] (name, interacted, { capture: true, passive: true }); });
             document[method] ('visibilitychange', visibility);
+            document[method] ('selectionchange', selectionChanged);
             window[method] ('pagehide', stop);
         }
 
@@ -265,12 +327,23 @@
             started = true;
             build ();
             show ('pending', '');
+            app.on ('teardown', stop);
+            arm ();
+        }
+
+        // listeners, the on-screen observer and the first poll
+        function arm () {
             listen (true);
             if (typeof window.IntersectionObserver === 'function') {
                 try {
                     observer = new window.IntersectionObserver (function (entries) {
                         var entry = entries[entries.length - 1];
                         if (entry) {
+                            if (entry.isIntersecting && paused.offscreen) {
+                                // scrolled back into view counts as activity, as coming back to
+                                // the page does: otherwise a long time off screen ends idle
+                                interacted ();
+                            }
                             pause ('offscreen', !entry.isIntersecting);
                         }
                     });
@@ -279,14 +352,24 @@
                     observer = null;
                 }
             }
-            app.on ('teardown', stop);
             visibility ();
             schedule (config.firstDelayMs + config.random () * 500);
         }
 
         function restart () {
+            held = null;
             if (!started) {
                 start ();
+            } else if (halted) {
+                // a fresh full render after a permanent error: polling starts over
+                halted = false;
+                stopped = false;
+                generation++;
+                failures = 0;
+                lastInput = config.now ();
+                paused = {};
+                show ('pending', '');
+                arm ();
             } else if (!stopped) {
                 generation++;
                 failures = 0;
@@ -301,6 +384,7 @@
             }
             // the poll in flight answers for the data fn is about to replace: drop it
             generation++;
+            held = null;
             queued.push (fn);
         }
 
@@ -316,6 +400,7 @@
         }
 
         function stop () {
+            halted = false; // teardown is final
             if (!stopped) {
                 teardown ();
                 clearTimeout (spoken.timer);
@@ -336,6 +421,7 @@
             show ('offline', detail);
             announce (SPOKEN.stopped);
             state = 'stopped';
+            halted = true;
         }
 
         return {
