@@ -123,7 +123,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalHeaders = getValue((this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null), "headers");
+            IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             string? userAgent = this.safeString(this.options, "wsUserAgent", "ClientPortalGW/1");
@@ -134,14 +134,18 @@ public partial class interactivebrokers : ccxt.interactivebrokers
     { "session", session },
 }));
             }
-            Dictionary<string, object> headers = this.extend(originalHeaders, new Dictionary<string, object>() {
+            Dictionary<string, object> headers = this.extend(this.safeDict(this.safeDict(wsOptions, "options"), "headers"), new Dictionary<string, object>() {
                 { "Cookie", cookie },
                 { "User-Agent", userAgent },
             });
-            ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = headers;
+            this.options["ws"] = this.extend(wsOptions, new Dictionary<string, object>() {
+                { "options", this.extend(this.safeDict(wsOptions, "options"), new Dictionary<string, object>() {
+                    { "headers", headers },
+                }) },
+            });
             // instantiate client
             object newClient = this.client(url);
-            ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = originalHeaders;
+            this.options["ws"] = wsOptions;
             Int64? tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
             this.delay(tickleInterval,  this.ibkrKeepAliveSession, new object[] { newClient});
         }

@@ -1109,15 +1109,17 @@ public partial class gemini : ccxt.gemini
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
-        IDictionary<string, object> wsSubOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
-        IDictionary<string, object> originalHeaders = this.safeDict(wsSubOptions, "headers", new Dictionary<string, object>() {});
         Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-GEMINI-APIKEY", this.apiKey },
             { "X-GEMINI-PAYLOAD", b64 },
             { "X-GEMINI-SIGNATURE", signature },
         };
-        ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = headers;
+        this.options["ws"] = this.extend(wsOptions, new Dictionary<string, object>() {
+            { "options", this.extend(this.safeDict(wsOptions, "options"), new Dictionary<string, object>() {
+                { "headers", headers },
+            }) },
+        });
         this.client(url);
-        ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = originalHeaders;
+        this.options["ws"] = wsOptions;
     }
 }

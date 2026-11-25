@@ -919,9 +919,10 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol", "");
         if ((this.safeBool(market, "swap", false) == true))
         {
-            Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
+            Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {marketSymbol}, parameters));
             IDictionary<string, object> swapTicker = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
             return ccxt.BaseExchange.ToTicker(swapTicker);
         }
@@ -1597,7 +1598,8 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {marketSymbol}, parameters));
         IDictionary<string, object> fundingRate = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
         return ccxt.BaseExchange.ToFundingRate(fundingRate);
     }

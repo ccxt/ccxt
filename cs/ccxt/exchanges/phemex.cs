@@ -1463,7 +1463,7 @@ public partial class phemex : Exchange
         string? amount = this.safeString(bidask, amountKey);
         if ((this.safeBool(market, "spot", false) == true))
         {
-            amount = this.fromEv(amount, market);
+            amount = this.fromEv(this.safeString(bidask, amountKey), market);
         }
         return new List<object> {this.parseNumber(this.fromEp(this.safeString(bidask, priceKey), market)), this.parseNumber(amount)};
     }
@@ -2249,13 +2249,15 @@ public partial class phemex : Exchange
                 id = this.safeString(trade, (tradeLength - 4));
             }
             side = this.safeStringLower(trade, (tradeLength - 3));
-            priceString = this.safeString(trade, (tradeLength - 2));
-            amountString = this.safeString(trade, (tradeLength - 1));
-            object priceAmount = getValue(trade, (tradeLength - 2));
+            int priceIndex = (tradeLength - 2);
+            int amountIndex = (tradeLength - 1);
+            priceString = this.safeString(trade, priceIndex);
+            amountString = this.safeString(trade, amountIndex);
+            object priceAmount = getValue(trade, priceIndex);
             if ((priceAmount is Int64 || priceAmount is int || priceAmount is float || priceAmount is double))
             {
-                priceString = this.fromEp(priceString, marketResolved);
-                amountString = this.fromEv(amountString, marketResolved);
+                priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
+                amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
             }
         } else
         {
@@ -3667,9 +3669,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList171025))
+        if ((data is IList<object> hxList171185))
         {
-            int numOrders = hxList171025.Count;
+            int numOrders = hxList171185.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -4338,7 +4340,6 @@ public partial class phemex : Exchange
         //
         string? id = this.safeString(transaction, "id");
         string? address = this.safeString(transaction, "address");
-        string? tag = null;
         string? txid = this.safeString(transaction, "txHash");
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
@@ -4376,8 +4377,8 @@ public partial class phemex : Exchange
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
-            { "tag", tag },
-            { "tagTo", tag },
+            { "tag", null },
+            { "tagTo", null },
             { "tagFrom", null },
             { "type", type },
             { "amount", amount },

@@ -2370,7 +2370,7 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public virtual object actionHash(object action, object vaultAddress, object nonce)
+    public virtual object actionHash(IDictionary<string, object> action, object vaultAddress, object nonce)
     {
         byte[] dataBinary = this.packb(action);
         string dataHex = this.binaryToBase16(dataBinary);
@@ -2414,7 +2414,7 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
-    public virtual Dictionary<string, object> signUserSignedAction(IDictionary<string, object> messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(IDictionary<string, object> messageTypes, IDictionary<string, object> message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614;

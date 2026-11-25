@@ -2014,7 +2014,6 @@ public partial class mexc : Exchange
         string? orderId = null;
         string? symbol = null;
         Dictionary<string, object> fee = null;
-        string? type = null;
         string? side = null;
         string? takerOrMaker = null;
         string? priceString = null;
@@ -2156,7 +2155,7 @@ public partial class mexc : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", priceString },

@@ -374,17 +374,17 @@ public partial class bingx : ccxt.bingx
 
     public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, string? extra = null)
     {
-        object hash = unifiedChannel;
+        string hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + symbol))));
+            hash = (hash == null ? null : hash + (string)(object)(("::" + symbol)));
         } else
         {
-            hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs, etc ...
+            hash = (hash == null ? null : hash + "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if ((extra != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + extra))));
+            hash = (hash == null ? null : hash + (string)(object)(("::" + extra)));
         }
         return ((string?)((object)(hash)));
     }

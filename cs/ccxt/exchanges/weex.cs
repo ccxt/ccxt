@@ -4315,17 +4315,18 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol", "");
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if ((sandboxMode == true))
         {
             // the demo trading API does not provide a single-position endpoint
-            return await this.FetchPositions(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters);
+            return await this.FetchPositions(new List<object>() {marketSymbol}, parameters);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, new List<object>() {marketSymbol}));
     }
 
     public override Dictionary<string, object> parsePosition(IDictionary<string, object> position, IDictionary<string, object> market = null)

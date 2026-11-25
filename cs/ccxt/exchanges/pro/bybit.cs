@@ -819,14 +819,14 @@ public partial class bybit : ccxt.bybit
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object data = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            Dictionary<string, object> market = this.market(getValue(data, 0));
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
+            Dictionary<string, object> market = this.market(this.safeString(data, 0, ""));
             string? symbolString = this.safeString(market, "symbol", "");
-            object unfiedTimeframe = getValue(data, 1);
+            string? unfiedTimeframe = this.safeString(data, 1, "");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             string? marketId = this.safeString(market, "id", "");
             rawHashes.Add(((("kline." + timeframeId) + ".") + marketId));
-            messageHashes.Add(((("ohlcv::" + symbolString) + "::") + (unfiedTimeframe)));
+            messageHashes.Add(((("ohlcv::" + symbolString) + "::") + unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics<object>(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -867,15 +867,15 @@ public partial class bybit : ccxt.bybit
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object data = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            Dictionary<string, object> market = this.market(getValue(data, 0));
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
+            Dictionary<string, object> market = this.market(this.safeString(data, 0, ""));
             string? symbolString = this.safeString(market, "symbol", "");
-            object unfiedTimeframe = getValue(data, 1);
+            string? unfiedTimeframe = this.safeString(data, 1, "");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             string? marketId = this.safeString(market, "id", "");
             rawHashes.Add(((("kline." + timeframeId) + ".") + marketId));
-            subMessageHashes.Add(((("ohlcv::" + symbolString) + "::") + (unfiedTimeframe)));
-            messageHashes.Add(((("unsubscribe::ohlcv::" + symbolString) + "::") + (unfiedTimeframe)));
+            subMessageHashes.Add(((("ohlcv::" + symbolString) + "::") + unfiedTimeframe));
+            messageHashes.Add(((("unsubscribe::ohlcv::" + symbolString) + "::") + unfiedTimeframe));
         }
         Dictionary<string, object> subExtension = new Dictionary<string, object>() {
             { "symbolsAndTimeframes", symbolsAndTimeframes },
@@ -2032,7 +2032,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630 is not null && hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88750 && ((hxArr88750 is IList<object>) || (hxArr88750 is not null && hxArr88750.GetType().IsGenericType && hxArr88750.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

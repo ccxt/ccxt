@@ -1819,7 +1819,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }));
     }
 
-    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchMultiHelper(string unifiedName, string channelName, IList<object>? symbols = null, object subscriptionArgs = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1828,7 +1828,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         // symbols are required
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false, true, false);
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubs = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -1865,17 +1865,17 @@ public partial class krakenfutures : ccxt.krakenfutures
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         bool withSymbol = (symbol != null);
-        object messageHash = unifiedElementName;
+        string messageHash = unifiedElementName;
         if (!withSymbol)
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
+            messageHash = (messageHash == null ? null : messageHash + "s");
         } else
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + symbol))));
+            messageHash = (messageHash == null ? null : messageHash + (string)(object)((":" + symbol)));
         }
         if ((subChannelName != null))
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName))));
+            messageHash = (messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName)));
         }
         return ((string?)((object)(messageHash)));
     }

@@ -3793,14 +3793,14 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual List<object> handleUntilOptionString(string key, IDictionary<string, object> request, IDictionary<string, object>? parameters = null, object multiplier = null)
+    public virtual List<object> handleUntilOptionString(string key, IDictionary<string, object> request, IDictionary<string, object>? parameters = null, Int64? multiplier = null)
     {
         parameters ??= new Dictionary<string, object>();
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");
         if ((until != null))
         {
-            request[(string)key] = this.numberToString(this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(until, multiplier)));
+            request[(string)key] = this.numberToString(this.parseToInt((until * multiplier)));
             return new List<object>() {request, this.omit(parameters, new List<object>() {"until", "till"})};
         }
         return new List<object>() {request, parameters};

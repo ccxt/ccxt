@@ -750,7 +750,11 @@ public partial class PredictionExchange : BaseExchange
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
         for (int j = 0; j < outcomesList.Count; j++)
         {
-            IDictionary<string, object> oc = ((IDictionary<string, object>)outcomesList[j]);
+            IDictionary<string, object> oc = this.safeDict(outcomesList, j);
+            if ((oc == null))
+            {
+                continue;
+            }
             string? ocSymbol = this.safeString2(oc, "outcome", "symbol");
             string? ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
@@ -2035,14 +2039,14 @@ public partial class PredictionExchange : BaseExchange
         return ((this.intToBase16((247 + lengthOfLength)) + lengthHex) + concatenated);
     }
 
-    public virtual string? intToRlpHex(object value)
+    public virtual string? intToRlpHex(Int64? value)
     {
         if ((value == null))
         {
             throw new ArgumentsRequired ((this.id + " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (isEqual(value, 0))
+        if ((value == 0))
         {
             return "";
         }

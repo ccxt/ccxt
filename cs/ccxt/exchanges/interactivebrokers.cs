@@ -4441,7 +4441,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw orders
      */
-    public async virtual Task<List<object>> fetchLiveOrdersRaw(object parameters = null)
+    public async virtual Task<List<object>> fetchLiveOrdersRaw(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -4452,7 +4452,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOrders", new Dictionary<string, object>() {});
         Int64? retryDelay = this.safeInteger(options, "retryDelay", 500);
         bool? force = this.safeBool(parameters, "force", this.safeBool(options, "force", true));
-        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "force"));
+        Dictionary<string, object> query = this.omit(parameters, "force");
         if ((force == true))
         {
             // the order list is cached and misses the orders created after it was built,

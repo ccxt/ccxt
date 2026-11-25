@@ -493,7 +493,6 @@ public partial class coincheck : Exchange
         string? amount = this.safeString(order, "pending_amount");
         string? remaining = this.safeString(order, "pending_amount");
         string? price = this.safeString(order, "rate");
-        string? status = null;
         string? marketId = this.safeString(order, "pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -509,7 +508,7 @@ public partial class coincheck : Exchange
             { "type", null },
             { "timeInForce", null },
             { "postOnly", null },
-            { "status", status },
+            { "status", null },
             { "symbol", symbol },
             { "price", price },
             { "triggerPrice", null },

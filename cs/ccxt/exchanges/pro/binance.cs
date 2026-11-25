@@ -222,7 +222,7 @@ public partial class binance : ccxt.binance
         return (((string)client.url).IndexOf("/stream", StringComparison.Ordinal) > -1) || (((string)client.url).IndexOf("demo-stream", StringComparison.Ordinal) > -1);
     }
 
-    public virtual string? stream(string? type, object subscriptionHash, object numSubscriptions = null)
+    public virtual string? stream(string? type, object subscriptionHash, Int64? numSubscriptions = null)
     {
         numSubscriptions ??= 1;
         IDictionary<string, object> streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", new Dictionary<string, object>() {});

@@ -525,7 +525,6 @@ public partial class mercado : Exchange
         Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
         string? id = this.safeString2(trade, "tid", "operation_id");
-        string? type = null;
         string? side = this.safeString(trade, "type");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "amount", "quantity");
@@ -545,7 +544,7 @@ public partial class mercado : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", null },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", null },
             { "price", price },

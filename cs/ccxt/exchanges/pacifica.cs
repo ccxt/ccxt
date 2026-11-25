@@ -4141,7 +4141,7 @@ public partial class pacifica : Exchange
         return ((Dictionary<string, object>)((object)(await this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters)))));
     }
 
-    public virtual List<object> handleOriginAndSingleAddress(string methodName, object parameters)
+    public virtual List<object> handleOriginAndSingleAddress(string methodName, IDictionary<string, object> parameters)
     {
         IList<object> addressparamsAccountVariable = (IList<object>)this.handleParamString2(parameters, "account", "address", null);
         string? address = (string)addressparamsAccountVariable[0];

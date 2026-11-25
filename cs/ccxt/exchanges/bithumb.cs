@@ -1685,7 +1685,6 @@ public partial class bithumb : Exchange
                 }
             }
         }
-        string? type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
         if (side == "bid")
         {
@@ -1722,7 +1721,7 @@ public partial class bithumb : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "order", null },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", null },
             { "price", priceString },

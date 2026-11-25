@@ -1064,7 +1064,6 @@ public partial class upbit : Exchange
         //         }
         //
         string? id = this.safeString2(trade, "sequential_id", "uuid");
-        string? orderId = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         if ((timestamp == null))
         {
@@ -1096,7 +1095,7 @@ public partial class upbit : Exchange
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
-            { "order", orderId },
+            { "order", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },

@@ -3630,7 +3630,8 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, parameters));
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        Dictionary<string, object> marginModes = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {marketSymbol}, parameters));
         IDictionary<string, object> marginMode = this.safeDict(marginModes, (market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((marginMode == null))
         {

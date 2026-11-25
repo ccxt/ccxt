@@ -3933,8 +3933,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (rawRatesData?.Count ?? 0); i++)
         {
             object fr = rawRatesData[i];
-            Dictionary<string, object> rate = this.parseFundingRateHistory(fr, market);
-            rates.Add(rate);
+            rates.Add(this.parseFundingRateHistoryRow(fr, market));
         }
         List<object> reversedArray = new List<object>() {};
         IList<object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
@@ -4003,7 +4002,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseFundingRateHistory(object contract, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFundingRateHistoryRow(object contract, IDictionary<string, object>? market = null)
     {
         //
         // [

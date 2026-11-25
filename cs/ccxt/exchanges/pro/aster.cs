@@ -183,16 +183,16 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.Add(("ticker:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes);
         if (this.newUpdates)
         {
@@ -248,16 +248,16 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.Add(("unsubscribe:ticker:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes);
     }
 
@@ -344,10 +344,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         bool? use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -360,6 +356,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@markPrice") + suffix));
             messageHashes.Add(("ticker:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes);
         if (this.newUpdates)
         {
@@ -415,10 +415,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         bool? use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -431,6 +427,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@markPrice") + suffix));
             messageHashes.Add(("unsubscribe:ticker:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes);
     }
 
@@ -559,16 +559,16 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.Add(("bidask:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (this.newUpdates)
         {
@@ -621,16 +621,16 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.Add(("unsubscribe:bidask:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
@@ -758,11 +758,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-            { "id", 1 },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
@@ -774,6 +769,11 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add((marketId + "@aggTrade"));
             messageHashes.Add(("trade::" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+            { "id", 1 },
+        };
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes));
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
@@ -820,16 +820,16 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + "@aggTrade"));
             messageHashes.Add(("unsubscribe:trade:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes);
     }
 
@@ -1111,10 +1111,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         string depthSuffix = "@depth20";
         if ((limit == 5))
         {
@@ -1129,6 +1125,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.Add(("orderbook:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes));
         return (orderbook as IOrderBook).limit().Copy();
     }
@@ -1172,10 +1172,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         double? limit = this.safeNumber(paramsOmitted, "limit");
         string depthSuffix = "@depth20";
         if ((limit == 5))
@@ -1191,6 +1187,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.Add(("unsubscribe:orderbook:" + this.safeString(market, "symbol", "")));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsOmitted, "limit")), messageHashes);
     }
 
@@ -1323,10 +1323,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "SUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < symbolsLength; i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
@@ -1342,6 +1338,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@kline_") + timeframeId));
             messageHashes.Add(((("ohlcv:" + this.safeString(market, "symbol", "")) + ":") + unfiedTimeframe));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         var symboltimeframestoredVariable = await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
@@ -1391,10 +1391,6 @@ public partial class aster : ccxt.aster
         }
         List<object> subscriptionArgs = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "method", "UNSUBSCRIBE" },
-            { "params", subscriptionArgs },
-        };
         for (int i = 0; i < symbolsLength; i++)
         {
             List<object> data = this.safeList(symbolsAndTimeframes, i);
@@ -1410,6 +1406,10 @@ public partial class aster : ccxt.aster
             subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@kline_") + timeframeId));
             messageHashes.Add(((("unsubscribe:ohlcv:" + this.safeString(market, "symbol", "")) + ":") + unfiedTimeframe));
         }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+        };
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes);
     }
 

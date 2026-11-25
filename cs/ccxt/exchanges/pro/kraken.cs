@@ -1876,17 +1876,17 @@ public partial class kraken : ccxt.kraken
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         bool withSymbol = (symbol != null);
-        object messageHash = unifiedElementName;
+        string messageHash = unifiedElementName;
         if (!withSymbol)
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
+            messageHash = (messageHash == null ? null : messageHash + "s");
         } else
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("@" + symbol))));
+            messageHash = (messageHash == null ? null : messageHash + (string)(object)(("@" + symbol)));
         }
         if ((subChannelName != null))
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName))));
+            messageHash = (messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName)));
         }
         return ((string?)((object)(messageHash)));
     }

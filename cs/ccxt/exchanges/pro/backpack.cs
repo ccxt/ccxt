@@ -65,7 +65,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params exchange-specific parameters
      * @returns {object} local parameters with the validated stock selector
      */
-    public async virtual Task<IDictionary<string, object>> prepareWsStockParams(object methodName, IDictionary<string, object> parameters)
+    public async virtual Task<IDictionary<string, object>> prepareWsStockParams(string methodName, IDictionary<string, object> parameters)
     {
         (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
         bool? stock = stockqueryVariable.Item1;

@@ -564,7 +564,6 @@ public partial class btcbox : Exchange
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
-        string? type = null;
         string? side = this.safeString(trade, "type");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -573,7 +572,7 @@ public partial class btcbox : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", null },
             { "price", priceString },

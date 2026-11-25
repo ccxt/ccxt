@@ -2979,6 +2979,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol", "");
         string? instrumentType = this.convertToInstrumentType(this.safeString(market, "type"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", instrumentType },
@@ -2986,7 +2987,7 @@ public partial class deepcoin : Exchange
         };
         Dictionary<string, object> response = await this.privateGetDeepcoinAccountPositions(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, new List<object>() {marketSymbol}));
     }
 
     /**

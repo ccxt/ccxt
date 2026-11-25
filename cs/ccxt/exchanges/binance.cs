@@ -11921,20 +11921,17 @@ public partial class binance : Exchange
                 priceString = Precise.stringDiv(costString, amountString);
             }
         }
-        string? id = null;
         double? amount = this.parseNumber(amountString);
         double? price = this.parseNumber(priceString);
         double? cost = this.parseNumber(costString);
-        string? type = null;
-        string? takerOrMaker = null;
         return new Dictionary<string, object>() {
-            { "id", id },
+            { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
             { "order", orderId },
-            { "type", type },
-            { "takerOrMaker", takerOrMaker },
+            { "type", null },
+            { "takerOrMaker", null },
             { "side", side },
             { "amount", amount },
             { "price", price },

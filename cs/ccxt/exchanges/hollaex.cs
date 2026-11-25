@@ -1969,10 +1969,8 @@ public partial class hollaex : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         string? address = this.safeString(transaction, "address");
         string? addressTo = null;
-        string? addressFrom = null;
         string? tag = null;
         string? tagTo = null;
-        string? tagFrom = null;
         if ((address != null))
         {
             List<object> parts = address.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
@@ -2018,10 +2016,10 @@ public partial class hollaex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", null },
-            { "addressFrom", addressFrom },
+            { "addressFrom", null },
             { "address", address },
             { "addressTo", addressTo },
-            { "tagFrom", tagFrom },
+            { "tagFrom", null },
             { "tag", tag },
             { "tagTo", tagTo },
             { "type", type },

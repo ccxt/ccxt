@@ -828,9 +828,6 @@ public partial class blofin : Exchange
         {
             symbol = ((((bs + "/") + quote) + ":") + settle);
         }
-        string? expiry = null;
-        string? strikePrice = null;
-        string? optionType = null;
         string? tickSize = this.safeString(market, "tickSize");
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         double? taker = this.safeNumber(fees, "taker");
@@ -871,10 +868,10 @@ public partial class blofin : Exchange
             { "linear", contract ? (contractType == "linear") : null },
             { "inverse", contract ? (contractType == "inverse") : null },
             { "contractSize", contract ? this.safeNumber(market, "contractValue") : null },
-            { "expiry", expiry },
-            { "expiryDatetime", expiry },
-            { "strike", strikePrice },
-            { "optionType", optionType },
+            { "expiry", null },
+            { "expiryDatetime", null },
+            { "strike", null },
+            { "optionType", null },
             { "created", this.safeInteger(market, "listTime") },
             { "precision", new Dictionary<string, object>() {
                 { "amount", this.safeNumber(market, "lotSize") },

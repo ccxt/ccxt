@@ -1476,7 +1476,6 @@ public partial class coinsph : Exchange
         Int64? timestamp = this.safeInteger(trade, "time");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
-        string? type = null;
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? feeCost = this.safeString(trade, "commission");
         if ((feeCost != null))
@@ -1510,7 +1509,7 @@ public partial class coinsph : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", takerOrMaker },
             { "price", priceString },
@@ -2418,7 +2417,6 @@ public partial class coinsph : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        string? updated = null;
         string? type = null;
         string? withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         string? depositOrderId = this.safeString(transaction, "depositOrderId");
@@ -2459,7 +2457,7 @@ public partial class coinsph : Exchange
             { "amount", amount },
             { "currency", code },
             { "status", status },
-            { "updated", updated },
+            { "updated", null },
             { "internal", intern },
             { "comment", null },
             { "fee", fee },
@@ -2550,7 +2548,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112162 && ((hxArr112162 is IList<object>) || (hxArr112162 is not null && hxArr112162.GetType().IsGenericType && hxArr112162.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112102 && ((hxArr112102 is IList<object>) || (hxArr112102 is not null && hxArr112102.GetType().IsGenericType && hxArr112102.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

@@ -2830,7 +2830,6 @@ public partial class bitvavo : Exchange
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        string? id = null;
         Int64? timestamp = this.safeInteger(transaction, "timestamp");
         string? currencyId = this.safeString(transaction, "symbol");
         string? code = this.safeCurrencyCode(currencyId, currency);
@@ -2858,7 +2857,7 @@ public partial class bitvavo : Exchange
         string? tag = this.safeString(transaction, "paymentId");
         return new Dictionary<string, object>() {
             { "info", transaction },
-            { "id", id },
+            { "id", null },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

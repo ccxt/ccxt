@@ -1790,7 +1790,7 @@ public partial class BaseExchange
          * @returns {object} returns feature value
          */
         Dictionary<string, object> market = this.market(symbol);
-        return this.featureValueByType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("subType") ? market["subType"] : null), methodName, paramName, defaultValue);
+        return this.featureValueByType(this.safeString(market, "type", ""), this.safeString(market, "subType"), methodName, paramName, defaultValue);
     }
 
     public virtual object featureValueByType(object marketType, object subType, string? methodName = null, string? paramName = null, object defaultValue = null)
@@ -2665,7 +2665,11 @@ public partial class BaseExchange
         // we have trades with string values at this point so we will mutate them
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)trades[i]);
+            IDictionary<string, object> entry = this.safeDict(trades, i);
+            if ((entry == null))
+            {
+                continue;
+            }
             entry["amount"] = this.safeNumber(entry, "amount");
             entry["price"] = this.safeNumber(entry, "price");
             entry["cost"] = this.safeNumber(entry, "cost");
@@ -4957,7 +4961,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327935 && i_timestamp < ohlcvsSlot327935.Count ? ohlcvsSlot327935[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328071 && i_timestamp < ohlcvsSlot328071.Count ? ohlcvsSlot328071[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -7648,9 +7652,9 @@ public partial class BaseExchange
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
-        object sorted = this.sortCursorPaginatedResult(result);
+        IList<object> sorted = this.sortCursorPaginatedResult(result);
         object key = ((method == "fetchOHLCV")) ? 0 : "timestamp";
-        return this.filterBySinceLimit(this.toArray(sorted), since, limit, key);
+        return this.filterBySinceLimit(sorted, since, limit, key);
     }
 
     public async virtual Task<IList<object>> fetchPaginatedCallIncremental(string method, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, string? pageKey = null, object maxEntriesPerRequest = null)

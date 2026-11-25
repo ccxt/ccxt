@@ -1204,7 +1204,7 @@ public partial class backpack : Exchange
      * @param {object} [market] resolved market
      * @returns {Array} stock flag and remaining parameters
      */
-    public virtual List<object> handleStockParams(object methodName, object parameters, IDictionary<string, object> market = null)
+    public virtual List<object> handleStockParams(string methodName, object parameters, IDictionary<string, object> market = null)
     {
         bool? defaultStock = this.safeBool(market, "stock", false);
         (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);

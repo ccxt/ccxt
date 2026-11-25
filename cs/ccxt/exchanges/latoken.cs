@@ -1150,7 +1150,6 @@ public partial class latoken : Exchange
         //         "makerBuyer":false
         //     }
         //
-        string? type = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "quantity");
@@ -1206,7 +1205,7 @@ public partial class latoken : Exchange
             { "symbol", symbol },
             { "id", id },
             { "order", orderId },
-            { "type", type },
+            { "type", null },
             { "takerOrMaker", takerOrMaker },
             { "side", side },
             { "price", priceString },

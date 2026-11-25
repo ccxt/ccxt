@@ -2335,7 +2335,7 @@ public partial class paradex : ccxt.paradex
         };
     }
 
-    public virtual Int64? sbeReadUint(object frameHex, object offset, Int64 length)
+    public virtual Int64? sbeReadUint(string frameHex, object offset, Int64 length)
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         string digits = "0123456789abcdef";
