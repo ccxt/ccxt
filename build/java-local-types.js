@@ -7789,7 +7789,19 @@ function numericIsSameFamilyWrite (printer, node, javaType) {
     if (javaType === 'Long' && numericLongLiteralText (right) !== undefined) {
         return true; // printed with the L suffix by the write hook (installJavaNumericLocalTypes)
     }
-    return numericFamilyCallType (printer, right) === javaType;
+    return numericFamilyCallType (printer, right) === javaType || numericNativeArithmeticWrite (printer, right) === javaType;
+}
+
+// `x = a * b` that the printer prints as native long / double arithmetic: autoboxes into that box
+function numericNativeArithmeticWrite (printer, right) {
+    if (right === undefined || !ts.isBinaryExpression (right)) {
+        return undefined;
+    }
+    try {
+        return printer.javaNativeArithmeticType?.(right);
+    } catch (e) {
+        return undefined;
+    }
 }
 
 // `0` / `-5` -> the Java long literal text, undefined for any other shape
@@ -11570,7 +11582,7 @@ function nullScalarWriteType (printer, node) {
         // that box for the conditional (JLS 15.25, no unboxing between two equal reference types)
         return nullScalarCopyTernaryType (printer, value, arms);
     }
-    const numeric = numericFamilyCallType (printer, value);
+    const numeric = numericFamilyCallType (printer, value) ?? numericNativeArithmeticWrite (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
     }
