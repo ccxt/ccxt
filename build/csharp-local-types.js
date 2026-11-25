@@ -1898,6 +1898,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'getWsUrl': 'string?', // pro/{binance,paradex,coinbaseinternational} all print `string? getWsUrl`
     // zaif#customNonce: sole declaration tree-wide, ts `: string`, prints `string? customNonce()`
     'customNonce': 'string?',
+    // base `IList<object> sortCursorPaginatedResult` (ts `: any[]`), sole declaration tree-wide
+    'sortCursorPaginatedResult': 'IList<object>',
 };
 
 // bare `name(...)` calls (a plain Identifier callee, no `this.`): C# resolves them to the
