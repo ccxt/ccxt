@@ -9182,6 +9182,7 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['prepare_ws_stock_params', 'built'],
     ['parse_option', 'built'],
     ['parse_long_short_ratio', 'built'],
+    ['ibkr_handle_order_replies', 'built'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
@@ -9381,7 +9382,9 @@ function rustBuiltDictReturns (fn: string, body: string): string {
         at = close + 2; lastEnd = at; lastIndent = m[1];
     }
     const rets = body.match (/^ *return\b/gm) ?? [];
-    if (rets.length === 0 || rets.length !== parts.length / 2 || lastIndent !== '        ' || body.slice (lastEnd).trim () !== '') throw new Error (fn + ': unproven return');
+    // a body that ends in a top-level `panic!` never falls through, so nested returns are its only exits
+    const endsInPanic = /\n {8}panic!\([^\n]*\);$/.test (body.replace (/\s+$/, ''));
+    if (rets.length === 0 || rets.length !== parts.length / 2 || ((lastIndent !== '        ' || body.slice (lastEnd).trim () !== '') && !endsInPanic)) throw new Error (fn + ': unproven return');
     return parts.join ('') + body.slice (at);
 }
 // ===== end h29-R02
