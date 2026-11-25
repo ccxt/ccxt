@@ -27,7 +27,9 @@ export default class deribit extends deribitRest {
                 'unWatchTrades': true,
                 'unWatchTradesForSymbols': true,
                 'watchMyTrades': true,
+                'unWatchMyTrades': true,
                 'watchOrders': true,
+                'unWatchOrders': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'unWatchOrderBook': true,
@@ -582,6 +584,23 @@ export default class deribit extends deribitRest {
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name deribit#unWatchMyTrades
+     * @description unsubscribes from the user trades channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] not used by deribit.unWatchMyTrades, the channel covers all markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: raw, 100ms
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        const interval = this.safeString (params, 'interval', 'raw');
+        const paramsOmitted: Dict = this.omit (params, 'interval');
+        const channel = 'user.trades.any.any.' + interval;
+        return await this.unsubscribePrivateChannel ('myTrades', channel, paramsOmitted);
+    }
+
     handleMyTrades (client: Client, message: Dict) {
         //
         //     {
@@ -879,6 +898,27 @@ export default class deribit extends deribitRest {
             limitResolved = orders.getLimit (symbolResolved, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
+    }
+
+    /**
+     * @method
+     * @name deribit#unWatchOrders
+     * @description unsubscribes from the user orders channel
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] not used by deribit.unWatchOrders, the channel covers all markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.interval] the interval the subscription was opened with. Possible values: raw, 100ms
+     * @param {str} [params.currency] the currency the subscription was opened with, default is any
+     * @param {str} [params.kind] the instrument kind the subscription was opened with, default is any
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+        const currency = this.safeString (params, 'currency', 'any');
+        const interval = this.safeString (params, 'interval', 'raw');
+        const kind = this.safeString (params, 'kind', 'any');
+        const paramsOmitted: Dict = this.omit (params, 'interval', 'currency', 'kind');
+        const channel = 'user.orders.' + kind + '.' + currency + '.' + interval;
+        return await this.unsubscribePrivateChannel ('orders', channel, paramsOmitted);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -1225,6 +1265,48 @@ export default class deribit extends deribitRest {
         };
         const extendedRequest = this.deepExtend (request, params);
         return await this.watchMultiple (url, messageHashes, extendedRequest, [ requestIdString ], subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name deribit#unsubscribePrivateChannel
+     * @description sends a private/unsubscribe request for a single user channel and registers the pending unsubscription under the request id
+     * @param {string} topic unified cache topic: orders, myTrades
+     * @param {string} channel exchange channel name, also the message hash of the subscription
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unsubscribePrivateChannel (topic: string, channel: string, params: Dict = {}): Promise<any> {
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const unsubHash = 'unsubscribe:' + channel;
+        const requestId = this.requestId ();
+        const requestIdString = requestId.toString ();
+        const channelsList: string[] = [ channel ];
+        const channels: Dict = {
+            'channels': channelsList,
+        };
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'private/unsubscribe',
+            'params': channels,
+            'id': requestId,
+        };
+        const messageHashes: string[] = [ unsubHash ];
+        const symbols: string[] = [];
+        // the acknowledgement carries only the request id, so the pending unsubscription is stored under it
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestIdString,
+            'topic': topic,
+            'symbols': symbols,
+            'messageHashes': messageHashes,
+            'subMessageHashes': channelsList,
+            'subscribeHashes': channelsList,
+        };
+        const extendedRequest = this.deepExtend (request, params);
+        return await this.watch (url, unsubHash, extendedRequest, requestIdString, subscription);
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {

@@ -840,6 +840,142 @@
                 ],
                 "parsedResponse": true
             }
+        ],
+        "unWatchMyTrades": [
+            {
+                "description": "user trades unsubscribe without a preceding watch, authentication reply with redacted tokens then the acknowledgement by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "enabled_features": [],
+                            "access_token": "REDACTED",
+                            "expires_in": 31536000,
+                            "refresh_token": "REDACTED",
+                            "scope": "REDACTED",
+                            "token_type": "bearer"
+                        },
+                        "usIn": "1795608447399766",
+                        "usOut": "1795608447400395",
+                        "usDiff": 629,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": [
+                            "user.trades.any.any.raw"
+                        ],
+                        "usIn": "1795608447613894",
+                        "usOut": "1795608447614313",
+                        "usDiff": 419,
+                        "testnet": false
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature",
+                    "nonce"
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "public/auth",
+                        "params": {
+                            "grant_type": "client_signature",
+                            "client_id": "key",
+                            "timestamp": 1795608447029,
+                            "signature": "REDACTED",
+                            "nonce": "1795608447029",
+                            "data": ""
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "private/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "user.trades.any.any.raw"
+                            ]
+                        },
+                        "id": 2
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrders": [
+            {
+                "description": "user orders unsubscribe without a preceding watch, authentication reply with redacted tokens then the acknowledgement by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "enabled_features": [],
+                            "access_token": "REDACTED",
+                            "expires_in": 31536000,
+                            "refresh_token": "REDACTED",
+                            "scope": "REDACTED",
+                            "token_type": "bearer"
+                        },
+                        "usIn": "1795608427370567",
+                        "usOut": "1795608427371776",
+                        "usDiff": 1209,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": [
+                            "user.orders.any.any.raw"
+                        ],
+                        "usIn": "1795608427509677",
+                        "usOut": "1795608427510212",
+                        "usDiff": 535,
+                        "testnet": false
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature",
+                    "nonce"
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "public/auth",
+                        "params": {
+                            "grant_type": "client_signature",
+                            "client_id": "key",
+                            "timestamp": 1795608427012,
+                            "signature": "REDACTED",
+                            "nonce": "1795608427012",
+                            "data": ""
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "private/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "user.orders.any.any.raw"
+                            ]
+                        },
+                        "id": 2
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
