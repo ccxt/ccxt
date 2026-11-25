@@ -5662,7 +5662,7 @@ export default class gate extends Exchange {
         return [ request, finalParams ];
     }
 
-    async fetchOrdersByStatus (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
