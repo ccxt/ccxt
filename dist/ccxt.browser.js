@@ -447067,8 +447067,8 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4721);
 /* import */ var _abstract_mercado_js__rspack_import_0 = __webpack_require__(4930);
-/* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
-/* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
+/* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
+/* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 //  ---------------------------------------------------------------------------
 
 
@@ -447584,12 +447584,17 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const side = this.safeString(trade, 'type');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString2(trade, 'amount', 'quantity');
-        const feeCost = this.safeString(trade, 'fee_rate');
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        const feeRate = this.safeString(trade, 'fee_rate');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeRate !== undefined && side !== undefined) {
+            const rate = _base_Precise_js__rspack_import_2/* .Precise.stringDiv */.Y.stringDiv(feeRate, '100');
+            const isBuy = side === 'buy';
+            const feeBase = isBuy ? amount : _base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(amount, price);
             fee = {
-                'cost': feeCost,
-                'currency': undefined
+                'cost': _base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(feeBase, rate),
+                'currency': isBuy ? marketResolved['base'] : marketResolved['quote'],
+                'rate': rate
             };
         }
         return this.safeTrade({
@@ -447705,11 +447710,11 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         } else {
             if (side === 'buy') {
                 if (price === undefined) {
-                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
+                    throw new _base_errors_js__rspack_import_3.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
                 const amountString = this.numberToString(amount);
                 const priceString = this.numberToString(price);
-                request['cost'] = this.priceToPrecision(market['symbol'], this.parseToNumeric(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString)));
+                request['cost'] = this.priceToPrecision(market['symbol'], this.parseToNumeric(_base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, params));
             } else {
                 request['quantity'] = this.amountToPrecision(market['symbol'], amount);
@@ -447732,7 +447737,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -447824,7 +447829,14 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp(order, 'updated_timestamp');
-        const rawTrades = this.safeList(order, 'operations', []);
+        const operations = this.safeList(order, 'operations', []);
+        const rawTrades = [];
+        for(let i = 0; i < operations.length; i++){
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.push(this.extend(operations[i], {
+                'type': side
+            }));
+        }
         const symbol = marketResolved['symbol'];
         return this.safeOrder({
             'info': order,
@@ -447860,7 +447872,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -447900,17 +447912,17 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         if (code === 'BRL') {
             const account_ref = 'account_ref' in paramsWithdrawTag;
             if (!account_ref) {
-                throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
+                throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
             }
         } else if (code !== 'LTC') {
             const tx_fee = 'tx_fee' in paramsWithdrawTag;
             if (!tx_fee) {
-                throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
+                throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
             }
             if (code === 'XRP') {
                 if (tagWithdrawTag === undefined) {
                     if (!('destination_tag' in paramsWithdrawTag)) {
-                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
+                        throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tagWithdrawTag;
@@ -448034,7 +448046,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448059,7 +448071,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448085,7 +448097,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448122,7 +448134,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
-            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            throw new _base_errors_js__rspack_import_3.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
@@ -448176,7 +448188,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         //
         const errorMessage = this.safeString(response, 'error_message');
         if (errorMessage !== undefined) {
-            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' ' + this.json(response));
+            throw new _base_errors_js__rspack_import_3.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
     }
