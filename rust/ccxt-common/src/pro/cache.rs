@@ -68,6 +68,7 @@ impl Cache {
     pub fn append(&mut self, item: impl Into<Value>) { self.0.append(item) }
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
+    pub fn remove_cache_symbol(&mut self, symbol: impl Into<Value>) { self.0.remove_cache_symbol(symbol.into()) }
     pub fn hashmap(&self) -> Value { self.0.hashmap() }
     /// `cache.length`: the rolling buffer's size (`Value::len` unwraps the marker).
     pub fn size(&self) -> i64 { self.0.len() as i64 }

@@ -59,6 +59,60 @@ func TestArrayCacheSeenUpdatesBySymbolBySide(t *testing.T) {
 	}
 }
 
+func TestArrayCacheRemoveSymbolPollingScopes(t *testing.T) {
+	limitOf := func(p *int64) any {
+		if p == nil {
+			return nil
+		}
+		return *p
+	}
+	for _, global := range []bool{false, true} {
+		for _, scoped := range []bool{false, true} {
+			c := NewArrayCacheBySymbolBySide()
+			row := func(symbol, side string, contracts int) map[string]any {
+				return map[string]any{"symbol": symbol, "side": side, "contracts": contracts}
+			}
+			check := func(got, want any) {
+				t.Helper()
+				if got != want {
+					t.Fatalf("global=%v scoped=%v: got %v want %v", global, scoped, got, want)
+				}
+			}
+			c.Append(row("ETH", "long", 4))
+			c.Append(row("LTC", "long", 2))
+			c.Append(row("ETH", "short", 5))
+			if global {
+				check(limitOf(c.GetLimit(nil, nil)), int64(3))
+			}
+			if scoped {
+				check(limitOf(c.GetLimit("ETH", nil)), int64(2))
+				check(limitOf(c.GetLimit("LTC", nil)), int64(1))
+			}
+			c.Remove("MISSING")
+			check(len(c.Data), 3)
+			c.Remove("LTC")
+			check(len(c.Data), 2)
+			check(GetValue(c.Data[0], "contracts"), 4)
+			check(GetValue(c.Data[1], "contracts"), 5)
+			check(limitOf(c.GetLimit("LTC", nil)), int64(0))
+			c.Remove("LTC")
+			c.Append(row("LTC", "both", 0))
+			want := int64(3)
+			if global {
+				want = 1
+			}
+			check(limitOf(c.GetLimit(nil, nil)), want)
+			c.Append(row("ETH", "long", 6))
+			want = 2
+			if scoped {
+				want = 1
+			}
+			check(limitOf(c.GetLimit("ETH", nil)), want)
+			check(len(c.Data), 3)
+		}
+	}
+}
+
 // GetLimit is typed *int64 (Cache.ts `Int`): an absent answer is nil, a count or a cap is an int64.
 func TestArrayCacheGetLimitTyped(t *testing.T) {
 	var limit int64 = 5
