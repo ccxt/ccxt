@@ -2031,6 +2031,9 @@ export const CSHARP_LOCAL_METHOD_RETURN_TYPES = {
     'slice': 'string?',
     // printIncludesCall -> `name.Contains(arg)`: string.Contains / IList.Contains -> bool
     'includes': 'bool',
+    // `cache.getLimit (s, l)` prints `cache.getLimit(..)` or `ccxt.pro.BaseCache.getLimitOf(cache, ..)`
+    // (nativeWsCacheCalls); both are declared `Int64?` in cs/ccxt/ws/ArrayCache.cs
+    'getLimit': 'Int64?',
 };
 
 // hand-written C# classes whose `new X(...)` box is exactly ccxt.pro.X (no corpus write needs one)
