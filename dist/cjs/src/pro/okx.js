@@ -1881,7 +1881,7 @@ class okx extends okx$1["default"] {
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
             messageHash = messageHash + '::' + this.safeString(market, 'symbol', '');
         }

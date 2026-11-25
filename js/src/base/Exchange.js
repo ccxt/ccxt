@@ -7461,19 +7461,19 @@ export class BaseExchange {
                 keysToOmit.push('triggerPrice');
                 keysToOmit.push('stopPrice');
             }
-            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, triggerPrice);
         }
         if (stopLossPrice !== undefined) {
             if (omitParams) {
                 keysToOmit.push('stopLossPrice');
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
             if (omitParams) {
                 keysToOmit.push('takeProfitPrice');
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, takeProfitPrice);
         }
         const keysToOmitLength = keysToOmit.length;
         const paramsOmitted = (keysToOmitLength > 0) ? this.omit(params, keysToOmit) : params;
@@ -8437,18 +8437,20 @@ export class BaseExchange {
     }
     parseAllGreeksList(greeks, symbols = undefined, params = {}) {
         const results = [];
-        for (let i = 0; i < greeks.length; i++) {
-            results.push(this.extend(this.parseGreeks(this.safeDict(greeks, i, {})), params));
+        const greeksArray = this.toArray(greeks);
+        for (let i = 0; i < greeksArray.length; i++) {
+            results.push(this.extend(this.parseGreeks(this.safeDict(greeksArray, i, {})), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
     parseAllGreeksDict(greeks, symbols = undefined, params = {}) {
         const results = [];
-        const marketIds = Object.keys(greeks);
+        const greeksDict = this.extend({}, greeks);
+        const marketIds = Object.keys(greeksDict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            results.push(this.extend(this.parseGreeks(this.safeDict(greeks, marketId, {}), market), params));
+            results.push(this.extend(this.parseGreeks(this.safeDict(greeksDict, marketId, {}), market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -8652,7 +8654,7 @@ export class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString(response[i], symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
-                marginModifications.push(this.parseMarginModification(response[i], market));
+                marginModifications.push(this.parseMarginModification(this.safeDict(response, i, {}), market));
             }
         }
         return marginModifications;

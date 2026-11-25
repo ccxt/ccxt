@@ -702,11 +702,14 @@ export default class deepcoin extends Exchange {
                 const duration = this.parseTimeframe(timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
                 let endTime = this.parseToInt(since + (duration * numberOfCandles) * 1000);
-                if (until !== undefined) {
-                    endTime = Math.min(endTime, until);
+                if ((until !== undefined) && (until < endTime)) {
+                    endTime = until;
                 }
                 const now = this.milliseconds();
-                request['after'] = Math.min(endTime, now);
+                if (now < endTime) {
+                    endTime = now;
+                }
+                request['after'] = endTime;
             }
         }
         let response = undefined;

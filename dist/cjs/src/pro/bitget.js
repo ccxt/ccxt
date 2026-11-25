@@ -1014,14 +1014,14 @@ class bitget extends bitget$1["default"] {
                     if (i < bidsLength) {
                         const bidLevel = storedBids[i];
                         const bidParts = bidLevel[2];
-                        payloadArray.push(bidParts[0]);
-                        payloadArray.push(bidParts[1]);
+                        payloadArray.push(this.safeString(bidParts, 0, ''));
+                        payloadArray.push(this.safeString(bidParts, 1, ''));
                     }
                     if (i < asksLength) {
                         const askLevel = storedAsks[i];
                         const askParts = askLevel[2];
-                        payloadArray.push(askParts[0]);
-                        payloadArray.push(askParts[1]);
+                        payloadArray.push(this.safeString(askParts, 0, ''));
+                        payloadArray.push(this.safeString(askParts, 1, ''));
                     }
                 }
                 const payload = payloadArray.join(':');

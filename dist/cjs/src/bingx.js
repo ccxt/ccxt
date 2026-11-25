@@ -6100,14 +6100,14 @@ class bingx extends bingx$1["default"] {
         //        "type": 1
         //    }
         //
-        let responseData = response;
         if (market['inverse'] === true) {
-            responseData = this.extend({
+            const inverseResult = this.parseMarginModification(this.extend({
                 'amount': amountString,
                 'type': type,
-            }, this.safeDict(response, 'data', {}));
+            }, this.safeDict(response, 'data', {})), market);
+            return this.extend(inverseResult, { 'info': response });
         }
-        const result = this.parseMarginModification(responseData, market);
+        const result = this.parseMarginModification(response, market);
         result['info'] = response;
         return result;
     }

@@ -1915,7 +1915,7 @@ class btse extends btse$1["default"] {
         const isLimitOrder = (typeValue === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, query] = this.handlePostOnly(isMarketOrder, false, query); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }
@@ -2151,7 +2151,7 @@ class btse extends btse$1["default"] {
         const isLimitOrder = (typeValue === 'LIMIT');
         let postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        [postOnly, query] = this.handlePostOnly(isMarketOrder, postOnly, query); // this will remove PO from params.timeInForce if present
+        [postOnly, query] = this.handlePostOnly(isMarketOrder, false, query); // this will remove PO from params.timeInForce if present
         if (postOnly) {
             request['postOnly'] = true;
         }

@@ -902,7 +902,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         this.options['gatewayRegainScheduled'] = false;
         const useGateway = this.safeBool(this.options, 'useGateway', false);
         const lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (!useGateway || (lostTimestamp === undefined) || (this.ibkrGatewayRegainDelay() <= 0)) {
+        const regainDelay = this.ibkrGatewayRegainDelay();
+        if (!useGateway || (lostTimestamp === undefined) || (regainDelay <= 0)) {
             return undefined; // already regained, or disabled
         }
         try {
@@ -1391,19 +1392,18 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const chunkSize = 330; // above this number, response becomes unreliable
         const promises = [];
-        let offset = 0;
-        while (offset < numDetails) {
-            const end = Math.min(this.sum(offset, chunkSize), numDetails);
-            const chunk = [];
-            for (let k = offset; k < end; k++) {
-                const detailId = this.safeString(detailIds, k, '');
-                chunk.push(detailId);
+        let chunk = [];
+        for (let k = 0; k < numDetails; k++) {
+            const detailId = this.safeString(detailIds, k, '');
+            chunk.push(detailId);
+            const chunkLength = chunk.length;
+            if ((chunkLength === chunkSize) || (k === numDetails - 1)) {
+                const secdefRequest = {
+                    'conids': chunk.join(','),
+                };
+                promises.push(this.marketsEndpointCall(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
+                chunk = [];
             }
-            const secdefRequest = {
-                'conids': chunk.join(','),
-            };
-            promises.push(this.marketsEndpointCall(secdefRequest, 'webapiGetV1ApiTrsrvSecdef', {}));
-            offset = end;
         }
         const responses = await Promise.all(promises);
         //

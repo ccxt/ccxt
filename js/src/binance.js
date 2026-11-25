@@ -3497,15 +3497,16 @@ export default class binance extends Exchange {
         let markets = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
+        let crossMarginStored = false;
         for (let i = 0; i < results.length; i++) {
             const res = this.safeValue(results, i);
             if ((fetchMargins) && Array.isArray(res)) {
                 const resBySymbol = this.indexBy(res, 'symbol');
                 const keysList = Object.keys(resBySymbol);
-                const length = this.options['crossMarginPairsData'].length;
                 // first one is the cross-margin promise
-                if (length === 0) {
+                if (!crossMarginStored) {
                     this.options['crossMarginPairsData'] = keysList;
+                    crossMarginStored = true;
                 }
                 else {
                     this.options['isolatedMarginPairsData'] = keysList;

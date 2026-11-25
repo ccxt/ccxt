@@ -8912,7 +8912,7 @@ class okx extends okx$1["default"] {
         //
         const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i, {});
             const entryMarketId = this.safeString(entry, 'instId');
             if (entryMarketId === marketId) {
                 return this.parseGreeks(entry, market);

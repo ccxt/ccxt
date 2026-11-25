@@ -2256,7 +2256,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         if ('byType' in config) {
             const type = this.safeString(params, 'type');
-            const byType = config['byType'];
+            const byType = this.safeDict(config, 'byType', {});
             if (type !== undefined) {
                 if (type in byType) {
                     return this.safeInteger(byType, type);

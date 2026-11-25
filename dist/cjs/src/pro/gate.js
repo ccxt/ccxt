@@ -12,8 +12,7 @@ var Precise = require('../base/Precise.js');
 //  ---------------------------------------------------------------------------
 class gate extends gate$1["default"] {
     describe() {
-        const superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
     describeData() {
         return {

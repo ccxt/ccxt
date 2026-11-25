@@ -2027,7 +2027,7 @@ class predictfun extends predictfun$1["default"] {
             'strategy': strategy,
         };
         const postOnly = this.safeBool(paramsTaker, 'isPostOnly', false);
-        const [postOnlyOption, paramsPostOnly] = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        const [postOnlyOption, paramsPostOnly] = this.handlePostOnly(isMarket, postOnly === true, paramsTaker);
         if (postOnlyOption) {
             data['isPostOnly'] = postOnlyOption;
         }

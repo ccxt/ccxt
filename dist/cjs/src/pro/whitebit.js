@@ -505,7 +505,7 @@ class whitebit extends whitebit$1["default"] {
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             }
             else {
-                feeCurrencyCode = marketResolved['quote'];
+                feeCurrencyCode = this.safeString(marketResolved, 'quote');
             }
             fee = {
                 'cost': feeCost,

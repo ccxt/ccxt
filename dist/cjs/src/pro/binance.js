@@ -15,8 +15,7 @@ var crypto = require('../base/functions/crypto.js');
 // -----------------------------------------------------------------------------
 class binance extends binance$1["default"] {
     describe() {
-        const superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
     describeData() {
         return {

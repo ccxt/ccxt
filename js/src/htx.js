@@ -3531,7 +3531,7 @@ export default class htx extends Exchange {
             }
             else {
                 await this.loadAccounts();
-                const accountId = await this.fetchAccountIdByType(type, undefined, undefined, paramsMarginMode);
+                const accountId = await this.fetchAccountIdByType('spot', undefined, undefined, paramsMarginMode);
                 request['account-id'] = accountId;
                 response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode));
             }
@@ -5229,7 +5229,7 @@ export default class htx extends Exchange {
         const sideStr = side;
         const market = this.market(symbol);
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('createOrder', params);
-        const accountId = await this.fetchAccountIdByType(market['type'], marginMode, symbol);
+        const accountId = await this.fetchAccountIdByType(this.safeString(market, 'type', ''), marginMode, symbol);
         const request = {
             // spot -----------------------------------------------------------
             'account-id': accountId,

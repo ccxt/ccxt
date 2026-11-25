@@ -280,7 +280,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             channel = 'user.trades.' + this.safeString(market, 'id', '') + '.' + interval;
         }
         const trades = await this.subscribe([channel], [channel], true, paramsInterval);
@@ -348,7 +348,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             channel = 'user.orders.' + this.safeString(market, 'id', '') + '.' + interval;
         }
         const orders = await this.subscribe([channel], [channel], true, paramsInterval);

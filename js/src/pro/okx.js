@@ -1884,7 +1884,7 @@ export default class okx extends okxRest {
         let type = typeOption;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             type = this.safeString(market, 'type');
             messageHash = messageHash + '::' + this.safeString(market, 'symbol', '');
         }

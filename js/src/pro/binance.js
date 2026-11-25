@@ -16,8 +16,7 @@ import { eddsa } from '../base/functions/crypto.js';
 // -----------------------------------------------------------------------------
 export default class binance extends binanceRest {
     describe() {
-        const superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
     describeData() {
         return {

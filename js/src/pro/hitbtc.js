@@ -647,7 +647,7 @@ export default class hitbtc extends hitbtcRest {
         const timestamp = this.safeInteger(ticker, 't');
         let bidAskSymbol = undefined;
         if (market !== undefined) {
-            bidAskSymbol = market['symbol'];
+            bidAskSymbol = this.safeString(market, 'symbol');
         }
         return this.safeTicker({
             'symbol': bidAskSymbol,

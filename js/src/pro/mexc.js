@@ -805,21 +805,20 @@ export default class mexc extends mexcRest {
         }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
-        let orderbook = undefined;
         if (this.safeBool(market, 'spot', false)) {
             const [frequency, paramsFrequency] = this.handleOptionStringAndParams(params, 'watchOrderBook', 'frequency', '100ms');
             const spotChannel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString(market, 'id', '');
-            orderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
+            const spotOrderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
+            return spotOrderbook.limit();
         }
         else {
             const channel = 'sub.depth';
             const requestParams = {
                 'symbol': market['id'],
             };
-            orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            const orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, params);
+            return orderbook.limit();
         }
-        orderbook = this.requireValue(orderbook, 'watchOrderBook() orderbook is required');
-        return orderbook.limit();
     }
     handleOrderBookSubscription(client, message) {
         // the ack echoes the subscribed channel, the market id is always its last segment
