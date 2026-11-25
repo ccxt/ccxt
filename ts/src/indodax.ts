@@ -851,7 +851,6 @@ export default class indodax extends Exchange {
             filled = this.safeString (order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger (order, 'submit_time');
-        const fee = undefined;
         const id = this.safeString (order, 'order_id');
         return this.safeOrder ({
             'info': order,
@@ -873,7 +872,7 @@ export default class indodax extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         });
     }

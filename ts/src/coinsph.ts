@@ -1296,7 +1296,6 @@ export default class coinsph extends Exchange {
         const timestamp = this.safeInteger (trade, 'time');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const type = undefined;
         let fee: Dict = {};
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
@@ -1326,7 +1325,7 @@ export default class coinsph extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -2140,7 +2139,6 @@ export default class coinsph extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp: Int = undefined;
         timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
-        const updated = undefined;
         let type: Str = undefined;
         const withdrawOrderId = this.safeString (transaction, 'withdrawOrderId');
         const depositOrderId = this.safeString (transaction, 'depositOrderId');
@@ -2175,7 +2173,7 @@ export default class coinsph extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': undefined,
             'internal': internal,
             'comment': undefined,
             'fee': fee,

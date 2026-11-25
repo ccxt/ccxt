@@ -475,7 +475,6 @@ export default class mercado extends Exchange {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
         const marketResolved: Market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
-        const type = undefined;
         const side = this.safeString (trade, 'type');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
@@ -494,7 +493,7 @@ export default class mercado extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
             'order': undefined,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,

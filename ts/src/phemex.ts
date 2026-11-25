@@ -3849,7 +3849,6 @@ export default class phemex extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
-        const tag = undefined;
         const txid = this.safeString (transaction, 'txHash');
         const currencyId = this.safeString (transaction, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
@@ -3884,8 +3883,8 @@ export default class phemex extends Exchange {
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': undefined,
+            'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
             'amount': amount,
