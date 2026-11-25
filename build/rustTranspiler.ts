@@ -5340,6 +5340,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_last_price');
     optFns.push ('parse_funding_rate');
     optFns.push ('parse_my_trade');
+    optFns.push ('parse_ticker');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, ') && !rustBorrowedRowBoxedCaller (content, f));
     // only the `impl Into<Value>` slot is borrowed; a `mut x: Value` slot (a `Dict` declaration) keeps its callers boxed
@@ -5356,7 +5357,14 @@ function rustBorrowedParseRows (content: string): string {
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
     content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): (?:Option<)?&crate::value::Dict>?[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
-    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(' + fns + ')\\(self, ' + (venue.length > 0 ? '|(?<![\\w.:])self\\.(' + venue.join ('|') + ')\\(' : ''), 'g');
+    // an override that forwards its own row to the parent keeps the borrowed row under its own name and lends it
+    content = content.replace (new RegExp ('(\\n    fn (' + fns + ')\\(&self, )(\\w+)(: Option<&crate::value::Dict>[^\\n]*\\{\\n        let (?:mut )?\\3: Value = )(?:\\3\\.into\\(\\)|Value::from\\(\\3\\));([\\s\\S]*?\\n    \\})', 'g'), (all: string, h: string, f: string, x: string, t: string, body: string) => {
+        const fwd = 'crate::exchange::DerivedExchange::' + f + '(&self.parent, ', lend = 'crate::exchange::DerivedExchange::' + f + '(&self.parent, ' + x + '_row, ';
+        const forms = [ x + ', ', '&' + x + ', ', x + '.clone(), ' ].filter ((a) => body.includes (fwd + a));
+        if (forms.length === 0 || new RegExp ('\\n\\s*' + x + ' = |\\b' + x + '_row\\b').test (body)) return all;
+        return h + x + '_row' + t + 'Value::from(' + x + '_row);' + forms.reduce ((b, a) => b.split (fwd + a).join (lend), body);
+    });
+    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(' + fns + ')\\((?:&self\\.parent|self), ' + (venue.length > 0 ? '|(?<![\\w.:])self\\.(' + venue.join ('|') + ')\\(' : ''), 'g');
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
         if (m[1] === undefined) m[1] = m[2];
@@ -5380,6 +5388,10 @@ function rustBorrowedParseRows (content: string): string {
             else if (!ty.includes ('crate::value::Dict')) lent = fromBody (ref[1] + '.clone()');
             else if (opt) lent = 'Some(' + arg + ')';
         } else if (/^Value::Dict\(\w+\)$/.test (arg)) lent = (opt ? 'Some(&' : '&') + arg.slice ('Value::Dict('.length, -1) + (opt ? ')' : '');
+        // a bare local bound to a typed map (`extend_t`, a `Dict` local) is lent as it is
+        else if (/^\w+$/.test (arg) && new RegExp ('\\blet (?:mut )?' + arg + '(?:: crate::value::Dict = |\\s*=\\s*self\\.extend_t\\()').test (content.slice (Math.max (content.lastIndexOf ('\n    fn ', m.index), content.lastIndexOf ('\n    pub ', m.index), 0), m.index))) lent = (opt ? 'Some(&' : '&') + arg + (opt ? ')' : '');
+        // the override's own borrowed row (renamed above) is lent as it is
+        else if (opt && /^\w+_row$/.test (arg) && content.slice (Math.max (content.lastIndexOf ('\n    fn ', m.index), 0), m.index).includes ('(&self, ' + arg + ': Option<&crate::value::Dict>')) lent = arg;
         else if (!/^\w+$/.test (arg) || !content.slice (Math.max (content.lastIndexOf ('\n    fn ', m.index), 0), m.index).includes (arg + ': &crate::value::Dict')) lent = fromBody (arg);
         else if (opt) lent = 'Some(' + arg + ')';
         out += content.slice (last, open) + lent;
