@@ -2392,7 +2392,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	var baseIdEnd int = 3
 	var quoteIdStart int = 3
 	var quoteIdEnd int = 6
-	var idLength int = GetLength(id)
+	var idLength int64 = int64(GetLength(id)) - 0
 	if idLength == 8 {
 		baseIdEnd = 4
 		quoteIdStart = 4
