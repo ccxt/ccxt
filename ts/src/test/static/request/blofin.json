@@ -3,6 +3,34 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV",
+                "method": "fetchIndexOHLCV",
+                "url": "https://openapi.blofin.com/api/v1/market/index-candles?instId=LTC-USDT&bar=1H&limit=2",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV",
+                "method": "fetchMarkOHLCV",
+                "url": "https://openapi.blofin.com/api/v1/market/mark-price-candles?instId=LTC-USDT&bar=1H&limit=2",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit price and amount",
