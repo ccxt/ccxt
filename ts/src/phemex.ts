@@ -1176,7 +1176,7 @@ export default class phemex extends Exchange {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
         const valueScaleString = this.safeString (rawCurrency, 'valueScale');
-        const valueScale = parseInt (valueScaleString as string);
+        const valueScale = this.safeInteger (rawCurrency, 'valueScale');
         const minValueEv = this.safeString (rawCurrency, 'minValueEv');
         const maxValueEv = this.safeString (rawCurrency, 'maxValueEv');
         let minAmount: Num = undefined;
