@@ -94,6 +94,7 @@ Suggestions and contributions are always welcome! Make sure to read the [contrib
 - [crypto-exporter](https://github.com/ix-ai/crypto-exporter) - An exporter capable of connecting to multiple exchanges and getting account balances and exchange rates
 - [ccxtreplay](https://github.com/xCuri0/ccxtreplay) - collect data from ccxt exchanges and replay it for backtesting
 - [quant-backtest-utils](https://github.com/braddyyguyuing/quant-backtest-utils) - zero-dependency strategy evaluation helpers (Sharpe ratio, max drawdown, win rate) that pair with ccxt OHLCV data. #javascript
+- [ccxt-tiktape](https://github.com/tiktape/ccxt-tiktape) - Drop-in ccxt.hyperliquid subclass serving full OHLCV history past the 5000-candle limit.
 
 ## Languages
 
