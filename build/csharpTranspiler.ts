@@ -1674,6 +1674,8 @@ VENUE_STRING_ARGS['BaseExchange']['parseLeverageTiers'] = [ 2 ];
 // passes (exact Int64?/double?/null, no conversion), keyed by method -> position across the whole tree
 // (overrides are invariant); body uses must be identities and positions needing a shadow are excluded.
 const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 'status', 'outcomeSide', 'marketCount', 'id', 'marketId', 'scale' ];
+// intToRlpHex (value: Int): every caller passes a safeInteger / Int64? local
+VENUE_NUMERIC_ARG_NAMES.push ('value');
 
 // Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue
 // class declares the method once and no file calls it by that venue's binding.
@@ -1742,6 +1744,7 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
     // hitbtc / dydx / poloniex: since, limit are declared Int and every caller passes its own Int64? since / limit
     'FetchTransactionsHelper': { 1: 'Int64?', 2: 'Int64?', 3: 'Int64?' },
+    'intToRlpHex': { 0: 'Int64?' },
 };
 
 // Shadow-local uses that stay identities when the shadow takes the parameter's own type (same box,
