@@ -3329,7 +3329,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createSubaccount() requires walletAddress")) ;
         }
-        object subaccountName = ((subaccount == null)) ? "default" : subaccount;
+        string? subaccountName = ((subaccount == null)) ? "default" : subaccount;
         string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
         if ((address.Length != 40))
         {

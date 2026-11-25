@@ -288,7 +288,7 @@ public partial class htx : ccxt.htx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -403,7 +403,7 @@ public partial class htx : ccxt.htx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -1050,7 +1050,7 @@ public partial class htx : ccxt.htx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
@@ -1217,7 +1217,7 @@ public partial class htx : ccxt.htx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
@@ -3346,13 +3346,13 @@ public partial class htx : ccxt.htx
         bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
         string? url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         IDictionary<string, object> hostnames = this.safeDict(this.urls, "hostnames", new Dictionary<string, object>() {});
-        object hostname = null;
+        string? hostname = null;
         if ((type == "spot"))
         {
-            hostname = (hostnames != null && hostnames.ContainsKey("spot") ? hostnames["spot"] : null);
+            hostname = this.safeString(hostnames, "spot");
         } else
         {
-            hostname = (hostnames != null && hostnames.ContainsKey("contract") ? hostnames["contract"] : null);
+            hostname = this.safeString(hostnames, "contract");
         }
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "type", type },

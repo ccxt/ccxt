@@ -159,7 +159,7 @@ public partial class bullish : ccxt.bullish
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -446,7 +446,7 @@ public partial class bullish : ccxt.bullish
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -579,7 +579,7 @@ public partial class bullish : ccxt.bullish
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }

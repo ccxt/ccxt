@@ -194,7 +194,7 @@ public partial class lbank : ccxt.lbank
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }

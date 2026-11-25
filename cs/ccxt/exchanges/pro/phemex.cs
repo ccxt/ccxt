@@ -665,7 +665,7 @@ public partial class phemex : ccxt.phemex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -763,7 +763,7 @@ public partial class phemex : ccxt.phemex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -1045,7 +1045,7 @@ public partial class phemex : ccxt.phemex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
@@ -1158,7 +1158,7 @@ public partial class phemex : ccxt.phemex
             cachedTrades = new ArrayCacheBySymbolById(limit);
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        object type = null;
+        string? type = null;
         for (int i = 0; i < tradesLength; i++)
         {
             object rawTrade = (message != null && i < message.Count ? message[i] : null);
@@ -1170,7 +1170,13 @@ public partial class phemex : ccxt.phemex
             if ((type == null))
             {
                 string? marketSettle = this.safeString(market, "settle");
-                type = (marketSettle == "USDT") ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                if (marketSettle == "USDT")
+                {
+                    type = "perpetual";
+                } else
+                {
+                    type = this.safeString(market, "type");
+                }
             }
             if ((symbol != null))
             {
@@ -1185,7 +1191,7 @@ public partial class phemex : ccxt.phemex
             client.resolve(cachedTrades, hash);
         }
         // generic subscription
-        string messageHash = ((channel + ":") + (type));
+        string messageHash = ((channel + ":") + type);
         client.resolve(cachedTrades, messageHash);
     }
 
@@ -1240,7 +1246,7 @@ public partial class phemex : ccxt.phemex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -1453,7 +1459,7 @@ public partial class phemex : ccxt.phemex
         {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object type = null;
+        string? type = null;
         ccxt.pro.ArrayCache stored = this.orders;
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
         {
@@ -1464,7 +1470,13 @@ public partial class phemex : ccxt.phemex
             if ((type == null))
             {
                 bool isUsdt = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT");
-                type = isUsdt ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
+                if (isUsdt)
+                {
+                    type = "perpetual";
+                } else
+                {
+                    type = this.safeString(market, "type");
+                }
             }
             marketIds[(string)symbol] = true;
         }
@@ -1475,7 +1487,7 @@ public partial class phemex : ccxt.phemex
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        string messageHash = ("orders:" + (type));
+        string messageHash = ("orders:" + type);
         client.resolve(this.orders, messageHash);
     }
 

@@ -164,7 +164,7 @@ public partial class bitfinex : ccxt.bitfinex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -316,7 +316,7 @@ public partial class bitfinex : ccxt.bitfinex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -363,7 +363,7 @@ public partial class bitfinex : ccxt.bitfinex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
@@ -571,16 +571,16 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> trade = this.safeList(tradeResult, "result", new List<object>() {});
         int numFields = trade.Count;
         bool isPublic = numFields <= 8;
-        object marketId = null;
+        string? marketId = null;
         if (!isPublic)
         {
             marketId = this.safeString(trade, 1);
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(((string)marketId), market);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
         int amountKey = isPublic ? 2 : 4;
-        marketId = (marketResolved != null && marketResolved.ContainsKey("id") ? marketResolved["id"] : null);
+        marketId = this.safeString(marketResolved, "id");
         string? type = this.safeString(trade, 6);
         if ((type != null))
         {
@@ -1232,7 +1232,7 @@ public partial class bitfinex : ccxt.bitfinex
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
+            limitResolved = orders.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
@@ -1297,14 +1297,14 @@ public partial class bitfinex : ccxt.bitfinex
             }
             for (int i = 0; i < data.Count; i++)
             {
-                ccxt.Order parsed = this.parseWsOrder(data[i]);
-                string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "");
+                Dictionary<string, object> parsed = this.parseWsOrderRow(this.safeList(data, i, new List<object>() {}));
+                string? symbol = this.safeString(parsed, "symbol", "");
                 symbolIds[(string)symbol] = true;
-                orders.append(ccxt.BaseExchange.FromOrder(parsed));
+                orders.append(parsed);
             }
         } else
         {
-            Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(data));
+            Dictionary<string, object> parsed = this.parseWsOrderRow(data);
             orders.append(parsed);
             string? symbol = this.safeString(parsed, "symbol", "");
             symbolIds[(string)symbol] = true;
@@ -1333,7 +1333,7 @@ public partial class bitfinex : ccxt.bitfinex
         return this.safeString(statuses, status, status);
     }
 
-    public override ccxt.Order parseWsOrder(object order, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsOrderRow(IList<object> order, IDictionary<string, object>? market = null)
     {
         //
         //   [
@@ -1400,7 +1400,7 @@ public partial class bitfinex : ccxt.bitfinex
         Int64? timestamp = this.safeInteger2(order, 5, 4);
         string? average = this.safeString(order, 17);
         string? stopPrice = ((string)this.omitZero(this.safeString(order, 18)));
-        return this.safeOrder(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", clientOrderId },
@@ -1421,7 +1421,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "fee", null },
             { "cost", null },
             { "trades", null },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     public override void handleListMessage(WebSocketClient client, IList<object> message)

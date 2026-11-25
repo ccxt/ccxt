@@ -335,7 +335,7 @@ public partial class BaseTest
                     { "i", i },
                 });
             }
-            object limited = cacheSymbolId2.getLimit(symbol, null);
+            Int64? limited = cacheSymbolId2.getLimit(symbol, null);
             Assert(isEqual(initialLength, limited));
             
         // ----------------------------------------------------------------------------
@@ -416,9 +416,9 @@ public partial class BaseTest
             });
             outsideLimit = 5;
             limited = cacheSymbolId7.getLimit(symbol, outsideLimit);
-            object limited2 = cacheSymbolId7.getLimit(null, outsideLimit);
-            Assert(isEqual(limited, 1));
-            Assert(isEqual(limited2, 2));
+            Int64? limited2 = cacheSymbolId7.getLimit(null, outsideLimit);
+            Assert((limited == 1));
+            Assert((limited2 == 2));
             
         // ----------------------------------------------------------------------------
         
@@ -473,7 +473,7 @@ public partial class BaseTest
                 { "i", 6 },
             }); // second order is closed
             limited = cacheSymbolId8.getLimit(null, outsideLimit); // watch all orders
-            Assert(isEqual(limited, 1)); // one new update
+            Assert((limited == 1)); // one new update
             
         // ----------------------------------------------------------------------------
         
@@ -942,17 +942,17 @@ public partial class BaseTest
                 { "id", "b" },
                 { "i", 2 },
             });
-            object symbolScopeFirst = cacheTwoScopes.getLimit("BTC/USDT", 100);
-            Assert(isEqual(symbolScopeFirst, 2));
+            Int64? symbolScopeFirst = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert((symbolScopeFirst == 2));
             cacheTwoScopes.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "a" },
                 { "i", 3 },
             });
-            object globalScope = cacheTwoScopes.getLimit(null, 100);
-            Assert(isEqual(globalScope, 2)); // distinct ids a and b since no global poll happened - id a must not double-count
-            object symbolScopeSecond = cacheTwoScopes.getLimit("BTC/USDT", 100);
-            Assert(isEqual(symbolScopeSecond, 1)); // id a since the last symbol-scoped poll
+            Int64? globalScope = cacheTwoScopes.getLimit(null, 100);
+            Assert((globalScope == 2)); // distinct ids a and b since no global poll happened - id a must not double-count
+            Int64? symbolScopeSecond = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert((symbolScopeSecond == 1)); // id a since the last symbol-scoped poll
             // the inverse direction: a global poll (and the append that fires its
             // deferred reset) must not erase the symbol scope's window
             cacheTwoScopes.append(new Dictionary<string, object>() {
@@ -965,15 +965,15 @@ public partial class BaseTest
                 { "id", "e" },
                 { "i", 5 },
             });
-            object globalScopeSecond = cacheTwoScopes.getLimit(null, 100);
-            Assert(isEqual(globalScopeSecond, 2)); // ids d and e since the first global poll - id a was consumed by it
+            Int64? globalScopeSecond = cacheTwoScopes.getLimit(null, 100);
+            Assert((globalScopeSecond == 2)); // ids d and e since the first global poll - id a was consumed by it
             cacheTwoScopes.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "d" },
                 { "i", 6 },
             });
-            object symbolScopeThird = cacheTwoScopes.getLimit("BTC/USDT", 100);
-            Assert(isEqual(symbolScopeThird, 2)); // ids d, e since the last symbol poll - the global poll in between must not reset this window
+            Int64? symbolScopeThird = cacheTwoScopes.getLimit("BTC/USDT", 100);
+            Assert((symbolScopeThird == 2)); // ids d, e since the last symbol poll - the global poll in between must not reset this window
             
         // ----------------------------------------------------------------------------
         
@@ -989,22 +989,22 @@ public partial class BaseTest
                 { "side", "short" },
                 { "contracts", 1 },
             });
-            object sideSymbolFirst = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
-            Assert(isEqual(sideSymbolFirst, 2));
+            Int64? sideSymbolFirst = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
+            Assert((sideSymbolFirst == 2));
             sideTwoScopes.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT:USDT" },
                 { "side", "long" },
                 { "contracts", 2 },
             });
-            object sideGlobal = sideTwoScopes.getLimit(null, 100);
-            Assert(isEqual(sideGlobal, 2)); // long and short distinct since no global poll - the re-updated long must not double-count
+            Int64? sideGlobal = sideTwoScopes.getLimit(null, 100);
+            Assert((sideGlobal == 2)); // long and short distinct since no global poll - the re-updated long must not double-count
             sideTwoScopes.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT:USDT" },
                 { "side", "short" },
                 { "contracts", 2 },
             });
-            object sideSymbolSecond = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
-            Assert(isEqual(sideSymbolSecond, 2)); // long and short since the last symbol poll - the global poll must not reset this window
+            Int64? sideSymbolSecond = sideTwoScopes.getLimit("BTC/USDT:USDT", 100);
+            Assert((sideSymbolSecond == 2)); // long and short since the last symbol poll - the global poll must not reset this window
             
         // ----------------------------------------------------------------------------
         
@@ -1027,14 +1027,14 @@ public partial class BaseTest
                 { "id", "c" },
                 { "i", 3 },
             }); // evicts id a
-            object evictSymbolCount = cacheEvictSeen.getLimit("BTC/USDT", 100);
-            Assert(isEqual(evictSymbolCount, 2)); // ids b and c - the evicted id a no longer counts
+            Int64? evictSymbolCount = cacheEvictSeen.getLimit("BTC/USDT", 100);
+            Assert((evictSymbolCount == 2)); // ids b and c - the evicted id a no longer counts
             cacheEvictSeen.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "id", "d" },
                 { "i", 4 },
             }); // evicts id b
-            object evictGlobalCount = cacheEvictSeen.getLimit(null, 100);
-            Assert(isEqual(evictGlobalCount, 2)); // ids c and d - the counts track distinct ids within the retained window in both scopes
+            Int64? evictGlobalCount = cacheEvictSeen.getLimit(null, 100);
+            Assert((evictGlobalCount == 2)); // ids c and d - the counts track distinct ids within the retained window in both scopes
         }
 }

@@ -3853,7 +3853,17 @@ public partial class bitfinex : Exchange
         //       ]
         //   ]
         //
-        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(response, symbols));
+        Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
+        IList<object> fundingRows = response;
+        for (int i = 0; i < (fundingRows?.Count ?? 0); i++)
+        {
+            string? rateSymbol = this.safeSymbol(this.safeString(this.safeList(fundingRows, i, new List<object>() {}), 0));
+            if ((rateSymbol != null))
+            {
+                fundingRates[(string)rateSymbol] = this.parseFundingRateRow(this.safeList(fundingRows, i, new List<object>() {}));
+            }
+        }
+        return ccxt.BaseExchange.ToFundingRates(this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol"));
     }
 
     /**
@@ -3948,7 +3958,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(reversedArray);
     }
 
-    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFundingRateRow(IList<object> contract, IDictionary<string, object>? market = null)
     {
         //
         //       [
@@ -3982,7 +3992,6 @@ public partial class bitfinex : Exchange
         Int64? timestamp = this.safeInteger(contract, 1);
         Int64? nextFundingTimestamp = this.safeInteger(contract, 8);
         return new Dictionary<string, object>() {
-            { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
             { "markPrice", this.safeNumber(contract, 15) },
             { "indexPrice", this.safeNumber(contract, 3) },
@@ -4000,6 +4009,7 @@ public partial class bitfinex : Exchange
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
             { "interval", null },
+            { "info", contract },
         };
     }
 
@@ -4098,7 +4108,17 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(response, symbolsNormalized));
+        Dictionary<string, object> openInterests = new Dictionary<string, object>() {};
+        IList<object> interestRows = response;
+        for (int i = 0; i < (interestRows?.Count ?? 0); i++)
+        {
+            string? interestSymbol = this.safeSymbol(this.safeString(this.safeList(interestRows, i, new List<object>() {}), 0), null, null, "swap");
+            if ((interestSymbol != null))
+            {
+                openInterests[(string)interestSymbol] = this.parseOpenInterestRow(this.safeList(interestRows, i, new List<object>() {}));
+            }
+        }
+        return ccxt.BaseExchange.ToOpenInterests(this.indexBy(this.filterByArray(openInterests, "symbol", symbolsNormalized, false), "symbol"));
     }
 
     /**
@@ -4152,8 +4172,8 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        List<object> oi = this.safeList(response, 0);
-        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(oi, market));
+        List<object> oi = this.safeList(response, 0, new List<object>() {});
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterestRow(oi, market));
     }
 
     /**
@@ -4231,10 +4251,17 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(response, market, since, limit));
+        List<object> interests = new List<object>() {};
+        IList<object> historyRows = response;
+        for (int i = 0; i < (historyRows?.Count ?? 0); i++)
+        {
+            interests.Add(this.parseOpenInterestRow(this.safeList(historyRows, i, new List<object>() {}), market));
+        }
+        List<object> sortedInterests = this.sortBy(interests, "timestamp");
+        return ccxt.BaseExchange.ToOpenInterestList(this.filterBySymbolSinceLimit(sortedInterests, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseOpenInterestRow(IList<object> interest, IDictionary<string, object>? market = null)
     {
         //
         // fetchOpenInterest:
@@ -4294,7 +4321,7 @@ public partial class bitfinex : Exchange
         //         0.0025               // funding payment cap
         //     ]
         //
-        int interestLength = getArrayLength(interest);
+        int interestLength = interest?.Count ?? 0;
         int openInterestIndex = ((interestLength == 23)) ? 17 : 18;
         Int64? timestamp = this.safeInteger(interest, 1);
         string? marketId = this.safeString(interest, 0);
@@ -4369,10 +4396,17 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(response, market, since, limit));
+        List<object> liquidationsParsed = new List<object>() {};
+        IList<object> liquidationRows = response;
+        for (int i = 0; i < (liquidationRows?.Count ?? 0); i++)
+        {
+            liquidationsParsed.Add(this.parseLiquidationRow(this.safeList(liquidationRows, i, new List<object>() {}), market));
+        }
+        List<object> sortedLiquidations = this.sortBy(liquidationsParsed, "timestamp");
+        return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolSinceLimit(sortedLiquidations, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override Dictionary<string, object> parseLiquidation(object liquidation, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseLiquidationRow(IList<object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         //     [

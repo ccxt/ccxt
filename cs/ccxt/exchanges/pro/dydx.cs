@@ -63,7 +63,7 @@ public partial class dydx : ccxt.dydx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -320,7 +320,7 @@ public partial class dydx : ccxt.dydx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }

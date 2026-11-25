@@ -863,7 +863,7 @@ public partial class kraken : ccxt.kraken
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -1000,7 +1000,7 @@ public partial class kraken : ccxt.kraken
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true));
     }

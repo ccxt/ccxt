@@ -2985,7 +2985,11 @@ public partial class blofin : Exchange
                 return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
             }
         }
-        string? reference = hasId ? withdrawId : clientId;
+        string? reference = withdrawId;
+        if (!hasId)
+        {
+            reference = this.safeString(parameters, "clientId", "");
+        }
         throw new ExchangeError (((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
     }
 

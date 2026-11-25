@@ -1043,7 +1043,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
@@ -1262,7 +1262,7 @@ public partial class kucoin : ccxt.kucoin
             Int64? limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+                limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit);
             }
             return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
         }
@@ -1319,7 +1319,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -2076,10 +2076,10 @@ public partial class kucoin : ccxt.kucoin
     public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         Int64? limit = this.safeInteger(subscription, "limit");
-        List<object> symbols = this.safeList(subscription, "symbols");
+        List<object> symbols = this.safeStringList(subscription, new List<object>() {"symbols", "symbol"});
         if ((symbols == null))
         {
-            symbols = new List<object> {this.safeString(subscription, "symbol")};
+            return;
         }
         IDictionary<string, object> limits = this.safeDict(this.options, "orderBookLimits", new Dictionary<string, object>() {});
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
@@ -2278,7 +2278,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
@@ -2742,7 +2742,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }

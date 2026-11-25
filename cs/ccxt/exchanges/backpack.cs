@@ -716,7 +716,8 @@ public partial class backpack : Exchange
             Dictionary<string, object> currency = this.parseCurrency(this.safeDict(response, i, new Dictionary<string, object>() {}));
             if (!(stock == true) || ((this.safeString(currency, "type") == "stock")))
             {
-                currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
+                string? currencyCode = this.safeString(currency, "code", "");
+                currencies[(string)currencyCode] = currency;
             }
         }
         return ((IDictionary<string, object>)((object)(currencies)));
@@ -1964,36 +1965,34 @@ public partial class backpack : Exchange
         (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until");
         Int64? until = untilparamsUntilVariable.Item1;
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
-        if (!(until == null))
+        Int64? windowLimit = 100;
+        if ((limit != null))
         {
-            request["endTime"] = this.parseToInt(((double?)until / 1000)); // convert milliseconds to seconds
+            windowLimit = this.parseToInt(Math.Min(limit.Value, 2000));
         }
-        int defaultLimit = 100;
-        Int64 windowLimit = ((limit == null)) ? defaultLimit : Math.Min(limit.Value, 2000);
         Int64? limitResolved = null;
         if ((limit != null))
         {
             limitResolved = windowLimit;
         }
         Int64 now = this.milliseconds();
-        Int64? startTime = since;
-        Int64? untilValue = until;
-        if ((startTime == null))
+        Int64? windowLength = (windowLimit * duration);
+        Int64? untilResolved = (!(until == null)) ? until : now;
+        Int64? defaultStart = (untilResolved - windowLength);
+        Int64? startSeconds = this.parseToInt(((double?)defaultStart / 1000)); // convert milliseconds to seconds
+        if ((since != null))
         {
-            if ((untilValue == null))
-            {
-                untilValue = now;
-            }
-            startTime = (untilValue - ((windowLimit * duration)));
+            startSeconds = this.parseToInt(((double?)since / 1000));
         }
-        request["startTime"] = this.parseToInt(((double?)startTime / 1000));
-        // set until value
-        if ((untilValue == null))
+        Int64? endSeconds = this.parseToInt(((double?)untilResolved / 1000));
+        if (((since != null)) && ((until == null)))
         {
-            Int64 windowEnd = this.sum(startTime, (windowLimit * duration));
-            untilValue = Math.Min(now, windowEnd);
+            Int64? windowEnd = this.parseToInt(this.sum(since, windowLength));
+            Int64? cappedEnd = (windowEnd > now) ? now : windowEnd;
+            endSeconds = this.parseToInt(((double?)cappedEnd / 1000));
         }
-        request["endTime"] = this.parseToInt(((double?)untilValue / 1000));
+        request["startTime"] = startSeconds;
+        request["endTime"] = endSeconds;
         string? price = this.safeString(paramsUntil, "price");
         IDictionary<string, object> paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;
         if ((price != null))

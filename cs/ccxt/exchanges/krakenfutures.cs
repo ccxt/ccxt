@@ -4020,7 +4020,8 @@ public partial class krakenfutures : Exchange
         };
         if ((account is string inOpKey1 && accountByType.ContainsKey(inOpKey1)))
         {
-            return ((string?)((object)((accountByType != null && account != null && accountByType.ContainsKey((string)account) ? accountByType[(string)account] : null))));
+            string? accountName = this.safeString(accountByType, account, "");
+            return accountName;
         } else if (((this.markets != null)) && ((this.markets != null && account is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
         {
             Dictionary<string, object> market = this.market(account);

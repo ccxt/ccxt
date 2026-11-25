@@ -334,13 +334,13 @@ public partial class onetrading : ccxt.onetrading
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         IList<object> filtered = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
         int numTrades = (filtered?.Count ?? 0);
         if ((numTrades == 0))
         {
-            return await this.WatchMyTrades(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchMyTrades(symbolResolved, since, limitResolved, parameters);
         }
         return ccxt.BaseExchange.ToTradeList(filtered);
     }
@@ -521,13 +521,13 @@ public partial class onetrading : ccxt.onetrading
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         IList<object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
         int numOrders = (filtered?.Count ?? 0);
         if ((numOrders == 0))
         {
-            return await this.WatchOrders(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchOrders(symbolResolved, since, limitResolved, parameters);
         }
         return ccxt.BaseExchange.ToOrderList(filtered);
     }
@@ -1219,7 +1219,7 @@ public partial class onetrading : ccxt.onetrading
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }

@@ -9799,7 +9799,12 @@ public partial class okx : Exchange
             //    }
             //
             List<object> instrumentData = this.safeList(response, "data", new List<object>() {});
-            return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(instrumentData, market, since, limit));
+            List<object> instrumentInterests = new List<object>() {};
+            for (int i = 0; i < (instrumentData?.Count ?? 0); i++)
+            {
+                instrumentInterests.Add(this.parseOpenInterestRow(this.safeList(instrumentData, i, new List<object>() {}), market));
+            }
+            return ccxt.BaseExchange.ToOpenInterestList(this.filterBySymbolSinceLimit(this.sortBy(instrumentInterests, "timestamp"), this.safeString(market, "symbol"), since, limit));
         }
         if ((type == "option"))
         {
@@ -9833,7 +9838,66 @@ public partial class okx : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(data, null, since, limit));
+        List<object> interests = new List<object>() {};
+        for (int i = 0; i < (data?.Count ?? 0); i++)
+        {
+            interests.Add(this.parseOpenInterestRow(this.safeList(data, i, new List<object>() {}), null));
+        }
+        return ccxt.BaseExchange.ToOpenInterestList(this.filterBySymbolSinceLimit(this.sortBy(interests, "timestamp"), null, since, limit));
+    }
+
+    public virtual Dictionary<string, object> parseOpenInterestRow(IList<object> interest, IDictionary<string, object>? market = null)
+    {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
+        Dictionary<string, object> marketResolved = this.safeMarket(((string)null), market);
+        Int64? timestamp = this.safeInteger(interest, 0);
+        double? baseVolume = null;
+        double? quoteVolume = null;
+        double? openInterestAmount = null;
+        double? openInterestValue = null;
+        string? type = this.safeString(this.options, "defaultType");
+        int numFields = interest?.Count ?? 0;
+        if (numFields > 3)
+        {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+            openInterestValue = this.safeNumber(interest, 3);
+        } else if (type == "option")
+        {
+            openInterestAmount = this.safeNumber(interest, 1);
+            baseVolume = this.safeNumber(interest, 2);
+        } else
+        {
+            openInterestValue = this.safeNumber(interest, 1);
+            quoteVolume = this.safeNumber(interest, 2);
+        }
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "symbol", this.safeSymbol(null) },
+            { "baseVolume", baseVolume },
+            { "quoteVolume", quoteVolume },
+            { "openInterestAmount", openInterestAmount },
+            { "openInterestValue", openInterestValue },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "info", interest },
+        }, marketResolved);
     }
 
     /**
@@ -9905,23 +9969,6 @@ public partial class okx : Exchange
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
     {
         //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
-        //
         // fetchOpenInterest
         //
         //     {
@@ -9935,42 +9982,13 @@ public partial class okx : Exchange
         //
         string? id = this.safeString(interest, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(id,((IDictionary<string, object>)market));
-        Int64? time = this.safeInteger(interest, "ts");
-        Int64? timestamp = this.safeInteger(interest, 0, time);
-        double? baseVolume = null;
-        double? quoteVolume = null;
-        double? openInterestAmount = null;
-        double? openInterestValue = null;
-        string? type = this.safeString(this.options, "defaultType");
-        if (((interest is IList<object>) || (interest is not null && interest.GetType().IsGenericType && interest.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            int numFields = getArrayLength(interest);
-            if (numFields > 3)
-            {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-                openInterestValue = this.safeNumber(interest, 3);
-            } else if (type == "option")
-            {
-                openInterestAmount = this.safeNumber(interest, 1);
-                baseVolume = this.safeNumber(interest, 2);
-            } else
-            {
-                openInterestValue = this.safeNumber(interest, 1);
-                quoteVolume = this.safeNumber(interest, 2);
-            }
-        } else
-        {
-            baseVolume = this.safeNumber(interest, "oiCcy");
-            openInterestAmount = this.safeNumber(interest, "oi");
-            openInterestValue = this.safeNumber(interest, "oiUsd");
-        }
+        Int64? timestamp = this.safeInteger(interest, "ts");
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(id) },
-            { "baseVolume", baseVolume },
-            { "quoteVolume", quoteVolume },
-            { "openInterestAmount", openInterestAmount },
-            { "openInterestValue", openInterestValue },
+            { "baseVolume", this.safeNumber(interest, "oiCcy") },
+            { "quoteVolume", null },
+            { "openInterestAmount", this.safeNumber(interest, "oi") },
+            { "openInterestValue", this.safeNumber(interest, "oiUsd") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },

@@ -432,7 +432,7 @@ public partial class polymarket : ccxt.polymarket
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limitResolved));
+            limitResolved = trades.getLimit(symbolResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -596,7 +596,7 @@ public partial class polymarket : ccxt.polymarket
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolResolved, limitResolved));
+            limitResolved = ohlcv.getLimit(symbolResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -760,7 +760,7 @@ public partial class polymarket : ccxt.polymarket
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limitResolved));
+            limitResolved = orders.getLimit(symbolResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -859,7 +859,7 @@ public partial class polymarket : ccxt.polymarket
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limitResolved));
+            limitResolved = trades.getLimit(symbolResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

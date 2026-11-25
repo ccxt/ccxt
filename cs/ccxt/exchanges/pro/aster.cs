@@ -780,7 +780,7 @@ public partial class aster : ccxt.aster
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -1349,7 +1349,7 @@ public partial class aster : ccxt.aster
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -2030,7 +2030,7 @@ public partial class aster : ccxt.aster
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -2082,7 +2082,7 @@ public partial class aster : ccxt.aster
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

@@ -278,7 +278,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -356,7 +356,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -452,7 +452,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
@@ -579,7 +579,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -1110,7 +1110,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolValue, limit));
+            limitResolved = orders.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true));
     }
@@ -1154,7 +1154,7 @@ public partial class bitvavo : ccxt.bitvavo
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }

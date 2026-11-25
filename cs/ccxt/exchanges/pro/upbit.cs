@@ -40,8 +40,11 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsRequested));
+        IList<object> symbolsNormalized = this.symbols;
+        if ((symbols != null))
+        {
+            symbolsNormalized = this.marketSymbols(symbols);
+        }
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -158,7 +161,7 @@ public partial class upbit : ccxt.upbit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -469,7 +472,7 @@ public partial class upbit : ccxt.upbit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
+            limitResolved = orders.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
@@ -498,7 +501,7 @@ public partial class upbit : ccxt.upbit
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }

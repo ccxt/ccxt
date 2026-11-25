@@ -1046,7 +1046,8 @@ public partial class woofipro : Exchange
             {
                 throw new ExchangeError ((this.id + " fetchCurrencies() could not resolve parsed")) ;
             }
-            result[(string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null)] = parsed;
+            string? parsedCode = this.safeString(parsed, "code", "");
+            result[(string)parsedCode] = parsed;
         }
         return ((IDictionary<string, object>)((object)(result)));
     }

@@ -856,7 +856,7 @@ public partial class backpack : ccxt.backpack
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -1048,7 +1048,7 @@ public partial class backpack : ccxt.backpack
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit);
         }
         IList<object> result = this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
@@ -1466,7 +1466,7 @@ public partial class backpack : ccxt.backpack
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit);
         }
         IList<object> filtered = this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true);
         if ((this.safeBool(query, "stock", false) == true))

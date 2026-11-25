@@ -113,7 +113,7 @@ public partial class blofin : ccxt.blofin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(firstSymbol, limit));
+            limitResolved = trades.getLimit(firstSymbol, limit);
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
@@ -514,7 +514,7 @@ public partial class blofin : ccxt.blofin
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,timeframe, filtered));
@@ -754,13 +754,13 @@ public partial class blofin : ccxt.blofin
         {
             if ((countSymbol != null))
             {
-                limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, countSymbol, limit));
+                limitResolved = ccxt.pro.BaseCache.getLimitOf(orders, countSymbol, limit);
             } else
             {
                 // updated orders move to the end of the shared cache, so the newest entries across all
                 // symbols are exactly this read's updates; take them before filtering by symbol
-                object newCount = ccxt.pro.BaseCache.getLimitOf(orders, null, null);
-                if (isEqual(newCount, 0))
+                Int64? newCount = ccxt.pro.BaseCache.getLimitOf(orders, null, null);
+                if ((newCount == 0))
                 {
                     // another watcher already took the count, and a limit of 0 would return the whole cache
                     newest = new List<object>() {};

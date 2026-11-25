@@ -8648,9 +8648,10 @@ public partial class htx : Exchange
         List<object> rates = new List<object>() {};
         if ((this.safeBool(market, "linear", false) == true))
         {
-            for (int i = 0; i < getArrayLength(data); i++)
+            List<object> linearRates = this.safeList(response, "data", new List<object>() {});
+            for (int i = 0; i < linearRates.Count; i++)
             {
-                object entry = getValue(data, i);
+                IDictionary<string, object> entry = ((IDictionary<string, object>)linearRates[i]);
                 string? marketId = this.safeString(entry, "contract_code");
                 string? symbolInner = this.safeSymbol(marketId, market);
                 Int64? timestamp = this.safeInteger(entry, "funding_time");

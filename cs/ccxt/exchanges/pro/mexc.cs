@@ -661,7 +661,7 @@ public partial class mexc : ccxt.mexc
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
@@ -1110,7 +1110,7 @@ public partial class mexc : ccxt.mexc
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -1245,7 +1245,7 @@ public partial class mexc : ccxt.mexc
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
@@ -1452,7 +1452,7 @@ public partial class mexc : ccxt.mexc
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
@@ -1913,12 +1913,12 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("unsubscribe:ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object url = null;
+        string? url = null;
         string? channel = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
             channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
             parameters["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
@@ -1927,7 +1927,7 @@ public partial class mexc : ccxt.mexc
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "swap");
             this.spawn(this.watchSwapPublic, new object[] { channel, messageHash, requestParams, parameters});
         }
         var client = this.client(url);
@@ -2058,17 +2058,17 @@ public partial class mexc : ccxt.mexc
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = ((("unsubscribe:candles:" + this.safeString(market, "symbol", "")) + ":") + (timeframeVar));
-        object url = null;
+        string? url = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
             string? spotTimeframeId = this.safeString(timeframes, timeframeVar, "");
             string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             parameters["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "swap");
             string channel = "unsub.kline";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2099,10 +2099,10 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
-        object url = null;
+        string? url = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
             (string?, IDictionary<string, object>) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = (frequencyparamsFrequencyVariable.Item2);
@@ -2111,7 +2111,7 @@ public partial class mexc : ccxt.mexc
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});
         } else
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "swap");
             string channel = "unsub.depth";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2141,16 +2141,16 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("unsubscribe:trades:" + this.safeString(market, "symbol", ""));
-        object url = null;
+        string? url = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("spot") ? this.urlsApiSections["ws"]["spot"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "spot");
             string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
             parameters["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, parameters});
         } else
         {
-            url = (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("swap") ? this.urlsApiSections["ws"]["swap"] : null);
+            url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "swap");
             string channel = "unsub.deal";
             Dictionary<string, object> requestParams = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

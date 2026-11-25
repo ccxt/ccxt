@@ -9470,10 +9470,10 @@ public partial class gate : Exchange
         Int64? timestamp = null;
         if (rawTimestampLength > 10)
         {
-            timestamp = JsParse.parseInt(rawTimestamp);
+            timestamp = this.safeInteger(item, "time");
         } else
         {
-            timestamp = (JsParse.parseInt(rawTimestamp) * 1000);
+            timestamp = this.safeTimestamp(item, "time");
         }
         string? balanceString = this.safeString(item, "balance");
         string? changeString = this.safeString(item, "change");

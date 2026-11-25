@@ -4013,7 +4013,7 @@ public partial class polymarket : PredictionExchange
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(outcomeResolved, limitResolved));
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true));
     }
@@ -4046,7 +4046,7 @@ public partial class polymarket : PredictionExchange
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(outcomeResolved, limitResolved));
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true));
     }

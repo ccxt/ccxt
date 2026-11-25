@@ -547,7 +547,7 @@ public partial class derive : ccxt.derive
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
@@ -676,7 +676,7 @@ public partial class derive : ccxt.derive
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -852,7 +852,7 @@ public partial class derive : ccxt.derive
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

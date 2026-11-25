@@ -440,7 +440,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolValue, limit));
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         (bool?, IDictionary<string, object>) ignoreDuplicatesVariable = this.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "watchTrades", "ignoreDuplicates", true);
@@ -1039,7 +1039,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
@@ -1168,7 +1168,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -1263,7 +1263,7 @@ public partial class bingx : ccxt.bingx
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

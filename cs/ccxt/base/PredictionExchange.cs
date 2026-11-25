@@ -132,7 +132,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 return null;
             }
-            extraNames = ((extraNames + ", ") + (scopeKey));
+            extraNames = ((extraNames + ", ") + this.safeString(extraScopeParams, i, ""));
         }
         throw new ArgumentsRequired ((((this.id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug") + extraNames) + " to scope the search")) ;
     }

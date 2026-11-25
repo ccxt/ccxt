@@ -366,7 +366,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -487,7 +487,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(stored, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(stored), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -778,7 +778,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -969,7 +969,7 @@ public partial class grvt : ccxt.grvt
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
+            limitResolved = orders.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }

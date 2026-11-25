@@ -410,7 +410,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -450,7 +450,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(null, limit));
+            limitResolved = orders.getLimit(null, limit);
         }
         IList<object> ordersForSymbols = ((IList<object>)this.filterByArray(orders, "symbol", symbolsResolved, false));
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(ordersForSymbols, since, limitResolved, "timestamp", true));
@@ -1105,7 +1105,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
@@ -1254,7 +1254,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }

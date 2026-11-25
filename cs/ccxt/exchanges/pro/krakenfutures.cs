@@ -293,7 +293,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
@@ -523,7 +523,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
+            limitResolved = orders.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
@@ -557,7 +557,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
+            limitResolved = trades.getLimit(symbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }

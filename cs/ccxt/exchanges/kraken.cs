@@ -2291,7 +2291,10 @@ public partial class kraken : Exchange
             side = descriptionSide;
         }
         string? rawType = this.safeString(description, "ordertype", descriptionType); // orderType has dash, e.g. trailing-stop
-        marketId = this.safeString(description, "pair", marketId);
+        if ((this.safeString(description, "pair") != null))
+        {
+            marketId = this.safeString(description, "pair");
+        }
         IDictionary<string, object> marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         string? symbol = null;
         Int64? timestamp = this.safeTimestamp(orderOmitted, "opentm");

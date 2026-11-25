@@ -820,7 +820,7 @@ public partial class hyperliquid : Exchange
         {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = mathMin(decimalsLeft, 5);
+            pricePrecision = 5;
         } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
@@ -835,8 +835,6 @@ public partial class hyperliquid : Exchange
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + significantDigits);
-            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = mathMin(decimalsLeft, pricePrecision);
         } else
         {
             // Count the numbers before the decimal separator
@@ -848,8 +846,10 @@ public partial class hyperliquid : Exchange
             {
                 digitsLeft = (5 - (integerPart.Length));
             }
-            pricePrecision = mathMin(decimalsLeft, digitsLeft);
+            pricePrecision = digitsLeft;
         }
+        // cap by maxDecimals - szDecimals
+        pricePrecision = mathMin(decimalsLeft, pricePrecision);
         return this.parseToInt(pricePrecision);
     }
 
@@ -4716,8 +4716,8 @@ public partial class hyperliquid : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? asset = this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null));
-        object szAbs = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), "1000000"));
-        object sz = ((type == "reduce")) ? prefixUnaryNeg(ref szAbs) : szAbs;
+        Int64? szAbs = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), "1000000"));
+        object sz = ((type == "reduce")) ? (szAbs = -szAbs) : szAbs;
         Int64? nonce = this.incrementingNonce();
         Dictionary<string, object> updateAction = new Dictionary<string, object>() {
             { "type", "updateIsolatedMargin" },

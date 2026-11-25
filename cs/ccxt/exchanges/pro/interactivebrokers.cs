@@ -631,7 +631,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Int64? resultLimit = limit;
         if (this.newUpdates)
         {
-            resultLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, unifiedSymbol, limit));
+            resultLimit = ccxt.pro.BaseCache.getLimitOf(ohlcv, unifiedSymbol, limit);
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, resultLimit, 0, true));
     }
@@ -1181,7 +1181,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Int64? resultLimit = limit;
         if (this.newUpdates)
         {
-            resultLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, unifiedSymbol, limit));
+            resultLimit = ccxt.pro.BaseCache.getLimitOf(orders, unifiedSymbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), unifiedSymbol, since, resultLimit, true));
     }
@@ -1326,7 +1326,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         Int64? resultLimit = limit;
         if (this.newUpdates)
         {
-            resultLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, unifiedSymbol, limit));
+            resultLimit = ccxt.pro.BaseCache.getLimitOf(trades, unifiedSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), unifiedSymbol, since, resultLimit, true));
     }

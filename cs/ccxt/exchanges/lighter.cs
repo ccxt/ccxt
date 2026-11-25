@@ -911,14 +911,14 @@ public partial class lighter : Exchange
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signerNotLoad = this.safeValue(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), strAccountIndex, new Dictionary<string, object>() {}), strApiKeyIndex, new Dictionary<string, object>() {}), "signer");
-        var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
-        var privateKey = ((IList<object>) privateKeypublicKeyVariable)[0];
-        var publicKey = ((IList<object>) privateKeypublicKeyVariable)[1];
+        List<string> privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
+        string privateKey = privateKeypublicKeyVariable[0];
+        string publicKey = privateKeypublicKeyVariable[1];
         Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new Dictionary<string, object>() {
             { "skipNonce", false },
         }));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "pubkey", this.encode(publicKey) },
+            { "pubkey", publicKey },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },

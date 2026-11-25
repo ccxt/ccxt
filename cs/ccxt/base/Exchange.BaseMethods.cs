@@ -899,18 +899,16 @@ public partial class BaseExchange
                 }
                 if (fromStart == true)
                 {
-                    object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
                     if (ascending)
                     {
+                        object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
                         return this.arraySlice(array, 0, limitResolved);
                     }
-                    return this.arraySlice(array, -System.Convert.ToInt64(limitResolved));
-                }
-                if (ascending)
+                } else if (!ascending)
                 {
-                    return this.arraySlice(array, -System.Convert.ToInt64(limit));
+                    return this.arraySlice(array, 0, limit);
                 }
-                return this.arraySlice(array, 0, limit);
+                return this.arraySlice(array, -System.Convert.ToInt64(limit));
             }
         }
         return (array == null) ? null : (array as List<T> ?? new List<T>(array));
@@ -2343,9 +2341,9 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2338_18) ? sourceExchangeOption2338_18 : null) == null))
+            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2336_18) ? sourceExchangeOption2336_18 : null) == null))
             {
-                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2340_47) ? sourceExchangeOption2340_47 : null);
+                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2338_47) ? sourceExchangeOption2338_47 : null);
             }
         }
         return this;
@@ -4923,10 +4921,10 @@ public partial class BaseExchange
         int i_volume = 5;
         int i_count = 6;
         int tradesLength = (trades?.Count ?? 0);
-        object oldest = Math.Min(tradesLength, limitVar.GetValueOrDefault());
+        Int64 oldest = Math.Min(tradesLength, limitVar.GetValueOrDefault());
         IDictionary<string, object> options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
-        for (int i = 0; isLessThan(i, oldest); i++)
+        for (int i = 0; i < oldest; i++)
         {
             IDictionary<string, object> trade = this.safeDict(trades, i, new Dictionary<string, object>() {});
             Int64? ts = this.safeInteger(trade, "timestamp");
@@ -4961,7 +4959,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328071 && i_timestamp < ohlcvsSlot328071.Count ? ohlcvsSlot328071[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328001 && i_timestamp < ohlcvsSlot328001.Count ? ohlcvsSlot328001[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -7408,7 +7406,7 @@ public partial class BaseExchange
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
-        object uniqueResults = result;
+        IList<object> uniqueResults = result;
         if (removeRepeatedOption)
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
@@ -7524,9 +7522,9 @@ public partial class BaseExchange
         {
             result = this.arrayConcat(result, results[i]);
         }
-        object uniqueResults = ((object)this.removeRepeatedElementsFromArray(result));
+        IList<object> uniqueResults = this.removeRepeatedElementsFromArray(result);
         object key = ((method is "fetchOHLCV")) ? 0 : "timestamp";
-        return this.filterBySinceLimit(this.toArray(uniqueResults), since, limit, key);
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
     }
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
@@ -7727,7 +7725,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual object removeRepeatedElementsFromArray(IList<object> input, bool? fallbackToTimestamp = null)
+    public virtual IList<object> removeRepeatedElementsFromArray(IList<object> input, bool? fallbackToTimestamp = null)
     {
         fallbackToTimestamp ??= true;
         Dictionary<string, object> uniqueDic = new Dictionary<string, object>() {};
@@ -7749,7 +7747,7 @@ public partial class BaseExchange
         int valuesLength = (uniqueResult?.Count ?? 0);
         if (valuesLength > 0)
         {
-            return ((object)uniqueResult);
+            return uniqueResult;
         }
         return input;
     }

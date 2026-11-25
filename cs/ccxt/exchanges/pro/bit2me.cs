@@ -163,7 +163,7 @@ public partial class bit2me : ccxt.bit2me
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            finalLimit = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, finalLimit, "timestamp", true));
     }
@@ -297,7 +297,7 @@ public partial class bit2me : ccxt.bit2me
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)orders.getLimit(unifiedSymbol, limit));
+            finalLimit = orders.getLimit(unifiedSymbol, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true));
     }
@@ -435,7 +435,7 @@ public partial class bit2me : ccxt.bit2me
         Int64? finalLimit = limit;
         if (this.newUpdates)
         {
-            finalLimit = ((Int64?)trades.getLimit(unifiedSymbol, limit));
+            finalLimit = trades.getLimit(unifiedSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true));
     }

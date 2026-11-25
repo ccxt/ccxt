@@ -1522,7 +1522,7 @@ public partial class binance : ccxt.binance
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
@@ -1986,7 +1986,7 @@ public partial class binance : ccxt.binance
             Int64? stockLimit = limit;
             if (this.newUpdates)
             {
-                stockLimit = ((Int64?)ccxt.pro.BaseCache.getLimitOf(stockCandles, stockSymbol, limit));
+                stockLimit = ccxt.pro.BaseCache.getLimitOf(stockCandles, stockSymbol, limit);
             }
             IList<object> stockFiltered = this.filterBySinceLimit(this.toArray(stockCandles), since, stockLimit, 0, true);
             return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(stockSymbol,((string)stockTimeframe), stockFiltered));
@@ -2063,7 +2063,7 @@ public partial class binance : ccxt.binance
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit));
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(candles, symbol, limit);
         }
         IList<object> filtered = this.filterBySinceLimit(this.toArray(candles), since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
@@ -5201,7 +5201,7 @@ public partial class binance : ccxt.binance
             Int64? stockLimit = limit;
             if (this.newUpdates)
             {
-                stockLimit = ((Int64?)stockOrders.getLimit(symbol, limit));
+                stockLimit = stockOrders.getLimit(symbol, limit);
             }
             return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(stockOrders, symbol, since, stockLimit, true));
         }
@@ -5264,7 +5264,7 @@ public partial class binance : ccxt.binance
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
@@ -6491,7 +6491,7 @@ public partial class binance : ccxt.binance
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }

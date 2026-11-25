@@ -314,7 +314,7 @@ public partial class coinone : ccxt.coinone
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit);
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
