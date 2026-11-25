@@ -2040,6 +2040,8 @@ const VENUE_RETURN_KINDS = {
     // `: Str`, one declaration each: kucoin handleTradeType (safeString read or literals), interactivebrokers
     // ibkrParseValue (null, Precise.stringMul or its own string local)
     'handleTradeType': [ 'String' ], 'ibkrParseValue': [ 'String' ],
+    // okx / blofin `parseIds (ids): Strings`: a split list or safeStringList (a List or null)
+    'parseIds': [ 'java.util.List<Object>' ],
 };
 const H29T07_MAP_VIEW_RETURNS = new Set ([ 'safePosition', 'safeTrade' ]);
 // base parsePosition / safePredictionTrade are Map returns (H30T07_MAP_RETURN_METHODS)
