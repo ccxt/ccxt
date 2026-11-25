@@ -955,12 +955,15 @@ export default class hollaex extends Exchange {
         // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         const until = this.safeInteger (paramsPaginate, 'until', now);
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
+        let to = until;
         if (since === undefined) {
             request['from'] = this.parseToInt ((until - timeDelta) / 1000); // convert to seconds
         } else {
             request['from'] = this.parseToInt (since / 1000); // convert to seconds
+            const limitValue = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+            to = Math.min (until, this.sum (since, this.parseTimeframe (timeframe) * limitValue * 1000 - 1));
         }
-        request['to'] = this.parseToInt (until / 1000); // convert to seconds
+        request['to'] = this.parseToInt (to / 1000); // convert to seconds
         const paramsOmitted: Dict = this.omit (paramsPaginate, 'until');
         const response = await this.publicGetChart (this.extend (request, paramsOmitted));
         //

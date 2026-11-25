@@ -1,6 +1,6 @@
 {
     "exchange": "hollaex",
-    "skipKeys": [ "to" ],
+    "skipKeys": [],
     "outputType": "json",
     "methods": {
         "fetchOHLCV": [

@@ -1656,7 +1656,8 @@
                 "sideSequence": "todo check"
             },
             "fetchOHLCV": {
-                "compareDuration": "todo review - exchange api might be broken"
+                "compareDuration": "todo review - exchange api might be broken",
+                "compareTimestampToLimit": "the venue ignores to on 1m and 5m and returns bars up to now"
             }
         }
     },
