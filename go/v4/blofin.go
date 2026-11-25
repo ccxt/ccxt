@@ -2477,6 +2477,8 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
  * @name blofin#editOrder
  * @description edit a trade order
  * @see https://docs.blofin.com/index.html#amend-order
+ * @see https://docs.blofin.com/index.html#amend-algo-order
+ * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {string} type 'market' or 'limit'
@@ -2485,6 +2487,13 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.trigger] True if editing a trigger order
+ * @param {boolean} [params.tpsl] True if editing a tpsl order
+ * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+ * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+ * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+ * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+ * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blofin) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -2512,24 +2521,22 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
+	var isTrigger *bool = this.SafeBool(params, "trigger", false)
+	var isTpsl *bool = this.SafeBool2(params, "tpsl", "TPSL", false)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
 		request["clientOrderId"] = clientOrderId
+	} else if isTpsl != nil && *isTpsl {
+		request["tpslId"] = id
+	} else if isTrigger != nil && *isTrigger {
+		request["algoId"] = id
 	} else {
 		request["orderId"] = id
 	}
 	if amount != nil {
 		request["newSize"] = this.AmountToPrecision(symbol, amount)
 	}
-	if price != nil {
-		request["newPrice"] = this.PriceToPrecision(symbol, price)
-	}
-
-	r1 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, this.Omit(params, "clientOrderId")))
-	if r1.Err != nil {
-		panic(r1.Err)
-	}
-	var response map[string]any = r1.Value
+	var query map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice"})
 	//
 	//     {
 	//         "code": "0",
@@ -2544,14 +2551,81 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	//         }
 	//     }
 	//
-	var data map[string]any
-	data, _ = response["data"].(map[string]any)
-	if data == nil {
-		data = map[string]any{}
-	}
+	if isTpsl != nil && *isTpsl {
+		var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
+		if stopLossPrice != nil {
+			request["newSlTriggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+			var slLimitPrice *string = this.SafeString(params, "stopLossLimitPrice")
+			if typeVar == "market" {
+				request["newSlOrderPrice"] = "-1"
+			} else if slLimitPrice != nil {
+				request["newSlOrderPrice"] = this.PriceToPrecision(symbol, slLimitPrice)
+			}
+		}
+		var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
+		if takeProfitPrice != nil {
+			request["newTpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			var tpLimitPrice *string = this.SafeString(params, "takeProfitLimitPrice")
+			if typeVar == "market" {
+				request["newTpOrderPrice"] = "-1"
+			} else if tpLimitPrice != nil {
+				request["newTpOrderPrice"] = this.PriceToPrecision(symbol, tpLimitPrice)
+			}
+		}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
-	return nil
+		r1 := <-this.PrivatePostTradeAmendTpsl(this.Extend(request, query))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var tpslResponse map[string]any = r1.Value
+
+		tpslResponseDict189836, _ := tpslResponse["data"].(map[string]any)
+		if tpslResponseDict189836 == nil {
+			tpslResponseDict189836 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(tpslResponseDict189836, market)}
+		return nil
+	} else if isTrigger != nil && *isTrigger {
+		var triggerPrice *string = this.SafeString(params, "triggerPrice")
+		if triggerPrice != nil {
+			request["newTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		}
+		if typeVar == "market" {
+			request["newOrderPrice"] = "-1"
+		} else if price != nil {
+			request["newOrderPrice"] = this.PriceToPrecision(symbol, price)
+		}
+
+		r2 := <-this.PrivatePostTradeAmendAlgo(this.Extend(request, query))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var algoResponse map[string]any = r2.Value
+
+		algoResponseDict191036, _ := algoResponse["data"].(map[string]any)
+		if algoResponseDict191036 == nil {
+			algoResponseDict191036 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(algoResponseDict191036, market)}
+		return nil
+	} else {
+		if price != nil {
+			request["newPrice"] = this.PriceToPrecision(symbol, price)
+		}
+
+		r3 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, query))
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		var response map[string]any = r3.Value
+
+		responseDict191636, _ := response["data"].(map[string]any)
+		if responseDict191636 == nil {
+			responseDict191636 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict191636, market)}
+		return nil
+	}
 }
 
 /**
@@ -2673,11 +2747,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193619 []any = r1.Value
-		if retRes193619 == nil {
+		var retRes198819 []any = r1.Value
+		if retRes198819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes198819)}
 		}
 		return nil
 	}
@@ -2773,11 +2847,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes198619 []any = r1.Value
-		if retRes198619 == nil {
+		var retRes203819 []any = r1.Value
+		if retRes203819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes198619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes203819)}
 		}
 		return nil
 	}
@@ -2887,11 +2961,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes205519 []any = r1.Value
-		if retRes205519 == nil {
+		var retRes210719 []any = r1.Value
+		if retRes210719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205519)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes210719)}
 		}
 		return nil
 	}
@@ -2967,11 +3041,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes209519 []any = r1.Value
-		if retRes209519 == nil {
+		var retRes214719 []any = r1.Value
+		if retRes214719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes209519)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes214719)}
 		}
 		return nil
 	}
@@ -3691,11 +3765,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260719 []any = r1.Value
-		if retRes260719 == nil {
+		var retRes265919 []any = r1.Value
+		if retRes265919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes260719)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes265919)}
 		}
 		return nil
 	}
@@ -3797,7 +3871,7 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var feeCurrencyId *string = this.SafeString(transaction, "feeCurrency")
 	var feeCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var literal269615 map[string]any = map[string]any{
+	var literal274815 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"currency":    code,
@@ -3823,12 +3897,12 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 		},
 	}
 	if id != nil {
-		literal269615["id"] = *id
+		literal274815["id"] = *id
 	}
 	if status != nil {
-		literal269615["status"] = *status
+		literal274815["status"] = *status
 	}
-	return TransactionFromMap(literal269615)
+	return TransactionFromMap(literal274815)
 }
 func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4872,11 +4946,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344919 []any = r1.Value
-		if retRes344919 == nil {
+		var retRes350119 []any = r1.Value
+		if retRes350119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes344919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes350119)}
 		}
 		return nil
 	}
@@ -5116,12 +5190,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr358928 string = "net_mode"
+	var ternaryStr364128 string = "net_mode"
 	if hedged {
-		ternaryStr358928 = "long_short_mode"
+		ternaryStr364128 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr358928,
+		"positionMode": ternaryStr364128,
 	}
 
 	//
@@ -5713,6 +5787,8 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @name blofin#editOrder
  * @description edit a trade order
  * @see https://docs.blofin.com/index.html#amend-order
+ * @see https://docs.blofin.com/index.html#amend-algo-order
+ * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {string} type 'market' or 'limit'
@@ -5721,6 +5797,13 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @param {boolean} [params.trigger] True if editing a trigger order
+ * @param {boolean} [params.tpsl] True if editing a tpsl order
+ * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+ * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+ * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+ * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+ * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blofin) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {

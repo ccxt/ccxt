@@ -1213,16 +1213,16 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	}
 	this.CheckRequiredCredentials()
 	var wsBaseUrl string = *this.SafeString(this.Urls["api"], "ws", "")
-	var startIndex int = len(wsBaseUrl)
+	var startIndex int64 = int64(len(wsBaseUrl)) - 0
 	var urlParamsIndex int = strings.Index(*url, "?")
-	var urlLength int = len(*url)
-	var endIndex int
+	var urlLength int64 = int64(ccxt.GetLength(url)) - 0
+	var endIndex any
 	if urlParamsIndex >= 0 {
 		endIndex = urlParamsIndex
 	} else {
 		endIndex = urlLength
 	}
-	var request string = (*url)[startIndex+len((*url))*min(max(-startIndex, 0), 1) : min(endIndex+len((*url))*min(max(-endIndex, 0), 1), len((*url)))]
+	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,
 		"nonce":   this.IncrementingNonce(),
