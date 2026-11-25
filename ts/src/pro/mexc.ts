@@ -1789,7 +1789,7 @@ export default class mexc extends mexcRest {
         let channel: Str = undefined;
         if (this.safeBool (market, 'spot', false)) {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
-            url = this.urls['api']['ws']['spot'];
+            url = this.safeString (this.urls['api']['ws'], 'spot');
             params['unsubscribed'] = true;
             this.spawn (this.watchSpotPublic, channel, messageHash, params);
         } else {
@@ -1797,7 +1797,7 @@ export default class mexc extends mexcRest {
             const requestParams: Dict = {
                 'symbol': market['id'],
             };
-            url = this.urls['api']['ws']['swap'];
+            url = this.safeString (this.urls['api']['ws'], 'swap');
             this.spawn (this.watchSwapPublic, channel, messageHash, requestParams, params);
         }
         const client = this.client (url);
@@ -1933,13 +1933,13 @@ export default class mexc extends mexcRest {
         const messageHash = 'unsubscribe:candles:' + this.safeString (market, 'symbol', '') + ':' + timeframe;
         let url: Str = undefined;
         if (this.safeBool (market, 'spot', false)) {
-            url = this.urls['api']['ws']['spot'];
+            url = this.safeString (this.urls['api']['ws'], 'spot');
             const spotTimeframeId: string = this.safeString (timeframes, timeframe, '');
             const channel = 'spot@public.kline.v3.api.pb@' + this.safeString (market, 'id', '') + '@' + spotTimeframeId;
             params['unsubscribed'] = true;
             this.spawn (this.watchSpotPublic, channel, messageHash, params);
         } else {
-            url = this.urls['api']['ws']['swap'];
+            url = this.safeString (this.urls['api']['ws'], 'swap');
             const channel = 'unsub.kline';
             const requestParams: Dict = {
                 'symbol': market['id'],
@@ -1969,13 +1969,13 @@ export default class mexc extends mexcRest {
         const messageHash = 'unsubscribe:orderbook:' + this.safeString (market, 'symbol', '');
         let url: Str = undefined;
         if (this.safeBool (market, 'spot', false)) {
-            url = this.urls['api']['ws']['spot'];
+            url = this.safeString (this.urls['api']['ws'], 'spot');
             const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString (market, 'id', '');
             paramsFrequency['unsubscribed'] = true;
             this.spawn (this.watchSpotPublic, channel, messageHash, paramsFrequency);
         } else {
-            url = this.urls['api']['ws']['swap'];
+            url = this.safeString (this.urls['api']['ws'], 'swap');
             const channel = 'unsub.depth';
             const requestParams: Dict = {
                 'symbol': market['id'],
@@ -2004,12 +2004,12 @@ export default class mexc extends mexcRest {
         const messageHash = 'unsubscribe:trades:' + this.safeString (market, 'symbol', '');
         let url: Str = undefined;
         if (this.safeBool (market, 'spot', false)) {
-            url = this.urls['api']['ws']['spot'];
+            url = this.safeString (this.urls['api']['ws'], 'spot');
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
             params['unsubscribed'] = true;
             this.spawn (this.watchSpotPublic, channel, messageHash, params);
         } else {
-            url = this.urls['api']['ws']['swap'];
+            url = this.safeString (this.urls['api']['ws'], 'swap');
             const channel = 'unsub.deal';
             const requestParams: Dict = {
                 'symbol': market['id'],

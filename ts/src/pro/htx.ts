@@ -2999,9 +2999,9 @@ export default class htx extends htxRest {
         const hostnames: Dict = this.safeDict (this.urls, 'hostnames', {});
         let hostname: Str = undefined;
         if (type === 'spot') {
-            hostname = hostnames['spot'];
+            hostname = this.safeString (hostnames, 'spot');
         } else {
-            hostname = hostnames['contract'];
+            hostname = this.safeString (hostnames, 'contract');
         }
         const authParams: Dict = {
             'type': type,

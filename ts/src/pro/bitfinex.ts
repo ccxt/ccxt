@@ -525,7 +525,7 @@ export default class bitfinex extends bitfinexRest {
         const createdKey = isPublic ? 1 : 2;
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
-        marketId = marketResolved['id'];
+        marketId = this.safeString (marketResolved, 'id');
         let type = this.safeString (trade, 6);
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
