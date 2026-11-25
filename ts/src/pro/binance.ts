@@ -17,8 +17,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 export default class binance extends binanceRest {
     override describe (): Dict {
-        const superDescribe = super.describe ();
-        return this.deepExtend (superDescribe, this.describeData ());
+        return this.deepExtend (super.describe (), this.describeData ());
     }
 
     describeData () {

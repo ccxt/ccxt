@@ -691,7 +691,7 @@ export default class polymarket extends polymarketRest {
             symbolResolved = resolvedSymbol;
             messageHash = 'orders:' + resolvedSymbol;
         }
-        const subscribeHashes = [ 'orders' ];
+        const subscribeHashes: string[] = [ 'orders' ];
         const request = this.sendSubscription ('sub', [ 'orders' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.safeString (this.urls['api'], 'ws');
         const orders: ArrayCache = await this.watch (url, messageHash, request, 'orders');
@@ -779,7 +779,7 @@ export default class polymarket extends polymarketRest {
             symbolResolved = resolvedSymbol;
             messageHash = 'myTrades:' + resolvedSymbol;
         }
-        const subscribeHashes = [ 'fills' ];
+        const subscribeHashes: string[] = [ 'fills' ];
         const request = this.sendSubscription ('sub', [ 'fills' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.safeString (this.urls['api'], 'ws');
         const trades: ArrayCache = await this.watch (url, messageHash, request, 'fills');
@@ -877,7 +877,7 @@ export default class polymarket extends polymarketRest {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
-        const subscribeHashes = [ 'portfolio' ];
+        const subscribeHashes: string[] = [ 'portfolio' ];
         const request = this.sendSubscription ('sub', [ 'portfolio' ], [ 'positions' ], subscribeHashes, {}, params, subscribeHashes);
         const newPositions = await this.watch (url, 'positions', request, 'portfolio');
         if (this.newUpdates) {
@@ -939,7 +939,7 @@ export default class polymarket extends polymarketRest {
             const snapshot = await client.future ('fetchBalanceSnapshot');
             return snapshot as Balances;
         }
-        const subscribeHashes = [ 'portfolio' ];
+        const subscribeHashes: string[] = [ 'portfolio' ];
         const request = this.sendSubscription ('sub', [ 'portfolio' ], [ 'balance' ], subscribeHashes, {}, params, subscribeHashes);
         return await this.watch (url, 'balance', request, 'portfolio');
     }

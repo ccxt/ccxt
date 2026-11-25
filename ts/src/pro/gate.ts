@@ -15,8 +15,7 @@ import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 export default class gate extends gateRest {
     override describe (): Dict {
-        const superDescribe = super.describe ();
-        return this.deepExtend (superDescribe, this.describeData ());
+        return this.deepExtend (super.describe (), this.describeData ());
     }
 
     describeData (): any {

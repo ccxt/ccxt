@@ -14,8 +14,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 export default class bybit extends bybitRest {
     override describe (): Dict {
-        const superDescribe = super.describe ();
-        return this.deepExtend (superDescribe, this.describeData ());
+        return this.deepExtend (super.describe (), this.describeData ());
     }
 
     describeData (): any {
@@ -1779,7 +1778,7 @@ export default class bybit extends bybitRest {
         }
         const url = await this.getUrlByMarketType (undefined, true, method, params);
         await this.authenticate (url);
-        const topics = [ 'position' ];
+        const topics: string[] = [ 'position' ];
         return await this.unWatchTopics (url, 'positions', symbols, [ messageHash ], [ subHash ], topics, params);
     }
 
