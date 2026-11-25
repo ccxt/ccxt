@@ -48,10 +48,13 @@ export function installCcxtGoMarketBoolReads (printer: any) {
     const original = printer.goNativeCondition.bind (printer);
     printer.goNativeCondition = function (node: any) {
         const native = original (node);
-        while ((native === undefined) && (node?.kind !== undefined) && (node.expression !== undefined) && (node.argumentExpression === undefined) && /^\(.*\)$/s.test (node.getText ())) {
+        if (native !== undefined) {
+            return native;
+        }
+        while ((node?.expression !== undefined) && (node.argumentExpression === undefined) && (node.name === undefined) && (node.arguments === undefined) && /^\(.*\)$/s.test (node.getText ())) {
             node = node.expression;
         }
-        if ((native !== undefined) || (node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
+        if ((node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
             return native;
         }
         const key = /^'(\w+)'$/.exec (node.argumentExpression.getText ())?.[1];
@@ -60,10 +63,13 @@ export function installCcxtGoMarketBoolReads (printer: any) {
         }
         const receiver = node.expression;
         const declaration = this.goDeclarationOfIdentifier (receiver);
-        const scope = (declaration === undefined) ? undefined : this.goEnclosingFunction (declaration);
+        if ((declaration?.parent?.declarations === undefined) || !goIsMarketRowWrite (declaration.initializer)) {
+            return native;
+        }
+        const scope = this.goEnclosingFunction (declaration);
         // the read must already print as a native map index (the local is a Go map, not an any box)
         const read = `${this.printNode (receiver, 0)}["${key}"]`;
-        if ((scope === undefined) || (declaration.parent?.declarations === undefined) || (this.printNode (node, 0) !== read) || !goIsMarketRowWrite (declaration.initializer)) {
+        if ((scope === undefined) || (this.printNode (node, 0) !== read)) {
             return native;
         }
         // every later write of the local, whole or by key, must be another market row
