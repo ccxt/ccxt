@@ -1110,6 +1110,8 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'parseMyTrade': 'Dictionary<string, object>',
     // every declaration returns filterBySinceLimit / filterBySymbolSinceLimit of a List<object>
     'parseFundingHistories': 'IList<object>',
+    // single base declaration: returns its unwritten `any[]` input or its `Dict[]` local
+    'removeRepeatedElementsFromArray': 'IList<object>',
 });
 
 // subscribeRequest / unsubscribeRequest: declared only in pro/paradex, each single return a dict literal,
@@ -1194,6 +1196,11 @@ function collectionReturnIsTyped (csharp, expression, mapped) {
     }
     if (expression?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
         return mapped === 'List<object>' || mapped === 'IList<object>';
+    }
+    // a List<object> local or an IList<object> parameter is already an IList<object>
+    if (mapped === 'IList<object>' && ts.isIdentifier (expression)
+        && (['List<object>', 'IList<object>'].includes (localIdentifierType (csharp, expression)) || csharp.csharpPrintedParamType?.(expression) === 'IList<object>')) {
+        return true;
     }
     return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped;
 }

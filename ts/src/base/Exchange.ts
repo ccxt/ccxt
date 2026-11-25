@@ -9003,7 +9003,7 @@ export class BaseExchange {
         for (let i = 0; i < results.length; i++) {
             result = this.arrayConcat (result, results[i]);
         }
-        const uniqueResults = this.removeRepeatedElementsFromArray (result) as any;
+        const uniqueResults = this.removeRepeatedElementsFromArray (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
@@ -9173,7 +9173,7 @@ export class BaseExchange {
         }
         const valuesLength = uniqueResult.length;
         if (valuesLength > 0) {
-            return uniqueResult as any;
+            return uniqueResult;
         }
         return input;
     }
