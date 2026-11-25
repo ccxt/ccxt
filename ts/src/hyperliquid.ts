@@ -1361,7 +1361,8 @@ export default class hyperliquid extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const rates = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
+        const rates = await this.fetchFundingRates ([ marketSymbol ], params);
         const rate = this.safeDict (rates, market['symbol']);
         if (rate === undefined) {
             throw new BadSymbol (this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);

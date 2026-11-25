@@ -1341,11 +1341,12 @@ export default class poloniex extends Exchange {
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'symbol': market['id'],
         };
         if (this.safeBool (market, 'contract', false)) {
-            const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+            const tickers = await this.fetchTickers ([ marketSymbol ], params);
             const contractTicker = this.safeDict (tickers, symbol);
             return contractTicker as Ticker;
         }

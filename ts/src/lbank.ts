@@ -810,8 +810,9 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
         if (this.safeBool (market, 'swap', false)) {
-            const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
+            const responseForSwap = await this.fetchTickers ([ marketSymbol ], params);
             const swapTicker = this.safeDict (responseForSwap, market['symbol']);
             return swapTicker as Ticker;
         }
@@ -1439,7 +1440,8 @@ export default class lbank extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const marketSymbol: string = this.safeString (market, 'symbol', '');
+        const responseForSwap = await this.fetchFundingRates ([ marketSymbol ], params);
         const fundingRate = this.safeDict (responseForSwap, market['symbol']);
         return fundingRate as FundingRate;
     }
