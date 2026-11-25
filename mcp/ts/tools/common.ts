@@ -10,8 +10,9 @@ import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
 import { log } from '../logging.js';
 import { currentRequestScope } from '../request-scope.js';
+import { isUiPayload, toUiContent, type UiPayload } from '../ui.js';
 
-export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean } | InputRequiredResult;
+export type ToolResult = { content: { type: 'text', text: string }[], structuredContent?: Record<string, any>, isError?: boolean } | InputRequiredResult;
 
 // Length caps on free-text identifiers: generous for every real value (the longest ccxt
 // exchange id is ~20 characters; prediction outcome handles run to ~100), tight enough that
@@ -30,15 +31,20 @@ export const MAX_SYMBOLS = 50; // symbols per call: get_tickers fans out one req
 export const MARKET_TYPES = [ 'spot', 'margin', 'swap', 'future', 'option', 'delivery', 'index', 'prediction' ] as const;
 export type MarketTypeName = typeof MARKET_TYPES[number];
 
-export const exchangeParam = z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH).describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
+// These descriptions are repeated in ~30 tool schemas, and a host injects every schema into
+// the model's context (some cap the total — see CORE_TOOLS in ./profile.ts), so each word
+// here costs ~30x. Keep them to what the model cannot infer from the name and the type.
+export const exchangeParam = z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH).describe ('exchange id, e.g. "binance" (list_exchanges)');
 export const symbolParam = (description: string) => z.string ().min (1).max (MAX_SYMBOL_LENGTH).describe (description);
 export const methodNameParam = (description: string) => z.string ().min (1).max (MAX_METHOD_NAME_LENGTH).describe (description);
 export const accountNameParam = z.string ().min (1).max (MAX_ACCOUNT_NAME_LENGTH);
-export const marketTypeParam = z.enum (MARKET_TYPES).optional ().describe ('market type routing for exchanges with several ("spot", "swap" perpetuals, "future", "option", …) — sets options.defaultType on a dedicated instance');
-export const predictionParam = z.boolean ().optional ().describe ('set true to use the prediction-markets variant of an exchange that exists in both namespaces (e.g. hyperliquid)');
+export const marketTypeParam = z.enum (MARKET_TYPES).optional ().describe ('market type, for exchanges with several ("swap" = perpetuals); sets options.defaultType');
+export const predictionParam = z.boolean ().optional ().describe ('true = the prediction-markets variant of an exchange (e.g. hyperliquid)');
 export const paramsParam = z.record (z.string (), z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
-export const accountParam = accountNameParam.describe ('configured account name — discover with list_accounts; credentials are never tool parameters');
-export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry to fetch: timestamp in ms, or an ISO8601 string like "2024-01-01T00:00:00Z"');
+// what a tool carries instead when the tool profile hides describe_method (./profile.ts)
+export const paramsParamNoPointer = z.record (z.string (), z.any ()).optional ().describe ('exchange-specific ccxt params, passed unchanged');
+export const accountParam = accountNameParam.describe ('configured account name (list_accounts); credentials are never parameters');
+export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry: ms timestamp or ISO8601 string, e.g. "2024-01-01T00:00:00Z"');
 
 export class ArgError extends Error {
     hint: string;
@@ -85,10 +91,14 @@ export function requestAuthInfo (ctx: ServerContext): AuthInfo | undefined {
     return currentRequestScope ()?.authInfo ?? ctx.authInfo;
 }
 
-// uniform tool wrapper: envelope + error mapping + size budget in one place
-export async function run (context: ErrorContext, fn: () => Promise<Envelope>): Promise<ToolResult> {
+// uniform tool wrapper: envelope + error mapping + size budget in one place. A render tool
+// (show_*) returns a UiPayload instead: the compact envelope for the model plus the
+// structuredContent its view reads. Its errors take the same path as every other tool's,
+// so a failed render call is a plain text isError result (no structuredContent).
+export async function run (context: ErrorContext, fn: () => Promise<Envelope | UiPayload>): Promise<ToolResult> {
     try {
-        return toContent (await fn ());
+        const result = await fn ();
+        return isUiPayload (result) ? toUiContent (result) : toContent (result);
     } catch (error: any) {
         if (error instanceof InputRequiredSignal) {
             return error.result;
@@ -122,6 +132,68 @@ export function marketTypeMismatchNotice (exchange: any, symbols: string[], mark
         }
     }
     return undefined;
+}
+
+// one ticker per requested symbol, in request order; backfills `symbol` so callers can match
+// rows to the handles they requested (some prediction/outcome tickers omit it). A symbol
+// the exchange did not answer for is left out (see missingTickersNotice in ./market.ts)
+export async function fetchTickerList (exchange: any, symbols: string[], params: Record<string, any>): Promise<any[]> {
+    if (exchange.has['fetchTickers'] && symbols.length > 1) {
+        const result = await exchange.fetchTickers (symbols, params);
+        return symbols.map ((symbol: string) => {
+            const ticker = result?.[symbol];
+            if (ticker !== undefined && ticker !== null && ticker.symbol === undefined) {
+                ticker.symbol = symbol;
+            }
+            return ticker;
+        }).filter ((ticker: any) => ticker !== undefined && ticker !== null);
+    }
+    const tickers: any[] = [];
+    for (const symbol of symbols) {
+        const ticker = await exchange.fetchTicker (symbol, params);
+        if (ticker !== undefined && ticker !== null) {
+            if (ticker.symbol === undefined) {
+                ticker.symbol = symbol;
+            }
+            tickers.push (ticker);
+        }
+    }
+    return tickers;
+}
+
+// some exchanges ignore the API-level limit — slice server-side; and normalize each level to
+// the unified [price, amount] (some venues, e.g. kraken, append a per-level timestamp as a
+// third element that an agent could misread as an order count)
+export function normalizeBookSide (side: any[] | undefined, levels: number): any[][] {
+    return (side ?? []).slice (0, levels).map ((level: any[]) => [ level?.[0], level?.[1] ]);
+}
+
+// shared by get_ohlcv and show_chart so both reject an unsupported timeframe identically
+export function badTimeframe (exchange: any, frame: string): Envelope | undefined {
+    const timeframes = exchange.timeframes;
+    if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
+        return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
+    }
+    return undefined;
+}
+
+// Each notice is a sentence fragment without terminal punctuation (and several contain
+// dashes and semicolons of their own), so a bare space ran them into one garbled sentence.
+// The separator keeps every notice readable as a unit; undefined when there is none.
+const NOTICE_SEPARATOR = ' | ';
+
+export function joinNotices (notices: (string | undefined)[]): string | undefined {
+    const present = notices.filter ((notice) => typeof notice === 'string' && notice.length > 0);
+    return present.length ? present.join (NOTICE_SEPARATOR) : undefined;
+}
+
+// fetchTickerList drops a requested symbol the exchange did not answer for — say so, or the
+// caller reads a partial result as the complete one
+export function missingTickersNotice (missing: string[]): string | undefined {
+    if (missing.length === 0) {
+        return undefined;
+    }
+    return 'no ticker was returned for: ' + missing.join (', ') + ' — some exchanges serve one market type per call, so request spot and swap/future symbols in separate calls';
 }
 
 export function clampLimit (limit: number | undefined, defaultValue: number, max: number): number {

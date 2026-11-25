@@ -1,4 +1,6 @@
 import type { AuthInfo } from '@modelcontextprotocol/server';
+import type { UiPolicy, ViewCatalog } from './ui.js';
+import type { ToolProfile } from './tools/access.js';
 
 export type TierFlag = false | true | 'live';
 
@@ -45,6 +47,7 @@ export interface ServerSettings {
     exchangeOptions: Record<string, Record<string, any>>;
     maxSubscriptions: number;
     hideDisabledTools: boolean;
+    tools?: string; // tool profile: "all", "core" or a comma-separated list of tool names
     loadEnvKeys: boolean;
 }
 
@@ -92,6 +95,10 @@ export interface ServerContext {
     // Phase 2 resolves accounts from it instead of the local config file; tool handlers read it
     // through requestAuthInfo (), which also sees a per-request ctx.http.authInfo
     authInfo?: AuthInfo;
+    // when show_* results carry their view payload, and the views (versioned URIs + HTML)
+    ui: { policy: UiPolicy, views: ViewCatalog };
+    // which tools this server instance registers (get_safety_status reports it)
+    toolProfile: ToolProfile;
     // whether the client declared form elicitation — read per request, because on the
     // 2026-07-28 revision capabilities travel with each request instead of the handshake
     elicitationSupported: () => boolean;

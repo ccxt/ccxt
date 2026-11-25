@@ -4,7 +4,7 @@ import { resolveMarketFields, searchMarketsMaxLimit, marketTypeCounts, zeroMatch
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, methodNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_TEXT_LENGTH, MAX_CODE_LENGTH, MAX_SYMBOLS, accountNameParam } from './common.js';
+import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, methodNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_TEXT_LENGTH, MAX_CODE_LENGTH, MAX_SYMBOLS, accountNameParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
 
@@ -276,39 +276,21 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ exchange: exchangeId, symbols, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'get_tickers', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
-        let tickers: any[];
-        if (exchange.has['fetchTickers'] && symbols.length > 1) {
-            const result = await exchange.fetchTickers (symbols, params ?? {});
-            // backfill symbol so callers can match rows to the handles they requested
-            // (some prediction/outcome tickers omit it) and preserve request order
-            tickers = symbols.map ((symbol: string) => {
-                const ticker = result[symbol];
-                if (ticker !== undefined && ticker.symbol === undefined) {
-                    ticker.symbol = symbol;
-                }
-                return ticker;
-            }).filter ((ticker: any) => ticker !== undefined);
-        } else {
-            tickers = [];
-            for (const symbol of symbols) {
-                const ticker = await exchange.fetchTicker (symbol, params ?? {});
-                if (ticker !== undefined && ticker.symbol === undefined) {
-                    ticker.symbol = symbol;
-                }
-                tickers.push (ticker);
-            }
-        }
+        const tickers = await fetchTickerList (exchange, symbols, params ?? {});
         const keepInfo = includeInfo === true && symbols.length === 1;
         const data = keepInfo ? tickers : tickers.map ((ticker) => project (ticker, TICKER_FIELDS));
-        const notices: string[] = [];
-        const typeNotice = marketTypeMismatchNotice (exchange, symbols, marketType);
-        if (typeNotice !== undefined) {
-            notices.push (typeNotice);
+        const returned = new Set (tickers.map ((ticker) => ticker?.symbol));
+        const missing = symbols.filter ((symbol) => !returned.has (symbol));
+        const infoNotice = (includeInfo === true && symbols.length > 1)
+            ? 'includeInfo applies to single-symbol calls only — raw info was omitted; request one symbol at a time to include it'
+            : undefined;
+        // jsonStringify writes undefined as null, so absent facts are left out of meta entirely
+        const meta: Record<string, any> = { 'exchange': exchange.id, 'count': data.length };
+        if (missing.length > 0) {
+            meta['missing'] = missing;
         }
-        if (includeInfo === true && symbols.length > 1) {
-            notices.push ('includeInfo applies to single-symbol calls only — raw info was omitted; request one symbol at a time to include it');
-        }
-        return ok (data, { 'exchange': exchange.id, 'count': data.length, 'notice': notices.length ? notices.join (' ') : undefined });
+        meta['notice'] = joinNotices ([ missingTickersNotice (missing), marketTypeMismatchNotice (exchange, symbols, marketType), infoNotice ]);
+        return ok (data, meta);
     }));
 
     server.registerTool ('get_orderbook', {
@@ -328,17 +310,13 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit ?? depth, 20, 100);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
-        // some exchanges ignore the API-level limit — slice server-side; and normalize each
-        // level to the unified [price, amount] (some venues, e.g. kraken, append a per-level
-        // timestamp as a third element that an agent could misread as an order count)
-        const normalize = (side: any[]) => (side ?? []).slice (0, levels).map ((level: any[]) => [ level[0], level[1] ]);
         const data = {
             'symbol': book.symbol ?? symbol,
             'timestamp': book.timestamp,
             'datetime': book.datetime,
             'nonce': book.nonce,
-            'bids': normalize (book.bids),
-            'asks': normalize (book.asks),
+            'bids': normalizeBookSide (book.bids, levels),
+            'asks': normalizeBookSide (book.asks, levels),
         };
         return ok (data, { 'exchange': exchange.id, 'depth': levels, 'notice': marketTypeMismatchNotice (exchange, [ symbol ], marketType) });
     }));
@@ -360,9 +338,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_ohlcv', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const frame = timeframe ?? '1h';
-        const timeframes = exchange.timeframes;
-        if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
-            return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
+        const timeframeError = badTimeframe (exchange, frame);
+        if (timeframeError !== undefined) {
+            return timeframeError;
         }
         const rowLimit = clampLimit (limit, 100, 500);
         const rows = await exchange.fetchOHLCV (symbol, frame, parseSince (exchange, since), rowLimit, params ?? {});
@@ -376,7 +354,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'columns': [ 'timestamp', 'open', 'high', 'low', 'close', 'volume' ],
             'count': rows.length,
             hasMore,
-            'notice': [ typeNotice, pageNotice ].filter (Boolean).join (' ') || undefined,
+            'notice': joinNotices ([ typeNotice, pageNotice ]),
         });
     }));
 
@@ -561,7 +539,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('get_safety_status', {
         'title': 'Show safety and configuration status',
-        'description': 'What this server is currently allowed to do: configured accounts (names only — never credentials), enabled capability tiers, caps, sandbox/live environments, journal location, unresolved order intents, and any configuration problems.',
+        'description': 'What this server is currently allowed to do: configured accounts (names only — never credentials), enabled capability tiers, caps, sandbox/live environments, the tool profile and the tools it hides, journal location, unresolved order intents, and any configuration problems.',
         'inputSchema': z.object ({}),
         'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'get_safety_status' }, async () => {
@@ -579,6 +557,10 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
                 'implicitWrites': accounts.some ((account) => account.implicitWrites),
             },
             'elicitationSupported': ctx.elicitationSupported (),
+            // which tools this session lists, and how the user gets the hidden ones back
+            'toolProfile': ctx.toolProfile.status?.() ?? { 'profile': ctx.toolProfile.name, 'hiddenTools': [] },
+            // when show_* results carry their view payload
+            'views': { 'mode': ctx.ui.policy.mode, 'whenUnknown': ctx.ui.policy.whenUnknown },
             'configPath': ctx.config.configPath ?? (accounts.length > 0 ? '(no config file — accounts configured via environment variables)' : '(no config file found — public market tier only)'),
             'journal': ctx.journal.location (),
             'unresolvedIntents': unresolved.map ((record: any) => ({ 'intentId': record.intentId, 'ts': record.ts, 'account': record.account, 'method': record.method, 'clientOrderId': record.clientOrderId })),

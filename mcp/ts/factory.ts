@@ -1,13 +1,16 @@
-import { McpServer, CLIENT_CAPABILITIES_META_KEY } from '@modelcontextprotocol/server';
+import { McpServer } from '@modelcontextprotocol/server';
 import type { AuthInfo } from '@modelcontextprotocol/server';
 import { ExchangePools, type PoolsDeps } from './pools.js';
 import { Safety } from './safety.js';
 import { Journal } from './journal.js';
 import { SubscriptionRegistry } from './subscriptions.js';
 import { registerAllTools, SERVER_INSTRUCTIONS } from './tools/index.js';
-import { installRegistrationGuard, FULL_PROFILE, type ToolProfile } from './tools/access.js';
+import { installRegistrationGuard, type ToolProfile } from './tools/access.js';
+import { NamedToolProfile, profileInstructions } from './tools/profile.js';
+import { defaultViewCatalog, uiModeFromEnv, requestClientCapabilities, type UiPolicy, type ViewCatalog } from './ui.js';
 import { RouteCache, createRouter } from './tools/route.js';
 import { currentRequestScope } from './request-scope.js';
+import { log } from './logging.js';
 import type { ResolvedConfig, ServerContext, ProtocolEra } from './types.js';
 
 export interface SharedStateOptions {
@@ -18,6 +21,7 @@ export interface SharedStateOptions {
     journalDir?: string;
     deadRetentionMs?: number; // how long errored streams stay listable/readable (tests inject a tiny value)
     router?: any; // an OrderRouter instance (tests inject one); defaults to one built from ccxtModule
+    views?: ViewCatalog; // the rendered views (tests inject a modified catalog); defaults to ./ui
 }
 
 // kept as the name callers and tests already use for createServer's options
@@ -37,6 +41,11 @@ export interface SharedState {
     router: any;
     routes: RouteCache;
     version: string;
+    // the MCP Apps views, rendered and hashed into their versioned URIs once per process
+    views: ViewCatalog;
+    // the local tool profile (CCXT_MCP_TOOLS / settings.tools), used unless a deployment
+    // passes its own to buildServer
+    toolProfile: NamedToolProfile;
 }
 
 export function createSharedState (options: SharedStateOptions): SharedState {
@@ -44,6 +53,12 @@ export function createSharedState (options: SharedStateOptions): SharedState {
     const safety = new Safety (journal);
     const pools = new ExchangePools (options.config, options.poolsDeps);
     const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions, options.deadRetentionMs);
+    const toolProfile = new NamedToolProfile (options.config.settings.tools);
+    // reported once per process, not once per built server
+    for (const problem of toolProfile.problems ()) {
+        options.config.problems.push (problem);
+        log ('warning', 'config: ' + problem);
+    }
     return {
         'ccxt': options.ccxtModule,
         'config': options.config,
@@ -54,6 +69,8 @@ export function createSharedState (options: SharedStateOptions): SharedState {
         'router': options.router ?? createRouter (options.ccxtModule, options.version),
         'routes': new RouteCache (),
         'version': options.version,
+        'views': options.views ?? defaultViewCatalog (),
+        toolProfile,
     };
 }
 
@@ -62,6 +79,9 @@ export interface BuildServerOptions {
     authInfo?: AuthInfo;
     hosted?: boolean;
     era?: ProtocolEra; // the SDK serving entry's choice; a bare server.connect () speaks the 2025 handshake
+    // when show_* results carry their view payload. mode defaults to CCXT_MCP_UI; whenUnknown
+    // to "attach" on the hosted server and "omit" on stdio (see UiWhenUnknown in ./ui.ts)
+    ui?: Partial<UiPolicy>;
 }
 
 // Builds one McpServer over the shared state. Cheap and side-effect free (no I/O, no
@@ -69,11 +89,16 @@ export interface BuildServerOptions {
 // call it once per stdio connection plus a discarded server/discover probe, and a hosted
 // server calls it once per HTTP request.
 export function buildServer (shared: SharedState, options: BuildServerOptions = {}): { server: McpServer, ctx: ServerContext } {
+    const hosted = options.hosted === true;
+    const profile: ToolProfile = options.profile ?? shared.toolProfile;
+    // the instructions are fixed at construction and must not promise a tool the profile
+    // hides; a deployment with its own profile brings its own wording
+    const instructions = (profile instanceof NamedToolProfile) ? profileInstructions (SERVER_INSTRUCTIONS, profile) : SERVER_INSTRUCTIONS;
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': shared.version,
     }, {
-        'instructions': SERVER_INSTRUCTIONS,
+        instructions,
     });
     const ctx: ServerContext = {
         'ccxt': shared.ccxt,
@@ -85,19 +110,25 @@ export function buildServer (shared: SharedState, options: BuildServerOptions = 
         'router': shared.router,
         'routes': shared.routes,
         'version': shared.version,
-        'hosted': options.hosted === true,
+        hosted,
         'era': options.era ?? 'legacy',
         'authInfo': options.authInfo,
+        'ui': {
+            'policy': {
+                'mode': options.ui?.mode ?? uiModeFromEnv (),
+                'whenUnknown': options.ui?.whenUnknown ?? (hosted ? 'attach' : 'omit'),
+            },
+            'views': shared.views,
+        },
+        'toolProfile': profile,
         'elicitationSupported': () => {
-            // 2026-07-28 requests carry the client's capabilities in their own envelope; a
-            // 2025-era connection declared them once in initialize. A stateless 2025-era
-            // HTTP request has neither, which correctly reads as "unsupported"
-            const envelope: any = currentRequestScope ()?.request?.mcpReq?.envelope;
-            const capabilities: any = envelope?.[CLIENT_CAPABILITIES_META_KEY] ?? server.server.getClientCapabilities ();
+            // read per request (see requestClientCapabilities); unknown capabilities — a
+            // stateless 2025-era HTTP request — correctly read as "unsupported"
+            const capabilities: any = requestClientCapabilities (server, currentRequestScope ()?.request);
             return capabilities?.elicitation !== undefined;
         },
     };
-    installRegistrationGuard (server, ctx, options.profile ?? FULL_PROFILE);
+    installRegistrationGuard (server, ctx, profile);
     registerAllTools (server, ctx);
     return { server, ctx };
 }

@@ -138,6 +138,8 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
 
+**views (MCP Apps)** — `show_chart` (candlestick + volume; `timeframe` default `1h`, `limit` default 200 / max 500), `show_orderbook` (cumulative depth chart + ladder; `limit` default 50 / max 100 levels per side), `show_tickers` (sortable 24h price board; up to 50 symbols). Public data, read-only, no account — see [Interactive views](#interactive-views-mcp-apps).
+
 **live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data. **State** streams are snapshots of "what is X right now" — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: the server merges live updates into the **full current set**, so `watch_read` always returns every subscribed symbol in `latest` (a multi-symbol stream never shows just the one that last ticked). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` with a cursor. Pass `waitForChange: true` to `watch_read` to **block until the next update** (or timeout) instead of polling — the efficient way to wait for a fill or position change. `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket so the agent always has fresh data; idle streams auto-stop after 10 minutes.
 
 **read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
@@ -149,6 +151,29 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 **funds** — `withdraw`, `transfer`, `get_deposit_address`. **implicitWrites** — `call_implicit_write`.
 
 Every list result is capped and paginated to fit host context limits (with in-band truncation notices); the raw `info` payload is stripped by default. Prediction exchanges use the same tools with outcome handles (from `search_events`) in the symbol position.
+
+## Interactive views (MCP Apps)
+
+`show_chart`, `show_orderbook` and `show_tickers` implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (extension `io.modelcontextprotocol/ui`, spec 2026-01-26): each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.<hash>.html` resource (`mimeType` `text/html;profile=mcp-app`) that hosts with MCP Apps support render in a sandboxed iframe. The hash is taken from the view's content, so a changed view gets a new URI and a host never pairs new results with a cached old view.
+
+- The model gets a compact summary as text. `structuredContent` (declared by each tool's `outputSchema`) carries the same summary plus, only when a view will render it, the dataset the view draws. A host without MCP Apps may hand `structuredContent` to the model in place of the summary, so it never receives the dataset. The `get_*` tools remain the raw-data tools.
+- `meta.ui` says what happened: `"displayed"` (the host declared MCP Apps support, dataset attached), `"unsupported"` (it did not), `"off"` (views disabled). The `CCXT_MCP_UI` environment variable overrides the detection: `auto` (default), `always` (attach the dataset even when the host does not declare support), `off` (never). A remote (stateless HTTP) deployment can also see `"attached"` or `"unknown"` when a 2025-era client's capabilities cannot be known; a stdio connection always knows them.
+- On contract markets order-book amounts are in contracts: `show_orderbook` reports `meta.amountUnit` / `meta.contractSize` plus base- and quote-currency depth totals. `show_tickers` and `get_tickers` name symbols that returned no ticker in `meta.missing`.
+- Views are self-contained single files: no network access, no external assets, no tracking. They can ask the host to re-run the same tool (Refresh, timeframe switch) with the original arguments; nothing ties that call to a server-side session.
+
+Terminal hosts (Claude Code CLI, Codex CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a local stdio server varies.
+
+### Tool profile
+
+Every listed tool is sent to the model as a definition, and some hosts cap the total (the ChatGPT desktop app was observed dropping the alphabetically last tools, the `show_*` views among them). `CCXT_MCP_TOOLS` (or `"settings": { "tools": … }`; the environment variable wins) chooses what is listed:
+
+| Value | Lists |
+|---|---|
+| `all` (default) | every tool |
+| `core` | 17 essential tools: the three views, `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_safety_status`, `call_read_method`, `list_accounts`, `get_balance`, `get_orders`, `get_positions`, `create_order`, `cancel_order` |
+| `core,describe_method` or `get_tickers,show_chart` | an explicit list (`core` composes with names; `get_safety_status` is always listed) |
+
+A hidden tool is not registered at all for that session; `get_safety_status` reports the active profile, the tools it hides, and any name in the list that is not a tool. The profile only chooses what is listed: the capability tiers still decide what an account may do.
 
 ## Troubleshooting
 
@@ -163,7 +188,8 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 ```bash
 npm run mcp.ts          # run the server from live TypeScript sources (tsx)
 cd mcp && npm test      # unit + schema + integration tests
-cd mcp && npm run build # tsc + regenerate js/data/method-docs.json
+cd mcp && npm run build # tsc + copy the views to js/ui + regenerate js/data/method-docs.json
+cd mcp && npm run ui:preview  # write a fake-host page that renders every view with canned data
 ```
 
 See `DESIGN.md` for the architecture, the prior-art analysis this server is built on, and the decision log.

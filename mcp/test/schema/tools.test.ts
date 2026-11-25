@@ -12,6 +12,8 @@ const MARKET_TOOLS = [
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
+    // the MCP Apps render tools: public market data, so they sit in the market tier
+    'show_chart', 'show_orderbook', 'show_tickers',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
 const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route' ];
@@ -48,6 +50,21 @@ async function callTool (accounts: any, name: string, args: any, settings: any =
 }
 
 const ALL_TOOLS = [ ...MARKET_TOOLS, ...READ_TOOLS, ...TRADE_TOOLS, ...FUNDS_TOOLS, ...IMPLICIT_WRITE_TOOLS ];
+
+// the 34 tools of the release before the views, by name: the local server must keep every one
+const PREVIOUS_RELEASE_TOOLS = [
+    'call_implicit_get', 'call_implicit_write', 'call_read_method', 'call_write_method', 'cancel_all_orders', 'cancel_order',
+    'create_order', 'describe_exchange', 'describe_method', 'edit_order', 'execute_route', 'fetch_route', 'get_balance',
+    'get_deposit_address', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders', 'get_positions', 'get_safety_status',
+    'get_tickers', 'get_trades', 'list_accounts', 'list_exchanges', 'search_events', 'search_markets', 'set_leverage',
+    'set_margin_mode', 'transfer', 'watch_list', 'watch_read', 'watch_subscribe', 'watch_unsubscribe', 'withdraw',
+];
+
+test ('stdio tool list: the previous release\'s tools plus exactly the three views', async () => {
+    const { names } = await listToolNames ({});
+    assert.equal (PREVIOUS_RELEASE_TOOLS.length, 34);
+    assert.deepEqual (names, [ ...PREVIOUS_RELEASE_TOOLS, 'show_chart', 'show_orderbook', 'show_tickers' ].sort ());
+});
 
 test ('default: every tool tier is listed even with no accounts (disabled tiers error at call time)', async () => {
     const { names } = await listToolNames ({});
@@ -123,5 +140,22 @@ test ('no tool schema accepts credential-shaped parameters', async () => {
             const lower = property.toLowerCase ();
             assert.ok (!forbidden.some ((word) => lower.includes (word)), tool.name + ' exposes credential-shaped param ' + property);
         }
+    }
+});
+
+// ChatGPT and Codex weight (or cut) the start of the instructions, so the opening paragraph
+// must say on its own what the server is for, how to begin and how to show data
+test ('SERVER_INSTRUCTIONS: the opening paragraph fits in 512 characters and stands on its own', async () => {
+    const { SERVER_INSTRUCTIONS } = await import ('../../ts/tools/index.js');
+    const end = SERVER_INSTRUCTIONS.indexOf ('\n\n');
+    assert.ok (end > 0 && end <= 512, 'the first paragraph is ' + end + ' characters');
+    const opening = SERVER_INSTRUCTIONS.slice (0, end);
+    for (const name of [ 'list_exchanges', 'search_markets', 'get_tickers', 'show_chart', 'show_orderbook', 'show_tickers' ]) {
+        assert.ok (opening.includes (name), 'the opening names ' + name);
+    }
+    assert.ok (opening.endsWith ('https://docs.ccxt.com/'), 'the opening ends on a complete sentence');
+    // every tool the opening names exists
+    for (const name of opening.match (/\b[a-z]+_[a-z_]+\b/g) ?? []) {
+        assert.ok (ALL_TOOLS.includes (name), name + ' named in the opening is not a tool');
     }
 });

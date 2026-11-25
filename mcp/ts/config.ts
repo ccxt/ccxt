@@ -52,6 +52,9 @@ const settingsSchema = z.object ({
     // call time; set true to hide disabled tiers from tools/list (a leaner, deliberately
     // read-only deployment) — execution is gated by the account either way
     'hideDisabledTools': z.boolean ().optional (),
+    // tool profile: "all" (default), "core" (the essential tools, for hosts that cap the size of
+    // tool definitions) or tool names, as a comma-separated string or an array — CCXT_MCP_TOOLS wins
+    'tools': z.union ([ z.string ().max (4096), z.array (z.string ().max (128)).max (256) ]).optional (),
     // opt-in: auto-register accounts from <EXCHANGEID>_<CREDENTIAL> env vars (ccxt --loadKeys parity)
     'loadEnvKeys': z.boolean ().optional (),
 }).passthrough ();
@@ -417,6 +420,8 @@ export function loadConfig (): ResolvedConfig {
         // so a count cap isn't needed — set a positive value only if you want one.
         'maxSubscriptions': validSettings.maxSubscriptions ?? 0,
         'hideDisabledTools': validSettings.hideDisabledTools ?? false,
+        // an empty CCXT_MCP_TOOLS (a host passing a blank form field) is "not set"
+        'tools': (process.env['CCXT_MCP_TOOLS'] ?? '').trim () || [ validSettings.tools ?? [] ].flat ().join (',') || 'all',
         'loadEnvKeys': (validSettings.loadEnvKeys ?? false) || (process.env['CCXT_MCP_LOAD_ENV_KEYS'] === 'true'),
     };
 

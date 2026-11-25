@@ -1,0 +1,105 @@
+/* Shared styles for the ccxt-mcp views (inlined into each view by ts/ui.ts).
+   Surfaces, text, borders and fonts follow the host's MCP Apps style variables when it
+   supplies them and fall back to a neutral light/dark pair otherwise. Mark colours are a
+   fixed, validated pair per theme: up/down must stay distinguishable on either surface. */
+:root {
+    color-scheme: light;
+    --fb-bg: #fcfcfb;
+    --fb-bg-2: #f3f2ef;
+    --fb-text: #0b0b0b;
+    --fb-text-2: #52514e;
+    --fb-text-3: #7a7974;
+    --fb-border: #e3e2dd;
+    --up: #008300;
+    --down: #e34948;
+    --accent: #2a78d6;
+    --bg: var(--color-background-primary, var(--fb-bg));
+    --bg-2: var(--color-background-secondary, var(--fb-bg-2));
+    --text: var(--color-text-primary, var(--fb-text));
+    --text-2: var(--color-text-secondary, var(--fb-text-2));
+    --text-3: var(--color-text-tertiary, var(--fb-text-3));
+    --border: var(--color-border-primary, var(--fb-border));
+    --radius: var(--border-radius-md, 8px);
+    --sans: var(--font-sans, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+    --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --fb-bg: #1a1a19;
+        --fb-bg-2: #262624;
+        --fb-text: #f0efec;
+        --fb-text-2: #c3c2b7;
+        --fb-text-3: #94938a;
+        --fb-border: #3a3a37;
+        --up: #0ca30c;
+        --down: #e66767;
+        --accent: #3987e5;
+    }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --fb-bg: #1a1a19;
+    --fb-bg-2: #262624;
+    --fb-text: #f0efec;
+    --fb-text-2: #c3c2b7;
+    --fb-text-3: #94938a;
+    --fb-border: #3a3a37;
+    --up: #0ca30c;
+    --down: #e66767;
+    --accent: #3987e5;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.4 var(--sans);
+    padding: calc(12px + var(--safe-top, 0px)) calc(14px + var(--safe-right, 0px)) calc(12px + var(--safe-bottom, 0px)) calc(14px + var(--safe-left, 0px));
+    -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; margin-bottom: 10px; }
+.title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.title h1 { font-size: 15px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.title .venue { color: var(--text-2); }
+.hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 2px; }
+.hero .value { font-size: 24px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.hero .context { color: var(--text-2); }
+/* direction is never colour-alone: every delta carries an arrow glyph and a signed number */
+.delta { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+button {
+    font: inherit;
+    color: var(--text-2);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px 9px;
+    cursor: pointer;
+}
+.segmented button { border: 0; border-radius: 0; border-left: 1px solid var(--border); }
+.segmented button:first-child { border-left: 0; }
+button:hover:not(:disabled) { background: var(--bg-2); color: var(--text); }
+button[aria-pressed="true"] { background: var(--bg-2); color: var(--text); font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.status { color: var(--text-2); min-height: 18px; margin-top: 6px; }
+.status.error { color: var(--down); }
+.empty { color: var(--text-2); padding: 48px 0; text-align: center; }
+.busy { opacity: 0.45; transition: opacity 120ms; }
+.scroll { max-height: 320px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
+th:first-child, td:first-child { text-align: left; }
+thead th { position: sticky; top: 0; background: var(--bg); color: var(--text-2); font-weight: 500; z-index: 1; }
+tbody tr:last-child td { border-bottom: 0; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--text-3); font: 11px var(--sans); font-variant-numeric: tabular-nums; }
+.grid { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; }
+.cursor { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; shape-rendering: crispEdges; pointer-events: none; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .busy { transition: none; } }

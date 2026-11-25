@@ -29,6 +29,9 @@ export const TOOL_ACCESS: Readonly<Record<string, AccessClass>> = Object.freeze 
     'get_ohlcv': 'public',
     'get_trades': 'public',
     'search_events': 'public',
+    'show_chart': 'public',
+    'show_orderbook': 'public',
+    'show_tickers': 'public',
     'get_balance': 'account',
     'get_orders': 'account',
     'get_my_trades': 'account',
@@ -63,11 +66,16 @@ export function accessClassOf (tool: string): AccessClass | undefined {
 
 // Which tools one server instance registers. The default profile registers everything the
 // tier logic in registerAllTools asks for (today's stdio behaviour); a deployment narrows
-// it by access class — the filter runs at registration, so a filtered tool does not exist
-// on that server at all (it is never listed and cannot be called)
+// it by access class or by name (tools/profile.ts) — the filter runs at registration, so a
+// filtered tool does not exist on that server at all (it is never listed and cannot be called)
 export interface ToolProfile {
     name: string;
     allows: (tool: string, access: AccessClass) => boolean;
+    // optional last word on an allowed tool's definition, e.g. dropping a description's
+    // pointer to a tool this profile hides. Must return a config of the same shape
+    adjust?: (tool: string, config: any) => any;
+    // what get_safety_status reports about the profile (defaults to name + no hidden tools)
+    status?: () => Record<string, any>;
 }
 
 export const FULL_PROFILE: ToolProfile = Object.freeze ({
@@ -160,6 +168,9 @@ export function installRegistrationGuard (server: McpServer, ctx: ServerContext,
         }
         if (!profile.allows (name, access)) {
             return undefined;
+        }
+        if (profile.adjust !== undefined) {
+            config = profile.adjust (name, config);
         }
         const guarded = async (args: any, request: any) => {
             const keyPath = findCredentialKey (args);
