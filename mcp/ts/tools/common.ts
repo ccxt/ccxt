@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import type { AccountConfig } from '../types.js';
-import { toErrorEnvelope, type ErrorContext } from '../errors.js';
+import { toErrorEnvelope, isCcxtError, type ErrorContext } from '../errors.js';
 import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
@@ -52,7 +52,19 @@ export async function run (context: ErrorContext, fn: () => Promise<Envelope>): 
     try {
         envelope = await fn ();
     } catch (error: any) {
-        envelope = errorEnvelope (error, context);
+        if (shouldRetry (error, context)) {
+            await new Promise ((resolve) => setTimeout (resolve, retryDelay (error)));
+            try {
+                envelope = await fn ();
+            } catch (secondError: any) {
+                envelope = errorEnvelope (secondError, context);
+                if (envelope.error !== undefined) {
+                    envelope.error['attempts'] = 2;
+                }
+            }
+        } else {
+            envelope = errorEnvelope (error, context);
+        }
     }
     // hosted HTTP only: report the call to the request's access log (no-op under stdio)
     const request = requestContext.getStore ();
@@ -60,6 +72,26 @@ export async function run (context: ErrorContext, fn: () => Promise<Envelope>): 
         request.onToolCall ({ 'tool': context.tool, 'exchange': context.exchange, 'ok': envelope.ok, 'code': envelope.ok ? undefined : envelope.error?.['code'], 'ms': Date.now () - started });
     }
     return toContent (envelope);
+}
+
+const RETRY_DELAY = 250;
+const RETRY_DELAY_RATE_LIMITED = 1000;
+const RETRYABLE_TOOLS = new Set ([
+    'search_markets', 'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'get_funding_rates', 'search_events',
+    'call_read_method', 'call_implicit_get', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions',
+]);
+const NOT_SENT_TO_EXCHANGE = [ 'NotSupported', 'ArgumentsRequired', 'BadSymbol' ];
+
+function shouldRetry (error: any, context: ErrorContext): boolean {
+    if (context.mutating === true || context.tool === undefined || !RETRYABLE_TOOLS.has (context.tool) || !isCcxtError (error)) {
+        return false;
+    }
+    return !NOT_SENT_TO_EXCHANGE.includes (String (error?.constructor?.name));
+}
+
+function retryDelay (error: any): number {
+    const name = String (error?.constructor?.name);
+    return (name === 'RateLimitExceeded' || name === 'DDoSProtection') ? RETRY_DELAY_RATE_LIMITED : RETRY_DELAY;
 }
 
 function errorEnvelope (error: any, context: ErrorContext): Envelope {

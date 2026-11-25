@@ -6,7 +6,8 @@ import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
-import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
+import { fakeCcxtModule, fakePoolsDeps, makeConfig, FakeExchange } from '../helpers/fake-ccxt.js';
+import { ccxt } from '../../ts/ccxt-loader.js';
 import type { ServerContext } from '../../ts/types.js';
 
 async function connect (accounts: any): Promise<{ client: Client, ctx: ServerContext }> {
@@ -334,4 +335,39 @@ test ('call_write_method: allowlist enforced, allowlisted method dispatches with
     const preview = await call (client, 'call_write_method', { 'account': 'acc', 'method': 'closePosition', 'args': [ 'BTC/USDT' ] });
     assert.equal (preview.meta.confirmationRequired, true);
     await client.close ();
+});
+
+test ('a failed exchange read is retried once, then the exchange error is returned', async () => {
+    const { client } = await connect ({});
+    const original = FakeExchange.prototype.fetchOHLCV;
+    const args = { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'limit': 50 };
+    let calls = 0;
+    const failing = (times: number, make: () => Error) => async function (this: any, ...rest: any[]) {
+        calls += 1;
+        if (calls <= times) {
+            throw make ();
+        }
+        return original.apply (this, rest as any);
+    };
+    try {
+        FakeExchange.prototype.fetchOHLCV = failing (1, () => new ccxt.ExchangeNotAvailable ('fakex {"code":-1001,"msg":"Internal error"}')) as any;
+        const recovered = await call (client, 'get_ohlcv', args);
+        assert.equal (recovered.ok, true);
+        assert.equal (calls, 2);
+        calls = 0;
+        FakeExchange.prototype.fetchOHLCV = failing (5, () => new ccxt.ExchangeError ('fakex {"code":-1121,"msg":"Invalid symbol."}')) as any;
+        const failed = await call (client, 'get_ohlcv', args);
+        assert.equal (failed.ok, false);
+        assert.equal (calls, 2);
+        assert.equal (failed.error.message, 'fakex {"code":-1121,"msg":"Invalid symbol."}');
+        assert.equal (failed.error.attempts, 2);
+        calls = 0;
+        FakeExchange.prototype.fetchOHLCV = failing (5, () => new ccxt.NotSupported ('fakex fetchOHLCV() is not supported')) as any;
+        const unsupported = await call (client, 'get_ohlcv', args);
+        assert.equal (unsupported.ok, false);
+        assert.equal (calls, 1);
+        assert.equal (unsupported.error.attempts, undefined);
+    } finally {
+        FakeExchange.prototype.fetchOHLCV = original;
+    }
 });
