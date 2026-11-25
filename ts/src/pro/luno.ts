@@ -7,6 +7,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -374,7 +375,7 @@ export default class luno extends lunoRest {
      * @param {string} tradedAmount the traded amount in base currency, as a string
      * @returns {boolean} true if the order was found in this side, false otherwise
      */
-    reduceOrderVolume (orderSide: any, orderId: string, tradedAmount: string): boolean {
+    reduceOrderVolume (orderSide: OrderBookSide, orderId: string, tradedAmount: string): boolean {
         const sideLength = orderSide.length;
         for (let i = 0; i < sideLength; i++) {
             const order = orderSide[i];
