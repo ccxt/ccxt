@@ -23,7 +23,7 @@ func (this *Mexc) Describe() map[string]any {
 		"countries": []any{"SC"},
 		"rateLimit": 50,
 		"version":   "v3",
-		"certified": true,
+		"certified": false,
 		"pro":       true,
 		"has": map[string]any{
 			"CORS":                           nil,
