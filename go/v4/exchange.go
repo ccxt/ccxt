@@ -1416,7 +1416,7 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 	if markets == nil {
 		panic("Markets not loaded, please call LoadMarkets() first")
 	}
-	market, ok := markets[symbol]
+	market, ok := markets[symbol].(map[string]any)
 	if !ok {
 		return NewMarketInterface(nil)
 	}
@@ -1425,8 +1425,9 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 
 func (this *BaseExchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
-	for _, market := range this.Markets {
-		markets = append(markets, NewMarketInterface(market))
+	for key := range this.Markets {
+		marketMap, _ := this.Markets[key].(map[string]any)
+		markets = append(markets, NewMarketInterface(marketMap))
 	}
 	return markets
 }

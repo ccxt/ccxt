@@ -116,11 +116,13 @@ func NewPredictionOrder(data map[string]any) PredictionOrder {
 	var trades []PredictionTrade
 	if v, ok := m["trades"]; ok {
 		if tradesData, ok := v.([]any); ok {
-			for _, tradeData := range tradesData {
-				trades = append(trades, NewPredictionTrade(tradeData))
+			for i := range tradesData {
+				tradeMap, _ := tradesData[i].(map[string]any)
+				trades = append(trades, NewPredictionTrade(tradeMap))
 			}
 		}
 	}
+	fee, _ := m["fee"].(map[string]any)
 	return PredictionOrder{
 		Info:                GetInfo(m),
 		Id:                  SafeStringTyped(m, "id"),
@@ -139,7 +141,7 @@ func NewPredictionOrder(data map[string]any) PredictionOrder {
 		Filled:              SafeFloatTyped(m, "filled"),
 		Remaining:           SafeFloatTyped(m, "remaining"),
 		Cost:                SafeFloatTyped(m, "cost"),
-		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{})),
+		Fee:                 NewFee(fee),
 		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
 		PostOnly:            SafeBoolTyped(m, "postOnly"),
 		Outcome:             SafeStringTyped(m, "outcome"),
@@ -182,8 +184,9 @@ type PredictionTrade struct {
 	RealizedPnl  *float64
 }
 
-func NewPredictionTrade(data any) PredictionTrade {
-	m := MapOrEmpty(data)
+func NewPredictionTrade(data map[string]any) PredictionTrade {
+	m := data
+	fee, _ := m["fee"].(map[string]any)
 	return PredictionTrade{
 		Info:         GetInfo(m),
 		Id:           SafeStringTyped(m, "id"),
@@ -196,7 +199,7 @@ func NewPredictionTrade(data any) PredictionTrade {
 		Type:         SafeStringTyped(m, "type"),
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
-		Fee:          NewFee(SafeValue(m, "fee", map[string]any{})),
+		Fee:          NewFee(fee),
 		Outcome:      SafeStringTyped(m, "outcome"),
 		OutcomeId:    SafeStringTyped(m, "outcomeId"),
 		Label:        SafeStringTyped(m, "label"),
@@ -438,14 +441,16 @@ func NewPredictionMarket(data map[string]any) PredictionMarket {
 		m = map[string]any{}
 	}
 	var limits Limits
-	if v, ok := m["limits"]; ok {
-		limits = NewLimits(v)
+	if _, ok := m["limits"]; ok {
+		limitsMap, _ := m["limits"].(map[string]any)
+		limits = NewLimits(limitsMap)
 	}
 	var fees *PredictionFees
 	if f, ok := m["fees"].(map[string]any); ok {
 		feesVal := NewPredictionFees(f)
 		fees = &feesVal
 	}
+	precisionMap, _ := m["precision"].(map[string]any)
 	return PredictionMarket{
 		Info:             GetInfo(m),
 		Id:               SafeStringTyped(m, "id"),
@@ -504,7 +509,7 @@ func NewPredictionMarket(data map[string]any) PredictionMarket {
 		Percentage:       SafeBoolTyped(m, "percentage"),
 		TierBased:        SafeBoolTyped(m, "tierBased"),
 		FeeSide:          SafeStringTyped(m, "feeSide"),
-		Precision:        NewPrecision(SafeValue(m, "precision", map[string]any{})),
+		Precision:        NewPrecision(precisionMap),
 	}
 }
 
