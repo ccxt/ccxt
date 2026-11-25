@@ -401,6 +401,8 @@ const ROW_PARSER_MAP_RETURN_METHODS_3 = [ 'parseBorrowRate', 'parseGreeks', 'par
 ROW_PARSER_MAP_RETURN_METHODS_3.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 // parseLongShortRatio: base throws, every override returns a literal
 [ 'parseLongShortRatio' ].forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
+// bitfinex / okx parseOpenInterestRow: every declaration returns this.safeOpenInterest (..)
+[ 'parseOpenInterestRow' ].forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -442,6 +444,7 @@ const JAVA_STRUCT_RETURN_METHODS = {
     'parseSwapMarket': 'io.github.ccxt.types.MarketInterface',
     'safeCurrencyStructure': 'io.github.ccxt.types.CurrencyInterface',
     'parseCurrency': 'io.github.ccxt.types.CurrencyInterface',
+    'parseWsOrderRow': 'io.github.ccxt.types.Order', // pro bitfinex: returns this.safeOrder (..)
 };
 
 // ===== safeDict locals =====
@@ -18413,7 +18416,9 @@ function javaVenueParamType (printer, node) {
         // a Double amount: same-named methods of unrelated leaf venues; the name only appears as an options key
         const doubleLeaf = target === 'Double' && javaVenueOwnNameNotRedeclared (file, name)
             && (!literals.has (name) || keyLiterals.get (name)?.[0] === keyLiterals.get (name)?.[1]);
-        const unique = (declared.get (name) === 1 || doubleLeaf || (node.type.getText () === 'Market[]' && javaVenueLeafOwnName (file, name))) && !referenced.has (name) && (doubleLeaf || !literals.has (name))
+        // a venue-private row parser of unrelated leaf venues (bitfinex, okx) takes its declared `List` row
+        const listLeaf = node.type.getText () === 'List' && javaVenueOwnNameNotRedeclared (file, name) && !literals.has (name);
+        const unique = (declared.get (name) === 1 || doubleLeaf || listLeaf || (node.type.getText () === 'Market[]' && javaVenueLeafOwnName (file, name))) && !referenced.has (name) && (doubleLeaf || !literals.has (name))
             && java !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (java);
         const venueOnly = unique && printer.getMethodOverride (method) === undefined && !printer.exchangeTierMethods ().has (name)
             && printer.javaIsPrintedMethod (method);
@@ -18459,6 +18464,7 @@ export function installJavaParamTypes (transpiler) {
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
         return upstreamTyped (arg, type) || javaSlotArgumentDeclared (printer, arg, type)
             || (type === 'Long' && javaVenueLongSlotCall (printer, arg))
+            || (type === 'java.util.List<Object>' && javaVenueListSlotSafeList (printer, arg))
             || (type === 'Double' && ts.isPrefixUnaryExpression (unwrapParens (arg) ?? {}) && javaDoubleParamArgument (printer, unwrapParens (arg)));
     };
 }
@@ -18475,6 +18481,25 @@ function javaVenueLongSlotCall (printer, arg) {
         const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
         const param = method?.parameters?.[call.arguments.indexOf (arg)];
         return param !== undefined && javaVenueParamType (printer, param) === 'Long';
+    } catch (e) {
+        return false;
+    }
+}
+
+// a base safeList* call with a List default (hand-written raw `List` overload) passed into a venue-typed List slot
+function javaVenueListSlotSafeList (printer, arg) {
+    const call = arg?.parent;
+    const bare = unwrapParens (arg);
+    if (bare === undefined || !ts.isCallExpression (bare) || call === undefined || !ts.isCallExpression (call)
+        || !ts.isPropertyAccessExpression (call.expression) || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword
+        || !isThisCall (bare) || bare.expression.name.text !== 'safeList' || bare.arguments.length !== 3
+        || !ts.isArrayLiteralExpression (unwrapParens (bare.arguments[2]) ?? {}) || !resolvesToBaseAccessor (printer, bare, 'safeList')) {
+        return false;
+    }
+    try {
+        const method = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve?.();
+        const param = method?.parameters?.[call.arguments.indexOf (arg)];
+        return param !== undefined && javaVenueParamType (printer, param) === 'java.util.List<Object>';
     } catch (e) {
         return false;
     }

@@ -1042,6 +1042,10 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'parseFundingHistory': 'Dictionary<string, object>',
     // backpack stockDataRequest: single declaration, `return request` (the extend() local)
     'stockDataRequest': 'Dictionary<string, object>',
+    // bitfinex / okx list-row parsers: each returns safeOpenInterest / safeLiquidation / safeOrder
+    'parseOpenInterestRow': 'Dictionary<string, object>',
+    'parseLiquidationRow': 'Dictionary<string, object>',
+    'parseWsOrderRow': 'Dictionary<string, object>',
 };
 
 // Sync object venue helpers whose every return is an object/array literal or a call the collection

@@ -33,6 +33,9 @@ const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, t
     [ "TransferEntry", {"names":["ParseTransfer"]} ],
     [ "TradingFeeInterface", {"names":["ParseTradingFee"]} ],
     [ "MarginModification", {"names":["ParseMarginModificationRow"]} ],
+    [ "FundingRate", {"names":["ParseFundingRate","ParseFundingRateRow"]} ],
+    [ "OpenInterest", {"names":["ParseOpenInterest","SafeOpenInterest","ParseOpenInterestRow"]} ],
+    [ "Liquidation", {"names":["ParseLiquidationRow"]} ], // bitfinex list-row parser
 ]);
 
 // what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
@@ -9182,7 +9185,7 @@ const GO_PROVEN_STRUCT_TO_MAP_CALLS = [ 'TradeToMap', 'TickerToMap', 'OrderToMap
 // Structure parsers retyped to `map[string]any` on the base, every override and IDerivedExchange; the
 // venue-only sub-parsers are the ones a retyped parser returns (kucoin/phemex dispatch).
 const GO_PROVEN_PARSE_MAP = ('SafeOrder SafeTicker SafeLedgerEntry ParseOrder ParseTicker ParseTransaction ParseTransfer ParseLedgerEntry '
-    + 'ParseContractTicker ParseUtaOrder ParseContractOrder ParseSpotOrder ParseSwapOrder ParseWsTrade ParseWsTicker ParseWsOrder '
+    + 'ParseContractTicker ParseUtaOrder ParseContractOrder ParseSpotOrder ParseSwapOrder ParseWsTrade ParseWsTicker ParseWsOrder ParseWsOrderRow '
     + 'SafeMarketStructure SafeCurrencyStructure SafeOpenInterest ParseCurrency ParseOpenInterest SafePredictionOrder SafePredictionTicker '
     + 'SafePredictionOrderBook ParsePredictionOrder ParsePredictionTicker ParsePredictionOpenInterest ParseSpotOrUtaTicker ParseContractOrderBook '
     + 'ParseFundingRate ParseLeverage ParseTradingFee ParseDepositAddress ParseMarginMode ParseGreeks ParseOption ParseBorrowRate '
