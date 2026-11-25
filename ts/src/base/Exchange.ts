@@ -5756,7 +5756,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method: string, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
+    async fetchWebEndpoint (method: string, endpointMethod: any, returnAsJson: boolean, startRegex: Str = undefined, endRegex: Str = undefined) {
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
         try {
