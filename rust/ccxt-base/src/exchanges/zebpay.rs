@@ -438,17 +438,16 @@ impl crate::exchange::DerivedExchange for Zebpay {
 
     None
 }
-    fn parse_margin_modification(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let info: Value = info.into();
+    fn parse_margin_modification(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info.clone());
+        m.insert("info".to_string(), Value::from(info));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(&info, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info, "amount", &[]));
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), self.safe_string_k(&info, "code", &[]));
+        m.insert("code".to_string(), self.safe_string_k(info, "code", &[]));
         m.insert("status".to_string(), self.safe_string_k(info, "status", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -2563,7 +2562,7 @@ impl Zebpay {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_24 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_24 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_24, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));
@@ -2620,7 +2619,7 @@ impl Zebpay {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_26 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_26 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_26, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));

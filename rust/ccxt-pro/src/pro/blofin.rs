@@ -1102,7 +1102,7 @@ impl Blofin {
                 // updated orders move to the end of the shared cache, so the newest entries across all
                 // symbols are exactly this read's updates; take them before filtering by symbol
                 let newCount: Value = Value::from(orders.get_limit(None::<&str>, None::<i64>));
-                if (match &(newCount) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) }) {
+                if (newCount.as_f64() == Some(0.0)) {
                     // another watcher already took the count, and a limit of 0 would return the whole cache
                     newest = Value::from(vec![]);
                 }  else {

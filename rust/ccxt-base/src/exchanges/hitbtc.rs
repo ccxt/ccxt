@@ -603,8 +603,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // addMargin/reduceMargin
         //
@@ -625,12 +624,12 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         //         "positions": null
         //     }
         //
-        let currencies: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "currencies"));
+        let currencies: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(data, "currencies"));
         let currencyInfo: crate::value::Dict = currencies.get(0).cloned().unwrap_or_default();
-        let datetime: Option<String> = self.safe_string_k_opt(&data, "updated_at", &[]);
+        let datetime: Option<String> = self.safe_string_k_opt(data, "updated_at", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -4795,7 +4794,7 @@ impl Hitbtc {
         //     }
         //
         let parsedAmount: Option<f64> = self.parse_number(amountValue.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(parsedAmount));
         m.insert("type".to_string(), Value::from(type_var));

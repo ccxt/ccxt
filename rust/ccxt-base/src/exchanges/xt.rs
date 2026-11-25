@@ -1113,11 +1113,10 @@ impl crate::exchange::DerivedExchange for Xt {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("type".to_string(), Value::Null);
         m.insert("amount".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
@@ -6675,7 +6674,7 @@ impl Xt {
             let __ws_arg_87 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_linear_post_future_user_v1_position_margin(&[&__ws_arg_87]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, response.as_ref(), Some(&market)).unwrap_or_default();
 }
 
 

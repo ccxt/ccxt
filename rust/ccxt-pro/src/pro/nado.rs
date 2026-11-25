@@ -133,7 +133,7 @@ impl Nado {
             "create_public_subscription_request" => { Value::Dict(self.create_public_subscription_request(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])); },
             "edit_order_ws" => crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_all_bids_asks" => { self.handle_all_bids_asks(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_authentication" => { self.handle_authentication(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authentication" => { self.handle_authentication(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -2629,10 +2629,9 @@ impl Nado {
         }
 }
 
-    pub fn handle_authentication(&self, client: &Value, mut message: Value) {
+    pub fn handle_authentication(&self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (id.is_none()) {
             return;
@@ -2641,7 +2640,7 @@ impl Nado {
         if (messageHash.is_some()) {
             __ch.remove_subscription(&(Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into())));
             __ch.add_subscription(messageHash.as_deref(), Value::Bool(true));
-            client.resolve(message, messageHash.as_deref());
+            client.resolve(Value::Dict(std::sync::Arc::clone(message)), messageHash.as_deref());
         }
 }
 
@@ -2827,7 +2826,7 @@ impl Nado {
         if (id.is_some()) && hasResult {
             let authentication: Option<String> = self.safe_string_opt(&(client).subscriptions, Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into()), &[]);
             if (authentication.is_some()) {
-                self.handle_authentication(&client.as_value(), Value::from(message));
+                self.handle_authentication(&client.as_value(), message);
                 return;
             }
             let subscription: Option<crate::value::Dict> = self.safe_dict_o(&(client).subscriptions, Value::Str(format!("{}{}", "subscription:", id.as_deref().unwrap_or("null")).into()));

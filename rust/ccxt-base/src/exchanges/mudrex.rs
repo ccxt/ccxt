@@ -862,16 +862,16 @@ impl Mudrex {
             let msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null"));
             let low: Option<String> = text.as_deref().map(str::to_lowercase);
             if (code == 401) || low.as_deref().unwrap_or_default().contains("auth") {
-                panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
+                panic!("{}", crate::exchange_errors::authentication_error(msg));
             }
             if (code == 429) || low.as_deref().unwrap_or_default().contains("rate") {
-                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
+                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg));
             }
             if low.as_deref().unwrap_or_default().contains("insufficient") {
-                panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
+                panic!("{}", crate::exchange_errors::insufficient_funds(msg));
             }
             if (code == 400) {
-                panic!("{}", crate::exchange_errors::bad_request(msg.clone()));
+                panic!("{}", crate::exchange_errors::bad_request(msg));
             }
             panic!("{}", crate::exchange_errors::exchange_error(msg));
         }

@@ -543,7 +543,7 @@ impl Derive {
         let tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (tickerSymbol.is_some()) {
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-            let bidAsk: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let bidAsk: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(tickerSymbol.as_deref()));
                     m.insert("timestamp".to_string(), self.safe_integer_k(&ticker, "timestamp", &[]));
@@ -554,9 +554,9 @@ impl Derive {
                     m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "askVolume", &[]));
                     m.insert("info".to_string(), Value::Dict(data));
                 m
-            }), Some(&market)));
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
-            client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.as_deref().unwrap_or("null")).into())));
+            }), Some(&market));
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&bidAsk)); }
+            client.resolve(Value::Dict(bidAsk), &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.as_deref().unwrap_or("null")).into())));
         }
         client.resolve(Value::Dict(ticker), topic.as_str());
         return std::sync::Arc::clone(message);

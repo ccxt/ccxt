@@ -1142,8 +1142,8 @@ impl Cex {
         orderUpdate.insert("timestamp".into(), Value::from(timestamp));
         orderUpdate.insert("datetime".into(), self.iso8601(timestamp));
         let __ws_arg_1 = self.extend(order, &[Value::Map(orderUpdate)]);
-        let parsedOrder: Value = Value::Dict(self.safe_order(__ws_arg_1, None));
-        self.orders.append(parsedOrder);
+        let parsedOrder: crate::value::Dict = self.safe_order(__ws_arg_1, None);
+        self.orders.append(Value::Dict(parsedOrder));
         let messageHash: String = format!("{}{}", "orders:", symbol);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }

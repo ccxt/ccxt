@@ -1437,14 +1437,14 @@ impl Bitget {
                     if i < bidsLength {
                         let bidLevel: crate::value::List = storedBids.level(&Value::Int(i)).into_list();
                         let bidParts: &Value = bidLevel.get(2).unwrap_or(&Value::Null);
-                        payloadArray.push(get_value(&bidParts, &Value::Int(0)));
-                        payloadArray.push(get_value(&bidParts, &Value::Int(1)));
+                        payloadArray.push(self.safe_string(bidParts, Value::Int(0), &[Value::Str("".into())]));
+                        payloadArray.push(self.safe_string(bidParts, Value::Int(1), &[Value::Str("".into())]));
                     }
                     if i < asksLength {
                         let askLevel: crate::value::List = storedAsks.level(&Value::Int(i)).into_list();
                         let askParts: &Value = askLevel.get(2).unwrap_or(&Value::Null);
-                        payloadArray.push(get_value(&askParts, &Value::Int(0)));
-                        payloadArray.push(get_value(&askParts, &Value::Int(1)));
+                        payloadArray.push(self.safe_string(askParts, Value::Int(0), &[Value::Str("".into())]));
+                        payloadArray.push(self.safe_string(askParts, Value::Int(1), &[Value::Str("".into())]));
                     }
                 }
                 }

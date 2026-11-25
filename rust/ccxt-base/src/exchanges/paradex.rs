@@ -1219,7 +1219,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "get_system_config" => crate::Value::Dict(self.get_system_config().await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "onboarding" => self.onboarding(&args[..]).await,
+                "onboarding" => crate::Value::Dict(self.onboarding(&args[..]).await),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_greeks" => Value::Dict(self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3318,7 +3318,7 @@ impl Paradex {
         return self.safe_dict_k_t(&self.options, "paradexAccount");
 }
 
-    pub async fn onboarding(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn onboarding(&mut self, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3351,9 +3351,7 @@ impl Paradex {
         });
         let __ws_arg_10 = self.extend(params, &[Value::Map(request)]);
         let response: crate::value::Dict = self.private_post_onboarding(&[&__ws_arg_10]).await.unwrap_or_default();
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
     pub async fn authenticate_rest(&mut self, optional_args: &[&Value]) -> Value {
@@ -5865,7 +5863,7 @@ impl Paradex {
         if (errorCode.as_deref() == Some("INVALID_REQUEST_PARAMETER")) && (message.is_some()) {
             // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
             if (((if let (Some(__h), Some(__n)) = (message.as_deref(), Some("market")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) && (message.as_deref().unwrap_or_default().contains("does not exist")) {
-                panic!("{}", crate::exchange_errors::bad_symbol(feedback.clone()));
+                panic!("{}", crate::exchange_errors::bad_symbol(feedback));
             }
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
         }

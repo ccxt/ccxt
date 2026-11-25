@@ -1075,8 +1075,7 @@ impl crate::exchange::DerivedExchange for Weex {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "code": "200",
@@ -1084,15 +1083,15 @@ impl crate::exchange::DerivedExchange for Weex {
         //         "requestTime": 1764505776347
         //     }
         //
-        let msg: Option<String> = self.safe_string_k_opt(&data, "msg", &[]);
+        let msg: Option<String> = self.safe_string_k_opt(data, "msg", &[]);
         let mut status: String = "failed".to_string();
         if (msg.as_deref() == Some("success")) {
             status = "ok".to_string();
         }
-        let timestamp: Option<i64> = self.safe_integer_k(&data, "requestTime", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(data, "requestTime", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -5731,7 +5730,7 @@ impl Weex {
         }
         let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.contract_private_post_capi_v3_account_position_margin(&[&__ws_arg_48]).await.unwrap_or_default();
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::from(amount), &[]));
         m.insert("type".to_string(), Value::from(parsedType));

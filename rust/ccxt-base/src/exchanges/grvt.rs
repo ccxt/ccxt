@@ -1067,8 +1067,8 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_in" => self.sign_in(&args[..]).await,
-                "sign_in_with_api_key" => self.sign_in_with_api_key(&args[..].iter().collect::<Vec<_>>()).await,
-                "sign_in_with_private_key" => self.sign_in_with_private_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "sign_in_with_api_key" => crate::Value::Dict(self.sign_in_with_api_key(&args[..].iter().collect::<Vec<_>>()).await),
+                "sign_in_with_private_key" => crate::Value::Dict(self.sign_in_with_private_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "time_in_force_to_int" => self.time_in_force_to_int(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -2159,7 +2159,7 @@ impl Grvt {
         if (self.privateKey == Value::Null) || (self.privateKey.as_str() == Some("")) {
             panic!("{}", crate::exchange_errors::permission_denied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt"));
         }
-        self.sign_in_with_private_key(&[&params]).await;
+        Value::Dict(self.sign_in_with_private_key(&[&params]).await);
         self.initialize_client(&[params]).await;
         self.load_account_infos().await;
         return Value::Bool(true);
@@ -2167,7 +2167,7 @@ impl Grvt {
     Value::Null
 }
 
-    pub async fn sign_in_with_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn sign_in_with_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2177,7 +2177,7 @@ impl Grvt {
         let expires: i64 = self.safe_integer_k(&self.options, "signInExpiration", &[Value::Int(0)]).as_i64().unwrap_or(0);
         // if previous sign-in not expired (give 10 seconds margin)
         if (true) && expires > ((now + 10000)) {
-            return Value::Map({
+            return std::sync::Arc::new({
     let m = indexmap::IndexMap::new();
     m
 });
@@ -2196,12 +2196,10 @@ impl Grvt {
         //    }
         //
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
-    pub async fn sign_in_with_private_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn sign_in_with_private_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2212,7 +2210,7 @@ impl Grvt {
         let expires: i64 = self.safe_integer_k(&self.options, "signInExpiration", &[Value::Int(0)]).as_i64().unwrap_or(0);
         // if previous sign-in not expired (give 10 seconds margin)
         if (true) && expires > ((now + 10000)) {
-            return Value::Map({
+            return std::sync::Arc::new({
     let m = indexmap::IndexMap::new();
     m
 });
@@ -2233,9 +2231,7 @@ impl Grvt {
         //    }
         //
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
     pub async fn initialize_client(&mut self, optional_args: &[Value]) -> Option<bool> {

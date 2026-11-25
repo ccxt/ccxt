@@ -710,19 +710,18 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "success": true,
         //         "timestamp": 1702989203989
         //     }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        let success: bool = self.safe_bool_k_opt(&data, "success", &[Value::Bool(false)]).unwrap_or(false);
+        let timestamp: Option<i64> = self.safe_integer_k(data, "timestamp", &[]).as_i64();
+        let success: bool = self.safe_bool_k_opt(data, "success", &[Value::Bool(false)]).unwrap_or(false);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -2402,9 +2401,8 @@ impl Woofipro {
         // }
         //
         let chainPromise: crate::value::Dict = self.v1_public_get_public_chain_info(&[&params]).await.unwrap_or_default();
-        let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenPromise), Value::Dict(chainPromise)])).await.to_vec();
-        let tokenResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let chainResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let tokenResponse: crate::value::Dict = tokenPromise;
+        let chainResponse: crate::value::Dict = chainPromise;
         let tokenData: crate::value::Dict = self.safe_dict_k_t(&tokenResponse, "data");
         let tokenRows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&tokenData, "rows"));
         let chainData: crate::value::Dict = self.safe_dict_k_t(&chainResponse, "data");
@@ -3835,15 +3833,15 @@ impl Woofipro {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let clientOrderIds: Value = self.safe_list_n(&params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]).map_or(Value::Null, Value::Arr);
+        let clientOrderIds: Option<crate::value::List> = self.safe_list_n(&params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clOrdIDs", "clientOrderIds", "client_order_ids"], &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        if (clientOrderIds != Value::Null) {
-            request.insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into())));
+        if (clientOrderIds.is_some()) {
+            request.insert("client_order_ids".into(), Value::Str(clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
             response = self.v1_private_delete_client_batch_order(&[&__ws_arg_18]).await;
         }  else {
@@ -4959,7 +4957,7 @@ impl Woofipro {
         //     "timestamp": 1702989203989
         // }
         //
-        let mut modification: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut modification: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         modification.insert("type".into(), (if (type_var == "ADD") { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         modification.insert("amount".into(), self.parse_number(Value::from(self.number_to_string(Value::from(amount))), &[]));
         return std::sync::Arc::new(modification);

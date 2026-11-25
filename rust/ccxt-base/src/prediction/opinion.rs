@@ -339,7 +339,7 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "create_api_key" => crate::Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "delete_api_key" => self.delete_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "delete_api_key" => crate::Value::Dict(self.delete_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_api_key" => crate::Value::Dict(self.fetch_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -361,7 +361,7 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "load_api_key" => self.load_api_key().await,
                 "load_multi_sign_address" => self.load_multi_sign_address().await,
-                "load_quote_token" => self.load_quote_token(args.get(0).and_then(crate::Value::as_text).as_deref()).await,
+                "load_quote_token" => crate::Value::Dict(self.load_quote_token(args.get(0).and_then(crate::Value::as_text).as_deref()).await),
                 "load_trade_market" => self.load_trade_market(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "opinion_order_raw_amounts" => crate::Value::Dict(self.opinion_order_raw_amounts(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_i64))),
                 "opinion_outcome_by_market_id_side" => self.opinion_outcome_by_market_id_side(args.get(0).and_then(crate::Value::as_i64), args.get(1).and_then(crate::Value::as_i64)),
@@ -1549,15 +1549,15 @@ impl Opinion {
  * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field
  * @returns {object} the matching quote-token entry
  */
-    pub async fn load_quote_token(&mut self, quoteTokenAddress: Option<&str>) -> Value {
+    pub async fn load_quote_token(&mut self, quoteTokenAddress: Option<&str>) -> crate::value::Dict {
         if (quoteTokenAddress.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " loadQuoteToken() requires a quoteTokenAddress")));
         }
         let cacheKey: String = quoteTokenAddress.map(str::to_lowercase).unwrap_or_default();
         let cached: crate::value::Dict = self.safe_dict_k_t(&self.options, "quoteTokens");
-        let mut existing: Option<crate::value::Dict> = self.safe_dict_o(&cached, Value::from(cacheKey.clone()));
+        let existing: Option<crate::value::Dict> = self.safe_dict_o(&cached, Value::from(cacheKey.clone()));
         if (existing.is_some()) {
-            return existing.map_or(Value::Null, Value::Dict);
+            return existing.unwrap_or_default();
         }
         let response: crate::value::Dict = self.opinion_public_get_quote_token(&[&Value::Map({
             let m = indexmap::IndexMap::new();
@@ -1582,13 +1582,11 @@ impl Opinion {
         }
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("quoteTokens".into(), Value::Map(quoteTokens.clone())); }
-        let mut quoteToken: Option<crate::value::Dict> = self.safe_dict_o(&quoteTokens, Value::from(cacheKey));
+        let quoteToken: Option<crate::value::Dict> = self.safe_dict_o(&quoteTokens, Value::from(cacheKey));
         if (quoteToken.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " loadQuoteToken() could not find quote token ").into()), Value::from(quoteTokenAddress))));
         }
-        return quoteToken.map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return quoteToken.unwrap_or_default();
 }
 
 /*
@@ -1797,7 +1795,7 @@ impl Opinion {
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let topicId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let quoteTokenAddress: Option<String> = self.safe_string_k_opt(&info, "quoteToken", &[]);
-        let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await.into_dict();
+        let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await;
         let amounts: crate::value::Dict = self.opinion_order_raw_amounts(isMarket, sideStr.as_str(), Some(amount), price, (self.safe_integer_k(&quoteToken, "decimal", &[Value::Int(18)])).as_i64());
         let makerAmount: Option<String> = self.safe_string_k_opt(&amounts, "makerAmount", &[]);
         let takerAmount: Option<String> = self.safe_string_k_opt(&amounts, "takerAmount", &[]);
@@ -2242,7 +2240,7 @@ impl Opinion {
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < rawBalancesLength } {
             let mut rawBalance: Option<crate::value::Dict> = (match rawBalances.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let quoteTokenAddress: Option<String> = self.safe_string_k_opt(&rawBalance, "quoteToken", &[]);
-            let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await.into_dict();
+            let quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await;
             if let Some(__d) = &mut rawBalance { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&quoteToken, "symbol", &[Value::Str("USDT".into())])); }
         }
         }
@@ -2456,7 +2454,7 @@ impl Opinion {
  * @param {object} [params] extra parameters
  * @returns {object} raw response, result.deleted confirms revocation
  */
-    pub async fn delete_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn delete_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2468,9 +2466,7 @@ impl Opinion {
         // an empty string, not undefined: the strict base types the credential as string, and
         // sign() treats an empty key as absent
         self.apiKey = Value::Str("".into());
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
 /*

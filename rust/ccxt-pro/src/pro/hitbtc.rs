@@ -990,7 +990,7 @@ impl Hitbtc {
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "t", &[]).as_i64();
         let mut bidAskSymbol: Option<String> = None;
         if (market.is_some()) {
-            bidAskSymbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+            bidAskSymbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2133,7 +2133,7 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (subscriptionHashes.len() as i64) } {
-            let subscription: Value = get_value(&__ch.subscriptions, &subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null));
+            let subscription: Value = __ch.get_subscription(&subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null));
             let isUnSubscription: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             let subscriptionId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
             if isUnSubscription && (subscriptionId.is_some()) && (subscriptionId == id) {

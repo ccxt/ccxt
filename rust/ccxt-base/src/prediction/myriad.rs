@@ -463,7 +463,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "fetch_raw_market_by_id" => self.fetch_raw_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_raw_markets_by_search" => crate::Value::Arr(self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_markets_list" => crate::Value::Arr(self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await),
-                "fetch_raw_question_by_id" => self.fetch_raw_question_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_question_by_id" => crate::Value::Dict(self.fetch_raw_question_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_questions_by_search" => crate::Value::Arr(self.fetch_raw_questions_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_questions_list" => crate::Value::Arr(self.fetch_raw_questions_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1088,7 +1088,7 @@ impl Myriad {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if !id.as_str().unwrap_or("").contains(":") {
-            let rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(id.as_str().unwrap_or_default(), &[&Value::from(&params)]).await.into_dict();
+            let rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(id.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
             let __ws_arg_2 = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -1148,7 +1148,7 @@ impl Myriad {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the raw question object
  */
-    pub async fn fetch_raw_question_by_id(&mut self, id: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_question_by_id(&mut self, id: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1188,15 +1188,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let qTitle: String = self.safe_string_k(&q, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let qHandle: String = self.shorten_slug(Value::from(qSlug.as_str()));
                 if ((qId.to_lowercase()) == idLower) || ((qSlug.to_lowercase()) == idLower) || ((qTitle.to_lowercase()) == idLower) || ((true) && ((qHandle.to_lowercase()) == idLower)) {
-                    return Value::Dict(q);
+                    return q;
                 }
             }
             }
             panic!("{}", e);
         }
-        return result.map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return result.unwrap_or_default();
 }
 
 /*
@@ -4102,7 +4100,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let rawMarket: crate::value::Dict = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await.into_dict();
                 rawMarkets = std::sync::Arc::new(vec![Value::Dict(rawMarket)]);
             }  else {
-                let rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await.into_dict();
+                let rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await;
                 rawQuestions = std::sync::Arc::new(vec![Value::Dict(rawQuestion)]);
             }
         }  else {
@@ -4631,7 +4629,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
         }
         if (self.privateKey != Value::Null) {
-            return (Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+            return Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).to_lowercase()).as_str().map(str::to_owned);
         }
         return None;
 }
@@ -5196,7 +5194,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.privateKey == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a walletAddress or privateKey to watch private channels")));
         }
-        return (Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).to_lowercase()).as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {

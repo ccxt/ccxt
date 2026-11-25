@@ -2904,7 +2904,7 @@ impl Predictfun {
             m
         });
         let postOnly: bool = self.safe_bool_k_opt(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let postOnlyOptionparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]);
+        let postOnlyOptionparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly == true), &[Value::from(&paramsTaker)]);
         let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.0.as_bool();
         let paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.1;
         if (postOnlyOption == Some(true)) {
@@ -3542,7 +3542,7 @@ impl Predictfun {
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if (code == 400) {
-            panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
+            panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }

@@ -713,7 +713,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "hash_message" => crate::Value::from(self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "load_proxy_credentials" => self.load_proxy_credentials(&args[..].iter().collect::<Vec<_>>()).await,
+                "load_proxy_credentials" => crate::Value::Dict(self.load_proxy_credentials(&args[..].iter().collect::<Vec<_>>()).await),
                 "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2770,7 +2770,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let response: crate::value::Dict = self.private_get_account_portfolio(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -2828,7 +2828,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.private_get_account_portfolio(&[&params]).await.unwrap_or_default();
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
@@ -2902,7 +2902,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2943,7 +2943,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2994,7 +2994,7 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3046,7 +3046,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3121,7 +3121,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3222,7 +3222,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3271,7 +3271,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3447,7 +3447,7 @@ impl Polymarket {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        self.load_proxy_credentials(&[]).await;
+        Value::Dict(self.load_proxy_credentials(&[]).await);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3832,26 +3832,24 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the session credentials, holding the proxy address, the proxy private key, the secret and the expiry timestamp
  */
-    pub async fn load_proxy_credentials(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn load_proxy_credentials(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut credentials: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "proxyCredentials");
+        let credentials: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "proxyCredentials");
         if (credentials.is_some()) {
             let expires: Option<i64> = self.safe_integer_k(&credentials, "expires", &[]).as_i64();
             let margin: i64 = self.safe_integer_k(&self.options, "proxyRefreshMargin", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
             if (expires.is_none()) {
-                return credentials.clone().map_or(Value::Null, Value::Dict);
+                return credentials.unwrap_or_default();
             }
             let refreshAfter: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = expires { Some(__l - margin) } else { None })));
             if Some((self.milliseconds())) < refreshAfter {
-                return credentials.map_or(Value::Null, Value::Dict);
+                return credentials.unwrap_or_default();
             }
         }
-        return Value::Dict(self.create_proxy_credentials(&[&params]).await);
-
-    Value::Null
+        return self.create_proxy_credentials(&[&params]).await;
 }
 
 /*
@@ -3872,7 +3870,7 @@ impl Polymarket {
 }));
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
-        let credentials: crate::value::Dict = self.load_proxy_credentials(&[]).await.into_dict();
+        let credentials: crate::value::Dict = self.load_proxy_credentials(&[]).await;
         let packed: crate::value::Bytes = self.packb(signable, &[]);
         let dataHash: Option<String> = self.hash_message(Value::from(&packed));
         let ts: i64 = self.milliseconds();
@@ -4065,7 +4063,7 @@ impl Polymarket {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             if (code == 400) {
-                panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
+                panic!("{}", crate::exchange_errors::bad_request(feedback));
             }
             // an unmapped error on a 4xx or 5xx response falls through so the
             // http status fallback can apply a retryable classification, while

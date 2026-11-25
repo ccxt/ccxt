@@ -878,7 +878,7 @@ impl crate::exchange::DerivedExchange for Lbank {
 }), &[&signedQuery]), &[]);
             let auth: String = self.rawencode(__ws_arg_35, &[]);
             let encoded: crate::value::Bytes = self.encode(Value::from(auth));
-            let uppercaseHash: Value = (Value::from(self.hash(&encoded, "md5", &[]))).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let uppercaseHash: Value = Value::from(self.hash(&encoded, "md5", &[]).to_uppercase());
             let mut sign: String = "".to_string();
             if (signatureMethod.as_deref() == Some("RSA")) {
                 let cacheSecretAsPem: bool = self.safe_bool_k_opt(&self.options, "cacheSecretAsPem", &[Value::Bool(true)]).unwrap_or(true);

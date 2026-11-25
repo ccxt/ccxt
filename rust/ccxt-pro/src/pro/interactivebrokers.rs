@@ -60,8 +60,8 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
     {
         Box::pin(async move {
             match method {
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
+                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "ibkr_cancel_history" => self.ibkr_cancel_history(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "ibkr_connect" => self.ibkr_connect().await,
@@ -101,13 +101,13 @@ impl Interactivebrokers {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "ibkr_cancel_history" => crate::exchange_stubs::enqueue_spawn("ibkr_cancel_history", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -387,7 +387,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (keys.len() as i64) } {
-            let subscription: Value = get_value(&__ch.subscriptions, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
+            let subscription: Value = __ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null));
             if matches!(&subscription, Value::Dict(_)) {
                 let mut request: Option<String> = self.safe_string_k_opt(&subscription, "request", &[]);
                 if (request.is_some()) && (request.as_deref().unwrap_or_default().starts_with("smd+")) && !(matches!(request.as_deref(), Some(__k) if sent.contains_key(__k))) {
@@ -499,7 +499,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
-            let subscription: Value = get_value(&__ch.subscriptions, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
+            let subscription: Value = __ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null));
             if matches!(&subscription, Value::Dict(_)) {
                 let request: Option<String> = self.safe_string_k_opt(&subscription, "request", &[]);
                 let conid: Option<String> = self.safe_string_k_opt(&subscription, "conid", &[]);
@@ -810,7 +810,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let hasBidAsk: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("84"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("85"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("86"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("88")));
         let hasQuote: bool = (self.safe_string_k(&ticker, "bid", &[]) != Value::Null) || (self.safe_string_k(&ticker, "ask", &[]) != Value::Null);
         if hasBidAsk && hasQuote {
-            let bidAsk: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let bidAsk: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), crate::value::KeyRead::key_read(&&ticker, "timestamp"));
@@ -821,9 +821,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askVolume", &[]));
                     m.insert("info".to_string(), Value::Dict(merged));
                 m
-            }), Some(&market)));
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), bidAsk.clone()); }
-            client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask::", symbol).into())));
+            }), Some(&market));
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&bidAsk)); }
+            client.resolve(Value::Dict(bidAsk), &(Value::Str(format!("{}{}", "bidask::", symbol).into())));
         }
         self.ibkr_update_ohlc_vs(client, symbol.as_str().unwrap_or_default(), message.as_map().unwrap_or(&Default::default()));
 }
@@ -1076,7 +1076,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let minutes: Option<i64> = self.parse_to_int((match ((((match (&(total), &(Value::Int(59))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             _ => Value::Null }))).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         if (minutes.is_some() && minutes <= Some(30)) {
-            return Some(format!("{}{}", Value::from(self.number_to_string(Value::from((if let Some(__m0) = minutes { Some(i64::max(__m0, 1)) } else { None })))), Value::Str("min".into())));
+            if (minutes.is_some() && minutes < Some(1)) {
+                return Value::Str("1min".into()).as_str().map(str::to_owned);
+            }
+            return Some(format!("{}{}", Value::from(self.number_to_string(Value::from(minutes))), Value::Str("min".into())));
         }
         let hours: Option<i64> = self.parse_to_int((match ((((match (&(total), &(Value::Int(3599))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             _ => Value::Null }))).as_f64(), (Value::Int(3600)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -1100,7 +1103,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let years: Option<i64> = self.parse_to_int((match ((((match (&(total), &(Value::Int(31535999))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             _ => Value::Null }))).as_f64(), (Value::Int(31536000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        return Some(format!("{}{}", Value::from(self.number_to_string(Value::from((if let Some(__m0) = years { Some(i64::min(__m0, 15)) } else { None })))), Value::Str("y".into())));
+        if years > Some(15) {
+            return Value::Str("15y".into()).as_str().map(str::to_owned);
+        }
+        return Some(format!("{}{}", Value::from(self.number_to_string(Value::from(years))), Value::Str("y".into())));
 }
 
 /*
@@ -1944,10 +1950,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
-    pub fn handle_session_status(&mut self, client: &Value, message: &Value) {
+    pub fn handle_session_status(&mut self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
@@ -1970,9 +1975,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_error_message(&self, client: &Value, message: &crate::value::Dict) -> bool {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     { "topic": "smd+123", "error": "..." }
         //
@@ -2002,10 +2006,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         // every message (including the 10 second system heartbeats) proves the connection is alive
         //
@@ -2013,7 +2016,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     { "topic": "system", "hb": 1702334859712 }
         //
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
-        if self.handle_error_message(&client, &message) {
+        if self.handle_error_message(&client, message) {
             return;
         }
         let topic: String = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
@@ -2022,19 +2025,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.resolve(Value::Bool(true), "connected");
         }
         if (topic.starts_with("smd+")) {
-            self.handle_ticker(&client, message);
+            self.handle_ticker(&client, Value::from(message));
         }  else if (topic.starts_with("smh+")) {
-            self.handle_ohlcv(client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_ohlcv(client, message);
         }  else if (topic.starts_with("sbd+")) {
-            self.handle_order_book(client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_order_book(client, message);
         }  else if (topic == "sor") {
-            self.handle_orders(&client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_orders(&client, message);
         }  else if (topic == "str") {
-            self.handle_my_trades(&client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_my_trades(&client, message);
         }  else if (topic.starts_with("sld+")) {
-            self.handle_balance(&client, message);
+            self.handle_balance(&client, Value::from(message));
         }  else if (topic == "sts") {
-            self.handle_session_status(&client, &message);
+            self.handle_session_status(&client, message);
         }
 }
 }

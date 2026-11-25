@@ -1322,8 +1322,7 @@ impl crate::exchange::DerivedExchange for Gate {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "value": "11.9257",
@@ -1351,12 +1350,12 @@ impl crate::exchange::DerivedExchange for Gate {
         //         "liq_price": "665.69"
         //     }
         //
-        let contract: Option<String> = self.safe_string_k_opt(&data, "contract", &[]);
+        let contract: Option<String> = self.safe_string_k_opt(data, "contract", &[]);
         let marketResolved: crate::types::Market = self.safe_market(contract.as_deref(), market, &[Value::Str("_".into()), Value::Str("contract".into())]);
-        let total: Option<f64> = self.safe_number_k(&data, "margin", &[]).as_f64();
+        let total: Option<f64> = self.safe_number_k(data, "margin", &[]).as_f64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -10287,7 +10286,7 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " modifyMarginHelper() not support this market type")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, response.as_ref(), Some(&market)).unwrap_or_default();
 }
 
 

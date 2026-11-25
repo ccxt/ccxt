@@ -275,8 +275,7 @@ impl std::ops::DerefMut for Binance {
 
 impl Binance {
     pub fn describe(&self) -> crate::value::Dict {
-        let superDescribe: Value = Value::Dict(self.parent.describe());
-        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {
@@ -6488,7 +6487,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 continue;
             }
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "t", &[]).as_i64();
-            let parsed: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let parsed: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -6498,11 +6497,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("previousClose".to_string(), self.safe_string_k(&rate, "pc", &[]));
                     m.insert("info".to_string(), Value::from(&rate));
                 m
-            }), None));
-            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+            }), None);
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsed)); }
             let priceSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            client.resolve(parsed.clone(), &(Value::Str(format!("{}{}", "stock:price:", priceSymbol).into())));
-            tickers.insert(priceSymbol, parsed);
+            client.resolve(Value::from(&parsed), &(Value::Str(format!("{}{}", "stock:price:", priceSymbol).into())));
+            tickers.insert(priceSymbol, Value::Dict(parsed));
         }
         }
         client.resolve(Value::Map(tickers), "stock:price");
@@ -6516,7 +6515,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             return;
         }
         let timestamp: Option<i64> = self.safe_integer2(&message, Value::Str("E".into()), Value::Str("T".into()), &[]).as_i64();
-        let parsed: Value = Value::Dict(self.safe_ticker(Value::Map({
+        let parsed: crate::value::Dict = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -6527,10 +6526,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("askVolume".to_string(), (match __pro_message.get("as").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("info".to_string(), Value::from(message));
             m
-        }), None));
-        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+        }), None);
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsed)); }
         let quoteSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        client.resolve(parsed, &(Value::Str(format!("{}{}", "stock:quote:", quoteSymbol).into())));
+        client.resolve(Value::Dict(parsed), &(Value::Str(format!("{}{}", "stock:quote:", quoteSymbol).into())));
 }
 
     pub fn handle_options_order_update(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {

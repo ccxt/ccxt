@@ -984,7 +984,7 @@ impl Extended {
         if (timestamp.is_none()) || (timestamp == Some(0)) {
             timestamp = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         }
-        let ticker: Value = Value::Dict(self.safe_ticker(Value::Map({
+        let ticker: crate::value::Dict = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -992,10 +992,10 @@ impl Extended {
                 m.insert("markPrice".to_string(), self.safe_string_k(&data, "p", &[]));
                 m.insert("info".to_string(), Value::from(message));
             m
-        }), Some(&market)));
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+        }), Some(&market));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
         let messageHash: String = format!("{}{}", "markPrice:", symbol);
-        client.resolve(ticker, messageHash.as_str());
+        client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
 /*

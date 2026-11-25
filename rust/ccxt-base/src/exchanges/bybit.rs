@@ -1537,7 +1537,6 @@ impl crate::exchange::DerivedExchange for Bybit {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // fetchWithdrawals
         //
@@ -1578,14 +1577,14 @@ impl crate::exchange::DerivedExchange for Bybit {
         //         "id": "9377266"
         //     }
         //
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "coin", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let timestamp: Option<i64> = self.safe_integer2(&transaction, Value::Str("createTime".into()), Value::Str("successAt".into()), &[]).as_i64();
-        let updated: Option<i64> = self.safe_integer_k(&transaction, "updateTime", &[]).as_i64();
-        let status: Option<String> = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
-        let feeCost: Option<f64> = self.safe_number2(&transaction, Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]).as_f64();
+        let timestamp: Option<i64> = self.safe_integer2(transaction, Value::Str("createTime".into()), Value::Str("successAt".into()), &[]).as_i64();
+        let updated: Option<i64> = self.safe_integer_k(transaction, "updateTime", &[]).as_i64();
+        let status: Option<String> = self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str());
+        let feeCost: Option<f64> = self.safe_number2(transaction, Value::Str("depositFee".into()), Value::Str("withdrawFee".into()), &[]).as_f64();
         let mut type_var: String = "withdrawal".to_string();
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositFee"))) {
+        if (matches!(transaction, Some(__d) if __d.contains_key("depositFee"))) {
             type_var = "deposit".to_string();
         }
         let mut fee: Option<crate::value::Dict> = None;
@@ -1597,19 +1596,19 @@ impl crate::exchange::DerivedExchange for Bybit {
                 m
             }));
         }
-        let toAddress: Option<String> = self.safe_string_k_opt(&transaction, "toAddress", &[]);
+        let toAddress: Option<String> = self.safe_string_k_opt(transaction, "toAddress", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("id".into()), Value::Str("withdrawId".into()), &[]));
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "txID", &[]));
+        m.insert("info".to_string(), Value::from(transaction));
+        m.insert("id".to_string(), self.safe_string2(transaction, Value::Str("id".into()), Value::Str("withdrawId".into()), &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "txID", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "chain", &[]).as_str(), code.as_deref())));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(transaction, "chain", &[]).as_str(), code.as_deref())));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressTo".to_string(), toAddress.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), self.safe_string_k(&transaction, "tag", &[]));
+        m.insert("tag".to_string(), self.safe_string_k(transaction, "tag", &[]));
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));

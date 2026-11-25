@@ -1944,13 +1944,13 @@ impl Gemini {
         let tables: crate::value::List = crate::value::List::new(if let Some(__s) = data.as_str() { __s.split("tbody>").map(Value::from).collect() } else { Vec::new() });
         let numTables: i64 = tables.len() as i64;
         if numTables < 2 {
-            panic!("{}", crate::exchange_errors::not_supported(error.clone()));
+            panic!("{}", crate::exchange_errors::not_supported(error));
         }
         let table: String = self.safe_string(&tables, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rows: Vec<Value> = Value::Array(table.split("\n<tr>\n").map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // eslint-disable-line quotes
         let numRows: i64 = rows.len() as i64;
         if numRows < 2 {
-            panic!("{}", crate::exchange_errors::not_supported(error.clone()));
+            panic!("{}", crate::exchange_errors::not_supported(error));
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1961,7 +1961,7 @@ impl Gemini {
             let cells: crate::value::List = crate::value::List::new(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
             let numCells: i64 = cells.len() as i64;
             if numCells < 5 {
-                panic!("{}", crate::exchange_errors::not_supported(error.clone()));
+                panic!("{}", crate::exchange_errors::not_supported(error));
             }
             //     [
             //         '<td>btcusd', // currency
@@ -2305,9 +2305,8 @@ impl Gemini {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[&params]).await.into_dict();
         let tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[&params]).await.into_dict();
-        let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.to_vec();
-        let tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
-        let tickerB: crate::value::Dict = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let tickerA: Value = Value::Dict(tickerPromiseA);
+        let tickerB: crate::value::Dict = tickerPromiseB;
         return self.deep_extend(tickerA, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("open".to_string(), self.safe_string_k(&tickerB, "open", &[]));

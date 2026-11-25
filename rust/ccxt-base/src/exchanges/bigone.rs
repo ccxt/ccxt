@@ -2338,7 +2338,7 @@ impl Bigone {
         let exchangeSpecificParam: bool = self.safe_bool_k_opt(&params, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         let mut postOnly: Option<bool> = None;
         let mut query: crate::value::Dict = Default::default();
-        { let __destr_tmp = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]); postOnly = __destr_tmp.0.as_bool(); query = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam == true), &[params]); postOnly = __destr_tmp.0.as_bool(); query = __destr_tmp.1; }
         let triggerPrice: Option<String> = self.safe_string_n_opt(&query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

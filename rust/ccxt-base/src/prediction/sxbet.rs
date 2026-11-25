@@ -322,7 +322,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "hex_to_int" => self.hex_to_int(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-                "load_sx_obv3_metadata" => self.load_sx_obv3_metadata().await,
+                "load_sx_obv3_metadata" => crate::Value::Dict(self.load_sx_obv3_metadata().await),
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1265,17 +1265,15 @@ impl Sxbet {
  * @see https://docs.sx.bet/api-reference/get-metadata-obv3
  * @returns {object} the cached obv3 metadata data object
  */
-    pub async fn load_sx_obv3_metadata(&mut self) -> Value {
-        let mut cached: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "sxObv3Metadata");
+    pub async fn load_sx_obv3_metadata(&mut self) -> crate::value::Dict {
+        let cached: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "sxObv3Metadata");
         if (cached.is_some()) {
-            return cached.map_or(Value::Null, Value::Dict);
+            return cached.unwrap_or_default();
         }
         let response: crate::value::Dict = self.sxbet_public_get_metadata_obv3(&[]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("sxObv3Metadata".into(), Value::from(&data)); }
-        return Value::Dict(data);
-
-    Value::Null
+        return data;
 }
 
 /*
@@ -1436,7 +1434,7 @@ impl Sxbet {
             }
             }
         }
-        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
+        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await;
         let activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let chainId: Option<i64> = self.safe_integer_k(&obv3, "chainId", &[]).as_i64();
         let usdcAddress: Option<String> = self.safe_string_k_opt(&activeAsset, "baseToken", &[]);
@@ -1608,7 +1606,7 @@ impl Sxbet {
         let isMakerBettingOutcomeOne: bool = (if (isBuy) { isOutcomeOne } else { !(isOutcomeOne) });
         let priceStr: Option<String> = self.number_to_string(price);
         let probability: Option<String> = (if (isBuy) { priceStr } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned) });
-        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
+        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await;
         let domain: crate::value::Dict = self.safe_dict_k_t(&obv3, "domain");
         let activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let baseToken: Option<String> = self.safe_string_k_opt(&activeAsset, "baseToken", &[]);
@@ -2405,7 +2403,7 @@ impl Sxbet {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
+        let obv3: crate::value::Dict = self.load_sx_obv3_metadata().await;
         let activeAsset: crate::value::Dict = self.safe_dict_k_t(&obv3, "activeAsset");
         let usdcAddress: String = self.safe_string_lower_k(&activeAsset, "baseToken", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let response: crate::value::Dict = self.sxbet_private_get_user_balance_v3(&[&params]).await.unwrap_or_default();

@@ -559,7 +559,6 @@ impl crate::exchange::DerivedExchange for Cryptocom {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // fetchDeposits
         //
@@ -604,23 +603,23 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         //     }
         //
         let mut type_var: Option<String> = None;
-        let rawStatus: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
+        let rawStatus: Option<String> = self.safe_string_k_opt(transaction, "status", &[]);
         let mut status: Option<String> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid"))) {
+        if (matches!(transaction, Some(__d) if __d.contains_key("client_wid"))) {
             type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.as_deref());
         }  else {
             type_var = Some("deposit".to_string());
             status = self.parse_deposit_status(rawStatus.as_deref());
         }
-        let addressString: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
+        let addressString: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
         let addresstagVariable = self.parse_address(addressString.as_deref());
         let address: Option<String> = addresstagVariable.0.as_str().map(str::to_owned);
         let tag: Option<String> = addresstagVariable.1.as_str().map(str::to_owned);
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let timestamp: Option<i64> = self.safe_integer_k(&transaction, "create_time", &[]).as_i64();
-        let feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
+        let timestamp: Option<i64> = self.safe_integer_k(transaction, "create_time", &[]).as_i64();
+        let feeCost: Option<f64> = self.safe_number_k(transaction, "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -632,9 +631,9 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
+        m.insert("info".to_string(), Value::from(transaction));
+        m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "txid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
@@ -645,10 +644,10 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         m.insert("tagTo".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("updated".to_string(), self.safe_integer_k(&transaction, "update_time", &[]));
+        m.insert("updated".to_string(), self.safe_integer_k(transaction, "update_time", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), self.safe_string_k(transaction, "client_wid", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));

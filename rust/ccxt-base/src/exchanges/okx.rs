@@ -613,13 +613,13 @@ impl crate::exchange::DerivedExchange for Okx {
         let settle: Option<String> = self.safe_currency_code(settleId.as_deref(), None);
         let underlying: Option<String> = self.safe_string_k_opt(&market, "uly", &[]);
         if (underlying.is_some()) && !spot {
-            let parts: Value = Value::Array(if let Some(__s) = underlying.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+            let parts: crate::value::List = crate::value::List::new(if let Some(__s) = underlying.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             quoteId = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         if ((baseId == "") || (quoteId == "")) && spot {
             let instId: String = self.safe_string_k(&market, "instId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let parts: Value = Value::Array(instId.split("-").map(Value::from).collect());
+            let parts: crate::value::List = crate::value::List::new(instId.split("-").map(Value::from).collect());
             baseId = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             quoteId = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
@@ -1427,8 +1427,7 @@ impl crate::exchange::DerivedExchange for Okx {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // addMargin/reduceMargin
         //
@@ -1476,8 +1475,8 @@ impl crate::exchange::DerivedExchange for Okx {
         //        type: '6'
         //    }
         //
-        let amountRaw: Option<String> = self.safe_string2_opt(&data, Value::Str("amt".into()), Value::Str("posBalChg".into()), &[]);
-        let typeRaw: Option<String> = self.safe_string_k_opt(&data, "type", &[]);
+        let amountRaw: Option<String> = self.safe_string2_opt(data, Value::Str("amt".into()), Value::Str("posBalChg".into()), &[]);
+        let typeRaw: Option<String> = self.safe_string_k_opt(data, "type", &[]);
         // ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
         let mut type_var: Option<String> = None;
         if (typeRaw.as_deref() == Some("6")) {
@@ -1486,13 +1485,13 @@ impl crate::exchange::DerivedExchange for Okx {
             type_var = typeRaw;
         }
         let amount: Option<String> = crate::precise::Precise::stringAbs(&amountRaw).as_str().map(str::to_owned);
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "instId", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(data, "instId", &[]);
         let responseMarket: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let code: Value = (if ((responseMarket).inverse == Some(true)) { crate::value::KeyRead::key_read(&&responseMarket, "base") } else { crate::value::KeyRead::key_read(&&responseMarket, "quote") });
-        let timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(data, "ts", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&responseMarket, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -11194,7 +11193,7 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let entry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&entry), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (errorCode.as_deref() == Some("0")) { Value::Str("ok".into()) } else { Value::Str("failed".into()) }));
     m

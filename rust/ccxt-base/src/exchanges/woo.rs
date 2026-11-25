@@ -3097,9 +3097,8 @@ impl Woo {
         //     "success": true
         // }
         //
-        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenResponsePromise), Value::Dict(tokenNetworkResponsePromise)])).await.to_vec();
-        let tokenResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let tokenResponse: crate::value::Dict = tokenResponsePromise;
+        let tokenNetworkResponse: crate::value::Dict = tokenNetworkResponsePromise;
         let tokenRows: crate::value::List = self.safe_list_k_t(&tokenResponse, "rows");
         let tokenNetworkRows: crate::value::List = self.safe_list_k_t(&tokenNetworkResponse, "rows");
         let networksById: crate::value::Dict = self.group_by(Value::Arr(tokenNetworkRows), Value::Str("token".into()), &[]);
@@ -4578,9 +4577,8 @@ impl Woo {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(mainAccountPromise), Value::Dict(subAccountPromise)])).await.to_vec();
-        let mainAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let subAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mainAccountResponse: crate::value::Dict = mainAccountPromise;
+        let subAccountResponse: crate::value::Dict = subAccountPromise;
         let mainData: crate::value::Dict = self.safe_dict_k_t(&mainAccountResponse, "data");
         let mainRows: crate::value::List = std::sync::Arc::new(vec![Value::Dict(mainData)]);
         let subData: crate::value::Dict = self.safe_dict_k_t(&subAccountResponse, "data");

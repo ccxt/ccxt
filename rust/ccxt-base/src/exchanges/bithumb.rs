@@ -3915,7 +3915,7 @@ impl Bithumb {
 }));
             m
         });
-        let statuses: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
+        let statuses: crate::value::Dict = (if let Some(Value::Dict(__m)) = statusesByType.get(type_var.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 

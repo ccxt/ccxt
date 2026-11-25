@@ -196,8 +196,7 @@ impl std::ops::DerefMut for Gate {
 
 impl Gate {
     pub fn describe(&self) -> crate::value::Dict {
-        let superDescribe: Value = Value::Dict(self.parent.describe());
-        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {

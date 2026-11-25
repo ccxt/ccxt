@@ -351,7 +351,7 @@ impl Mudrex {
         let msg: String = self.safe_string_k(&error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), msg);
         if (code.as_deref() == Some("429")) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback.clone()));
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }
@@ -401,7 +401,7 @@ impl Mudrex {
             let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let timestamp: i64 = self.milliseconds();
             let last: Option<f64> = self.safe_number_k(&t, "p", &[]).as_f64();
-            let result: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let result: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -410,11 +410,11 @@ impl Mudrex {
                     m.insert("close".to_string(), Value::from(last));
                     m.insert("info".to_string(), Value::Dict(t));
                 m
-            }), None));
-            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
+            }), None);
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&result)); }
             let messageHash: String = format!("{}{}", "ticker:", symbol);
-            client.resolve(result.clone(), messageHash.as_str());
-            client.resolve(result, "tickers");
+            client.resolve(Value::from(&result), messageHash.as_str());
+            client.resolve(Value::Dict(result), "tickers");
         }
         }
 }

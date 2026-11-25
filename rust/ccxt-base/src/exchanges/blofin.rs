@@ -5262,7 +5262,7 @@ impl Blofin {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         //
         //  {

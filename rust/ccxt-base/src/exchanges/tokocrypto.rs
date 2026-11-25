@@ -3323,7 +3323,7 @@ impl Tokocrypto {
 }));
             m
         });
-        let statuses: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
+        let statuses: crate::value::Dict = (if let Some(Value::Dict(__m)) = statusesByType.get(type_var.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
@@ -3444,7 +3444,7 @@ if _try_result.is_err() {
             }
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
             if (message.as_deref() == Some("No need to change margin type.")) {
-                panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
+                panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback));
             }
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

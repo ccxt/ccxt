@@ -860,7 +860,7 @@ impl Backpack {
             }
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-            let parsed: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let parsed: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -869,13 +869,13 @@ impl Backpack {
                     m.insert("ask".to_string(), self.safe_string_k(&data, "ask", &[]));
                     m.insert("info".to_string(), Value::from(&data));
                 m
-            }), Some(&market)));
+            }), Some(&market));
             if matches!(self.safe_bool_k(&subscription, "bidAsk", &[Value::Bool(false)]), Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
+                if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
             }  else {
-                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), parsed.clone()); }
+                { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
             }
-            client.resolve(parsed, messageHash.as_deref());
+            client.resolve(Value::Dict(parsed), messageHash.as_deref());
         }
         }
         return Value::Bool(hashesLength > 0);

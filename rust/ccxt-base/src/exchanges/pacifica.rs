@@ -843,9 +843,9 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_request" => Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "cancel_all_orders_request" => crate::Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_order_request" => Value::Dict(self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
+                "cancel_order_request" => crate::Value::Dict(self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_request" => crate::Value::Dict(self.cancel_orders_request(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
@@ -858,7 +858,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "create_sub_account" => self.create_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "edit_order_request" => Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
+                "edit_order_request" => crate::Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(6).cloned().unwrap_or_default()).as_ref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_account_settings" => crate::Value::Dict(self.fetch_account_settings(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_api_keys" => self.fetch_api_keys(&args[..].iter().collect::<Vec<_>>()).await,
@@ -3324,8 +3324,6 @@ if _try_result.is_err() {
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params);
         return request;
-
-    Default::default()
 }
 
 /*
@@ -3421,8 +3419,6 @@ if _try_result.is_err() {
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params);
         return request;
-
-    Default::default()
 }
 
 /*
@@ -3516,8 +3512,6 @@ if _try_result.is_err() {
         }
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params);
         return request;
-
-    Default::default()
 }
 
 /*

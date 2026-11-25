@@ -4999,7 +4999,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
                     }
                     }
-                    panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
+                    panic!("{}", crate::exchange_errors::exchange_error(message));
                 }
             }
             // handleCreateOrdersErrors:
@@ -5016,7 +5016,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         if (error.is_some()) {
                             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
                             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
-                            panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
+                            panic!("{}", crate::exchange_errors::exchange_error(message));
                         }
                     }
                     }

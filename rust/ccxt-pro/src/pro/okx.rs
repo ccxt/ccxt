@@ -2758,7 +2758,7 @@ impl Okx {
         let mut type_var: Option<String> = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
+            symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
             type_var = self.safe_string_k_opt(&market, "type", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }

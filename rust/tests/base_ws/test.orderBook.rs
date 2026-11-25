@@ -293,7 +293,7 @@ pub fn testWsOrderBook() {
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".into())]));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook, overwrite1234))));
-    indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
+    indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput, Value::Null);
     indexedOrderBook.store_array_to_asks(Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".into())]));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook, overwrite1244))));
@@ -318,7 +318,7 @@ pub fn testWsOrderBook() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".into()))).as_f64() == Some(1.0)))));
     // --------------------------------------------------------------------------------------------------------------------
     let mut countedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Null);
-    let mut limitedCountedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Int(5));
+    let mut limitedCountedOrderBook = CountedOrderBook::new(countedOrderBookInput, Value::Int(5));
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     limitedCountedOrderBook.limit();
@@ -383,7 +383,7 @@ pub fn testWsOrderBook() {
     // incrementalIndexedOrderBook.limit ();
     // assert!(ccxt::runtime::is_true(&(equals (incrementalIndexedOrderBook, anotherStoredIncrementalIndexedOrderBookTarget))));
     // --------------------------------------------------------------------------------------------------------------------
-    let mut resetBook = OrderBook::new(storeBid.clone(), Value::Null);
+    let mut resetBook = OrderBook::new(storeBid, Value::Null);
     resetBook.limit();
     resetBook.reset(orderBookInput.clone());
     resetBook.limit();
@@ -464,7 +464,7 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput.clone(), Value::Int(3));
+    let mut trimIndexedBook = IndexedOrderBook::new(trimIndexedInput, Value::Int(3));
     trimIndexedBook.limit();
     // update of a trimmed id reinserts cleanly
     trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(15), Value::Int(2), Value::Str("e".into())]));

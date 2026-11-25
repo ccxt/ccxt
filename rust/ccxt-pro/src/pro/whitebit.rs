@@ -743,7 +743,7 @@ impl Whitebit {
         let price: Option<String> = self.safe_string_opt(&trade, Value::Int(4), &[]);
         let amount: Option<String> = self.safe_string_opt(&trade, Value::Int(5), &[]);
         let marketId: Option<String> = self.safe_string_opt(&trade, Value::Int(2), &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<String> = self.safe_string_opt(&trade, Value::Int(6), &[]);
         if (feeCost.is_some()) {
@@ -752,7 +752,7 @@ impl Whitebit {
             if (feeCurrencyId.is_some()) {
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId.as_deref(), None);
             }  else {
-                feeCurrencyCode = marketResolved.raw.at("quote").as_str().map(str::to_owned);
+                feeCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();

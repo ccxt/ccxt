@@ -840,7 +840,7 @@ impl Kraken {
             quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
         }
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
-        let result: Value = Value::Dict(self.safe_ticker(Value::Map({
+        let result: crate::value::Dict = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
                 m.insert("timestamp".to_string(), Value::Null);
@@ -863,9 +863,9 @@ impl Kraken {
                 m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
                 m.insert("info".to_string(), ticker.map_or(Value::Null, Value::Dict));
             m
-        }), None));
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), result.clone()); }
-        client.resolve(result, messageHash.as_deref());
+        }), None);
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
+        client.resolve(Value::Dict(result), messageHash.as_deref());
 }
 
     pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {

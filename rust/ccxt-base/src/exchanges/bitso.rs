@@ -2821,7 +2821,7 @@ impl Bitso {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
                 let error: Option<crate::value::Dict> = self.safe_dict_k_o(response, "error");
                 if (error.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }
                 let codeError: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
                 self.throw_exactly_matched_exception(&self.exceptions, &codeError, feedback.as_str());

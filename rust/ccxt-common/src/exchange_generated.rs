@@ -8376,19 +8376,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 keysToOmit.push(Value::Str("triggerPrice".into()));
                 keysToOmit.push(Value::Str("stopPrice".into()));
             }
-            triggerPriceStr = self.price_to_precision(symbol.as_str(), (match triggerPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+            triggerPriceStr = self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         if (stopLossPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("stopLossPrice".into()));
             }
-            stopLossPriceStr = self.price_to_precision(symbol.as_str(), (match stopLossPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+            stopLossPriceStr = self.price_to_precision(symbol.as_str(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         }
         if (takeProfitPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("takeProfitPrice".into()));
             }
-            takeProfitPriceStr = self.price_to_precision(symbol.as_str(), (match takeProfitPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+            takeProfitPriceStr = self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let keysToOmitLength: i64 = keysToOmit.len() as i64;
         let paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(&params, Value::from(keysToOmit), &[]) } else { params });
@@ -9809,11 +9809,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut results: Vec<Value> = Vec::new();
+        let greeksArray: crate::value::List = self.to_array_t(greeks);
         {
                         let mut i: i64 = 0;
             let mut __for_first_170: bool = true;
-            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (greeks.len() as i64) } {
-            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, self.safe_dict(&greeks, Value::Int(i), &[Value::Map({
+            while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (greeksArray.len() as i64) } {
+            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, self.safe_dict(&greeksArray, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), None)), &[&params]));
@@ -9831,14 +9832,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut results: Vec<Value> = Vec::new();
-        let marketIds: Vec<Value> = object_keys(&greeks).as_array().cloned().unwrap_or_default();
+        let greeksDict: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[greeks]);
+        let marketIds: Vec<Value> = Value::Array(greeksDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_171: bool = true;
             while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, self.safe_dict(&greeks, Value::from(marketId.as_deref()), &[Value::Map({
+            results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, self.safe_dict(&greeksDict, Value::from(marketId.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market))), &[&params]));
@@ -10129,7 +10134,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn parse_margin_modification(&self, mut data: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_margin_modification(self, ...))
-        if let Some(__v) = crate::exchange::DerivedExchange::parse_margin_modification(self, data.clone(), market) { return __v; }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_margin_modification(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(data.clone()).as_ref(), market) { return __v; }
 
         if (data == Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parseMarginModification() is not supported yet")));
@@ -10155,7 +10160,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let marketId: Option<String> = (if (symbolKey == Value::Null) { None } else { self.safe_string_opt(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &symbolKey, &[]) });
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.clone()]);
             if (symbols == Value::Null) || self.in_array(crate::value::KeyRead::key_read(&&market, "symbol"), &symbols) {
-                marginModifications.push(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_margin_modification(self, response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Some(&market))));
+                marginModifications.push(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_margin_modification(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market))));
             }
         }
         }

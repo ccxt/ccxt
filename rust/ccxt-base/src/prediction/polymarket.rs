@@ -537,7 +537,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_api_key" => crate::Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "create_or_derive_api_key" => self.create_or_derive_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "create_or_derive_api_key" => crate::Value::Dict(self.create_or_derive_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
@@ -4517,7 +4517,7 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api credentials { apiKey, secret, passphrase }
  */
-    pub async fn create_or_derive_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn create_or_derive_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4532,9 +4532,7 @@ if _try_result.is_err() {
         if (creds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrDeriveApiKey() returned no credentials")));
         }
-        return creds.map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return creds.unwrap_or_default();
 }
 
     pub fn set_api_credentials(&mut self, response: &indexmap::IndexMap<String, Value>) -> crate::value::Dict {
@@ -4569,7 +4567,7 @@ if _try_result.is_err() {
         if (self.privateKey != Value::Null) {
             let alreadyDerived: Option<String> = self.safe_string_k_opt(&self.options, "l2ApiKey", &[]);
             if (alreadyDerived.is_none()) {
-                self.create_or_derive_api_key(&[]).await;
+                Value::Dict(self.create_or_derive_api_key(&[]).await);
             }
             return;
         }

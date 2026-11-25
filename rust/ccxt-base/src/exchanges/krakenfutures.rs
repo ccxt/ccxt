@@ -668,14 +668,14 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                 // Final order (after placement / editing / execution / canceling)
                 let mut orderTrigger: Option<crate::value::Dict> = self.safe_dict_k_o(&item, "orderTrigger");
                 if (details == Value::Null) {
-                    details = self.safe_value2(&item, Value::Str("new".into()), Value::Str("order".into()), &[orderTrigger.map_or(Value::Null, Value::Dict)]);
+                    details = self.safe_dict2(&item, Value::Str("new".into()), Value::Str("order".into()), &[orderTrigger.map_or(Value::Null, Value::Dict)]);
                     if (details != Value::Null) {
                         isPrior = false;
                         fixed = true;
                     }  else if !fixed {
                         let executedPrice: Option<String> = self.safe_string_k_opt(&item, "price", &[]);
                         let orderPriorExecution: crate::value::Dict = self.safe_dict_k_t(&item, "orderPriorExecution");
-                        details = self.safe_value2(&item, Value::Str("orderPriorExecution".into()), Value::Str("orderPriorEdit".into()), &[]);
+                        details = self.safe_dict2(&item, Value::Str("orderPriorExecution".into()), Value::Str("orderPriorEdit".into()), &[]);
                         if (executedPrice.is_none()) {
                             price = self.safe_string_k_opt(&orderPriorExecution, "limitPrice", &[]);
                         }  else {
@@ -1352,12 +1352,12 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let apiVersions: crate::value::Dict = self.safe_dict_t(self.options.get("versions").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()));
+        let apiVersions: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.options.get("versions") { if let Some(Value::Dict(__m)) = __p1.get(apiName.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let methodVersions: crate::value::Dict = self.safe_dict_t(&apiVersions, &method);
         let defaultVersion: Option<String> = self.safe_string_opt(&methodVersions, &path, &[&self.version.clone()]);
         let version: Option<String> = self.safe_string_k_opt(&params, "version", &[&defaultVersion]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("version".into()), &[]);
-        let apiAccess: crate::value::Dict = self.safe_dict_t(self.options.get("access").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()));
+        let apiAccess: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.options.get("access") { if let Some(Value::Dict(__m)) = __p1.get(apiName.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let methodAccess: crate::value::Dict = self.safe_dict_t(&apiAccess, &method);
         let access: Option<String> = self.safe_string_opt(&methodAccess, &path, &[&Value::Str("public".into())]);
         let endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), Value::from(&paramsOmitted)));
@@ -4995,7 +4995,7 @@ impl Krakenfutures {
         self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
         self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
         if (code == 400) {
-            panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
+            panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }

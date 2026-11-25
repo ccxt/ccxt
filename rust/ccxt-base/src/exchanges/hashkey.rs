@@ -1025,16 +1025,15 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let marketId: Option<String> = self.safe_string_k_opt(data, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]);
-        let timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        let errorCode: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(data, "timestamp", &[]).as_i64();
+        let errorCode: Option<String> = self.safe_string_k_opt(data, "code", &[]);
         let success: bool = errorCode.as_deref() == Some("0000");
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -4218,9 +4217,9 @@ impl Hashkey {
             let marketTypeValue: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() is not supported for ").into()), marketTypeValue).into()), " type of markets")));
         }
-        let mut order: Value = Value::Dict(self.safe_order(response.clone(), None));
-        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); }
-        return Value::from(vec![order]);
+        let mut order: crate::value::Dict = self.safe_order(response.clone(), None);
+        std::sync::Arc::make_mut(&mut order).insert("info".into(), response);
+        return Value::from(vec![Value::Dict(order)]);
         Value::Null
         }).await?))
     }
@@ -4274,9 +4273,9 @@ impl Hashkey {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() is not supported for ").into()), marketTypeOption.map(Value::from).unwrap_or(Value::Null)).into()), " type of markets")));
         }
-        let mut order: Value = Value::Dict(self.safe_order(response.clone(), None));
-        if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("info".to_string(), response); }
-        return Value::from(vec![order]);
+        let mut order: crate::value::Dict = self.safe_order(response.clone(), None);
+        std::sync::Arc::make_mut(&mut order).insert("info".into(), response);
+        return Value::from(vec![Value::Dict(order)]);
         Value::Null
         }).await?))
     }
@@ -5187,7 +5186,7 @@ impl Hashkey {
         });
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsSide]);
         let response: crate::value::Dict = self.private_post_api_v1_futures_position_margin(&[&__ws_arg_43]).await.unwrap_or_default();
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("amount".to_string(), Value::from(amount));

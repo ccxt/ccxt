@@ -407,7 +407,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "action_hash" => self.action_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "approve_builder_fee" => self.approve_builder_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
-                "build_approve_builder_fee_sig" => self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "build_approve_builder_fee_sig" => crate::Value::Dict(self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "calculate_price_precision" => self.calculate_price_precision(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default()),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -453,7 +453,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_l1_action" => crate::Value::Dict(self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref())),
                 "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "sign_user_signed_action" => self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign_user_signed_action" => crate::Value::Dict(self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -2942,7 +2942,7 @@ impl Hyperliquid {
         return self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
 }
 
-    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> Value {
+    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> crate::value::Dict {
         let messageTypes: Value = messageTypes.into();
         let zeroAddress: Option<String> = self.safe_string_k_opt(&self.options, "zeroAddress", &[]);
         let chainId: i64 = 421614;
@@ -2956,12 +2956,10 @@ impl Hyperliquid {
         });
         let msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
         let signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
-        return Value::Dict(signature);
-
-    Value::Null
+        return signature;
 }
 
-    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2989,8 +2987,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Value::Null
 }
 
 /*
@@ -3013,7 +3009,7 @@ impl Hyperliquid {
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone())).into_dict();
+        let sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
         let action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3135,10 +3131,10 @@ if _try_result.is_err() {
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
         if (config.contains_key("byType")) {
-            let type_var: Option<String> = (match params.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-            let byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
+            let mut type_var: Option<String> = (match params.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+            let byType: crate::value::Dict = config.key_dict("byType");
             if (type_var.is_some()) {
-                if (matches!((&byType, type_var.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                if (matches!(type_var.as_deref(), Some(__k) if byType.contains_key(__k))) {
                     return self.safe_integer(&byType, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
                 }
             }

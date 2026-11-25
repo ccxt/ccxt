@@ -553,7 +553,7 @@ impl Polymarket {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let ticker: Value = Value::Dict(self.safe_ticker(Value::Map({
+        let ticker: crate::value::Dict = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -564,10 +564,10 @@ impl Polymarket {
                 m.insert("indexPrice".to_string(), self.safe_string_k(&data, "idx", &[]));
                 m.insert("info".to_string(), Value::from(&data));
             m
-        }), Some(&market)));
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
-        client.resolve(ticker, "tickers");
+        }), Some(&market));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
+        client.resolve(Value::Dict(ticker), "tickers");
 }
 
 /*
@@ -643,7 +643,7 @@ impl Polymarket {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let ticker: Value = Value::Dict(self.safe_ticker(Value::Map({
+        let ticker: crate::value::Dict = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -654,9 +654,9 @@ impl Polymarket {
                 m.insert("askVolume".to_string(), self.safe_string_k(&data, "aq", &[]));
                 m.insert("info".to_string(), Value::from(&data));
             m
-        }), Some(&market)));
-        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(ticker, &(Value::Str(format!("{}{}", "bidask:", symbol).into())));
+        }), Some(&market));
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "bidask:", symbol).into())));
 }
 
 /*
@@ -997,7 +997,7 @@ impl Polymarket {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let credentials: crate::value::Dict = self.parent.load_proxy_credentials(&[]).await.into_dict();
+        let credentials: crate::value::Dict = self.parent.load_proxy_credentials(&[]).await;
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();

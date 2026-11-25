@@ -1164,7 +1164,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
-                "create_test_order" => self.create_test_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_test_order" => crate::Value::Dict(self.create_test_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -1195,7 +1195,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_sec_with_details" => crate::Value::Arr(self.fetch_sec_with_details(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
-                "fetch_service_accounts" => self.fetch_service_accounts(&args[..]).await,
+                "fetch_service_accounts" => crate::Value::Dict(self.fetch_service_accounts(&args[..]).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1213,7 +1213,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_gateway_schedule_regain" => self.ibkr_gateway_schedule_regain().await,
                 "ibkr_gateway_sign_in" => self.ibkr_gateway_sign_in(&args[..]).await,
                 "ibkr_gateway_start_keep_alive" => self.ibkr_gateway_start_keep_alive().await,
-                "ibkr_handle_order_replies" => self.ibkr_handle_order_replies(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
+                "ibkr_handle_order_replies" => crate::Value::Dict(self.ibkr_handle_order_replies(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await),
                 "ibkr_has_fresh_session_token" => self.ibkr_has_fresh_session_token(),
                 "ibkr_is_auth_request" => self.ibkr_is_auth_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_is_authenticated" => self.ibkr_is_authenticated(),
@@ -1238,7 +1238,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "request" => self.request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_in" => self.sign_in(&args[..]).await,
-                "switch_to_account" => self.switch_to_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "switch_to_account" => crate::Value::Dict(self.switch_to_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2760,7 +2760,7 @@ impl Interactivebrokers {
         // open the brokerage session
         let initRequest: crate::value::Dict = self.safe_dict_k_t(&self.options, "signInInitRequest");
         self.webapi_post_v1_api_iserver_auth_ssodh_init(&[&Value::Dict(initRequest)]).await;
-        self.fetch_service_accounts(&[]).await;
+        Value::Dict(self.fetch_service_accounts(&[]).await);
         return Value::Dict(response);
 
     Value::Null
@@ -2900,7 +2900,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewaySessionLostTimestamp".into(), Value::Null); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("serviceAccountsLoaded".into(), Value::Bool(false)); }
-        self.fetch_service_accounts(&[]).await;
+        Value::Dict(self.fetch_service_accounts(&[]).await);
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewaySessionEstablished".into(), Value::Bool(true)); }
         { let __be_tmp = Value::Int(self.milliseconds()); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), __be_tmp); } }
         self.ibkr_gateway_start_keep_alive().await;
@@ -3023,7 +3023,8 @@ if _try_result.is_err() {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayRegainScheduled".into(), Value::Bool(false)); }
         let useGateway: bool = self.safe_bool_k_opt(&self.options, "useGateway", &[Value::Bool(false)]).unwrap_or(false);
         let lostTimestamp: Option<i64> = self.safe_integer_k(&self.options, "gatewaySessionLostTimestamp", &[]).as_i64();
-        if !useGateway || (lostTimestamp.is_none()) || (self.ibkr_gateway_regain_delay().as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64)) {
+        let regainDelay: i64 = self.ibkr_gateway_regain_delay().as_i64().unwrap_or_default();
+        if !useGateway || (lostTimestamp.is_none()) || (regainDelay <= 0) {
             return Value::Null;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -3466,29 +3467,27 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let chunkSize: i64 = 330; // above this number, response becomes unreliable
         let mut promises: Vec<Value> = Vec::new();
-        let mut offset: Value = Value::Int(0);
-        while offset.as_f64().unwrap_or(f64::NAN) < (numDetails as f64) {
-            let end: Value = crate::runtime::Math::min(&self.sum(&[offset.clone(), Value::from(chunkSize)]), &Value::from(numDetails));
-            let mut chunk: Vec<Value> = Vec::new();
-            {
-                                let mut k: Value = offset;
-                let mut __for_first_7: bool = true;
-                while { if !__for_first_7 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_7 = false; k.as_f64().unwrap_or(f64::NAN) < end.as_f64().unwrap_or(f64::NAN) } {
-                let detailId: String = self.safe_string(&detailIds, &k, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                chunk.push(Value::from(detailId));
-            }
-            }
-            let secdefRequest: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("conids".to_string(), Value::Str(chunk.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
-                m
-            });
-            promises.push(self.markets_endpoint_call(Value::Map(secdefRequest), "webapiGetV1ApiTrsrvSecdef", &[Value::Map({
+        let mut chunk: crate::value::List = std::sync::Arc::new(Vec::new());
+        {
+                        let mut k: i64 = 0;
+            let mut __for_first_7: bool = true;
+            while { if !__for_first_7 { k += 1; } __for_first_7 = false; k < numDetails } {
+            let detailId: String = self.safe_string(&detailIds, Value::Int(k), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            std::sync::Arc::make_mut(&mut chunk).push(Value::from(detailId));
+            let chunkLength: i64 = chunk.len() as i64;
+            if (chunkLength == chunkSize) || (k == ((numDetails - 1))) {
+                let secdefRequest: indexmap::IndexMap<String, Value> = ({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("conids".to_string(), Value::Str(chunk.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                    m
+                });
+                promises.push(self.markets_endpoint_call(Value::Map(secdefRequest), "webapiGetV1ApiTrsrvSecdef", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]).await);
-            offset = end;
+                chunk = std::sync::Arc::new(Vec::new());
+            }
+        }
         }
         let responses: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
         {
@@ -4647,15 +4646,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the raw response from the exchange
  */
-    pub async fn fetch_service_accounts(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_service_accounts(&mut self, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let response: crate::value::Dict = self.call_method_t("webapi_get_v1_api_iserver_accounts", &[&params]).await;
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
 /*
@@ -4696,7 +4693,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the raw response from the exchange
  */
-    pub async fn switch_to_account(&mut self, accountId: &str, optional_args: &[Value]) -> Value {
+    pub async fn switch_to_account(&mut self, accountId: &str, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4721,9 +4718,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // if the account is already selected, the gateway responds with http 501 instead
         //
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("accountId".into(), Value::from(accountId)); }
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
 /*
@@ -4775,13 +4770,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let response: Value = self.webapi_post_v1_api_iserver_account_account_id_orders(&[&Value::Map(request)]).await;
-        let result: Option<crate::value::Dict> = self.ibkr_handle_order_replies(response, "createOrder").await.into_opt_dict();
+        let result: Option<crate::value::Dict> = Some(self.ibkr_handle_order_replies(response, "createOrder").await);
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, result.as_ref(), Some(&market));
         None
         }).await?))
     }
 
-    pub async fn create_test_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_test_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4803,9 +4798,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let previewResponse: crate::value::Dict = self.webapi_post_v1_api_iserver_account_account_id_orders_whatif(&[&Value::Map(request)]).await.unwrap_or_default();
-        return Value::Dict(previewResponse);
-
-    Value::Null
+        return previewResponse;
 }
 
 /*
@@ -4914,7 +4907,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} methodName the calling method name
  * @returns {object} the accepted order entry
  */
-    pub async fn ibkr_handle_order_replies(&mut self, mut response: Value, methodName: &str) -> Value {
+    pub async fn ibkr_handle_order_replies(&mut self, mut response: Value, methodName: &str) -> crate::value::Dict {
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "createOrder");
         let autoConfirm: bool = self.safe_bool_k_opt(&options, "autoConfirmOrderReplies", &[Value::Bool(true)]).unwrap_or(true);
         let maxReplies: i64 = self.safe_integer_k(&options, "maxReplies", &[Value::Int(10)]).as_i64().unwrap_or(10);
@@ -4936,7 +4929,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let first: crate::value::Dict = self.safe_dict_t(&current, Value::Int(0));
             let orderId: Option<String> = self.safe_string2_opt(&first, Value::Str("order_id".into()), Value::Str("orderId".into()), &[]);
             if (orderId.is_some()) {
-                return Value::from(&first);
+                return first;
             }
             //
             // reply prompt
@@ -4962,8 +4955,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", errorPrefix, "exceeded options.createOrder.maxReplies order reply confirmations")));
-
-    Value::Null
 }
 
 /*
@@ -5007,7 +4998,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         orderRequest.insert("accountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
         orderRequest.insert("orderId".into(), id);
         let response: Value = self.webapi_post_v1_api_iserver_account_account_id_order_order_id(&[&Value::Map(orderRequest)]).await;
-        let result: Option<crate::value::Dict> = self.ibkr_handle_order_replies(response, "editOrder").await.into_opt_dict();
+        let result: Option<crate::value::Dict> = Some(self.ibkr_handle_order_replies(response, "editOrder").await);
         let mut order: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, result.as_ref(), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         order.insert("type".into(), type_var);
         order.insert("side".into(), side);

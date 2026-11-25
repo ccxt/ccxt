@@ -204,8 +204,7 @@ impl std::ops::DerefMut for Bybit {
 
 impl Bybit {
     pub fn describe(&self) -> crate::value::Dict {
-        let superDescribe: Value = Value::Dict(self.parent.describe());
-        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {
@@ -2467,8 +2466,8 @@ impl Bybit {
         }
         let url: Option<String> = self.get_url_by_market_type(None, &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let topics: Value = Value::from(vec![Value::Str("position".into())]);
-        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "positions", Value::from(symbols), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), topics, &[&params]).await;
+        let topics: Vec<Value> = vec![Value::Str("position".into())];
+        return self.un_watch_topics(url.as_deref().unwrap_or_default(), "positions", Value::from(symbols), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), Value::from(topics), &[&params]).await;
         Value::Null
         }).await?))
     }

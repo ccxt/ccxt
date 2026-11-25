@@ -7130,14 +7130,14 @@ if _try_result.is_err() {
             let errorMessage: Option<String> = self.safe_string2_opt(&response, Value::Str("error_description".into()), Value::Str("error".into()), &[]);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let errorResponse: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "error_response");
         if (errorResponse.is_some()) {
             let errorMessageInner: Option<String> = self.safe_string2_opt(&errorResponse, Value::Str("preview_failure_reason".into()), Value::Str("preview_failure_reason".into()), &[]);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessageInner.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessageInner, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let errors: crate::value::List = self.safe_list_k_t(&response, "errors");
         if (true) {

@@ -851,16 +851,16 @@ impl Bit2me {
         let orderId: Option<String> = self.safe_string_k_opt(&data, "orderId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let order: Value = Value::Dict(self.safe_order(Value::Map({
+        let order: crate::value::Dict = self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::from(message));
                 m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&data, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
             m
-        }), Some(&market)));
+        }), Some(&market));
         let __ws_arg_3 = self.safe_string_k(&data, "orderId", &[Value::Str("".into())]);
-        self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-order:".into()), __ws_arg_3).into()), order, &[]);
+        self.settle_request(client, Value::Str(format!("{}{}", Value::Str("canceled-order:".into()), __ws_arg_3).into()), &order, &[]);
 }
 
 /*

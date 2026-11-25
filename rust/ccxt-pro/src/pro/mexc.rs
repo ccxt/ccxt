@@ -1112,13 +1112,13 @@ impl Mexc {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.as_str()));
-        let mut orderbook: Value = Value::Null;
         if (market).spot {
             let frequencyparamsFrequencyVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]);
             let frequency: Option<String> = frequencyparamsFrequencyVariable.0.as_str().map(str::to_owned);
             let paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.1;
             let spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
-            orderbook = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&Value::Dict(paramsFrequency)]).await;
+            let mut spotOrderbook: Option<crate::pro::order_book::Book> = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&Value::Dict(paramsFrequency)]).await.into();
+            return spotOrderbook.limit();
         }  else {
             let channel: String = "sub.depth".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1126,10 +1126,9 @@ impl Mexc {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            orderbook = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await;
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await.into();
+            return orderbook.limit();
         }
-        orderbook = self.require_value(orderbook, &[Value::Str("watchOrderBook() orderbook is required".into())]);
-        return orderbook.limit();
         Value::Null
         }).await?))
     }

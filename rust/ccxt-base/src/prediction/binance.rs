@@ -390,7 +390,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_quote" => Value::Dict(self.fetch_quote(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_quote" => crate::Value::Dict(self.fetch_quote(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_topic_detail" => self.fetch_raw_topic_detail(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_raw_topics" => Value::Arr(self.fetch_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2245,8 +2245,6 @@ impl Binance {
         let __ws_arg_16 = self.extend(request, &[params]);
         let response: crate::value::Dict = self.sapi_private_post_trade_get_quote(&[&__ws_arg_16]).await.unwrap_or_default();
         return response;
-
-    Default::default()
 }
 
     pub fn price_to_precision(&self, mut outcome: Value, price: impl crate::value::ScalarArg) -> Option<String> {

@@ -867,8 +867,7 @@ impl crate::exchange::DerivedExchange for Delta {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "auto_topup": false,
@@ -889,11 +888,11 @@ impl crate::exchange::DerivedExchange for Delta {
         //         "user_id": 30084879
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "product_symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(data, "product_symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -4238,7 +4237,7 @@ impl Delta {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &result, Some(&market)).unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&result), Some(&market)).unwrap_or_default();
 }
 
 

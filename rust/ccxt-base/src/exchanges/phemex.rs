@@ -801,7 +801,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let id: Option<String> = self.safe_string_k_opt(&rawCurrency, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
         let valueScaleString: Option<String> = self.safe_string_k_opt(&rawCurrency, "valueScale", &[]);
-        let valueScale: Value = (match valueScaleString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
+        let valueScale: Option<i64> = self.safe_integer_k(&rawCurrency, "valueScale", &[]).as_i64();
         let minValueEv: Option<String> = self.safe_string_k_opt(&rawCurrency, "minValueEv", &[]);
         let maxValueEv: Option<String> = self.safe_string_k_opt(&rawCurrency, "maxValueEv", &[]);
         let mut minAmount: Option<f64> = None;
@@ -840,7 +840,7 @@ impl crate::exchange::DerivedExchange for Phemex {
 }));
     m
 }));
-        m.insert("valueScale".to_string(), valueScale);
+        m.insert("valueScale".to_string(), Value::from(valueScale));
         m.insert("networks".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("crypto".into()));
     m
@@ -888,8 +888,7 @@ impl crate::exchange::DerivedExchange for Phemex {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "code": 0,
@@ -902,7 +901,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let codeCurrency: String = (if inverse { "base".to_string() } else { "quote".to_string() });
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_symbol(None, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref(), &[]));
         m.insert("type".to_string(), Value::Str("set".into()));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -3155,9 +3154,8 @@ impl Phemex {
         //     }
         //
         let v1ProductsPromise: crate::value::Dict = self.v1_get_exchange_public_products(&[&params]).await.unwrap_or_default();
-        let v2Productsv1ProductsVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(v2ProductsPromise), Value::Dict(v1ProductsPromise)])).await.to_vec();
-        let v2Products: crate::value::Dict = v2Productsv1ProductsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let v1Products: crate::value::Dict = v2Productsv1ProductsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let v2Products: crate::value::Dict = v2ProductsPromise;
+        let v1Products: crate::value::Dict = v1ProductsPromise;
         let v1ProductsData: crate::value::List = self.safe_list_k_t(&v1Products, "data");
         //
         //     {
@@ -6221,7 +6219,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let __ws_arg_56 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_positions_assign(&[&__ws_arg_56]).await.unwrap_or_default();
-        let __ws_arg_57 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_57 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_57, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));

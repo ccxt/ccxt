@@ -763,8 +763,7 @@ if _try_result.is_err() {
 
     None
 }
-    fn parse_margin_modification(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let info: Value = info.into();
+    fn parse_margin_modification(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -810,16 +809,16 @@ if _try_result.is_err() {
         //        "msg":"Position does not exist"
         //    }
         //
-        let id: Option<String> = self.safe_string_k_opt(&info, "id", &[]);
+        let id: Option<String> = self.safe_string_k_opt(info, "id", &[]);
         let marketResolved: crate::types::Market = self.safe_market(id.as_deref(), market, &[]);
-        let currencyId: Option<String> = self.safe_string_k_opt(&info, "settleCurrency", &[]);
-        let crossMode: bool = self.safe_bool_k_opt(&info, "crossMode", &[Value::Bool(false)]).unwrap_or(false);
+        let currencyId: Option<String> = self.safe_string_k_opt(info, "settleCurrency", &[]);
+        let crossMode: bool = self.safe_bool_k_opt(info, "crossMode", &[Value::Bool(false)]).unwrap_or(false);
         let mode: String = (if crossMode { "cross".to_string() } else { "isolated".to_string() });
         let marketId: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&info, "currentTimestamp", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(info, "currentTimestamp", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info);
+        m.insert("info".to_string(), Value::from(info));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::from(mode));
@@ -1558,7 +1557,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_contract_markets" => self.fetch_contract_markets(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_contract_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_contract_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_contract_order" => self.fetch_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_contract_orders_by_status" => self.fetch_contract_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_contract_orders_by_status" => self.fetch_contract_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_contract_tickers" => crate::types::IntoRaw::into_raw(self.fetch_contract_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_contract_withdrawals" => self.fetch_contract_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_cross_borrow_rate" => crate::types::IntoRaw::into_raw(self.fetch_cross_borrow_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1592,7 +1591,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => crate::types::IntoRaw::into_raw(self.fetch_position_mode(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1600,7 +1599,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_positions_history" => crate::types::IntoRaw::into_raw(self.fetch_positions_history(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_spot_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_spot_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_spot_order" => self.fetch_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_spot_orders_by_status" => self.fetch_spot_orders_by_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_spot_orders_by_status" => self.fetch_spot_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1612,7 +1611,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_uta_balance" => self.fetch_uta_balance(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_uta_markets" => self.fetch_uta_markets(&args[..]).await,
                 "fetch_uta_order" => self.fetch_uta_order(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_uta_orders_by_status" => self.fetch_uta_orders_by_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_uta_orders_by_status" => self.fetch_uta_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_utaohlcv" => self.fetch_utaohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -9082,7 +9081,7 @@ impl Kucoin {
  * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -9120,9 +9119,9 @@ impl Kucoin {
         m.insert("marketType".to_string(), Value::from(marketType.as_deref()));
     m
 })]);
-            return self.fetch_uta_orders_by_status(Value::from(status), symbol, since, limit, &[&Value::from(&paramsRequest)]).await;
+            return self.fetch_uta_orders_by_status(status, symbol, since, limit, &[&Value::from(&paramsRequest)]).await;
         }  else if self.in_array(&marketType, Value::from(vec![Value::Str("spot".into()), Value::Str("margin".into())])) {
-            return self.fetch_spot_orders_by_status(Value::from(status), symbol, since, limit, &[&Value::from(&paramsRequest)]).await;
+            return self.fetch_spot_orders_by_status(status, symbol, since, limit, &[&Value::from(&paramsRequest)]).await;
         }  else {
             return self.fetch_contract_orders_by_status(status, symbol, since, limit, &[&Value::Dict(paramsRequest)]).await;
         }
@@ -9156,7 +9155,7 @@ impl Kucoin {
  * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_spot_orders_by_status(&mut self, mut status: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_spot_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let limit: Value = limit.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -9165,7 +9164,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut lowercaseStatus: Value = (if let Some(__s) = (status).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut lowercaseStatus: String = status.to_string().to_lowercase();
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let trigger: bool = self.safe_bool2_opt(&params, Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let hfparamsHfVariable = self.handle_hf_and_params(&[&params]);
@@ -9179,10 +9178,10 @@ impl Kucoin {
         let marginMode: Option<String> = marginModequeryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = marginModequeryVariable.1;
         let isMarginOrder: bool = marginMode.is_some();
-        if (lowercaseStatus.as_str() == Some("open")) {
-            lowercaseStatus = Value::Str("active".into());
-        }  else if (lowercaseStatus.as_str() == Some("closed")) {
-            lowercaseStatus = Value::Str("done".into());
+        if (lowercaseStatus == "open") {
+            lowercaseStatus = "active".to_string();
+        }  else if (lowercaseStatus == "closed") {
+            lowercaseStatus = "done".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -9195,13 +9194,13 @@ impl Kucoin {
         }
         request.insert("tradeType".into(), self.safe_string(self.options.get("marginModes").cloned().unwrap_or(Value::Null), marginMode.map(Value::from).unwrap_or(Value::Null), &[Value::Str("TRADE".into())]));
         let mut response: Option<crate::value::Dict> = None;
-        if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && (!trigger) {
+        if isMarginOrder && (lowercaseStatus == "active") && (!trigger) {
             // hf margin open non-trigger orders require only symbol and tradeType params
             let __ws_arg_62 = self.extend(&request, &[&query]);
             response = self.private_get_hf_margin_orders_active(&[&__ws_arg_62]).await;
         }  else {
             if !isMarginOrder {
-                request.insert("status".into(), lowercaseStatus.clone());
+                request.insert("status".into(), Value::from(lowercaseStatus.as_str()));
             }
             if (since.is_some()) {
                 request.insert("startAt".into(), Value::from(since));
@@ -9228,10 +9227,10 @@ impl Kucoin {
                 let __ws_arg_65 = self.extend(&request, &[&query]);
                 response = self.private_get_hf_margin_orders_done(&[&__ws_arg_65]).await;
             }  else if (hf) {
-                if (lowercaseStatus.as_str() == Some("active")) {
+                if (lowercaseStatus == "active") {
                     let __ws_arg_66 = self.extend(&request, &[&query]);
                     response = self.private_get_hf_orders_active(&[&__ws_arg_66]).await;
-                }  else if (lowercaseStatus.as_str() == Some("done")) {
+                }  else if (lowercaseStatus == "done") {
                     let __ws_arg_67 = self.extend(&request, &[&query]);
                     response = self.private_get_hf_orders_done(&[&__ws_arg_67]).await;
                 }
@@ -9269,7 +9268,7 @@ impl Kucoin {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_contract_orders_by_status(&mut self, status: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_contract_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -9418,7 +9417,7 @@ impl Kucoin {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_uta_orders_by_status(&mut self, mut status: Value, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_uta_orders_by_status(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -9475,14 +9474,14 @@ impl Kucoin {
         if (limit.is_some()) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("pageSize".into(), Value::from(limit));
         }
-        let mut lowercaseStatus: Value = (if let Some(__s) = (status).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (lowercaseStatus.as_str() == Some("open")) {
-            lowercaseStatus = Value::Str("active".into());
-        }  else if (lowercaseStatus.as_str() == Some("closed")) {
-            lowercaseStatus = Value::Str("done".into());
+        let mut lowercaseStatus: String = status.to_string().to_lowercase();
+        if (lowercaseStatus == "open") {
+            lowercaseStatus = "active".to_string();
+        }  else if (lowercaseStatus == "closed") {
+            lowercaseStatus = "done".to_string();
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (lowercaseStatus.as_str() == Some("active")) {
+        if (lowercaseStatus == "active") {
             //
             //     {
             //         "code": "200000",
@@ -9590,7 +9589,7 @@ impl Kucoin {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate)]).await;
         }
-        return self.fetch_orders_by_status(Some("done"), symbol.as_str(), since, limit, &[Value::Dict(paramsPaginate)]).await;
+        return self.fetch_orders_by_status("done", symbol.as_str(), since, limit, &[Value::Dict(paramsPaginate)]).await;
         Value::Null
         }).await?))
     }
@@ -9644,7 +9643,7 @@ impl Kucoin {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsPaginate)]).await;
         }
-        return self.fetch_orders_by_status(Some("active"), symbol.as_str(), since, limit, &[Value::Dict(paramsPaginate)]).await;
+        return self.fetch_orders_by_status("active", symbol.as_str(), since, limit, &[Value::Dict(paramsPaginate)]).await;
         Value::Null
         }).await?))
     }
@@ -14944,7 +14943,7 @@ impl Kucoin {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_153 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_153 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_153, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));

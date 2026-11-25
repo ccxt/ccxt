@@ -1944,11 +1944,14 @@ impl Deepcoin {
                 let duration: i64 = self.parse_timeframe(&timeframe);
                 let numberOfCandles: i64 = limit.unwrap_or(maxLimit);
                 let mut endTime: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = since { Some(__l + ((((duration * numberOfCandles)) * 1000))) } else { None })));
-                if (until.is_some()) {
-                    endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
+                if (until.is_some()) && ((until.is_some() && endTime.is_some() && until < endTime)) {
+                    endTime = until;
                 }
                 let now: i64 = self.milliseconds();
-                request.insert("after".into(), Value::from((if let Some(__m0) = endTime { Some(i64::min(__m0, now)) } else { None })));
+                if Some(now) < endTime {
+                    endTime = Some(now);
+                }
+                request.insert("after".into(), Value::from(endTime));
             }
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -4433,7 +4436,7 @@ impl Deepcoin {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &sCode, feedback.as_str());
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else {
             let list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
             if (data.contains_key("list")) && (list == Value::Null) {

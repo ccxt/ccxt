@@ -801,8 +801,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -811,11 +810,11 @@ impl crate::exchange::DerivedExchange for Digifinex {
         //         "amount": "3.6834"
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "instrument_id", &[]);
-        let rawType: Option<i64> = self.safe_integer_k(&data, "type", &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(data, "instrument_id", &[]);
+        let rawType: Option<i64> = self.safe_integer_k(data, "type", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("type".to_string(), (if (rawType == Some(1)) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -6213,7 +6212,7 @@ impl Digifinex {
             status = "ok".to_string();
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
     m
@@ -6340,7 +6339,7 @@ impl Digifinex {
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
         if (codeError.is_none()) {
-            panic!("{}", crate::exchange_errors::bad_response(feedback.clone()));
+            panic!("{}", crate::exchange_errors::bad_response(feedback));
         }
         let unknownError: Value = Value::from(vec![Value::Str("ExchangeError".into()), Value::from(feedback)]);
         let ExceptionClassmessageVariable = self.safe_value(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), &[unknownError]);

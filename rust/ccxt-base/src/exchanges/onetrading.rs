@@ -2093,12 +2093,12 @@ impl Onetrading {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        let order: Value = Value::Dict(self.safe_order(Value::Map({
+        let order: crate::value::Dict = self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Arr(response));
             m
-        }), None));
-        return Value::from(vec![order]);
+        }), None);
+        return Value::from(vec![Value::Dict(order)]);
         Value::Null
         }).await?))
     }

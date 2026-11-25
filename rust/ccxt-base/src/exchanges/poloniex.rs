@@ -748,15 +748,14 @@ impl crate::exchange::DerivedExchange for Poloniex {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let marketId: Option<String> = self.safe_string_k_opt(data, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let rawType: Option<String> = self.safe_string_k_opt(&data, "type", &[]);
+        let rawType: Option<String> = self.safe_string_k_opt(data, "type", &[]);
         let type_var: String = (if (rawType.as_deref() == Some("ADD")) { "add".to_string() } else { "reduce".to_string() });
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("marginMode".to_string(), Value::Null);
@@ -1072,7 +1071,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_transactions_helper" => Value::Dict(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
+                "fetch_transactions_helper" => crate::Value::Dict(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
                 "fetch_transfer" => crate::types::IntoRaw::into_raw(self.fetch_transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -4741,8 +4740,6 @@ impl Poloniex {
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_wallets_activity(&[&__ws_arg_44]).await.unwrap_or_default();
         return response;
-
-    Default::default()
 }
 
 /*
@@ -5323,7 +5320,7 @@ impl Poloniex {
             amountResolved = crate::precise::Precise::stringAbs(&amountResolved);
         }
         let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, data.as_ref(), Some(&market)).unwrap_or_default();
 }
 
 

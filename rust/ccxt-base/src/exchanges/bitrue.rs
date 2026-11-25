@@ -699,11 +699,10 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -719,7 +718,6 @@ impl crate::exchange::DerivedExchange for Bitrue {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // fetchDeposits
         //
@@ -780,39 +778,39 @@ impl crate::exchange::DerivedExchange for Bitrue {
         //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        let id: Option<String> = self.safe_string2_opt(&transaction, Value::Str("id".into()), Value::Str("withdrawId".into()), &[]);
-        let tagType: Option<String> = self.safe_string_k_opt(&transaction, "tagType", &[]);
-        let mut addressTo: Option<String> = self.safe_string_k_opt(&transaction, "addressTo", &[]);
-        let mut addressFrom: Option<String> = self.safe_string_k_opt(&transaction, "addressFrom", &[]);
+        let id: Option<String> = self.safe_string2_opt(transaction, Value::Str("id".into()), Value::Str("withdrawId".into()), &[]);
+        let tagType: Option<String> = self.safe_string_k_opt(transaction, "tagType", &[]);
+        let mut addressTo: Option<String> = self.safe_string_k_opt(transaction, "addressTo", &[]);
+        let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction, "addressFrom", &[]);
         let mut tagTo: Option<String> = None;
         let mut tagFrom: Option<String> = None;
         if (tagType.is_some()) {
             if (addressTo.is_some()) {
-                let parts: Value = Value::Array(if let Some(__s) = addressTo.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+                let parts: crate::value::List = crate::value::List::new(if let Some(__s) = addressTo.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressTo = self.safe_string_opt(&parts, Value::Int(0), &[]);
                 tagTo = self.safe_string_opt(&parts, Value::Int(1), &[]);
             }
             if (addressFrom.is_some()) {
-                let parts: Value = Value::Array(if let Some(__s) = addressFrom.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+                let parts: crate::value::List = crate::value::List::new(if let Some(__s) = addressFrom.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                 addressFrom = self.safe_string_opt(&parts, Value::Int(0), &[]);
                 tagFrom = self.safe_string_opt(&parts, Value::Int(1), &[]);
             }
         }
-        let txid: Option<String> = self.safe_string_k_opt(&transaction, "txid", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&transaction, "createdAt", &[]).as_i64();
-        let updated: Option<i64> = self.safe_integer_k(&transaction, "updatedAt", &[]).as_i64();
-        let payAmount: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("payAmount"));
-        let ctime: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("ctime"));
+        let txid: Option<String> = self.safe_string_k_opt(transaction, "txid", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(transaction, "createdAt", &[]).as_i64();
+        let updated: Option<i64> = self.safe_integer_k(transaction, "updatedAt", &[]).as_i64();
+        let payAmount: bool = matches!(transaction, Some(__d) if __d.contains_key("payAmount"));
+        let ctime: bool = matches!(transaction, Some(__d) if __d.contains_key("ctime"));
         let mut type_var: String = "deposit".to_string();
         if payAmount || ctime {
             type_var = "withdrawal".to_string();
         }
-        let status: Option<String> = self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "status", &[]).as_str(), Some(type_var.as_str()));
-        let amount: Option<f64> = self.safe_number_k(&transaction, "amount", &[]).as_f64();
+        let status: Option<String> = self.parse_transaction_status_by_type(self.safe_string_k(transaction, "status", &[]).as_str(), Some(type_var.as_str()));
+        let amount: Option<f64> = self.safe_number_k(transaction, "amount", &[]).as_f64();
         let mut network: Option<String> = None;
-        let mut currencyId: Option<String> = self.safe_string2_opt(&transaction, Value::Str("symbol".into()), Value::Str("coin".into()), &[]);
+        let mut currencyId: Option<String> = self.safe_string2_opt(transaction, Value::Str("symbol".into()), Value::Str("coin".into()), &[]);
         if (currencyId.is_some()) {
-            let parts: Value = Value::Array(if let Some(__s) = currencyId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
+            let parts: crate::value::List = crate::value::List::new(if let Some(__s) = currencyId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             currencyId = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let networkId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             if (networkId.is_some()) {
@@ -820,7 +818,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             }
         }
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
+        let feeCost: Option<f64> = self.safe_number_k(transaction, "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -832,7 +830,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction);
+        m.insert("info".to_string(), Value::from(transaction));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -3692,7 +3690,7 @@ impl Bitrue {
 }));
             m
         });
-        let statuses: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
+        let statuses: crate::value::Dict = (if let Some(Value::Dict(__m)) = statusesByType.get(type_var.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
@@ -4025,11 +4023,11 @@ impl Bitrue {
         if ((market).linear == Some(true)) {
             let __ws_arg_44 = self.extend(&request, &[&params]);
             let response: crate::value::Dict = self.fapi_v2_private_post_position_margin(&[&__ws_arg_44]).await.unwrap_or_default();
-            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_45 = self.extend(Value::Map(request), &[&params]);
             let response: crate::value::Dict = self.dapi_v2_private_post_position_margin(&[&__ws_arg_45]).await.unwrap_or_default();
-            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setMargin only support linear or inverse swap markets")));
         Value::Null

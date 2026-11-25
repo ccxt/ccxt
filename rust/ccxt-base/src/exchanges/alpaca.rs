@@ -2118,7 +2118,7 @@ impl Alpaca {
             let latestQuote: crate::value::Dict = self.safe_dict_k_t(&entry, "latestQuote");
             let latestTrade: crate::value::Dict = self.safe_dict_k_t(&entry, "latestTrade");
             let datetime: Option<String> = self.safe_string_k_opt(&latestQuote, "t", &[]);
-            let ticker: Value = Value::Dict(self.safe_ticker(Value::Map({
+            let ticker: crate::value::Dict = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
@@ -2141,8 +2141,8 @@ impl Alpaca {
                     m.insert("baseVolume".to_string(), self.safe_string_k(&dailyBar, "v", &[]));
                     m.insert("quoteVolume".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(&dailyBar, "v", &[]), &self.safe_string_k(&dailyBar, "vw", &[])));
                 m
-            }), Some(&market)));
-            results.push(ticker);
+            }), Some(&market));
+            results.push(Value::Dict(ticker));
         }
         }
         return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

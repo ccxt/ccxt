@@ -840,11 +840,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -1048,13 +1047,13 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "approve_builder_fee" => self.approve_builder_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
-                "build_approve_builder_fee_sig" => Value::Dict(self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_send_asset_sig" => Value::Dict(self.build_send_asset_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_usd_class_send_sig" => Value::Dict(self.build_usd_class_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_usd_send_sig" => Value::Dict(self.build_usd_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_user_abstraction_sig" => Value::Dict(self.build_user_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_user_dex_abstraction_sig" => Value::Dict(self.build_user_dex_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "build_withdraw_sig" => Value::Dict(self.build_withdraw_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_approve_builder_fee_sig" => crate::Value::Dict(self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_send_asset_sig" => crate::Value::Dict(self.build_send_asset_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_usd_class_send_sig" => crate::Value::Dict(self.build_usd_class_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_usd_send_sig" => crate::Value::Dict(self.build_usd_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_user_abstraction_sig" => crate::Value::Dict(self.build_user_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_user_dex_abstraction_sig" => crate::Value::Dict(self.build_user_dex_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_withdraw_sig" => crate::Value::Dict(self.build_withdraw_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "calculate_price_precision" => self.calculate_price_precision(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default()),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
@@ -1143,7 +1142,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "reserve_request_weight" => self.reserve_request_weight(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "reserve_request_weight" => crate::Value::Dict(self.reserve_request_weight(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "set_agent_abstraction" => self.set_agent_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1152,9 +1151,9 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "set_user_abstraction" => self.set_user_abstraction(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "sign_l1_action" => Value::Dict(self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64))),
+                "sign_l1_action" => crate::Value::Dict(self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64))),
                 "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "sign_user_signed_action" => Value::Dict(self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "sign_user_signed_action" => crate::Value::Dict(self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "update_spot_currency_code" => crate::Value::from(self.update_spot_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref())),
@@ -2979,8 +2978,6 @@ impl Hyperliquid {
         let msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Dict(phantomAgent));
         let signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
         return signature;
-
-    Default::default()
 }
 
     pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> crate::value::Dict {
@@ -2998,8 +2995,6 @@ impl Hyperliquid {
         let msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
         let signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
         return signature;
-
-    Default::default()
 }
 
     pub fn build_usd_send_sig(&self, mut message: Value) -> crate::value::Dict {
@@ -3029,8 +3024,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_usd_class_send_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3061,8 +3054,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_send_asset_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3113,8 +3104,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_withdraw_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3145,8 +3134,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_user_dex_abstraction_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3177,8 +3164,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_user_abstraction_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3209,8 +3194,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
@@ -3241,8 +3224,6 @@ impl Hyperliquid {
             m
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
-
-    Default::default()
 }
 
     pub async fn set_ref(&mut self, optional_args: &[Value]) -> Value {
@@ -5778,7 +5759,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Map(request)]).await;
-        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
+        return self.extend_t(<Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("code".to_string(), self.safe_string_k(&response, "status", &[]));
     m
@@ -6619,7 +6600,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a response object
  */
-    pub async fn reserve_request_weight(&mut self, mut weight: Value, optional_args: &[&Value]) -> Value {
+    pub async fn reserve_request_weight(&mut self, mut weight: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6641,9 +6622,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&__ws_arg_36]).await;
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
 /*

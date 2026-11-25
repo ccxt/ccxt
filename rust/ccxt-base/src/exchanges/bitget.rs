@@ -1658,8 +1658,7 @@ impl crate::exchange::DerivedExchange for Bitget {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // addMargin/reduceMargin
         //
@@ -1670,14 +1669,14 @@ impl crate::exchange::DerivedExchange for Bitget {
         //         "data": ""
         //     }
         //
-        let errorCode: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
+        let errorCode: Option<String> = self.safe_string_k_opt(data, "code", &[]);
         let mut status: String = "failed".to_string();
         if (errorCode.as_deref() == Some("00000")) {
             status = "ok".to_string();
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -10397,7 +10396,7 @@ if _try_result.is_err() {
         if (market).spot {
             key = "spot".to_string();
         }
-        let ohlcOptions: crate::value::Dict = self.safe_dict_t(self.options.get("fetchOHLCV").cloned().unwrap_or(Value::Null), Value::from(key));
+        let ohlcOptions: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.options.get("fetchOHLCV") { if let Some(Value::Dict(__m)) = __p1.get(key.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let maxLimitPerTimeframe: crate::value::Dict = self.safe_dict_k_t(&ohlcOptions, "maxLimitPerTimeframe");
         let timeframeLimitValue: Option<i64> = self.safe_integer(&maxLimitPerTimeframe, &timeframe, &[]).as_i64();
         // the per-timeframe cap only applies to a user-supplied limit
@@ -10408,7 +10407,7 @@ if _try_result.is_err() {
         let recentLimit: i64 = (if ((limit.is_some()) && (limitCapped > timeframeLimit)) { timeframeLimit } else { limitCapped });
         let mut limitResolved: i64 = recentLimit;
         let recentDuration: i64 = (recentLimit * duration);
-        let recentEndpointDaysMap: crate::value::Dict = self.safe_dict_t(self.options.get("fetchOHLCV").cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()));
+        let recentEndpointDaysMap: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.options.get("fetchOHLCV") { if let Some(Value::Dict(__m)) = __p1.get("maxRecentDaysPerTimeframe") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let recentEndpointAvailableDays: Option<i64> = self.safe_integer(&recentEndpointDaysMap, &timeframe, &[]).as_i64();
         let mut historicalEndpointNeeded: bool = (useHistoryEndpoint == true);
         // exchange aligns from endTime, so it's important, not startTime
@@ -12333,15 +12332,15 @@ if _try_result.is_err() {
                 let timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
                 let responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                 let marketId: Option<String> = self.safe_string_k_opt(&responseData, "symbol", &[]);
-                let parsedOrder: Value = Value::Dict(self.safe_order(Value::Map({
+                let parsedOrder: crate::value::Dict = self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
                         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Null, Value::Str("spot".into())]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m
-                }), None));
-                return Value::from(vec![parsedOrder]);
+                }), None);
+                return Value::from(vec![Value::Dict(parsedOrder)]);
             }
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
@@ -15109,7 +15108,7 @@ if _try_result.is_err() {
         //         "data": ""
         //     }
         //
-        let marginModification: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).unwrap_or_default();
+        let marginModification: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).unwrap_or_default();
         return self.extend_t(marginModification, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::from(amount), &[]));

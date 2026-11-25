@@ -537,12 +537,11 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
-        let timestamp: Option<i64> = self.safe_integer_k(&data, "predicted_execution_time_ms", &[]).as_i64();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let timestamp: Option<i64> = self.safe_integer_k(data, "predicted_execution_time_ms", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -740,7 +739,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
         Box::pin(async move {
             match method {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "approve_builder_fee" => self.approve_builder_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
+                "approve_builder_fee" => crate::Value::Dict(self.approve_builder_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1886,7 +1885,7 @@ impl Lighter {
                 let builder: i64 = self.safe_integer_k(&self.options, "integratorAccountIndex", &[Value::Int(718718)]).as_i64().unwrap_or(718718);
                 let takerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorTakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 let makerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorMakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                Box::pin(self.approve_builder_fee(Value::from(builder), Value::from(takerFeeRate), Value::from(makerFeeRate), accountIndex, apiKeyIndex, &[])).await;
+                Value::Dict(Box::pin(self.approve_builder_fee(Value::from(builder), Value::from(takerFeeRate), Value::from(makerFeeRate), accountIndex, apiKeyIndex, &[])).await);
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -1939,7 +1938,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub async fn approve_builder_fee(&mut self, mut builder: Value, mut takerFeeRate: Value, mut makerFeeRate: Value, mut accountIndex: Value, mut apiKeyIndex: Value, optional_args: &[Value]) -> Value {
+    pub async fn approve_builder_fee(&mut self, mut builder: Value, mut takerFeeRate: Value, mut makerFeeRate: Value, mut accountIndex: Value, mut apiKeyIndex: Value, optional_args: &[Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1978,9 +1977,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return Value::Dict(response);
-
-    Value::Null
+        return response;
 }
 
     pub async fn change_api_key(&mut self, optional_args: &[&Value]) -> Value {
@@ -4907,7 +4904,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

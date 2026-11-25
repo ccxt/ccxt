@@ -1488,8 +1488,7 @@ impl crate::exchange::DerivedExchange for Bingx {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
+    fn parse_margin_modification(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //    {
         //        "code": 0,
@@ -1498,14 +1497,14 @@ impl crate::exchange::DerivedExchange for Bingx {
         //        "type": 1
         //    }
         //
-        let type_var: Option<String> = self.safe_string_k_opt(&data, "type", &[]);
+        let type_var: Option<String> = self.safe_string_k_opt(data, "type", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data.clone());
+        m.insert("info".to_string(), Value::from(data));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("type".to_string(), (if (type_var.as_deref() == Some("1")) { Value::Str("add".into()) } else { Value::Str("reduce".into()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
-        m.insert("amount".to_string(), self.safe_number_k(&data, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(data, "amount", &[]));
         m.insert("total".to_string(), self.safe_number_k(data, "margin", &[]));
         m.insert("code".to_string(), self.safe_string_k(&market, "settle", &[]));
         m.insert("status".to_string(), Value::Null);
@@ -7711,7 +7710,7 @@ impl Bingx {
 }));
             m
         });
-        let directional: crate::value::Dict = self.safe_dict_t(&statusesByType, Value::from(type_var));
+        let directional: crate::value::Dict = (if let Some(Value::Dict(__m)) = statusesByType.get(type_var.unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("pending".into()));
@@ -7922,20 +7921,24 @@ impl Bingx {
         //        "type": 1
         //    }
         //
-        let mut responseData: Option<crate::value::Dict> = response.clone();
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
-            let __ws_arg_64 = self.safe_dict_k(&response, "data", &[Value::Map({
-    let m = indexmap::IndexMap::new();
+            let __ws_arg_64 = self.extend(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("type".to_string(), Value::from(type_var));
+                m
+            }), &[self.safe_dict_k(&response, "data", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })])]);
+            let inverseResult: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_64).as_ref(), Some(&market)).unwrap_or_default();
+            return self.extend(inverseResult, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
 })]);
-            responseData = self.extend(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), Value::from(type_var));
-    m
-}), &[__ws_arg_64]).into_opt_dict();
         }
-        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &responseData, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, response.as_ref(), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         result.insert("info".into(), response.map_or(Value::Null, Value::Dict));
         return Value::Map(result);
         Value::Null

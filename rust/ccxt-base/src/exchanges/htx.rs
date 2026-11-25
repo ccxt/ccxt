@@ -5825,7 +5825,7 @@ impl Htx {
                 inverse = Some(!(linear == Some(true)));
                 if swap {
                     marketType = Some("swap".to_string());
-                    let parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+                    let parts: crate::value::List = crate::value::List::new(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k_opt(&market, "symbol", &[]);
                     quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
                     if (inverse == Some(true)) {
@@ -5844,7 +5844,7 @@ impl Htx {
                         if (pair.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " method() missing pair")));
                         }
-                        let parts: Value = Value::Array(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+                        let parts: crate::value::List = crate::value::List::new(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                         quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
                         settleId = quoteId.clone();
                     }
@@ -7343,7 +7343,7 @@ impl Htx {
                 }
             }  else {
                 self.load_accounts(&[]).await;
-                let accountId: Option<String> = self.fetch_account_id_by_type(type_var.as_deref().unwrap_or_default(), None, None, &[&Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
+                let accountId: Option<String> = self.fetch_account_id_by_type("spot", None, None, &[&Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
                 request.insert("account-id".into(), accountId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_45 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.spot_private_get_v1_account_accounts_account_id_balance(&[&__ws_arg_45]).await;
@@ -8848,7 +8848,7 @@ impl Htx {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&params]);
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let accountId: Option<String> = self.fetch_account_id_by_type(Some((market).market_type.as_str()).unwrap_or_default(), marginMode.as_deref(), symbol, &[]).await.as_str().map(str::to_owned);
+        let accountId: Option<String> = self.fetch_account_id_by_type(self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or_default(), marginMode.as_deref(), symbol, &[]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account-id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));

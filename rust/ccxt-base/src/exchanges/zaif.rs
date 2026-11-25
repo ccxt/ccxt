@@ -1357,7 +1357,7 @@ impl Zaif {
         if (error.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let success: bool = self.safe_bool_k_opt(response, "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
