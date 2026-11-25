@@ -306,14 +306,13 @@ impl crate::exchange::DerivedExchange for Limitless {
     None
 }
     fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
-        let account: Value = account.into();
-        let accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
+        let accountId: Option<String> = self.safe_string_k_opt(account, "id", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
-        m.insert("info".to_string(), account);
+        m.insert("info".to_string(), Value::from(account));
     m
 }));
 
@@ -649,7 +648,6 @@ impl crate::exchange::DerivedExchange for Limitless {
     None
 }
     fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         //
         //     {
         //         "cost": "995720",
@@ -660,11 +658,11 @@ impl crate::exchange::DerivedExchange for Limitless {
         //     }
         //
         let outcomeSymbol: Option<String> = self.safe_string_k_opt(&market, "outcome", &[]);
-        let notional: Option<String> = self.apply_scale(self.safe_string_k(&position, "marketValue", &[]).as_str(), &[]).as_str().map(str::to_owned);
-        let unrealizedPnl: Option<String> = self.apply_scale(self.safe_string_k(&position, "unrealizedPnl", &[]).as_str(), &[]).as_str().map(str::to_owned);
-        let realizedPnl: Option<String> = self.apply_scale(self.safe_string_k(&position, "realisedPnl", &[]).as_str(), &[]).as_str().map(str::to_owned);
-        let collateral: Option<String> = self.apply_scale(self.safe_string_k(&position, "cost", &[]).as_str(), &[]).as_str().map(str::to_owned);
-        let entryPrice: Option<String> = self.apply_scale(self.safe_string_k(&position, "fillPrice", &[]).as_str(), &[]).as_str().map(str::to_owned);
+        let notional: Option<String> = self.apply_scale(self.safe_string_k(position, "marketValue", &[]).as_str(), &[]).as_str().map(str::to_owned);
+        let unrealizedPnl: Option<String> = self.apply_scale(self.safe_string_k(position, "unrealizedPnl", &[]).as_str(), &[]).as_str().map(str::to_owned);
+        let realizedPnl: Option<String> = self.apply_scale(self.safe_string_k(position, "realisedPnl", &[]).as_str(), &[]).as_str().map(str::to_owned);
+        let collateral: Option<String> = self.apply_scale(self.safe_string_k(position, "cost", &[]).as_str(), &[]).as_str().map(str::to_owned);
+        let entryPrice: Option<String> = self.apply_scale(self.safe_string_k(position, "fillPrice", &[]).as_str(), &[]).as_str().map(str::to_owned);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
@@ -694,7 +692,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("marginType".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
     m
 }));
 
@@ -3190,18 +3188,18 @@ if _try_result.is_err() {
                     if (cost.is_some()) {
                         costRequest = Value::from(cost);
                     }
-                    makerAmount = self.cost_to_prediction_precision(outcome.clone(), costRequest).as_str().map(str::to_owned);
+                    makerAmount = self.cost_to_prediction_precision(outcome, costRequest).as_str().map(str::to_owned);
                 }
             }  else {
-                makerAmount = self.cost_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
+                makerAmount = self.cost_to_prediction_precision(outcome, Value::from(amount)).as_str().map(str::to_owned);
             }
         }  else if isMarket {
-            makerAmount = self.amount_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
+            makerAmount = self.amount_to_prediction_precision(outcome, Value::from(amount)).as_str().map(str::to_owned);
         }  else {
             let calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
                 makerAmount = self.cost_to_prediction_precision(outcome.clone(), Value::from(calculatedCost.as_deref())).as_str().map(str::to_owned);
-                takerAmount = self.amount_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
+                takerAmount = self.amount_to_prediction_precision(outcome, Value::from(amount)).as_str().map(str::to_owned);
             }  else {
                 makerAmount = self.amount_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
                 takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -3333,7 +3331,7 @@ if _try_result.is_err() {
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> Option<String> {
-        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         let r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
@@ -3345,7 +3343,7 @@ if _try_result.is_err() {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>().as_str());
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), &privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]);
 }
 
     pub fn sign_evm_transaction(&self, tx: &indexmap::IndexMap<String, Value>, privateKey: &str) -> String {

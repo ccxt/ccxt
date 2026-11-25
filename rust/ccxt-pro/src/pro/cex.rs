@@ -78,7 +78,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "pair_to_symbol" => self.pair_to_symbol(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_ws_old_trade" => Value::Dict(self.parse_ws_old_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order_update" => self.parse_ws_order_update(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()).map_or(crate::Value::Null, crate::Value::Dict),
-                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -134,7 +134,7 @@ impl Cex {
             "handle_transaction" => { self.handle_transaction(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "pair_to_symbol" => { self.pair_to_symbol(args.get(0).copied().and_then(crate::Value::as_text).as_deref()); },
             "parse_ws_old_trade" => { Value::Dict(self.parse_ws_old_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "request_id" => { self.request_id(); },
             "resolve_data" => { self.resolve_data(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -666,8 +666,7 @@ impl Cex {
         }
 }
 
-    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let ticker: Value = ticker.into();
+    pub fn parse_ws_ticker(&self, ticker: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //  public
         //    {
@@ -728,7 +727,7 @@ impl Cex {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market);
 

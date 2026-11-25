@@ -391,7 +391,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let argsStringified: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("(".into()), exchange.json(args.clone())).into()), ")").into()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         dump(&[self.add_padding(Value::Str("[INFO] TESTING".into()), Value::Int(25)), name.clone(), methodName.clone(), argsStringified]);
         if is_true(&isSync()) {
-            callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone());
+            callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args);
         }  else {
             callMethod(self.testFiles.clone(), methodName.clone(), exchange, skippedPropertiesForMethod, args).await;
         }
@@ -957,7 +957,7 @@ if _try_result.is_err() {
         if (providedSymbol != Value::Null) {
             let mut market: Value = exchange.market(providedSymbol.clone());
             if is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true)) {
-                spotSymbols = Value::from(vec![providedSymbol.clone()]);
+                spotSymbols = Value::from(vec![providedSymbol]);
             }  else {
                 swapSymbols = Value::from(vec![providedSymbol]);
             }
@@ -1992,7 +1992,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if strictTypeCheck.as_bool() == Some(true) && (self.lang.as_str() != Some("C#")) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
-                self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), Value::from(messageError.as_str()), storedOutput, newOutput, &[assertingKey]);
             }  else {
                 let mut isComputedBool: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Bool(_))));
                 let mut isStoredBool: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Bool(_))));
@@ -2049,21 +2049,21 @@ if _try_result.is_err() {
                             isNumber = false;
                         }
                         if isNumber {
-                            self.assert_static_error(Value::Bool(exchange.parse_to_numeric(&sanitizedNewOutput).as_f64() == exchange.parse_to_numeric(&sanitizedStoredOutput).as_f64()), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                            self.assert_static_error(Value::Bool(exchange.parse_to_numeric(sanitizedNewOutput).as_f64() == exchange.parse_to_numeric(sanitizedStoredOutput).as_f64()), Value::from(messageError.as_str()), storedOutput, newOutput, &[assertingKey]);
                             return Value::Bool(true);
                         }  else {
-                            self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString.clone()), &convertAscii(storedOutputString.clone()))), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                            self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString), &convertAscii(storedOutputString))), Value::from(messageError.as_str()), storedOutput, newOutput, &[assertingKey]);
                             return Value::Bool(true);
                         }
                     }  else {
-                        self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString.clone()), &convertAscii(storedOutputString.clone()))), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                        self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString), &convertAscii(storedOutputString))), Value::from(messageError.as_str()), storedOutput, newOutput, &[assertingKey]);
                         return Value::Bool(true);
                     }
                 }  else {
                     if (self.lang.as_str() == Some("C#")) {
                         let stringifiedNewOutput: Value = Value::from(exchange.number_to_string(sanitizedNewOutput));
                         let stringifiedStoredOutput: Value = Value::from(exchange.number_to_string(sanitizedStoredOutput));
-                        self.assert_static_error(Value::Bool(Value::Str(format!("{}", stringifiedNewOutput).into()).as_str() == Value::Str(format!("{}", stringifiedStoredOutput).into()).as_str()), Value::from(messageError.as_str()), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                        self.assert_static_error(Value::Bool(Value::Str(format!("{}", stringifiedNewOutput).into()).as_str() == Value::Str(format!("{}", stringifiedStoredOutput).into()).as_str()), Value::from(messageError.as_str()), storedOutput, newOutput, &[assertingKey]);
                     }  else {
                         let numericNewOutput: Value = exchange.parse_to_numeric(newOutputString);
                         let numericStoredOutput: Value = exchange.parse_to_numeric(storedOutputString);
@@ -3120,9 +3120,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
             sum = exchange.sum(&[std::mem::take(&mut sum), numberOfTests]);
             if (type_var.as_str() == Some("request")) {
-                promises.push(self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
+                promises.push(self.test_exchange_request_statically(exchangeName, exchangeData, &[testName.clone()]).await);
             }  else if (type_var.as_str() == Some("ws")) {
-                promises.push(self.test_exchange_ws_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
+                promises.push(self.test_exchange_ws_statically(exchangeName, exchangeData, &[testName.clone()]).await);
             }  else {
                 promises.push(self.test_exchange_response_statically(exchangeName, exchangeData, &[testName.clone()]).await);
             }

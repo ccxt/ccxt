@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "describe_data" => self.describe_data(),
                 "fetch_open_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_open_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_authenticate" => crate::Value::Dict(self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_error" => self.handle_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_notification" => crate::Value::Dict(self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -116,7 +116,7 @@ impl Hitbtc {
             "create_order_ws" => crate::exchange_stubs::enqueue_spawn("create_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "describe_data" => { self.describe_data(); },
             "fetch_open_orders_ws" => crate::exchange_stubs::enqueue_spawn("fetch_open_orders_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -278,7 +278,7 @@ impl Hitbtc {
  */
     pub async fn authenticate(&mut self) -> Value {
         self.check_required_credentials(&[]);
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+        let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
@@ -331,7 +331,7 @@ impl Hitbtc {
         let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut isBatch: bool = name.to_string().contains("batch");
         let resolvedPerSymbol: bool = (!(isBatch) || (messageHashPrefix == "orderbooks")); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+        let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_some()) && resolvedPerSymbol {
@@ -436,7 +436,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+        let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let splitName: crate::value::List = crate::value::List::new(if let Some(__s) = Some(name) { __s.split("_subscribe").map(Value::from).collect() } else { Vec::new() });
         let messageHashBase: String = self.safe_string(&splitName, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -477,7 +477,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate().await;
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+        let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
         let requestId: i64 = self.incrementing_nonce();
         let messageHash: Option<String> = self.number_to_string(Value::from(requestId));
@@ -2098,7 +2098,7 @@ impl Hitbtc {
                 Value::Dict(self.handle_order_request(&client.as_value(), message));
             }
             if ((match &(result) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && !(__pro_message.contains_key("id")) {
-                self.handle_authenticate(&client.as_value(), Value::from(message));
+                Value::Dict(self.handle_authenticate(&client.as_value(), message));
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
@@ -2154,10 +2154,9 @@ impl Hitbtc {
         }
 }
 
-    pub fn handle_authenticate(&self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_authenticate(&self, client: &Value, message: &crate::value::Dict) -> crate::value::Dict {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -2170,15 +2169,13 @@ impl Hitbtc {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);
         }  else {
-            let error: crate::ExchangeError = crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message)));
+            let error: crate::ExchangeError = crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message)));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());
             }
         }
-        return message;
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub fn handle_error(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {

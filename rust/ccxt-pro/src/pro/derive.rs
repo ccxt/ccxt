@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Derive {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_position_delta" => self.handle_position_delta(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => crate::Value::Dict(self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -97,9 +97,9 @@ impl Derive {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_auth" => { self.handle_auth(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_auth" => { self.handle_auth(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_my_trades_un_subscription" => { self.handle_my_trades_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
@@ -1563,17 +1563,16 @@ impl Derive {
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
+    pub fn handle_error_message(&self, client: &Value, message: &crate::value::Dict) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
         //     error: { code: -32600, message: 'Invalid Request' }
         // }
         //
-        if !(matches!(message, Value::Dict(__d) if __d.contains_key("error"))) {
+        if !(__pro_message.contains_key("error")) {
             return false;
         }
         let errorMessage: crate::value::Dict = __pro_message.key_dict("error");
@@ -1602,7 +1601,7 @@ impl Derive {
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
-        if (Value::Bool(self.handle_error_message(&client.as_value(), &Value::from(message))).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() == Some(true)) {
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -1653,7 +1652,7 @@ impl Derive {
                     matched = true;
                     let subscriptionMethod: Option<String> = self.safe_string_k_opt(&subscription, "method", &[]);
                     if (subscriptionMethod.as_deref() == Some("public/login")) {
-                        self.handle_auth(&client.as_value(), &Value::from(message));
+                        self.handle_auth(&client.as_value(), message);
                     }  else if (subscriptionMethod.as_deref() == Some("unsubscribe")) {
                         Value::Dict(self.handle_un_subscribe(&client.as_value(), message));
                     }
@@ -1666,16 +1665,15 @@ impl Derive {
                     // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
                     // in java the acknowledgement can arrive before the subscription record is stored
                     // so the shape serves as the routing fallback when the id scan finds nothing
-                    self.handle_auth(&client.as_value(), &Value::from(message));
+                    self.handle_auth(&client.as_value(), message);
                 }
             }
         }
 }
 
-    pub fn handle_auth(&self, client: &Value, message: &Value) {
+    pub fn handle_auth(&self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         // {
         //     id: 1,

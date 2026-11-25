@@ -71,7 +71,7 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
+                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "un_watch" => self.un_watch(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(5).cloned().unwrap_or_default()).as_ref(), args.get(6).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[7.min(args.len())..]).await,
@@ -121,7 +121,7 @@ impl Bingx {
             "load_positions_snapshot" => crate::exchange_stubs::enqueue_spawn("load_positions_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
             "parse_ws_ohlcv" => { Value::Arr(self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_position" => { Value::Dict(self.parse_ws_position(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
+            "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
             "pong" => crate::exchange_stubs::enqueue_spawn("pong", args.iter().copied().cloned().collect::<Vec<_>>()),
             "set_balance_cache" => { self.set_balance_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                 args.get(4).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -498,8 +498,7 @@ impl Bingx {
         }
 }
 
-    pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
-        let message: Value = message.into();
+    pub fn parse_ws_ticker(&self, message: &crate::value::Dict, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
         let isInverse = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -553,7 +552,7 @@ impl Bingx {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string(&message, &baseVolumeKey, &[]));
         m.insert("quoteVolume".to_string(), self.safe_string_k(&message, "q", &[]));
-        m.insert("info".to_string(), message);
+        m.insert("info".to_string(), Value::from(message));
     m
 }), Some(&marketResolved));
 

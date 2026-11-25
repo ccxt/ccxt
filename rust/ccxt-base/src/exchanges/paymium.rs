@@ -53,8 +53,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         // Forward to the inherent method on Paymium.
         Some(Paymium::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // {
         //     "high":"33740.82",
@@ -74,33 +73,33 @@ impl crate::exchange::DerivedExchange for Paymium {
         // }
         //
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&ticker, "at", &[]).as_i64();
-        let vwap: Option<String> = self.safe_string_k_opt(&ticker, "vwap", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(ticker, "at", &[]).as_i64();
+        let vwap: Option<String> = self.safe_string_k_opt(ticker, "vwap", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "volume", &[]);
         let quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "price", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "price", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bid", &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
-        m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
+        m.insert("open".to_string(), self.safe_string_k(ticker, "open", &[]));
         m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_string_k(&ticker, "variation", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(ticker, "variation", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -165,7 +164,6 @@ impl crate::exchange::DerivedExchange for Paymium {
     None
 }
     fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let depositAddress: Value = depositAddress.into();
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -174,11 +172,11 @@ impl crate::exchange::DerivedExchange for Paymium {
         //         "label": "Savings"
         //     }
         //
-        let address: Option<String> = self.safe_string_k_opt(&depositAddress, "address", &[]);
-        let currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "currency", &[]);
+        let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress);
+        m.insert("info".to_string(), Value::from(depositAddress));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -189,7 +187,6 @@ impl crate::exchange::DerivedExchange for Paymium {
     None
 }
     fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transfer: Value = transfer.into();
         //
         //     {
         //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -222,16 +219,16 @@ impl crate::exchange::DerivedExchange for Paymium {
         //         ]
         //     }
         //
-        let currencyId: Option<String> = self.safe_string_k_opt(&transfer, "currency", &[]);
-        let updatedAt: Option<String> = self.safe_string_k_opt(&transfer, "updated_at", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transfer, "currency", &[]);
+        let updatedAt: Option<String> = self.safe_string_k_opt(transfer, "updated_at", &[]);
         let timetstamp: Option<i64> = self.parse_date(updatedAt.map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
-        let accountOperations: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&transfer, "account_operations"));
+        let accountOperations: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(transfer, "account_operations"));
         let firstOperation: crate::value::Dict = accountOperations.get(0).cloned().unwrap_or_default();
-        let status: Option<String> = self.safe_string_k_opt(&transfer, "state", &[]);
+        let status: Option<String> = self.safe_string_k_opt(transfer, "state", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string_k(&transfer, "uuid", &[]));
+        m.insert("info".to_string(), Value::from(transfer));
+        m.insert("id".to_string(), self.safe_string_k(transfer, "uuid", &[]));
         m.insert("timestamp".to_string(), Value::from(timetstamp));
         m.insert("datetime".to_string(), self.iso8601(timetstamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
@@ -746,7 +743,7 @@ impl Paymium {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let ticker: crate::value::Dict = self.public_get_data_currency_ticker(&[&__ws_arg_1]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&ticker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

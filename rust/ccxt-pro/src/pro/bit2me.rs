@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Bit2me {
                 "cancel_order_ws" => self.cancel_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_orders_ws" => self.cancel_orders_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order_ws" => self.create_order_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -98,10 +98,10 @@ impl Bit2me {
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_cancel_order" => { self.handle_cancel_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_cancel_order" => { self.handle_cancel_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_cancel_orders" => { self.handle_cancel_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_create_order" => { self.handle_create_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -835,9 +835,8 @@ impl Bit2me {
     Value::Null
 }
 
-    pub fn handle_cancel_order(&self, client: &Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_cancel_order(&self, client: &Value, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "event": "canceled-order",
@@ -854,7 +853,7 @@ impl Bit2me {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let order: Value = Value::Dict(self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), message);
+                m.insert("info".to_string(), Value::from(message));
                 m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&data, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -1088,10 +1087,9 @@ impl Bit2me {
     Value::Null
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, mut message: Value) -> bool {
+    pub fn handle_error_message(&mut self, client: &Value, message: &crate::value::Dict) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -1100,7 +1098,7 @@ impl Bit2me {
         let error: crate::value::Dict = __pro_message.key_dict("error");
         let code: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
-        let feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message)).into());
+        let feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message)).into());
         let mut exception: Value = Value::Null;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, &feedback);
@@ -1139,7 +1137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // a refused subscription names the channel and the symbol it was asked for
             let subscription: crate::value::Dict = __pro_message.key_dict("subscription");
             let name: Option<String> = self.safe_string_k_opt(&subscription, "name", &[]);
-            let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let hashes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1188,7 +1186,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let error: bool = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null }) != Value::Null;
         if (error) {
-            Value::Bool(self.handle_error_message(&client.as_value(), Value::from(message)));
+            Value::Bool(self.handle_error_message(&client.as_value(), message));
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({

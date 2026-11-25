@@ -53,8 +53,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         // Forward to the inherent method on Coinspot.
         Some(Coinspot::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "btc":{
@@ -65,7 +64,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         //     }
         //
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -73,9 +72,9 @@ impl crate::exchange::DerivedExchange for Coinspot {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bid", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -87,7 +86,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -178,7 +177,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         });
         let balances: Value = self.safe_value2(&response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
         if (matches!(&balances, Value::Arr(_))) {
-            let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list2_t(&response, Value::Str("balance".into()), Value::Str("balances".into())));
+            let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list2_t(response, Value::Str("balance".into()), Value::Str("balances".into())));
             let numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -1239,7 +1238,7 @@ impl Coinspot {
         //     }
         //
         let ticker: crate::value::Dict = (if let Some(Value::Dict(__m)) = prices.get(id.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&ticker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1299,10 +1298,10 @@ impl Coinspot {
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             if (market).spot {
                 let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&prices, Value::from(id.as_deref()), &[Value::Map({
+                result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&prices, Value::from(id.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&market)).map_or(Value::Null, Value::Dict));
+})])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict));
             }
         }
         }

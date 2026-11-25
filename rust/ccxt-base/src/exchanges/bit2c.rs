@@ -53,12 +53,11 @@ impl crate::exchange::DerivedExchange for Bit2c {
         // Forward to the inherent method on Bit2c.
         Some(Bit2c::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let averagePrice: Option<String> = self.safe_string_k_opt(&ticker, "av", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "a", &[]);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "ll", &[]);
+        let averagePrice: Option<String> = self.safe_string_k_opt(ticker, "av", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "a", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "ll", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -66,9 +65,9 @@ impl crate::exchange::DerivedExchange for Bit2c {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "h", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "h", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "l", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "l", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -80,7 +79,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
         m.insert("average".to_string(), averagePrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -346,19 +345,18 @@ impl crate::exchange::DerivedExchange for Bit2c {
     None
 }
     fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let depositAddress: Value = depositAddress.into();
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
         //         "hasTx": False
         //     }
         //
-        let address: Option<String> = self.safe_string_k_opt(&depositAddress, "address", &[]);
+        let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         self.check_address(&[&Value::from(address.as_deref())]);
         let code: Option<String> = self.safe_currency_code(None, currency);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress);
+        m.insert("info".to_string(), Value::from(depositAddress));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -1062,7 +1060,7 @@ impl Bit2c {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_exchanges_pair_ticker(&[&__ws_arg_1]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

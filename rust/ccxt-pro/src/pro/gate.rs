@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).and_then(crate::Value::as_array).cloned().unwrap_or_default()))),
                 "get_type_by_market" => self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -138,7 +138,7 @@ impl Gate {
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1201,7 +1201,7 @@ impl Gate {
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (bidAsks.len() as i64) } {
             let bidAsk: Value = bidAsks.get(i as usize).cloned().unwrap_or(Value::Null);
             if (matches!(&bidAsk, Value::Arr(_))) {
-                bookSide.store_array(Value::Arr(self.parse_order_book_bid_ask(bidAsk.clone(), &[])));
+                bookSide.store_array(Value::Arr(self.parse_order_book_bid_ask(bidAsk, &[])));
             }  else {
                 let price: Option<f64> = self.safe_number_k(&bidAsk, "p", &[]).as_f64();
                 let amount: Option<f64> = self.safe_number_k(&bidAsk, "s", &[]).as_f64();
@@ -2798,10 +2798,9 @@ impl Gate {
     Default::default()
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
+    pub fn handle_error_message(&self, client: &Value, message: &crate::value::Dict) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //    {
         //        "time": 1647274664,
@@ -2855,9 +2854,9 @@ impl Gate {
         //
         let data: crate::value::Dict = __pro_message.key_dict("data");
         let errs: Option<crate::value::Dict> = self.safe_dict_k_o(&data, "errs");
-        let error: Value = self.safe_dict_k(message, "error", &[errs.clone().map_or(Value::Null, Value::Dict)]);
+        let error: Value = self.safe_dict_k(&message, "error", &[errs.clone().map_or(Value::Null, Value::Dict)]);
         let code: Option<String> = self.safe_string2_opt(&error, Value::Str("code".into()), Value::Str("label".into()), &[]);
-        let id: Option<String> = self.safe_string_n_opt(message, Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
+        let id: Option<String> = self.safe_string_n_opt(&message, Value::from(vec![Value::Str("id".into()), Value::Str("requestId".into()), Value::Str("request_id".into())]), &[]);
         if (error != Value::Null) {
             let messageHash: Option<String> = self.safe_string_opt(&__ch.subscriptions, Value::from(id.as_deref()), &[]);
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
@@ -3089,7 +3088,7 @@ impl Gate {
         //        ]
         //    }
         //
-        if (Value::Bool(self.handle_error_message(&client.as_value(), &Value::from(message))).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() == Some(true)) {
             return;
         }
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

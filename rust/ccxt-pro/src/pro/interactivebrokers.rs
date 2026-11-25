@@ -301,7 +301,7 @@ impl Interactivebrokers {
                 m
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-            let originalHeaders: Value = crate::value::get_value_k(&crate::value::get_value_k(&self.options.get("ws").cloned().unwrap_or(Value::Null), "options"), "headers");
+            let wsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             let userAgent: String = self.safe_string_k(&self.options, "wsUserAgent", &[Value::Str("ClientPortalGW/1".into())]).as_str().unwrap_or("ClientPortalGW/1").to_string();
@@ -313,30 +313,26 @@ impl Interactivebrokers {
     m
 })));
             }
-            let headers: Value = self.extend(&originalHeaders, &[Value::Map({
+            let __ws_arg_0 = self.safe_dict_k(self.safe_dict_k(&wsOptions, "options", &[]), "headers", &[]);
+            let headers: crate::value::Dict = self.extend_t(__ws_arg_0, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Cookie".to_string(), Value::from(cookie));
                     m.insert("User-Agent".to_string(), Value::from(userAgent));
                 m
             })]);
-            { let __bf03d0 = &mut self.options;
-                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__bf03d1) = __bf03e1 {
-                    let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), headers);
-                    }
-                }
-            }
+            let __ws_arg_1 = self.extend(self.safe_dict_k(&wsOptions, "options", &[]), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("headers".to_string(), Value::Dict(headers));
+    m
+})]);
+            { let __be_tmp = self.extend(&wsOptions, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("options".to_string(), __ws_arg_1);
+    m
+})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), __be_tmp); } }
             // instantiate client
             let newClient: Value = self.client(&url);
-            { let __bf03d0 = &mut self.options;
-                let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__bf03d1) = __bf03e1 {
-                    let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), originalHeaders);
-                    }
-                }
-            }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Dict(wsOptions)); }
             let tickleInterval: i64 = self.safe_integer_k(&self.options, "tickleInterval", &[Value::Int(240000)]).as_i64().unwrap_or(240000);
             self.delay(Value::from(tickleInterval), &[Value::Str("ibkr_keep_alive_session".into()), newClient]).await;
         }
@@ -539,11 +535,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchTickers");
         let defaultFields: crate::value::List = self.safe_list_k_t(&options, "fields");
         let fields: Value = self.safe_list_k(&params, "fields", &[Value::Arr(defaultFields)]);
-        let __ws_arg_0 = self.omit(params, Value::Str("fields".into()), &[]);
+        let __ws_arg_2 = self.omit(params, Value::Str("fields".into()), &[]);
         let query: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_0]);
+        }), &[__ws_arg_2]);
         let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smd+", marketId).into()), "+").into()), json_stringify(&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fields".to_string(), fields);
@@ -904,8 +900,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            let __ws_arg_1 = self.keysort(self.extend(Value::Map(historyRequest), &[&query]), &[]);
-            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", historyMarketId).into()), "+").into()), self.json(__ws_arg_1));
+            let __ws_arg_3 = self.keysort(self.extend(Value::Map(historyRequest), &[&query]), &[]);
+            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", historyMarketId).into()), "+").into()), self.json(__ws_arg_3));
             self.ibkr_subscribe(&client.as_value(), historyHash.as_str(), Value::from(request), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("conid".to_string(), Value::from((market).id.as_deref()));
@@ -1163,13 +1159,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if length > 0 {
                 let lastCandle: Value = get_value(&stored, &Value::Int((length - 1)));
                 if is_equal(&get_value(&lastCandle, &Value::Int(0)), &candleTimestamp) {
-                    candle = lastCandle.clone();
+                    candle = lastCandle;
                 }  else if get_value(&lastCandle, &Value::Int(0)).as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN) {
                     continue;
                 }
             }
             if (candle == Value::Null) {
-                stored.append(Value::from(vec![candleTimestamp.clone(), Value::from(price), Value::from(price), Value::from(price), Value::from(price), size.clone()]));
+                stored.append(Value::from(vec![candleTimestamp, Value::from(price), Value::from(price), Value::from(price), Value::from(price), size.clone()]));
             }  else {
                 let mut high: Option<f64> = price;
                 let prevHigh: Option<f64> = self.safe_number(&candle, Value::Int(2), &[]).as_f64();
@@ -1598,11 +1594,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 merged = self.extend(previous, &[rawOrder]);
                 rawOrders.insert(orderId.as_deref().unwrap_or("null").to_string(), merged.clone());
             }
-            let __ws_arg_2 = self.extend(Value::Map({
+            let __ws_arg_4 = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), &[merged]);
-            let parsed: crate::value::Dict = self.parse_order(__ws_arg_2, None);
+            let parsed: crate::value::Dict = self.parse_order(__ws_arg_4, None);
             self.orders.append(Value::from(&parsed));
             let orderSymbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (orderSymbol.is_some()) {
@@ -1846,8 +1842,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m.insert("accountId".to_string(), Value::from(accountId.as_deref()));
                     m
                 });
-                let __ws_arg_3 = self.extend(query, &[Value::Map(snapshotRequest)]);
-                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_3).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let __ws_arg_5 = self.extend(query, &[Value::Map(snapshotRequest)]);
+                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_5).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 // typed copy: the statically typed ports keep this.balance as a dictionary
                 let emptyBalance: indexmap::IndexMap<String, Value> = ({
                     let m = indexmap::IndexMap::new();
@@ -2026,17 +2022,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.resolve(Value::Bool(true), "connected");
         }
         if (topic.starts_with("smd+")) {
-            self.handle_ticker(&client, message.clone());
+            self.handle_ticker(&client, message);
         }  else if (topic.starts_with("smh+")) {
-            self.handle_ohlcv(client.clone(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_ohlcv(client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.starts_with("sbd+")) {
-            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order_book(client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic == "sor") {
             self.handle_orders(&client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic == "str") {
             self.handle_my_trades(&client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.starts_with("sld+")) {
-            self.handle_balance(&client, message.clone());
+            self.handle_balance(&client, message);
         }  else if (topic == "sts") {
             self.handle_session_status(&client, &message);
         }

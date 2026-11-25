@@ -283,8 +283,8 @@ impl Digifinex {
     }
 
     /// Auto-generated wrapper for the `privateSpotPostSpotOrderCancel` implicit endpoint.
-    pub async fn private_spot_post_spot_order_cancel(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        self.call_method_as("private_spot_post_spot_order_cancel", optional_args).await
+    pub async fn private_spot_post_spot_order_cancel(&mut self, optional_args: &[&Value]) -> Value {
+        self.call_method(Value::Str("private_spot_post_spot_order_cancel".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotPostSpotOrderNew` implicit endpoint.

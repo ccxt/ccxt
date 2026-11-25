@@ -1423,8 +1423,8 @@ impl Binanceusdm {
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginBorrowRepay` implicit endpoint.
-    pub async fn sapi_post_margin_borrow_repay(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        self.call_method_as("sapi_post_margin_borrow_repay", optional_args).await
+    pub async fn sapi_post_margin_borrow_repay(&mut self, optional_args: &[&Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_margin_borrow_repay".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPostMarginTransfer` implicit endpoint.

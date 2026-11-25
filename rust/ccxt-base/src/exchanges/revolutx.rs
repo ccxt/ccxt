@@ -49,18 +49,17 @@ impl Revolutx {
 }
 
 impl crate::exchange::DerivedExchange for Revolutx {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
-        let tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let tickerSymbol: Option<String> = self.safe_string_k_opt(ticker, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(tickerSymbol.as_deref(), market, &[Value::Str("/".into())]).as_str().map(str::to_owned);
-        let bid: Option<String> = self.safe_string_k_opt(&ticker, "bid", &[]);
-        let ask: Option<String> = self.safe_string_k_opt(&ticker, "ask", &[]);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last_price", &[]);
-        let high: Option<String> = self.safe_string_k_opt(&ticker, "high_24h", &[]);
-        let low: Option<String> = self.safe_string_k_opt(&ticker, "low_24h", &[]);
-        let priceChange: Option<String> = self.safe_string_k_opt(&ticker, "price_change_24h", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume_24h", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
+        let bid: Option<String> = self.safe_string_k_opt(ticker, "bid", &[]);
+        let ask: Option<String> = self.safe_string_k_opt(ticker, "ask", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last_price", &[]);
+        let high: Option<String> = self.safe_string_k_opt(ticker, "high_24h", &[]);
+        let low: Option<String> = self.safe_string_k_opt(ticker, "low_24h", &[]);
+        let priceChange: Option<String> = self.safe_string_k_opt(ticker, "price_change_24h", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "volume_24h", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(ticker, "timestamp", &[]).as_i64();
         let mut open: Option<String> = None;
         if (last.is_some()) && (priceChange.is_some()) {
             open = crate::precise::Precise::stringSub(&last, &priceChange).as_str().map(str::to_owned);
@@ -91,7 +90,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -134,18 +133,17 @@ impl crate::exchange::DerivedExchange for Revolutx {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
-        let orderId: Option<String> = self.safe_string2_opt(&order, Value::Str("id".into()), Value::Str("venue_order_id".into()), &[]);
-        let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "client_order_id", &[]);
-        let orderSymbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+        let orderId: Option<String> = self.safe_string2_opt(order, Value::Str("id".into()), Value::Str("venue_order_id".into()), &[]);
+        let clientOrderId: Option<String> = self.safe_string_k_opt(order, "client_order_id", &[]);
+        let orderSymbol: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(orderSymbol.as_deref(), market, &[Value::Str("/".into())]).as_str().map(str::to_owned);
-        let side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
-        let mut orderType: Option<String> = self.safe_string_lower_k_opt(&order, "type", &[]);
-        let quantity: Option<String> = self.safe_string_k_opt(&order, "quantity", &[]);
-        let filledQuantity: Option<String> = self.safe_string_k_opt(&order, "filled_quantity", &[]);
-        let mut leavesQuantity: Option<String> = self.safe_string_k_opt(&order, "leaves_quantity", &[]);
-        let mut price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let averageFillPrice: Option<String> = self.safe_string_k_opt(&order, "average_fill_price", &[]);
+        let side: Option<String> = self.safe_string_lower_k_opt(order, "side", &[]);
+        let mut orderType: Option<String> = self.safe_string_lower_k_opt(order, "type", &[]);
+        let quantity: Option<String> = self.safe_string_k_opt(order, "quantity", &[]);
+        let filledQuantity: Option<String> = self.safe_string_k_opt(order, "filled_quantity", &[]);
+        let mut leavesQuantity: Option<String> = self.safe_string_k_opt(order, "leaves_quantity", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let averageFillPrice: Option<String> = self.safe_string_k_opt(order, "average_fill_price", &[]);
         //
         // conditional and TP/SL orders carry their triggers, e.g.
         //
@@ -153,9 +151,9 @@ impl crate::exchange::DerivedExchange for Revolutx {
         //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
         //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
         //
-        let conditional: crate::value::Dict = self.safe_dict_k_t(&order, "conditional");
-        let takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "take_profit");
-        let stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "stop_loss");
+        let conditional: crate::value::Dict = self.safe_dict_k_t(order, "conditional");
+        let takeProfit: Option<crate::value::Dict> = self.safe_dict_k_o(order, "take_profit");
+        let stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(order, "stop_loss");
         let mut triggerPrice: Option<String> = None;
         if (orderType.as_deref() == Some("conditional")) {
             triggerPrice = self.safe_string_k_opt(&conditional, "trigger_price", &[]);
@@ -179,14 +177,14 @@ impl crate::exchange::DerivedExchange for Revolutx {
                 }
             }
         }
-        let amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
-        let filledAmount: Option<String> = self.safe_string_k_opt(&order, "filled_amount", &[]);
-        let totalFee: Option<String> = self.safe_string_k_opt(&order, "total_fee", &[]);
-        let feeCurrency: Option<String> = self.safe_string_k_opt(&order, "fee_currency", &[]);
-        let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
-        let timeInForce: Option<String> = self.safe_string_upper_k_opt(&order, "time_in_force", &[]);
-        let createdDate: Option<i64> = self.safe_integer_k(&order, "created_date", &[]).as_i64();
-        let updatedDate: Option<i64> = self.safe_integer_k(&order, "updated_date", &[]).as_i64();
+        let amount: Option<String> = self.safe_string_k_opt(order, "amount", &[]);
+        let filledAmount: Option<String> = self.safe_string_k_opt(order, "filled_amount", &[]);
+        let totalFee: Option<String> = self.safe_string_k_opt(order, "total_fee", &[]);
+        let feeCurrency: Option<String> = self.safe_string_k_opt(order, "fee_currency", &[]);
+        let status: Option<String> = self.parse_order_status(self.safe_string_k(order, "status", &[]).as_str());
+        let timeInForce: Option<String> = self.safe_string_upper_k_opt(order, "time_in_force", &[]);
+        let createdDate: Option<i64> = self.safe_integer_k(order, "created_date", &[]).as_i64();
+        let updatedDate: Option<i64> = self.safe_integer_k(order, "updated_date", &[]).as_i64();
         let mut fee: Option<crate::value::Dict> = None;
         if (totalFee.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -233,7 +231,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("datetime".to_string(), self.iso8601(createdDate));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(updatedDate));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
     m
 }), market));
 
@@ -392,16 +390,15 @@ impl crate::exchange::DerivedExchange for Revolutx {
     None
 }
     fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
-        let id: Option<String> = self.safe_string_k_opt(&trade, "tid", &[]);
-        let orderId: Option<String> = self.safe_string_k_opt(&trade, "oid", &[]);
-        let priceString: Option<String> = self.safe_string_k_opt(&trade, "p", &[]);
-        let amountString: Option<String> = self.safe_string_k_opt(&trade, "q", &[]);
+        let id: Option<String> = self.safe_string_k_opt(trade, "tid", &[]);
+        let orderId: Option<String> = self.safe_string_k_opt(trade, "oid", &[]);
+        let priceString: Option<String> = self.safe_string_k_opt(trade, "p", &[]);
+        let amountString: Option<String> = self.safe_string_k_opt(trade, "q", &[]);
         let price: Option<f64> = self.parse_number(Value::from(priceString.as_deref()), &[]).as_f64();
         let amount: Option<f64> = self.parse_number(Value::from(amountString.as_deref()), &[]).as_f64();
-        let side: Option<String> = self.safe_string_lower_k_opt(&trade, "s", &[]);
-        let timestamp: Option<i64> = self.safe_integer2(&trade, Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
-        let isMaker: bool = self.safe_bool_k_opt(&trade, "im", &[Value::Bool(false)]).unwrap_or(false);
+        let side: Option<String> = self.safe_string_lower_k_opt(trade, "s", &[]);
+        let timestamp: Option<i64> = self.safe_integer2(trade, Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
+        let isMaker: bool = self.safe_bool_k_opt(trade, "im", &[Value::Bool(false)]).unwrap_or(false);
         let takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut cost: Option<f64> = None;
         if (priceString.is_some()) && (amountString.is_some()) {
@@ -410,7 +407,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade);
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1105,7 +1102,7 @@ impl Revolutx {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
             let mut tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             std::sync::Arc::make_mut(&mut tickerData).insert("timestamp".into(), Value::from(timestamp));
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &tickerData, None).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&tickerData), None).unwrap_or_default();
             let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (symbol == "") {
                 continue;
@@ -1566,13 +1563,13 @@ impl Revolutx {
             if (cost.is_some()) {
                 conditionalConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(cost.as_deref()))));
             }  else {
-                conditionalConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
+                conditionalConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             }
             if (type_var.as_str() == Some("limit")) {
                 if (price.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price argument for limit trigger orders")));
                 }
-                conditionalConfig.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
+                conditionalConfig.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
             conditionalConfig.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             orderConfiguration.insert("conditional".into(), Value::Map(conditionalConfig));
@@ -1583,7 +1580,7 @@ impl Revolutx {
             let singleLeg: bool = !(hasStopLoss && hasTakeProfit);
             let mut tpslConfig: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
+                    m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m
             });
             if hasTakeProfit {
@@ -1601,7 +1598,7 @@ impl Revolutx {
             if (cost.is_some()) {
                 limitConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(cost.as_deref()))));
             }  else {
-                limitConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
+                limitConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             }
             limitConfig.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             if (timeInForce.is_some()) {

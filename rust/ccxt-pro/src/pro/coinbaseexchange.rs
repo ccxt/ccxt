@@ -52,8 +52,8 @@ impl Coinbaseexchange {
 impl crate::exchange::DerivedExchange for Coinbaseexchange {
     fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { Some(&self.parent) }
     fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker_row: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let ticker: Value = Value::from(ticker_row);
         //
         //     {
         //         "type": "ticker",
@@ -77,7 +77,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         //
         let type_var: Option<String> = self.safe_string_k_opt(&ticker, "type", &[]);
         if (type_var.is_none()) {
-            return crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market);
+            return crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker_row, market);
         }
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
@@ -933,8 +933,8 @@ impl Coinbaseexchange {
 }
 
     pub fn handle_order(&mut self, client: &Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // Order is created
         //
@@ -1034,7 +1034,7 @@ impl Coinbaseexchange {
                 previousOrder = self.safe_dict_n(&previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);
             }
             if (previousOrder.is_none()) {
-                let parsed: crate::value::Dict = self.parse_ws_order(message.clone(), None);
+                let parsed: crate::value::Dict = self.parse_ws_order(message, None);
                 self.orders.append(Value::Dict(parsed));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
             }  else {
@@ -1046,7 +1046,7 @@ impl Coinbaseexchange {
                 let previousSequence: Option<i64> = self.safe_integer_k(&previousInfo, "sequence", &[]).as_i64();
                 if (previousSequence.is_none()) || ((sequence.is_some() && previousSequence.is_some() && sequence > previousSequence)) {
                     if (type_var.as_deref() == Some("match")) {
-                        let trade: Value = self.parse_ws_trade(message.clone(), None);
+                        let trade: Value = self.parse_ws_trade(message, None);
                         let mut previousTrades: crate::value::List = self.safe_list_k_t(&previousOrder, "trades");
                         std::sync::Arc::make_mut(&mut previousTrades).push(trade.clone());
                         if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::Arr(previousTrades.clone())); }
@@ -1197,7 +1197,7 @@ impl Coinbaseexchange {
         //
         let marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (marketId.is_some()) {
-            let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Value::Dict(std::sync::Arc::clone(message)), None).map_or(Value::Null, Value::Dict);
+            let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Dict(std::sync::Arc::clone(message))).as_ref(), None).map_or(Value::Null, Value::Dict);
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }

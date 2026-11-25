@@ -1591,7 +1591,7 @@ pub trait ExchangeBase:
 
     fn parse_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_ticker(self, ...))
-        if let Some(__v) = crate::exchange::DerivedExchange::parse_ticker(self, ticker, market) { return __v; }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(ticker).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parseTicker() is not supported yet")));
 
@@ -1732,7 +1732,7 @@ pub trait ExchangeBase:
 
     fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_funding_rate_history(self, ...))
-        if let Some(__v) = crate::exchange::DerivedExchange::parse_funding_rate_history(self, info, market) { return __v; }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_funding_rate_history(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(info).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parseFundingRateHistory() is not supported yet")));
 
@@ -2533,7 +2533,7 @@ pub trait ExchangeBase:
          * @returns {object} returns feature value
          */
         let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.feature_value_by_type(Value::from((market).market_type.clone()), crate::value::KeyRead::key_read(&&market, "subType"), &[methodName, paramName, defaultValue]);
+        return self.feature_value_by_type(self.safe_string_k(&market, "type", &[Value::Str("".into())]), self.safe_string_k(&market, "subType", &[]), &[methodName, paramName, defaultValue]);
 
     Value::Null
 }
@@ -3064,7 +3064,7 @@ pub trait ExchangeBase:
                     }
                     if (self.precisionMode.as_f64() == Value::Int(crate::runtime::TICK_SIZE).as_f64()) {
                         if (highestPrecision.is_some() && currentPrecision.is_some() && highestPrecision > currentPrecision) {
-                            highestPrecisionCurrency = currentCurrency.clone();
+                            highestPrecisionCurrency = currentCurrency;
                         }
                     }  else if (currentPrecision.is_some() && highestPrecision.is_some() && currentPrecision > highestPrecision) {
                         highestPrecisionCurrency = currentCurrency;
@@ -3418,7 +3418,10 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_98: bool = true;
             while { if !__for_first_98 { i += 1; } __for_first_98 = false; i < (trades.len() as i64) } {
-            let mut entry: Value = get_value(&trades, &Value::Int(i));
+            let mut entry: Value = self.safe_dict(&trades, Value::Int(i), &[]);
+            if (entry == Value::Null) {
+                continue;
+            }
             { let __be_tmp = self.safe_number_k(&entry, "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); }
             { let __be_tmp = self.safe_number_k(&entry, "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); }
             { let __be_tmp = self.safe_number_k(&entry, "cost", &[]); add_element_to_object(&mut entry, &Value::Str("cost".into()), __be_tmp); }
@@ -6365,21 +6368,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTransactionFee() is not supported yet")));
         }
-        return self.fetch_transaction_fees(&[Value::from(vec![Value::from(code)]), params]).await;
+        return crate::types::IntoRaw::into_raw(self.fetch_transaction_fees((Value::from(vec![Value::from(code)])).to_opt_str_vec(), params).await);
 
     Value::Null
 } }
 
-    fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_transaction_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Option<crate::value::Dict>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let codes = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTransactionFees() is not supported yet")));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn fetch_deposit_withdraw_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositWithdrawFees>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
@@ -6518,7 +6526,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // check if params contain the key
         let mut value: Value = self.safe_value2(&params, &optionName, Value::from(defaultOptionName.as_str()), &[]);
         if (value != Value::Null) {
-            let paramsOmitted: Value = self.omit(&params, Value::from(vec![optionName.clone(), Value::from(defaultOptionName.as_str())]), &[]);
+            let paramsOmitted: Value = self.omit(params, Value::from(vec![optionName, Value::from(defaultOptionName.as_str())]), &[]);
             return (value, paramsOmitted.into_dict());
         }  else {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
@@ -7511,7 +7519,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (self.safe_dict(&depositAddresses, code.clone(), &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() could not find a deposit address for ").into()), code).into()), ", make sure you have created a corresponding deposit address in your wallet on the exchange website")));
             }
-            return self.safe_dict(&depositAddresses, code.clone(), &[]);
+            return self.safe_dict(&depositAddresses, code, &[]);
         }  else if (self.has.get("fetchDepositAddressesByNetwork").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchDepositAddressesByNetwork").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             let network: Option<String> = self.safe_string_k_opt(&params, "network", &[]);
             let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
@@ -13496,7 +13504,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_trading_fees_ws" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees_ws(args.get(0).cloned().unwrap_or_default()).await),
             "fetch_trading_limits" => crate::types::IntoRaw::into_raw(self.fetch_trading_limits(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-            "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
+            "fetch_transaction_fees" => crate::types::IntoRaw::into_raw(self.fetch_transaction_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_transfer" => crate::types::IntoRaw::into_raw(self.fetch_transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
             "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),

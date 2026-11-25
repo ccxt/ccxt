@@ -462,7 +462,7 @@ impl Blockchaincom {
         if (event.as_deref() == Some("subscribed")) {
             return;
         }  else if (event.as_deref() == Some("snapshot")) {
-            ticker = Value::Dict(self.parse_ticker(message.clone(), Some(&market)));
+            ticker = Value::Dict(self.parse_ticker(message, Some(&market)));
         }  else if (event.as_deref() == Some("updated")) {
             let lastTicker: Value = self.tickers.get(symbol.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Null);
             ticker = Value::Dict(self.parse_ws_updated_ticker(message, &[&lastTicker, &crate::Value::from(&market)]));
@@ -1029,19 +1029,19 @@ impl Blockchaincom {
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("ticker")) {
-            self.handle_ticker(&client.as_value(), message.clone());
+            self.handle_ticker(&client.as_value(), message);
         }  else if (channel.as_deref() == Some("trades")) {
-            self.handle_trades(&client.as_value(), message.clone());
+            self.handle_trades(&client.as_value(), message);
         }  else if (channel.as_deref() == Some("prices")) {
-            self.handle_ohlcv(client.as_value(), message.clone());
+            self.handle_ohlcv(client.as_value(), message);
         }  else if (channel.as_deref() == Some("l2")) || (channel.as_deref() == Some("l3")) {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message);
         }  else if (channel.as_deref() == Some("auth")) {
-            self.handle_authentication_message(client.as_value(), message.clone());
+            self.handle_authentication_message(client.as_value(), message);
         }  else if (channel.as_deref() == Some("balances")) {
-            self.handle_balance(&client.as_value(), message.clone());
+            self.handle_balance(&client.as_value(), message);
         }  else if (channel.as_deref() == Some("trading")) {
-            self.handle_orders(&client.as_value(), message.clone());
+            self.handle_orders(&client.as_value(), message);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " received an unsupported message: ").into()), json_stringify(&message))));
         }

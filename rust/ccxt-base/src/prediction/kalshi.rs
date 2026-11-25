@@ -375,20 +375,19 @@ impl crate::exchange::DerivedExchange for Kalshi {
     None
 }
     fn parse_my_trade(&self, fill: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let fill: Value = fill.into();
-        let id: Option<String> = self.safe_string2_opt(&fill, Value::Str("fill_id".into()), Value::Str("trade_id".into()), &[]);
-        let orderId: Option<String> = self.safe_string_k_opt(&fill, "order_id", &[]);
-        let ticker: Option<String> = self.safe_string2_opt(&fill, Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
+        let id: Option<String> = self.safe_string2_opt(fill, Value::Str("fill_id".into()), Value::Str("trade_id".into()), &[]);
+        let orderId: Option<String> = self.safe_string_k_opt(fill, "order_id", &[]);
+        let ticker: Option<String> = self.safe_string2_opt(fill, Value::Str("ticker".into()), Value::Str("market_ticker".into()), &[]);
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
-        let sideLeg: Option<String> = self.safe_string_lower_k_opt(&fill, "side", &[]);
+        let sideLeg: Option<String> = self.safe_string_lower_k_opt(fill, "side", &[]);
         let mut outcomeKey: Option<String> = ticker.clone();
         if (sideLeg.as_deref() == Some("no")) && (ticker.is_some()) {
             outcomeKey = Some(format!("{}{}", ticker.as_deref().unwrap_or("null"), "-NO"));
         }
         let mkt: Option<crate::types::Market> = self.safe_outcome(outcomeKey.as_deref(), market);
-        let ts: Option<i64> = self.parse8601(self.safe_string_k(&fill, "created_time", &[]));
+        let ts: Option<i64> = self.parse8601(self.safe_string_k(fill, "created_time", &[]));
         // action is the order side (buy/sell) of the held leg
-        let action: Option<String> = self.safe_string_lower_k_opt(&fill, "action", &[]);
+        let action: Option<String> = self.safe_string_lower_k_opt(fill, "action", &[]);
         let mut side: String = "buy".to_string();
         if (action.as_deref() == Some("sell")) {
             side = "sell".to_string();
@@ -400,23 +399,23 @@ impl crate::exchange::DerivedExchange for Kalshi {
             centsKey = "no_price".to_string();
             dollarsKey = "no_price_dollars".to_string();
         }
-        let legCents: Option<f64> = self.safe_number(&fill, Value::from(centsKey), &[]).as_f64();
+        let legCents: Option<f64> = self.safe_number(fill, Value::from(centsKey), &[]).as_f64();
         let mut centsPrice: Option<f64> = None;
         if (legCents.is_some()) {
             centsPrice = (if let Some(__l) = legCents { Some(__l / 100.0) } else { None });
         }
-        let price: Option<f64> = self.safe_number(&fill, Value::from(dollarsKey), &[Value::from(centsPrice)]).as_f64();
-        let amount: Option<f64> = self.safe_number2(&fill, Value::Str("count_fp".into()), Value::Str("count".into()), &[]).as_f64();
+        let price: Option<f64> = self.safe_number(fill, Value::from(dollarsKey), &[Value::from(centsPrice)]).as_f64();
+        let amount: Option<f64> = self.safe_number2(fill, Value::Str("count_fp".into()), Value::Str("count".into()), &[]).as_f64();
         let mut cost: Option<f64> = None;
         if (price.is_some()) && (amount.is_some()) {
             cost = (if let (Some(__l), Some(__r)) = (price, amount) { Some(__l * __r) } else { None });
         }
-        let isTaker: bool = self.safe_bool_k_opt(&fill, "is_taker", &[Value::Bool(true)]).unwrap_or(true);
+        let isTaker: bool = self.safe_bool_k_opt(fill, "is_taker", &[Value::Bool(true)]).unwrap_or(true);
         let mut takerOrMaker: String = "maker".to_string();
         if isTaker {
             takerOrMaker = "taker".to_string();
         }
-        let feeCost: Option<f64> = self.safe_number_k(&fill, "fee_cost", &[]).as_f64();
+        let feeCost: Option<f64> = self.safe_number_k(fill, "fee_cost", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -429,7 +428,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), fill);
+        m.insert("info".to_string(), Value::from(fill));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("outcome".to_string(), self.safe_string_k(&mkt, "outcome", &[outcomeKey.map(Value::from).unwrap_or(Value::Null)]));
@@ -450,18 +449,17 @@ impl crate::exchange::DerivedExchange for Kalshi {
     None
 }
     fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
-        let id: Option<String> = self.safe_string_k_opt(&trade, "trade_id", &[]);
-        let ts: Option<i64> = self.parse8601(self.safe_string_k(&trade, "created_time", &[]));
-        let priceCents: Option<f64> = self.safe_number2(&trade, Value::Str("yes_price".into()), Value::Str("price".into()), &[]).as_f64();
+        let id: Option<String> = self.safe_string_k_opt(trade, "trade_id", &[]);
+        let ts: Option<i64> = self.parse8601(self.safe_string_k(trade, "created_time", &[]));
+        let priceCents: Option<f64> = self.safe_number2(trade, Value::Str("yes_price".into()), Value::Str("price".into()), &[]).as_f64();
         let mut centsPrice: Option<f64> = None;
         if (priceCents.is_some()) {
             centsPrice = (if let Some(__l) = priceCents { Some(__l / 100.0) } else { None });
         }
-        let price: Option<f64> = self.safe_number2(&trade, Value::Str("yes_price_dollars".into()), Value::Str("price_dollars".into()), &[Value::from(centsPrice)]).as_f64();
-        let amountFp: Option<f64> = self.safe_number2(&trade, Value::Str("count_fp".into()), Value::Str("size_fp".into()), &[]).as_f64();
-        let amount: Option<f64> = self.safe_number_k(&trade, "count", &[Value::from(amountFp)]).as_f64();
-        let rawSide: Option<String> = self.safe_string_lower_k_opt(&trade, "taker_side", &[]);
+        let price: Option<f64> = self.safe_number2(trade, Value::Str("yes_price_dollars".into()), Value::Str("price_dollars".into()), &[Value::from(centsPrice)]).as_f64();
+        let amountFp: Option<f64> = self.safe_number2(trade, Value::Str("count_fp".into()), Value::Str("size_fp".into()), &[]).as_f64();
+        let amount: Option<f64> = self.safe_number_k(trade, "count", &[Value::from(amountFp)]).as_f64();
+        let rawSide: Option<String> = self.safe_string_lower_k_opt(trade, "taker_side", &[]);
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]).as_str(), market);
         let marketInfo: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let requestedOutcomeLabel: Option<String> = self.safe_string_lower_k_opt(&outcomeObj, "label", &[self.safe_string_lower_k(&marketInfo, "outcomeLabel", &[])]);
@@ -482,7 +480,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), trade);
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
@@ -503,21 +501,20 @@ impl crate::exchange::DerivedExchange for Kalshi {
     None
 }
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
-        let id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-        let ticker: Option<String> = self.safe_string_k_opt(&order, "ticker", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "order_id", &[]);
+        let ticker: Option<String> = self.safe_string_k_opt(order, "ticker", &[]);
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
-        let sideLeg: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
+        let sideLeg: Option<String> = self.safe_string_lower_k_opt(order, "side", &[]);
         let mut outcomeKey: Option<String> = ticker.clone();
         if (sideLeg.as_deref() == Some("no")) && (ticker.is_some()) {
             outcomeKey = Some(format!("{}{}", ticker.as_deref().unwrap_or("null"), "-NO"));
         }
         let mkt: Option<crate::types::Market> = self.safe_outcome(outcomeKey.as_deref(), market);
-        let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
+        let status: Option<String> = self.parse_order_status(self.safe_string_k(order, "status", &[]).as_str());
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
-        let action: Option<String> = self.safe_string_lower_k_opt(&order, "action", &[]);
+        let action: Option<String> = self.safe_string_lower_k_opt(order, "action", &[]);
         let mut side: Option<String> = None;
         if (action.as_deref() == Some("buy")) {
             side = Some("buy".to_string());
@@ -535,26 +532,26 @@ impl crate::exchange::DerivedExchange for Kalshi {
         if labelIsNo {
             centsKey = "no_price".to_string();
         }
-        let mut price: Option<f64> = self.safe_number(&order, Value::from(dollarsKey), &[]).as_f64();
+        let mut price: Option<f64> = self.safe_number(order, Value::from(dollarsKey), &[]).as_f64();
         if (price.is_none()) {
-            let priceCents: Option<f64> = self.safe_number(&order, Value::from(centsKey), &[]).as_f64();
+            let priceCents: Option<f64> = self.safe_number(order, Value::from(centsKey), &[]).as_f64();
             if (priceCents.is_some()) {
                 price = (if let Some(__l) = priceCents { Some(__l / 100.0) } else { None });
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
-        let amount: Option<f64> = self.safe_number2(&order, Value::Str("initial_count_fp".into()), Value::Str("count".into()), &[]).as_f64();
-        let filled: Value = self.safe_number2(&order, Value::Str("fill_count_fp".into()), Value::Str("filled_count".into()), &[Value::Int(0)]);
-        let mut remaining: Value = self.safe_number_k(&order, "remaining_count_fp", &[]);
+        let amount: Option<f64> = self.safe_number2(order, Value::Str("initial_count_fp".into()), Value::Str("count".into()), &[]).as_f64();
+        let filled: Value = self.safe_number2(order, Value::Str("fill_count_fp".into()), Value::Str("filled_count".into()), &[Value::Int(0)]);
+        let mut remaining: Value = self.safe_number_k(order, "remaining_count_fp", &[]);
         if (remaining == Value::Null) && (amount.is_some()) && (filled != Value::Null) {
             remaining = (match (&(Value::from(amount)), &(filled)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        let ts: Option<i64> = self.parse8601(self.safe_string_k(&order, "created_time", &[]));
+        let ts: Option<i64> = self.parse8601(self.safe_string_k(order, "created_time", &[]));
         return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
-        m.insert("info".to_string(), order.clone());
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
+        m.insert("info".to_string(), Value::from(order));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -583,10 +580,9 @@ impl crate::exchange::DerivedExchange for Kalshi {
     None
 }
     fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
-        let ticker: Option<String> = self.safe_string_k_opt(&position, "ticker", &[]);
+        let ticker: Option<String> = self.safe_string_k_opt(position, "ticker", &[]);
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(ticker.as_deref(), market);
-        let yesContracts: Option<f64> = self.safe_number_k(&position, "position", &[]).as_f64(); // positive = long YES
+        let yesContracts: Option<f64> = self.safe_number_k(position, "position", &[]).as_f64(); // positive = long YES
         let mut positionSide: Option<String> = None;
         let mut contractsValue: Option<f64> = None;
         if (yesContracts.is_some()) {
@@ -622,14 +618,13 @@ impl crate::exchange::DerivedExchange for Kalshi {
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("marginType".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
     m
 })));
 
     None
 }
     fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let raw: Value = raw.into();
         //
         //     {
         //         "market": {
@@ -688,13 +683,13 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]).as_str(), market);
         let outcomeLabel: Option<String> = (if ((market.is_some()) && (market.is_some())) { self.safe_string_upper_k_opt(&market, "label", &[self.safe_string_upper_k(self.safe_dict_k(&market, "info", &[]), "outcomeLabel", &[Value::Str("YES".into())])]) } else { Some("YES".to_string()) });
         let isNo: bool = outcomeLabel.as_deref() == Some("NO");
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&raw, "updated_time", &[]));
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(raw, "updated_time", &[]));
         let outcome: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-        let yesAsk: Option<f64> = self.safe_number_k(&raw, "yes_ask_dollars", &[]).as_f64();
-        let yesBid: Option<f64> = self.safe_number_k(&raw, "yes_bid_dollars", &[]).as_f64();
-        let noAsk: Option<f64> = self.safe_number_k(&raw, "no_ask_dollars", &[]).as_f64();
-        let noBid: Option<f64> = self.safe_number_k(&raw, "no_bid_dollars", &[]).as_f64();
-        let mut last: Option<f64> = self.safe_number_k(&raw, "last_price_dollars", &[]).as_f64();
+        let yesAsk: Option<f64> = self.safe_number_k(raw, "yes_ask_dollars", &[]).as_f64();
+        let yesBid: Option<f64> = self.safe_number_k(raw, "yes_bid_dollars", &[]).as_f64();
+        let noAsk: Option<f64> = self.safe_number_k(raw, "no_ask_dollars", &[]).as_f64();
+        let noBid: Option<f64> = self.safe_number_k(raw, "no_bid_dollars", &[]).as_f64();
+        let mut last: Option<f64> = self.safe_number_k(raw, "last_price_dollars", &[]).as_f64();
         let mut bid: Option<f64> = None;
         let mut ask: Option<f64> = None;
         let mut close: Option<f64> = None;
@@ -710,15 +705,15 @@ impl crate::exchange::DerivedExchange for Kalshi {
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
         let mut bidSizeString: Option<String> = None;
         if isNo {
-            bidSizeString = self.safe_string_k_opt(&raw, "yes_ask_size_fp", &[]);
+            bidSizeString = self.safe_string_k_opt(raw, "yes_ask_size_fp", &[]);
         }  else {
-            bidSizeString = self.safe_string_k_opt(&raw, "yes_bid_size_fp", &[]);
+            bidSizeString = self.safe_string_k_opt(raw, "yes_bid_size_fp", &[]);
         }
         let mut askSizeString: Option<String> = None;
         if isNo {
-            askSizeString = self.safe_string_k_opt(&raw, "yes_bid_size_fp", &[]);
+            askSizeString = self.safe_string_k_opt(raw, "yes_bid_size_fp", &[]);
         }  else {
-            askSizeString = self.safe_string_k_opt(&raw, "yes_ask_size_fp", &[]);
+            askSizeString = self.safe_string_k_opt(raw, "yes_ask_size_fp", &[]);
         }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
@@ -756,30 +751,29 @@ impl crate::exchange::DerivedExchange for Kalshi {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::from(average));
-        m.insert("baseVolume".to_string(), self.safe_number_n(&raw, Value::from(vec![Value::Str("volume_24h_fp".into()), Value::Str("volume_24h".into()), Value::Str("volume".into())]), &[]));
+        m.insert("baseVolume".to_string(), self.safe_number_n(raw, Value::from(vec![Value::Str("volume_24h_fp".into()), Value::Str("volume_24h".into()), Value::Str("volume".into())]), &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), raw);
+        m.insert("info".to_string(), Value::from(raw));
     m
 }), &[crate::Value::from(market)]));
 
     None
 }
     fn parse_prediction_open_interest(&self, interest: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let interest: Value = interest.into();
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&interest, "updated_time", &[]));
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(interest, "updated_time", &[]));
         let mut openInterest: crate::value::Dict = self.safe_open_interest(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
-                m.insert("openInterestAmount".to_string(), self.safe_number2(&interest, Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
+                m.insert("openInterestAmount".to_string(), self.safe_number2(interest, Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
                 m.insert("openInterestValue".to_string(), Value::Null);
                 m.insert("baseVolume".to_string(), Value::Null);
                 m.insert("quoteVolume".to_string(), Value::Null);
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
-                m.insert("info".to_string(), interest);
+                m.insert("info".to_string(), Value::from(interest));
             m
         }), market);
         std::sync::Arc::make_mut(&mut openInterest).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));

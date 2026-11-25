@@ -100,7 +100,7 @@ impl Krakenfutures {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -994,7 +994,6 @@ impl Krakenfutures {
 }
 
     pub fn parse_ws_order_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let trade: Value = trade.into();
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1023,26 +1022,26 @@ impl Krakenfutures {
         //        "ts": 1648708187469
         //    }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&trade, "tradeTime", &[]).as_i64();
-        let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(trade, "tradeTime", &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), self.safe_string_k(&trade, "tradeId", &[]));
+        m.insert("info".to_string(), Value::from(trade));
+        m.insert("id".to_string(), self.safe_string_k(trade, "tradeId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "orderId", &[]));
-        m.insert("type".to_string(), self.safe_string_lower_k(&trade, "type", &[]));
-        m.insert("side".to_string(), self.safe_string_k(&trade, "side", &[]));
-        m.insert("takerOrMaker".to_string(), self.safe_string_k(&trade, "matchRole", &[]));
-        m.insert("price".to_string(), self.safe_string2(&trade, Value::Str("price".into()), Value::Str("limit_price".into()), &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "tradeAmount", &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade, "orderId", &[]));
+        m.insert("type".to_string(), self.safe_string_lower_k(trade, "type", &[]));
+        m.insert("side".to_string(), self.safe_string_k(trade, "side", &[]));
+        m.insert("takerOrMaker".to_string(), self.safe_string_k(trade, "matchRole", &[]));
+        m.insert("price".to_string(), self.safe_string2(trade, Value::Str("price".into()), Value::Str("limit_price".into()), &[]));
+        m.insert("amount".to_string(), self.safe_string_k(trade, "tradeAmount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.safe_string_k(&trade, "tradeFee", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(trade, "tradeFee", &[]));
         m.insert("currency".to_string(), self.safe_string_k(trade, "feeCurrency", &[]));
     m
 }));
@@ -2272,7 +2271,7 @@ impl Krakenfutures {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("challenge")) {
-            self.handle_authenticate(&client, &Value::from(message));
+            self.handle_authenticate(&client, message);
         }  else if (event.as_deref() == Some("alert")) {
             Value::Bool(self.handle_error_message(&client, message));
         }  else if (event.as_deref() == Some("pong")) {
@@ -2305,10 +2304,9 @@ impl Krakenfutures {
         }
 }
 
-    pub fn handle_authenticate(&mut self, client: &Value, message: &Value) {
+    pub fn handle_authenticate(&mut self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         /*
          * @ignore
          * @method

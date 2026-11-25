@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -95,7 +95,7 @@ impl Grvt {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -229,7 +229,7 @@ impl Grvt {
         //     prev_sequence_number: "0",
         //  }
         //
-        if (Value::Bool(self.handle_error_message(&client.as_value(), Value::from(message))).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() == Some(true)) {
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -1352,9 +1352,8 @@ impl Grvt {
     Default::default()
 }
 
-    pub fn handle_error_message(&self, client: &Value, mut response: Value) -> bool {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = response.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_error_message(&self, client: &Value, response: &crate::value::Dict) -> bool {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &response;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1369,7 +1368,7 @@ impl Grvt {
         let error: crate::value::Dict = __pro_message.key_dict("error");
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         if (errorCode.is_some()) {
-            let body: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
+            let body: Option<String> = json_stringify(response).as_str().map(str::to_owned);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body.as_deref().unwrap_or("null"));
             let message: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());

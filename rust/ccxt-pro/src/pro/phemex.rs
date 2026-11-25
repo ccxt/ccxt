@@ -64,7 +64,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_swap_ticker" => self.parse_swap_ticker(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_swap_order" => Value::Dict(self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
@@ -107,7 +107,7 @@ impl Phemex {
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_perpetual_ticker" => { self.parse_perpetual_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
-            "parse_swap_ticker" => { self.parse_swap_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
+            "parse_swap_ticker" => { self.parse_swap_ticker(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
             "parse_ws_swap_order" => { Value::Dict(self.parse_ws_swap_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "request_id" => { self.request_id(); },
             "subscribe_private" => crate::exchange_stubs::enqueue_spawn("subscribe_private", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -206,8 +206,7 @@ impl Phemex {
         return requestId;
 }
 
-    pub fn parse_swap_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let ticker: Value = ticker.into();
+    pub fn parse_swap_ticker(&self, ticker: &crate::value::Dict, market: Option<&crate::types::Market>) -> Value {
         //
         //     {
         //         "close": 442800,
@@ -266,7 +265,7 @@ impl Phemex {
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("markPrice".to_string(), self.parse_number(self.parent.from_ep(self.safe_string_k(&ticker, "markPrice", &[]).as_str(), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("indexPrice".to_string(), self.parse_number(self.parent.from_ep(self.safe_string_k(&ticker, "indexPrice", &[]).as_str(), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), None));
 

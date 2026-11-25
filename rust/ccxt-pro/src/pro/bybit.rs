@@ -71,7 +71,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "get_private_type" => self.get_private_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "handle_authenticate" => self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_subscription_status" => crate::Value::Dict(self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -137,7 +137,7 @@ impl Bybit {
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -440,7 +440,7 @@ impl Bybit {
         let mut isSpot: Option<bool> = None;
         let mut type_var: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+        let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let accessibilityUrls: indexmap::IndexMap<String, Value> = self.safe_dict(&wsUrls, Value::from(accessibility), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
@@ -1193,14 +1193,14 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
+            let mut market: crate::types::Market = (match self.market((self.safe_string(&data, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbolString: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_deref()), &[&Value::from(unfiedTimeframe.as_deref())]);
+            let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe).into()));
         }
         }
         let symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(rawHashes), &[&Value::Dict(params)]).await;
@@ -1252,15 +1252,15 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (symbolsAndTimeframes.len() as i64) } {
-            let data: Value = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let data: crate::value::List = self.safe_list_t(&symbolsAndTimeframes, Value::Int(i));
+            let mut market: crate::types::Market = (match self.market((self.safe_string(&data, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbolString: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_deref()), &[&Value::from(unfiedTimeframe.as_deref())]);
+            let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
-            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe::ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
+            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe::ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe).into()));
         }
         }
         let subExtension: indexmap::IndexMap<String, Value> = ({
@@ -2193,7 +2193,7 @@ impl Bybit {
         let mut execTypes: Value = Value::Null;
         if matches!(&execTypeOption, Value::Str(_)) {
             // a single execution type is accepted as a plain string as well
-            execTypes = Value::from(vec![execTypeOption.clone()]);
+            execTypes = Value::from(vec![execTypeOption]);
         }  else {
             execTypes = execTypeOption;
         }
@@ -3388,10 +3388,9 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
+    pub fn handle_error_message(&self, client: &Value, message: &crate::value::Dict) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //   {
         //       "success": false,
@@ -3435,12 +3434,12 @@ impl Bybit {
         //       "connId":"cojifin88smerbj9t560-406"
         //   }
         //
-        let code: Option<String> = self.safe_string_n_opt(message, Value::from(vec![Value::Str("code".into()), Value::Str("ret_code".into()), Value::Str("retCode".into())]), &[]);
+        let code: Option<String> = self.safe_string_n_opt(&message, Value::from(vec![Value::Str("code".into()), Value::Str("ret_code".into()), Value::Str("retCode".into())]), &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             if (code.is_some()) && (code.as_deref() != Some("0")) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
                 self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, feedback.as_str());
-                let msg: Option<String> = self.safe_string2_opt(message, Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]);
+                let msg: Option<String> = self.safe_string2_opt(&message, Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]);
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
@@ -3458,7 +3457,7 @@ impl Bybit {
             return false;
         }));
         match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
-            let reqId: Option<String> = self.safe_string2_opt(message, Value::Str("req_id".into()), Value::Str("reqId".into()), &[]);
+            let reqId: Option<String> = self.safe_string2_opt(&message, Value::Str("req_id".into()), Value::Str("reqId".into()), &[]);
             let mut foundSubscription: bool = false;
             if (reqId.is_some()) {
                 let keys: Vec<Value> = __ch.subscription_keys();
@@ -3511,7 +3510,7 @@ impl Bybit {
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let topic: String = self.safe_string2(&message, Value::Str("topic".into()), Value::Str("op".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if (Value::Bool(self.handle_error_message(&client.as_value(), &Value::from(message))).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() == Some(true)) {
             return;
         }
         // contract pong

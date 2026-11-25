@@ -79,7 +79,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_uta_order" => Value::Dict(self.parse_ws_uta_order(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_uta_position" => Value::Dict(self.parse_ws_uta_position(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_uta_ticker" => Value::Dict(self.parse_ws_uta_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_uta_ticker" => Value::Dict(self.parse_ws_uta_ticker(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_uta_trade" => Value::Dict(self.parse_ws_uta_trade(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -176,7 +176,7 @@ impl Kucoin {
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_uta_order" => { Value::Dict(self.parse_ws_uta_order(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_uta_position" => { Value::Dict(self.parse_ws_uta_position(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_uta_ticker" => { Value::Dict(self.parse_ws_uta_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_uta_ticker" => { Value::Dict(self.parse_ws_uta_ticker(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_uta_trade" => { Value::Dict(self.parse_ws_uta_trade(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "request_id" => { self.request_id(); },
@@ -840,7 +840,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut tickers: Value = Value::Null;
         if (symbolsNormalized.is_none()) {
             let allTopic: String = format!("{}{}", method.as_deref().unwrap_or("null"), ":all");
-            tickers = self.subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), allTopic.as_str(), &[query.clone()]).await;
+            tickers = self.subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), allTopic.as_str(), &[query]).await;
             if self.newUpdates.as_bool() == Some(true) {
                 return tickers;
             }
@@ -1115,8 +1115,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("uta:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into())));
 }
 
-    pub fn parse_ws_uta_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let ticker: Value = ticker.into();
+    pub fn parse_ws_uta_ticker(&self, ticker: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(symbol.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[]).as_i64();
@@ -1146,7 +1145,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "mp", &[]));
         m.insert("indexPrice".to_string(), self.safe_string_k(&ticker, "ip", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved));
 
@@ -2476,8 +2475,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (changes != Value::Null) {
             let bids: crate::value::List = self.safe_list_k_t(&changes, "bids");
             let asks: crate::value::List = self.safe_list_k_t(&changes, "asks");
-            self.handle_bid_asks(storedBids.clone(), &bids);
-            self.handle_bid_asks(storedAsks.clone(), &asks);
+            self.handle_bid_asks(storedBids, &bids);
+            self.handle_bid_asks(storedAsks, &asks);
         }  else {
             let bids: crate::value::List = self.safe_list2_t(&delta, Value::Str("bids".into()), Value::Str("b".into()));
             let asks: crate::value::List = self.safe_list2_t(delta, Value::Str("asks".into()), Value::Str("a".into()));

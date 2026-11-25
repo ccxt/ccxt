@@ -405,23 +405,23 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_0 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let newTicker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -483,23 +483,23 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@ticker".into())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_1 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_1, &messageHashes, Value::Null).await;
         Value::Null
@@ -610,14 +610,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         let use1sFreq: bool = self.safe_bool_k_opt(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
@@ -628,10 +622,16 @@ impl Aster {
             if use1sFreq {
                 suffix = "@1s".to_string();
             }
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@markPrice".into())).into()), suffix).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@markPrice".into())).into()), suffix).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let newTicker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_2, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -693,14 +693,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         let use1sFreq: bool = self.safe_bool_k_opt(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
@@ -711,10 +705,16 @@ impl Aster {
             if use1sFreq {
                 suffix = "@1s".to_string();
             }
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@markPrice".into())).into()), suffix).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@markPrice".into())).into()), suffix).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_3, &messageHashes, Value::Null).await;
         Value::Null
@@ -847,23 +847,23 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
         let newTicker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -919,23 +919,23 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@bookTicker".into())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:bidask:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
         Value::Null
@@ -1094,15 +1094,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-                m.insert("id".to_string(), Value::Int(1));
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
@@ -1112,10 +1105,17 @@ impl Aster {
             if (marketId.is_none()) {
                 continue;
             }
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@aggTrade").into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", marketId.as_deref().unwrap_or("null"), "@aggTrade").into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+                m.insert("id".to_string(), Value::Int(1));
+            m
+        });
         let __ws_arg_6 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let mut trades: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_6, &messageHashes, Value::Null).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
@@ -1167,23 +1167,23 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@aggTrade".into())).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@aggTrade".into())).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_7 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_7, &messageHashes, Value::Null).await;
         Value::Null
@@ -1488,14 +1488,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         let mut depthSuffix: String = "@depth20".to_string();
         if (limit.as_f64() == Some(5.0)) {
             depthSuffix = "@depth5".to_string();
@@ -1507,10 +1501,16 @@ impl Aster {
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), depthSuffix).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), depthSuffix).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_8 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let mut orderbook: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_8, &messageHashes, Value::Null).await;
         return orderbook.limit();
@@ -1560,14 +1560,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         let limit: Option<f64> = self.safe_number_k(&paramsOmitted, "limit", &[]).as_f64();
         let mut depthSuffix: String = "@depth20".to_string();
         if (limit == Some(5.0)) {
@@ -1580,10 +1574,16 @@ impl Aster {
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), depthSuffix).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), depthSuffix).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), Value::from((market).symbol.as_str())).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_9 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, Value::Str("limit".into()), &[])]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_9, &messageHashes, Value::Null).await;
         Value::Null
@@ -1743,14 +1743,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
@@ -1764,10 +1758,16 @@ impl Aster {
             symbolString = Some((market).symbol.clone());
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId.as_deref().unwrap_or("null")).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId.as_deref().unwrap_or("null")).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str())).into()), ":").into()), unfiedTimeframe).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let symboltimeframestoredVariable = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_10, &messageHashes, Value::Null).await;
         let symbol: Option<String> = get_value(&symboltimeframestoredVariable, &Value::Int(0)).as_str().map(str::to_owned);
@@ -1822,14 +1822,8 @@ impl Aster {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " has no websocket url for this endpoint")));
         }
-        let mut subscriptionArgs: Value = Value::from(vec![]);
+        let mut subscriptionArgs: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let request: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
-                m.insert("params".to_string(), subscriptionArgs.clone());
-            m
-        });
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
@@ -1843,10 +1837,16 @@ impl Aster {
             symbolString = Some((market).symbol.clone());
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId.as_deref().unwrap_or("null")).into())); };
+            subscriptionArgs.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId.as_deref().unwrap_or("null")).into()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), Value::from((market).symbol.as_str())).into()), ":").into()), unfiedTimeframe).into()));
         }
         }
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
+                m.insert("params".to_string(), Value::from(subscriptionArgs));
+            m
+        });
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_11, &messageHashes, Value::Null).await;
         Value::Null

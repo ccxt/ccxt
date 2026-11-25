@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(&mut crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_system_status" => crate::Value::Dict(self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -719,7 +719,7 @@ impl Bitfinex {
         let messageLength: i64 = message.len() as i64;
         if (messageLength == 2) {
             // initial snapshot
-            let trades: crate::value::List = self.safe_list_t(&message, Value::Int(1));
+            let trades: crate::value::List = self.safe_list_t(message, Value::Int(1));
             // needs to be reversed to make chronological order
             let length: i64 = trades.len() as i64;
             {
@@ -737,7 +737,7 @@ impl Bitfinex {
             }
         }  else {
             // update
-            let type_var: Option<String> = self.safe_string_opt(&message, Value::Int(1), &[]);
+            let type_var: Option<String> = self.safe_string_opt(message.clone(), Value::Int(1), &[]);
             if (type_var.as_deref() == Some("tu")) {
                 return;
             }
@@ -1044,7 +1044,7 @@ impl Bitfinex {
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if isRaw {
-                let deltas: crate::value::List = self.safe_list_t(&message, Value::Int(1));
+                let deltas: crate::value::List = self.safe_list_t(message, Value::Int(1));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_2: bool = true;
@@ -1060,7 +1060,7 @@ impl Bitfinex {
                 }
                 }
             }  else {
-                let deltas: crate::value::List = self.safe_list_t(&message, Value::Int(1));
+                let deltas: crate::value::List = self.safe_list_t(message, Value::Int(1));
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_3: bool = true;
@@ -1690,8 +1690,8 @@ impl Bitfinex {
     Default::default()
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let channelId: Option<String> = self.safe_string_opt(Value::from(&message), Value::Int(0), &[]);
         let heartbeat: Option<String> = self.safe_string_opt(Value::from(&message), Value::Int(1), &[]);
         if (heartbeat.as_deref() == Some("hb")) {
@@ -1730,7 +1730,7 @@ impl Bitfinex {
             method = self.safe_value2(&publicMethods, name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[client, &Value::from(&message), &subscription]);
+            self.dispatch_ws_handler(&method, &[&client, &Value::from(&message), &subscription]);
         }
 }
 

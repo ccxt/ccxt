@@ -62,7 +62,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
         //
         // {
         //   "closedPnl": "0.19343",
@@ -82,23 +81,23 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //   "time": 1704262888911
         // }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&trade, "time", &[]).as_i64();
-        let price: Option<String> = self.safe_string_k_opt(&trade, "px", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&trade, "sz", &[]);
-        let coin: Option<String> = self.safe_string_k_opt(&trade, "coin", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(trade, "time", &[]).as_i64();
+        let price: Option<String> = self.safe_string_k_opt(trade, "px", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(trade, "sz", &[]);
+        let coin: Option<String> = self.safe_string_k_opt(trade, "coin", &[]);
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(coin.as_deref(), market);
         let marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         let mut resolvedMarket: Option<crate::types::Market> = market.cloned();
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
             resolvedMarket = Some(self.safe_market(marketSymbol.as_deref(), market, &[]));
         }
-        let rawSide: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
+        let rawSide: Option<String> = self.safe_string_k_opt(trade, "side", &[]);
         let mut side: String = "sell".to_string();
         if (rawSide.as_deref() == Some("B")) {
             side = "buy".to_string();
         }
-        let fee: Option<f64> = self.safe_number_k(&trade, "fee", &[]).as_f64();
-        let feeCurrency: String = self.safe_string_k(&trade, "feeToken", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
+        let fee: Option<f64> = self.safe_number_k(trade, "fee", &[]).as_f64();
+        let feeCurrency: String = self.safe_string_k(trade, "feeToken", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
         let outcomeSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         let mut feeObject: Option<crate::value::Dict> = None;
         if (fee.is_some()) {
@@ -113,15 +112,15 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if (price.is_some()) && (amount.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]).as_f64();
         }
-        let crossed: bool = self.safe_bool_k_opt(&trade, "crossed", &[Value::Bool(false)]).unwrap_or(false);
+        let crossed: bool = self.safe_bool_k_opt(trade, "crossed", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerOrMaker: String = "maker".to_string();
         if crossed {
             takerOrMaker = "taker".to_string();
         }
         return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&trade, "tid", &[]));
-        m.insert("info".to_string(), trade.clone());
+        m.insert("id".to_string(), self.safe_string_k(trade, "tid", &[]));
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
@@ -221,19 +220,18 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(None, market);
-        let totalStr: Option<String> = self.safe_string_k_opt(&position, "total", &[]);
+        let totalStr: Option<String> = self.safe_string_k_opt(position, "total", &[]);
         let total: Option<f64> = self.parse_number(Value::from(totalStr.as_deref()), &[]).as_f64();
-        let entryNtlStr: Option<String> = self.safe_string_k_opt(&position, "entryNtl", &[]);
+        let entryNtlStr: Option<String> = self.safe_string_k_opt(position, "entryNtl", &[]);
         let mut entryPrice: Option<f64> = None;
         if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr, &totalStr), &[]).as_f64();
         }
-        let markPxStr: Option<String> = self.safe_string_k_opt(&position, "markPx", &[]);
+        let markPxStr: Option<String> = self.safe_string_k_opt(position, "markPx", &[]);
         let mut notional: Option<f64> = None; // current position value = size * mark price
         let mut unrealizedPnl: Option<f64> = None; // value - entry notional
         if (markPxStr.is_some()) && (totalStr.is_some()) {
@@ -260,7 +258,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("markPrice".to_string(), self.parse_number(markPxStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(&position, "hold", &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position, "hold", &[]));
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -271,14 +269,13 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
     m
 })));
 
     None
 }
     fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let raw: Value = raw.into();
         //
         //     {
         //         "coin": "#10",
@@ -289,11 +286,11 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //         "time": 1704290104840
         //     }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&raw, "time", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(raw, "time", &[]).as_i64();
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         let mkt: Option<crate::types::Market> = self.safe_outcome(None, market);
         let outcome: Option<String> = self.safe_string_k_opt(&mkt, "outcome", &[]);
-        let levels: crate::value::List = self.safe_list_k_t(&raw, "levels");
+        let levels: crate::value::List = self.safe_list_k_t(raw, "levels");
         let rawBids: crate::value::List = self.safe_list_t(&levels, Value::Int(0));
         let rawAsks: crate::value::List = self.safe_list_t(&levels, Value::Int(1));
         let topBid: Option<crate::value::Dict> = self.safe_dict_o(&rawBids, Value::Int(0));
@@ -303,7 +300,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
         let askVolume: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]).as_f64() } else { None });
         // Use synthetic mid if no l2Book
-        let mut mid: Option<f64> = self.safe_number_k(&raw, "mid", &[]).as_f64();
+        let mut mid: Option<f64> = self.safe_number_k(raw, "mid", &[]).as_f64();
         if (mid.is_none()) && (bid.is_some()) && (ask.is_some()) {
             mid = (if let Some(__l) = ((if let (Some(__m0), Some(__m1)) = (bid, ask) { Some((__m0 + __m1)) } else { None })) { Some(__l / 2.0) } else { None });
         }
@@ -348,7 +345,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("average".to_string(), Value::from(mid));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::from(dayVolume));
-        m.insert("info".to_string(), raw);
+        m.insert("info".to_string(), Value::from(raw));
     m
 }), &[crate::Value::from(market)]));
 
@@ -2858,7 +2855,7 @@ impl Hyperliquid {
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> crate::value::Dict {
-        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
         let rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2876,7 +2873,7 @@ impl Hyperliquid {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>().as_str());
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), &privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]);
 }
 
     pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
@@ -2895,7 +2892,7 @@ impl Hyperliquid {
 }
 
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value) -> Value {
-        let dataBinary: crate::value::Bytes = crate::value::Bytes(self.packb(action, &[]).into_list());
+        let dataBinary: crate::value::Bytes = self.packb(action, &[]);
         let dataHex: String = self.binary_to_base16(&dataBinary, &[]);
         let mut data: String = dataHex;
         data.push_str(&format!("{}{}", Value::Str("00000".into()), self.int_to_base16(nonce, &[])));

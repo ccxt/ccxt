@@ -53,20 +53,19 @@ impl crate::exchange::DerivedExchange for Btcbox {
         // Forward to the inherent method on Btcbox.
         Some(Btcbox::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "buy", &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "buy", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "sell", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "sell", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -76,9 +75,9 @@ impl crate::exchange::DerivedExchange for Btcbox {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "vol", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "vol", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker, "volume", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -102,7 +101,6 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let id: Option<String> = self.safe_string_k_opt(&trade, "tid", &[]);
         let priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amountString: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
-        let type_var: Option<String> = None;
         let side: Option<String> = self.safe_string_k_opt(&trade, "type", &[]);
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -112,7 +110,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), Value::from(type_var.as_deref()));
+        m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -125,7 +123,6 @@ impl crate::exchange::DerivedExchange for Btcbox {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         //     {
         //         "id":11,
@@ -138,17 +135,17 @@ impl crate::exchange::DerivedExchange for Btcbox {
         //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
-        let id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
-        let datetimeString: Option<String> = self.safe_string_k_opt(&order, "datetime", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "id", &[]);
+        let datetimeString: Option<String> = self.safe_string_k_opt(order, "datetime", &[]);
         let mut timestamp: Option<i64> = None;
         if (datetimeString.is_some()) {
             timestamp = self.parse8601(Value::Str(format!("{}{}", datetimeString.as_deref().unwrap_or("null"), "+09:00").into())); // Tokyo time
         }
-        let amount: Option<String> = self.safe_string_k_opt(&order, "amount_original", &[]);
-        let remaining: Option<String> = self.safe_string_k_opt(&order, "amount_outstanding", &[]);
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(order, "amount_original", &[]);
+        let remaining: Option<String> = self.safe_string_k_opt(order, "amount_outstanding", &[]);
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
         // status is set by fetchOrder method only
-        let mut status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
+        let mut status: Option<String> = self.parse_order_status(self.safe_string_k(order, "status", &[]).as_str());
         // fetchOrders do not return status, use heuristic
         if (status.is_none()) {
             if crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -157,7 +154,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         }
         let trades: Option<String> = None; // todo: this.parseTrades (order['trades']);
         let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
-        let side: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
+        let side: Option<String> = self.safe_string_k_opt(order, "type", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -179,7 +176,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         m.insert("cost".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(trades.as_deref()));
         m.insert("fee".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
         m.insert("average".to_string(), Value::Null);
     m
 }), Some(&marketResolved)));
@@ -310,7 +307,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version).into()), "/").into()), Value::from(path));
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version).into()), "/").into()), Value::from(path)).into()), "?").into()), self.urlencode(params.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version).into()), "/").into()), Value::from(path)).into()), "?").into()), self.urlencode(params, &[]));
             }
         }  else if (apiName.as_deref() == Some("webApi")) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&self.urls, "www", &[Value::Str("".into())]), Value::Str("/".into())).into()), Value::from(path));
@@ -933,7 +930,7 @@ impl Btcbox {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_1]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -62,10 +62,10 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
             match method {
                 "authenticate" => self.authenticate(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).and_then(crate::Value::as_array).cloned().unwrap_or_default()))),
-                "handle_binary_message" => { self.handle_binary_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_binary_message" => { self.handle_binary_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_protobuf_message" => self.handle_protobuf_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_protobuf_message" => self.handle_protobuf_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -112,7 +112,7 @@ impl Mexc {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_binary_message" => { self.handle_binary_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_binary_message" => { self.handle_binary_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bookside_delta" => { self.handle_bookside_delta(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -123,8 +123,8 @@ impl Mexc {
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_protobuf_message" => { self.handle_protobuf_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_protobuf_message" => { self.handle_protobuf_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_subscription_status" => { self.handle_subscription_status(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1114,7 +1114,7 @@ impl Mexc {
         let messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.as_str()));
         let mut orderbook: Value = Value::Null;
         if (market).spot {
-            let frequencyparamsFrequencyVariable = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]);
+            let frequencyparamsFrequencyVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]);
             let frequency: Option<String> = frequencyparamsFrequencyVariable.0.as_str().map(str::to_owned);
             let paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.1;
             let spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
@@ -2465,7 +2465,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut url: Option<String> = None;
         if (market).spot {
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "spot").as_str().map(str::to_owned);
-            let frequencyparamsFrequencyVariable = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]);
+            let frequencyparamsFrequencyVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]);
             let frequency: Option<String> = frequencyparamsFrequencyVariable.0.as_str().map(str::to_owned);
             let mut paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.1;
             let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
@@ -2682,8 +2682,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn handle_subscription_status(&mut self, client: &Value, message: &Value) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2704,7 +2704,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // Set the default to an empty string if the message is empty during the test.
         let msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         if (msg.as_str() == Some("PONG")) {
-            self.handle_pong(client.clone(), message.clone());
+            self.handle_pong(client, message);
         }  else if msg.as_str().unwrap_or("").contains("Not Subscribed successfully") {
             // the venue names the refused channel between brackets, reject only that watcher
             // and drop its subscription so a corrected retry sends a new frame
@@ -2739,12 +2739,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             });
             let method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
-                self.dispatch_ws_handler(&method, &[client, message]);
+                self.dispatch_ws_handler(&method, &[&client, &message]);
             }
         }
 }
 
-    pub fn handle_protobuf_message(&mut self, client: &Value, message: impl Into<crate::Value>) -> Value {
+    pub fn handle_protobuf_message(&mut self, mut client: Value, message: impl Into<crate::Value>) -> Value {
         let message: Value = message.into();
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
@@ -2770,19 +2770,19 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let channelParts: crate::value::List = crate::value::List::new(channel.split("@").map(Value::from).collect());
         let channelId: Option<String> = self.safe_string_opt(&channelParts, Value::Int(1), &[]);
         if (channelId.as_deref() == Some("public.kline.v3.api.pb")) {
-            self.handle_ohlcv(client.clone(), message.clone());
+            self.handle_ohlcv(client, message);
         }  else if (channelId.as_deref() == Some("public.aggre.deals.v3.api.pb")) {
-            self.handle_trades(client, message.clone());
+            self.handle_trades(&client, message);
         }  else if (channelId.as_deref() == Some("public.aggre.bookTicker.v3.api.pb")) {
-            self.handle_ticker(client, message.clone());
+            self.handle_ticker(&client, message);
         }  else if (channelId.as_deref() == Some("public.aggre.depth.v3.api.pb")) {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client, message);
         }  else if (channelId.as_deref() == Some("private.account.v3.api.pb")) {
-            self.handle_balance(client, message.clone());
+            self.handle_balance(&client, message);
         }  else if (channelId.as_deref() == Some("private.deals.v3.api.pb")) {
-            self.handle_my_trade(client, message.clone(), &[]);
+            self.handle_my_trade(&client, message, &[]);
         }  else if (channelId.as_deref() == Some("private.orders.v3.api.pb")) {
-            self.handle_order(client, message);
+            self.handle_order(&client, message);
         }
         return Value::Bool(true);
 
@@ -2796,7 +2796,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub fn handle_binary_message(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_binary_message(&mut self, mut client: Value, mut message: Value) {
         let decodedMessage: Value = self.decode_proto_msg(&[message]);
         self.handle_protobuf_message(client, decodedMessage);
 }
@@ -2804,7 +2804,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         if (__pro_message.contains_key("msg")) {
-            self.handle_subscription_status(&client.as_value(), &Value::from(message));
+            self.handle_subscription_status(client.as_value(), Value::from(message));
             return;
         }
         let c: Option<String> = (match __pro_message.get("c") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

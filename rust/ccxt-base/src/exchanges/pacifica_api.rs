@@ -48,8 +48,8 @@ impl Pacifica {
     }
 
     /// Auto-generated wrapper for the `publicGetFundingRateHistory` implicit endpoint.
-    pub async fn public_get_funding_rate_history(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
-        self.call_method_as("public_get_funding_rate_history", optional_args).await
+    pub async fn public_get_funding_rate_history(&mut self, optional_args: &[&Value]) -> Value {
+        self.call_method(Value::Str("public_get_funding_rate_history".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetLoanPool` implicit endpoint.

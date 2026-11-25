@@ -26,7 +26,7 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
             continue;
         }
         if (marketType.as_str() == Some("spot")) {
-            testFeaturesInner(exchange.clone(), skippedProperties.clone(), value.clone());
+            testFeaturesInner(exchange.clone(), skippedProperties.clone(), value);
         }  else {
             let subKeys: Value = object_keys(&value);
             {

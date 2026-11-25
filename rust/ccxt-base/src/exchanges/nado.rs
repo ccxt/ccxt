@@ -49,12 +49,11 @@ impl Nado {
 }
 
 impl crate::exchange::DerivedExchange for Nado {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
-        let marketId: Option<String> = self.safe_string_k_opt(&ticker, "product_id", &[]);
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let marketId: Option<String> = self.safe_string_k_opt(ticker, "product_id", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<String> = None;
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last_price", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last_price", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -72,11 +71,11 @@ impl crate::exchange::DerivedExchange for Nado {
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_string_k(&ticker, "price_change_percent_24h", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(ticker, "price_change_percent_24h", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "base_volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(&ticker, "quote_volume", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "base_volume", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker, "quote_volume", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -466,7 +465,6 @@ impl crate::exchange::DerivedExchange for Nado {
     None
 }
     fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         //
         //     {
         //         "product_id": 2,
@@ -484,11 +482,11 @@ impl crate::exchange::DerivedExchange for Nado {
         //         }
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&position, "product_id", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(position, "product_id", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let balance: crate::value::Dict = self.safe_dict_k_t(&position, "balance");
+        let balance: crate::value::Dict = self.safe_dict_k_t(position, "balance");
         let amountString: Option<String> = self.safe_string_k_opt(&balance, "amount", &[]);
-        let product: crate::value::Dict = self.safe_dict_k_t(&position, "product");
+        let product: crate::value::Dict = self.safe_dict_k_t(position, "product");
         let risk: crate::value::Dict = self.safe_dict_k_t(&product, "risk");
         let markPriceX18: Option<String> = self.safe_string2_opt(&risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]);
         let vQuoteBalance: Option<String> = self.safe_string_k_opt(&balance, "v_quote_balance", &[]);
@@ -516,7 +514,7 @@ impl crate::exchange::DerivedExchange for Nado {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
@@ -546,7 +544,6 @@ impl crate::exchange::DerivedExchange for Nado {
     None
 }
     fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let contract: Value = contract.into();
         //
         //     {
         //         "product_id": 1,
@@ -568,15 +565,15 @@ impl crate::exchange::DerivedExchange for Nado {
         //         "price_change_percent_24h": -0.6348599635253989
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&contract, "product_id", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(contract, "product_id", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let fundingTimestamp: Option<i64> = self.safe_timestamp_k(&contract, "next_funding_rate_timestamp", &[]).as_i64();
+        let fundingTimestamp: Option<i64> = self.safe_timestamp_k(contract, "next_funding_rate_timestamp", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("markPrice".to_string(), self.safe_number_k(&contract, "mark_price", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(contract, "mark_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(contract, "index_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -679,7 +676,6 @@ impl crate::exchange::DerivedExchange for Nado {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         //     {
         //         "submission_idx": "563011",
@@ -704,11 +700,11 @@ impl crate::exchange::DerivedExchange for Nado {
         //         }
         //     }
         //
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "product_id", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "product_id", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&transaction, "timestamp", &[]).as_i64();
-        let preBalance: crate::value::Dict = self.safe_dict_k_t(&transaction, "pre_balance");
-        let postBalance: crate::value::Dict = self.safe_dict_k_t(&transaction, "post_balance");
+        let timestamp: Option<i64> = self.safe_timestamp_k(transaction, "timestamp", &[]).as_i64();
+        let preBalance: crate::value::Dict = self.safe_dict_k_t(transaction, "pre_balance");
+        let postBalance: crate::value::Dict = self.safe_dict_k_t(transaction, "post_balance");
         let preSpot: crate::value::Dict = self.safe_dict_k_t(&preBalance, "spot");
         let postSpot: crate::value::Dict = self.safe_dict_k_t(&postBalance, "spot");
         let preSpotBalance: crate::value::Dict = self.safe_dict_k_t(&preSpot, "balance");
@@ -718,8 +714,8 @@ impl crate::exchange::DerivedExchange for Nado {
         let amount: Option<f64> = self.parse_x18(crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&postAmount, &preAmount))).as_f64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), self.safe_string_k(&transaction, "submission_idx", &[]));
+        m.insert("info".to_string(), Value::from(transaction));
+        m.insert("id".to_string(), self.safe_string_k(transaction, "submission_idx", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3150,7 +3146,7 @@ impl Nado {
             if (assetCode.is_none()) {
                 continue;
             }
-            let previous: Option<crate::value::Dict> = self.safe_dict_o(&assetsByCode, Value::from(assetCode.as_deref()));
+            let previous: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = assetsByCode.get(assetCode.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (previous.is_none()) {
                 assetsByCode.insert(assetCode.as_deref().unwrap_or("null").to_string(), Value::from(&rawAsset));
             }  else {
@@ -3171,8 +3167,8 @@ impl Nado {
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbols.len() as i64) } {
             let market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&market, "product_id", &[]);
-            let pair: crate::value::Dict = self.safe_dict_t(&pairsById, Value::from(id.as_deref()));
-            let asset: crate::value::Dict = self.safe_dict_t(&assetsById, Value::from(id.as_deref()));
+            let pair: crate::value::Dict = (if let Some(Value::Dict(__m)) = pairsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let asset: crate::value::Dict = (if let Some(Value::Dict(__m)) = assetsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let mut rawType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             if (rawType.as_deref() == Some("perp")) {
                 rawType = Some("swap".to_string());
@@ -3190,7 +3186,7 @@ impl Nado {
                 continue;
             }
             let baseAsset: crate::value::Dict = self.safe_dict_or(&assetsByCode, Value::from(base.as_deref()), Value::from(&asset));
-            let quoteAsset: crate::value::Dict = self.safe_dict_t(&assetsByCode, Value::from(quote.as_deref()));
+            let quoteAsset: crate::value::Dict = (if let Some(Value::Dict(__m)) = assetsByCode.get(quote.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let baseId: Option<String> = self.safe_string_k_opt(&baseAsset, "product_id", &[&rawBaseId]);
             let quoteId: Option<String> = self.safe_string_k_opt(&quoteAsset, "product_id", &[&rawQuoteId]);
             let settleId: Option<String> = (if contract { quoteId.clone() } else { None });
@@ -3325,7 +3321,7 @@ impl Nado {
             if (code.is_none()) {
                 continue;
             }
-            let previous: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::from(code.as_deref()));
+            let previous: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = result.get(code.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let canDeposit: bool = self.safe_bool_k_opt(&currency, "can_deposit", &[Value::Bool(false)]).unwrap_or(false);
             let canWithdraw: bool = self.safe_bool_k_opt(&currency, "can_withdraw", &[Value::Bool(false)]).unwrap_or(false);
             if (previous.is_none()) {

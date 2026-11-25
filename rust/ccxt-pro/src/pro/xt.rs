@@ -1705,7 +1705,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn parse_ws_order_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let trade: Value = trade.into();
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1738,26 +1737,26 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        "clientOrderId": "204788317630342726"
         //    }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(trade, "s", &[]);
         let mut tradeType: String = "spot".to_string();
-        if (self.safe_string_k(&trade, "symbol", &[]) != Value::Null) {
+        if (self.safe_string_k(trade, "symbol", &[]) != Value::Null) {
             tradeType = "contract".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(tradeType)]);
-        let timestamp: Option<String> = self.safe_string_k_opt(&trade, "t", &[]);
+        let timestamp: Option<String> = self.safe_string_k_opt(trade, "t", &[]);
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(timestamp.map(Value::from).unwrap_or(Value::Null)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "i", &[Value::Str("orderId".into())]));
-        m.insert("type".to_string(), self.parent.parse_order_status(self.safe_string_k(&trade, "st", &[Value::Str("state".into())]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("side".to_string(), self.safe_string_lower_k(&trade, "sd", &[Value::Str("orderSide".into())]));
+        m.insert("order".to_string(), self.safe_string_k(trade, "i", &[Value::Str("orderId".into())]));
+        m.insert("type".to_string(), self.parent.parse_order_status(self.safe_string_k(trade, "st", &[Value::Str("state".into())]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade, "sd", &[Value::Str("orderSide".into())]));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), self.safe_number_k(&trade, "price", &[]));
-        m.insert("amount".to_string(), self.safe_string_k(&trade, "origQty", &[]));
+        m.insert("price".to_string(), self.safe_number_k(trade, "price", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(trade, "origQty", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

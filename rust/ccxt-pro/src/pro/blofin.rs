@@ -1568,7 +1568,7 @@ impl Blofin {
         self.check_required_credentials(&[]);
         let messageHash: String = "authenticate_hash".to_string();
         let marketType: String = "swap".to_string(); // for now
-        let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType));
+        let typeUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__p2)) = __p1.get("ws") { if let Some(Value::Dict(__m)) = __p2.get(marketType.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() } } else { Default::default() });
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());

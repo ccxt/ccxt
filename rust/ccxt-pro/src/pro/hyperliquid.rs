@@ -75,7 +75,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "ping" => Value::Dict(self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_balance" => self.un_watch_balance(&args[..].iter().collect::<Vec<_>>()).await,
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
@@ -98,7 +98,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "wrap_as_post_action" => crate::Value::Dict(self.wrap_as_post_action(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "wrap_as_post_action" => crate::Value::Dict(self.wrap_as_post_action(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -146,7 +146,7 @@ impl Hyperliquid {
             "parse_ws_balance" => { self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "ping" => { Value::Dict(self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
             "request_id" => { self.request_id(); },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "un_watch_balance" => crate::exchange_stubs::enqueue_spawn("un_watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -170,7 +170,7 @@ impl Hyperliquid {
             "watch_ticker" => crate::exchange_stubs::enqueue_spawn("watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_tickers" => crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_trades" => crate::exchange_stubs::enqueue_spawn("watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "wrap_as_post_action" => { self.wrap_as_post_action(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "wrap_as_post_action" => { self.wrap_as_post_action(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             _ => {}
         }
     }
@@ -1935,12 +1935,12 @@ impl Hyperliquid {
         if (currencyId.is_none()) {
             code = Some("USDC".to_string());
             let marginSummary: crate::value::Dict = self.safe_dict_k_t(&balance, "marginSummary");
-            account.insert("free".into(), self.safe_string_k(&balance, "withdrawable", &[]));
+            account.insert("free".into(), self.safe_string_k(balance, "withdrawable", &[]));
             account.insert("used".into(), self.safe_string_k(&marginSummary, "totalMarginUsed", &[]));
             account.insert("total".into(), self.safe_string_k(&marginSummary, "accountValue", &[]));
         }  else {
             code = self.safe_currency_code(currencyId.as_deref(), None);
-            account.insert("used".into(), self.safe_string_k(&balance, "hold", &[]));
+            account.insert("used".into(), self.safe_string_k(balance.clone(), "hold", &[]));
             account.insert("total".into(), self.safe_string_k(balance, "total", &[]));
         }
         if (accountType != Value::Null) {
@@ -2635,21 +2635,21 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __pro_message: &indexmap::IndexMap<String, Value> = subscription.as_map().unwrap_or(&__pro_message_empty);
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("l2Book")) {
-            self.handle_order_book_unsubscription(client, subscription.clone());
+            self.handle_order_book_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("trades")) {
-            self.handle_trades_unsubscription(client, subscription.clone());
+            self.handle_trades_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("candle")) {
-            self.handle_ohlcv_unsubscription(client, subscription.clone());
+            self.handle_ohlcv_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("orderUpdates")) {
-            self.handle_order_unsubscription(client, subscription.clone());
+            self.handle_order_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("userFills")) {
-            self.handle_my_trades_unsubscription(client, subscription.clone());
+            self.handle_my_trades_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("clearinghouseState")) {
-            self.handle_positions_unsubscription(client, subscription.clone());
+            self.handle_positions_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("spotState")) {
-            self.handle_spot_balance_unsubscription(client, subscription.clone());
+            self.handle_spot_balance_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("activeAssetCtx")) || (type_var.as_deref() == Some("activeSpotAssetCtx")) {
-            self.handle_ticker_unsubscription(client, subscription.clone());
+            self.handle_ticker_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("allMids")) {
             self.handle_tickers_unsubscription(client, subscription);
         }
@@ -2712,14 +2712,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn ping(&self, mut client: Value) -> Value {
-        return Value::Map({
+    pub fn ping(&self, mut client: Value) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::Str("ping".into()));
     m
 });
 
-    Value::Null
+    Default::default()
 }
 
     pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
@@ -2739,8 +2739,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return requestId;
 }
 
-    pub fn wrap_as_post_action(&mut self, request: impl Into<crate::Value>) -> crate::value::Dict {
-        let request: Value = request.into();
+    pub fn wrap_as_post_action(&mut self, request: &crate::value::Dict) -> crate::value::Dict {
         let requestId: i64 = self.request_id();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -2752,7 +2751,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("request".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("action".into()));
-        m.insert("payload".to_string(), request);
+        m.insert("payload".to_string(), Value::from(request));
     m
 }));
     m

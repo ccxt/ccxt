@@ -1411,7 +1411,7 @@ impl Bithumb {
     pub fn handle_text_message(&mut self, mut client: Value, message: &str) {
         let content: String = message.to_string().to_lowercase();
         if (content == "pong") {
-            self.handle_pong(client.clone(), &Value::from(message));
+            self.handle_pong(client, &Value::from(message));
         }  else if (content == "ping") {
             self.handle_ping(client, Value::from(message));
         }

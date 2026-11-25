@@ -49,8 +49,7 @@ impl Zaif {
 }
 
 impl crate::exchange::DerivedExchange for Zaif {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // {
         //     "last": 9e-08,
@@ -63,20 +62,20 @@ impl crate::exchange::DerivedExchange for Zaif {
         // }
         //
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let vwap: Option<String> = self.safe_string_k_opt(&ticker, "vwap", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume", &[]);
+        let vwap: Option<String> = self.safe_string_k_opt(ticker, "vwap", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "volume", &[]);
         let quoteVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &vwap).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bid", &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), Value::Null);
@@ -88,7 +87,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -137,7 +136,6 @@ impl crate::exchange::DerivedExchange for Zaif {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         //     {
         //         "currency_pair": "btc_jpy",
@@ -160,14 +158,14 @@ impl crate::exchange::DerivedExchange for Zaif {
         //        }
         //    }
         //
-        let mut side: Option<String> = self.safe_string_k_opt(&order, "action", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(order, "action", &[]);
         side = (if (side.as_deref() == Some("bid")) { Some("buy".to_string()) } else { Some("sell".to_string()) });
-        let timestamp: Option<i64> = self.safe_timestamp_k(&order, "timestamp", &[]).as_i64();
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "currency_pair", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(order, "timestamp", &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(order, "currency_pair", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
-        let id: Option<String> = self.safe_string2_opt(&order, Value::Str("id".into()), Value::Str("order_id".into()), &[]);
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(order, "amount", &[]);
+        let id: Option<String> = self.safe_string2_opt(order, Value::Str("id".into()), Value::Str("order_id".into()), &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -189,7 +187,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
         m.insert("average".to_string(), Value::Null);
     m
 }), market));
@@ -316,7 +314,6 @@ impl crate::exchange::DerivedExchange for Zaif {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         //     {
         //         "id": 23634,
@@ -332,7 +329,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         //
         let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
         let mut fee: Option<crate::value::Dict> = None;
-        let feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
+        let feeCost: Option<f64> = self.safe_number_k(transaction, "fee", &[]).as_f64();
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -343,8 +340,8 @@ impl crate::exchange::DerivedExchange for Zaif {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
+        m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "txid", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("network".to_string(), Value::Null);
@@ -362,7 +359,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("info".to_string(), transaction);
+        m.insert("info".to_string(), Value::from(transaction));
     m
 }));
 
@@ -385,9 +382,9 @@ impl crate::exchange::DerivedExchange for Zaif {
         let baseUrl: Option<String> = baseApiUrl;
         let mut url: String = format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/");
         if (apiName.as_deref() == Some("public")) {
-            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "api/", self.version).into()), "/").into()), self.implode_params(Value::from(path), &params)));
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "api/", self.version).into()), "/").into()), self.implode_params(Value::from(path), params)));
         }  else if (apiName.as_deref() == Some("fapi")) {
-            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "fapi/", self.version).into()), "/").into()), self.implode_params(Value::from(path), &params)));
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "fapi/", self.version).into()), "/").into()), self.implode_params(Value::from(path), params)));
         }  else {
             self.check_required_credentials(&[]);
             if (apiName.as_deref() == Some("ecapi")) {
@@ -1015,7 +1012,7 @@ impl Zaif {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let ticker: crate::value::Dict = self.public_get_ticker_pair(&[&__ws_arg_1]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&ticker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

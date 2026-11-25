@@ -422,7 +422,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
     None
 }
     fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let contract: Value = contract.into();
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -451,20 +450,20 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         //          0.0025
         //       ]
         //
-        let marketId: Option<String> = self.safe_string_opt(&contract, Value::Int(0), &[]);
-        let timestamp: Option<i64> = self.safe_integer(&contract, Value::Int(1), &[]).as_i64();
-        let nextFundingTimestamp: Option<i64> = self.safe_integer(&contract, Value::Int(8), &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_opt(contract, Value::Int(0), &[]);
+        let timestamp: Option<i64> = self.safe_integer(contract, Value::Int(1), &[]).as_i64();
+        let nextFundingTimestamp: Option<i64> = self.safe_integer(contract, Value::Int(8), &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("markPrice".to_string(), self.safe_number(&contract, Value::Int(15), &[]));
-        m.insert("indexPrice".to_string(), self.safe_number(&contract, Value::Int(3), &[]));
+        m.insert("markPrice".to_string(), self.safe_number(contract, Value::Int(15), &[]));
+        m.insert("indexPrice".to_string(), self.safe_number(contract, Value::Int(3), &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number(&contract, Value::Int(12), &[]));
+        m.insert("fundingRate".to_string(), self.safe_number(contract, Value::Int(12), &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), self.safe_number(contract, Value::Int(9), &[]));
@@ -480,7 +479,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
     None
 }
     fn parse_ledger_entry(&self, item: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let item: Value = item.into();
         //
         //     [
         //         [
@@ -496,7 +494,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         //         ]
         //     ]
         //
-        let itemList: crate::value::List = self.safe_list_k_t(&item, "result");
+        let itemList: crate::value::List = self.safe_list_k_t(item, "result");
         let mut type_var: Value = Value::Null;
         let id: Option<String> = self.safe_string_opt(&itemList, Value::Int(0), &[]);
         let currencyId: Option<String> = self.safe_string_opt(&itemList, Value::Int(1), &[]);
@@ -513,7 +511,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         }
         return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), item);
+        m.insert("info".to_string(), Value::from(item));
         m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
@@ -708,47 +706,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        //
-        // [
-        //     1691165494000,
-        //     null,
-        //     29278.95838065,
-        //     29260.5,
-        //     null,
-        //     36950860.76010305,
-        //     null,
-        //     1691193600000,
-        //     0.00001449,
-        //     222,
-        //     null,
-        //     0.00014548,
-        //     null,
-        //     null,
-        //     29260.005,
-        //     null,
-        //     null,
-        //     9635.86484562,
-        //     null,
-        //     null,
-        //     null,
-        //     0.0005,
-        //     0.0025
-        // ]
-        //
-        let timestamp: Option<i64> = self.safe_integer(&contract, Value::Int(0), &[]).as_i64();
-        return Some(std::sync::Arc::new({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
-        m.insert("fundingRate".to_string(), self.safe_number(contract, Value::Int(11), &[]));
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-    m
-}));
-
-    None
-}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
@@ -866,7 +823,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "parse_currencies_custom" => crate::Value::Dict(self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency_custom" => self.parse_currency_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_funding_rate_history_row" => self.parse_funding_rate_history_row(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_liquidation" => Value::Dict(self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3557,7 +3514,7 @@ impl Bitfinex {
             m
         });
         if (cid.is_some()) {
-            paramsOmitted = self.omit(&params, &["cid", "clientOrderId"], &[]);
+            paramsOmitted = self.omit(params, &["cid", "clientOrderId"], &[]);
         }  else {
             paramsOmitted = params;
         }
@@ -4292,7 +4249,7 @@ impl Bitfinex {
             let data: crate::value::List = self.safe_list_t(&transaction, Value::Int(4));
             timestamp = self.safe_integer(&transaction, Value::Int(0), &[]).as_i64();
             if (currency != Value::Null) {
-                code = self.safe_string_k_opt(&currency, "code", &[]);
+                code = self.safe_string_k_opt(currency, "code", &[]);
             }
             feeCost = self.safe_string_opt(&data, Value::Int(8), &[]);
             if (feeCost.is_some()) {
@@ -5060,8 +5017,7 @@ impl Bitfinex {
             let mut __for_first_22: bool = true;
             while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (rawRatesData.len() as i64) } {
             let fr: crate::value::List = rawRatesData.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            let rate: crate::value::Dict = self.parse_funding_rate_history(Value::Arr(fr), Some(&market));
-            rates.push(Value::Dict(rate));
+            rates.push(self.parse_funding_rate_history_row(Value::Arr(fr), Some(&market)));
         }
         }
         let mut reversedArray: Vec<Value> = Vec::new();
@@ -5082,6 +5038,47 @@ impl Bitfinex {
     }
 
 
+    pub fn parse_funding_rate_history_row(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+        //
+        // [
+        //     1691165494000,
+        //     null,
+        //     29278.95838065,
+        //     29260.5,
+        //     null,
+        //     36950860.76010305,
+        //     null,
+        //     1691193600000,
+        //     0.00001449,
+        //     222,
+        //     null,
+        //     0.00014548,
+        //     null,
+        //     null,
+        //     29260.005,
+        //     null,
+        //     null,
+        //     9635.86484562,
+        //     null,
+        //     null,
+        //     null,
+        //     0.0005,
+        //     0.0025
+        // ]
+        //
+        let timestamp: Option<i64> = self.safe_integer(&contract, Value::Int(0), &[]).as_i64();
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), contract.clone());
+        m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
+        m.insert("fundingRate".to_string(), self.safe_number(contract, Value::Int(11), &[]));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+    m
+});
+
+    Value::Null
+}
 
 /*
  * @method

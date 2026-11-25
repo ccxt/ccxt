@@ -197,11 +197,11 @@ impl Kucoinfutures {
         if (toAccountString.as_deref() == Some("TRADE")) || (toAccountString.as_deref() == Some("MAIN")) {
             request.insert("recAccountType".into(), toAccountString.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_1 = self.extend(&request, &[&params]);
-            response = self.parent.parent.futures_private_post_transfer_out(&[&__ws_arg_1]).await.into_opt_dict();
+            response = self.parent.parent.futures_private_post_transfer_out(&[&__ws_arg_1]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
             request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
-            response = self.parent.parent.futures_private_post_transfer_in(&[&__ws_arg_2]).await.into_opt_dict();
+            response = self.parent.parent.futures_private_post_transfer_in(&[&__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " transfer() only supports transfers between future/swap, spot and funding accounts")));
         }

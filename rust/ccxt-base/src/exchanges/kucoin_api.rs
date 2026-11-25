@@ -1198,13 +1198,13 @@ impl Kucoin {
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostTransferOut` implicit endpoint.
-    pub async fn futures_private_post_transfer_out(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_transfer_out".into()), optional_args).await
+    pub async fn futures_private_post_transfer_out(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("futures_private_post_transfer_out", optional_args).await
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostTransferIn` implicit endpoint.
-    pub async fn futures_private_post_transfer_in(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("futures_private_post_transfer_in".into()), optional_args).await
+    pub async fn futures_private_post_transfer_in(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("futures_private_post_transfer_in", optional_args).await
     }
 
     /// Auto-generated wrapper for the `futuresPrivatePostOrders` implicit endpoint.

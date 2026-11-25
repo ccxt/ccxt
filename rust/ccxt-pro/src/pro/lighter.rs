@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_my_trades" => self.handle_my_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -118,7 +118,7 @@ impl Lighter {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_liquidation" => { self.handle_liquidation(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1056,7 +1056,6 @@ impl Lighter {
     }
 
     pub fn parse_ws_order_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let trade: Value = trade.into();
         //
         //     {
         //         "trade_id": 526801155,
@@ -1085,15 +1084,15 @@ impl Lighter {
         //         "maker_initial_margin_fraction_before": 200
         //     }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
-        let tradeId: Option<String> = self.safe_string_k_opt(&trade, "trade_id", &[]);
-        let priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
-        let amountString: Option<String> = self.safe_string_k_opt(&trade, "size", &[]);
-        let costString: Option<String> = self.safe_string_k_opt(&trade, "usd_amount", &[]);
-        let isMakerAsk: bool = self.safe_bool_k_opt(&trade, "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
-        let accountIndex: Option<i64> = self.safe_integer_k(&trade, "accountIndex", &[]).as_i64();
-        let bidAccountId: Option<i64> = self.safe_integer_k(&trade, "bid_account_id", &[]).as_i64();
-        let askAccountId: Option<i64> = self.safe_integer_k(&trade, "ask_account_id", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(trade, "timestamp", &[]).as_i64();
+        let tradeId: Option<String> = self.safe_string_k_opt(trade, "trade_id", &[]);
+        let priceString: Option<String> = self.safe_string_k_opt(trade, "price", &[]);
+        let amountString: Option<String> = self.safe_string_k_opt(trade, "size", &[]);
+        let costString: Option<String> = self.safe_string_k_opt(trade, "usd_amount", &[]);
+        let isMakerAsk: bool = self.safe_bool_k_opt(trade, "is_maker_ask", &[Value::Bool(false)]).unwrap_or(false);
+        let accountIndex: Option<i64> = self.safe_integer_k(trade, "accountIndex", &[]).as_i64();
+        let bidAccountId: Option<i64> = self.safe_integer_k(trade, "bid_account_id", &[]).as_i64();
+        let askAccountId: Option<i64> = self.safe_integer_k(trade, "ask_account_id", &[]).as_i64();
         let mut side: Option<String> = None;
         let mut order: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
@@ -1101,11 +1100,11 @@ impl Lighter {
             if (bidAccountId == accountIndex) {
                 // Own trades should use the account's order side
                 side = Some("buy".to_string());
-                order = self.safe_string_k_opt(&trade, "bid_id", &[]);
+                order = self.safe_string_k_opt(trade, "bid_id", &[]);
                 takerOrMaker = (if isMakerAsk { Some("taker".to_string()) } else { Some("maker".to_string()) });
             }  else if (askAccountId == accountIndex) {
                 side = Some("sell".to_string());
-                order = self.safe_string_k_opt(&trade, "ask_id", &[]);
+                order = self.safe_string_k_opt(trade, "ask_id", &[]);
                 takerOrMaker = (if isMakerAsk { Some("maker".to_string()) } else { Some("taker".to_string()) });
             }
         }
@@ -1117,9 +1116,9 @@ impl Lighter {
         if (takerOrMaker.is_some()) {
             let mut feeRateRaw: Option<String> = None;
             if (takerOrMaker.as_deref() == Some("maker")) {
-                feeRateRaw = self.safe_string_k_opt(&trade, "maker_fee", &[]);
+                feeRateRaw = self.safe_string_k_opt(trade, "maker_fee", &[]);
             }  else {
-                feeRateRaw = self.safe_string_k_opt(&trade, "taker_fee", &[]);
+                feeRateRaw = self.safe_string_k_opt(trade, "taker_fee", &[]);
             }
             let feeRate: Option<String> = (if (feeRateRaw.is_some()) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".into())).as_str().map(str::to_owned) } else { Some("0".to_string()) });
             let feeAmount: Option<String> = crate::precise::Precise::stringMul(&costString, &feeRate).as_str().map(str::to_owned);
@@ -1133,7 +1132,7 @@ impl Lighter {
         }
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade);
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2001,10 +2000,9 @@ impl Lighter {
     Value::Null
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, message: &Value) -> bool {
+    pub fn handle_error_message(&mut self, client: &Value, message: &crate::value::Dict) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "error": {
@@ -2091,7 +2089,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
-        if !self.handle_error_message(&client.as_value(), &Value::from(message)) {
+        if !self.handle_error_message(&client.as_value(), message) {
             return;
         }
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);

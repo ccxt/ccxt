@@ -49,8 +49,7 @@ impl Apex {
 }
 
 impl crate::exchange::DerivedExchange for Apex {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // {
         //     "symbol": "BTCUSDT",
@@ -69,15 +68,15 @@ impl crate::exchange::DerivedExchange for Apex {
         //     "tradeCount": 100
         // }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "lastPrice", &[]);
-        let percentage: Option<String> = self.safe_string_k_opt(&ticker, "price24hPcnt", &[]);
-        let quoteVolume: Option<String> = self.safe_string_k_opt(&ticker, "turnover24h", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume24h", &[]);
-        let high: Option<String> = self.safe_string_k_opt(&ticker, "highPrice24h", &[]);
-        let low: Option<String> = self.safe_string_k_opt(&ticker, "lowPrice24h", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "lastPrice", &[]);
+        let percentage: Option<String> = self.safe_string_k_opt(ticker, "price24hPcnt", &[]);
+        let quoteVolume: Option<String> = self.safe_string_k_opt(ticker, "turnover24h", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "volume24h", &[]);
+        let high: Option<String> = self.safe_string_k_opt(ticker, "highPrice24h", &[]);
+        let low: Option<String> = self.safe_string_k_opt(ticker, "lowPrice24h", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -99,9 +98,9 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("markPrice".to_string(), self.safe_string_k(&ticker, "markPrice", &[]));
-        m.insert("indexPrice".to_string(), self.safe_string_k(&ticker, "indexPrice", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("markPrice".to_string(), self.safe_string_k(ticker, "markPrice", &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker, "indexPrice", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -151,7 +150,6 @@ impl crate::exchange::DerivedExchange for Apex {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // {
         //     "id": "1234",
@@ -206,20 +204,20 @@ impl crate::exchange::DerivedExchange for Apex {
         // }
         // }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&order, "createdAt", &[]).as_i64();
-        let orderId: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
-        let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientId", &[]);
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(order, "createdAt", &[]).as_i64();
+        let orderId: Option<String> = self.safe_string_k_opt(order, "id", &[]);
+        let clientOrderId: Option<String> = self.safe_string_k_opt(order, "clientId", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
-        let orderType: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
-        let status: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
-        let side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(order, "size", &[]);
+        let orderType: Option<String> = self.safe_string_k_opt(order, "type", &[]);
+        let status: Option<String> = self.safe_string_k_opt(order, "status", &[]);
+        let side: Option<String> = self.safe_string_lower_k_opt(order, "side", &[]);
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        let remaining: Option<String> = self.omit_zero(self.safe_string_k(&order, "remainingSize", &[]));
-        let lastUpdateTimestamp: Option<i64> = self.safe_integer_k(&order, "updatedTime", &[]).as_i64();
+        let remaining: Option<String> = self.omit_zero(self.safe_string_k(order, "remainingSize", &[]));
+        let lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order, "updatedTime", &[]).as_i64();
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -231,12 +229,12 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(&order, "timeInForce", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), self.safe_bool_k(&order, "postOnly", &[]));
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order, "timeInForce", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), self.safe_bool_k(order, "postOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "triggerPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_string_k(order, "triggerPrice", &[]));
         m.insert("takeProfitPrice".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
@@ -247,11 +245,11 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_string_k(&order, "fee", &[]));
+        m.insert("cost".to_string(), self.safe_string_k(order, "fee", &[]));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settleId"));
     m
 }));
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
     m
 }), Some(&marketResolved)));
 
@@ -382,7 +380,6 @@ impl crate::exchange::DerivedExchange for Apex {
     None
 }
     fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         //
         // {
         //     "symbol": "BTC-USDT",
@@ -398,21 +395,21 @@ impl crate::exchange::DerivedExchange for Apex {
         //     "lightNumbers": "",
         //     "customInitialMarginRate": "0"
         // }
-        let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let side: Option<String> = self.safe_string_lower_k_opt(&position, "side", &[]);
-        let quantity: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&position, "updatedTime", &[]).as_i64();
+        let side: Option<String> = self.safe_string_lower_k_opt(position, "side", &[]);
+        let quantity: Option<String> = self.safe_string_k_opt(position, "size", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(position, "updatedTime", &[]).as_i64();
         let mut leverage: Option<i64> = Some(20);
-        let customInitialMarginRate: String = self.safe_string2(&position, Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+        let customInitialMarginRate: String = self.safe_string2(position, Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.as_str()))).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &customInitialMarginRate, &Value::Int(4)));
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position.clone());
-        m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
+        m.insert("info".to_string(), Value::from(position));
+        m.insert("id".to_string(), self.safe_string_k(position, "id", &[]));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number_k(position, "entryPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
@@ -440,7 +437,6 @@ impl crate::exchange::DerivedExchange for Apex {
     None
 }
     fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let contract: Value = contract.into();
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -454,14 +450,14 @@ impl crate::exchange::DerivedExchange for Apex {
         //         ...
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&contract, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(contract, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(&contract, "markPrice", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "indexPrice", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(contract, "markPrice", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(contract, "indexPrice", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -482,19 +478,18 @@ impl crate::exchange::DerivedExchange for Apex {
     None
 }
     fn parse_transfer(&self, transfer: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transfer: Value = transfer.into();
-        let currencyId: Option<String> = self.safe_string_k_opt(&transfer, "coin", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&transfer, "timestamp", &[]).as_i64();
-        let fromAccount: Option<String> = self.safe_string_k_opt(&transfer, "fromAccount", &[]);
-        let toAccount: Option<String> = self.safe_string_k_opt(&transfer, "toAccount", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transfer, "coin", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(transfer, "timestamp", &[]).as_i64();
+        let fromAccount: Option<String> = self.safe_string_k_opt(transfer, "fromAccount", &[]);
+        let toAccount: Option<String> = self.safe_string_k_opt(transfer, "toAccount", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transfer.clone());
-        m.insert("id".to_string(), self.safe_string2(&transfer, Value::Str("transferId".into()), Value::Str("id".into()), &[]));
+        m.insert("info".to_string(), Value::from(transfer));
+        m.insert("id".to_string(), self.safe_string2(transfer, Value::Str("transferId".into()), Value::Str("id".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("toAccount".to_string(), toAccount.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.safe_string_k(transfer, "status", &[]));
@@ -644,21 +639,19 @@ impl crate::exchange::DerivedExchange for Apex {
     None
 }
     fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
-        let account: Value = account.into();
-        let accountId: String = self.safe_string_k(&account, "id", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+        let accountId: String = self.safe_string_k(account, "id", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(accountId));
         m.insert("type".to_string(), Value::Null);
         m.insert("code".to_string(), Value::Null);
-        m.insert("info".to_string(), account);
+        m.insert("info".to_string(), Value::from(account));
     m
 }));
 
     None
 }
     fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let income: Value = income.into();
         //
         // {
         //     "id": "1234",
@@ -673,19 +666,19 @@ impl crate::exchange::DerivedExchange for Apex {
         //     "transactionId": "1234556"
         // }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&income, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(income, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
         let code: String = "USDT".to_string();
-        let timestamp: Option<i64> = self.safe_integer_k(&income, "fundingTime", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_integer_k(income, "fundingTime", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), income.clone());
+        m.insert("info".to_string(), Value::from(income));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("id".to_string(), self.safe_string_k(&income, "id", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(&income, "fundingValue", &[]));
+        m.insert("id".to_string(), self.safe_string_k(income, "id", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "fundingValue", &[]));
         m.insert("rate".to_string(), self.safe_number_k(income, "rate", &[]));
     m
 }));
@@ -719,7 +712,7 @@ impl crate::exchange::DerivedExchange for Apex {
         if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 signPath.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params, &[])));
             }
         }  else {
             let sortedQuery: crate::value::Dict = self.keysort_t(params, &[]);
@@ -1568,7 +1561,7 @@ impl Apex {
         let response: crate::value::Dict = self.public_get_v3_ticker(&[&__ws_arg_0]).await.unwrap_or_default();
         let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let rawTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&rawTicker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2388,7 +2381,7 @@ impl Apex {
             let response: crate::value::Dict = self.private_post_v3_contract_transfer_out(&[&__ws_arg_8]).await.unwrap_or_default();
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             let currentTime: i64 = self.milliseconds();
-            let parsedAmount: Value = self.parse_number(&Value::from(amount), &[]);
+            let parsedAmount: Value = self.parse_number(Value::from(amount), &[]);
             let __ws_arg_9 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&self.currency(code.as_str()))).map_or(Value::Null, Value::Dict);
             let __ws_arg_10 = self.iso8601(currentTime);
             return self.extend(__ws_arg_9, &[Value::Map({
@@ -2520,7 +2513,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_16 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
+            let __ws_arg_16 = self.extend(&request, &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_post_v3_delete_client_order_id(&[&__ws_arg_16]).await;
         }  else {
             request.insert("id".into(), id);
@@ -2565,7 +2558,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_18 = self.extend(&request, &[self.omit(&params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
+            let __ws_arg_18 = self.extend(&request, &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_get_v3_order_by_client_order_id(&[&__ws_arg_18]).await;
         }  else {
             request.insert("id".into(), id);

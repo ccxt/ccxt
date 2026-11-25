@@ -383,7 +383,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let tag: Value = eventTags.get(ti as usize).cloned().unwrap_or(Value::Null);
                 let mut tagLabel: Value = Value::Null;
                 if matches!(&tag, Value::Str(_)) {
-                    tagLabel = tag.clone();
+                    tagLabel = tag;
                 }  else {
                     tagLabel = self.safe_string2(&tag, Value::Str("slug".into()), Value::Str("title".into()), &[]);
                 }
@@ -842,14 +842,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut j: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { j += 1; } __for_first_20 = false; j < (outcomesList.len() as i64) } {
-            let mut oc: Value = outcomesList.get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut oc: Value = self.safe_dict(&outcomesList, Value::Int(j), &[]);
+            if (oc == Value::Null) {
+                continue;
+            }
             let mut ocSymbol: Option<String> = self.safe_string2_opt(&oc, Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
             let ocId: Value = self.safe_string2(&oc, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
-            add_element_to_object(&mut oc, &Value::Str("outcomeId".into()), ocId.clone());
-            { let __be_tmp = self.safe_string2(&oc, Value::Str("market".into()), Value::Str("marketSymbol".into()), &[]); add_element_to_object(&mut oc, &Value::Str("market".into()), __be_tmp); }
+            if let Value::Dict(__d) = &mut oc { std::sync::Arc::make_mut(__d).insert("outcomeId".into(), ocId.clone()); }
+            { let __be_tmp = self.safe_string2(&oc, Value::Str("market".into()), Value::Str("marketSymbol".into()), &[]); if let Value::Dict(__d) = &mut oc { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); } }
             if (ocSymbol.is_some()) {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
                 // on a real collision of same handle but different outcomeId, disambiguate the
@@ -870,10 +873,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         ocSymbol = Some(format!("{}{}", Value::Str(format!("{}{}", ocSymbol.as_deref().unwrap_or("null"), "_").into()), (if let Some(__s) = suffix.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })));
                     }
                 }
-                add_element_to_object(&mut oc, &Value::Str("outcome".into()), Value::from(ocSymbol.as_deref()));
+                if let Value::Dict(__d) = &mut oc { std::sync::Arc::make_mut(__d).insert("outcome".into(), Value::from(ocSymbol.as_deref())); }
                 if let Some(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(ocSymbol.as_deref().unwrap_or("null").to_string(), oc.clone()); }
             }  else {
-                add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.map(Value::from).unwrap_or(Value::Null));
+                if let Value::Dict(__d) = &mut oc { std::sync::Arc::make_mut(__d).insert("outcome".into(), ocSymbol.map(Value::from).unwrap_or(Value::Null)); }
             }
             if (ocId != Value::Null) {
                 if let Value::Dict(__d) = &mut self.pred_mut().outcomes_by_id { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ocId), oc); }

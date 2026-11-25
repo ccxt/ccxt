@@ -53,8 +53,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         // Forward to the inherent method on Hyperliquid.
         Some(Hyperliquid::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "prevDayPx": "3400.5",
@@ -70,22 +69,22 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //         "circulatingSupply": "998949190.03400207", // only in spot
         //     },
         //
-        let name: Option<String> = self.safe_string_k_opt(&ticker, "name", &[]);
+        let name: Option<String> = self.safe_string_k_opt(ticker, "name", &[]);
         let marketId: Option<String> = self.coin_to_market_id(name.as_deref());
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let bidAsk: crate::value::List = self.safe_list_k_t(&ticker, "impactPxs");
+        let bidAsk: crate::value::List = self.safe_list_k_t(ticker, "impactPxs");
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("previousClose".to_string(), self.safe_number_k(&ticker, "prevDayPx", &[]));
-        m.insert("close".to_string(), self.safe_number_k(&ticker, "midPx", &[]));
-        m.insert("last".to_string(), self.safe_number_k(&ticker, "price", &[]));
+        m.insert("previousClose".to_string(), self.safe_number_k(ticker, "prevDayPx", &[]));
+        m.insert("close".to_string(), self.safe_number_k(ticker, "midPx", &[]));
+        m.insert("last".to_string(), self.safe_number_k(ticker, "price", &[]));
         m.insert("bid".to_string(), self.safe_number(&bidAsk, Value::Int(0), &[]));
         m.insert("ask".to_string(), self.safe_number(&bidAsk, Value::Int(1), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number_k(&ticker, "dayNtlVlm", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("quoteVolume".to_string(), self.safe_number_k(ticker, "dayNtlVlm", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -486,7 +485,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         //
         //     {
         //         "position": {
@@ -513,7 +511,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //         "type": "oneWay"
         //     }
         //
-        let entry: crate::value::Dict = self.safe_dict_k_t(&position, "position");
+        let entry: crate::value::Dict = self.safe_dict_k_t(position, "position");
         let coin: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
         let marketId: Option<String> = self.coin_to_market_id(coin.as_deref());
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
@@ -545,7 +543,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
@@ -576,7 +574,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_funding_rate(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let info: Value = info.into();
         //
         //     {
         //         "maxLeverage": "50",
@@ -597,18 +594,18 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //         "prevDayPx": "2381.5"
         //     }
         //
-        let base: Option<String> = self.safe_string_k_opt(&info, "name", &[]);
+        let base: Option<String> = self.safe_string_k_opt(info, "name", &[]);
         let marketId: Option<String> = self.coin_to_market_id(base.as_deref());
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        let funding: Option<f64> = self.safe_number_k(&info, "funding", &[]).as_f64();
-        let markPx: Option<f64> = self.safe_number_k(&info, "markPx", &[]).as_f64();
-        let oraclePx: Option<f64> = self.safe_number_k(&info, "oraclePx", &[]).as_f64();
+        let funding: Option<f64> = self.safe_number_k(info, "funding", &[]).as_f64();
+        let markPx: Option<f64> = self.safe_number_k(info, "markPx", &[]).as_f64();
+        let oraclePx: Option<f64> = self.safe_number_k(info, "oraclePx", &[]).as_f64();
         let currentHour: Option<i64> = self.parse_to_int((match (((match (((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(),
             (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let fundingTimestamp: Option<i64> = (if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = ((if let Some(__l) = currentHour { Some(__l + 1) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 60) } else { None })) { Some(__l * 1000) } else { None });
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info);
+        m.insert("info".to_string(), Value::from(info));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::from(markPx));
         m.insert("indexPrice".to_string(), Value::from(oraclePx));
@@ -632,7 +629,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_ledger_entry(&self, item: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let item: Value = item.into();
         //
         // {
         //     "time":1724762307531,
@@ -644,8 +640,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //     }
         // }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&item, "time", &[]).as_i64();
-        let delta: crate::value::Dict = self.safe_dict_k_t(&item, "delta");
+        let timestamp: Option<i64> = self.safe_integer_k(item, "time", &[]).as_i64();
+        let delta: crate::value::Dict = self.safe_dict_k_t(item, "delta");
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<i64> = self.safe_integer_k(&delta, "fee", &[]).as_i64();
         if (feeCost.is_some()) {
@@ -660,8 +656,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let amount: Option<String> = self.safe_string_k_opt(&delta, "usdc", &[]);
         return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string_k(&item, "hash", &[]));
+        m.insert("info".to_string(), Value::from(item));
+        m.insert("id".to_string(), self.safe_string_k(item, "hash", &[]));
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), self.safe_string_k(&delta, "user", &[]));
@@ -864,7 +860,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // { status: 'ok', response: { type: 'default' } }
         //
@@ -879,8 +874,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //     }
         // }
         //
-        let timestamp: Option<i64> = self.safe_integer_k(&transaction, "time", &[]).as_i64();
-        let delta: crate::value::Dict = self.safe_dict_k_t(&transaction, "delta");
+        let timestamp: Option<i64> = self.safe_integer_k(transaction, "time", &[]).as_i64();
+        let delta: crate::value::Dict = self.safe_dict_k_t(transaction, "delta");
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<i64> = self.safe_integer_k(&delta, "fee", &[]).as_i64();
         if (feeCost.is_some()) {
@@ -898,9 +893,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::from(transaction));
         m.insert("id".to_string(), Value::Null);
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "hash", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "hash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
@@ -924,7 +919,6 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     None
 }
     fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let income: Value = income.into();
         //
         // {
         //     "time": 1734026400057,
@@ -939,9 +933,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         //     }
         // }
         //
-        let id: Option<String> = self.safe_string_k_opt(&income, "hash", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&income, "time", &[]).as_i64();
-        let delta: crate::value::Dict = self.safe_dict_k_t(&income, "delta");
+        let id: Option<String> = self.safe_string_k_opt(income, "hash", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(income, "time", &[]).as_i64();
+        let delta: crate::value::Dict = self.safe_dict_k_t(income, "delta");
         let coin: Option<String> = self.safe_string_k_opt(&delta, "coin", &[]);
         let mut marketId: Option<String> = None;
         if (coin.is_some()) {
@@ -953,7 +947,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let rate: Option<f64> = self.safe_number_k(&delta, "fundingRate", &[]).as_f64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), income);
+        m.insert("info".to_string(), Value::from(income));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("code".to_string(), Value::from(code));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1054,13 +1048,13 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "approve_builder_fee" => self.approve_builder_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
-                "build_approve_builder_fee_sig" => self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_send_asset_sig" => self.build_send_asset_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_usd_class_send_sig" => self.build_usd_class_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_usd_send_sig" => self.build_usd_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_user_abstraction_sig" => self.build_user_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_user_dex_abstraction_sig" => self.build_user_dex_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "build_withdraw_sig" => self.build_withdraw_sig(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "build_approve_builder_fee_sig" => Value::Dict(self.build_approve_builder_fee_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_send_asset_sig" => Value::Dict(self.build_send_asset_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_usd_class_send_sig" => Value::Dict(self.build_usd_class_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_usd_send_sig" => Value::Dict(self.build_usd_send_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_user_abstraction_sig" => Value::Dict(self.build_user_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_user_dex_abstraction_sig" => Value::Dict(self.build_user_dex_abstraction_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "build_withdraw_sig" => Value::Dict(self.build_withdraw_sig(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "calculate_price_precision" => self.calculate_price_precision(args.get(0).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64).unwrap_or_default()),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
@@ -1160,7 +1154,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_l1_action" => Value::Dict(self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64))),
                 "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "sign_user_signed_action" => self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign_user_signed_action" => Value::Dict(self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "update_spot_currency_code" => crate::Value::from(self.update_spot_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref())),
@@ -2206,8 +2200,8 @@ impl Hyperliquid {
             let tokensPos: crate::value::List = self.safe_list_k_t(&market, "tokens");
             let baseTokenIndex: Option<String> = self.safe_string_opt(&tokensPos, Value::Int(0), &[]);
             let quoteTokenIndex: Option<String> = self.safe_string_opt(&tokensPos, Value::Int(1), &[]);
-            let baseTokenInfo: crate::value::Dict = self.safe_dict_t(&tokensByIndex, baseTokenIndex.map(Value::from).unwrap_or(Value::Null));
-            let quoteTokenInfo: crate::value::Dict = self.safe_dict_t(&tokensByIndex, quoteTokenIndex.map(Value::from).unwrap_or(Value::Null));
+            let baseTokenInfo: crate::value::Dict = (if let Some(Value::Dict(__m)) = tokensByIndex.get(baseTokenIndex.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
+            let quoteTokenInfo: crate::value::Dict = (if let Some(Value::Dict(__m)) = tokensByIndex.get(quoteTokenIndex.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let baseName: Option<String> = self.safe_string_k_opt(&baseTokenInfo, "name", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&quoteTokenInfo, "name", &[]);
             if (baseName.is_none()) || (quoteId.is_none()) {
@@ -2581,7 +2575,7 @@ impl Hyperliquid {
                 let m = indexmap::IndexMap::new();
                 m
             }), &[response.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &info, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(__ws_arg_12).as_ref()).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&info), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(__ws_arg_12).as_ref()).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
@@ -2613,7 +2607,8 @@ impl Hyperliquid {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(marketSymbol)])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from((market).symbol.clone()));
         if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find a funding rate for ").into()), symbol)));
@@ -2883,7 +2878,7 @@ impl Hyperliquid {
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> crate::value::Dict {
-        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("r".to_string(), Value::Str(format!("{}{}", Value::Str("0x".into()), self.safe_string_k(&signature, "r", &[Value::Str("".into())])).into()));
@@ -2895,7 +2890,7 @@ impl Hyperliquid {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>().as_str());
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), &privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]);
 }
 
     pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[&Value]) -> crate::value::Dict {
@@ -2911,7 +2906,7 @@ impl Hyperliquid {
 }
 
     pub fn action_hash(&self, mut action: Value, vaultAddress: Option<&str>, mut nonce: Value, expiresAfter: Option<i64>) -> Value {
-        let dataBinary: crate::value::Bytes = crate::value::Bytes(self.packb(action, &[]).into_list());
+        let dataBinary: crate::value::Bytes = self.packb(action, &[]);
         let dataHex: String = self.binary_to_base16(&dataBinary, &[]);
         let mut data: String = format!("{}{}", Value::Str(format!("{}{}", dataHex, "00000").into()), self.int_to_base16(nonce, &[]));
         if (vaultAddress.is_none()) {
@@ -2988,7 +2983,7 @@ impl Hyperliquid {
     Default::default()
 }
 
-    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> Value {
+    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> crate::value::Dict {
         let messageTypes: Value = messageTypes.into();
         let zeroAddress: Option<String> = self.safe_string_k_opt(&self.options, "zeroAddress", &[]);
         let chainId: i64 = 421614; // check this out
@@ -3002,12 +2997,12 @@ impl Hyperliquid {
         });
         let msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
         let signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
-        return Value::Dict(signature);
+        return signature;
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_usd_send_sig(&self, mut message: Value) -> Value {
+    pub fn build_usd_send_sig(&self, mut message: Value) -> crate::value::Dict {
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdSend".to_string(), Value::from(vec![Value::Map({
@@ -3035,10 +3030,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_usd_class_send_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_usd_class_send_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3067,10 +3062,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_send_asset_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_send_asset_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3119,10 +3114,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_withdraw_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_withdraw_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3151,10 +3146,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_user_dex_abstraction_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_user_dex_abstraction_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3183,10 +3178,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_user_abstraction_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_user_abstraction_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3215,10 +3210,10 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
-    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> Value {
+    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> crate::value::Dict {
         let message: Value = message.into();
         let messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3247,7 +3242,7 @@ impl Hyperliquid {
         });
         return self.sign_user_signed_action(Value::Map(messageTypes), message);
 
-    Value::Null
+    Default::default()
 }
 
     pub async fn set_ref(&mut self, optional_args: &[Value]) -> Value {
@@ -3294,7 +3289,7 @@ if _try_result.is_err() {
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone())).into_dict();
+        let sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
         let action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3461,7 +3456,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let sig: crate::value::Dict = self.build_user_abstraction_sig(Value::Map(payload.clone())).into_dict();
+        let sig: crate::value::Dict = self.build_user_abstraction_sig(Value::Map(payload.clone()));
         let action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3513,7 +3508,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let sig: crate::value::Dict = self.build_user_dex_abstraction_sig(Value::Map(payload.clone())).into_dict();
+        let sig: crate::value::Dict = self.build_user_dex_abstraction_sig(Value::Map(payload.clone()));
         let action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -5852,7 +5847,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
-            let transferSig: crate::value::Dict = self.build_usd_class_send_sig(Value::Map(transferPayload.clone())).into_dict();
+            let transferSig: crate::value::Dict = self.build_usd_class_send_sig(Value::Map(transferPayload.clone()));
             let transferRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
@@ -5932,7 +5927,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 sendAssetPayload.insert("destination".into(), Value::from(subAccountAddress.as_deref()));
                 sendAssetPayload.insert("fromSubAccount".into(), Value::Str("".into()));
             }
-            let sendAssetSig: crate::value::Dict = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone())).into_dict();
+            let sendAssetSig: crate::value::Dict = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone()));
             let sendAssetRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
@@ -5962,7 +5957,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let isUsdc: bool = (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("USDC");
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
-            let usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::Str("1000000".into())));
+            let usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
             let action: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
@@ -6063,7 +6058,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("type".to_string(), Value::Str("vaultTransfer".into()));
                     m.insert("vaultAddress".to_string(), Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()));
                     m.insert("isDeposit".to_string(), Value::Bool(false));
-                    m.insert("usd".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::Str("1000000".into())))));
+                    m.insert("usd".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())))));
                 m
             });
             sig = Value::Dict(self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None));
@@ -6077,7 +6072,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("time".to_string(), Value::from(nonce));
                 m
             });
-            sig = self.build_withdraw_sig(Value::Map(payload.clone()));
+            sig = Value::Dict(self.build_withdraw_sig(Value::Map(payload.clone())));
             action = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -6777,7 +6772,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
         let mut message: Option<String> = None;
         if (status.as_deref() == Some("err")) {
-            message = self.safe_string_k_opt(&response, "response", &[]);
+            message = self.safe_string_k_opt(response, "response", &[]);
         }  else if (status.as_deref() == Some("unknownOid")) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
         }  else if (error.is_some()) {

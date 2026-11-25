@@ -53,7 +53,6 @@ impl Sxbet {
 
 impl crate::exchange::DerivedExchange for Sxbet {
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         //     {
         //         "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
@@ -72,9 +71,9 @@ impl crate::exchange::DerivedExchange for Sxbet {
         //         "updatedAt": "2026-07-31T18:45:42.838Z"
         //     }
         //
-        let orderId: Option<String> = self.safe_string2_opt(&order, Value::Str("id".into()), Value::Str("orderId".into()), &[]);
-        let marketHash: String = self.safe_string_k(&order, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let isBettingOutcomeOne: bool = self.safe_bool_k_opt(&order, "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
+        let orderId: Option<String> = self.safe_string2_opt(order, Value::Str("id".into()), Value::Str("orderId".into()), &[]);
+        let marketHash: String = self.safe_string_k(order, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let isBettingOutcomeOne: bool = self.safe_bool_k_opt(order, "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isBettingOutcomeOne {
             outcomeId = Some(marketHash);
@@ -84,16 +83,16 @@ impl crate::exchange::DerivedExchange for Sxbet {
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(outcomeId.as_deref(), market);
         let oneDenom: String = "100000000000000000000".to_string();
         let usdcDecimals: String = "1000000".to_string();
-        let percentageOdds: Option<String> = self.safe_string_k_opt(&order, "percentageOdds", &[]);
+        let percentageOdds: Option<String> = self.safe_string_k_opt(order, "percentageOdds", &[]);
         let price: Option<f64> = (if (percentageOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom), &[]).as_f64() } else { None });
-        let totalBetSize: String = self.safe_string_k(&order, "totalBetSize", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let remainingSize: Option<String> = self.safe_string_k_opt(&order, "remainingSize", &[&Value::from(totalBetSize.as_str())]);
+        let totalBetSize: String = self.safe_string_k(order, "totalBetSize", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+        let remainingSize: Option<String> = self.safe_string_k_opt(order, "remainingSize", &[&Value::from(totalBetSize.as_str())]);
         let filledRaw: Option<String> = crate::precise::Precise::stringSub(&totalBetSize, &remainingSize).as_str().map(str::to_owned);
         let amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&totalBetSize, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
         let filled: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&filledRaw, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
         let remaining: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingSize, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
-        let orderStatus: Option<String> = self.safe_string_upper_k_opt(&order, "status", &[]);
-        let inactiveReason: Option<String> = self.safe_string_upper_k_opt(&order, "inactiveReason", &[]);
+        let orderStatus: Option<String> = self.safe_string_upper_k_opt(order, "status", &[]);
+        let inactiveReason: Option<String> = self.safe_string_upper_k_opt(order, "inactiveReason", &[]);
         let mut status: String = "open".to_string();
         if (orderStatus.as_deref() == Some("INACTIVE")) {
             // documented inactiveReason enum: FILLED, USER_REQUESTED, EXPIRED, NO_LIQUIDITY,
@@ -106,14 +105,14 @@ impl crate::exchange::DerivedExchange for Sxbet {
                 status = "canceled".to_string();
             }
         }
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&order, "createdAt", &[]));
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(order, "createdAt", &[]));
         return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOrderId", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "clientOrderId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(&order, "updatedAt", &[]))));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order, "updatedAt", &[]))));
         m.insert("status".to_string(), Value::from(status));
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
@@ -132,14 +131,13 @@ impl crate::exchange::DerivedExchange for Sxbet {
         m.insert("outcomeId".to_string(), self.safe_string_k(&outcomeObj, "outcomeId", &[outcomeId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
     m
 }), &[crate::Value::from(outcomeObj.as_ref())]));
 
     None
 }
     fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let raw: Value = raw.into();
         //
         //     {
         //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
@@ -150,10 +148,10 @@ impl crate::exchange::DerivedExchange for Sxbet {
         //
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]).as_str(), market);
         let outcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-        let marketHash: Option<String> = self.safe_string_k_opt(&raw, "marketHash", &[]);
+        let marketHash: Option<String> = self.safe_string_k_opt(raw, "marketHash", &[]);
         let isOutcomeOne: bool = outcomeId == marketHash;
-        let outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(&raw, "outcomeOne");
-        let outcomeTwoOdds: Value = self.safe_dict_k(&raw, "outcomeTwo", &[Value::Map({
+        let outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(raw, "outcomeOne");
+        let outcomeTwoOdds: Value = self.safe_dict_k(raw, "outcomeTwo", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
@@ -201,7 +199,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
         m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), raw);
+        m.insert("info".to_string(), Value::from(raw));
     m
 }), &[crate::Value::from(market)]));
 
@@ -336,7 +334,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "parse_sxbet_tickers_by_hash" => self.parse_sxbet_tickers_by_hash(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_book_sides" => crate::Value::Dict(self.parse_sxbet_v3_book_sides(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy))),
                 "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref())),
@@ -831,7 +829,7 @@ impl Sxbet {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
-        let hashSuffix: String = marketHash.chars().skip(marketHash.chars().count().saturating_sub(6)).collect::<String>();
+        let hashSuffix: String = (&marketHash[marketHash.char_indices().rev().nth(5).unwrap_or_default().0..]).to_string();
         let marketSlug: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(self.shorten_slug(Value::from(outcomeOneName.as_deref()))), Value::Str("_".into())).into()), hashSuffix);
         let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventSlug.as_str()), Value::from(marketSlug.as_str())).as_str().map(str::to_owned);
         let status: Option<String> = self.safe_string_upper_k_opt(&raw, "status", &[]);
@@ -1317,7 +1315,7 @@ impl Sxbet {
  * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
  */
     pub fn sign_digest(&self, digest: &str, privateKey: &str) -> Option<String> {
-        let signature: crate::value::Dict = ecdsa(Value::from(digest.chars().skip(digest.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(&digest[digest.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         // assign to bare locals before padStart — the php transpiler's str_pad regex only
         // matches a simple identifier, an expression form leaks a raw padStart() call
         let rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2517,7 +2515,7 @@ impl Sxbet {
                     continue;
                 }
             }
-            result.push(self.parse_sxbet_v3_position(Value::Dict(raw)));
+            result.push(self.parse_sxbet_v3_position(&raw));
         }
         }
         return Value::from(result);
@@ -2533,7 +2531,7 @@ impl Sxbet {
  * @param {object} raw the raw position row
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-    pub fn parse_sxbet_v3_position(&self, mut raw: Value) -> Value {
+    pub fn parse_sxbet_v3_position(&self, raw: &crate::value::Dict) -> Value {
         //
         //     {
         //         "marketHash": "0x8120...", "market": {...},
@@ -2581,7 +2579,7 @@ impl Sxbet {
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), (if (pnl.is_some()) { self.parse_number(crate::precise::Precise::stringDivPrec(&pnl, &usdcDecimals, &Value::Int(6)), &[]) } else { Value::Null }));
         m.insert("side".to_string(), Value::Str("long".into()));
-        m.insert("info".to_string(), raw);
+        m.insert("info".to_string(), Value::from(raw));
     m
 })));
 
@@ -3255,7 +3253,7 @@ impl Sxbet {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = msg.as_map().unwrap_or(&__pro_message_empty);
-        let keys: Vec<Value> = object_keys(&msg).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(__pro_message.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let keysLength: i64 = keys.len() as i64;
         if (keysLength == 0) {
             self.spawn(&[Value::Null, client]);
@@ -3322,15 +3320,15 @@ impl Sxbet {
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let channelType: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         if (channelType.as_deref() == Some("orderbook_v3")) {
-            self.handle_order_book(client.clone(), &rows);
+            self.handle_order_book(client, &rows);
         }  else if (channelType.as_deref() == Some("best_odds_v3")) {
-            self.handle_ticker(client.clone(), &rows);
+            self.handle_ticker(client, &rows);
         }  else if (channelType.as_deref() == Some("recent_trades_v3")) {
-            self.handle_trades(client.clone(), &rows);
+            self.handle_trades(client, &rows);
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
             if channel.as_deref().unwrap_or_default().contains("orders_v3") {
-                self.handle_order(client.clone(), &rows);
+                self.handle_order(client, &rows);
             }  else if channel.as_deref().unwrap_or_default().contains("fills_v3") {
                 self.handle_my_trade(client, &rows);
             }

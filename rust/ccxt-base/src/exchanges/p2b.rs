@@ -49,7 +49,7 @@ impl P2b {
 }
 
 impl crate::exchange::DerivedExchange for P2b {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         // parseTickers
@@ -187,7 +187,6 @@ impl crate::exchange::DerivedExchange for P2b {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
@@ -225,29 +224,29 @@ impl crate::exchange::DerivedExchange for P2b {
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        let timestamp: Option<i64> = self.safe_integer_product2(&order, Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]).as_i64();
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
+        let timestamp: Option<i64> = self.safe_integer_product2(order, Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(order, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string2(&order, Value::Str("id".into()), Value::Str("orderId".into()), &[]));
+        m.insert("info".to_string(), Value::from(order));
+        m.insert("id".to_string(), self.safe_string2(order, Value::Str("id".into()), Value::Str("orderId".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), self.safe_string_k(&order, "type", &[]));
+        m.insert("type".to_string(), self.safe_string_k(order, "type", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
-        m.insert("price".to_string(), self.safe_string_k(&order, "price", &[]));
+        m.insert("side".to_string(), self.safe_string_k(order, "side", &[]));
+        m.insert("price".to_string(), self.safe_string_k(order, "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_string_k(&order, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(order, "amount", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("filled".to_string(), self.safe_string_k(&order, "dealStock", &[]));
-        m.insert("remaining".to_string(), self.safe_string_k(&order, "left", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(order, "dealStock", &[]));
+        m.insert("remaining".to_string(), self.safe_string_k(order, "left", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1093,7 +1092,7 @@ impl P2b {
         //    }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&result), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1670,7 +1669,7 @@ impl P2b {
                 if ((if let (Some(__l), Some(__r)) = (untilParam, since) { Some(__l - __r) } else { None })) > Some(86400000) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
-                sinceResolved = self.parse_to_int(&Value::from(since));
+                sinceResolved = self.parse_to_int(Value::from(since));
             }  else {
                 sinceResolved = (if let Some(__l) = untilParam { Some(__l - 86400000) } else { None });
             }
@@ -1772,7 +1771,7 @@ impl P2b {
                 if ((if let (Some(__l), Some(__r)) = (untilParam, since) { Some(__l - __r) } else { None })) > Some(86400000) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
-                sinceResolved = self.parse_to_int(&Value::from(since));
+                sinceResolved = self.parse_to_int(Value::from(since));
             }  else {
                 sinceResolved = (if let Some(__l) = untilParam { Some(__l - 86400000) } else { None });
             }

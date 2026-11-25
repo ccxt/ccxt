@@ -49,8 +49,7 @@ impl Bitteam {
 }
 
 impl crate::exchange::DerivedExchange for Bitteam {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // fetchTicker
         //     {
@@ -130,14 +129,14 @@ impl crate::exchange::DerivedExchange for Bitteam {
         //         "highest_price_24h": 38389.994463,
         //         "lowest_price_24h": 37574.894999
         //     }
-        let marketId: Option<String> = self.safe_string_lower_k_opt(&ticker, "trading_pairs", &[]);
+        let marketId: Option<String> = self.safe_string_lower_k_opt(ticker, "trading_pairs", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut bestBidPrice: Option<String> = None;
         let mut bestAskPrice: Option<String> = None;
         let mut bestBidVolume: Option<String> = None;
         let mut bestAskVolume: Option<String> = None;
-        let bids: Option<crate::value::List> = self.safe_list_k_o(&ticker, "bids");
-        let asks: Option<crate::value::List> = self.safe_list_k_o(&ticker, "asks");
+        let bids: Option<crate::value::List> = self.safe_list_k_o(ticker, "bids");
+        let asks: Option<crate::value::List> = self.safe_list_k_o(ticker, "asks");
         if (bids.is_some()) && (asks.is_some()) {
             let bestBid: crate::value::Dict = self.safe_dict_t(&bids, Value::Int(0));
             bestBidPrice = self.safe_string_k_opt(&bestBid, "price", &[]);
@@ -146,15 +145,15 @@ impl crate::exchange::DerivedExchange for Bitteam {
             bestAskPrice = self.safe_string_k_opt(&bestAsk, "price", &[]);
             bestAskVolume = self.safe_string_k_opt(&bestAsk, "quantity", &[]);
         }  else {
-            bestBidPrice = self.safe_string_k_opt(&ticker, "highest_bid", &[]);
-            bestAskPrice = self.safe_string_k_opt(&ticker, "lowest_ask", &[]);
+            bestBidPrice = self.safe_string_k_opt(ticker, "highest_bid", &[]);
+            bestAskPrice = self.safe_string_k_opt(ticker, "lowest_ask", &[]);
         }
-        let baseVolume: Option<String> = self.safe_string2_opt(&ticker, Value::Str("volume24".into()), Value::Str("base_volume".into()), &[]);
-        let quoteVolume: Option<String> = self.safe_string2_opt(&ticker, Value::Str("quoteVolume24".into()), Value::Str("quote_volume".into()), &[]);
-        let high: Option<String> = self.safe_string2_opt(&ticker, Value::Str("highPrice24".into()), Value::Str("highest_price_24h".into()), &[]);
-        let low: Option<String> = self.safe_string2_opt(&ticker, Value::Str("lowPrice24".into()), Value::Str("lowest_price_24h".into()), &[]);
-        let close: Option<String> = self.safe_string2_opt(&ticker, Value::Str("lastPrice".into()), Value::Str("last_price".into()), &[]);
-        let changePcnt: Option<String> = self.safe_string2_opt(&ticker, Value::Str("change24".into()), Value::Str("price_change_percent_24h".into()), &[]);
+        let baseVolume: Option<String> = self.safe_string2_opt(ticker, Value::Str("volume24".into()), Value::Str("base_volume".into()), &[]);
+        let quoteVolume: Option<String> = self.safe_string2_opt(ticker, Value::Str("quoteVolume24".into()), Value::Str("quote_volume".into()), &[]);
+        let high: Option<String> = self.safe_string2_opt(ticker, Value::Str("highPrice24".into()), Value::Str("highest_price_24h".into()), &[]);
+        let low: Option<String> = self.safe_string2_opt(ticker, Value::Str("lowPrice24".into()), Value::Str("lowest_price_24h".into()), &[]);
+        let close: Option<String> = self.safe_string2_opt(ticker, Value::Str("lastPrice".into()), Value::Str("last_price".into()), &[]);
+        let changePcnt: Option<String> = self.safe_string2_opt(ticker, Value::Str("change24".into()), Value::Str("price_change_percent_24h".into()), &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -175,7 +174,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -301,7 +300,6 @@ impl crate::exchange::DerivedExchange for Bitteam {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // fetchOrders
         //     {
@@ -387,26 +385,26 @@ impl crate::exchange::DerivedExchange for Bitteam {
         //         "timestamp": "1700594959"
         //     }
         //
-        let id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "pair", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "id", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "pair", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "orderCid", &[]);
+        let clientOrderId: Option<String> = self.safe_string_k_opt(order, "orderCid", &[]);
         let mut timestamp: Option<i64> = None;
-        let createdAt: Option<String> = self.safe_string_k_opt(&order, "createdAt", &[]);
+        let createdAt: Option<String> = self.safe_string_k_opt(order, "createdAt", &[]);
         if (createdAt.is_some()) {
             timestamp = self.parse8601(createdAt.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            timestamp = self.safe_timestamp_k(&order, "timestamp", &[]).as_i64();
+            timestamp = self.safe_timestamp_k(order, "timestamp", &[]).as_i64();
         }
-        let updatedAt: Option<String> = self.safe_string_k_opt(&order, "updatedAt", &[]);
+        let updatedAt: Option<String> = self.safe_string_k_opt(order, "updatedAt", &[]);
         let lastUpdateTimestamp: Option<i64> = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null));
-        let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
-        let type_var: Option<String> = self.parse_order_type(self.safe_string_k(&order, "type", &[]).as_str());
-        let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
-        let feeRaw: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&order, "quantity", &[]);
-        let filled: Option<String> = self.safe_string_k_opt(&order, "executed", &[]);
+        let status: Option<String> = self.parse_order_status(self.safe_string_k(order, "status", &[]).as_str());
+        let type_var: Option<String> = self.parse_order_type(self.safe_string_k(order, "type", &[]).as_str());
+        let side: Option<String> = self.safe_string_k_opt(order, "side", &[]);
+        let feeRaw: Option<crate::value::Dict> = self.safe_dict_k_o(order, "fee");
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(order, "quantity", &[]);
+        let filled: Option<String> = self.safe_string_k_opt(order, "executed", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeRaw.is_some()) {
             let feeCost: Option<String> = self.safe_string_k_opt(&feeRaw, "amount", &[]);
@@ -433,7 +431,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "stopPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_string_k(order, "stopPrice", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
@@ -441,7 +439,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         m.insert("remaining".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
         m.insert("postOnly".to_string(), Value::Bool(false));
     m
 }), Some(&marketResolved)));
@@ -2451,10 +2449,10 @@ impl Bitteam {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (rawTickers.len() as i64) } {
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&rawTickers, Value::Int(i), &[Value::Map({
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&rawTickers, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).unwrap_or_default();
+})])).as_ref(), None).unwrap_or_default();
             tickers.push(Value::Dict(ticker));
         }
         }
@@ -2676,7 +2674,7 @@ impl Bitteam {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let pair: crate::value::Dict = self.safe_dict_k_t(&result, "pair");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &pair, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&pair), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

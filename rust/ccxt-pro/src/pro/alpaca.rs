@@ -52,8 +52,7 @@ impl Alpaca {
 impl crate::exchange::DerivedExchange for Alpaca {
     fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { Some(&self.parent) }
     fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //    {
         //         "T": "q",
@@ -65,8 +64,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&ticker, "S", &[]);
-        let datetime: Option<String> = self.safe_string_k_opt(&ticker, "t", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(ticker, "S", &[]);
+        let datetime: Option<String> = self.safe_string_k_opt(ticker, "t", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
@@ -74,10 +73,10 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bp", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(&ticker, "bs", &[]));
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ap", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "as", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "bp", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(ticker, "bs", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "ap", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(ticker, "as", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), Value::Null);
@@ -88,14 +87,13 @@ impl crate::exchange::DerivedExchange for Alpaca {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
     None
 }
     fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -133,9 +131,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //        "hwm": null
         //    }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
-        let datetime: Option<String> = self.safe_string_k_opt(&trade, "filled_at", &[]);
-        let mut type_var: Option<String> = self.safe_string_k_opt(&trade, "type", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
+        let datetime: Option<String> = self.safe_string_k_opt(trade, "filled_at", &[]);
+        let mut type_var: Option<String> = self.safe_string_k_opt(trade, "type", &[]);
         if (type_var.is_none()) {
             return None;
         }
@@ -145,16 +143,16 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&trade, "i", &[]));
-        m.insert("info".to_string(), trade.clone());
+        m.insert("id".to_string(), self.safe_string_k(trade, "i", &[]));
+        m.insert("info".to_string(), Value::from(trade));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Str("/".into())]));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "id", &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade, "id", &[]));
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
-        m.insert("side".to_string(), self.safe_string_k(&trade, "side", &[]));
+        m.insert("side".to_string(), self.safe_string_k(trade, "side", &[]));
         m.insert("takerOrMaker".to_string(), (if (type_var.as_deref() == Some("market")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
-        m.insert("price".to_string(), self.safe_string_k(&trade, "filled_avg_price", &[]));
+        m.insert("price".to_string(), self.safe_string_k(trade, "filled_avg_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "filled_qty", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -174,7 +172,7 @@ impl crate::exchange_generated::ExchangeBase for Alpaca {
                 "authenticate" => self.authenticate(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "handle_connected" => self.handle_connected(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_subscription" => self.handle_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_my_trade" => self.parse_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -366,7 +364,7 @@ impl Alpaca {
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Value::Dict(std::sync::Arc::clone(message)), None).unwrap_or_default();
+        let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Dict(std::sync::Arc::clone(message))).as_ref(), None).unwrap_or_default();
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "ticker:", tickerSymbol);
@@ -992,8 +990,8 @@ impl Alpaca {
         self.handle_trading_message(&client.as_value(), &Value::from(message));
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
-        self.handle_crypto_message(client, &Value::from(&message));
+    pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
+        self.handle_crypto_message(&client, &Value::from(&message));
 }
 
     pub fn handle_authenticate(&self, client: &Value, mut message: Value) {

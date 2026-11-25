@@ -49,15 +49,14 @@ impl Cryptomus {
 }
 
 impl crate::exchange::DerivedExchange for Cryptomus {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "price": "78450.4"
         //     }
         //
         let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "price", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "price", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -79,7 +78,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -124,7 +123,6 @@ impl crate::exchange::DerivedExchange for Cryptomus {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // createOrder
         //     {
@@ -181,16 +179,16 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         //         "stopLossPrice": "101.12"
         //     }
         //
-        let id: Option<String> = self.safe_string2_opt(&order, Value::Str("order_id".into()), Value::Str("id".into()), &[]);
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+        let id: Option<String> = self.safe_string2_opt(order, Value::Str("order_id".into()), Value::Str("id".into()), &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let dateTime: Option<String> = self.safe_string_k_opt(&order, "createdAt", &[]);
+        let dateTime: Option<String> = self.safe_string_k_opt(order, "createdAt", &[]);
         let timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null));
-        let deal: crate::value::Dict = self.safe_dict_k_t(&order, "deal");
+        let deal: crate::value::Dict = self.safe_dict_k_t(order, "deal");
         let averageFilledPrice: Option<f64> = self.safe_number_k(&deal, "averageFilledPrice", &[]).as_f64();
-        let type_var: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
-        let side: Option<String> = self.safe_string_k_opt(&order, "direction", &[]);
-        let mut price: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
+        let type_var: Option<String> = self.safe_string_k_opt(order, "type", &[]);
+        let side: Option<String> = self.safe_string_k_opt(order, "direction", &[]);
+        let mut price: Option<f64> = self.safe_number_k(order, "price", &[]).as_f64();
         let transaction: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&deal, "transactions"));
         let mut fee: Option<crate::value::Dict> = None;
         let firstTx: crate::value::Dict = transaction.get(0).cloned().unwrap_or_default();
@@ -206,10 +204,10 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         if (price.is_none()) {
             price = self.safe_number_k(&firstTx, "filledPrice", &[]).as_f64();
         }
-        let amount: Option<f64> = self.safe_number_k(&order, "quantity", &[]).as_f64();
-        let cost: Option<f64> = self.safe_number_k(&order, "value", &[]).as_f64();
-        let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "state", &[]).as_str());
-        let clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
+        let amount: Option<f64> = self.safe_number_k(order, "quantity", &[]).as_f64();
+        let cost: Option<f64> = self.safe_number_k(order, "value", &[]).as_f64();
+        let status: Option<String> = self.parse_order_status(self.safe_string_k(order, "state", &[]).as_str());
+        let clientOrderId: Option<String> = self.safe_string_k_opt(order, "clientOrderId", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -223,17 +221,17 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), Value::from(price));
-        m.insert("stopPrice".to_string(), self.safe_string_k(&order, "stopLossPrice", &[]));
-        m.insert("triggerPrice".to_string(), self.safe_string_k(&order, "stopLossPrice", &[]));
+        m.insert("stopPrice".to_string(), self.safe_string_k(order, "stopLossPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_string_k(order, "stopLossPrice", &[]));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("average".to_string(), Value::from(averageFilledPrice));
-        m.insert("filled".to_string(), self.safe_string_k(&order, "filledQuantity", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(order, "filledQuantity", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
     m
 }), Some(&marketResolved)));
 
@@ -1069,7 +1067,7 @@ impl Cryptomus {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_v2_user_api_exchange_markets_price(&[&__ws_arg_0]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

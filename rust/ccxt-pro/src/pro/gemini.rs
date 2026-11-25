@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_heartbeat" => crate::Value::Dict(self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_ohlcv" => crate::Value::Dict(self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_subscription" => crate::Value::Dict(self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -91,7 +91,7 @@ impl Gemini {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_bids_asks_for_multidata" => { self.handle_bids_asks_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_heartbeat" => { self.handle_heartbeat(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_l2_updates" => { self.handle_l2_updates(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -1167,12 +1167,12 @@ impl Gemini {
         return self.safe_string_opt(&types, &type_var, &[&type_var]);
 }
 
-    pub fn handle_error(&self, client: &Value, message: &Value) {
+    pub fn handle_error(&self, client: &Value, message: &crate::value::Dict) {
         panic!("{}", crate::exchange_errors::exchange_error(json_stringify(message)));
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
-        self.handle_order(client, Value::from(&message));
+    pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
+        self.handle_order(&client, Value::from(&message));
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
@@ -1214,7 +1214,7 @@ impl Gemini {
         //
         let reason: Option<String> = (match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (reason.as_deref() == Some("error")) {
-            self.handle_error(&client.as_value(), &Value::from(message));
+            self.handle_error(&client.as_value(), message);
         }
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1329,11 +1329,6 @@ impl Gemini {
         // this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(&[Value::Map(defaultOptions)]);
         let wsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
-        let wsSubOptions: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "options");
-        let originalHeaders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsSubOptions, "headers", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
         let headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-GEMINI-APIKEY".to_string(), self.apiKey.clone());
@@ -1341,23 +1336,18 @@ impl Gemini {
                 m.insert("X-GEMINI-SIGNATURE".to_string(), Value::from(signature));
             m
         });
-        { let __bf03d0 = &mut self.options;
-            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
-            if let Value::Dict(__bf03d1) = __bf03e1 {
-                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), Value::Map(headers));
-                }
-            }
-        }
+        let __ws_arg_1 = self.extend(self.safe_dict_k(&wsOptions, "options", &[]), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("headers".to_string(), Value::Map(headers));
+    m
+})]);
+        { let __be_tmp = self.extend(&wsOptions, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("options".to_string(), __ws_arg_1);
+    m
+})]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), __be_tmp); } }
         self.client(&url);
-        { let __bf03d0 = &mut self.options;
-            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("ws".to_string()).or_insert(Value::Null);
-            if let Value::Dict(__bf03d1) = __bf03e1 {
-                let __bf03e2 = std::sync::Arc::make_mut(__bf03d1).entry("options".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__r05d) = __bf03e2 { std::sync::Arc::make_mut(__r05d).insert("headers".to_string(), Value::Map(originalHeaders));
-                }
-            }
-        }
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Dict(wsOptions)); }
 
     Value::Null
 }

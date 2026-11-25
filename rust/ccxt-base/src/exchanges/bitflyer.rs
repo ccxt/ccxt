@@ -49,11 +49,10 @@ impl Bitflyer {
 }
 
 impl crate::exchange::DerivedExchange for Bitflyer {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&ticker, "timestamp", &[]));
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "ltp", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker, "timestamp", &[]));
+        let last: Option<String> = self.safe_string_k_opt(ticker, "ltp", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -61,9 +60,9 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "best_bid", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "best_bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "best_ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "best_ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -73,9 +72,9 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume_by_product", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume_by_product", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -148,19 +147,18 @@ impl crate::exchange::DerivedExchange for Bitflyer {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&order, "child_order_date", &[]));
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[]);
-        let filled: Option<String> = self.safe_string_k_opt(&order, "executed_size", &[]);
-        let remaining: Option<String> = self.safe_string_k_opt(&order, "outstanding_size", &[]);
-        let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "child_order_state", &[]).as_str());
-        let type_var: Option<String> = self.safe_string_lower_k_opt(&order, "child_order_type", &[]);
-        let side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "product_code", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(order, "child_order_date", &[]));
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let amount: Option<String> = self.safe_string_k_opt(order, "size", &[]);
+        let filled: Option<String> = self.safe_string_k_opt(order, "executed_size", &[]);
+        let remaining: Option<String> = self.safe_string_k_opt(order, "outstanding_size", &[]);
+        let status: Option<String> = self.parse_order_status(self.safe_string_k(order, "child_order_state", &[]).as_str());
+        let type_var: Option<String> = self.safe_string_lower_k_opt(order, "child_order_type", &[]);
+        let side: Option<String> = self.safe_string_lower_k_opt(order, "side", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "product_code", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
-        let feeCost: Option<f64> = self.safe_number_k(&order, "total_commission", &[]).as_f64();
+        let feeCost: Option<f64> = self.safe_number_k(order, "total_commission", &[]).as_f64();
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -170,12 +168,12 @@ impl crate::exchange::DerivedExchange for Bitflyer {
                 m
             }));
         }
-        let id: Option<String> = self.safe_string_k_opt(&order, "child_order_acceptance_id", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "child_order_acceptance_id", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -200,18 +198,17 @@ impl crate::exchange::DerivedExchange for Bitflyer {
     None
 }
     fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let contract: Value = contract.into();
         //
         //    {
         //        "current_funding_rate": -0.003750000000
         //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
         //    }
         //
-        let nextFundingDatetime: Option<String> = self.safe_string_k_opt(&contract, "next_funding_rate_settledate", &[]);
+        let nextFundingDatetime: Option<String> = self.safe_string_k_opt(contract, "next_funding_rate_settledate", &[]);
         let nextFundingTimestamp: Option<i64> = self.parse8601(nextFundingDatetime.map(Value::from).unwrap_or(Value::Null));
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -235,7 +232,6 @@ impl crate::exchange::DerivedExchange for Bitflyer {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // fetchDeposits
         //
@@ -271,22 +267,22 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
         //     }
         //
-        let id: Option<String> = self.safe_string2_opt(&transaction, Value::Str("id".into()), Value::Str("message_id".into()), &[]);
-        let address: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency_code", &[]);
+        let id: Option<String> = self.safe_string2_opt(transaction, Value::Str("id".into()), Value::Str("message_id".into()), &[]);
+        let address: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency_code", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&transaction, "event_date", &[]));
-        let amount: Option<f64> = self.safe_number_k(&transaction, "amount", &[]).as_f64();
-        let txId: Option<String> = self.safe_string_k_opt(&transaction, "tx_hash", &[]);
-        let rawStatus: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction, "event_date", &[]));
+        let amount: Option<f64> = self.safe_number_k(transaction, "amount", &[]).as_f64();
+        let txId: Option<String> = self.safe_string_k_opt(transaction, "tx_hash", &[]);
+        let rawStatus: Option<String> = self.safe_string_k_opt(transaction, "status", &[]);
         let mut type_var: Option<String> = None;
         let mut status: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
-        let feeCost: Option<String> = self.safe_string_k_opt(&transaction, "fee", &[]);
+        let feeCost: Option<String> = self.safe_string_k_opt(transaction, "fee", &[]);
         if (feeCost.is_some()) {
             type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.as_deref());
-            let additionalFee: Option<String> = self.safe_string_k_opt(&transaction, "additional_fee", &[]);
+            let additionalFee: Option<String> = self.safe_string_k_opt(transaction, "additional_fee", &[]);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
@@ -299,7 +295,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction);
+        m.insert("info".to_string(), Value::from(transaction));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -968,13 +964,13 @@ impl Bitflyer {
                     baseId = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(0).take(3).collect::<String>()) } else { None });
                     quoteId = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(3).take(3).collect::<String>()) } else { None });
                     // last 9 chars are expiry date
-                    let expiryDate: Option<String> = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(__s.chars().count().saturating_sub(9)).collect::<String>()) } else { None });
+                    let expiryDate: Option<String> = (if let Some(__s) = id.as_deref() { Some((&__s[__s.char_indices().rev().nth(8).unwrap_or_default().0..]).to_string()) } else { None });
                     expiry = self.parse_expiry_date(expiryDate.as_deref().unwrap_or_default()).as_i64();
                 }  else {
                     let splitAlias: crate::value::List = crate::value::List::new(if let Some(__s) = alias.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
                     let currencyIds: Option<String> = self.safe_string_opt(&splitAlias, Value::Int(0), &[]);
                     baseId = (if let Some(__s) = currencyIds.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, -3); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
-                    quoteId = (if let Some(__s) = currencyIds.as_deref() { Some(__s.chars().skip(__s.chars().count().saturating_sub(3)).collect::<String>()) } else { None });
+                    quoteId = (if let Some(__s) = currencyIds.as_deref() { Some((&__s[__s.char_indices().rev().nth(2).unwrap_or_default().0..]).to_string()) } else { None });
                     let splitId: crate::value::List = crate::value::List::new(if let (Some(__s), Some(__d)) = (id.as_deref(), currencyIds.as_deref()) { __s.split(__d).map(Value::from).collect() } else { Vec::new() });
                     let expiryDate: Option<String> = self.safe_string_opt(&splitId, Value::Int(1), &[]);
                     if (expiryDate.is_none()) {
@@ -1195,7 +1191,7 @@ impl Bitflyer {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_getticker(&[&__ws_arg_1]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

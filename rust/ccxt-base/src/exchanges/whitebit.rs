@@ -53,8 +53,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         // Forward to the inherent method on Whitebit.
         Some(Whitebit::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //  FetchTicker (v1)
         //
@@ -139,35 +138,35 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //         "funding_interval_minutes": 240
         //     }
         //
-        let marketId: Option<String> = self.safe_string2_opt(&ticker, Value::Str("tradingPairs".into()), Value::Str("ticker_id".into()), &[]);
+        let marketId: Option<String> = self.safe_string2_opt(ticker, Value::Str("tradingPairs".into()), Value::Str("ticker_id".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         // last price is provided as "last" or "last_price"
-        let last: Option<String> = self.safe_string_n_opt(&ticker, Value::from(vec![Value::Str("last".into()), Value::Str("last_price".into()), Value::Str("lastPrice".into())]), &[]);
+        let last: Option<String> = self.safe_string_n_opt(ticker, Value::from(vec![Value::Str("last".into()), Value::Str("last_price".into()), Value::Str("lastPrice".into())]), &[]);
         // if "close" is provided, use it, otherwise use <last>
-        let close: Option<String> = self.safe_string_k_opt(&ticker, "close", &[&Value::from(last.as_deref())]);
+        let close: Option<String> = self.safe_string_k_opt(ticker, "close", &[&Value::from(last.as_deref())]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string2(&ticker, Value::Str("bid".into()), Value::Str("highestBid".into()), &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string2(ticker, Value::Str("bid".into()), Value::Str("highestBid".into()), &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string2(&ticker, Value::Str("ask".into()), Value::Str("lowestAsk".into()), &[]));
+        m.insert("ask".to_string(), self.safe_string2(ticker, Value::Str("ask".into()), Value::Str("lowestAsk".into()), &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
+        m.insert("open".to_string(), self.safe_string_k(ticker, "open", &[]));
         m.insert("close".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_string_k(&ticker, "change", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(ticker, "change", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_n(&ticker, Value::from(vec![Value::Str("base_volume".into()), Value::Str("volume".into()), Value::Str("baseVolume24h".into()), Value::Str("stock_volume".into())]), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_n(&ticker, Value::from(vec![Value::Str("quote_volume".into()), Value::Str("deal".into()), Value::Str("quoteVolume24h".into()), Value::Str("money_volume".into())]), &[]));
-        m.insert("indexPrice".to_string(), self.safe_string_k(&ticker, "index_price", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string_n(ticker, Value::from(vec![Value::Str("base_volume".into()), Value::Str("volume".into()), Value::Str("baseVolume24h".into()), Value::Str("stock_volume".into())]), &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_n(ticker, Value::from(vec![Value::Str("quote_volume".into()), Value::Str("deal".into()), Value::Str("quoteVolume24h".into()), Value::Str("money_volume".into())]), &[]));
+        m.insert("indexPrice".to_string(), self.safe_string_k(ticker, "index_price", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), Some(&marketResolved)));
 
@@ -263,7 +262,6 @@ impl crate::exchange::DerivedExchange for Whitebit {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // createOrder, fetchOpenOrders, cancelOrder
         //
@@ -303,30 +301,30 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //          "dealMoney":"5.9375815",        // executed amount in quote
         //      }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("_".into())]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
-        let filled: Option<String> = self.safe_string_k_opt(&order, "dealStock", &[]);
-        let mut remaining: Option<String> = self.safe_string_k_opt(&order, "left", &[]);
-        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "clientOrderId", &[]);
+        let side: Option<String> = self.safe_string_k_opt(order, "side", &[]);
+        let filled: Option<String> = self.safe_string_k_opt(order, "dealStock", &[]);
+        let mut remaining: Option<String> = self.safe_string_k_opt(order, "left", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order, "clientOrderId", &[]);
         if (clientOrderId.as_deref() == Some("")) {
             clientOrderId = None;
         }
-        let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
-        let triggerPrice: Option<f64> = self.safe_number_k(&order, "activation_price", &[]).as_f64();
-        let orderId: Option<String> = self.safe_string2_opt(&order, Value::Str("orderId".into()), Value::Str("id".into()), &[]);
-        let type_var: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
+        let price: Option<String> = self.safe_string_k_opt(order, "price", &[]);
+        let triggerPrice: Option<f64> = self.safe_number_k(order, "activation_price", &[]).as_f64();
+        let orderId: Option<String> = self.safe_string2_opt(order, Value::Str("orderId".into()), Value::Str("id".into()), &[]);
+        let type_var: Option<String> = self.safe_string_k_opt(order, "type", &[]);
         let orderType: Option<String> = self.parse_order_type(type_var.as_deref());
         if (orderType.as_deref() == Some("market")) {
             remaining = None;
         }
-        let mut amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
-        let cost: Option<String> = self.safe_string_k_opt(&order, "dealMoney", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(order, "amount", &[]);
+        let cost: Option<String> = self.safe_string_k_opt(order, "dealMoney", &[]);
         if (side.as_deref() == Some("buy")) && ((type_var.as_deref() == Some("market")) || (type_var.as_deref() == Some("stop market"))) {
             amount = filled.clone();
         }
-        let dealFee: Option<String> = self.safe_string_k_opt(&order, "dealFee", &[]);
+        let dealFee: Option<String> = self.safe_string_k_opt(order, "dealFee", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (dealFee.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -336,10 +334,10 @@ impl crate::exchange::DerivedExchange for Whitebit {
                 m
             }));
         }
-        let timestamp: Option<i64> = self.safe_timestamp2(&order, Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]).as_i64();
-        let lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(&order, "ftime", &[]).as_i64();
-        let mut postOnly: Option<bool> = self.safe_bool_k_opt(&order, "postOnly", &[]);
-        let ioc: bool = self.safe_bool_k_opt(&order, "ioc", &[Value::Bool(false)]).unwrap_or(false);
+        let timestamp: Option<i64> = self.safe_timestamp2(order, Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]).as_i64();
+        let lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order, "ftime", &[]).as_i64();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order, "postOnly", &[]);
+        let ioc: bool = self.safe_bool_k_opt(order, "ioc", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = None;
         if ioc {
             timeInForce = Some("IOC".to_string());
@@ -348,7 +346,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         }
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::from(order));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -528,7 +526,6 @@ impl crate::exchange::DerivedExchange for Whitebit {
     None
 }
     fn parse_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
         //
         // fetchPosition, fetchPositions
         //
@@ -572,22 +569,22 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //         }
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&position, "market", &[]);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&position, "openDate", &[]).as_i64();
-        let tpsl: crate::value::Dict = self.safe_dict_k_t(&position, "tpsl");
-        let orderDetail: crate::value::Dict = self.safe_dict_k_t(&position, "orderDetail");
+        let marketId: Option<String> = self.safe_string_k_opt(position, "market", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(position, "openDate", &[]).as_i64();
+        let tpsl: crate::value::Dict = self.safe_dict_k_t(position, "tpsl");
+        let orderDetail: crate::value::Dict = self.safe_dict_k_t(position, "orderDetail");
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), position.clone());
-        m.insert("id".to_string(), self.safe_string_k(&position, "positionId", &[]));
+        m.insert("info".to_string(), Value::from(position));
+        m.insert("id".to_string(), self.safe_string_k(position, "positionId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(&position, "liquidationPrice", &[]));
-        m.insert("entryPrice".to_string(), self.safe_number_k(&position, "basePrice", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "pnl", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidationPrice", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position, "basePrice", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "pnl", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(&orderDetail, "realizedPnl", &[]));
-        m.insert("percentage".to_string(), self.safe_number_k(&position, "pnlPercent", &[]));
+        m.insert("percentage".to_string(), self.safe_number_k(position, "pnlPercent", &[]));
         m.insert("contracts".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), Value::Null);
@@ -596,7 +593,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(&position, "modifyDate", &[]));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(position, "modifyDate", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number_k(position, "margin", &[]));
@@ -612,7 +609,6 @@ impl crate::exchange::DerivedExchange for Whitebit {
     None
 }
     fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let contract: Value = contract.into();
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -645,16 +641,16 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //     "max_leverage":"100"
         //  }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&contract, "ticker_id", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(contract, "ticker_id", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        let markPrice: Option<f64> = self.safe_number_k(&contract, "markPrice", &[]).as_f64();
-        let indexPrice: Option<f64> = self.safe_number_k(&contract, "indexPrice", &[]).as_f64();
-        let interestRate: Option<f64> = self.safe_number_k(&contract, "interestRate", &[]).as_f64();
-        let fundingRate: Option<f64> = self.safe_number_k(&contract, "funding_rate", &[]).as_f64();
-        let fundingTime: Option<i64> = self.safe_integer_k(&contract, "next_funding_rate_timestamp", &[]).as_i64();
+        let markPrice: Option<f64> = self.safe_number_k(contract, "markPrice", &[]).as_f64();
+        let indexPrice: Option<f64> = self.safe_number_k(contract, "indexPrice", &[]).as_f64();
+        let interestRate: Option<f64> = self.safe_number_k(contract, "interestRate", &[]).as_f64();
+        let fundingRate: Option<f64> = self.safe_number_k(contract, "funding_rate", &[]).as_f64();
+        let fundingTime: Option<i64> = self.safe_integer_k(contract, "next_funding_rate_timestamp", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract);
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("markPrice".to_string(), Value::from(markPrice));
         m.insert("indexPrice".to_string(), Value::from(indexPrice));
@@ -677,13 +673,12 @@ impl crate::exchange::DerivedExchange for Whitebit {
     None
 }
     fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let depositAddress: Value = depositAddress.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress.clone());
+        m.insert("info".to_string(), Value::from(depositAddress));
         m.insert("currency".to_string(), self.safe_currency_code(None, currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), self.safe_string_k(&depositAddress, "address", &[]));
+        m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
 }));
@@ -803,13 +798,13 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let marketId: Option<String> = self.safe_string_k_opt(&info, "market", &[]);
+    fn parse_funding_rate_history(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let marketId: Option<String> = self.safe_string_k_opt(info, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&info, "fundingTime", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_timestamp_k(info, "fundingTime", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info.clone());
+        m.insert("info".to_string(), Value::from(info));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("fundingRate".to_string(), self.safe_number_k(info, "fundingRate", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -820,7 +815,6 @@ impl crate::exchange::DerivedExchange for Whitebit {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -853,11 +847,11 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //     }
         //
         let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
-        let address: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&transaction, "createdAt", &[]).as_i64();
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "ticker", &[]);
-        let status: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
-        let method: Option<String> = self.safe_string_k_opt(&transaction, "method", &[]);
+        let address: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(transaction, "createdAt", &[]).as_i64();
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "ticker", &[]);
+        let status: Option<String> = self.safe_string_k_opt(transaction, "status", &[]);
+        let method: Option<String> = self.safe_string_k_opt(transaction, "method", &[]);
         let mut addressFrom: Option<String> = None;
         let mut addressTo: Option<String> = None;
         if (method.as_deref() == Some("1")) {
@@ -867,38 +861,37 @@ impl crate::exchange::DerivedExchange for Whitebit {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&transaction, "uniqueId", &[]));
-        m.insert("txid".to_string(), self.safe_string_k(&transaction, "transactionId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(transaction, "uniqueId", &[]));
+        m.insert("txid".to_string(), self.safe_string_k(transaction, "transactionId", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "network", &[]).as_str(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).as_deref())));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(transaction, "network", &[]).as_str(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).as_deref())));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("type".to_string(), (if (method.as_deref() == Some("1")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), self.safe_string_k(&transaction, "memo", &[]));
+        m.insert("tag".to_string(), self.safe_string_k(transaction, "memo", &[]));
         m.insert("tagTo".to_string(), Value::Null);
-        m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
+        m.insert("comment".to_string(), self.safe_string_k(transaction, "description", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(&transaction, "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        m.insert("info".to_string(), transaction);
+        m.insert("info".to_string(), Value::from(transaction));
     m
 }));
 
     None
 }
     fn parse_borrow_interest(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let info: Value = info.into();
         //
         //     {
         //         "positionId": 191823,
@@ -918,15 +911,15 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //         "liquidationState": null
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&info, "market", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(info, "market", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&info, "modifyDate", &[]).as_i64();
+        let timestamp: Option<i64> = self.safe_timestamp_k(info, "modifyDate", &[]).as_i64();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info.clone());
+        m.insert("info".to_string(), Value::from(info));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
-        m.insert("interest".to_string(), self.safe_number_k(&info, "unrealizedFunding", &[]));
+        m.insert("interest".to_string(), self.safe_number_k(info, "unrealizedFunding", &[]));
         m.insert("interestRate".to_string(), Value::Float(0.00098));
         m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "amount", &[]));
         m.insert("marginMode".to_string(), Value::Str("cross".into()));
@@ -1138,7 +1131,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trading_limits" => crate::types::IntoRaw::into_raw(self.fetch_trading_limits(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
+                "fetch_transaction_fees" => crate::types::IntoRaw::into_raw(self.fetch_transaction_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2416,8 +2409,13 @@ impl Whitebit {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-    pub async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
-        let codes = get_arg(optional_args, 0, Value::Null);
+    pub async fn fetch_transaction_fees(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let codes: Option<Vec<String>> = codes;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2484,9 +2482,9 @@ impl Whitebit {
         m.insert("info".to_string(), Value::Dict(response));
     m
 });
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2583,7 +2581,7 @@ impl Whitebit {
             let feeInfo: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(entry.as_deref()));
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, &codesValue))) {
-                let depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict_o(&depositWithdrawFees, Value::from(code.as_deref()));
+                let depositWithdrawFee: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = depositWithdrawFees.get(code.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
                 if (depositWithdrawFee.is_none()) {
                     depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::Map({
     let m = indexmap::IndexMap::new();
@@ -2817,7 +2815,7 @@ impl Whitebit {
             let symbol: Option<String> = marketSymbol;
             // Filter by symbols if specified
             if (symbols.is_some()) {
-                if !self.in_array(&symbol, Value::from(symbols.clone())) {
+                if !self.in_array(&symbol, &symbols) {
                     continue;
                 }
             }
@@ -3108,7 +3106,7 @@ impl Whitebit {
         //     }
         //
         let ticker: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&ticker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3360,10 +3358,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).copied();
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Some(&market)).unwrap_or_default();
+})])).as_ref(), Some(&market)).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
@@ -3879,7 +3877,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
             if isLimitOrder {
                 // stop limit order
-                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
                 let __ws_arg_8 = self.extend(&request, &[&orderParams]);
                 response = self.v4_private_post_order_stop_limit(&[&__ws_arg_8]).await;
             }  else {
@@ -5413,7 +5411,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     }
 
     pub fn parse_funding_history(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let contract: Value = contract.into();
         //
         //     {
         //         "market": "BTC_PERP",
@@ -5425,11 +5422,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "rateCalculatedTime": "1708675200000"
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&contract, "market", &[]);
-        let timestamp: Option<i64> = self.safe_integer_k(&contract, "fundingTime", &[]).as_i64();
+        let marketId: Option<String> = self.safe_string_k_opt(contract, "market", &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(contract, "fundingTime", &[]).as_i64();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), contract.clone());
+        m.insert("info".to_string(), Value::from(contract));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("swap".into())]));
         m.insert("code".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));

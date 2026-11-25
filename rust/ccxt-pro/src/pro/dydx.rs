@@ -438,7 +438,7 @@ impl Dydx {
     pub fn handle_delta(&self, bookside: &mut crate::pro::order_book::Side, mut delta: Value) {
         if (matches!(&delta, Value::Arr(_))) {
             let price: Option<f64> = self.safe_float(&delta, Value::Int(0), &[]).as_f64();
-            let amount: Option<f64> = self.safe_float(&delta, Value::Int(1), &[]).as_f64();
+            let amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
             bookside.store(price, amount);
         }  else {
             let bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("size".into())]);

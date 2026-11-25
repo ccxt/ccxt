@@ -49,8 +49,7 @@ impl Onetrading {
 }
 
 impl crate::exchange::DerivedExchange for Onetrading {
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // fetchTicker, fetchTickers
         //
@@ -71,24 +70,24 @@ impl crate::exchange::DerivedExchange for Onetrading {
         //         "low":"8110.0"
         //     }
         //
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&ticker, "time", &[]));
-        let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument_code", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker, "time", &[]));
+        let marketId: Option<String> = self.safe_string_k_opt(ticker, "instrument_code", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last_price", &[]);
-        let percentage: Option<String> = self.safe_string_k_opt(&ticker, "price_change_percentage", &[]);
-        let change: Option<String> = self.safe_string_k_opt(&ticker, "price_change", &[]);
-        let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "base_volume", &[]);
-        let quoteVolume: Option<String> = self.safe_string_k_opt(&ticker, "quote_volume", &[]);
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last_price", &[]);
+        let percentage: Option<String> = self.safe_string_k_opt(ticker, "price_change_percentage", &[]);
+        let change: Option<String> = self.safe_string_k_opt(ticker, "price_change", &[]);
+        let baseVolume: Option<String> = self.safe_string_k_opt(ticker, "base_volume", &[]);
+        let quoteVolume: Option<String> = self.safe_string_k_opt(ticker, "quote_volume", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "best_bid", &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "best_bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "best_ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "best_ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -100,7 +99,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), quoteVolume.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -1595,7 +1594,7 @@ impl Onetrading {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_market_ticker_instrument_code(&[&__ws_arg_0]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1654,10 +1653,10 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawTickers.len() as i64) } {
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&rawTickers, Value::Int(i), &[Value::Map({
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&rawTickers, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).unwrap_or_default();
+})])).as_ref(), None).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));

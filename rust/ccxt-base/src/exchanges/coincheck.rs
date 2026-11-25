@@ -53,8 +53,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         // Forward to the inherent method on Coincheck.
         Some(Coincheck::nonce(self))
     }
-    fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
+    fn parse_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // {
         //     "last":4192632.0,
@@ -67,18 +66,18 @@ impl crate::exchange::DerivedExchange for Coincheck {
         // }
         //
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&ticker, "timestamp", &[]).as_i64();
-        let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(ticker, "timestamp", &[]).as_i64();
+        let last: Option<String> = self.safe_string_k_opt(ticker, "last", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(&ticker, "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(&ticker, "bid", &[]));
+        m.insert("high".to_string(), self.safe_string_k(ticker, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(ticker, "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(ticker, "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(&ticker, "ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(ticker, "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -88,9 +87,9 @@ impl crate::exchange::DerivedExchange for Coincheck {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(&ticker, "volume", &[]));
+        m.insert("baseVolume".to_string(), self.safe_string_k(ticker, "volume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), market));
 
@@ -185,7 +184,6 @@ impl crate::exchange::DerivedExchange for Coincheck {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         // fetchOpenOrders
         //
@@ -200,14 +198,13 @@ impl crate::exchange::DerivedExchange for Coincheck {
         //
         // todo: add formats for fetchOrder, fetchClosedOrders here
         //
-        let id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
-        let side: Option<String> = self.safe_string_k_opt(&order, "order_type", &[]);
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&order, "created_at", &[]));
-        let amount: Option<String> = self.safe_string_k_opt(&order, "pending_amount", &[]);
-        let remaining: Option<String> = self.safe_string_k_opt(&order, "pending_amount", &[]);
-        let price: Option<String> = self.safe_string_k_opt(&order, "rate", &[]);
-        let status: Option<String> = None;
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "pair", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "id", &[]);
+        let side: Option<String> = self.safe_string_k_opt(order, "order_type", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(order, "created_at", &[]));
+        let amount: Option<String> = self.safe_string_k_opt(order, "pending_amount", &[]);
+        let remaining: Option<String> = self.safe_string_k_opt(order, "pending_amount", &[]);
+        let price: Option<String> = self.safe_string_k_opt(order, "rate", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "pair", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -223,13 +220,13 @@ impl crate::exchange::DerivedExchange for Coincheck {
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("status".to_string(), Value::from(status.as_deref()));
+        m.insert("status".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
         m.insert("average".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -267,7 +264,6 @@ impl crate::exchange::DerivedExchange for Coincheck {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // fetchDeposits
         //
@@ -294,16 +290,16 @@ impl crate::exchange::DerivedExchange for Coincheck {
         //       "is_fast": true
         //  }
         //
-        let id: Option<String> = self.safe_string_k_opt(&transaction, "id", &[]);
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&transaction, "created_at", &[]));
-        let address: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
-        let amount: Option<f64> = self.safe_number_k(&transaction, "amount", &[]).as_f64();
-        let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
+        let id: Option<String> = self.safe_string_k_opt(transaction, "id", &[]);
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction, "created_at", &[]));
+        let address: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
+        let amount: Option<f64> = self.safe_number_k(transaction, "amount", &[]).as_f64();
+        let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let status: Option<String> = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
-        let updated: Option<i64> = self.parse8601(self.safe_string_k(&transaction, "confirmed_at", &[]));
+        let status: Option<String> = self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str());
+        let updated: Option<i64> = self.parse8601(self.safe_string_k(transaction, "confirmed_at", &[]));
         let mut fee: Option<crate::value::Dict> = None;
-        let feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
+        let feeCost: Option<f64> = self.safe_number_k(transaction, "fee", &[]).as_f64();
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -314,7 +310,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction);
+        m.insert("info".to_string(), Value::from(transaction));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1126,7 +1122,7 @@ impl Coincheck {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
         let ticker: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_1]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, Some(&ticker), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

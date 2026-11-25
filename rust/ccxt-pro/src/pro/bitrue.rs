@@ -1393,7 +1393,7 @@ if _try_result.is_err() {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
                 }
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::from(key.as_deref())); }
-                let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
+                let wsUrls: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.urls.get("api") { if let Some(Value::Dict(__m)) = __p1.get("ws") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
                 let wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
                 if (wsUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " authenticate() has no private websocket url")));

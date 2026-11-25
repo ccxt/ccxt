@@ -200,7 +200,7 @@ impl Binance {
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions_ws" => { self.handle_positions_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_stock_price" => { self.handle_stock_price(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_stock_quote" => { self.handle_stock_quote(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_stock_quote" => { self.handle_stock_quote(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker_ws" => { self.handle_ticker_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_tickers" => { self.handle_tickers(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -3910,7 +3910,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if ((self.secret.len() as i64) as f64) > ((120i64) as f64) {
                 signature = Some(rsa(query.clone(), self.secret.clone(), Value::Str("sha256".into())));
             }  else {
-                signature = Some(eddsa(self.encode(&query), self.secret.clone(), Value::Str("ed25519".into())));
+                signature = Some(eddsa(self.encode(query), self.secret.clone(), Value::Str("ed25519".into())));
             }
         }  else {
             signature = Some(self.hmac(self.encode(query), self.encode(&self.secret), "sha256", &[]));
@@ -5517,7 +5517,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }
         }  else {
             if shouldUseAlgoOrder {
-                payload.insert("algoId".into(), Value::from(self.number_to_string(&id)));
+                payload.insert("algoId".into(), Value::from(self.number_to_string(id)));
             }  else {
                 payload.insert("orderId".into(), Value::from(self.number_to_string(id)));
             }
@@ -6508,9 +6508,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         client.resolve(Value::Map(tickers), "stock:price");
 }
 
-    pub fn handle_stock_quote(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_stock_quote(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let stockSymbol: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let symbol: Value = self.get_stock_unified_symbol(stockSymbol.as_deref(), &[&Value::Str("USDC".into())]).map(Value::from).unwrap_or(Value::Null);
         if (symbol == Value::Null) {
@@ -6526,7 +6525,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("ask".to_string(), (match __pro_message.get("ap").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("bidVolume".to_string(), (match __pro_message.get("bs").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
                 m.insert("askVolume".to_string(), (match __pro_message.get("as").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-                m.insert("info".to_string(), message);
+                m.insert("info".to_string(), Value::from(message));
             m
         }), None));
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
@@ -7323,7 +7322,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                             }  else if (self.safe_string_k(&fee, "currency", &[]) == Value::Null) {
                                 if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee.clone()); }
                             }  else {
-                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee, tradeFee.clone()])); }
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee, tradeFee])); }
                                 if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Null); }
                             }
                         }  else {
@@ -7655,7 +7654,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             //     }
             //
             if (event.is_none()) && (self.safe_string_k(&messageValue, "a", &[]) != Value::Null) && (self.safe_string_k(&messageValue, "b", &[]) != Value::Null) {
-                self.handle_bids_asks(&client.as_value(), messageValue.clone());
+                self.handle_bids_asks(&client.as_value(), messageValue);
             }
         }  else {
             self.dispatch_ws_handler(&method, &[&client.as_value(), &messageValue]);

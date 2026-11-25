@@ -92,19 +92,18 @@ impl crate::exchange::DerivedExchange for Opinion {
     None
 }
     fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
-        let tokenId: Option<String> = self.safe_string_k_opt(&trade, "tokenId", &[]);
+        let tokenId: Option<String> = self.safe_string_k_opt(trade, "tokenId", &[]);
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(tokenId.as_deref(), market);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&trade, "createdAt", &[]).as_i64();
-        let side: Option<String> = self.safe_string_lower_k_opt(&trade, "side", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(trade, "createdAt", &[]).as_i64();
+        let side: Option<String> = self.safe_string_lower_k_opt(trade, "side", &[]);
         return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&trade, "txHash", &[]));
+        m.insert("id".to_string(), self.safe_string_k(trade, "txHash", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_number_k(&trade, "price", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(&trade, "shares", &[]));
-        m.insert("cost".to_string(), self.safe_number_k(&trade, "amount", &[]));
+        m.insert("price".to_string(), self.safe_number_k(trade, "price", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(trade, "shares", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(trade, "amount", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(trade, "fee", &[]));
@@ -121,7 +120,6 @@ impl crate::exchange::DerivedExchange for Opinion {
     None
 }
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         //     {
         //         "orderId": "...",
@@ -143,18 +141,18 @@ impl crate::exchange::DerivedExchange for Opinion {
         //         "postOnly": false
         //     }
         //
-        let id: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
+        let id: Option<String> = self.safe_string_k_opt(order, "orderId", &[]);
         let marketAny: Value = crate::Value::from(market);
-        let statusEnum: Option<String> = self.safe_string_k_opt(&order, "statusEnum", &[]);
+        let statusEnum: Option<String> = self.safe_string_k_opt(order, "statusEnum", &[]);
         let status: Option<String> = self.parse_order_status(statusEnum.as_deref());
-        let sideEnum: Option<String> = self.safe_string_lower_k_opt(&order, "sideEnum", &[]);
-        let tradingMethodEnum: Option<String> = self.safe_string_lower_k_opt(&order, "tradingMethodEnum", &[]);
-        let timestamp: Option<i64> = self.safe_timestamp_k(&order, "createdAt", &[]).as_i64();
+        let sideEnum: Option<String> = self.safe_string_lower_k_opt(order, "sideEnum", &[]);
+        let tradingMethodEnum: Option<String> = self.safe_string_lower_k_opt(order, "tradingMethodEnum", &[]);
+        let timestamp: Option<i64> = self.safe_timestamp_k(order, "createdAt", &[]).as_i64();
         return Some(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), Value::from(order));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -165,9 +163,9 @@ impl crate::exchange::DerivedExchange for Opinion {
         m.insert("market".to_string(), self.safe_string2(&marketAny, Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("type".to_string(), tradingMethodEnum.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), sideEnum.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_number_k(&order, "price", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(&order, "orderShares", &[]));
-        m.insert("cost".to_string(), self.safe_number_k(&order, "filledAmount", &[]));
+        m.insert("price".to_string(), self.safe_number_k(order, "price", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(order, "orderShares", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(order, "filledAmount", &[]));
         m.insert("filled".to_string(), self.safe_number_k(order, "filledShares", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
@@ -177,28 +175,26 @@ impl crate::exchange::DerivedExchange for Opinion {
     None
 }
     fn parse_prediction_position(&self, position: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let position: Value = position.into();
-        let tokenId: Option<String> = self.safe_string_k_opt(&position, "tokenId", &[]);
+        let tokenId: Option<String> = self.safe_string_k_opt(position, "tokenId", &[]);
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(tokenId.as_deref(), market);
-        let outcomeSideEnum: Option<String> = self.safe_string_lower_k_opt(&position, "outcomeSideEnum", &[]);
+        let outcomeSideEnum: Option<String> = self.safe_string_lower_k_opt(position, "outcomeSideEnum", &[]);
         return Some(self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("contracts".to_string(), self.safe_number_k(&position, "sharesOwned", &[]));
+        m.insert("contracts".to_string(), self.safe_number_k(position, "sharesOwned", &[]));
         m.insert("side".to_string(), outcomeSideEnum.map(Value::from).unwrap_or(Value::Null));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(&position, "unrealizedPnl", &[]));
-        m.insert("entryPrice".to_string(), self.safe_number_k(&position, "avgEntryPrice", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealizedPnl", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position, "avgEntryPrice", &[]));
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(crate::Value::from(outcomeObj.as_ref()), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string2(crate::Value::from(outcomeObj.as_ref()), Value::Str("market".into()), Value::Str("outcome".into()), &[]));
-        m.insert("info".to_string(), position);
+        m.insert("info".to_string(), Value::from(position));
     m
 })));
 
     None
 }
     fn parse_prediction_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let ticker: Value = ticker.into();
         //
         //     {
         //         "price": {
@@ -214,9 +210,9 @@ impl crate::exchange::DerivedExchange for Opinion {
         //     }
         //
         let marketAny: Value = crate::Value::from(market);
-        let priceResponse: crate::value::Dict = self.safe_dict_k_t(&ticker, "price");
+        let priceResponse: crate::value::Dict = self.safe_dict_k_t(ticker, "price");
         let priceResult: crate::value::Dict = self.safe_dict_k_t(&priceResponse, "result");
-        let bookResponse: crate::value::Dict = self.safe_dict_k_t(&ticker, "book");
+        let bookResponse: crate::value::Dict = self.safe_dict_k_t(ticker, "book");
         let bookResult: crate::value::Dict = self.safe_dict_k_t(&bookResponse, "result");
         let bids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&bookResult, "bids"));
         let asks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&bookResult, "asks"));
@@ -249,7 +245,7 @@ impl crate::exchange::DerivedExchange for Opinion {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), ticker);
+        m.insert("info".to_string(), Value::from(ticker));
     m
 }), &[crate::Value::from(market)]));
 
@@ -2353,7 +2349,7 @@ impl Opinion {
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> crate::value::Dict {
-        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the PHP str_pad regex matches
         let rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let sRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2370,7 +2366,7 @@ impl Opinion {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>().as_str());
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), &privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]);
 }
 
     pub fn sign_api_key_auth(&self, walletAddress: &str, action: &str, timestamp: &str) -> Option<String> {
@@ -2594,7 +2590,7 @@ if _try_result.is_err() {
         if (msgType.as_deref() == Some("market.depth.diff")) {
             self.handle_order_book(client.as_value(), message);
         }  else if (msgType.as_deref() == Some("market.last.price")) {
-            self.handle_ticker(client.as_value(), Value::from(message));
+            self.handle_ticker(client.as_value(), message);
         }  else if (msgType.as_deref() == Some("market.last.trade")) {
             self.handle_trades(client.as_value(), message);
         }  else if (msgType.as_deref() == Some("trade.order.update")) {
@@ -2766,9 +2762,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_ticker(&mut self, mut client: Value, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2795,7 +2790,7 @@ if _try_result.is_err() {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("close".to_string(), Value::from(last));
         m.insert("last".to_string(), Value::from(last));
-        m.insert("info".to_string(), message);
+        m.insert("info".to_string(), Value::from(message));
     m
 }), &[outcomeObj]));
         let mut cachedTickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "wsTickers", &[Value::Map({

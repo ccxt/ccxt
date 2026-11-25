@@ -53,26 +53,25 @@ impl crate::exchange::DerivedExchange for Toobit {
     fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { Some(&self.parent) }
     fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }
     fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let trade: Value = trade.into();
-        let marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
-        let ts: Option<String> = self.safe_string_k_opt(&trade, "t", &[]);
-        let isMaker: bool = self.safe_bool_k_opt(&trade, "m", &[Value::Bool(false)]).unwrap_or(false);
+        let marketId: Option<String> = self.safe_string_k_opt(trade, "s", &[]);
+        let ts: Option<String> = self.safe_string_k_opt(trade, "t", &[]);
+        let isMaker: bool = self.safe_bool_k_opt(trade, "m", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerOrMaker: String = "taker".to_string();
         if isMaker {
             takerOrMaker = "maker".to_string();
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), self.safe_string_k(&trade, "T", &[]));
+        m.insert("info".to_string(), Value::from(trade));
+        m.insert("id".to_string(), self.safe_string_k(trade, "T", &[]));
         m.insert("timestamp".to_string(), Value::from(ts.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(ts.map(Value::from).unwrap_or(Value::Null)));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("order".to_string(), self.safe_string_k(&trade, "o", &[]));
+        m.insert("order".to_string(), self.safe_string_k(trade, "o", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_lower_k(&trade, "S", &[]));
+        m.insert("side".to_string(), self.safe_string_lower_k(trade, "S", &[]));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
-        m.insert("price".to_string(), self.safe_string_k(&trade, "p", &[]));
+        m.insert("price".to_string(), self.safe_string_k(trade, "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade, "q", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -91,7 +90,7 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
                 "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
@@ -282,7 +281,7 @@ impl Toobit {
     Value::Null
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
+    pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
         let message: &[Value] = &message;
         // private streams
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -308,7 +307,7 @@ impl Toobit {
             let event: Option<String> = self.safe_string_k_opt(&item, "e", &[]);
             let method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
-                self.dispatch_ws_handler(&method, &[client, &item]);
+                self.dispatch_ws_handler(&method, &[&client, &item]);
             }
         }
         }
@@ -596,7 +595,7 @@ impl Toobit {
         }
         let url: String = format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[Value::Str("".into())]), Value::Str("/quote/ws/v1".into()));
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let timeframes: crate::value::Dict = self.safe_dict_t(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("timeframes".into()));
+        let timeframes: crate::value::Dict = (if let Some(Value::Dict(__p1)) = self.options.get("ws") { if let Some(Value::Dict(__m)) = __p1.get("timeframes") { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
         let mut marketIds: Vec<Value> = Vec::new();
         let mut selectedTimeframe: Option<String> = Some("".to_string());
         {

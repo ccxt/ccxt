@@ -115,7 +115,6 @@ impl crate::exchange::DerivedExchange for Alpaca {
     None
 }
     fn parse_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let order: Value = order.into();
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -154,12 +153,12 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //        "source":null
         //    }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
-        let alpacaStatus: Option<String> = self.safe_string_k_opt(&order, "status", &[]);
+        let alpacaStatus: Option<String> = self.safe_string_k_opt(order, "status", &[]);
         let status: Option<String> = self.parse_order_status(alpacaStatus.as_deref());
-        let feeValue: Option<String> = self.safe_string_k_opt(&order, "commission", &[]);
+        let feeValue: Option<String> = self.safe_string_k_opt(order, "commission", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeValue.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -169,38 +168,38 @@ impl crate::exchange::DerivedExchange for Alpaca {
                 m
             }));
         }
-        let mut orderType: Option<String> = self.safe_string_k_opt(&order, "order_type", &[]);
+        let mut orderType: Option<String> = self.safe_string_k_opt(order, "order_type", &[]);
         if (orderType.is_some()) {
             if orderType.as_deref().unwrap_or_default().contains("limit") {
                 // might be limit or stop-limit
                 orderType = Some("limit".to_string());
             }
         }
-        let datetime: Option<String> = self.safe_string_k_opt(&order, "submitted_at", &[]);
+        let datetime: Option<String> = self.safe_string_k_opt(order, "submitted_at", &[]);
         let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
+        m.insert("id".to_string(), self.safe_string_k(order, "id", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(&order, "filled_at", &[]))));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(order, "filled_at", &[]))));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(&order, "time_in_force", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order, "time_in_force", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
-        m.insert("price".to_string(), self.safe_number_k(&order, "limit_price", &[]));
-        m.insert("triggerPrice".to_string(), self.safe_number_k(&order, "stop_price", &[]));
+        m.insert("side".to_string(), self.safe_string_k(order, "side", &[]));
+        m.insert("price".to_string(), self.safe_number_k(order, "limit_price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "stop_price", &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(&order, "filled_avg_price", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(&order, "qty", &[]));
-        m.insert("filled".to_string(), self.safe_number_k(&order, "filled_qty", &[]));
+        m.insert("average".to_string(), self.safe_number_k(order, "filled_avg_price", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(order, "qty", &[]));
+        m.insert("filled".to_string(), self.safe_number_k(order, "filled_qty", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("info".to_string(), order);
+        m.insert("info".to_string(), Value::from(order));
     m
 }), Some(&marketResolved)));
 
@@ -445,7 +444,6 @@ impl crate::exchange::DerivedExchange for Alpaca {
     None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let transaction: Value = transaction.into();
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         //
@@ -475,7 +473,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //         "fees": "0.1"
         //     }
         //
-        let activityType: Option<String> = self.safe_string_k_opt(&transaction, "activity_type", &[]);
+        let activityType: Option<String> = self.safe_string_k_opt(transaction, "activity_type", &[]);
         let mut txid: Option<String> = None;
         let mut timestamp: Option<i64> = None;
         let mut datetime: Option<String> = None;
@@ -491,9 +489,9 @@ impl crate::exchange::DerivedExchange for Alpaca {
         let mut internal: Option<bool> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
-            let netAmount: Option<String> = self.safe_string_k_opt(&transaction, "net_amount", &[]);
+            let netAmount: Option<String> = self.safe_string_k_opt(transaction, "net_amount", &[]);
             let isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".into())).as_bool() == Some(true)));
-            let date: String = self.safe_string_k(&transaction, "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let date: String = self.safe_string_k(transaction, "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
             datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
             type_var = (if isIncoming { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
@@ -501,7 +499,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
-            let activityCurrencyId: Option<String> = self.safe_string2_opt(&transaction, Value::Str("symbol".into()), Value::Str("asset".into()), &[]);
+            let activityCurrencyId: Option<String> = self.safe_string2_opt(transaction, Value::Str("symbol".into()), Value::Str("asset".into()), &[]);
             if (activityCurrencyId.is_some()) {
                 code = self.safe_currency_code(activityCurrencyId.as_deref(), None);
             }  else if (activityType.as_deref() == Some("CSD")) || (activityType.as_deref() == Some("CSW")) {
@@ -509,24 +507,24 @@ impl crate::exchange::DerivedExchange for Alpaca {
             }  else {
                 code = self.safe_currency_code(None, currency);
             }
-            status = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
+            status = self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str());
             comment = activityType.clone();
             internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
-            txid = self.safe_string_k_opt(&transaction, "tx_hash", &[]);
-            datetime = self.safe_string_k_opt(&transaction, "created_at", &[]);
+            txid = self.safe_string_k_opt(transaction, "tx_hash", &[]);
+            datetime = self.safe_string_k_opt(transaction, "created_at", &[]);
             timestamp = self.parse8601(Value::from(datetime.as_deref()));
-            address = self.safe_string_k_opt(&transaction, "to_address", &[]);
-            addressTo = self.safe_string_k_opt(&transaction, "to_address", &[]);
-            addressFrom = self.safe_string_k_opt(&transaction, "from_address", &[]);
-            type_var = self.parse_transaction_type(self.safe_string_k(&transaction, "direction", &[]).as_str());
-            amount = self.parse_number(self.safe_string_k(&transaction, "amount", &[]), &[]).as_f64();
-            let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "asset", &[]);
+            address = self.safe_string_k_opt(transaction, "to_address", &[]);
+            addressTo = self.safe_string_k_opt(transaction, "to_address", &[]);
+            addressFrom = self.safe_string_k_opt(transaction, "from_address", &[]);
+            type_var = self.parse_transaction_type(self.safe_string_k(transaction, "direction", &[]).as_str());
+            amount = self.parse_number(self.safe_string_k(transaction, "amount", &[]), &[]).as_f64();
+            let currencyId: Option<String> = self.safe_string_k_opt(transaction, "asset", &[]);
             code = self.safe_currency_code(currencyId.as_deref(), currency);
-            network = self.network_id_to_code(self.safe_string_k(&transaction, "chain", &[]).as_str(), code.as_deref());
-            status = self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str());
-            let fees: Option<String> = self.safe_string_k_opt(&transaction, "fees", &[]);
-            let networkFee: Option<String> = self.safe_string_k_opt(&transaction, "network_fee", &[]);
+            network = self.network_id_to_code(self.safe_string_k(transaction, "chain", &[]).as_str(), code.as_deref());
+            status = self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str());
+            let fees: Option<String> = self.safe_string_k_opt(transaction, "fees", &[]);
+            let networkFee: Option<String> = self.safe_string_k_opt(transaction, "network_fee", &[]);
             let totalFee: Option<String> = crate::precise::Precise::stringAdd(&fees, &networkFee).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -537,7 +535,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), transaction.clone());
+        m.insert("info".to_string(), Value::from(transaction));
         m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
