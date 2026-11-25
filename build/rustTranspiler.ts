@@ -6956,6 +6956,7 @@ const RUST_FILTER_LIST_FNS = [
     'filter_by_symbols_since_limit',
     'array_slice',
     'filter_by',
+    'sort_by2',
 ].join('|');
 function typeFilterSliceLists(content: string): string {
     content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
