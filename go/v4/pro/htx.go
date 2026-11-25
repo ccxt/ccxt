@@ -2043,7 +2043,7 @@ func (this *Htx) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResul
 func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2063,7 +2063,7 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	var hasMarket bool = (!this.IsEmpty(symbols)) && (symbols != nil)
 	if hasMarket {
 		market = this.GetMarketFromSymbols(symbols)
-		messageHash = "::" + ccxt.Join(symbols, ",")
+		messageHash = "::" + strings.Join(symbols, ",")
 	}
 	var typeVar any = nil
 	var subType any = nil

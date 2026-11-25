@@ -5442,7 +5442,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(data, market))}
 	return nil
 }
-func (this *Poloniex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Poloniex) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "symbol")

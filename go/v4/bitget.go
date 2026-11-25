@@ -13892,7 +13892,7 @@ func (this *Bitget) modifyMarginHelperBody(ch chan AsyncResult[MarginModificatio
 	}))}
 	return nil
 }
-func (this *Bitget) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Bitget) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// addMargin/reduceMargin
 	//
@@ -15811,7 +15811,7 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	if rows == nil {
 		rows = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(rows, market)
+	var interest []any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil

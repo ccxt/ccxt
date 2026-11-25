@@ -2408,9 +2408,9 @@ func (this *Okx) HandleOrderBook(client ccxt.ClientInterface, message map[string
 			}
 			var bboBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			for i := 0; i < len(data); i++ {
-				var update any = data[i]
+				var update, _ = data[i].(map[string]any)
 				var timestamp *int64 = this.SafeInteger(update, "ts")
-				var snapshot map[string]any = this.ParseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1)
+				var snapshot map[string]any = this.ParseOrderBook(data[i], symbol, timestamp, "bids", "asks", 0, 1)
 				bboBook.Reset(snapshot)
 				client.Resolve(bboBook, messageHash)
 			}
@@ -2730,11 +2730,11 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	}
 	var messageHash string = channel + "::myTrades"
 	var market map[string]any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 		typeVar = this.SafeString(market, "type")
 		messageHash = messageHash + "::" + *this.SafeString(market, "symbol", "")
 	}

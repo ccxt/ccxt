@@ -4589,7 +4589,7 @@ func (this *Woofipro) setMarginModeBody(ch chan AsyncResult[map[string]any], mar
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Woofipro) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "success": true,

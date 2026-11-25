@@ -22,8 +22,7 @@ func newGate() *Gate {
 }
 
 func (this *Gate) Describe() map[string]any {
-	var superDescribe any = this.base.Describe()
-	return this.DeepExtend(superDescribe, this.DescribeData())
+	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
 func (this *Gate) DescribeData() any {
 	return map[string]any{
@@ -565,11 +564,11 @@ func (this *Gate) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes37315 []any = ccxt.OrdersToList(r.Value)
-	if retRes37315 == nil {
+	var retRes37215 []any = ccxt.OrdersToList(r.Value)
+	if retRes37215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes37315)}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes37215)}
 	}
 	return nil
 }
@@ -606,11 +605,11 @@ func (this *Gate) fetchClosedOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes38815 []any = ccxt.OrdersToList(r.Value)
-	if retRes38815 == nil {
+	var retRes38715 []any = ccxt.OrdersToList(r.Value)
+	if retRes38715 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes38815)}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes38715)}
 	}
 	return nil
 }
@@ -1341,11 +1340,11 @@ func (this *Gate) HandleTickerAndBidAsk(objectName string, client ccxt.ClientInt
 	for i := 0; i < len(results); i++ {
 		var marketId *string = this.SafeString(results[i], "s")
 		var market map[string]any = this.SafeMarket(marketId, nil, "_", marketType)
-		resultsDict93349, _ := results[i].(map[string]any)
-		if resultsDict93349 == nil {
-			resultsDict93349 = map[string]any{}
+		resultsDict93249, _ := results[i].(map[string]any)
+		if resultsDict93249 == nil {
+			resultsDict93249 = map[string]any{}
 		}
-		var parsedItem map[string]any = ccxt.TickerToMap(this.ParseTicker(resultsDict93349, market))
+		var parsedItem map[string]any = ccxt.TickerToMap(this.ParseTicker(resultsDict93249, market))
 		var symbol *string = ccxt.SafeStringPtr(parsedItem["symbol"])
 		if isTicker {
 			if symbol != nil {
@@ -1439,11 +1438,11 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
-	var symbolsNormalizedElem98736 *string = nil
+	var symbolsNormalizedElem98636 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem98736 = &symbolsNormalized[0]
+		symbolsNormalizedElem98636 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem98736)
+	var market map[string]any = this.Market(symbolsNormalizedElem98636)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
 	var messageHashes []string = []string{}
@@ -1502,11 +1501,11 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
-	var symbolsNormalizedElem102036 *string = nil
+	var symbolsNormalizedElem101936 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem102036 = &symbolsNormalized[0]
+		symbolsNormalizedElem101936 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem102036)
+	var market map[string]any = this.Market(symbolsNormalizedElem101936)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
 	var subMessageHashes []string = []string{}

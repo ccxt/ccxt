@@ -7381,12 +7381,12 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan AsyncResult[[]Order], optiona
  * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kucoin) FetchOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status any, optionalArgs ...any) any {
+func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7504,12 +7504,12 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
  * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchSpotOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kucoin) FetchSpotOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchSpotOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]Order], status any, optionalArgs ...any) any {
+func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]Order], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7527,7 +7527,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]Order], st
 			panic(r.Err)
 		}
 	}
-	var lowercaseStatus string = ToLower(status)
+	var lowercaseStatus string = strings.ToLower(status)
 	var until *int64 = this.SafeInteger(params, "until")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	hf, paramsHf := this.HandleHfAndParams(params)
@@ -7659,12 +7659,12 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan AsyncResult[[]Order], st
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchContractOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kucoin) FetchContractOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchContractOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan AsyncResult[[]Order], status any, optionalArgs ...any) any {
+func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan AsyncResult[[]Order], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7833,12 +7833,12 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan AsyncResult[[]Order]
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchUtaOrdersByStatusAsync(status any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Kucoin) FetchUtaOrdersByStatusAsync(status string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchUtaOrdersByStatusBody(ch, status, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan AsyncResult[[]Order], status any, optionalArgs ...any) any {
+func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan AsyncResult[[]Order], status string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7904,7 +7904,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan AsyncResult[[]Order], sta
 	if limit != nil {
 		requestUntil["pageSize"] = *limit
 	}
-	var lowercaseStatus string = ToLower(status)
+	var lowercaseStatus string = strings.ToLower(status)
 	if lowercaseStatus == "open" {
 		lowercaseStatus = "active"
 	} else if lowercaseStatus == "closed" {
@@ -11318,7 +11318,8 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	}
 	if isolated {
 		var data, _ = response["data"].(map[string]any)
-		var assets []any = SafeListTyped(data, "assets")
+		var assets []any
+		assets, _ = data["assets"].([]any)
 		for i := 0; i < len(assets); i++ {
 			var entry, _ = assets[i].(map[string]any)
 			var base map[string]any
@@ -11589,7 +11590,8 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan AsyncResult[Balances], optionalA
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var accounts []any = SafeListTyped(data, "accounts")
+	var accounts []any
+	accounts, _ = data["accounts"].([]any)
 	if isIsolated {
 		for i := 0; i < len(accounts); i++ {
 			var entry, _ = accounts[i].(map[string]any)
@@ -12735,7 +12737,7 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	if assets == nil {
 		assets = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(assets, market)
+	var interest []any = this.ParseBorrowInterests(assets, market)
 	var filteredByCurrency []any = this.FilterByCurrencySinceLimit(interest, code, since, limit)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit))}
@@ -15236,7 +15238,7 @@ func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(literal1127815)}
 	return nil
 }
-func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseMarginModification(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id": "62311d26064e8f00013f2c6d",
@@ -17494,7 +17496,7 @@ func (this *Kucoin) FetchOrdersByStatus(status string, options ...FetchOrdersByS
  * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
  * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kucoin) FetchSpotOrdersByStatus(status any, options ...FetchSpotOrdersByStatusOptions) ([]Order, error) {
+func (this *Kucoin) FetchSpotOrdersByStatus(status string, options ...FetchSpotOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchSpotOrdersByStatusOptionsStruct{}
 

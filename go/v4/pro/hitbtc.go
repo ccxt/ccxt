@@ -875,12 +875,12 @@ func (this *Hitbtc) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) ma
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var bidAskSymbol any = nil
+	var bidAskSymbol *string = nil
 	if market != nil {
-		bidAskSymbol = market["symbol"]
+		bidAskSymbol = this.SafeString(market, "symbol")
 	}
-	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
-		"symbol":    bidAskSymbol,
+	var literal66532 map[string]any = map[string]any{
+		"symbol":    nil,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"ask":       this.SafeString(ticker, "a"),
@@ -888,7 +888,11 @@ func (this *Hitbtc) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) ma
 		"bid":       this.SafeString(ticker, "b"),
 		"bidVolume": this.SafeString(ticker, "B"),
 		"info":      ticker,
-	}, market))
+	}
+	if bidAskSymbol != nil {
+		literal66532["symbol"] = *bidAskSymbol
+	}
+	return ccxt.TickerToMap(this.SafeTicker(literal66532, market))
 }
 
 /**

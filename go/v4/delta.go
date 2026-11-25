@@ -3796,7 +3796,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(result, market))}
 	return nil
 }
-func (this *Delta) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "auto_topup": false,
@@ -4409,7 +4409,7 @@ func (this *Delta) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(result, market)}
 	return nil
 }
-func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Delta) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "close": 6793.0,
@@ -4464,8 +4464,8 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 	var timestamp *int64 = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
 	var marketId *string = this.SafeString(greeks, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var stats map[string]any = SafeMapTyped(greeks, "greeks")
-	var quotes map[string]any = SafeMapTyped(greeks, "quotes")
+	var stats, _ = greeks["greeks"].(map[string]any)
+	var quotes, _ = greeks["quotes"].(map[string]any)
 	return GreeksFromMap(map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,

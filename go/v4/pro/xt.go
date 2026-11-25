@@ -292,7 +292,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	symbols := ccxt.GetArg(optionalArgs, 1, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 1, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -335,7 +335,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	}
 	var messageHash string = name + "::" + tradeType
 	if symbols != nil {
-		messageHash = messageHash + "::" + ccxt.Join(symbols, ",")
+		messageHash = messageHash + "::" + strings.Join(symbols, ",")
 	}
 	var request map[string]any = this.Extend(subscribe, paramsMarketType)
 	var tail string = access

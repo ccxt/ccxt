@@ -632,7 +632,7 @@ func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any
 	}
 	return eventPart + "_" + marketPart
 }
-func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome any) string {
+func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome *string) string {
 	// build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
 	// — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
 	// the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
@@ -640,10 +640,10 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 	// currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
 	// instead of leaking raw text into the outcome handle
 	var upper string
-	if IsEqual(outcome, nil) {
+	if outcome == nil {
 		upper = ""
 	} else {
-		upper = ToUpper(outcome)
+		upper = strings.ToUpper(*outcome)
 	}
 	var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var chars []string = this.StringToCharsArray(upper)
@@ -736,7 +736,10 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 			// on a real collision of same handle but different outcomeId, disambiguate the
 			// second one deterministically instead of silently overwriting the first —
 			// trading the wrong market would otherwise be indistinguishable
-			var existing map[string]any = SafeMapTyped(this.Outcomes, ocSymbol)
+			var existing map[string]any
+			if ocSymbol != nil {
+				existing, _ = this.Outcomes[*ocSymbol].(map[string]any)
+			}
 			if existing != nil {
 				var existingId *string = this.SafeString(existing, "outcomeId")
 				if (existingId != nil) && (ocId != nil) && (existingId != ocId && (existingId == nil || ocId == nil || *existingId != *ocId)) {

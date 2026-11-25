@@ -2704,7 +2704,8 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	var result map[string]any = map[string]any{
 		"info": responseReply.Raw,
 	}
-	var accounts []any = SafeListTyped(response, "accounts")
+	var accounts []any
+	accounts, _ = response["accounts"].([]any)
 	for i := 0; i < len(accounts); i++ {
 		var account, _ = accounts[i].(map[string]any)
 		if typeVar != nil && *typeVar == "spot" {
@@ -5143,7 +5144,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
 	return nil
 }
-func (this *Lighter) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Lighter) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(data, "predicted_execution_time_ms")

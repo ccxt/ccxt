@@ -22,8 +22,7 @@ func newBybit() *Bybit {
 }
 
 func (this *Bybit) Describe() map[string]any {
-	var superDescribe any = this.base.Describe()
-	return this.DeepExtend(superDescribe, this.DescribeData())
+	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
 func (this *Bybit) DescribeData() any {
 	return map[string]any{
@@ -1370,21 +1369,21 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var symbolsNormalizedElem96051 *string = nil
+	var symbolsNormalizedElem95951 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem96051 = &symbolsNormalized[0]
+		symbolsNormalizedElem95951 = &symbolsNormalized[0]
 	}
-	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalizedElem96051, false, "watchOrderBook", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalizedElem95951, false, "watchOrderBook", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var symbolsNormalizedElem96236 *string = nil
+	var symbolsNormalizedElem96136 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem96236 = &symbolsNormalized[0]
+		symbolsNormalizedElem96136 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem96236)
+	var market map[string]any = this.Market(symbolsNormalizedElem96136)
 	if limit != nil {
 		var limits map[string]any = map[string]any{
 			"spot":    []any{1, 50, 200, 1000},
@@ -3024,11 +3023,11 @@ func (this *Bybit) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
-		rawOrdersDict211944, _ := rawOrders[i].(map[string]any)
-		if rawOrdersDict211944 == nil {
-			rawOrdersDict211944 = map[string]any{}
+		rawOrdersDict211844, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict211844 == nil {
+			rawOrdersDict211844 = map[string]any{}
 		}
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211944))
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211844))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol == nil {
 			continue
@@ -3321,11 +3320,11 @@ func (this *Bybit) HandleBalance(client ccxt.ClientInterface, message map[string
 		}
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		rawBalancesDict236733, _ := rawBalances[i].(map[string]any)
-		if rawBalancesDict236733 == nil {
-			rawBalancesDict236733 = map[string]any{}
+		rawBalancesDict236633, _ := rawBalances[i].(map[string]any)
+		if rawBalancesDict236633 == nil {
+			rawBalancesDict236633 = map[string]any{}
 		}
-		this.ParseWsBalance(rawBalancesDict236733, account)
+		this.ParseWsBalance(rawBalancesDict236633, account)
 	}
 	if account != nil {
 		if this.SafeDictMap(this.Balance, account) == nil {

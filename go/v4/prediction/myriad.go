@@ -4409,7 +4409,7 @@ func (this *Myriad) MarketOutcomeToSymbol(networkId *string, marketId *string, o
 		return nil
 	}
 	var ocId string = *networkId + ":" + *marketId + "/" + *outcomeId
-	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, ocId)
+	var outcomeObj, _ = this.Outcomes_by_id[ocId].(map[string]any)
 	return this.SafeString(outcomeObj, "outcome")
 }
 func (this *Myriad) ConnectCentrifugoAsync(url *string) <-chan ccxt.AsyncResult[bool] {

@@ -2998,10 +2998,7 @@ func (this *Gate) GetSettlementCurrencies(typeVar string, method string) []any {
 	} else {
 		defaultSettle = []any{"btc"}
 	}
-	if list, ok := fetchMarketsContractOptions["settlementCurrencies"].([]any); ok {
-		return list
-	}
-	return defaultSettle
+	return this.SafeListNSliceDefault(fetchMarketsContractOptions, []any{"settlementCurrencies"}, defaultSettle)
 }
 
 /**
@@ -8105,7 +8102,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status s
 	if openSpotOrders {
 		var spotResult []any = []any{}
 		for i := 0; i < len(response); i++ {
-			var responseEntry map[string]any = SafeMapTyped(response, i)
+			var responseEntry, _ = response[i].(map[string]any)
 			var ordersInner any = this.SafeValue(responseEntry, "orders")
 			spotResult = this.ArrayConcat(spotResult, ordersInner)
 		}
@@ -9920,7 +9917,7 @@ func (this *Gate) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest],
 		}
 		response = responseRecv.Value
 	}
-	var interest any = this.ParseBorrowInterests(response, market)
+	var interest []any = this.ParseBorrowInterests(response, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
@@ -10124,7 +10121,7 @@ func (this *Gate) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
 	return nil
 }
-func (this *Gate) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Gate) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "value": "11.9257",
@@ -11423,7 +11420,7 @@ func (this *Gate) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, op
 	}
 	panic(NullResponse(this.Id + " fetchGreeks() could not find greeks for " + symbol))
 }
-func (this *Gate) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Gate) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "vega": "1.78992",

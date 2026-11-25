@@ -3034,7 +3034,7 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 			"status": "rejected",
 		})
 	}
-	var details any = nil
+	var details map[string]any = nil
 	var isPrior bool = false
 	var fixed bool = false
 	var statusId *string = nil
@@ -3049,21 +3049,21 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 			}
 			// Final order (after placement / editing / execution / canceling)
 			var orderTrigger map[string]any = SafeMapTyped(item, "orderTrigger")
-			if IsEqual(details, nil) {
-				details = this.SafeValue2(item, "new", "order", orderTrigger)
-				if !IsEqual(details, nil) {
+			if details == nil {
+				details = this.SafeDict2Map(item, "new", "order", orderTrigger)
+				if details != nil {
 					isPrior = false
 					fixed = true
 				} else if !fixed {
 					var executedPrice *string = this.SafeString(item, "price")
 					var orderPriorExecution map[string]any = SafeMapTyped(item, "orderPriorExecution")
-					details = this.SafeValue2(item, "orderPriorExecution", "orderPriorEdit")
+					details = this.SafeDict2Map(item, "orderPriorExecution", "orderPriorEdit")
 					if executedPrice == nil {
 						price = this.SafeString(orderPriorExecution, "limitPrice")
 					} else {
 						price = executedPrice
 					}
-					if !IsEqual(details, nil) {
+					if details != nil {
 						isPrior = true
 					}
 				}
@@ -3072,7 +3072,7 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 		trades = this.ParseTrades(executions)
 		statusId = this.SafeString(order, "status")
 	}
-	if IsEqual(details, nil) {
+	if details == nil {
 		details = order
 	}
 	if statusId == nil {
@@ -3158,7 +3158,7 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 		timeInForce = "ioc"
 	}
 	var ts *int64 = this.SafeInteger(details, "timestamp", timestamp)
-	var priceTriggerOptions map[string]any = SafeMapTyped(details, "priceTriggerOptions")
+	var priceTriggerOptions, _ = details["priceTriggerOptions"].(map[string]any)
 	var triggerPrice *string = this.SafeString2(details, "triggerPrice", "stopPrice")
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")

@@ -1774,7 +1774,10 @@ func (this *Backpack) FilterStockStructures(entries []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(entries); i++ {
 		var symbol *string = this.SafeString(entries[i], "symbol")
-		var market map[string]any = SafeMapTyped(this.Markets, symbol)
+		var market map[string]any
+		if symbol != nil {
+			market, _ = this.Markets[*symbol].(map[string]any)
+		}
 		if *this.SafeBool(market, "stock", false) {
 			result = append(result, entries[i])
 		}

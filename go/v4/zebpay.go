@@ -2766,7 +2766,7 @@ func (this *Zebpay) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 		"info":          ticker,
 	}, marketResolved)
 }
-func (this *Zebpay) ParseMarginModification(info any, optionalArgs ...any) map[string]any {
+func (this *Zebpay) ParseMarginModification(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//         "symbol": "BTCINR",

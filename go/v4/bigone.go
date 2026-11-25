@@ -762,9 +762,9 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	markets, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
-		var baseAsset map[string]any = SafeMapTyped(market, "base_asset")
-		var quoteAsset map[string]any = SafeMapTyped(market, "quote_asset")
+		var market, _ = markets[i].(map[string]any)
+		var baseAsset, _ = market["base_asset"].(map[string]any)
+		var quoteAsset, _ = market["quote_asset"].(map[string]any)
 		var baseId *string = this.SafeString(baseAsset, "symbol")
 		var quoteId *string = this.SafeString(quoteAsset, "symbol")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -820,11 +820,11 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 				},
 			},
 			"created": nil,
-			"info":    market,
+			"info":    markets[i],
 		}))
 	}
 	for i := 0; i < len(contractMarkets); i++ {
-		var market any = contractMarkets[i]
+		var market, _ = contractMarkets[i].(map[string]any)
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var settleId *string = this.SafeString(market, "settleCurrency")
@@ -882,7 +882,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 					"max": nil,
 				},
 			},
-			"info": market,
+			"info": contractMarkets[i],
 		}
 		if base != nil && quote != nil && settle != nil {
 			literal75151["symbol"] = *base + "/" + *quote + ":" + *settle
@@ -1976,7 +1976,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
 	var postOnly bool
 	var query map[string]any = nil
-	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), exchangeSpecificParam, params)
+	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
 	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1].(map[string]any)
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})

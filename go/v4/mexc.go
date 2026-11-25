@@ -5204,7 +5204,7 @@ func (this *Mexc) CustomParseBalance(response map[string]any, marketType string)
 	}
 	if isMarginType {
 		for i := 0; i < len(wallet); i++ {
-			var entry map[string]any = SafeMapTyped(wallet, i)
+			var entry, _ = wallet[i].(map[string]any)
 			var base map[string]any = this.SafeDictMap(entry, "baseAsset", map[string]any{})
 			var quote map[string]any = this.SafeDictMap(entry, "quoteAsset", map[string]any{})
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
@@ -5219,7 +5219,7 @@ func (this *Mexc) CustomParseBalance(response map[string]any, marketType string)
 		return this.SafeBalance(result).(map[string]any)
 	} else if isSwapType {
 		for i := 0; i < len(wallet); i++ {
-			var entry map[string]any = SafeMapTyped(wallet, i)
+			var entry, _ = wallet[i].(map[string]any)
 			var currencyId *string = this.SafeString(entry, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -5232,7 +5232,7 @@ func (this *Mexc) CustomParseBalance(response map[string]any, marketType string)
 		return this.SafeBalance(result).(map[string]any)
 	} else {
 		for i := 0; i < len(wallet); i++ {
-			var entry map[string]any = SafeMapTyped(wallet, i)
+			var entry, _ = wallet[i].(map[string]any)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()

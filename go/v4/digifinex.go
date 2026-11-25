@@ -4555,7 +4555,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	if rows == nil {
 		rows = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(rows, market)
+	var interest []any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
@@ -6150,7 +6150,7 @@ func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModifica
 	}))}
 	return nil
 }
-func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Digifinex) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instrument_id": "BTCUSDTPERP",

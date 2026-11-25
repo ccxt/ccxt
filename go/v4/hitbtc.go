@@ -4777,7 +4777,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan AsyncResult[MarginModificatio
 	}))}
 	return nil
 }
-func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Hitbtc) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// addMargin/reduceMargin
 	//

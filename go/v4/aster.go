@@ -4452,12 +4452,12 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 	//         }
 	//     ]
 	//
-	var modifications any = this.ParseMarginModifications(this.ToArray(response))
+	var modifications []any = this.ParseMarginModifications(this.ToArray(response))
 
 	ch <- AsyncResult[[]MarginModification]{Value: MarginModificationsFromList(this.FilterBySymbolSinceLimit(modifications, symbol, since, limit))}
 	return nil
 }
-func (this *Aster) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Aster) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "amount": "100",

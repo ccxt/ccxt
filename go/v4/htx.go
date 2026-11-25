@@ -4642,12 +4642,12 @@ func (this *Htx) ParseAccount(account map[string]any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Htx) FetchAccountIdByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[*string] {
+func (this *Htx) FetchAccountIdByTypeAsync(typeVar string, optionalArgs ...any) <-chan AsyncResult[*string] {
 	ch := make(chan AsyncResult[*string], 1)
 	go this.fetchAccountIdByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchAccountIdByTypeBody(ch chan AsyncResult[*string], typeVar any, optionalArgs ...any) any {
+func (this *Htx) fetchAccountIdByTypeBody(ch chan AsyncResult[*string], typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var marginMode *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4668,8 +4668,8 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan AsyncResult[*string], typeVar 
 		ch <- AsyncResult[*string]{Value: accountId}
 		return nil
 	}
-	var accountType any = typeVar
-	if IsEqual(typeVar, "spot") {
+	var accountType string = typeVar
+	if typeVar == "spot" {
 		if marginMode != nil && *marginMode == "cross" {
 			accountType = "super-margin"
 		} else if marginMode != nil && *marginMode == "isolated" {
@@ -4689,13 +4689,13 @@ func (this *Htx) fetchAccountIdByTypeBody(ch chan AsyncResult[*string], typeVar 
 		var info, _ = account["info"].(map[string]any)
 		var subtype *string = this.SafeString(info, "subtype")
 		var typeFromAccount *string = this.SafeString(account, "type")
-		if IsEqual(accountType, "margin") {
+		if accountType == "margin" {
 			if IsEqual(subtype, marketId) {
 
 				ch <- AsyncResult[*string]{Value: this.SafeString(account, "id")}
 				return nil
 			}
-		} else if IsEqual(accountType, typeFromAccount) {
+		} else if typeFromAccount != nil && *typeFromAccount == accountType {
 
 			ch <- AsyncResult[*string]{Value: this.SafeString(account, "id")}
 			return nil
@@ -5026,7 +5026,7 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 				panic(r4.Err)
 			}
 
-			r5 := <-this.FetchAccountIdByTypeAsync(typeVar, nil, nil, paramsMarginMode)
+			r5 := <-this.FetchAccountIdByTypeAsync("spot", nil, nil, paramsMarginMode)
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
@@ -7139,7 +7139,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 	var market map[string]any = this.Market(symbol)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
 
-	r2 := <-this.FetchAccountIdByTypeAsync(market["type"], marginMode, symbol)
+	r2 := <-this.FetchAccountIdByTypeAsync(*this.SafeString(market, "type", ""), marginMode, symbol)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -10265,7 +10265,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	if data == nil {
 		data = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(data, market)
+	var interest []any = this.ParseBorrowInterests(data, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil

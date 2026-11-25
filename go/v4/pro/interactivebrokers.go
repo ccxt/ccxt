@@ -1094,7 +1094,10 @@ func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit int64) string
 	var total int64 = duration * limit
 	var minutes int64 = this.ParseToInt(float64(total+59) / 60)
 	if minutes <= 30 {
-		return *this.NumberToString(max(minutes, 1)) + "min"
+		if minutes < 1 {
+			return "1min"
+		}
+		return *this.NumberToString(minutes) + "min"
 	}
 	var hours int64 = this.ParseToInt(float64(total+3599) / 3600)
 	if hours <= 8 {
@@ -1113,7 +1116,10 @@ func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit int64) string
 		return *this.NumberToString(months) + "m"
 	}
 	var years int64 = this.ParseToInt(float64(total+31535999) / 31536000)
-	return *this.NumberToString(min(years, 15)) + "y"
+	if years > 15 {
+		return "15y" // the documented maximum period
+	}
+	return *this.NumberToString(years) + "y"
 }
 
 /**
@@ -1638,9 +1644,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes103215 := r1.Value
+	retRes103815 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes103215.(type) {
+	switch resolvedBox := retRes103815.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1846,9 +1852,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes116015 := r1.Value
+	retRes116615 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes116015.(type) {
+	switch resolvedBox := retRes116615.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

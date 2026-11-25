@@ -375,10 +375,10 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
 	}
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw")
 	var channel string = "user.trades.any.any." + *interval
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 		channel = "user.trades." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 
@@ -496,10 +496,10 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
 	}
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw")
 	var channel string = "user.orders.any.any." + *interval
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 		channel = "user.orders." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 

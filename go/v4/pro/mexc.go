@@ -1020,7 +1020,6 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
-	var orderbook any = nil
 	if *this.SafeBool(market, "spot", false) {
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var spotChannel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
@@ -1029,7 +1028,10 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		orderbook = r1.Value
+		spotOrderbook := r1.Value
+
+		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: spotOrderbook.(ccxt.OrderBookInterface).Limit()}
+		return nil
 	} else {
 		var channel string = "sub.depth"
 		var requestParams map[string]any = map[string]any{
@@ -1040,12 +1042,11 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		orderbook = r2.Value
-	}
-	orderbook = this.RequireValue(orderbook, "watchOrderBook() orderbook is required")
+		var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
-	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.(ccxt.OrderBookInterface).Limit()}
-	return nil
+		ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
+		return nil
+	}
 }
 func (this *Mexc) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any) {
 	// the ack echoes the subscribed channel, the market id is always its last segment
@@ -1601,9 +1602,9 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var isMaker *int64 = this.SafeInteger(trade, "m")
 	var feeAmount *string = this.SafeString2(trade, "n", "feeAmount")
 	var feeCurrencyId *string = this.SafeString2(trade, "N", "feeCurrency")
-	var ternaryStr131228 string = "taker"
+	var ternaryStr131128 string = "taker"
 	if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
-		ternaryStr131228 = "maker"
+		ternaryStr131128 = "maker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1614,7 +1615,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"symbol":       this.SafeSymbol(nil, market),
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": ternaryStr131228,
+		"takerOrMaker": ternaryStr131128,
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         this.SafeString(trade, "amount"),
@@ -1886,9 +1887,9 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 			"cost":     nil,
 		}
 	}
-	var ternaryStr155820 string = "sell"
+	var ternaryStr155720 string = "sell"
 	if side != nil && *side == "1" {
-		ternaryStr155820 = "buy"
+		ternaryStr155720 = "buy"
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
@@ -1900,7 +1901,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"symbol":             this.SafeSymbol(nil, market),
 		"type":               this.ParseWsOrderType(typeVar),
 		"timeInForce":        this.ParseWsTimeInForce(typeVar),
-		"side":               ternaryStr155820,
+		"side":               ternaryStr155720,
 		"price":              this.SafeString(order, "price"),
 		"stopPrice":          this.SafeString2(order, "triggerPrice", "P"),
 		"triggerPrice":       this.SafeString2(order, "triggerPrice", "P"),

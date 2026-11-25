@@ -5732,7 +5732,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan AsyncResult[MarginModifi
 	}))}
 	return nil
 }
-func (this *Hyperliquid) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        'type': 'default'

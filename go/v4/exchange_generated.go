@@ -863,7 +863,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) []a
 	if sinceIsDefined {
 		result = []any{}
 		for i := 0; i < len(parsedArray); i++ {
-			var entry any = DerefScalar(parsedArray[i])
+			var entry any = parsedArray[i]
 			var value *int64 = this.SafeInteger(entry, key)
 			if (value != nil) && (value == nil || *value != 0) && (since == nil || *value >= *since) {
 				result = append(result, entry)
@@ -897,7 +897,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	if valueIsDefined || sinceIsDefined {
 		result = []any{}
 		for i := 0; i < len(parsedArray); i++ {
-			var entry any = DerefScalar(parsedArray[i])
+			var entry any = parsedArray[i]
 			// safeValue (not entry[field]) so a missing field is a non-match, not a
 			// KeyError in python/php — prediction structures key on outcome, not symbol
 			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
@@ -2067,7 +2067,7 @@ func (this *BaseExchange) FeatureValue(symbol any, optionalArgs ...any) any {
 	var market map[string]any = this.DerivedExchange.Market(symbol)
 	return this.FeatureValueByType(*this.SafeString(market, "type", ""), this.SafeString(market, "subType"), methodName, paramName, defaultValue)
 }
-func (this *BaseExchange) FeatureValueByType(marketType string, subType any, optionalArgs ...any) any {
+func (this *BaseExchange) FeatureValueByType(marketType string, subType *string, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @name exchange#featureValueByType
@@ -2101,7 +2101,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType any, opt
 	if methodsContainer == nil {
 		return defaultValue
 	}
-	if IsEqual(subType, nil) {
+	if subType == nil {
 		if marketType != "spot" {
 			return defaultValue // subType is required for non-spot markets
 		}
@@ -7142,7 +7142,7 @@ func (this *BaseExchange) ParseDepositAddresses(addresses []any, optionalArgs ..
 	}
 	return result
 }
-func (this *BaseExchange) ParseBorrowInterests(response []any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseBorrowInterests(response []any, optionalArgs ...any) []any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var interests []any = []any{}
@@ -7343,7 +7343,7 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder bool, exchangeSpecificParam a
 		return false
 	}
 }
-func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPostOnlyOption any, optionalArgs ...any) []any {
+func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPostOnlyOption bool, optionalArgs ...any) []any {
 	/**
 	 * @ignore
 	 * @method
@@ -7358,7 +7358,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPos
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var po bool = (timeInForce != nil && *timeInForce == "PO")
-	var postOnly bool = (this.SafeBool(params, "postOnly", false) != nil && *this.SafeBool(params, "postOnly", false)) || po || EvalTruthy(exchangeSpecificPostOnlyOption)
+	var postOnly bool = (this.SafeBool(params, "postOnly", false) != nil && *this.SafeBool(params, "postOnly", false)) || po || exchangeSpecificPostOnlyOption
 	if postOnly {
 		if ioc || fok {
 			panic(InvalidOrder(this.Id + " postOnly orders cannot have timeInForce equal to " + *timeInForce))
@@ -7455,7 +7455,7 @@ func (this *BaseExchange) ParseOpenInterestsHistory(response []any, optionalArgs
 	_ = limit
 	var interests []any = []any{}
 	for i := 0; i < len(response); i++ {
-		interests = append(interests, OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(GetValue(response, i), market)))
+		interests = append(interests, OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(response[i], market)))
 	}
 	var sorted []any = this.SortBy(interests, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -8731,7 +8731,7 @@ func (this *BaseExchange) ParseLiquidations(liquidations []any, optionalArgs ...
 	var symbol *string = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *BaseExchange) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *BaseExchange) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseGreeks () is not supported yet"))
@@ -8755,8 +8755,13 @@ func (this *BaseExchange) ParseAllGreeksList(greeks any, optionalArgs ...any) ma
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var results []any = []any{}
-	for i := 0; i < GetArrayLength(greeks); i++ {
-		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(this.SafeDict(greeks, i, map[string]any{}))), params))
+	var greeksArray []any = this.ToArray(greeks)
+	for i := 0; i < len(greeksArray); i++ {
+		greeksArrayDict923857, _ := greeksArray[i].(map[string]any)
+		if greeksArrayDict923857 == nil {
+			greeksArrayDict923857 = map[string]any{}
+		}
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksArrayDict923857)), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -8766,12 +8771,23 @@ func (this *BaseExchange) ParseAllGreeksDict(greeks any, optionalArgs ...any) ma
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var results []any = []any{}
-	var marketIds []string = ObjectKeys(greeks)
+	var greeksDict map[string]any = this.Extend(map[string]any{}, greeks)
+	var marketIds []string = nil
+	if greeksDict != nil {
+		marketIds = make([]string, 0, len(greeksDict))
+		for objectKey := range greeksDict {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(this.SafeDict(greeks, marketId, map[string]any{}), market)), params))
+		greeksDictDict925057, _ := greeksDict[marketId].(map[string]any)
+		if greeksDictDict925057 == nil {
+			greeksDictDict925057 = map[string]any{}
+		}
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksDictDict925057, market)), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -8804,11 +8820,11 @@ func (this *BaseExchange) ParseOptionChain(response []any, optionalArgs ...any) 
 		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "option")
-		responseDict926467, _ := response[i].(map[string]any)
-		if responseDict926467 == nil {
-			responseDict926467 = map[string]any{}
+		responseDict926667, _ := response[i].(map[string]any)
+		if responseDict926667 == nil {
+			responseDict926667 = map[string]any{}
 		}
-		AddElementToObject(optionStructures, market["symbol"], OptionToMap(this.DerivedExchange.ParseOption(responseDict926467, currency, market)))
+		AddElementToObject(optionStructures, market["symbol"], OptionToMap(this.DerivedExchange.ParseOption(responseDict926667, currency, market)))
 	}
 	return optionStructures
 }
@@ -8827,7 +8843,7 @@ func (this *BaseExchange) ParseMarginModes(response []any, optionalArgs ...any) 
 		marketTypeResolved = marketType
 	} // default to swap
 	for i := 0; i < len(response); i++ {
-		var info any = GetValue(response, i)
+		var info any = response[i]
 		var marketId *string
 		if symbolKey == nil {
 			marketId = nil
@@ -8837,11 +8853,11 @@ func (this *BaseExchange) ParseMarginModes(response []any, optionalArgs ...any) 
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketTypeResolved)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
-			responseDict927779, _ := response[i].(map[string]any)
-			if responseDict927779 == nil {
-				responseDict927779 = map[string]any{}
+			responseDict927979, _ := response[i].(map[string]any)
+			if responseDict927979 == nil {
+				responseDict927979 = map[string]any{}
 			}
-			AddElementToObject(marginModeStructures, market["symbol"], MarginModeToMap(this.DerivedExchange.ParseMarginMode(responseDict927779, market)))
+			AddElementToObject(marginModeStructures, market["symbol"], MarginModeToMap(this.DerivedExchange.ParseMarginMode(responseDict927979, market)))
 		}
 	}
 	return marginModeStructures
@@ -8866,7 +8882,7 @@ func (this *BaseExchange) ParseLeverages(response []any, optionalArgs ...any) ma
 		marketTypeResolved = marketType
 	} // default to swap
 	for i := 0; i < len(response); i++ {
-		var info any = GetValue(response, i)
+		var info any = response[i]
 		var marketId *string
 		if symbolKey == nil {
 			marketId = nil
@@ -9080,15 +9096,15 @@ func (this *BaseExchange) loadMarketsAndSignInBody(ch chan AsyncResult[bool]) an
 	}
 	return nil
 }
-func (this *BaseExchange) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if IsEqual(data, nil) {
+	if data == nil {
 		panic(NotSupported(this.Id + " parseMarginModification() is not supported yet"))
 	}
 	panic(NotSupported(this.Id + " parseMarginModification() is not supported yet"))
 }
-func (this *BaseExchange) ParseMarginModifications(response []any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseMarginModifications(response []any, optionalArgs ...any) []any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -9109,7 +9125,11 @@ func (this *BaseExchange) ParseMarginModifications(response []any, optionalArgs 
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
-			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(response[i], market))
+			responseDict945772, _ := response[i].(map[string]any)
+			if responseDict945772 == nil {
+				responseDict945772 = map[string]any{}
+			}
+			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(responseDict945772, market))
 		}
 	}
 	return marginModifications
@@ -11603,12 +11623,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1063315Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1063315 []any = retRes1063315Recv
-	if retRes1063315 == nil {
+	retRes1063515Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1063515 []any = retRes1063515Recv
+	if retRes1063515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1063315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1063515)}
 	}
 	return nil
 }

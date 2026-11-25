@@ -22,8 +22,7 @@ func newBinance() *Binance {
 }
 
 func (this *Binance) Describe() map[string]any {
-	var superDescribe any = this.base.Describe()
-	return this.DeepExtend(superDescribe, this.DescribeData())
+	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
 func (this *Binance) DescribeData() any {
 	return map[string]any{
@@ -3263,8 +3262,8 @@ func (this *Binance) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes238815 bool = r.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes238815}
+	var retRes238715 bool = r.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes238715}
 	return nil
 }
 
@@ -3509,12 +3508,12 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	streamHashStr := streamHash
 	var url string = this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(*channel)) + "/" + this.Stream(rawMarketType, &streamHashStr)
 	var requestId int64 = this.RequestId(url)
-	var ternaryStr257222 string = "SUBSCRIBE"
+	var ternaryStr257122 string = "SUBSCRIBE"
 	if isUnsubscribe == true {
-		ternaryStr257222 = "UNSUBSCRIBE"
+		ternaryStr257122 = "UNSUBSCRIBE"
 	}
 	var request map[string]any = map[string]any{
-		"method": ternaryStr257222,
+		"method": ternaryStr257122,
 		"params": subscriptionArgs,
 		"id":     requestId,
 	}
@@ -4811,11 +4810,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes353615 []any = ccxt.PositionsToList(r.Value)
-	if retRes353615 == nil {
+	var retRes353515 []any = ccxt.PositionsToList(r.Value)
+	if retRes353515 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes353615)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes353515)}
 	}
 	return nil
 }
@@ -5496,13 +5495,13 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	var payloadWithLimits map[string]any = this.Extend(payload, map[string]any{
 		"returnRateLimits": returnRateLimits,
 	})
-	var ternaryStr407922 string = "order.cancelReplace"
+	var ternaryStr407822 string = "order.cancelReplace"
 	if isSwap {
-		ternaryStr407922 = "order.modify"
+		ternaryStr407822 = "order.modify"
 	}
 	var message map[string]any = map[string]any{
 		"id":     messageHash,
-		"method": ternaryStr407922,
+		"method": ternaryStr407822,
 		"params": this.SignParams(this.Extend(payloadWithLimits, paramsReturnRateLimits)),
 	}
 	var subscription map[string]any = map[string]any{
@@ -6394,7 +6393,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		}
 		var stockTimestamp *int64 = this.SafeInteger(order, "T")
 		var stockLastUpdateTimestamp *int64 = this.SafeInteger(order, "U", stockTimestamp)
-		var literal476035 map[string]any = map[string]any{
+		var literal475935 map[string]any = map[string]any{
 			"info":                order,
 			"symbol":              stockSymbol,
 			"id":                  this.SafeString(order, "i"),
@@ -6419,9 +6418,9 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 			"trades":              nil,
 		}
 		if stockRemaining != nil {
-			literal476035["remaining"] = *stockRemaining
+			literal475935["remaining"] = *stockRemaining
 		}
-		return ccxt.OrderToMap(this.SafeOrder(literal476035))
+		return ccxt.OrderToMap(this.SafeOrder(literal475935))
 	}
 	var executionType *string = this.SafeString(order, "x")
 	var marketId *string = this.SafeString(order, "s")
@@ -7600,9 +7599,9 @@ func (this *Binance) HandleMyTrade(client ccxt.ClientInterface, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes574132 := order["fees"]
-							ccxt.AppendToArray(&retRes574132, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes574132)
+							retRes574032 := order["fees"]
+							ccxt.AppendToArray(&retRes574032, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes574032)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

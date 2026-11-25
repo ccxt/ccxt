@@ -1336,12 +1336,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	}
 	var callerMethodNameOptionPtr *string = nil
 	callerMethodNameOptionPtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", callerMethodName)
-	callerMethodNameOption := func() any {
-		if callerMethodNameOptionPtr != nil {
-			return *callerMethodNameOptionPtr
-		}
-		return nil
-	}()
+	callerMethodNameOption := *callerMethodNameOptionPtr
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
 	var isOHLCV bool = (channelName == "candle")
 	var symbolsRaw any
@@ -1358,7 +1353,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName)
 	if marketType == nil || *marketType != "swap" {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodNameOption), "() does not support "), marketType), " markets yet")))
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" "+callerMethodNameOption+"() does not support ", marketType), " markets yet")))
 	}
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
@@ -1435,12 +1430,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	}
 	var callerMethodNameOptionPtr *string = nil
 	callerMethodNameOptionPtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", callerMethodName)
-	callerMethodNameOption := func() any {
-		if callerMethodNameOptionPtr != nil {
-			return *callerMethodNameOptionPtr
-		}
-		return nil
-	}()
+	callerMethodNameOption := *callerMethodNameOptionPtr
 	var isOHLCV bool = (channelName == "candle")
 	var symbols []string = []string{}
 	if isOHLCV {
@@ -1451,7 +1441,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	var firstMarket map[string]any = this.Market(this.SafeString(symbols, 0))
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName)
 	if marketType == nil || *marketType != "swap" {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodNameOption), "() does not support "), marketType), " markets yet")))
+		panic(ccxt.NotSupported(this.Id + " " + callerMethodNameOption + "() does not support " + *marketType + " markets yet"))
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}

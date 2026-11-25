@@ -1585,11 +1585,11 @@ func (this *Derive) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, 
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(result, market)}
 	return nil
 }
-func (this *Derive) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Derive) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(greeks, "t")
-	var pricing map[string]any = SafeMapTyped(greeks, "option_pricing")
+	var pricing, _ = greeks["option_pricing"].(map[string]any)
 	return GreeksFromMap(map[string]any{
 		"symbol":                this.SafeSymbol(nil, market),
 		"timestamp":             timestamp,
@@ -5180,7 +5180,7 @@ func (this *Derive) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest
 	if events == nil {
 		events = []any{}
 	}
-	var interests any = this.ParseBorrowInterests(events, nil)
+	var interests []any = this.ParseBorrowInterests(events, nil)
 	var sorted []any = this.SortBy(interests, "timestamp")
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(sorted, code, since, limit))}

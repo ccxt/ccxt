@@ -1424,7 +1424,8 @@ func (this *Interactivebrokers) ibkrGatewayRegainLoopBody(ch chan AsyncResult[an
 	this.Options["gatewayRegainScheduled"] = false
 	var useGateway *bool = this.SafeBool(this.Options, "useGateway", false)
 	var lostTimestamp *int64 = this.SafeInteger(this.Options, "gatewaySessionLostTimestamp")
-	if !(useGateway != nil && *useGateway) || (lostTimestamp == nil) || (this.IbkrGatewayRegainDelay() <= 0) {
+	var regainDelay int64 = this.IbkrGatewayRegainDelay()
+	if !(useGateway != nil && *useGateway) || (lostTimestamp == nil) || (regainDelay <= 0) {
 
 		ch <- AsyncResult[any]{Value: nil} // already regained, or disabled
 		return nil
@@ -2098,19 +2099,18 @@ func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[[]an
 	}
 	var chunkSize int = 330 // above this number, response becomes unreliable
 	var promises []any = []any{}
-	var offset any = 0
-	for IsLessThan(offset, numDetails) {
-		var end any = mathMin(this.Sum(offset, chunkSize), numDetails)
-		var chunk []string = []string{}
-		for k := int(ParseInt(offset)); IsLessThan(k, end); k++ {
-			var detailId string = *this.SafeString(detailIds, k, "")
-			chunk = append(chunk, detailId)
+	var chunk []string = []string{}
+	for k := 0; k < numDetails; k++ {
+		var detailId string = detailIds[k]
+		chunk = append(chunk, detailId)
+		var chunkLength int = len(chunk)
+		if (chunkLength == chunkSize) || (k == numDetails-1) {
+			var secdefRequest map[string]any = map[string]any{
+				"conids": strings.Join(chunk, ","),
+			}
+			promises = append(promises, this.MarketsEndpointCallAsync(secdefRequest, "webapiGetV1ApiTrsrvSecdef", map[string]any{}))
+			chunk = []string{}
 		}
-		var secdefRequest map[string]any = map[string]any{
-			"conids": strings.Join(chunk, ","),
-		}
-		promises = append(promises, this.MarketsEndpointCallAsync(secdefRequest, "webapiGetV1ApiTrsrvSecdef", map[string]any{}))
-		offset = end
 	}
 
 	r := <-promiseAll(promises)

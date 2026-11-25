@@ -2550,7 +2550,10 @@ func (this *Hyperliquid) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		// push through a local and write the slice back — the go transpiler's
 		// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
 		// direct push on groupMap[parentSymbol] loses the element in go
-		var parentMarkets []any = this.SafeListSlice(groupMap, parentSymbol, []any{})
+		var parentMarkets, _ = groupMap[*parentSymbol].([]any)
+		if parentMarkets == nil {
+			parentMarkets = []any{}
+		}
 		parentMarkets = append(parentMarkets, mkt)
 		if parentSymbol != nil {
 			groupMap[*parentSymbol] = parentMarkets
@@ -3014,9 +3017,9 @@ func (this *Hyperliquid) CalculateRateLimiterCost(api []string, method string, p
 	_ = config
 	if _, ok := config["byType"]; ok {
 		var typeVar *string = this.SafeString(params, "type")
-		var byType any = config["byType"]
+		var byType, _ = config["byType"].(map[string]any)
 		if typeVar != nil {
-			if ccxt.InOp(byType, typeVar) {
+			if _, ok := byType[*typeVar]; ok {
 				return this.SafeInteger(byType, typeVar)
 			}
 		}

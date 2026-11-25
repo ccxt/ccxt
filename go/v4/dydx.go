@@ -1631,9 +1631,7 @@ func (this *Dydx) SignOnboardingAction() any {
 func (this *Dydx) SignDydxTx(privateKey *string, message any, memo *string, chainId *string, account any, authenticators any, optionalArgs ...any) any {
 	var fee map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = fee
-	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
-	encodedTx := GetValue(encodedTxsignDocVariable, 0)
-	signDoc := GetValue(encodedTxsignDocVariable, 1)
+	encodedTx, signDoc := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
 	var signature map[string]any = this.SignHash(encodedTx, privateKey)
 	var signatureR string = *this.SafeString(signature, "r", "")
 	var signatureS string = *this.SafeString(signature, "s", "")

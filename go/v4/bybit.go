@@ -10463,7 +10463,7 @@ func (this *Bybit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest]
 	if rows == nil {
 		rows = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(rows)
+	var interest []any = this.ParseBorrowInterests(rows)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
@@ -11800,7 +11800,14 @@ func (this *Bybit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	var result, _ = response["result"].(map[string]any)
 	var data []any
 	data, _ = result["list"].([]any)
-	var greeks map[string]any = GreeksToMap(this.ParseGreeks(this.SafeDict(data, 0, map[string]any{}), market))
+	var dataDict870341 map[string]any
+	if len(data) > 0 {
+		dataDict870341, _ = data[0].(map[string]any)
+	}
+	if dataDict870341 == nil {
+		dataDict870341 = map[string]any{}
+	}
+	var greeks map[string]any = GreeksToMap(this.ParseGreeks(dataDict870341, market))
 
 	ch <- AsyncResult[Greeks]{Value: GreeksFromMap(this.Extend(greeks, map[string]any{
 		"timestamp": timestamp,
@@ -11910,7 +11917,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], op
 	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(data, symbolsNormalized))}
 	return nil
 }
-func (this *Bybit) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Bybit) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "symbol": "BTC-26JAN24-39000-C",

@@ -689,15 +689,11 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var feeCost *string = this.SafeString(trade, 6)
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
-		var feeCurrencyCode any = nil
+		var feeCurrencyCode *string = nil
 		if feeCurrencyId != nil {
-			if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
-				feeCurrencyCode = *derefPtr
-			} else {
-				feeCurrencyCode = nil
-			}
+			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		} else {
-			feeCurrencyCode = marketResolved["quote"]
+			feeCurrencyCode = this.SafeString(marketResolved, "quote")
 		}
 		fee = map[string]any{
 			"cost":     feeCost,

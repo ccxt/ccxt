@@ -865,7 +865,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	var resultText string = *this.SafeStringLower(raw, "result", "")
 	for oi := 0; oi < len(outcomeLabels); oi++ {
 		var label string = outcomeLabels[oi]
-		var outcomeHandle string = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, &label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
 		if resolved && (result != nil) && (result == nil || *result != "") {
@@ -1392,8 +1392,11 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			tickers = append(tickers, *ticker)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-		var grouped any = this.SafeList(outcomesByTicker, ticker, []any{})
-		ccxt.AppendToArray(&grouped, outcomeObj)
+		var grouped, _ = outcomesByTicker[*ticker].([]any)
+		if grouped == nil {
+			grouped = []any{}
+		}
+		grouped = append(grouped, outcomeObj)
 		outcomesByTicker[*ticker] = grouped
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchTickersBatchSize", 100)

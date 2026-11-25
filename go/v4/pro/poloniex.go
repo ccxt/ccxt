@@ -193,7 +193,7 @@ func (this *Poloniex) SubscribeAsync(name string, messageHash string, isPrivate 
 func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name string, messageHash string, isPrivate bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -222,7 +222,7 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 	if symbols == nil {
 		symbolsSuffix = ""
 	} else {
-		symbolsSuffix = ccxt.Join(symbols, ",")
+		symbolsSuffix = strings.Join(symbols, ",")
 	}
 	var symbolsHash string = messageHash
 	if !this.IsEmpty(symbols) {

@@ -6256,7 +6256,7 @@ func (this *Xt) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
 	return nil
 }
-func (this *Xt) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Xt) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return map[string]any{

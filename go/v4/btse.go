@@ -2569,12 +2569,12 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	var query map[string]any = this.OmitDict(params, "clientOrderId")
 	var isMarketOrder bool = (typeValue == "MARKET")
 	var isLimitOrder bool = (typeValue == "LIMIT")
-	var postOnly any = false
+	var postOnly bool = false
 	// exchange-specific postOnly is the same as the unified one
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
-	postOnly = postOnlyqueryVariable[0]
+	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, false, query)
+	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
-	if postOnly == true {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	var timeInForce *string = this.HandleTimeInForce(query)
@@ -2732,7 +2732,13 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		response = responseRecv.Value
 	}
-	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var order map[string]any
+	if 0 < len(response) {
+		order, _ = response[0].(map[string]any)
+	}
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2824,12 +2830,12 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	}
 	var isMarketOrder bool = (typeValue == "MARKET")
 	var isLimitOrder bool = (typeValue == "LIMIT")
-	var postOnly any = false
+	var postOnly bool = false
 	// exchange-specific postOnly is the same as the unified one
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
-	postOnly = postOnlyqueryVariable[0]
+	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, false, query)
+	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
-	if postOnly == true {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	var timeInForce *string = this.HandleTimeInForce(query)
@@ -3171,7 +3177,13 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 		}
 		response = responseRecv.Value
 	}
-	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var order map[string]any
+	if 0 < len(response) {
+		order, _ = response[0].(map[string]any)
+	}
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -3259,7 +3271,13 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 		response = responseRecv.Value
 	}
-	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var order map[string]any
+	if 0 < len(response) {
+		order, _ = response[0].(map[string]any)
+	}
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil

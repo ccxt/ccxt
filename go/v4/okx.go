@@ -10578,7 +10578,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 	}))}
 	return nil
 }
-func (this *Okx) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Okx) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// addMargin/reduceMargin
 	//
@@ -10948,7 +10948,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	if data == nil {
 		data = []any{}
 	}
-	var interest any = this.ParseBorrowInterests(data)
+	var interest []any = this.ParseBorrowInterests(data)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil
@@ -12165,10 +12165,13 @@ func (this *Okx) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, opt
 	data, _ = response["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var entryMarketId *string = this.SafeString(entry, "instId")
 		if entryMarketId == marketId || (entryMarketId != nil && marketId != nil && *entryMarketId == *marketId) {
 
-			ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(data[i], market)}
+			ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(entry, market)}
 			return nil
 		}
 	}
@@ -12283,7 +12286,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], opti
 	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(data, symbolsNormalized))}
 	return nil
 }
-func (this *Okx) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Okx) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "askVol": "0",
@@ -13301,7 +13304,7 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 	if data == nil {
 		data = []any{}
 	}
-	var modifications any = this.ParseMarginModifications(data)
+	var modifications []any = this.ParseMarginModifications(data)
 
 	ch <- AsyncResult[[]MarginModification]{Value: MarginModificationsFromList(this.FilterBySymbolSinceLimit(modifications, symbol, since, limit))}
 	return nil

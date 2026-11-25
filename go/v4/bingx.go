@@ -7448,20 +7448,24 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	//        "type": 1
 	//    }
 	//
-	var responseData any = response
 	if market["inverse"] == true {
-		responseData = this.Extend(map[string]any{
+		var inverseResult map[string]any = this.ParseMarginModification(this.Extend(map[string]any{
 			"amount": amountString,
 			"type":   typeVar,
-		}, this.SafeDict(response, "data", map[string]any{}))
+		}, this.SafeDict(response, "data", map[string]any{})), market)
+
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(inverseResult, map[string]any{
+			"info": response,
+		}))}
+		return nil
 	}
-	var result map[string]any = this.ParseMarginModification(responseData, market)
+	var result map[string]any = this.ParseMarginModification(response, market)
 	result["info"] = response
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(result)}
 	return nil
 }
-func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Bingx) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "code": 0,

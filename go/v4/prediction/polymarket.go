@@ -4978,13 +4978,13 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	}
 	// outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets)
 	// fall back to markets_by_id for the standard market lookup
-	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, tokenId)
+	var outcomeObj, _ = this.Outcomes_by_id[*tokenId].(map[string]any)
 	if outcomeObj != nil {
 		return this.SafeString(outcomeObj, "outcome")
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
 	// but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
+	var market, _ = this.Markets_by_id[*tokenId].(map[string]any)
 	return this.SafeString2(market, "market", "symbol")
 }
 func (this *Polymarket) ParsePolyTimestamp(raw *string) *int64 {

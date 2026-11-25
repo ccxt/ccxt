@@ -2758,7 +2758,10 @@ func (this *Opinion) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	//     }
 	//
 	var tokenId *string = this.SafeString(message, "tokenId")
-	var outcomeObj map[string]any = ccxt.SafeMapTyped(this.Outcomes_by_id, tokenId)
+	var outcomeObj map[string]any
+	if tokenId != nil {
+		outcomeObj, _ = this.Outcomes_by_id[*tokenId].(map[string]any)
+	}
 	var sym *string = this.SafeString(outcomeObj, "outcome")
 	if sym == nil {
 		return

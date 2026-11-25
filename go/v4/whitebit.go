@@ -4947,7 +4947,7 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowIntere
 	//         }
 	//     ]
 	//
-	var interest any = this.ParseBorrowInterests(response, market)
+	var interest []any = this.ParseBorrowInterests(response, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
 	return nil

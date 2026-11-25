@@ -2150,7 +2150,10 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var ack, _ = response[i].(map[string]any)
+		if ack == nil {
+			ack = map[string]any{}
+		}
 		var status *string = this.SafeString(ack, "status")
 		var unified string
 		if status != nil && *status == "err" {

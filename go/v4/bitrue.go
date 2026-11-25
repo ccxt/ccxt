@@ -3993,7 +3993,7 @@ func (this *Bitrue) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Bitrue) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Bitrue) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// setMargin
 	//

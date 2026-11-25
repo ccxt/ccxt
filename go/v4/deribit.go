@@ -5075,7 +5075,7 @@ func (this *Deribit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(result, market)}
 	return nil
 }
-func (this *Deribit) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Deribit) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "estimated_delivery_price": 36552.72,
@@ -5120,7 +5120,7 @@ func (this *Deribit) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 	var timestamp *int64 = this.SafeInteger(greeks, "timestamp")
 	var marketId *string = this.SafeString(greeks, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var stats map[string]any = SafeMapTyped(greeks, "greeks")
+	var stats, _ = greeks["greeks"].(map[string]any)
 	return GreeksFromMap(map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,

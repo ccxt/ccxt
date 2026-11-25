@@ -1457,7 +1457,7 @@ func (this *Phemex) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var valueScaleString *string = this.SafeString(rawCurrency, "valueScale")
-	var valueScale int64 = ParseInt(valueScaleString)
+	var valueScale *int64 = this.SafeInteger(rawCurrency, "valueScale")
 	var minValueEv *string = this.SafeString(rawCurrency, "minValueEv")
 	var maxValueEv *string = this.SafeString(rawCurrency, "maxValueEv")
 	var minAmount *float64 = nil
@@ -2602,7 +2602,10 @@ func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var currency map[string]any = SafeMapTyped(this.Currencies, code)
+		var currency map[string]any
+		if code != nil {
+			currency, _ = this.Currencies[*code].(map[string]any)
+		}
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account map[string]any = this.Account()
 		var balanceEv *string = this.SafeString(balance, "balanceEv")
@@ -5701,7 +5704,7 @@ func (this *Phemex) ParseMarginStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "code": 0,

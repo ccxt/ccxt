@@ -5174,7 +5174,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModificati
 	}))}
 	return nil
 }
-func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "symbol")

@@ -393,7 +393,10 @@ func (this *Phemex) HandleBalance(client ccxt.ClientInterface, message any, type
 		var balance map[string]any = ccxt.SafeMapTyped(message, i)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var currency map[string]any = ccxt.SafeMapTyped(this.Currencies, code)
+		var currency map[string]any
+		if code != nil {
+			currency, _ = this.Currencies[*code].(map[string]any)
+		}
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account map[string]any = this.Account()
 		var usedRv *string = this.SafeString(balance, "totalUsedBalanceRv")

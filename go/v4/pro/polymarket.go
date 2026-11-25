@@ -1044,7 +1044,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		symbolResolved = resolvedSymbol
 		messageHash = "orders:" + *resolvedSymbol
 	}
-	var subscribeHashes []any = []any{"orders"}
+	var subscribeHashes []string = []string{"orders"}
 	var request map[string]any = this.SendSubscription("sub", []any{"orders"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -1170,7 +1170,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 		symbolResolved = resolvedSymbol
 		messageHash = "myTrades:" + *resolvedSymbol
 	}
-	var subscribeHashes []any = []any{"fills"}
+	var subscribeHashes []string = []string{"fills"}
 	var request map[string]any = this.SendSubscription("sub", []any{"fills"}, []any{messageHash}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
@@ -1313,7 +1313,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true))}
 		return nil
 	}
-	var subscribeHashes []any = []any{"portfolio"}
+	var subscribeHashes []string = []string{"portfolio"}
 	var request map[string]any = this.SendSubscription("sub", []any{"portfolio"}, []any{"positions"}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 
 	r3 := <-this.Watch(url, "positions", request, "portfolio")
@@ -1421,7 +1421,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 		ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(snapshot)}
 		return nil
 	}
-	var subscribeHashes []any = []any{"portfolio"}
+	var subscribeHashes []string = []string{"portfolio"}
 	var request map[string]any = this.SendSubscription("sub", []any{"portfolio"}, []any{"balance"}, subscribeHashes, map[string]any{}, params, subscribeHashes)
 
 	r3 := <-this.Watch(url, "balance", request, "portfolio")

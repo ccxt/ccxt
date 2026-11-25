@@ -5282,7 +5282,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(results, symbolsNormalized))}
 	return nil
 }
-func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
+func (this *Paradex) ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks {
 	//
 	//     {
 	//         "symbol": "BTC-USD-114000-P",
@@ -5322,7 +5322,7 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 		symbol = &marketResolved.Symbol
 	}
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
-	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
+	var greeksData, _ = greeks["greeks"].(map[string]any)
 	return GreeksFromMap(map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,

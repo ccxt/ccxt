@@ -1514,7 +1514,10 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	}
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var rawTicker map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var rawTicker, _ = response[i].(map[string]any)
+		if rawTicker == nil {
+			rawTicker = map[string]any{}
+		}
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -5942,7 +5945,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 	}))}
 	return nil
 }
-func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Weex) ParseMarginModification(data map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "code": "200",

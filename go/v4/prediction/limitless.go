@@ -354,12 +354,12 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			var response map[string]any = r.Value
 			var found, _ = response["markets"].([]any)
 			for j := 0; j < len(found); j++ {
-				var raw any = found[j]
+				var raw, _ = found[j].(map[string]any)
 				var slug *string = this.SafeString(raw, "slug")
 				if (slug != nil) && (slug == nil || *slug != "") {
 					if _, ok := seen[*slug]; !ok {
 						seen[*slug] = true
-						allRaw = append(allRaw, raw)
+						allRaw = append(allRaw, found[j])
 					}
 				}
 			}
@@ -607,7 +607,7 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 	for i := 0; i < len(tokenEntries); i++ {
 		var outcomeLabel string = tokenEntries[i]
 		var tokenId *string = this.SafeString(tokens, outcomeLabel)
-		var outcomeHandle string = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
+		var outcomeHandle string = this.SlugToOutcomeSymbol(groupId, slug, &outcomeLabel)
 		// winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
 		// limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
 		// languages (Go randomizes map iteration), so map the leg to its canonical index by
@@ -1440,8 +1440,11 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 			slugs = append(slugs, *slug)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-		var grouped any = this.SafeList(outcomesBySlug, slug, []any{})
-		ccxt.AppendToArray(&grouped, outcomeObj)
+		var grouped, _ = outcomesBySlug[*slug].([]any)
+		if grouped == nil {
+			grouped = []any{}
+		}
+		grouped = append(grouped, outcomeObj)
 		if slug != nil {
 			outcomesBySlug[*slug] = grouped
 		}
@@ -3803,12 +3806,12 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			var response map[string]any = r.Value
 			var found, _ = response["markets"].([]any)
 			for j := 0; j < len(found); j++ {
-				var raw any = found[j]
+				var raw, _ = found[j].(map[string]any)
 				var rawSlug *string = this.SafeString(raw, "slug")
 				if (rawSlug != nil) && (rawSlug == nil || *rawSlug != "") {
 					if _, ok := seen[*rawSlug]; !ok {
 						seen[*rawSlug] = true
-						rawMarkets = append(rawMarkets, raw)
+						rawMarkets = append(rawMarkets, found[j])
 					}
 				}
 			}
