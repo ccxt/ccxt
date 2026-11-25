@@ -2,6 +2,93 @@
     "exchange": "gemini",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "ActiveTrader base rates for spot, perpetual, and stablecoin markets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": ["btcusd", "btcusdc", "btcgusdperp", "gusdusd", "usdtusd", "dairlusd", "audrlusd"],
+                "parsedResponse": [
+                    {
+                        "id": "btcusd", "lowercaseId": null, "symbol": "BTC/USD",
+                        "base": "BTC", "quote": "USD", "settle": null, "baseId": "BTC", "quoteId": "USD", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.012,
+                        "maker": 0.006, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "btcusd"
+                    },
+                    {
+                        "id": "btcusdc", "lowercaseId": null, "symbol": "BTC/USDC",
+                        "base": "BTC", "quote": "USDC", "settle": null, "baseId": "BTC", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.012,
+                        "maker": 0.006, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "btcusdc"
+                    },
+                    {
+                        "id": "btcgusdperp", "lowercaseId": null, "symbol": "BTC/GUSD:GUSD",
+                        "base": "BTC", "quote": "GUSD", "settle": "GUSD", "baseId": "BTC", "quoteId": "GUSD", "settleId": "GUSD",
+                        "type": "swap", "spot": false, "margin": false, "swap": true, "future": false, "option": false, "index": null,
+                        "active": null, "contract": true, "linear": true, "inverse": false, "subType": null, "taker": 0.0007,
+                        "maker": 0.0002, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "btcgusdperp"
+                    },
+                    {
+                        "id": "gusdusd", "lowercaseId": null, "symbol": "GUSD/USD",
+                        "base": "GUSD", "quote": "USD", "settle": null, "baseId": "GUSD", "quoteId": "USD", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0,
+                        "maker": 0, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "gusdusd"
+                    },
+                    {
+                        "id": "usdtusd", "lowercaseId": null, "symbol": "USDT/USD",
+                        "base": "USDT", "quote": "USD", "settle": null, "baseId": "USDT", "quoteId": "USD", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0001,
+                        "maker": 0, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "usdtusd"
+                    },
+                    {
+                        "id": "dairlusd", "lowercaseId": null, "symbol": "DAI/RLUSD",
+                        "base": "DAI", "quote": "RLUSD", "settle": null, "baseId": "DAI", "quoteId": "RLUSD", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0001,
+                        "maker": 0, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "dairlusd"
+                    },
+                    {
+                        "id": "audrlusd", "lowercaseId": null, "symbol": "AUD/RLUSD",
+                        "base": "AUD", "quote": "RLUSD", "settle": null, "baseId": "AUD", "quoteId": "RLUSD", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false, "option": false, "index": false,
+                        "active": null, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0001,
+                        "maker": 0, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"price":null,"amount":null},
+                        "limits": {"leverage":{"min":null,"max":null},"amount":{"min":null,"max":null},"price":{"min":null,"max":null},"cost":{"min":null,"max":null}},
+                        "marginModes": {"cross":null,"isolated":null},
+                        "created": null,
+                        "info": "audrlusd"
+                    }
+                ]
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
