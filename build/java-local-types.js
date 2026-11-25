@@ -8277,6 +8277,11 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
         if (typeof nativeReplace === 'string' && !/^Helpers\.replace(?:All)?\(/.test (nativeReplace)) {
             return nativeReplace;
         }
+        // a printer-native padEnd (pad + truncate on a String receiver) needs no receiver rebuild either
+        const nativePad = clean !== undefined && method === 'printPadEndCall' ? upstream.apply (printer, arguments) : undefined;
+        if (typeof nativePad === 'string' && !/^Helpers\.padEnd\(/.test (nativePad)) {
+            return nativePad;
+        }
         const typedReplace = clean !== undefined && method === 'printReplaceCall' ? javaStringLocalsReplaceText (printer, node, clean) : undefined;
         if (typedReplace !== undefined) {
             return typedReplace;
