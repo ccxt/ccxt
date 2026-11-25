@@ -4197,6 +4197,10 @@ class NewTranspiler {
         if (bare === 'string' && lead !== null && lead[1] === alias && this.identifierCopyBoxedConcatWrite (line.slice (lead[0].length), alias)) {
             return (pre.trim () === '') ? 'write' : 'read';
         }
+        // `return ((string?)((object)(alias)));` in a `string?` method: the boxed return names the same string or null
+        if (bare === 'string' && methodReturnType === 'string?' && /^\s*return \(\(string\?\)\(\(object\)\($/.test (pre) && /^\)\)\);\s*$/.test (post)) {
+            return 'read';
+        }
         if (pre.trim () === '') {
             const m = /^\s*(?:\?\?=|=)\s*(.*?);?\s*$/.exec (post);
             if (m !== null && this.identifierCopyRhsIsTyped (m[1].trim (), targetType, declared)) {
