@@ -7400,6 +7400,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'request': [ 0 ],
     // `methodName: string` on the base and every override; callers pass literals or a string parameter
     'handleMarginModeAndParams': [ 0 ],
+    // `marketType: string` on the base (no override); its one caller passes a '' -defaulted SafeString
+    'featureValueByType': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go

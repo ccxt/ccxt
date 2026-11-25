@@ -4393,7 +4393,7 @@ export class BaseExchange {
          * @returns {object} returns feature value
          */
         const market = this.market (symbol);
-        return this.featureValueByType (market['type'], market['subType'], methodName, paramName, defaultValue);
+        return this.featureValueByType (this.safeString (market, 'type', ''), this.safeString (market, 'subType'), methodName, paramName, defaultValue);
     }
 
     featureValueByType (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, defaultValue: any = undefined): any {
