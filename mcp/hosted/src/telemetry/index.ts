@@ -15,7 +15,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import { PostHog } from 'posthog-node';
 import { instrument, deriveSessionIdFromMCPSession } from '@posthog/mcp';
 import { resolveTelemetryConfig, type TelemetryConfig, type LogLevel } from './config.js';
-import { prepareEvent, type CaptureEvent } from './analytics.js';
+import { prepareEvent, LIVE_TOOL_NAME, type CaptureEvent } from './analytics.js';
 import { levelEnabled, sanitizeLogAttributes, type LogValue } from './logs.js';
 import { createTransport, type TransportObservation } from './transport.js';
 import { truncateString } from './redact.js';
@@ -321,6 +321,7 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
                     const state = storage.getStore ();
                     return prepareEvent (event as CaptureEvent, {
                         'sampleRate': config.sampleRate,
+                        'liveSampleRate': config.liveSampleRate,
                         'expectedErrorCodes': expected,
                         'appRoot': config.appRoot,
                         'cache': state?.cache,
@@ -365,7 +366,12 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
     const requestDone = (summary: RequestSummary): void => {
         const state = recent.get (summary.requestId) ?? storage.getStore ();
         recent.delete (summary.requestId);
-        const level: LogLevel = (summary.status >= 500) ? 'error' : ((summary.status >= 400 || summary.ok === false) ? 'warn' : 'info');
+        let level: LogLevel = (summary.status >= 500) ? 'error' : ((summary.status >= 400 || summary.ok === false) ? 'warn' : 'info');
+        // a live view polls every few seconds: its request lines are debug detail (the live hub
+        // logs aggregate stats at info instead); real failures stay visible
+        if (summary.toolName === LIVE_TOOL_NAME && level !== 'error' && (summary.ok !== false || summary.errorCode === 'RATE_LIMITED')) {
+            level = 'debug';
+        }
         const attributes: Record<string, unknown> = {
             'http_status': summary.status,
             'mcp_method': summary.mcpMethod,

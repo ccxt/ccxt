@@ -1,7 +1,7 @@
 import { ToolError } from '../../../ts/errors.js';
 import { currentCallScope, recordCache, type CallScope } from '../scope.js';
 import { ResponseCache } from './cache.js';
-import { CircuitBreaker, type BreakerOptions, type BreakerState } from './breaker.js';
+import { CircuitBreaker, trippingKind, type BreakerOptions, type BreakerState } from './breaker.js';
 
 // The single path from a hosted tool call to an exchange. In order, a call is answered:
 // 1. from the response cache (fresh entry for the same normalised arguments),
@@ -18,6 +18,8 @@ export interface UpstreamOptions {
     maxUpstreamPerCall: number; // cache misses one tool call may start
     cacheMaxEntries: number;
     breaker: BreakerOptions;
+    // live-view stream opens allowed per exchange per minute (see admitStream)
+    streamOpensPerMinute?: number;
     now?: () => number;
     onEvent?: (event: string, attributes: Record<string, unknown>) => void;
 }
@@ -38,6 +40,7 @@ interface Gate {
     waiting: Job[];
     breaker: CircuitBreaker;
     rateLimitMs: number;
+    streamOpens: number[]; // when the live hub opened a stream on this exchange (last minute)
 }
 
 export interface UpstreamStats {
@@ -69,6 +72,7 @@ export class UpstreamGuard {
                 'waiting': [],
                 'breaker': new CircuitBreaker ({ ...this.options.breaker, 'now': this.now }),
                 'rateLimitMs': Math.max (1, rateLimitMs || 1),
+                'streamOpens': [],
             });
         }
     }
@@ -138,6 +142,54 @@ export class UpstreamGuard {
             gate.waiting.push (job);
         }
         return result;
+    }
+
+    // ---- the live hub's WebSocket streams (mcp/ts/live/hub.ts) ----
+    // A stream open is upstream work too: it subscribes from this server's addresses and on
+    // some venues fetches a REST snapshot or a connection token. So it is refused while the
+    // exchange's breaker is not closed (half-open probes stay with REST calls), and at most
+    // streamOpensPerMinute open per exchange. undefined = admitted; otherwise the reason
+    admitStream (exchangeId: string): string | undefined {
+        const gate = this.gateFor (exchangeId);
+        if (gate.breaker.state () !== 'closed') {
+            return 'breaker';
+        }
+        const now = this.now ();
+        gate.streamOpens = gate.streamOpens.filter ((at) => at > now - 60000);
+        if (gate.streamOpens.length >= (this.options.streamOpensPerMinute ?? 30)) {
+            return 'rate';
+        }
+        gate.streamOpens.push (now);
+        return undefined;
+    }
+
+    // a stream error that says the exchange is limiting our addresses counts like a failed
+    // request; anything else (a dropped socket, a bad channel) says nothing about that
+    reportStreamError (exchangeId: string, error: any): void {
+        if (trippingKind (error) === undefined) {
+            return;
+        }
+        const gate = this.gateFor (exchangeId);
+        const before = gate.breaker.opens;
+        gate.breaker.onFailure (error);
+        if (gate.breaker.opens !== before) {
+            this.options.onEvent?.('breaker_open', { 'exchange': exchangeId, 'retryAfterSeconds': gate.breaker.retryAfterSeconds (), 'error': String (error?.constructor?.name ?? 'Error'), 'source': 'stream' });
+        }
+    }
+
+    // how hard the exchange is pressed right now, as a factor >= 1 for poll intervals
+    pressure (exchangeId: string): number {
+        const gate = this.gates.get (exchangeId);
+        if (gate === undefined) {
+            return 1;
+        }
+        if (gate.breaker.state () !== 'closed') {
+            return 3;
+        }
+        if (gate.waiting.length > 0) {
+            return 2;
+        }
+        return (gate.active >= this.options.maxConcurrentPerExchange) ? 1.5 : 1;
     }
 
     private gateFor (exchangeId: string): Gate {

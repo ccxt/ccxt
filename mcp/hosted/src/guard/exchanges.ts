@@ -48,9 +48,9 @@ interface Venue {
 // The tool-facing method names that may reach the network, with their cache lifetime.
 // Short TTLs (1-2 s) still collapse a burst of identical calls (a popular ticker asked by
 // many users at once) into one upstream request
-const TICKER_TTL_MS = 2000;
+export const TICKER_TTL_MS = 2000;
 const TRADES_TTL_MS = 2000;
-const ORDERBOOK_TTL_MS = 1000;
+export const ORDERBOOK_TTL_MS = 1000;
 const OHLCV_MIN_TTL_MS = 2000;
 const OHLCV_MAX_TTL_MS = 60000;
 
@@ -141,6 +141,42 @@ export class HostedExchanges {
 
     async getAuthenticated (name: string): Promise<never> {
         return this.account (name);
+    }
+
+    // A public ccxt.pro instance for the live hub (mcp/ts/live/hub.ts), separate from the REST
+    // instances: no keys, its own throttler and sockets, newUpdates off (the hub reads whole
+    // caches), and the venue's warm markets shared in, so it never loads markets itself.
+    // undefined when ccxt has no WebSocket class for the exchange. The watch_* tools do not
+    // exist here; this instance is only ever driven by the hub
+    streamInstance (exchangeId: string, marketType: string | undefined): any | undefined {
+        const venue = this.venue (exchangeId, false);
+        if (venue.state !== 'warm') {
+            throw new ToolError ('EXCHANGE_WARMING', exchangeId + ' is still loading its markets on this server', { 'retryable': true, 'retryAfterSeconds': 5 });
+        }
+        if (marketType !== undefined && !(MARKET_TYPE_KEYS as readonly string[]).includes (marketType)) {
+            throw new ToolError ('BAD_REQUEST', 'unknown market type ' + JSON.stringify (String (marketType).slice (0, 32)));
+        }
+        const cls = this.options.ccxt.pro?.[exchangeId];
+        if (typeof cls !== 'function' || this.closed) {
+            return undefined;
+        }
+        const exchangeOptions = this.options.exchangeOptions?.[exchangeId];
+        const exchange = new cls ({
+            'timeout': this.options.exchangeTimeoutMs,
+            'enableRateLimit': true,
+            'options': { ...(exchangeOptions ?? {}), 'newUpdates': false },
+        });
+        exchange.verbose = false;
+        exchange.log = () => {};
+        exchange.newUpdates = false;
+        if (exchange.options) {
+            exchange.options['newUpdates'] = false;
+            if (marketType !== undefined) {
+                exchange.options['defaultType'] = marketType;
+            }
+        }
+        shareMarkets (venue.base, exchange);
+        return exchange;
     }
 
     async acquirePublicStream (): Promise<never> {

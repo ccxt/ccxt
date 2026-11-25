@@ -84,6 +84,7 @@ export interface ServerContext {
     safety: any;   // Safety
     journal: any;  // Journal
     subscriptions: any; // SubscriptionRegistry (WebSocket streaming)
+    live: any;     // LiveHub (ts/live/hub.ts): shared streams behind the live views
     router: any;   // ccxt.OrderRouter, or undefined when the installed ccxt predates it
     routes: any;   // RouteCache — routes returned by fetch_route, executable by routeId
     version: string;

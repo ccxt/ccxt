@@ -27,6 +27,9 @@ export interface TelemetryConfig {
     host: string;
     // fraction (0..1) of SUCCESS events kept; errors are always kept
     sampleRate: number;
+    // the same for live_update, the views' refresh poll: one open view polls every few
+    // seconds, so its successes are sampled far harder (errors are still always kept)
+    liveSampleRate: number;
     serviceName: string;
     serviceVersion: string;
     // immutable build identifier (git sha, image digest) -> $mcp_server_build
@@ -74,6 +77,8 @@ export const DEFAULT_EXPECTED_ERROR_CODES: readonly string[] = Object.freeze ([
     'EXCHANGE_UNAVAILABLE',
     'TIMEOUT',
     'RESULT_TOO_LARGE',
+    'EXCHANGE_WARMING',
+    'LIVE_UNAVAILABLE',
 ]);
 
 function flag (value: string | undefined, fallback: boolean): boolean {
@@ -83,10 +88,10 @@ function flag (value: string | undefined, fallback: boolean): boolean {
     return /^(1|true|yes|on)$/i.test (value.trim ());
 }
 
-function rate (value: string | undefined): number {
+function rate (value: string | undefined, fallback = 1): number {
     const parsed = Number (value);
     if (value === undefined || value.trim () === '' || !Number.isFinite (parsed)) {
-        return 1;
+        return fallback;
     }
     return Math.min (1, Math.max (0, parsed));
 }
@@ -103,6 +108,7 @@ export function telemetryConfigFromEnv (env: Record<string, string | undefined> 
         'token': (token === '') ? undefined : token,
         'host': (env['POSTHOG_HOST'] ?? '').trim ().replace (/\/+$/, '') || DEFAULT_HOST,
         'sampleRate': rate (env['POSTHOG_SAMPLE_RATE']),
+        'liveSampleRate': rate (env['LIVE_TELEMETRY_SAMPLE_RATE'], 0.01),
         'serviceName': env['SERVICE_NAME'] || 'ccxt-mcp-hosted',
         'serviceVersion': env['SERVICE_VERSION'] || 'dev',
         'serverBuild': env['SERVER_BUILD'] || env['GIT_SHA'] || undefined,

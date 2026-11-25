@@ -33,6 +33,8 @@ export const TOOL_ACCESS: Readonly<Record<string, AccessClass>> = Object.freeze 
     'show_chart': 'public',
     'show_orderbook': 'public',
     'show_tickers': 'public',
+    // app-only refresh of the three views: the same public market data, read-only
+    'live_update': 'public',
     'get_balance': 'account',
     'get_orders': 'account',
     'get_my_trades': 'account',

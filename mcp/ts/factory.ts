@@ -4,6 +4,8 @@ import { ExchangePools, type PoolsDeps } from './pools.js';
 import { Safety } from './safety.js';
 import { Journal } from './journal.js';
 import { SubscriptionRegistry } from './subscriptions.js';
+import type { LiveHub } from './live/hub.js';
+import { createLocalLiveHub } from './live/local.js';
 import { registerAllTools, SERVER_INSTRUCTIONS } from './tools/index.js';
 import { installRegistrationGuard, type ToolProfile } from './tools/access.js';
 import { NamedToolProfile, profileInstructions } from './tools/profile.js';
@@ -28,6 +30,9 @@ export interface SharedStateOptions {
     // record). Default: ExchangePools over config + poolsDeps, and the on-disk Journal
     pools?: any;
     journal?: Journal;
+    // the market-data hub behind live views (ts/live/hub.ts). The hosted server passes one
+    // wired to its guarded exchanges; default: a local hub over `pools`
+    live?: LiveHub;
 }
 
 // kept as the name callers and tests already use for createServer's options
@@ -44,6 +49,8 @@ export interface SharedState {
     safety: Safety;
     journal: Journal;
     subscriptions: SubscriptionRegistry;
+    // one shared stream per (exchange, market type, channel, symbol) feeding every live view
+    live: LiveHub;
     router: any;
     routes: RouteCache;
     version: string;
@@ -72,6 +79,7 @@ export function createSharedState (options: SharedStateOptions): SharedState {
         safety,
         journal,
         subscriptions,
+        'live': options.live ?? createLocalLiveHub (pools),
         'router': options.router ?? createRouter (options.ccxtModule, options.version),
         'routes': new RouteCache (),
         'version': options.version,
@@ -131,6 +139,7 @@ export function buildServer (shared: SharedState, options: BuildServerOptions = 
         'safety': shared.safety,
         'journal': shared.journal,
         'subscriptions': shared.subscriptions,
+        'live': shared.live,
         'router': shared.router,
         'routes': shared.routes,
         'version': shared.version,

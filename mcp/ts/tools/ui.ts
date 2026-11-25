@@ -5,6 +5,7 @@ import { ok, TICKER_FIELDS } from '../format.js';
 import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, MAX_CODE_LENGTH, MAX_SYMBOLS } from './common.js';
 import { UI_STATUSES, uiToolMeta, uiNotice, decideUiStatus, uiSupport, requestClientCapabilities, attachesView, registerUiResources, type UiPayload, type ViewName } from '../ui.js';
 import { currentRequestScope } from '../request-scope.js';
+import { registerLiveTool } from './live.js';
 
 // Render tools: each one pairs a public market-data fetch with a ui:// view (MCP Apps).
 // The model receives a compact summary as text. structuredContent always carries the same
@@ -297,8 +298,10 @@ export function uiResponder (server: McpServer, ctx: ServerContext): (render: Re
 
 // with views switched off the ui:// link is not advertised either: an MCP Apps host would
 // otherwise open a view for a result that never carries its dataset
+// openai/widgetAccessible: the view may call tools itself in ChatGPT (its Refresh button and
+// timeframe switch re-call the render tool, live updates call live_update)
 export function viewToolMeta (ctx: ServerContext, view: ViewName): Record<string, any> | undefined {
-    return (ctx.ui.policy.mode === 'off') ? undefined : uiToolMeta (ctx.ui.views[view]);
+    return (ctx.ui.policy.mode === 'off') ? undefined : { ...uiToolMeta (ctx.ui.views[view]), 'openai/widgetAccessible': true };
 }
 
 const READ_ONLY = { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true };
@@ -470,4 +473,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             'dataset': { tickers },
         });
     }));
+
+    // the views' app-only refresh tool (./live.ts), served by the shared market-data hub
+    registerLiveTool (server, ctx);
 }

@@ -20,6 +20,9 @@ export const HOSTED_TOOLS: Readonly<Record<string, AccessClass>> = Object.freeze
     'show_chart': 'public',
     'show_orderbook': 'public',
     'show_tickers': 'public',
+    // the views' app-only refresh: polled by a view on screen, hidden from the model where the
+    // host supports it, answered by the shared market-data hub (DESIGN.md, "Live views")
+    'live_update': 'public',
     // listed so the model can answer "what is my balance?" with the way to get it; they
     // return ACCOUNT_REQUIRED and never reach an exchange. Phase 2 gates the same tools by
     // sign-in instead, so the tool list does not change when accounts arrive
@@ -140,7 +143,10 @@ export class HostedToolProfile implements ToolProfile {
             }
             inputSchema = inputSchema.partial ().loose ();
         } else {
-            if (this.acceptContext () && !('context' in shape)) {
+            // live_update is called by views, which never send `context`: it always declares
+            // it optional, so the analytics SDK (which skips tools that have one) never makes
+            // it required there
+            if ((this.acceptContext () || tool === 'live_update') && !('context' in shape)) {
                 inputSchema = inputSchema.extend ({ 'context': z.string ().max (1000).optional ().describe (CONTEXT_ARGUMENT) });
             }
             // unknown keys (a "params" a model remembers from the local server, a typo) are a

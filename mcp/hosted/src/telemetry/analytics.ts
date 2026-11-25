@@ -10,8 +10,13 @@ export const MAX_PARAMETERS_BYTES = 2048;
 export const MAX_ERROR_PREVIEW_BYTES = 1024;
 export const MAX_INTENT_CHARS = 1024;
 
+// mcp/ts/tools/live.ts LIVE_TOOL (kept literal: this module is loaded by the telemetry tests alone)
+export const LIVE_TOOL_NAME = 'live_update';
+
 export interface EventContext {
     sampleRate: number;
+    // success events of live_update (the views' refresh poll) use this rate instead
+    liveSampleRate?: number;
     expectedErrorCodes: ReadonlySet<string>;
     appRoot: string;
     // per-request values the request scope knows by the time the event is built
@@ -176,11 +181,15 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
     if (isException && code !== undefined && context.expectedErrorCodes.has (code)) {
         return null;
     }
-    // errors are always kept: they are rare and the reason to look at the data at all
-    if (!isError && !sampledIn (sampleKey (event), context.sampleRate)) {
+    // errors are always kept: they are rare and the reason to look at the data at all.
+    // live_update polls are sampled at their own (much lower) rate: a view on screen polls
+    // every few seconds, and one $mcp_tool_call per poll would drown everything else
+    const live = toolNameOf (props) === LIVE_TOOL_NAME;
+    const rate = (live && context.liveSampleRate !== undefined) ? context.liveSampleRate : context.sampleRate;
+    if (!isError && !sampledIn (sampleKey (event), rate)) {
         return null;
     }
-    props['sample_rate'] = context.sampleRate;
+    props['sample_rate'] = rate;
     const accountTool = isAccountTool (props);
     if ('$mcp_parameters' in props) {
         const exchange = exchangeOf (props['$mcp_parameters']);

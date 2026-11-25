@@ -178,6 +178,7 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 - `meta.ui` says what happened: `"displayed"` (the host declared MCP Apps support, dataset attached), `"unsupported"` (it did not), `"off"` (views disabled). The `CCXT_MCP_UI` environment variable overrides the detection: `auto` (default), `always` (attach the dataset even when the host does not declare support), `off` (never). A remote (stateless HTTP) deployment can also see `"attached"` or `"unknown"` when a 2025-era client's capabilities cannot be known; a stdio connection always knows them.
 - On contract markets order-book amounts are in contracts: `show_orderbook` reports `meta.amountUnit` / `meta.contractSize` plus base- and quote-currency depth totals. `show_tickers` and `get_tickers` name symbols that returned no ticker in `meta.missing`.
 - Views are self-contained single files: no network access, no external assets, no tracking. They can ask the host to re-run the same tool (Refresh, timeframe switch) with the original arguments; nothing ties that call to a server-side session.
+- **Live updates (server side).** A view on screen polls `live_update`, an app-only tool (hidden from the model where the host supports it, `_meta.ui.visibility: ["app"]`) answered by a shared market-data hub: one ccxt.pro stream per market on its own public instance (not the `watch_*` streams), closed a minute after its last poll, with REST serving whatever no stream can. `CCXT_MCP_LIVE_STREAMS=off` serves every poll from REST. The `core` profile leaves `live_update` out (its definition does not fit the size budget); `core,live_update` adds it.
 
 Terminal hosts (Claude Code CLI, Codex CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a local stdio server varies.
 
@@ -189,7 +190,7 @@ Every listed tool is sent to the model as a definition, and some hosts cap the t
 |---|---|
 | `all` (default) | every tool |
 | `core` | 17 essential tools: the three views, `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_safety_status`, `call_read_method`, `list_accounts`, `get_balance`, `get_orders`, `get_positions`, `create_order`, `cancel_order` |
-| `core,describe_method` or `get_tickers,show_chart` | an explicit list (`core` composes with names; `get_safety_status` is always listed) |
+| `core,describe_method` or `get_tickers,show_chart` | an explicit list (`core` composes with names; `get_safety_status` is always listed; add `live_update` for live views) |
 
 A hidden tool is not registered at all for that session; `get_safety_status` reports the active profile, the tools it hides, and any name in the list that is not a tool. The profile only chooses what is listed: the capability tiers still decide what an account may do.
 

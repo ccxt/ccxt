@@ -18,7 +18,7 @@ const MARKET_TOOLS = [
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
-    'show_chart', 'show_orderbook', 'show_tickers',
+    'show_chart', 'show_orderbook', 'show_tickers', 'live_update',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
 const FULL_ACCOUNT = { 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } };

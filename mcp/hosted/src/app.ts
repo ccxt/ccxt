@@ -8,6 +8,7 @@ import { canonicalUrl } from './config.js';
 import { CidrSet, PROXY_PEERS } from './ip.js';
 import { clientIp, identifyClient, jsonDepthExceeds, RateLimiter, requestCost } from './limits.js';
 import { HostedToolProfile, HOSTED_INSTRUCTIONS, HOSTED_TOOLS } from './profile.js';
+import { LIVE_TOOL } from '../../ts/tools/live.js';
 import { runInCallScope, currentCallScope, summariseCache, type CallScope } from './scope.js';
 import type { HostedExchanges } from './guard/exchanges.js';
 import type { Telemetry, RequestSummary } from './telemetry/index.js';
@@ -18,8 +19,8 @@ import type { Telemetry, RequestSummary } from './telemetry/index.js';
 //   2. client IP from the trusted proxy
 //   3. Host validation and the 256 KB body cap (createMcpHonoApp; 403 / 413)
 //   4. on POST /mcp: JSON-RPC batch rejection, JSON depth cap
-//   5. per-client rate limit (429 + Retry-After)
-//   6. global concurrency cap (503 + Retry-After)
+//   5. per-client rate limit (429 + Retry-After); live_update polls have their own bucket
+//   6. global concurrency cap (503 + Retry-After); live_update polls have their own cap
 //   7. per-request deadline (the guarded exchange layer turns it into a TOOL error; a
 //      backstop answers 504 if the SDK itself ever hangs past it)
 // then createMcpHandler (stateless, one McpServer per request).
@@ -64,6 +65,29 @@ const CLIENT_INFO_META = 'io.modelcontextprotocol/clientInfo';
 
 function rpcError (c: Context, status: number, code: number, message: string, id: unknown = null, headers: Record<string, string> = {}): Response {
     return c.json ({ 'jsonrpc': '2.0', 'error': { code, message }, 'id': (typeof id === 'string' || typeof id === 'number') ? id : null }, status as any, headers);
+}
+
+// A live_update poll refused by the per-client limit or the live concurrency cap is answered
+// IN-BAND, as the tool's own RATE_LIMITED error with retryAfterSeconds, not as HTTP 429/503:
+// a view treats a failed tools/call (a JSON-RPC error) as "this host cannot poll" and stops
+// for good, while a tool error is something it can wait out. Shaped like the SDK's own result
+// for the era (2026-07-28 adds resultType and the server info)
+function liveRefusal (c: Context, facts: MessageFacts, retryAfterSeconds: number, message: string): Response {
+    const envelope = {
+        'ok': false,
+        'error': {
+            'code': 'RATE_LIMITED',
+            message,
+            'retryable': true,
+            'hint': 'the view waits retryAfterSeconds and polls again; nothing for the model to do',
+            retryAfterSeconds,
+        },
+    };
+    const result: Record<string, unknown> = { 'content': [ { 'type': 'text', 'text': JSON.stringify (envelope) } ], 'isError': true };
+    if (facts.modern) {
+        result['resultType'] = 'complete';
+    }
+    return c.json ({ 'jsonrpc': '2.0', 'id': (typeof facts.id === 'string' || typeof facts.id === 'number') ? facts.id : null, result }, 200, { 'retry-after': String (retryAfterSeconds) });
 }
 
 interface MessageFacts {
@@ -154,7 +178,10 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
     const ranges = { 'anthropic': new CidrSet (config.hostRanges.anthropic), 'openai': new CidrSet (config.hostRanges.openai) };
     const clientBudget = { 'perMinute': config.rateLimit.perMinute, 'burst': config.rateLimit.burst };
     const hostBudget = { 'perMinute': config.rateLimit.hostPerMinute, 'burst': config.rateLimit.hostBurst };
+    const liveClientBudget = { 'perMinute': config.rateLimit.livePerMinute, 'burst': config.rateLimit.liveBurst };
+    const liveHostBudget = { 'perMinute': config.rateLimit.liveHostPerMinute, 'burst': config.rateLimit.liveHostBurst };
     let inflight = 0;
+    let liveInflight = 0; // the live_update share of inflight
     let draining = false;
     const openListens = new Map<string, number> ();
     const drainWaiters: Array<() => void> = [];
@@ -320,14 +347,31 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         // a request answered before the MCP handler still gets its summary line, under the
         // same request identity (client hash, user agent) as a served one
         const early = (summary: RequestSummary) => telemetry.runWithRequest (info, async () => telemetry.requestDone (summary));
-        const retryAfter = limiter.take (identity.key, (identity.budget === 'host') ? hostBudget : clientBudget, requestCost (facts.method));
+        // live_update (a view's refresh poll) spends its own bucket under the same identity:
+        // a live view cannot eat the user's tool-call budget, nor a burst of calls freeze it
+        const live = facts.method === 'tools/call' && facts.toolName === LIVE_TOOL;
+        const bucketKey = live ? identity.key + '|live' : identity.key;
+        const budget = live
+            ? ((identity.budget === 'host') ? liveHostBudget : liveClientBudget)
+            : ((identity.budget === 'host') ? hostBudget : clientBudget);
+        const retryAfter = limiter.take (bucketKey, budget, requestCost (facts.method));
         if (retryAfter !== undefined) {
+            if (live) {
+                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
+                return liveRefusal (c, facts, retryAfter, 'too many live updates from this client: the views poll more often than this server allows');
+            }
             void early ({ requestId, 'status': 429, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
             return rpcError (c, 429, -32000, 'rate limit exceeded for this client: retry after ' + retryAfter + ' s', facts.id, { 'retry-after': String (retryAfter) });
         }
         // 6. global concurrency cap (listen streams are long-lived and capped by the SDK)
         const listen = facts.method === 'subscriptions/listen';
-        if (!listen && inflight >= config.maxConcurrentRequests) {
+        // live polls have their own slots, so open views cannot crowd out tool calls
+        const busy = live ? (liveInflight >= config.live.maxConcurrent) : ((inflight - liveInflight) >= config.maxConcurrentRequests);
+        if (!listen && busy) {
+            if (live) {
+                void early ({ requestId, 'status': 200, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'exchange': facts.exchange, 'ok': false, 'errorCode': 'RATE_LIMITED', 'durationMs': now () - started });
+                return liveRefusal (c, facts, 2, 'this server is answering too many live updates right now');
+            }
             void early ({ requestId, 'status': 503, 'mcpMethod': facts.method, 'toolName': facts.toolName, 'ok': false, 'errorCode': 'OVERLOADED', 'durationMs': now () - started });
             return rpcError (c, 503, -32000, 'server busy, retry shortly', facts.id, { 'retry-after': '1' });
         }
@@ -360,6 +404,9 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         };
         if (!listen) {
             inflight += 1;
+            if (live) {
+                liveInflight += 1;
+            }
         }
         let released = false;
         const release = () => {
@@ -368,6 +415,9 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
             }
             released = true;
             inflight -= 1;
+            if (live) {
+                liveInflight -= 1;
+            }
             if (inflight === 0) {
                 for (const resolve of drainWaiters.splice (0)) {
                     resolve ();

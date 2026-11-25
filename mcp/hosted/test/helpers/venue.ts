@@ -14,6 +14,13 @@ export interface VenueControl {
     held: Array<() => void>; // when holding, calls wait here until released
     hold: boolean;
     noBatch: Set<string>; // exchanges without fetchTickers (one request per symbol)
+    // the ccxt.pro side (module.pro), driven only by the live hub
+    ws: {
+        instances: any[]; // every stream instance constructed
+        watches: { exchange: string, method: string, args: any[] }[];
+        fail: ((exchange: string, method: string) => Error | undefined) | undefined;
+        noWs: Set<string>; // exchanges without a ccxt.pro class
+    };
 }
 
 // ccxt-shaped error classes: the breaker and the error mapping read class names
@@ -31,7 +38,7 @@ export function symbolsFor (count: number): string[] {
 }
 
 export function createVenue (ids: string[] = [ 'alpha', 'beta' ], extraSymbols = 300) {
-    const control: VenueControl = { 'calls': [], 'loads': [], 'latencyMs': 0, 'loadLatencyMs': {}, 'failLoad': new Set (), 'failWith': undefined, 'held': [], 'hold': false, 'noBatch': new Set () };
+    const control: VenueControl = { 'calls': [], 'loads': [], 'latencyMs': 0, 'loadLatencyMs': {}, 'failLoad': new Set (), 'failWith': undefined, 'held': [], 'hold': false, 'noBatch': new Set (), 'ws': { 'instances': [], 'watches': [], 'fail': undefined, 'noWs': new Set () } };
     const wait = (ms: number) => new Promise<void> ((resolve) => setTimeout (resolve, ms));
     const markets = (): Record<string, any> => {
         const result: Record<string, any> = { 'BTC/USDT': MARKET, 'ETH/USDT': ETH, 'BTC/USDT:USDT': PERP };
@@ -142,6 +149,67 @@ export function createVenue (ids: string[] = [ 'alpha', 'beta' ], extraSymbols =
             }
         };
     }
+    // ccxt.pro classes: a watch* call resolves after a short unref'd tick with fresh data
+    // (prices move with every tick) and never touches the REST side
+    const pro: Record<string, any> = { 'exchanges': ids.filter ((id) => !control.ws.noWs.has (id)) };
+    for (const id of ids) {
+        pro[id] = class extends module[id] {
+            closedWs = false;
+            ticks = 0;
+            constructor (config: Record<string, any> = {}) {
+                super (config);
+                this.has = { ...this.has, 'watchTicker': true, 'watchOrderBook': true, 'watchOHLCV': true, 'unWatchTicker': true, 'unWatchOrderBook': true, 'unWatchOHLCV': true };
+                control.ws.instances.push (this);
+            }
+
+            private async wsTick (method: string, args: any[]): Promise<void> {
+                control.ws.watches.push ({ 'exchange': id, method, args });
+                await new Promise<void> ((resolve) => {
+                    const timer = setTimeout (resolve, 3);
+                    timer.unref?.();
+                });
+                if (this.closedWs) {
+                    const error = new Error ('connection closed by user');
+                    error.name = 'ExchangeClosedByUser';
+                    throw error;
+                }
+                const failure = control.ws.fail?.(id, method);
+                if (failure !== undefined) {
+                    throw failure;
+                }
+                this.ticks += 1;
+            }
+
+            async watchTicker (symbol: string): Promise<any> {
+                await this.wsTick ('watchTicker', [ symbol ]);
+                return { symbol, 'last': 200 + this.ticks, 'bid': 199, 'ask': 201, 'percentage': 1, 'baseVolume': 3, 'quoteVolume': 600, 'timestamp': Date.now () };
+            }
+
+            async watchOrderBook (symbol: string): Promise<any> {
+                await this.wsTick ('watchOrderBook', [ symbol ]);
+                return { symbol, 'bids': Array.from ({ 'length': 30 }, (_, i) => [ 199 - i, 1 ]), 'asks': Array.from ({ 'length': 30 }, (_, i) => [ 201 + i, 1 ]), 'timestamp': Date.now () };
+            }
+
+            async watchOHLCV (symbol: string, timeframe: string): Promise<any> {
+                await this.wsTick ('watchOHLCV', [ symbol, timeframe ]);
+                const frame = this.parseTimeframe (timeframe) * 1000;
+                const open = Math.floor (Date.now () / frame) * frame;
+                return Array.from ({ 'length': 10 }, (_, i) => [ open - (9 - i) * frame, 1, 2, 0.5, 1.5 + this.ticks, 100 ]);
+            }
+
+            async unWatchTicker (): Promise<void> {}
+            async unWatchOrderBook (): Promise<void> {}
+            async unWatchOHLCV (): Promise<void> {}
+
+            async close (): Promise<void> {
+                this.closedWs = true;
+            }
+        };
+    }
+    module['pro'] = new Proxy (pro, {
+        // an exchange in noWs has no ccxt.pro class, decided when the hub asks
+        get: (target, property) => ((typeof property === 'string' && control.ws.noWs.has (property)) ? undefined : target[property as string]),
+    });
     // ids without fetchTickers, to exercise the per-symbol fan-out
     return {
         module,

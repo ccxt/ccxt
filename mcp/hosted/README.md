@@ -14,7 +14,7 @@ It shares its tools with the local stdio server in `mcp/` (npm `ccxt-mcp`). It a
 | Group | Tools |
 |---|---|
 | Market data | `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades` |
-| Views | `show_chart`, `show_orderbook`, `show_tickers` (MCP Apps views, versioned `ui://ccxt/<view>.<hash>.html`) |
+| Views | `show_chart`, `show_orderbook`, `show_tickers` (MCP Apps views, versioned `ui://ccxt/<view>.<hash>.html`), and `live_update`, the app-only tool a view on screen polls to stay live (hidden from the model where the host supports it) |
 | Account (stubs) | `get_balance`, `get_orders`, `get_positions`, `get_my_trades`. They return `ACCOUNT_REQUIRED` and never call an exchange. |
 
 - **The list is pinned** by `test/profile.test.ts`, against the table in `DESIGN.md`. A tool added to the local server never appears here unless that list changes.
@@ -63,6 +63,17 @@ All configuration comes from environment variables. [`.env.example`](.env.exampl
 | `BREAKER_*` | 3 failures / 60 s, 30 s cooldown (max 10 min) | Circuit breaker per exchange. |
 | `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_BURST` | `60`, `30` | Per-client token bucket (an IPv4 address, or an IPv6 /64). A tool call costs 1; list and read requests cost 0.25. |
 | `HOST_RATE_LIMIT_PER_MINUTE`, `HOST_RATE_LIMIT_BURST` | `3000`, `600` | Budget for Anthropic's and OpenAI's egress addresses, which all their users share. |
+| `LIVE_STREAMS` | `on` | Live views: `on` lets the hub open shared ccxt.pro streams; `off` answers every `live_update` poll from REST (through the same guard, cache and limits). |
+| `LIVE_IDLE_MS` | `60000` | A stream no view polled for this long is closed (unWatch where ccxt supports it; the WebSocket instance closes with its last stream). |
+| `LIVE_MAX_STREAMS`, `LIVE_MAX_STREAMS_PER_EXCHANGE` | `200`, `50` | Stream caps (one stream per exchange, market type, channel, symbol and timeframe). At a cap, polls are served from REST and told to poll less often. |
+| `LIVE_STREAM_OPENS_PER_MINUTE` | `30` | Stream opens per exchange per minute; also refused while the exchange's breaker is not closed. |
+| `LIVE_WS_FAILURE_THRESHOLD`, `LIVE_WS_COOLDOWN_MS` | `5`, `300000` | That many stream failures on one exchange within two minutes pause its streams for the cooldown; polls go to REST meanwhile. |
+| `LIVE_STALE_MS` | `30000` | Stream data older than this is not served (REST is tried first). |
+| `LIVE_POLL_STREAM_MS`, `LIVE_POLL_REST_MS` | `2000`, `5000` | The `nextPollMs` a view is given when served from a stream, or from REST/cache (never below the cache TTL; longer at a cap or under load; always 1–30 s). |
+| `LIVE_RATE_LIMIT_PER_MINUTE`, `LIVE_RATE_LIMIT_BURST` | `120`, `30` | Per-client bucket for `live_update` only, separate from the tool-call budget: four views at the 2 s stream cadence. Past it a poll gets the tool error `RATE_LIMITED` with `retryAfterSeconds` (HTTP 200), never a 429 that would stop the view. |
+| `LIVE_HOST_RATE_LIMIT_PER_MINUTE`, `LIVE_HOST_RATE_LIMIT_BURST` | `12000`, `1200` | The same for a host egress address (all Claude users share Anthropic's). |
+| `LIVE_MAX_CONCURRENT` | `32` | `live_update` calls in flight at once, beside `MAX_CONCURRENT_REQUESTS` (polls cannot take the tool calls' slots). |
+| `LIVE_STATS_INTERVAL_MS` | `60000` | Period of the `live hub stats` log line (0 = never). |
 | `UI_WHEN_UNKNOWN` | `attach` | What a `show_*` result does when the client did not state its capabilities: attach the view payload, or omit it. |
 | `CCXT_MCP_UI` | `auto` | View mode for `show_*` results: `auto` (follow the client's stated capabilities, else `UI_WHEN_UNKNOWN`), `always` (send the dataset to every client, reported as `displayed`) or `off`. Any other value falls back to `auto`. |
 | `OPENAI_APPS_CHALLENGE` | unset | Token served at `/.well-known/openai-apps-challenge`. |
@@ -91,6 +102,7 @@ Every caller shares this server's IP addresses at each exchange. One abusive cli
   - `_meta["openai/subject"]` is the key instead, but only on requests from OpenAI's published connector ranges. From anywhere else it is just a string the caller chose.
   - Anthropic's (`160.79.104.0/21`, `153.61.208.0/20`) and OpenAI's ranges get the higher host budget.
   - The OpenAI list is a dated snapshot in `src/data/openai-egress.ts`. Refresh it with `node scripts/refresh-egress-ranges.mjs` and review the diff.
+- **Live views** (`live_update`, see DESIGN.md "Live views"). Views on screen poll every few seconds; one shared ccxt.pro stream per market answers all of them, so a poll served from a stream sends nothing to the exchange. Stream instances are public (no keys) and separate from the REST instances, and get the warm markets instead of loading their own. A stream open is refused while the breaker is not closed and is rate-limited per exchange; stream errors that mean throttling feed the breaker. Whatever no stream can serve goes through the guarded REST path above, never around it.
 - **HTTP limits.**
   - Bodies are capped at 256 KB (413) and JSON nesting at 32 levels.
   - JSON-RPC batches are rejected, so every limit counts calls, not HTTP requests.
@@ -203,6 +215,7 @@ Nothing in the container alerts anyone; an outage is otherwise reported by users
 - one `request` line per HTTP request, carrying `request_id`, method, tool, exchange, status, `error_code`, duration, cache outcome and protocol era;
 - `markets loaded` / `refreshed` / `failed` lines;
 - `breaker_open` warnings;
+- `live hub stats` lines while views are live (streams per exchange, polls by source, fallbacks); `live_update` request lines are at `debug`;
 - `draining` / `drained` lines.
 
 Lines are also mirrored to PostHog Logs when a token is set (see Telemetry). nginx's `$request_id` arrives as `X-Request-Id`, and the `ccxt_mcp` log format writes it to `/var/log/nginx/ccxt-mcp.log`, so nginx and app lines join on it. An incoming `X-Request-Id` is used only under the same rule as the client-IP headers (`TRUSTED_PROXY` set and a loopback or private peer); otherwise the server makes its own, because the id also becomes the analytics session id.
@@ -249,6 +262,7 @@ The server reports usage to PostHog when `POSTHOG_PROJECT_TOKEN` is set, and oth
 | `POSTHOG_PROJECT_TOKEN` | unset | PostHog project token. Unset means telemetry is off. A personal (`phx_`) key is refused. |
 | `POSTHOG_HOST` | `https://eu.i.posthog.com` | Ingestion host. The project is in the EU region. |
 | `POSTHOG_SAMPLE_RATE` | `1` | Fraction of successful events kept. Errors are always kept. |
+| `LIVE_TELEMETRY_SAMPLE_RATE` | `0.01` | The same for `live_update`, the views' refresh poll (one open view polls every few seconds). Errors are always kept. |
 | `POSTHOG_CONTEXT` | `1` | Adds a required `context` argument to every tool and records the model's stated intent. With analytics off (no token) the tools still accept an optional `context`, so a host that cached a tools/list from an instance with analytics on keeps working. |
 | `POSTHOG_CAPTURE_MODEL` | `0` | Adds an `llm_model` argument. |
 | `POSTHOG_CONVERSATION_ID` | `0` | Adds a `conversation_id` argument and an extra result block. Keep it off. |

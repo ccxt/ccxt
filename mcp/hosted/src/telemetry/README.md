@@ -118,6 +118,7 @@ The hosted server also rejects unknown arguments, so a credential sent as an arg
 
 - Errors and their `$exception` events are always kept.
 - The decision hashes the session id. Today that id is one per request, so a request's events are kept or dropped together, and the same id always gets the same answer.
+- **`live_update`** (the views' refresh poll, every few seconds per open view) uses `LIVE_TELEMETRY_SAMPLE_RATE` (default `0.01`) for its successes instead. Its errors are always kept. `sample_rate` on each event is the rate that applied, so counts scale back up.
 
 ## Logs
 
@@ -141,7 +142,8 @@ Each log record is one JSON line on standard output. When a token is set, the sa
 |---|---|
 | `request_id`, `client_hash`, `auth_state` | On every record written inside a request. |
 | `posthogDistinctId`, `sessionId` | The same values as that request's events, so PostHog links a log line to its events. |
-| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name` |
+| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name`. For `live_update` the line is at `debug` unless the call failed for a reason other than its rate limit: the polls are summarised by the hub's stats line instead. |
+| `live hub stats` (every `LIVE_STATS_INTERVAL_MS` while views are live) | `streams`, `streams_by_exchange`, `instances`, `polls_stream`, `polls_cache`, `polls_rest`, `fallbacks`, `opened`, `closed_idle`, `stream_errors`, `disabled_exchanges`. Counts only: no symbol, no client. |
 | Other lines | Server life-cycle events (listening, draining, circuit breaker), and errors as `name: message` of at most 300 characters (never a stack). |
 
 ### What is never logged

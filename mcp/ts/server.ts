@@ -36,6 +36,7 @@ async function main (): Promise<void> {
         log ('info', 'shutting down (' + reason + ')');
         try {
             await shared.subscriptions.closeAll ();
+            await shared.live.close ();
             await pools.closeAll ();
         } catch (e) {
             // nothing useful left to do on the way out

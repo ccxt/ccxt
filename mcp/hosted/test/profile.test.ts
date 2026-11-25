@@ -20,7 +20,7 @@ const here = path.dirname (fileURLToPath (import.meta.url));
 
 const PINNED = [
     'describe_exchange', 'get_balance', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders',
-    'get_positions', 'get_tickers', 'get_trades', 'list_exchanges', 'search_markets',
+    'get_positions', 'get_tickers', 'get_trades', 'list_exchanges', 'live_update', 'search_markets',
     'show_chart', 'show_orderbook', 'show_tickers',
 ];
 

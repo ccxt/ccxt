@@ -5,6 +5,7 @@ import type { HostedConfig } from './config.js';
 import { createRuntime, type HostedRuntime } from './runtime.js';
 import { createHostedApp, type HostedApp } from './app.js';
 import type { Telemetry } from './telemetry/index.js';
+import { isBenignStreamClose } from '../../ts/errors.js';
 
 // Starts the hosted server: shared runtime, HTTP app, listening socket, background markets
 // warm-up. main.ts wires it to the real ccxt and the process; tests wire it to a fake ccxt.
@@ -74,6 +75,7 @@ export async function startHostedServer (options: StartOptions): Promise<Running
                 telemetry.log ('info', 'draining', { reason, 'inflight': hosted.inflight () });
                 const result = await hosted.drain (config.drainTimeoutMs);
                 telemetry.log (result.drained ? 'info' : 'warn', 'drained', result);
+                await runtime.live.close ();
                 await runtime.exchanges.closeAll ();
                 await hosted.close ();
                 await new Promise<void> ((resolve) => {
@@ -99,6 +101,11 @@ export function installSignalHandlers (target: EventEmitter, running: RunningSer
         });
     }
     target.on ('unhandledRejection', (reason: any) => {
+        // closing a live stream rejects ccxt.pro's own pending watch futures: routine, not a fault
+        if (isBenignStreamClose (reason)) {
+            telemetry.log ('debug', 'stream socket closed', { 'error': String (reason?.message ?? reason).slice (0, 300) });
+            return;
+        }
         telemetry.log ('error', 'unhandled rejection', { 'error': String (reason?.message ?? reason).slice (0, 300) });
     });
     target.on ('uncaughtException', (error: any) => {

@@ -153,6 +153,28 @@ export class ExchangePools {
         }
     }
 
+    // A public ccxt.pro instance for the live-view hub (ts/live/hub.ts): never pooled and never
+    // shared with watch_* streams or REST calls. newUpdates is OFF, because the hub reads each
+    // stream's whole cache (the candle window, the full book), and the markets are taken from
+    // the REST instance the caller already resolved, so nothing is loaded twice. undefined
+    // when the exchange has no WebSocket implementation.
+    createLiveInstance (exchangeId: string, marketType: string | undefined, rest: any, prediction = false): any | undefined {
+        if (!this.deps.isKnownExchange (exchangeId)) {
+            throw new UnknownExchangeError (exchangeId, this.deps.closestMatches (exchangeId, this.deps.allExchangeIds ()));
+        }
+        const cls = this.deps.exchangeClass (exchangeId, prediction);
+        const exchangeOptions = this.config.settings.exchangeOptions[exchangeId];
+        const exchange = new cls (this.constructorConfig ({ 'options': { ...(exchangeOptions ?? {}), 'newUpdates': false } }));
+        this.hardenInstance (exchange);
+        exchange.options['newUpdates'] = false;
+        exchange.newUpdates = false;
+        if (marketType !== undefined) {
+            exchange.options['defaultType'] = marketType;
+        }
+        shareMarkets (rest, exchange);
+        return exchange;
+    }
+
     private bareCache = new Map<string, any> ();
 
     // metadata-only instance: describe() fields (has, urls, timeframes, requiredCredentials)
@@ -257,6 +279,27 @@ export class ExchangePools {
             Promise.allSettled (instances.map ((exchange) => closeQuietly (exchange))),
             new Promise ((resolve) => setTimeout (resolve, 5000)),
         ]);
+    }
+}
+
+// the target reads the source's markets (same objects, no copy): a stream instance must
+// never load markets over the network on its own
+export function shareMarkets (source: any, target: any): void {
+    if (source === undefined || source === null || source.markets === undefined || source.markets === null) {
+        return;
+    }
+    if (typeof target.setMarketsFromExchange === 'function' && target.id === source.id) {
+        try {
+            target.setMarketsFromExchange (source);
+            return;
+        } catch (e) {
+            // fall through to the plain copy
+        }
+    }
+    for (const key of [ 'markets', 'markets_by_id', 'symbols', 'ids', 'currencies', 'currencies_by_id', 'baseCurrencies', 'quoteCurrencies', 'codes' ]) {
+        if (source[key] !== undefined) {
+            target[key] = source[key];
+        }
     }
 }
 

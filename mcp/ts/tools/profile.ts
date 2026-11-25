@@ -20,6 +20,9 @@ import { paramsParam, paramsParamNoPointer } from './common.js';
 // - get_safety_status (it also reports this profile) and ONE escape hatch, call_read_method,
 //   so no read becomes impossible: get_trades, get_my_trades, funding, ledger, events, ...
 // An explicit list can add any other tool: "core,describe_method".
+// live_update (the views' app-only refresh tool) is not core: its definition alone would push
+// core past the budget below. Under "core" the views stay static (they detect the missing
+// tool); "core,live_update" turns live views on.
 export const CORE_TOOLS: readonly string[] = [
     'show_chart', 'show_orderbook', 'show_tickers',
     'list_exchanges', 'describe_exchange', 'search_markets', 'get_tickers', 'get_orderbook', 'get_ohlcv',

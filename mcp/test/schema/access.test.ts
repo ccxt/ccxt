@@ -47,7 +47,7 @@ test ('access table: every registered tool has exactly one access class, and no 
 
 test ('access table: the classes that decide exposure are pinned', () => {
     const byClass = (access: string) => Object.keys (TOOL_ACCESS).filter ((name) => TOOL_ACCESS[name] === access).sort ();
-    assert.deepEqual (byClass ('public'), [ 'describe_exchange', 'get_ohlcv', 'get_orderbook', 'get_tickers', 'get_trades', 'list_exchanges', 'search_events', 'search_markets', 'show_chart', 'show_orderbook', 'show_tickers' ]);
+    assert.deepEqual (byClass ('public'), [ 'describe_exchange', 'get_ohlcv', 'get_orderbook', 'get_tickers', 'get_trades', 'list_exchanges', 'live_update', 'search_events', 'search_markets', 'show_chart', 'show_orderbook', 'show_tickers' ]);
     assert.deepEqual (byClass ('account'), [ 'get_balance', 'get_my_trades', 'get_orders', 'get_positions' ]);
     assert.deepEqual (byClass ('executor'), [ 'call_implicit_get', 'call_implicit_write', 'call_read_method', 'call_write_method', 'describe_method' ]);
 });

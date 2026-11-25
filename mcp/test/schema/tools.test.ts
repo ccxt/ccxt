@@ -14,6 +14,8 @@ const MARKET_TOOLS = [
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
     // the MCP Apps render tools: public market data, so they sit in the market tier
     'show_chart', 'show_orderbook', 'show_tickers',
+    // and the views' app-only refresh tool
+    'live_update',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
 const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route' ];
@@ -60,10 +62,10 @@ const PREVIOUS_RELEASE_TOOLS = [
     'set_margin_mode', 'transfer', 'watch_list', 'watch_read', 'watch_subscribe', 'watch_unsubscribe', 'withdraw',
 ];
 
-test ('stdio tool list: the previous release\'s tools plus exactly the three views', async () => {
+test ('stdio tool list: the previous release\'s tools plus exactly the three views and their refresh tool', async () => {
     const { names } = await listToolNames ({});
     assert.equal (PREVIOUS_RELEASE_TOOLS.length, 34);
-    assert.deepEqual (names, [ ...PREVIOUS_RELEASE_TOOLS, 'show_chart', 'show_orderbook', 'show_tickers' ].sort ());
+    assert.deepEqual (names, [ ...PREVIOUS_RELEASE_TOOLS, 'live_update', 'show_chart', 'show_orderbook', 'show_tickers' ].sort ());
 });
 
 test ('default: every tool tier is listed even with no accounts (disabled tiers error at call time)', async () => {

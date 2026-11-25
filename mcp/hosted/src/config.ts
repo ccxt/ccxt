@@ -1,4 +1,5 @@
 import { OPENAI_CONNECTOR_RANGES } from './data/openai-egress.js';
+import type { LiveOptions } from '../../ts/live/hub.js';
 
 // Runtime configuration of the hosted server, read from the environment once at start-up.
 // Every default is safe to deploy; .env.example lists the same variables. Telemetry has its
@@ -43,6 +44,17 @@ export interface HostedConfig {
         hostPerMinute: number;
         hostBurst: number;
         maxKeys: number;
+        // live_update (the views' refresh polls) has its own buckets, so a live view cannot
+        // spend a user's tool-call budget and a burst of tool calls cannot freeze the views
+        livePerMinute: number;
+        liveBurst: number;
+        liveHostPerMinute: number;
+        liveHostBurst: number;
+    };
+    // the shared market-data hub behind live views (mcp/ts/live/hub.ts)
+    live: LiveOptions & {
+        maxConcurrent: number; // live_update calls in flight at once (beside MAX_CONCURRENT_REQUESTS)
+        streamOpensPerMinute: number; // stream opens per exchange per minute
     };
     hostRanges: { anthropic: string[], openai: readonly string[] };
     uiWhenUnknown: 'attach' | 'omit';
@@ -76,6 +88,20 @@ function int (env: Record<string, string | undefined>, name: string, fallback: n
         throw new Error (name + ' must be a number >= ' + min + ', got ' + JSON.stringify (raw));
     }
     return Math.floor (value);
+}
+
+function onOff (env: Record<string, string | undefined>, name: string, fallback: boolean): boolean {
+    const raw = (env[name] ?? '').trim ().toLowerCase ();
+    if (raw === '') {
+        return fallback;
+    }
+    if ([ 'on', 'true', '1', 'yes' ].includes (raw)) {
+        return true;
+    }
+    if ([ 'off', 'false', '0', 'no' ].includes (raw)) {
+        return false;
+    }
+    throw new Error (name + ' must be "on" or "off", got ' + JSON.stringify (env[name]));
 }
 
 function list (raw: string | undefined): string[] {
@@ -160,6 +186,31 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
             'hostPerMinute': int (env, 'HOST_RATE_LIMIT_PER_MINUTE', 3000, 1),
             'hostBurst': int (env, 'HOST_RATE_LIMIT_BURST', 600, 1),
             'maxKeys': int (env, 'RATE_LIMIT_MAX_KEYS', 100000, 100),
+            // one poll per ~2 s per open view: 120/min is four views at stream cadence (ten at
+            // the 5 s REST cadence) for one ChatGPT user or one IP address
+            'livePerMinute': int (env, 'LIVE_RATE_LIMIT_PER_MINUTE', 120, 1),
+            'liveBurst': int (env, 'LIVE_RATE_LIMIT_BURST', 30, 1),
+            // every Claude user shares an Anthropic egress address: 12000/min is ~400 views
+            'liveHostPerMinute': int (env, 'LIVE_HOST_RATE_LIMIT_PER_MINUTE', 12000, 1),
+            'liveHostBurst': int (env, 'LIVE_HOST_RATE_LIMIT_BURST', 1200, 1),
+        },
+        'live': {
+            'enabled': onOff (env, 'LIVE_STREAMS', true),
+            'idleMs': int (env, 'LIVE_IDLE_MS', 60000, 1000),
+            'maxStreams': int (env, 'LIVE_MAX_STREAMS', 200, 0),
+            'maxStreamsPerExchange': int (env, 'LIVE_MAX_STREAMS_PER_EXCHANGE', 50, 0),
+            'staleMs': int (env, 'LIVE_STALE_MS', 30000, 1000),
+            'streamPollMs': int (env, 'LIVE_POLL_STREAM_MS', 2000, 1000),
+            'restPollMs': int (env, 'LIVE_POLL_REST_MS', 5000, 1000),
+            'maxStreamErrors': 5,
+            'wsFailureThreshold': int (env, 'LIVE_WS_FAILURE_THRESHOLD', 5, 1),
+            'wsFailureWindowMs': 120000,
+            'wsCooldownMs': int (env, 'LIVE_WS_COOLDOWN_MS', 300000, 1000),
+            'unsupportedCooldownMs': 600000,
+            'statsIntervalMs': int (env, 'LIVE_STATS_INTERVAL_MS', 60000, 0),
+            'sweepIntervalMs': 5000,
+            'maxConcurrent': int (env, 'LIVE_MAX_CONCURRENT', 32, 1),
+            'streamOpensPerMinute': int (env, 'LIVE_STREAM_OPENS_PER_MINUTE', 30, 1),
         },
         'hostRanges': { 'anthropic': ANTHROPIC_EGRESS_RANGES, 'openai': OPENAI_CONNECTOR_RANGES },
         'uiWhenUnknown': uiWhenUnknown as 'attach' | 'omit',

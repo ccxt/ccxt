@@ -14,7 +14,7 @@ The local stdio server (`mcp/`, npm package `ccxt-mcp`) stays and keeps its user
 
 ## Non-goals for phase 1
 
-Accounts, stored keys, private endpoints, trading, WebSocket streams (`watch_*`), generic method executors (`call_read_method`, `call_implicit_get`, `describe_method`), order routing (`fetch_route`, `execute_route`), and browser-side signing of exchange requests.
+Accounts, stored keys, private endpoints, trading, `watch_*` tools (an internal shared hub feeds the live views instead, see "Live views"), generic method executors (`call_read_method`, `call_implicit_get`, `describe_method`), order routing (`fetch_route`, `execute_route`), and browser-side signing of exchange requests.
 
 ## Endpoint and URL layout
 
@@ -40,7 +40,7 @@ An explicit allowlist, pinned by a test so that a tool added to the stdio server
 | Group | Tools | Behaviour on hosted |
 |---|---|---|
 | Market data | `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades` | Public data from the exchange allowlist |
-| Views | `show_chart`, `show_orderbook`, `show_tickers` | Same as market data, with an MCP Apps view |
+| Views | `show_chart`, `show_orderbook`, `show_tickers`, `live_update` | Same as market data, with an MCP Apps view; `live_update` is the views' app-only refresh |
 | Account (read) | `get_balance`, `get_orders`, `get_positions`, `get_my_trades` | Listed; return `ACCOUNT_REQUIRED` with a pointer to the local server. Phase 2 gates the same tools by sign-in instead. |
 | Write, funds, streams, executors, routing | everything else | Not registered |
 
@@ -77,6 +77,18 @@ Every caller shares the server's IP addresses at each exchange. One abusive clie
 - **Versioned URIs** (`ui://ccxt/chart.<content-hash>.html`), because hosts cache views by URI; ChatGPT for up to an hour.
 - **Capability detection.** Current-revision requests carry the client's capabilities; 2025-era stateless requests do not. When capabilities are unknown, the hosted server attaches the view payload (config `UI_WHEN_UNKNOWN`, default on). The payload is kept compact, because a host that does not render views may pass it to the model instead of the text summary.
 - `_meta.ui.domain` differs per host: Claude derives it from a hash of the exact connector URL, and ChatGPT requires its own unique value for directory submission. It is set per host once tested in each.
+
+## Live views
+
+The three views update themselves while they are on screen (phase 1: polling; a WebSocket from the view to the server is deferred to phase 2).
+
+- **Mechanism.** A view calls the app-only, read-only tool `live_update` through the host's proxied `tools/call` (MCP Apps `app.callServerTool`; `window.openai.callTool` in ChatGPT) every `nextPollMs`, a cadence the server chooses per answer (1–30 s). The tool is hidden from the model where the host supports it (`_meta.ui.visibility: ["app"]`, ChatGPT `openai/visibility: "private"`) and callable from a view (`openai/widgetAccessible`, also on the `show_*` tools). It has no view template of its own. It is listed for every caller like any other tool, with a constant name, description and schema.
+- **Contract.** Input `{view, exchange, symbol | symbols (≤ 20), timeframe, since, depth (≤ 100), marketType}`. Output `{ok, view, exchange, source: "stream" | "cache" | "rest", asOf, nextPollMs}` plus `chart` (every candle from `since` on, at most 50; the latest 200 when `since` is missing or too old), `orderbook` (top `depth` levels) or `tickers` (last, bid, ask, percentage, volumes, timestamp per symbol). The text is one short line. Errors use the usual envelope (`RATE_LIMITED`, `EXCHANGE_WARMING`, `BAD_SYMBOL`, `BAD_TIMEFRAME`, `LIVE_UNAVAILABLE` when neither a stream nor REST can serve).
+- **The hub** (`mcp/ts/live/hub.ts`, shared with the stdio server). One ccxt.pro stream per (exchange, market type, channel, symbol[, timeframe]), channels OHLCV, order book and ticker (a price board is one ticker stream per symbol), used by every caller. Each poll renews its stream's lease; a stream without a poll for `LIVE_IDLE_MS` is closed (unWatch where ccxt supports it, and the WebSocket instance closes with its last stream). Stream instances are public, keyless, per (exchange, market type), separate from the REST instances, created lazily, and borrow the warm markets.
+- **Caps and fallbacks.** At most `LIVE_MAX_STREAMS` streams, `LIVE_MAX_STREAMS_PER_EXCHANGE` per exchange, `LIVE_STREAM_OPENS_PER_MINUTE` opens per exchange, and none while the exchange's breaker is open. A poll the hub cannot serve from a fresh stream (cap reached, stream still connecting, stale data, a channel the exchange does not stream — bitstamp candles and tickers, coinbase candles other than 5m, bitfinex batch tickers — or streaming paused) is served through the guarded REST path: response cache, coalescing, bounded queue, breaker. Streams reconnect with backoff; `LIVE_WS_FAILURE_THRESHOLD` failures on one exchange pause its streams for `LIVE_WS_COOLDOWN_MS`. A view whose stream is stale and whose REST call fails gets the stale data with a longer `nextPollMs`. The hub never affects readiness, and the drain closes it.
+- **Protection.** `live_update` has its own per-client bucket (`LIVE_RATE_LIMIT_*`, and the host-egress variant for Claude's shared addresses) and its own concurrency cap, counted apart from the tool-call budget in both directions. A refused poll is answered in-band, as the tool's own `RATE_LIMITED` error with `retryAfterSeconds` (HTTP 200), not as HTTP 429/503: views treat a failed `tools/call` as "this host cannot poll" and stop for good, while a tool error is waited out. Polling is never faster than the REST cache TTL when served from REST, and slows at caps and under upstream pressure.
+- **Cost model.** A poll served from a stream is a map lookup: no upstream request, no cache entry. Upstream cost grows with distinct markets on screen, not with viewers: N viewers of one chart are one subscription. REST fallback costs at most one request per cache TTL per distinct argument set, shared by everyone.
+- **Telemetry.** `live_update` successes are sampled at `LIVE_TELEMETRY_SAMPLE_RATE` (default 1%), errors always kept; its request log lines are debug, and the hub logs one stats line per `LIVE_STATS_INTERVAL_MS` (streams per exchange, polls by source, fallbacks).
 
 ## Observability
 

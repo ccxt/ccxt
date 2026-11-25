@@ -22,7 +22,8 @@ for (const era of [ 'legacy', 'modern' ] as const) {
             assert.ok (tool !== undefined, name + ' must be listed');
             // the standard key, its deprecated flat predecessor and ChatGPT's alias all name
             // the same versioned resource
-            assert.deepEqual (tool._meta, { 'ui': { 'resourceUri': uri }, 'ui/resourceUri': uri, 'openai/outputTemplate': uri }, name + ' _meta');
+            // (openai/widgetAccessible: in ChatGPT the view may call tools itself — Refresh and live_update)
+            assert.deepEqual (tool._meta, { 'ui': { 'resourceUri': uri }, 'ui/resourceUri': uri, 'openai/outputTemplate': uri, 'openai/widgetAccessible': true }, name + ' _meta');
             // public market data: read-only, and usable without an account
             assert.equal (tool.annotations?.readOnlyHint, true, name + ' must be readOnly');
             assert.equal (tool.annotations?.destructiveHint, false, name);
@@ -35,6 +36,11 @@ for (const era of [ 'legacy', 'modern' ] as const) {
         const others = tools.filter ((tool: any) => !(tool.name in UI_TOOLS));
         assert.ok (others.length > 20, 'the non-UI tools are listed too');
         for (const tool of others as any[]) {
+            // the views' app-only refresh tool carries ui.visibility, never a resource
+            if (tool.name === 'live_update') {
+                assert.deepEqual (tool._meta, { 'ui': { 'visibility': [ 'app' ] }, 'openai/visibility': 'private', 'openai/widgetAccessible': true });
+                continue;
+            }
             for (const key of UI_META_KEYS) {
                 assert.ok (tool._meta === undefined || !(key in tool._meta), tool.name + ' must not carry _meta["' + key + '"]');
             }
