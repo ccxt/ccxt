@@ -3629,7 +3629,8 @@ export default class krakenfutures extends Exchange {
             'multiCollateralMargin': 'flex',
         };
         if (account in accountByType) {
-            return accountByType[account];
+            const accountName = this.safeString(accountByType, account, '');
+            return accountName;
         }
         else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market(account);

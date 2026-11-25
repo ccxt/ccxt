@@ -1839,9 +1839,9 @@ export default class kucoin extends kucoinRest {
     }
     handleOrderBookSubscription(client, message, subscription) {
         const limit = this.safeInteger(subscription, 'limit');
-        let symbols = this.safeList(subscription, 'symbols');
+        const symbols = this.safeStringList(subscription, ['symbols', 'symbol']);
         if (symbols === undefined) {
-            symbols = [this.safeString(subscription, 'symbol')];
+            return;
         }
         const limits = this.safeDict(this.options, 'orderBookLimits', {});
         for (let i = 0; i < symbols.length; i++) {

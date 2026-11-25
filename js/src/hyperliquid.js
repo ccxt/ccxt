@@ -784,7 +784,7 @@ export default class hyperliquid extends Exchange {
         if (Precise.stringEq(priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = Math.min(decimalsLeft, 5);
+            pricePrecision = 5;
         }
         else if (Precise.stringGt(priceStr, '0') && Precise.stringLt(priceStr, '1')) {
             // Significant digits, always 5 in this case
@@ -798,8 +798,6 @@ export default class hyperliquid extends Exchange {
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
-            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = Math.min(decimalsLeft, pricePrecision);
         }
         else {
             // Count the numbers before the decimal separator
@@ -810,8 +808,10 @@ export default class hyperliquid extends Exchange {
             if (integerPart.length <= 5) {
                 digitsLeft = 5 - (integerPart.length);
             }
-            pricePrecision = Math.min(decimalsLeft, digitsLeft);
+            pricePrecision = digitsLeft;
         }
+        // cap by maxDecimals - szDecimals
+        pricePrecision = Math.min(decimalsLeft, pricePrecision);
         return this.parseToInt(pricePrecision);
     }
     /**

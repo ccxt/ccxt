@@ -3004,10 +3004,10 @@ class htx extends htx$1["default"] {
         const hostnames = this.safeDict(this.urls, 'hostnames', {});
         let hostname = undefined;
         if (type === 'spot') {
-            hostname = hostnames['spot'];
+            hostname = this.safeString(hostnames, 'spot');
         }
         else {
-            hostname = hostnames['contract'];
+            hostname = this.safeString(hostnames, 'contract');
         }
         const authParams = {
             'type': type,

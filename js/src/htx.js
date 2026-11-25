@@ -7421,8 +7421,9 @@ export default class htx extends Exchange {
         const data = this.safeValue(response, 'data');
         const rates = [];
         if (this.safeBool(market, 'linear', false)) {
-            for (let i = 0; i < data.length; i++) {
-                const entry = data[i];
+            const linearRates = this.safeList(response, 'data', []);
+            for (let i = 0; i < linearRates.length; i++) {
+                const entry = linearRates[i];
                 const marketId = this.safeString(entry, 'contract_code');
                 const symbolInner = this.safeSymbol(marketId, market);
                 const timestamp = this.safeInteger(entry, 'funding_time');

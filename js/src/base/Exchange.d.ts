@@ -756,7 +756,7 @@ export declare class BaseExchange {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     convertTradingViewToOHLCV(ohlcvs: NullableDict, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): OHLCV[];
     convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): Dict;
-    fetchWebEndpoint(method: string, endpointMethod: any, returnAsJson: any, startRegex?: Str, endRegex?: Str): Promise<any>;
+    fetchWebEndpoint(method: string, endpointMethod: any, returnAsJson: boolean, startRegex?: Str, endRegex?: Str): Promise<any>;
     marketIds(symbols: string[]): string[];
     marketIds(symbols?: Strings): Strings;
     currencyIds(codes: string[]): string[];

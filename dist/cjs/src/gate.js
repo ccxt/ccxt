@@ -7945,10 +7945,10 @@ class gate extends gate$1["default"] {
         const rawTimestampLength = rawTimestamp.length;
         let timestamp = undefined;
         if (rawTimestampLength > 10) {
-            timestamp = parseInt(rawTimestamp);
+            timestamp = this.safeInteger(item, 'time');
         }
         else {
-            timestamp = parseInt(rawTimestamp) * 1000;
+            timestamp = this.safeTimestamp(item, 'time');
         }
         const balanceString = this.safeString(item, 'balance');
         const changeString = this.safeString(item, 'change');

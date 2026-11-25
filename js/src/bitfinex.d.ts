@@ -387,7 +387,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
+    parseFundingRateRow(contract: List, market?: Market): FundingRate;
     parseFundingRateHistoryRow(contract: any, market?: Market): FundingRateHistory;
     /**
      * @method
@@ -424,7 +424,7 @@ export default class bitfinex extends Exchange {
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterestRow(interest: List, market?: Market): OpenInterest;
     /**
      * @method
      * @name bitfinex#fetchLiquidations
@@ -439,7 +439,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseLiquidationRow(liquidation: List, market?: Market): Liquidation;
     /**
      * @method
      * @name bitfinex#setMargin

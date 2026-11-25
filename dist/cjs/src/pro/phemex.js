@@ -1060,7 +1060,12 @@ class phemex extends phemex$1["default"] {
             const symbol = this.safeString(parsed, 'symbol');
             if (type === undefined) {
                 const marketSettle = this.safeString(market, 'settle');
-                type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
+                if (marketSettle === 'USDT') {
+                    type = 'perpetual';
+                }
+                else {
+                    type = this.safeString(market, 'type');
+                }
             }
             if (symbol !== undefined) {
                 marketIds[symbol] = true;
@@ -1328,7 +1333,12 @@ class phemex extends phemex$1["default"] {
             const market = this.market(symbol);
             if (type === undefined) {
                 const isUsdt = market['settle'] === 'USDT';
-                type = isUsdt ? 'perpetual' : market['type'];
+                if (isUsdt) {
+                    type = 'perpetual';
+                }
+                else {
+                    type = this.safeString(market, 'type');
+                }
             }
             marketIds[symbol] = true;
         }

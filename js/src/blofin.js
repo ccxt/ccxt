@@ -2537,7 +2537,10 @@ export default class blofin extends Exchange {
                 return this.parseTransaction(entry, currency);
             }
         }
-        const reference = hasId ? withdrawId : clientId;
+        let reference = withdrawId;
+        if (!hasId) {
+            reference = this.safeString(params, 'clientId', '');
+        }
         throw new ExchangeError(this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
     /**

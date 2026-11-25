@@ -907,6 +907,7 @@ export default class okx extends Exchange {
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
+    parseOpenInterestRow(interest: List, market?: Market): OpenInterest;
     /**
      * @ignore
      * @method
@@ -921,7 +922,7 @@ export default class okx extends Exchange {
      * @returns {object[]} the request and the remaining params
      */
     handleTradingStatisticsWindow(request: Dict, period: string, since?: Int, limit?: Int, params?: Dict): [Dict, Dict];
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     setSandboxMode(enable: boolean): void;
     /**
      * @method

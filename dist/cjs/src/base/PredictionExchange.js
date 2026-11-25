@@ -127,7 +127,7 @@ class PredictionExchange extends Exchange.BaseExchange {
             if (scopeKey in params) {
                 return undefined;
             }
-            extraNames = extraNames + ', ' + scopeKey;
+            extraNames = extraNames + ', ' + this.safeString(extraScopeParams, i, '');
         }
         throw new errors.ArgumentsRequired(this.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search');
     }

@@ -2054,7 +2054,9 @@ class kraken extends kraken$1["default"] {
             side = descriptionSide;
         }
         const rawType = this.safeString(description, 'ordertype', descriptionType); // orderType has dash, e.g. trailing-stop
-        marketId = this.safeString(description, 'pair', marketId);
+        if (this.safeString(description, 'pair') !== undefined) {
+            marketId = this.safeString(description, 'pair');
+        }
         const marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp(orderOmitted, 'opentm');

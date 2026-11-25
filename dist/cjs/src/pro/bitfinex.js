@@ -511,7 +511,7 @@ class bitfinex extends bitfinex$1["default"] {
         const createdKey = isPublic ? 1 : 2;
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
-        marketId = marketResolved['id'];
+        marketId = this.safeString(marketResolved, 'id');
         let type = this.safeString(trade, 6);
         if (type !== undefined) {
             if (type.indexOf('LIMIT') > -1) {
@@ -1151,14 +1151,14 @@ class bitfinex extends bitfinex$1["default"] {
                 return;
             }
             for (let i = 0; i < data.length; i++) {
-                const parsed = this.parseWsOrder(data[i]);
+                const parsed = this.parseWsOrderRow(this.safeList(data, i, []));
                 const symbol = this.safeString(parsed, 'symbol', '');
                 symbolIds[symbol] = true;
                 orders.append(parsed);
             }
         }
         else {
-            const parsed = this.parseWsOrder(data);
+            const parsed = this.parseWsOrderRow(data);
             orders.append(parsed);
             const symbol = this.safeString(parsed, 'symbol', '');
             symbolIds[symbol] = true;
@@ -1183,7 +1183,7 @@ class bitfinex extends bitfinex$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    parseWsOrder(order, market = undefined) {
+    parseWsOrderRow(order, market = undefined) {
         //
         //   [
         //       97084883506, // order id

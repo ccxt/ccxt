@@ -3145,16 +3145,15 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    const limitResolved = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
+                        const limitResolved = (limit > arrayLength) ? arrayLength : limit;
                         return this.arraySlice(array, 0, limitResolved);
                     }
-                    return this.arraySlice(array, -limitResolved);
                 }
-                if (ascending) {
-                    return this.arraySlice(array, -limit);
+                else if (!ascending) {
+                    return this.arraySlice(array, 0, limit);
                 }
-                return this.arraySlice(array, 0, limit);
+                return this.arraySlice(array, -limit);
             }
         }
         return array;

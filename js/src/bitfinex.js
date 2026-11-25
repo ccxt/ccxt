@@ -3298,7 +3298,15 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        return this.parseFundingRates(response, symbols);
+        const fundingRates = {};
+        const fundingRows = this.toArray(response);
+        for (let i = 0; i < fundingRows.length; i++) {
+            const rateSymbol = this.safeSymbol(this.safeString(this.safeList(fundingRows, i, []), 0));
+            if (rateSymbol !== undefined) {
+                fundingRates[rateSymbol] = this.parseFundingRateRow(this.safeList(fundingRows, i, []));
+            }
+        }
+        return this.indexBy(this.filterByArray(fundingRates, 'symbol', symbols, false), 'symbol');
     }
     /**
      * @method
@@ -3379,7 +3387,7 @@ export default class bitfinex extends Exchange {
         }
         return reversedArray;
     }
-    parseFundingRate(contract, market = undefined) {
+    parseFundingRateRow(contract, market = undefined) {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3412,7 +3420,6 @@ export default class bitfinex extends Exchange {
         const timestamp = this.safeInteger(contract, 1);
         const nextFundingTimestamp = this.safeInteger(contract, 8);
         return {
-            'info': contract,
             'symbol': this.safeSymbol(marketId, market),
             'markPrice': this.safeNumber(contract, 15),
             'indexPrice': this.safeNumber(contract, 3),
@@ -3430,6 +3437,7 @@ export default class bitfinex extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
             'interval': undefined,
+            'info': contract,
         };
     }
     parseFundingRateHistoryRow(contract, market = undefined) {
@@ -3521,7 +3529,15 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return this.parseOpenInterests(response, symbolsNormalized);
+        const openInterests = {};
+        const interestRows = this.toArray(response);
+        for (let i = 0; i < interestRows.length; i++) {
+            const interestSymbol = this.safeSymbol(this.safeString(this.safeList(interestRows, i, []), 0), undefined, undefined, 'swap');
+            if (interestSymbol !== undefined) {
+                openInterests[interestSymbol] = this.parseOpenInterestRow(this.safeList(interestRows, i, []));
+            }
+        }
+        return this.indexBy(this.filterByArray(openInterests, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
@@ -3571,8 +3587,8 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const oi = this.safeList(response, 0);
-        return this.parseOpenInterest(oi, market);
+        const oi = this.safeList(response, 0, []);
+        return this.parseOpenInterestRow(oi, market);
     }
     /**
      * @method
@@ -3637,9 +3653,15 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseOpenInterestsHistory(response, market, since, limit);
+        const interests = [];
+        const historyRows = this.toArray(response);
+        for (let i = 0; i < historyRows.length; i++) {
+            interests.push(this.parseOpenInterestRow(this.safeList(historyRows, i, []), market));
+        }
+        const sortedInterests = this.sortBy(interests, 'timestamp');
+        return this.filterBySymbolSinceLimit(sortedInterests, this.safeString(market, 'symbol'), since, limit);
     }
-    parseOpenInterest(interest, market = undefined) {
+    parseOpenInterestRow(interest, market = undefined) {
         //
         // fetchOpenInterest:
         //
@@ -3762,9 +3784,15 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseLiquidations(this.toArray(response), market, since, limit);
+        const liquidationsParsed = [];
+        const liquidationRows = this.toArray(response);
+        for (let i = 0; i < liquidationRows.length; i++) {
+            liquidationsParsed.push(this.parseLiquidationRow(this.safeList(liquidationRows, i, []), market));
+        }
+        const sortedLiquidations = this.sortBy(liquidationsParsed, 'timestamp');
+        return this.filterBySymbolSinceLimit(sortedLiquidations, this.safeString(market, 'symbol'), since, limit);
     }
-    parseLiquidation(liquidation, market = undefined) {
+    parseLiquidationRow(liquidation, market = undefined) {
         //
         //     [
         //         [

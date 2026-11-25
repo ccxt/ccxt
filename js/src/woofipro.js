@@ -746,7 +746,8 @@ export default class woofipro extends Exchange {
             if (parsed === undefined) {
                 throw new ExchangeError(this.id + ' fetchCurrencies() could not resolve parsed');
             }
-            result[parsed['code']] = parsed;
+            const parsedCode = this.safeString(parsed, 'code', '');
+            result[parsedCode] = parsed;
         }
         return result;
     }
