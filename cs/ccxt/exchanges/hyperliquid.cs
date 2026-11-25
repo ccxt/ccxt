@@ -4040,6 +4040,7 @@ public partial class hyperliquid : Exchange
             { "canceled", "canceled" },
             { "rejected", "rejected" },
             { "marginCanceled", "canceled" },
+            { "scheduledCancel", "canceled" },
         };
         if (status.EndsWith("Rejected"))
         {

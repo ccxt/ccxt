@@ -529,13 +529,18 @@ public partial class mercado : Exchange
         string? side = this.safeString(trade, "type");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "amount", "quantity");
-        string? feeCost = this.safeString(trade, "fee_rate");
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        string? feeRate = this.safeString(trade, "fee_rate");
         Dictionary<string, object> fee = null;
-        if ((feeCost != null))
+        if (((feeRate != null)) && ((side != null)))
         {
+            string? rate = Precise.stringDiv(feeRate, "100");
+            bool isBuy = (side == "buy");
+            string? feeBase = isBuy ? amount : Precise.stringMul(amount, price);
             fee = new Dictionary<string, object>() {
-                { "cost", feeCost },
-                { "currency", null },
+                { "cost", Precise.stringMul(feeBase, rate) },
+                { "currency", isBuy ? (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null) : (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
+                { "rate", rate },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -809,7 +814,15 @@ public partial class mercado : Exchange
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "executed_quantity");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
-        List<object> rawTrades = this.safeList(order, "operations", new List<object>() {});
+        List<object> operations = this.safeList(order, "operations", new List<object>() {});
+        List<object> rawTrades = new List<object>() {};
+        for (int i = 0; i < operations.Count; i++)
+        {
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.Add(this.extend(operations[i], new Dictionary<string, object>() {
+                { "type", side },
+            }));
+        }
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
