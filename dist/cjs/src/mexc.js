@@ -22,7 +22,7 @@ class mexc extends mexc$1["default"] {
             'countries': ['SC'], // Seychelles
             'rateLimit': 50, // default rate limit is 20 times per second
             'version': 'v3',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
