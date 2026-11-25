@@ -1077,22 +1077,6 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
 //     }
 // }
 
-    public static String padEnd(Object input, Object length2, Object padStr) {
-        int length = toInt(length2);
-        String str = toString(input);
-        String pad = toString(padStr);
-
-        if (pad.isEmpty()) {
-            throw new IllegalArgumentException("padStr must not be empty");
-        }
-
-        while (str.length() < length) {
-            str += pad;
-        }
-
-        return str.substring(0, length);
-    }
-
     // Printed by javaTranspiler's padStart fallback; keep at 0 call sites.
     public static String padStart(Object input, Object length2, Object padStr) {
         int length = toInt(length2);
