@@ -465,12 +465,17 @@ class mercado(Exchange, ImplicitAPI):
         side = self.safe_string(trade, 'type')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'amount', 'quantity')
-        feeCost = self.safe_string(trade, 'fee_rate')
+        # fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        feeRate = self.safe_string(trade, 'fee_rate')
         fee = None
-        if feeCost is not None:
+        if (feeRate is not None) and (side is not None):
+            rate = Precise.string_div(feeRate, '100')
+            isBuy = (side == 'buy')
+            feeBase = amount if (isBuy) else Precise.string_mul(amount, price)
             fee = {
-                'cost': feeCost,
-                'currency': None,
+                'cost': Precise.string_mul(feeBase, rate),
+                'currency': marketResolved['base'] if (isBuy) else marketResolved['quote'],
+                'rate': rate,
             }
         return self.safe_trade({
             'id': id,
@@ -683,7 +688,11 @@ class mercado(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
-        rawTrades = self.safe_list(order, 'operations', [])
+        operations = self.safe_list(order, 'operations', [])
+        rawTrades = []
+        for i in range(0, len(operations)):
+            # operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.append(self.extend(operations[i], {'type': side}))
         symbol = marketResolved['symbol']
         return self.safe_order({
             'info': order,
