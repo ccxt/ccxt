@@ -8491,19 +8491,19 @@ class BaseExchange {
                 $keysToOmit[] = 'triggerPrice';
                 $keysToOmit[] = 'stopPrice';
             }
-            $triggerPriceStr = $this->price_to_precision($symbol, floatval($triggerPrice));
+            $triggerPriceStr = $this->price_to_precision($symbol, $triggerPrice);
         }
         if ($stopLossPrice !== null) {
             if ($omitParams) {
                 $keysToOmit[] = 'stopLossPrice';
             }
-            $stopLossPriceStr = $this->price_to_precision($symbol, floatval($stopLossPrice));
+            $stopLossPriceStr = $this->price_to_precision($symbol, $stopLossPrice);
         }
         if ($takeProfitPrice !== null) {
             if ($omitParams) {
                 $keysToOmit[] = 'takeProfitPrice';
             }
-            $takeProfitPriceStr = $this->price_to_precision($symbol, floatval($takeProfitPrice));
+            $takeProfitPriceStr = $this->price_to_precision($symbol, $takeProfitPrice);
         }
         $keysToOmitLength = count($keysToOmit);
         $paramsOmitted = ($keysToOmitLength > 0) ? $this->omit($params, $keysToOmit) : $params;
@@ -9464,19 +9464,21 @@ class BaseExchange {
 
     public function parse_all_greeks_list(array $greeks, ?array $symbols = null, $params = array()) {
         $results = array();
-        for ($i = 0; $i < count($greeks); $i++) {
-            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeks, $i, array())), $params);
+        $greeksArray = $this->to_array($greeks);
+        for ($i = 0; $i < count($greeksArray); $i++) {
+            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeksArray, $i, array())), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
 
     public function parse_all_greeks_dict(array $greeks, ?array $symbols = null, $params = array()) {
         $results = array();
-        $marketIds = is_array($greeks) ? array_keys($greeks) : array();
+        $greeksDict = $this->extend(array(), $greeks);
+        $marketIds = is_array($greeksDict) ? array_keys($greeksDict) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeks, $marketId, array()), $market), $params);
+            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeksDict, $marketId, array()), $market), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -9683,7 +9685,7 @@ class BaseExchange {
             $marketId = ($symbolKey === null) ? null : $this->safe_string($response[$i], $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
-                $marginModifications[] = $this->parse_margin_modification($response[$i], $market);
+                $marginModifications[] = $this->parse_margin_modification($this->safe_dict($response, $i, array()), $market);
             }
         }
         return $marginModifications;

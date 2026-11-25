@@ -3487,15 +3487,16 @@ class binance extends Exchange {
         $markets = array();
         $this->options['crossMarginPairsData'] = array();
         $this->options['isolatedMarginPairsData'] = array();
+        $crossMarginStored = false;
         for ($i = 0; $i < count($results); $i++) {
             $res = $this->safe_value($results, $i);
             if (($fetchMargins) && (gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res)))) {
                 $resBySymbol = $this->index_by($res, 'symbol');
                 $keysList = is_array($resBySymbol) ? array_keys($resBySymbol) : array();
-                $length = count($this->options['crossMarginPairsData']);
                 // first one is the cross-margin promise
-                if ($length === 0) {
+                if (!$crossMarginStored) {
                     $this->options['crossMarginPairsData'] = $keysList;
+                    $crossMarginStored = true;
                 } else {
                     $this->options['isolatedMarginPairsData'] = $keysList;
                 }

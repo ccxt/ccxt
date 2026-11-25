@@ -2044,7 +2044,7 @@ class okx extends \ccxt\async\okx {
         $type = $typeOption;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $type = $this->safe_string($market, 'type');
             $messageHash = $messageHash . '::' . $this->safe_string($market, 'symbol', '');
         }

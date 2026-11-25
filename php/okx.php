@@ -8895,7 +8895,7 @@ class okx extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             $entryMarketId = $this->safe_string($entry, 'instId');
             if ($entryMarketId === $marketId) {
                 return $this->parse_greeks($entry, $market);

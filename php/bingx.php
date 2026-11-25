@@ -6048,14 +6048,14 @@ class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        $responseData = $response;
         if ($market['inverse'] === true) {
-            $responseData = $this->extend(array(
+            $inverseResult = $this->parse_margin_modification($this->extend(array(
                 'amount' => $amountString,
                 'type' => $type,
-            ), $this->safe_dict($response, 'data', array()));
+            ), $this->safe_dict($response, 'data', array())), $market);
+            return $this->extend($inverseResult, array( 'info' => $response ));
         }
-        $result = $this->parse_margin_modification($responseData, $market);
+        $result = $this->parse_margin_modification($response, $market);
         $result['info'] = $response;
         return $result;
     }

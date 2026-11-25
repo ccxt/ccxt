@@ -1076,14 +1076,14 @@ class bitget extends \ccxt\async\bitget {
                     if ($i < $bidsLength) {
                         $bidLevel = $storedBids[$i];
                         $bidParts = $bidLevel[2];
-                        $payloadArray[] = $bidParts[0];
-                        $payloadArray[] = $bidParts[1];
+                        $payloadArray[] = $this->safe_string($bidParts, 0, '');
+                        $payloadArray[] = $this->safe_string($bidParts, 1, '');
                     }
                     if ($i < $asksLength) {
                         $askLevel = $storedAsks[$i];
                         $askParts = $askLevel[2];
-                        $payloadArray[] = $askParts[0];
-                        $payloadArray[] = $askParts[1];
+                        $payloadArray[] = $this->safe_string($askParts, 0, '');
+                        $payloadArray[] = $this->safe_string($askParts, 1, '');
                     }
                 }
                 $payload = implode(':', $payloadArray);

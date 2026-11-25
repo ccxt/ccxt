@@ -697,7 +697,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $timestamp = $this->safe_integer($ticker, 't');
         $bidAskSymbol = null;
         if ($market !== null) {
-            $bidAskSymbol = $market['symbol'];
+            $bidAskSymbol = $this->safe_string($market, 'symbol');
         }
         return $this->safe_ticker(array(
             'symbol' => $bidAskSymbol,

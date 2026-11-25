@@ -5614,11 +5614,11 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, null, null, array( 'status' => 'canceled' ));
     }
 
-    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of orders placed on the exchange
          *
@@ -5679,11 +5679,11 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_spot_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_spot_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch a list of spot $orders
          *
@@ -5826,11 +5826,11 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_contract_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_contract_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_contract_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_contract_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_contract_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches a list of contract $orders placed on the exchange
          *
@@ -5952,11 +5952,11 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_uta_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_uta_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_uta_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * helper method for fetching $orders by $status with uta endpoint
          *

@@ -3487,7 +3487,7 @@ class htx extends Exchange {
                 }
             } else {
                 $this->load_accounts();
-                $accountId = $this->fetch_account_id_by_type($type, null, null, $paramsMarginMode);
+                $accountId = $this->fetch_account_id_by_type('spot', null, null, $paramsMarginMode);
                 $request['account-id'] = $accountId;
                 $response = $this->spotPrivateGetV1AccountAccountsAccountIdBalance($this->extend($request, $paramsMarginMode));
             }
@@ -5136,7 +5136,7 @@ class htx extends Exchange {
         $sideStr = $side;
         $market = $this->market($symbol);
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('createOrder', $params);
-        $accountId = $this->fetch_account_id_by_type($market['type'], $marginMode, $symbol);
+        $accountId = $this->fetch_account_id_by_type($this->safe_string($market, 'type', ''), $marginMode, $symbol);
         $request = array(
             // spot -----------------------------------------------------------
             'account-id' => $accountId,

@@ -2016,7 +2016,7 @@ class btse extends Exchange {
         $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, false, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }
@@ -2246,7 +2246,7 @@ class btse extends Exchange {
         $isLimitOrder = ($typeValue === 'LIMIT');
         $postOnly = false;
         // exchange-specific postOnly is the same as the unified one
-        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, $postOnly, $query); // this will remove PO from params.timeInForce if present
+        list($postOnly, $query) = $this->handle_post_only($isMarketOrder, false, $query); // this will remove PO from params.timeInForce if present
         if ($postOnly) {
             $request['postOnly'] = true;
         }

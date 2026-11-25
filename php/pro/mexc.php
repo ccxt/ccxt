@@ -854,20 +854,19 @@ class mexc extends \ccxt\async\mexc {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
-        $orderbook = null;
         if ($this->safe_bool($market, 'spot', false)) {
             list($frequency, $paramsFrequency) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
             $spotChannel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
-            $orderbook = Async\await($this->watch_spot_public($spotChannel, $messageHash, $paramsFrequency));
+            $spotOrderbook = Async\await($this->watch_spot_public($spotChannel, $messageHash, $paramsFrequency));
+            return $spotOrderbook->limit();
         } else {
             $channel = 'sub.depth';
             $requestParams = array(
                 'symbol' => $market['id'],
             );
             $orderbook = Async\await($this->watch_swap_public($channel, $messageHash, $requestParams, $params));
+            return $orderbook->limit();
         }
-        $orderbook = $this->require_value($orderbook, 'watchOrderBook() orderbook is required');
-        return $orderbook->limit();
     }
 
     public function handle_order_book_subscription(Client $client, array $message) {

@@ -1168,7 +1168,7 @@ class phemex extends Exchange {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $valueScaleString = $this->safe_string($rawCurrency, 'valueScale');
-        $valueScale = intval($valueScaleString);
+        $valueScale = $this->safe_integer($rawCurrency, 'valueScale');
         $minValueEv = $this->safe_string($rawCurrency, 'minValueEv');
         $maxValueEv = $this->safe_string($rawCurrency, 'maxValueEv');
         $minAmount = null;

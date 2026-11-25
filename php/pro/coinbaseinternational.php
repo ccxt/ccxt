@@ -310,7 +310,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $channel = 'user.trades.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $trades = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
@@ -389,7 +389,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
             $channel = 'user.orders.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $orders = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));

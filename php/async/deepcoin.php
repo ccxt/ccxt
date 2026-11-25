@@ -731,11 +731,14 @@ class deepcoin extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
                 $endTime = $this->parse_to_int($since . ($duration * $numberOfCandles) * 1000);
-                if ($until !== null) {
-                    $endTime = min($endTime, $until);
+                if (($until !== null) && ($until < $endTime)) {
+                    $endTime = $until;
                 }
                 $now = $this->milliseconds();
-                $request['after'] = min($endTime, $now);
+                if ($now < $endTime) {
+                    $endTime = $now;
+                }
+                $request['after'] = $endTime;
             }
         }
         $response = null;

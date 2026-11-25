@@ -1667,7 +1667,7 @@ class bigone extends Exchange {
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
         $postOnly = null;
         $query = null;
-        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam, $params);
+        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
         $triggerPrice = $this->safe_string_n($query, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required

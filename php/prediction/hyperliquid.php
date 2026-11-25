@@ -2335,7 +2335,7 @@ class hyperliquid extends Exchange {
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
         if (is_array($config) && array_key_exists('byType' ?? '', $config)) {
             $type = $this->safe_string($params, 'type');
-            $byType = $config['byType'];
+            $byType = $this->safe_dict($config, 'byType', array());
             if ($type !== null) {
                 if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                     return $this->safe_integer($byType, $type);

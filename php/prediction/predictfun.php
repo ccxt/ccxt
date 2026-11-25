@@ -2059,7 +2059,7 @@ class predictfun extends Exchange {
             'strategy' => $strategy,
         );
         $postOnly = $this->safe_bool($paramsTaker, 'isPostOnly', false);
-        list($postOnlyOption, $paramsPostOnly) = $this->handle_post_only($isMarket, $postOnly, $paramsTaker);
+        list($postOnlyOption, $paramsPostOnly) = $this->handle_post_only($isMarket, $postOnly === true, $paramsTaker);
         if ($postOnlyOption) {
             $data['isPostOnly'] = $postOnlyOption;
         }

@@ -5430,7 +5430,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, null, null, array( 'status' => 'canceled' ));
     }
 
-    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches a list of orders placed on the exchange
          *
@@ -5491,7 +5491,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_spot_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a list of spot $orders
          *
@@ -5634,7 +5634,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_contract_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_contract_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches a list of contract $orders placed on the exchange
          *
@@ -5756,7 +5756,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_uta_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * helper method for fetching $orders by $status with uta endpoint
          *

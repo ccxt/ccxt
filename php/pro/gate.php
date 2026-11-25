@@ -21,8 +21,7 @@ use ccxt\pro\ArrayCacheByTimestamp;
 
 class gate extends \ccxt\async\gate {
     public function describe(): array {
-        $superDescribe = parent::describe();
-        return $this->deep_extend($superDescribe, $this->describe_data());
+        return $this->deep_extend(parent::describe(), $this->describe_data());
     }
 
     public function describe_data(): mixed {

@@ -547,7 +547,7 @@ class whitebit extends \ccxt\async\whitebit {
             if ($feeCurrencyId !== null) {
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             } else {
-                $feeCurrencyCode = $marketResolved['quote'];
+                $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
             }
             $fee = array(
                 'cost' => $feeCost,

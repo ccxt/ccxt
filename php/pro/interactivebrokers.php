@@ -715,7 +715,10 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $total = $duration * $limit;
         $minutes = $this->parse_to_int(($total + 59) / 60);
         if ($minutes <= 30) {
-            return $this->number_to_string(max($minutes, 1)) . 'min';
+            if ($minutes < 1) {
+                return '1min';
+            }
+            return $this->number_to_string($minutes) . 'min';
         }
         $hours = $this->parse_to_int(($total + 3599) / 3600);
         if ($hours <= 8) {
@@ -734,7 +737,10 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             return $this->number_to_string($months) . 'm';
         }
         $years = $this->parse_to_int(($total + 31535999) / 31536000);
-        return $this->number_to_string(min($years, 15)) . 'y';
+        if ($years > 15) {
+            return '15y'; // the documented maximum period
+        }
+        return $this->number_to_string($years) . 'y';
     }
 
     public function ibkr_cancel_history(Client $client, string $serverId): PromiseInterface {

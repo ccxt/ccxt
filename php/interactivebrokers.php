@@ -889,7 +889,8 @@ class interactivebrokers extends Exchange {
         $this->options['gatewayRegainScheduled'] = false;
         $useGateway = $this->safe_bool($this->options, 'useGateway', false);
         $lostTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
-        if (!$useGateway || ($lostTimestamp === null) || ($this->ibkr_gateway_regain_delay() <= 0)) {
+        $regainDelay = $this->ibkr_gateway_regain_delay();
+        if (!$useGateway || ($lostTimestamp === null) || ($regainDelay <= 0)) {
             return null; // already regained, or disabled
         }
         try {
@@ -1372,19 +1373,18 @@ class interactivebrokers extends Exchange {
         }
         $chunkSize = 330; // above this number, response becomes unreliable
         $promises = array();
-        $offset = 0;
-        while ($offset < $numDetails) {
-            $end = min($this->sum($offset, $chunkSize), $numDetails);
-            $chunk = array();
-            for ($k = $offset; $k < $end; $k++) {
-                $detailId = $this->safe_string($detailIds, $k, '');
-                $chunk[] = $detailId;
+        $chunk = array();
+        for ($k = 0; $k < $numDetails; $k++) {
+            $detailId = $this->safe_string($detailIds, $k, '');
+            $chunk[] = $detailId;
+            $chunkLength = count($chunk);
+            if (($chunkLength === $chunkSize) || ($k === $numDetails - 1)) {
+                $secdefRequest = array(
+                    'conids' => implode(',', $chunk),
+                );
+                $promises[] = $this->markets_endpoint_call($secdefRequest, 'webapiGetV1ApiTrsrvSecdef', array());
+                $chunk = array();
             }
-            $secdefRequest = array(
-                'conids' => implode(',', $chunk),
-            );
-            $promises[] = $this->markets_endpoint_call($secdefRequest, 'webapiGetV1ApiTrsrvSecdef', array());
-            $offset = $end;
         }
         $responses = $promises;
         //
