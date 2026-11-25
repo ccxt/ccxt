@@ -438,13 +438,13 @@ impl Blofin {
     }
 
     /// Auto-generated wrapper for the `privatePostTradeAmendTpsl` implicit endpoint.
-    pub async fn private_post_trade_amend_tpsl(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_amend_tpsl".into()), optional_args).await
+    pub async fn private_post_trade_amend_tpsl(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_trade_amend_tpsl", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeAmendAlgo` implicit endpoint.
-    pub async fn private_post_trade_amend_algo(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_trade_amend_algo".into()), optional_args).await
+    pub async fn private_post_trade_amend_algo(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_trade_amend_algo", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTradeClosePosition` implicit endpoint.

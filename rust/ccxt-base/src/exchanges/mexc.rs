@@ -1463,7 +1463,7 @@ impl Mexc {
         m.insert("countries".to_string(), Value::from(vec![Value::Str("SC".into())]));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("version".to_string(), Value::Str("v3".into()));
-        m.insert("certified".to_string(), Value::Bool(true));
+        m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -3225,7 +3225,7 @@ impl Kraken {
         let mut baseIdEnd: i64 = 3;
         let mut quoteIdStart: i64 = 3;
         let mut quoteIdEnd: i64 = 6;
-        let idLength: i64 = (id.as_str().map(str::to_owned).as_deref().unwrap_or_default().chars().count() as i64);
+        let idLength: i64 = (((id.as_str().map(str::to_owned).as_deref().unwrap_or_default().chars().count() as i64)) - 0);
         if (idLength == 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;
