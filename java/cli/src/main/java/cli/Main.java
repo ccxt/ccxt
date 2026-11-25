@@ -119,21 +119,23 @@ public class Main {
     public static void setCredentials(BaseExchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
         var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
-        var keysJsonPath = basePath + prefix + "keys.json";
-
-//        System.out.perintln("Looking for keys.json at: " + keysJsonPath);
+        // later files override earlier ones (keys.local.json deep-extends keys.json)
+        String[] keysFileNames = { "keys.json", "keys.local.json" };
 
         Map<String, Object> keysJsonContent = null;
-        if (FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
+        for (String keysFileName : keysFileNames) {
+            var keysJsonPath = basePath + prefix + keysFileName;
+            if (!FileSystems.getDefault().getPath(keysJsonPath).toFile().exists()) {
+                continue;
+            }
             System.out.println("Loading credentials from: " + keysJsonPath);
-//            var content = FileUtils.readFileAsString(keysJsonPath);
             String content = new String(Files.readAllBytes(Paths.get(keysJsonPath)));
-
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                keysJsonContent = mapper.readValue(content, Map.class);
+                Map<String, Object> fileContent = mapper.readValue(content, Map.class);
+                keysJsonContent = (keysJsonContent == null) ? fileContent : deepExtend(keysJsonContent, fileContent);
             } catch (Exception e) {
-                System.out.println("Error parsing keys.json: " + e.getMessage());
+                System.out.println("Error parsing " + keysFileName + ": " + e.getMessage());
             }
         }
 
@@ -172,6 +174,21 @@ public class Main {
                 setProperty(instance, key, credentialValue);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> deepExtend(Map<String, Object> target, Map<String, Object> source) {
+        Map<String, Object> result = new java.util.LinkedHashMap<>(target);
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            Object existing = result.get(entry.getKey());
+            Object incoming = entry.getValue();
+            if (existing instanceof Map && incoming instanceof Map) {
+                result.put(entry.getKey(), deepExtend((Map<String, Object>) existing, (Map<String, Object>) incoming));
+            } else {
+                result.put(entry.getKey(), incoming);
+            }
+        }
+        return result;
     }
 
     private static void setProperty(BaseExchange instance, String key, String value)
