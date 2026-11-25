@@ -23,6 +23,7 @@ The CCXT connector reads **public** market data from a curated set of major exch
   - `displayed`: the user sees the view, so comment on it rather than repeating every number;
   - `attached`: a view was sent but the host did not say whether it renders views, so also state the key figures;
   - `unsupported`, `unknown` or `off`: nothing was shown, so present the summary as text.
+- A shown view stays live where the host allows it: it refreshes itself about every 2 seconds from a shared exchange stream, or every 5 seconds or more from REST, and says "Live" or "Delayed". Do not call `live_update` (it is the views' own refresh tool) and do not re-run a `show_*` tool only to refresh a view.
 - When you need numbers to reason with, use `get_tickers`, `get_orderbook`, `get_ohlcv` or `get_trades`.
 - To compare exchanges, call the tool once per exchange.
 - `describe_exchange` lists an exchange's timeframes and capabilities.

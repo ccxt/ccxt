@@ -119,7 +119,9 @@ thead .short { display: none; }
     // The prices of one market are read side by side (last, bid, ask, low, high): one decimal
     // count for all of them — the finest the exchange wrote. A value with more decimals than
     // bridge.price would print for the last price is float noise (or beyond what fits), so
-    // it is rounded with the rest instead of widening the row.
+    // it is rounded with the rest instead of widening the row. The last price itself is
+    // never rounded below that limit: a sub-1 price written with 7 or 8 decimals (as some
+    // venues send DOGE, or as a live update carries it) shows 5 of them, not "0".
     function rowDigits (row) {
         var size = Math.abs (row.last);
         if (!(size > 0) || size >= 1e9) {
@@ -132,6 +134,8 @@ thead .short { display: none; }
             var count = app.decimals (row[key]);
             if (count <= most) {
                 digits = Math.max (digits, count);
+            } else if (key === 'last') {
+                digits = Math.max (digits, most);
             }
         });
         return digits;

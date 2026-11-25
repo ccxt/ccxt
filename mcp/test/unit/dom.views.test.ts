@@ -108,6 +108,24 @@ test ('view tickers: a single market is a hero figure with stats, not a table', 
     }
 });
 
+test ('view tickers: a sub-1 last price with more decimals than shown is rounded, never to "0"', { 'skip': DOM_SKIP }, async () => {
+    const payload = tickersPayload ();
+    const doge = payload.tickers.find ((ticker: any) => ticker.symbol === 'DOGE/USDT');
+    Object.assign (doge, { 'last': 0.31897037, 'bid': 0.31895443, 'ask': 0.31898632, 'high': 0.32244005, 'low': 0.31578067 });
+    const xrp = payload.tickers.find ((ticker: any) => ticker.symbol === 'XRP/USDT');
+    Object.assign (xrp, { 'last': 2.1922106, 'bid': 2.192101, 'ask': 2.1923202, 'high': 2.2260104, 'low': 2.1702885 });
+    const host = await openViewWith ('tickers', { 'exchange': 'binance', 'symbols': payload.symbols }, payload);
+    try {
+        const lastOf = (symbol: string) => (rowsOf (host.document).find ((row: any) => row.cells[0].textContent.trim () === symbol) as any).cells[1].textContent;
+        assert.equal (lastOf ('DOGE/USDT'), '0.31897');
+        assert.equal (lastOf ('XRP/USDT'), '2.192211');
+        // a last price that fits keeps its own decimals; noisy bid/ask do not widen it
+        assert.equal (lastOf ('BTC/USDT'), '94,250.12');
+    } finally {
+        await host.close ();
+    }
+});
+
 test ('view tickers: requested symbols without a ticker are named in the status line', { 'skip': DOM_SKIP }, async () => {
     const payload = tickersPayload ();
     payload.symbols = [ ...payload.symbols, 'GONE/USDT' ];
