@@ -7534,7 +7534,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     const written = typedCoreListFunnelWriteBox (csharp, declaration, parent.right) ?? csharpTypeOfValue (csharp, parent.right, context) ?? nullInitWriteValueType (csharp, declaration, parent.right) ?? nullSeedSumWriteType87c4 (csharp, declaration, parent.right, context) ?? nullSeedStringConcatWriteType90c4 (csharp, declaration, parent.right, context)
                         ?? funnelListWriteType (declaration, parent.right)
                         ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined)
-                        ?? int64CopySumWriteType (csharp, declaration, csharpType, parent.right, context);
+                        ?? int64CopySumWriteType (csharp, declaration, csharpType, parent.right, context)
+                        ?? ((csharpType === 'Int64' || csharpType === 'Int64?') ? nativeIntegralMinMaxArmType (csharp, stripParens (parent.right)) : undefined);
                     if (!assignable (csharpType, written)) {
                         if ((csharpType === 'Int64?' || csharpType === 'Int64') && h28c04SelfMinMaxWriteType (csharp, declaration, parent.right) === 'Int64') { break; }
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
@@ -14053,6 +14054,8 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
         written ??= int64CopySumWriteType (csharp, declaration, type, parent.right, context);
         // `Int` local writes the printer types natively (int64AnnotatedLocalWriteType)
         written ??= ((type === 'Int64' || type === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined;
+        // `x = Math.min (limit, 1000)` printed natively (`Math.Min(limit.Value, 1000)`): a long, the box the object local held
+        written ??= (type === 'Int64' || type === 'Int64?') ? nativeIntegralMinMaxArmType (csharp, stripParens (parent.right)) : undefined;
         if (written === undefined) {
             // `x = c ? D : x` — the default-if-unset ternary write: the value reads this very
             // local, so the write's contribution is the OTHER arm's type (selfTernaryWriteType);
