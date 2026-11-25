@@ -11733,6 +11733,11 @@ const GO_EXPRESSION_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'con
 // the level-1 chain of the line [start, end): a mix of level 4 and level 5 makes the level-5
 // operators print at level 2 - and with them the grouped operand they own
 function goCollectLevelOneChainFixes (content: string, start: number, end: number, fixes: { 'start': number, 'end': number, 'text': string }[]) {
+    // a fix needs both a level-4 (`+ - | ^`) and a level-5 (`* / % & << >>`) operator on the line
+    const line = content.slice (start, end);
+    if (!/[-+|^]/.test (line) || !/[*/%&<>]/.test (line)) {
+        return;
+    }
     const tokens: { 'operator': string | null, 'start': number, 'end': number, 'keyword': boolean }[] = [];
     let has4 = false;
     let has5 = false;
