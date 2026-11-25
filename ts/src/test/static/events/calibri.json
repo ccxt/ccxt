@@ -1,0 +1,1040 @@
+[
+    {
+        "info": {
+            "id": 6351,
+            "slug": "gtm-sarb-repo-nov-2026",
+            "title": "SARB repo rate decision — November 2026",
+            "description": "The South African Reserve Bank Monetary Policy Committee announces its repo rate decision on 19 November 2026. The repo rate is the rate at which the SARB lends to commercial banks and is the country’s headline policy rate. Exactly one of cut, hold or hike resolves YES.",
+            "category": "Economics",
+            "image_url": null,
+            "outcome_structure": "one_winner",
+            "display_type": "probability",
+            "status": "active",
+            "featured": false,
+            "series": {
+                "id": 45,
+                "slug": "sarb-mpc-decisions",
+                "title": "SARB MPC decisions",
+                "frequency": "monthly"
+            },
+            "tags": [],
+            "created_at": "2026-09-10T20:57:18Z",
+            "effective_taker_fee_rate_bps": 500,
+            "markets": [
+                {
+                    "id": 993715,
+                    "event_id": 6351,
+                    "title": "Hold",
+                    "description": "The MPC leaves the repo rate unchanged.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is exactly equal to the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Hold",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "yes_price": "0.65",
+                    "no_price": "0.35",
+                    "last_price": "0.35",
+                    "volume_24h": "0",
+                    "volume": "43.64",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                    "no_token_id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                    "change_24h": "0"
+                },
+                {
+                    "id": 993714,
+                    "event_id": 6351,
+                    "title": "Cut",
+                    "description": "The MPC lowers the repo rate.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly below the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any cut resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Cut",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "yes_price": "0.32",
+                    "no_price": "0.68",
+                    "last_price": "0.32",
+                    "volume_24h": "0",
+                    "volume": "39.85",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                    "no_token_id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                    "change_24h": "0"
+                },
+                {
+                    "id": 993716,
+                    "event_id": 6351,
+                    "title": "Hike",
+                    "description": "The MPC raises the repo rate.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly above the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any increase resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Hike",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "last_price": "0",
+                    "volume_24h": "0",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                    "no_token_id": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                    "change_24h": "0"
+                }
+            ],
+            "market_count": 3,
+            "total_volume_24h": "0",
+            "total_volume": "83.49",
+            "end_at": "2026-11-19T13:00:00Z"
+        },
+        "id": "6351",
+        "event": "GTM_SARB_REPO_NOV_2026",
+        "title": "SARB repo rate decision — November 2026",
+        "description": "The South African Reserve Bank Monetary Policy Committee announces its repo rate decision on 19 November 2026. The repo rate is the rate at which the SARB lends to commercial banks and is the country’s headline policy rate. Exactly one of cut, hold or hike resolves YES.",
+        "slug": "gtm-sarb-repo-nov-2026",
+        "category": "Economics",
+        "tags": [],
+        "markets": [
+            {
+                "id": "993715",
+                "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                "event": "GTM_SARB_REPO_NOV_2026",
+                "title": "Hold",
+                "description": "The MPC leaves the repo rate unchanged.",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDC",
+                "base": "USDC",
+                "quote": "USDC",
+                "baseId": "993715",
+                "quoteId": "usdc",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1795093200000,
+                "expiryDatetime": "2026-11-19T13:00:00Z",
+                "created": 1789073777000,
+                "createdDatetime": "2026-09-10T20:56:17Z",
+                "end": 1795093200000,
+                "endDatetime": "2026-11-19T13:00:00Z",
+                "volume": 43.64,
+                "tickSize": 0.01,
+                "resolutionSource": "manual",
+                "taker": 0.05,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "quote",
+                "fees": {
+                    "trading": 0.05
+                },
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                        "marketId": "993715",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "Yes",
+                        "price": 0.65,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993715,
+                            "event_id": 6351,
+                            "title": "Hold",
+                            "description": "The MPC leaves the repo rate unchanged.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is exactly equal to the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Hold",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "yes_price": "0.65",
+                            "no_price": "0.35",
+                            "last_price": "0.35",
+                            "volume_24h": "0",
+                            "volume": "43.64",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "no_token_id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                            "change_24h": "0"
+                        }
+                    },
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                        "outcomeId": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                        "id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                        "marketId": "993715",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "No",
+                        "price": 0.35,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993715,
+                            "event_id": 6351,
+                            "title": "Hold",
+                            "description": "The MPC leaves the repo rate unchanged.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is exactly equal to the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Hold",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "yes_price": "0.65",
+                            "no_price": "0.35",
+                            "last_price": "0.35",
+                            "volume_24h": "0",
+                            "volume": "43.64",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "no_token_id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                            "change_24h": "0"
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 993715,
+                    "event_id": 6351,
+                    "title": "Hold",
+                    "description": "The MPC leaves the repo rate unchanged.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is exactly equal to the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Hold",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "yes_price": "0.65",
+                    "no_price": "0.35",
+                    "last_price": "0.35",
+                    "volume_24h": "0",
+                    "volume": "43.64",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                    "no_token_id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                    "change_24h": "0"
+                }
+            },
+            {
+                "id": "993714",
+                "market": "GTM_SARB_REPO_NOV_2026_CUT",
+                "event": "GTM_SARB_REPO_NOV_2026",
+                "title": "Cut",
+                "description": "The MPC lowers the repo rate.",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDC",
+                "base": "USDC",
+                "quote": "USDC",
+                "baseId": "993714",
+                "quoteId": "usdc",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1795093200000,
+                "expiryDatetime": "2026-11-19T13:00:00Z",
+                "created": 1789073777000,
+                "createdDatetime": "2026-09-10T20:56:17Z",
+                "end": 1795093200000,
+                "endDatetime": "2026-11-19T13:00:00Z",
+                "volume": 39.85,
+                "tickSize": 0.01,
+                "resolutionSource": "manual",
+                "taker": 0.05,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "quote",
+                "fees": {
+                    "trading": 0.05
+                },
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_CUT:YES",
+                        "outcomeId": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                        "id": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                        "market": "GTM_SARB_REPO_NOV_2026_CUT",
+                        "marketId": "993714",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "Yes",
+                        "price": 0.32,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993714,
+                            "event_id": 6351,
+                            "title": "Cut",
+                            "description": "The MPC lowers the repo rate.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly below the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any cut resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Cut",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "yes_price": "0.32",
+                            "no_price": "0.68",
+                            "last_price": "0.32",
+                            "volume_24h": "0",
+                            "volume": "39.85",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                            "no_token_id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                            "change_24h": "0"
+                        }
+                    },
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_CUT:NO",
+                        "outcomeId": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                        "id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                        "market": "GTM_SARB_REPO_NOV_2026_CUT",
+                        "marketId": "993714",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "No",
+                        "price": 0.68,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993714,
+                            "event_id": 6351,
+                            "title": "Cut",
+                            "description": "The MPC lowers the repo rate.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly below the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any cut resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Cut",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "yes_price": "0.32",
+                            "no_price": "0.68",
+                            "last_price": "0.32",
+                            "volume_24h": "0",
+                            "volume": "39.85",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                            "no_token_id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                            "change_24h": "0"
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 993714,
+                    "event_id": 6351,
+                    "title": "Cut",
+                    "description": "The MPC lowers the repo rate.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly below the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any cut resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Cut",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "yes_price": "0.32",
+                    "no_price": "0.68",
+                    "last_price": "0.32",
+                    "volume_24h": "0",
+                    "volume": "39.85",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "3385435844907299310780239151922435978643932736241333450519890188243976082871",
+                    "no_token_id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                    "change_24h": "0"
+                }
+            },
+            {
+                "id": "993716",
+                "market": "GTM_SARB_REPO_NOV_2026_HIKE",
+                "event": "GTM_SARB_REPO_NOV_2026",
+                "title": "Hike",
+                "description": "The MPC raises the repo rate.",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDC",
+                "base": "USDC",
+                "quote": "USDC",
+                "baseId": "993716",
+                "quoteId": "usdc",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1795093200000,
+                "expiryDatetime": "2026-11-19T13:00:00Z",
+                "created": 1789073777000,
+                "createdDatetime": "2026-09-10T20:56:17Z",
+                "end": 1795093200000,
+                "endDatetime": "2026-11-19T13:00:00Z",
+                "tickSize": 0.01,
+                "resolutionSource": "manual",
+                "taker": 0.05,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "quote",
+                "fees": {
+                    "trading": 0.05
+                },
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HIKE:YES",
+                        "outcomeId": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                        "id": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                        "market": "GTM_SARB_REPO_NOV_2026_HIKE",
+                        "marketId": "993716",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "Yes",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993716,
+                            "event_id": 6351,
+                            "title": "Hike",
+                            "description": "The MPC raises the repo rate.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly above the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any increase resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Hike",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "last_price": "0",
+                            "volume_24h": "0",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                            "no_token_id": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                            "change_24h": "0"
+                        }
+                    },
+                    {
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HIKE:NO",
+                        "outcomeId": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                        "id": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                        "market": "GTM_SARB_REPO_NOV_2026_HIKE",
+                        "marketId": "993716",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "label": "No",
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 993716,
+                            "event_id": 6351,
+                            "title": "Hike",
+                            "description": "The MPC raises the repo rate.",
+                            "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly above the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any increase resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                            "category": "Economics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "resolution_source": "manual",
+                            "open_at": "2026-09-10T20:56:17Z",
+                            "close_at": "2026-11-19T13:00:00Z",
+                            "determination_at": "2026-11-20T13:00:00Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "group_item_title": "Hike",
+                            "event_slug": "gtm-sarb-repo-nov-2026",
+                            "event_title": "SARB repo rate decision — November 2026",
+                            "last_price": "0",
+                            "volume_24h": "0",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                            "no_token_id": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                            "change_24h": "0"
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 993716,
+                    "event_id": 6351,
+                    "title": "Hike",
+                    "description": "The MPC raises the repo rate.",
+                    "rules": "Resolves YES if the repo rate announced by the SARB MPC on 19 November 2026 is strictly above the rate prevailing immediately before the announcement, as published in the SARB’s official MPC statement. Any increase resolves YES regardless of size. If the outcome cannot be determined from the named source by the determination date, the market is voided and all collateral returned.",
+                    "category": "Economics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "resolution_source": "manual",
+                    "open_at": "2026-09-10T20:56:17Z",
+                    "close_at": "2026-11-19T13:00:00Z",
+                    "determination_at": "2026-11-20T13:00:00Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "group_item_title": "Hike",
+                    "event_slug": "gtm-sarb-repo-nov-2026",
+                    "event_title": "SARB repo rate decision — November 2026",
+                    "last_price": "0",
+                    "volume_24h": "0",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "84807239813103733829463302429019524917236748408997457082995422138369646527404",
+                    "no_token_id": "15954511739402880488644814558756084081294799191450634561774710062424448932902",
+                    "change_24h": "0"
+                }
+            }
+        ],
+        "mutuallyExclusive": true,
+        "active": true,
+        "resolved": false,
+        "volume": 83.49,
+        "created": 1789073838000,
+        "createdDatetime": "2026-09-10T20:57:18Z",
+        "end": 1795093200000,
+        "endDatetime": "2026-11-19T13:00:00Z",
+        "url": "https://calibri.io/event/gtm-sarb-repo-nov-2026"
+    },
+    {
+        "info": {
+            "id": 17959,
+            "slug": "central-bank-policy-1792330815",
+            "title": "Central Bank Policy Decisions",
+            "description": null,
+            "category": "Politics",
+            "image_url": null,
+            "outcome_structure": "independent",
+            "display_type": "probability",
+            "status": "active",
+            "featured": false,
+            "tags": [],
+            "created_at": "2026-10-18T13:40:15Z",
+            "effective_taker_fee_rate_bps": 400,
+            "markets": [
+                {
+                    "id": 1000674,
+                    "event_id": 17959,
+                    "title": "Will the Federal Reserve cut rates at its next meeting before 19 October 2026?",
+                    "description": null,
+                    "rules": null,
+                    "category": "Politics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "open_at": "2026-10-18T13:39:16Z",
+                    "close_at": "2026-10-19T13:40:16Z",
+                    "determination_at": "2026-10-26T13:40:16Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "event_slug": "central-bank-policy-1792330815",
+                    "event_title": "Central Bank Policy Decisions",
+                    "yes_price": "0.5",
+                    "no_price": "0.5",
+                    "last_price": "0.5",
+                    "volume_24h": "221",
+                    "volume": "221",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                    "no_token_id": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                    "change_24h": "0"
+                }
+            ],
+            "market_count": 1,
+            "total_volume_24h": "221",
+            "total_volume": "221",
+            "end_at": "2026-10-19T13:40:16Z"
+        },
+        "id": "17959",
+        "event": "CENTRAL_BANK_POLICY_1792330815",
+        "title": "Central Bank Policy Decisions",
+        "slug": "central-bank-policy-1792330815",
+        "category": "Politics",
+        "tags": [],
+        "markets": [
+            {
+                "id": "1000674",
+                "market": "CENTRAL_BANK_POLICY_1792330815_FED_CUT_RATES_NEXT_MEETING_19_OCTOBER_2026",
+                "event": "CENTRAL_BANK_POLICY_1792330815",
+                "title": "Will the Federal Reserve cut rates at its next meeting before 19 October 2026?",
+                "marketType": "binary",
+                "executionModel": "clob",
+                "collateral": "USDC",
+                "base": "USDC",
+                "quote": "USDC",
+                "baseId": "1000674",
+                "quoteId": "usdc",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "contract": false,
+                "expiry": 1792417216000,
+                "expiryDatetime": "2026-10-19T13:40:16Z",
+                "created": 1792330756000,
+                "createdDatetime": "2026-10-18T13:39:16Z",
+                "end": 1792417216000,
+                "endDatetime": "2026-10-19T13:40:16Z",
+                "volume": 221,
+                "tickSize": 0.01,
+                "taker": 0.04,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "quote",
+                "fees": {
+                    "trading": 0.04
+                },
+                "precision": {
+                    "amount": 0.01,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "outcome": "CENTRAL_BANK_POLICY_1792330815_FED_CUT_RATES_NEXT_MEETING_19_OCTOBER_2026:YES",
+                        "outcomeId": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                        "id": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                        "market": "CENTRAL_BANK_POLICY_1792330815_FED_CUT_RATES_NEXT_MEETING_19_OCTOBER_2026",
+                        "marketId": "1000674",
+                        "event": "CENTRAL_BANK_POLICY_1792330815",
+                        "label": "Yes",
+                        "price": 0.5,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 1000674,
+                            "event_id": 17959,
+                            "title": "Will the Federal Reserve cut rates at its next meeting before 19 October 2026?",
+                            "description": null,
+                            "rules": null,
+                            "category": "Politics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "open_at": "2026-10-18T13:39:16Z",
+                            "close_at": "2026-10-19T13:40:16Z",
+                            "determination_at": "2026-10-26T13:40:16Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "event_slug": "central-bank-policy-1792330815",
+                            "event_title": "Central Bank Policy Decisions",
+                            "yes_price": "0.5",
+                            "no_price": "0.5",
+                            "last_price": "0.5",
+                            "volume_24h": "221",
+                            "volume": "221",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                            "no_token_id": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                            "change_24h": "0"
+                        }
+                    },
+                    {
+                        "outcome": "CENTRAL_BANK_POLICY_1792330815_FED_CUT_RATES_NEXT_MEETING_19_OCTOBER_2026:NO",
+                        "outcomeId": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                        "id": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                        "market": "CENTRAL_BANK_POLICY_1792330815_FED_CUT_RATES_NEXT_MEETING_19_OCTOBER_2026",
+                        "marketId": "1000674",
+                        "event": "CENTRAL_BANK_POLICY_1792330815",
+                        "label": "No",
+                        "price": 0.5,
+                        "active": true,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "info": {
+                            "id": 1000674,
+                            "event_id": 17959,
+                            "title": "Will the Federal Reserve cut rates at its next meeting before 19 October 2026?",
+                            "description": null,
+                            "rules": null,
+                            "category": "Politics",
+                            "quote_currency": "usdc",
+                            "image_url": null,
+                            "status": "active",
+                            "result": null,
+                            "open_at": "2026-10-18T13:39:16Z",
+                            "close_at": "2026-10-19T13:40:16Z",
+                            "determination_at": "2026-10-26T13:40:16Z",
+                            "outcome_labels": [
+                                "Yes",
+                                "No"
+                            ],
+                            "event_slug": "central-bank-policy-1792330815",
+                            "event_title": "Central Bank Policy Decisions",
+                            "yes_price": "0.5",
+                            "no_price": "0.5",
+                            "last_price": "0.5",
+                            "volume_24h": "221",
+                            "volume": "221",
+                            "liquidity_reward": {
+                                "daily_rate": "3",
+                                "max_spread": "0.045",
+                                "min_size": "20",
+                                "currency": "usdc"
+                            },
+                            "price_precision": 2,
+                            "yes_token_id": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                            "no_token_id": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                            "change_24h": "0"
+                        }
+                    }
+                ],
+                "info": {
+                    "id": 1000674,
+                    "event_id": 17959,
+                    "title": "Will the Federal Reserve cut rates at its next meeting before 19 October 2026?",
+                    "description": null,
+                    "rules": null,
+                    "category": "Politics",
+                    "quote_currency": "usdc",
+                    "image_url": null,
+                    "status": "active",
+                    "result": null,
+                    "open_at": "2026-10-18T13:39:16Z",
+                    "close_at": "2026-10-19T13:40:16Z",
+                    "determination_at": "2026-10-26T13:40:16Z",
+                    "outcome_labels": [
+                        "Yes",
+                        "No"
+                    ],
+                    "event_slug": "central-bank-policy-1792330815",
+                    "event_title": "Central Bank Policy Decisions",
+                    "yes_price": "0.5",
+                    "no_price": "0.5",
+                    "last_price": "0.5",
+                    "volume_24h": "221",
+                    "volume": "221",
+                    "liquidity_reward": {
+                        "daily_rate": "3",
+                        "max_spread": "0.045",
+                        "min_size": "20",
+                        "currency": "usdc"
+                    },
+                    "price_precision": 2,
+                    "yes_token_id": "92165706458408940484869229819220866357095401535788535931989848656763170492078",
+                    "no_token_id": "38109562253306729044554996092455898485015411514364056557774296856637546348520",
+                    "change_24h": "0"
+                }
+            }
+        ],
+        "mutuallyExclusive": false,
+        "active": true,
+        "resolved": false,
+        "volume": 221,
+        "created": 1792330815000,
+        "createdDatetime": "2026-10-18T13:40:15Z",
+        "end": 1792417216000,
+        "endDatetime": "2026-10-19T13:40:16Z",
+        "url": "https://calibri.io/event/central-bank-policy-1792330815"
+    }
+]

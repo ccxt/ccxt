@@ -2938,6 +2938,15 @@
             }
         }
     },
+    "calibri": {
+        "until": "2026-12-31",
+        "preferredEventQuery": "bitcoin",
+        "skipMethods": {
+            "orderBook": {
+                "timestamp": "the orderbook endpoint carries no timestamp"
+            }
+        }
+    },
     "predictfun": {
         "skip": "requires apiKeys"
     }
