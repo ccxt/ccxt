@@ -478,7 +478,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         createdKey = 1 if isPublic else 2
         priceKey = 3 if isPublic else 5
         amountKey = 2 if isPublic else 4
-        marketId = marketResolved['id']
+        marketId = self.safe_string(marketResolved, 'id')
         type = self.safe_string(trade, 6)
         if type is not None:
             if type.find('LIMIT') > -1:
@@ -1063,12 +1063,12 @@ class bitfinex(ccxt.async_support.bitfinex):
             if snapshotLength == 0:
                 return
             for i in range(0, len(data)):
-                parsed = self.parse_ws_order(data[i])
+                parsed = self.parse_ws_order_row(self.safe_list(data, i, []))
                 symbol = self.safe_string(parsed, 'symbol', '')
                 symbolIds[symbol] = True
                 orders.append(parsed)
         else:
-            parsed = self.parse_ws_order(data)
+            parsed = self.parse_ws_order_row(data)
             orders.append(parsed)
             symbol = self.safe_string(parsed, 'symbol', '')
             symbolIds[symbol] = True
@@ -1091,7 +1091,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order: list, market: Market = None) -> Order:
+    def parse_ws_order_row(self, order: list, market: Market = None) -> Order:
         #
         #   [
         #       97084883506, // order id

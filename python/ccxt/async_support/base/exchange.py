@@ -962,7 +962,7 @@ class BaseExchange(SyncExchange):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: bool, startRegex: Str = None, endRegex: Str = None):
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:

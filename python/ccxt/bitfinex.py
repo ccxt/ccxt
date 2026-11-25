@@ -3132,7 +3132,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #       ]
         #   ]
         #
-        return self.parse_funding_rates(response, symbols)
+        fundingRates = {}
+        fundingRows = self.to_array(response)
+        for i in range(0, len(fundingRows)):
+            rateSymbol = self.safe_symbol(self.safe_string(self.safe_list(fundingRows, i, []), 0))
+            if rateSymbol is not None:
+                fundingRates[rateSymbol] = self.parse_funding_rate_row(self.safe_list(fundingRows, i, []))
+        return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbols, False), 'symbol')
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -3207,7 +3213,7 @@ class bitfinex(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
+    def parse_funding_rate_row(self, contract: list, market: Market = None) -> FundingRate:
         #
         #       [
         #          "tBTCF0:USTF0",
@@ -3240,7 +3246,6 @@ class bitfinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(contract, 1)
         nextFundingTimestamp = self.safe_integer(contract, 8)
         return {
-            'info': contract,
             'symbol': self.safe_symbol(marketId, market),
             'markPrice': self.safe_number(contract, 15),
             'indexPrice': self.safe_number(contract, 3),
@@ -3258,6 +3263,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
             'interval': None,
+            'info': contract,
         }
 
     def parse_funding_rate_history_row(self, contract: object, market: Market = None) -> FundingRateHistory:
@@ -3347,7 +3353,13 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        return self.parse_open_interests(response, symbolsNormalized)
+        openInterests = {}
+        interestRows = self.to_array(response)
+        for i in range(0, len(interestRows)):
+            interestSymbol = self.safe_symbol(self.safe_string(self.safe_list(interestRows, i, []), 0), None, None, 'swap')
+            if interestSymbol is not None:
+                openInterests[interestSymbol] = self.parse_open_interest_row(self.safe_list(interestRows, i, []))
+        return self.index_by(self.filter_by_array(openInterests, 'symbol', symbolsNormalized, False), 'symbol')
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
@@ -3396,10 +3408,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        oi = self.safe_list(response, 0)
-        return self.parse_open_interest(oi, market)
+        oi = self.safe_list(response, 0, [])
+        return self.parse_open_interest_row(oi, market)
 
-    def fetch_open_interest_history(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}):
+    def fetch_open_interest_history(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[OpenInterest]:
         """
         retrieves the open interest history of a currency
 
@@ -3458,9 +3470,14 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ],
         #     ]
         #
-        return self.parse_open_interests_history(response, market, since, limit)
+        interests = []
+        historyRows = self.to_array(response)
+        for i in range(0, len(historyRows)):
+            interests.append(self.parse_open_interest_row(self.safe_list(historyRows, i, []), market))
+        sortedInterests = self.sort_by(interests, 'timestamp')
+        return self.filter_by_symbol_since_limit(sortedInterests, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest_row(self, interest: list, market: Market = None) -> OpenInterest:
         #
         # fetchOpenInterest:
         #
@@ -3579,9 +3596,14 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ],
         #     ]
         #
-        return self.parse_liquidations(self.to_array(response), market, since, limit)
+        liquidationsParsed = []
+        liquidationRows = self.to_array(response)
+        for i in range(0, len(liquidationRows)):
+            liquidationsParsed.append(self.parse_liquidation_row(self.safe_list(liquidationRows, i, []), market))
+        sortedLiquidations = self.sort_by(liquidationsParsed, 'timestamp')
+        return self.filter_by_symbol_since_limit(sortedLiquidations, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
+    def parse_liquidation_row(self, liquidation: list, market: Market = None) -> Liquidation:
         #
         #     [
         #         [

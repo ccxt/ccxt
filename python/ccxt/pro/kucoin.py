@@ -1700,9 +1700,9 @@ class kucoin(ccxt.async_support.kucoin):
 
     def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         limit = self.safe_integer(subscription, 'limit')
-        symbols = self.safe_list(subscription, 'symbols')
+        symbols = self.safe_string_list(subscription, ['symbols', 'symbol'])
         if symbols is None:
-            symbols = [self.safe_string(subscription, 'symbol')]
+            return
         limits = self.safe_dict(self.options, 'orderBookLimits', {})
         for i in range(0, len(symbols)):
             symbol = symbols[i]

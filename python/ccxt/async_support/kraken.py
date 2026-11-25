@@ -1985,7 +1985,8 @@ class kraken(Exchange, ImplicitAPI):
         if descriptionSide is not None:
             side = descriptionSide
         rawType = self.safe_string(description, 'ordertype', descriptionType)  # orderType has dash, e.g. trailing-stop
-        marketId = self.safe_string(description, 'pair', marketId)
+        if self.safe_string(description, 'pair') is not None:
+            marketId = self.safe_string(description, 'pair')
         marketResolved = self.resolve_market_by_altname_or_id(marketId, market)
         symbol = None
         timestamp = self.safe_timestamp(orderOmitted, 'opentm')

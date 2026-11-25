@@ -3433,7 +3433,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             'multiCollateralMargin': 'flex',
         }
         if account in accountByType:
-            return accountByType[account]
+            accountName = self.safe_string(accountByType, account, '')
+            return accountName
         elif (self.markets is not None) and (account in self.markets):
             market = self.market(account)
             marketId = self.safe_string(market, 'id', '')

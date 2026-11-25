@@ -2757,9 +2757,9 @@ class htx(ccxt.async_support.htx):
         hostnames = self.safe_dict(self.urls, 'hostnames', {})
         hostname = None
         if type == 'spot':
-            hostname = hostnames['spot']
+            hostname = self.safe_string(hostnames, 'spot')
         else:
-            hostname = hostnames['contract']
+            hostname = self.safe_string(hostnames, 'contract')
         authParams = {
             'type': type,
             'url': url,

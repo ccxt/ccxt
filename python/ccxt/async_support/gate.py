@@ -7389,9 +7389,9 @@ class gate(Exchange, ImplicitAPI):
         rawTimestampLength = len(rawTimestamp)
         timestamp = None
         if rawTimestampLength > 10:
-            timestamp = int(rawTimestamp)
+            timestamp = self.safe_integer(item, 'time')
         else:
-            timestamp = int(rawTimestamp) * 1000
+            timestamp = self.safe_timestamp(item, 'time')
         balanceString = self.safe_string(item, 'balance')
         changeString = self.safe_string(item, 'change')
         before = self.parse_number(Precise.string_sub(balanceString, changeString))

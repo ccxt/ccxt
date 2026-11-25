@@ -584,7 +584,8 @@ class backpack(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             currency = self.parse_currency(self.safe_dict(response, i, {}))
             if not stock or (self.safe_string(currency, 'type') == 'stock'):
-                currencies[currency['code']] = currency
+                currencyCode = self.safe_string(currency, 'code', '')
+                currencies[currencyCode] = currency
         return currencies
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
@@ -1520,26 +1521,26 @@ class backpack(Exchange, ImplicitAPI):
         dataRequest = self.stock_data_request('fetchOHLCV', params, market)
         request = {'symbol': self.safe_string(dataRequest, 'symbol'), 'interval': interval}
         until, paramsUntil = self.handle_option_integer_and_params(self.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until')
-        if until is not None:
-            request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
-        defaultLimit = 100
-        windowLimit = defaultLimit if (limit is None) else min(limit, 2000)
+        windowLimit = 100
+        if limit is not None:
+            windowLimit = self.parse_to_int(min(limit, 2000))
         limitResolved = None
         if limit is not None:
             limitResolved = windowLimit
         now = self.milliseconds()
-        startTime = since
-        untilValue = until
-        if startTime is None:
-            if untilValue is None:
-                untilValue = now
-            startTime = untilValue - (windowLimit * duration)
-        request['startTime'] = self.parse_to_int(startTime / 1000)
-        # set until value
-        if untilValue is None:
-            windowEnd = self.sum(startTime, windowLimit * duration)
-            untilValue = min(now, windowEnd)
-        request['endTime'] = self.parse_to_int(untilValue / 1000)
+        windowLength = windowLimit * duration
+        untilResolved = until if (until is not None) else now
+        defaultStart = untilResolved - windowLength
+        startSeconds = self.parse_to_int(defaultStart / 1000)  # convert milliseconds to seconds
+        if since is not None:
+            startSeconds = self.parse_to_int(since / 1000)
+        endSeconds = self.parse_to_int(untilResolved / 1000)
+        if (since is not None) and (until is None):
+            windowEnd = self.parse_to_int(self.sum(since, windowLength))
+            cappedEnd = now if (windowEnd > now) else windowEnd
+            endSeconds = self.parse_to_int(cappedEnd / 1000)
+        request['startTime'] = startSeconds
+        request['endTime'] = endSeconds
         price = self.safe_string(paramsUntil, 'price')
         paramsOmitted = self.omit(paramsUntil, 'price') if (price is not None) else paramsUntil
         if price is not None:

@@ -123,7 +123,7 @@ class PredictionExchange(BaseExchange):
             scopeKey = extraScopeParams[i]
             if scopeKey in params:
                 return None
-            extraNames = extraNames + ', ' + scopeKey
+            extraNames = extraNames + ', ' + self.safe_string(extraScopeParams, i, '')
         raise ArgumentsRequired(self.id + ' fetchEvents() requires at least one of query, queries, tags, eventId, slug' + extraNames + ' to scope the search')
 
     def apply_event_fetch_params(self, events: list[object], params: dict = {}, queries: Strings = None):

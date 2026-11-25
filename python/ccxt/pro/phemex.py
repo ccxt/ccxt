@@ -1008,7 +1008,10 @@ class phemex(ccxt.async_support.phemex):
             symbol = self.safe_string(parsed, 'symbol')
             if type is None:
                 marketSettle = self.safe_string(market, 'settle')
-                type = 'perpetual' if (marketSettle == 'USDT') else market['type']
+                if marketSettle == 'USDT':
+                    type = 'perpetual'
+                else:
+                    type = self.safe_string(market, 'type')
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())
@@ -1255,7 +1258,10 @@ class phemex(ccxt.async_support.phemex):
             market = self.market(symbol)
             if type is None:
                 isUsdt = market['settle'] == 'USDT'
-                type = 'perpetual' if isUsdt else market['type']
+                if isUsdt:
+                    type = 'perpetual'
+                else:
+                    type = self.safe_string(market, 'type')
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):

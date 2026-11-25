@@ -744,7 +744,8 @@ class woofipro(Exchange, ImplicitAPI):
             parsed = self.parse_currency({'_token': token, '_indexedChains': indexedChains})
             if parsed is None:
                 raise ExchangeError(self.id + ' fetchCurrencies() could not resolve parsed')
-            result[parsed['code']] = parsed
+            parsedCode = self.safe_string(parsed, 'code', '')
+            result[parsedCode] = parsed
         return result
 
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:

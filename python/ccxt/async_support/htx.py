@@ -6777,8 +6777,9 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         rates = []
         if self.safe_bool(market, 'linear', False):
-            for i in range(0, len(data)):
-                entry = data[i]
+            linearRates = self.safe_list(response, 'data', [])
+            for i in range(0, len(linearRates)):
+                entry = linearRates[i]
                 marketId = self.safe_string(entry, 'contract_code')
                 symbolInner = self.safe_symbol(marketId, market)
                 timestamp = self.safe_integer(entry, 'funding_time')

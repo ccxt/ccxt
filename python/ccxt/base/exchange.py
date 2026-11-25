@@ -3528,13 +3528,12 @@ class BaseExchange(object):
                     if first is not None and last is not None:
                         ascending = last >= first  # true if array is sorted in ascending order based on 'timestamp'
                 if fromStart:
-                    limitResolved = arrayLength if (limit > arrayLength) else limit
                     if ascending:
+                        limitResolved = arrayLength if (limit > arrayLength) else limit
                         return self.array_slice(array, 0, limitResolved)
-                    return self.array_slice(array, -limitResolved)
-                if ascending:
-                    return self.array_slice(array, -limit)
-                return self.array_slice(array, 0, limit)
+                elif not ascending:
+                    return self.array_slice(array, 0, limit)
+                return self.array_slice(array, -limit)
         return array
 
     def filter_by_since_limit(self, array: list[object] | None, since: Int = None, limit: Int = None, key: IndexType = 'timestamp', tail=False):
@@ -5204,7 +5203,7 @@ class BaseExchange(object):
             resultVolume.append(ohlcv[5])
         return result
 
-    def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
+    def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: bool, startRegex: Str = None, endRegex: Str = None):
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:

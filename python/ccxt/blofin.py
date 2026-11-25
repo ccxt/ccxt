@@ -2379,7 +2379,9 @@ class blofin(Exchange, ImplicitAPI):
                 matches = (self.safe_string(entry, 'clientId') == clientId)
             if matches:
                 return self.parse_transaction(entry, currency)
-        reference = withdrawId if hasId else clientId
+        reference = withdrawId
+        if not hasId:
+            reference = self.safe_string(params, 'clientId', '')
         raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

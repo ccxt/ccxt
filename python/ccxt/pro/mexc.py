@@ -1673,7 +1673,7 @@ class mexc(ccxt.async_support.mexc):
         channel = None
         if self.safe_bool(market, 'spot', False):
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
-            url = self.urls['api']['ws']['spot']
+            url = self.safe_string(self.urls['api']['ws'], 'spot')
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:
@@ -1681,7 +1681,7 @@ class mexc(ccxt.async_support.mexc):
             requestParams = {
                 'symbol': market['id'],
             }
-            url = self.urls['api']['ws']['swap']
+            url = self.safe_string(self.urls['api']['ws'], 'swap')
             self.spawn(self.watch_swap_public, channel, messageHash, requestParams, params)
         client = self.client(url)
         self.handle_unsubscriptions(client, [messageHash])
@@ -1797,13 +1797,13 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'unsubscribe:candles:' + self.safe_string(market, 'symbol', '') + ':' + timeframe
         url = None
         if self.safe_bool(market, 'spot', False):
-            url = self.urls['api']['ws']['spot']
+            url = self.safe_string(self.urls['api']['ws'], 'spot')
             spotTimeframeId = self.safe_string(timeframes, timeframe, '')
             channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + spotTimeframeId
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:
-            url = self.urls['api']['ws']['swap']
+            url = self.safe_string(self.urls['api']['ws'], 'swap')
             channel = 'unsub.kline'
             requestParams = {
                 'symbol': market['id'],
@@ -1828,13 +1828,13 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'unsubscribe:orderbook:' + self.safe_string(market, 'symbol', '')
         url = None
         if self.safe_bool(market, 'spot', False):
-            url = self.urls['api']['ws']['spot']
+            url = self.safe_string(self.urls['api']['ws'], 'spot')
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
             channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
             paramsFrequency['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, paramsFrequency)
         else:
-            url = self.urls['api']['ws']['swap']
+            url = self.safe_string(self.urls['api']['ws'], 'swap')
             channel = 'unsub.depth'
             requestParams = {
                 'symbol': market['id'],
@@ -1858,12 +1858,12 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'unsubscribe:trades:' + self.safe_string(market, 'symbol', '')
         url = None
         if self.safe_bool(market, 'spot', False):
-            url = self.urls['api']['ws']['spot']
+            url = self.safe_string(self.urls['api']['ws'], 'spot')
             channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:
-            url = self.urls['api']['ws']['swap']
+            url = self.safe_string(self.urls['api']['ws'], 'swap')
             channel = 'unsub.deal'
             requestParams = {
                 'symbol': market['id'],
