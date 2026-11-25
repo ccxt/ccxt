@@ -37,7 +37,7 @@ class mexc(Exchange, ImplicitAPI):
             'countries': ['SC'],  # Seychelles
             'rateLimit': 50,  # default rate limit is 20 times per second
             'version': 'v3',
-            'certified': True,
+            'certified': False,
             'pro': True,
             'has': {
                 'CORS': None,

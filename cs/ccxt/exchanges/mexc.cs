@@ -13,7 +13,7 @@ public partial class mexc : Exchange
             { "countries", new List<object>() {"SC"} },
             { "rateLimit", 50 },
             { "version", "v3" },
-            { "certified", true },
+            { "certified", false },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },

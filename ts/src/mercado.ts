@@ -478,12 +478,21 @@ export default class mercado extends Exchange {
         const side = this.safeString (trade, 'type');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'quantity');
-        const feeCost = this.safeString (trade, 'fee_rate');
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        const feeRate = this.safeString (trade, 'fee_rate');
         let fee: FeeString = undefined;
-        if (feeCost !== undefined) {
+        if ((feeRate !== undefined) && (side !== undefined)) {
+            const rate = Precise.stringDiv (feeRate, '100');
+            const isBuy = (side === 'buy');
+            const feeBase = (isBuy) ? amount : Precise.stringMul (amount, price);
+            let feeCurrency = this.safeString (marketResolved, 'quote');
+            if (isBuy) {
+                feeCurrency = this.safeString (marketResolved, 'base');
+            }
             fee = {
-                'cost': feeCost,
-                'currency': undefined,
+                'cost': Precise.stringMul (feeBase, rate),
+                'currency': feeCurrency,
+                'rate': rate,
             };
         }
         return this.safeTrade ({
@@ -728,7 +737,12 @@ export default class mercado extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
-        const rawTrades = this.safeList (order, 'operations', []);
+        const operations = this.safeList (order, 'operations', []);
+        const rawTrades = [];
+        for (let i = 0; i < operations.length; i++) {
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.push (this.extend (operations[i], { 'type': side }));
+        }
         const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeOrder ({
             'info': order,

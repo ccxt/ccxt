@@ -1730,6 +1730,8 @@ class blofin(Exchange, ImplicitAPI):
         edit a trade order
 
         https://docs.blofin.com/index.html#amend-order
+        https://docs.blofin.com/index.html#amend-algo-order
+        https://docs.blofin.com/index.html#amend-tp%2Fsl-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1739,6 +1741,13 @@ class blofin(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id, used instead of the id argument
+        :param boolean [params.trigger]: True if editing a trigger order
+        :param boolean [params.tpsl]: True if editing a tpsl order
+        :param float [params.triggerPrice]: the new trigger price of a trigger order
+        :param float [params.stopLossPrice]: the new stop loss trigger price of a tpsl order
+        :param float [params.takeProfitPrice]: the new take profit trigger price of a tpsl order
+        :param float [params.stopLossLimitPrice]: the new stop loss order price of a tpsl order, when the type is not market
+        :param float [params.takeProfitLimitPrice]: the new take profit order price of a tpsl order, when the type is not market
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1747,16 +1756,52 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        isTrigger = self.safe_bool(params, 'trigger', False)
+        isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
+        elif isTpsl:
+            request['tpslId'] = id
+        elif isTrigger:
+            request['algoId'] = id
         else:
             request['orderId'] = id
         if amount is not None:
             request['newSize'] = self.amount_to_precision(symbol, amount)
-        if price is not None:
-            request['newPrice'] = self.price_to_precision(symbol, price)
-        response = self.privatePostTradeAmendOrder(self.extend(request, self.omit(params, 'clientOrderId')))
+        query = self.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice'])
+        response = None
+        if isTpsl:
+            stopLossPrice = self.safe_string(params, 'stopLossPrice')
+            if stopLossPrice is not None:
+                request['newSlTriggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
+                if type == 'market':
+                    request['newSlOrderPrice'] = '-1'
+                elif slLimitPrice is not None:
+                    request['newSlOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
+            takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+            if takeProfitPrice is not None:
+                request['newTpTriggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
+                if type == 'market':
+                    request['newTpOrderPrice'] = '-1'
+                elif tpLimitPrice is not None:
+                    request['newTpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
+            response = self.privatePostTradeAmendTpsl(self.extend(request, query))
+        elif isTrigger:
+            triggerPrice = self.safe_string(params, 'triggerPrice')
+            if triggerPrice is not None:
+                request['newTriggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            if type == 'market':
+                request['newOrderPrice'] = '-1'
+            elif price is not None:
+                request['newOrderPrice'] = self.price_to_precision(symbol, price)
+            response = self.privatePostTradeAmendAlgo(self.extend(request, query))
+        else:
+            if price is not None:
+                request['newPrice'] = self.price_to_precision(symbol, price)
+            response = self.privatePostTradeAmendOrder(self.extend(request, query))
         #
         #     {
         #         "code": "0",

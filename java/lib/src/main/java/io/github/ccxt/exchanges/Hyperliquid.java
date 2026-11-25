@@ -4326,6 +4326,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "canceled", "canceled" );
             put( "rejected", "rejected" );
             put( "marginCanceled", "canceled" );
+            put( "scheduledCancel", "canceled" );
         }};
         if (status.endsWith("Rejected"))
         {

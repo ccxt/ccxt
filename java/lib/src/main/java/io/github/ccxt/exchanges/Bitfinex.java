@@ -790,6 +790,7 @@ public class Bitfinex extends BitfinexApi
                     put( "not enough exchange balance", InsufficientFunds.class );
                     put( "Order not found", OrderNotFound.class );
                     put( "symbol: invalid", BadSymbol.class );
+                    put( "Min price step", InvalidOrder.class );
                 }} );
             }} );
             put( "commonCurrencies", new HashMap<String, Object>() {{

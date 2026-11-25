@@ -748,6 +748,7 @@ public partial class bitfinex : Exchange
                     { "not enough exchange balance", typeof(InsufficientFunds) },
                     { "Order not found", typeof(OrderNotFound) },
                     { "symbol: invalid", typeof(BadSymbol) },
+                    { "Min price step", typeof(InvalidOrder) },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {

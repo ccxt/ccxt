@@ -2130,6 +2130,8 @@ public partial class blofin : Exchange
      * @name blofin#editOrder
      * @description edit a trade order
      * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {string} type 'market' or 'limit'
@@ -2138,6 +2140,13 @@ public partial class blofin : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
@@ -2151,10 +2160,18 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
+        bool? isTrigger = this.safeBool(parameters, "trigger", false);
+        bool? isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId != null))
         {
             request["clientOrderId"] = clientOrderId;
+        } else if ((isTpsl == true))
+        {
+            request["tpslId"] = id;
+        } else if ((isTrigger == true))
+        {
+            request["algoId"] = id;
         } else
         {
             request["orderId"] = id;
@@ -2163,11 +2180,60 @@ public partial class blofin : Exchange
         {
             request["newSize"] = this.amountToPrecision(symbol, amount);
         }
-        if ((price != null))
+        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice"});
+        Dictionary<string, object> response = null;
+        if ((isTpsl == true))
         {
-            request["newPrice"] = this.priceToPrecision(symbol, price);
+            string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
+            if ((stopLossPrice != null))
+            {
+                request["newSlTriggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
+                string? slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
+                if ((type == "market"))
+                {
+                    request["newSlOrderPrice"] = "-1";
+                } else if ((slLimitPrice != null))
+                {
+                    request["newSlOrderPrice"] = this.priceToPrecision(symbol, slLimitPrice);
+                }
+            }
+            string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+            if ((takeProfitPrice != null))
+            {
+                request["newTpTriggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
+                string? tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
+                if ((type == "market"))
+                {
+                    request["newTpOrderPrice"] = "-1";
+                } else if ((tpLimitPrice != null))
+                {
+                    request["newTpOrderPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
+            }
+            response = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+        } else if ((isTrigger == true))
+        {
+            string? triggerPrice = this.safeString(parameters, "triggerPrice");
+            if ((triggerPrice != null))
+            {
+                request["newTriggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            }
+            if ((type == "market"))
+            {
+                request["newOrderPrice"] = "-1";
+            } else if ((price != null))
+            {
+                request["newOrderPrice"] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+        } else
+        {
+            if ((price != null))
+            {
+                request["newPrice"] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostTradeAmendOrder(this.extend(request, query));
         }
-        Dictionary<string, object> response = await this.privatePostTradeAmendOrder(this.extend(request, this.omit(parameters, "clientOrderId")));
         //
         //     {
         //         "code": "0",

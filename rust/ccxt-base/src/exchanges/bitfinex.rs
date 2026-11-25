@@ -1973,6 +1973,7 @@ impl Bitfinex {
         m.insert("not enough exchange balance".to_string(), Value::Str("InsufficientFunds".into()));
         m.insert("Order not found".to_string(), Value::Str("OrderNotFound".into()));
         m.insert("symbol: invalid".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("Min price step".to_string(), Value::Str("InvalidOrder".into()));
     m
 }));
     m

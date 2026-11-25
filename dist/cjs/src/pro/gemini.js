@@ -978,9 +978,9 @@ class gemini extends gemini$1["default"] {
         }
         this.checkRequiredCredentials();
         const wsBaseUrl = this.safeString(this.urls['api'], 'ws', '');
-        const startIndex = wsBaseUrl.length;
+        const startIndex = wsBaseUrl.length - 0;
         const urlParamsIndex = url.indexOf('?');
-        const urlLength = url.length;
+        const urlLength = url.length - 0;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
         const request = url.slice(startIndex, endIndex);
         const payload = {

@@ -2945,7 +2945,7 @@ class lbank(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def convert_secret_to_pem(self, secret: object) -> str:
-        secretLength = len(secret)
+        secretLength = len(secret) - 0
         fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
         for i in range(0, fullLines + 1):

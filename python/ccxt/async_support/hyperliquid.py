@@ -3371,6 +3371,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'canceled': 'canceled',
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled',  # canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         }
         if status.endswith('Rejected'):
             return 'rejected'

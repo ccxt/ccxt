@@ -192,6 +192,8 @@ export default class blofin extends Exchange {
      * @name blofin#editOrder
      * @description edit a trade order
      * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {string} type 'market' or 'limit'
@@ -200,6 +202,13 @@ export default class blofin extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;

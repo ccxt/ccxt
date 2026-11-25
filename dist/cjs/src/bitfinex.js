@@ -491,6 +491,7 @@ class bitfinex extends bitfinex$1["default"] {
                     'not enough exchange balance': errors.InsufficientFunds,
                     'Order not found': errors.OrderNotFound,
                     'symbol: invalid': errors.BadSymbol,
+                    'Min price step': errors.InvalidOrder, // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 },
             },
             'commonCurrencies': {

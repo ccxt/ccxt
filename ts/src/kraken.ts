@@ -1877,7 +1877,7 @@ export default class kraken extends Exchange {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        const idLength = id.length;
+        const idLength = id.length - 0;
         if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;

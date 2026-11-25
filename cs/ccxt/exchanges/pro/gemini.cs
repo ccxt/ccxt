@@ -1088,9 +1088,9 @@ public partial class gemini : ccxt.gemini
         }
         this.checkRequiredCredentials();
         string? wsBaseUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        int startIndex = wsBaseUrl.Length;
+        int startIndex = (wsBaseUrl.Length - 0);
         int urlParamsIndex = url.IndexOf("?", StringComparison.Ordinal);
-        int urlLength = url.Length;
+        int urlLength = (url.Length - 0);
         int endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
         string? request = ((url == null) ? null : url[(int)(startIndex < 0 ? url.Length + startIndex : startIndex)..Math.Min((int)(endIndex < 0 ? url.Length + endIndex : endIndex), url.Length)]);
         Dictionary<string, object> payload = new Dictionary<string, object>() {

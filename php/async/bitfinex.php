@@ -499,6 +499,7 @@ class bitfinex extends Exchange {
                     'not enough exchange balance' => '\\ccxt\\InsufficientFunds',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'symbol => invalid' => '\\ccxt\\BadSymbol',
+                    'Min price step' => '\\ccxt\\InvalidOrder', // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 ),
             ),
             'commonCurrencies' => array(

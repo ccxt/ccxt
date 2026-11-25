@@ -3278,7 +3278,7 @@ class lbank extends Exchange {
     }
 
     public function convert_secret_to_pem(mixed $secret): string {
-        $secretLength = count($secret);
+        $secretLength = strlen($secret) - 0;
         $fullLines = $this->parse_to_int($secretLength / 64);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i <= $fullLines; $i++) {

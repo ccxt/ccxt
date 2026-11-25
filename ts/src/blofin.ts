@@ -1817,6 +1817,8 @@ export default class blofin extends Exchange {
      * @name blofin#editOrder
      * @description edit a trade order
      * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {string} type 'market' or 'limit'
@@ -1825,6 +1827,13 @@ export default class blofin extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -1835,19 +1844,22 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
+        const isTrigger = this.safeBool (params, 'trigger', false);
+        const isTpsl = this.safeBool2 (params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
+        } else if (isTpsl) {
+            request['tpslId'] = id;
+        } else if (isTrigger) {
+            request['algoId'] = id;
         } else {
             request['orderId'] = id;
         }
         if (amount !== undefined) {
             request['newSize'] = this.amountToPrecision (symbol, amount);
         }
-        if (price !== undefined) {
-            request['newPrice'] = this.priceToPrecision (symbol, price);
-        }
-        const response = await this.privatePostTradeAmendOrder (this.extend (request, this.omit (params, 'clientOrderId')));
+        const query = this.omit (params, [ 'clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice' ]);
         //
         //     {
         //         "code": "0",
@@ -1862,8 +1874,48 @@ export default class blofin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
+        if (isTpsl) {
+            const stopLossPrice = this.safeString (params, 'stopLossPrice');
+            if (stopLossPrice !== undefined) {
+                request['newSlTriggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                const slLimitPrice = this.safeString (params, 'stopLossLimitPrice');
+                if (type === 'market') {
+                    request['newSlOrderPrice'] = '-1';
+                } else if (slLimitPrice !== undefined) {
+                    request['newSlOrderPrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                }
+            }
+            const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+            if (takeProfitPrice !== undefined) {
+                request['newTpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                const tpLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
+                if (type === 'market') {
+                    request['newTpOrderPrice'] = '-1';
+                } else if (tpLimitPrice !== undefined) {
+                    request['newTpOrderPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                }
+            }
+            const tpslResponse = await this.privatePostTradeAmendTpsl (this.extend (request, query));
+            return this.parseOrder (this.safeDict (tpslResponse, 'data', {}), market);
+        } else if (isTrigger) {
+            const triggerPrice = this.safeString (params, 'triggerPrice');
+            if (triggerPrice !== undefined) {
+                request['newTriggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+            if (type === 'market') {
+                request['newOrderPrice'] = '-1';
+            } else if (price !== undefined) {
+                request['newOrderPrice'] = this.priceToPrecision (symbol, price);
+            }
+            const algoResponse = await this.privatePostTradeAmendAlgo (this.extend (request, query));
+            return this.parseOrder (this.safeDict (algoResponse, 'data', {}), market);
+        } else {
+            if (price !== undefined) {
+                request['newPrice'] = this.priceToPrecision (symbol, price);
+            }
+            const response = await this.privatePostTradeAmendOrder (this.extend (request, query));
+            return this.parseOrder (this.safeDict (response, 'data', {}), market);
+        }
     }
 
     /**
