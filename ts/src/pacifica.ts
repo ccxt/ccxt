@@ -1176,7 +1176,7 @@ export default class pacifica extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //      {
         //         "funding": "0.00010529",
@@ -1238,9 +1238,6 @@ export default class pacifica extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1250,24 +1247,29 @@ export default class pacifica extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit) as OHLCV[];
         }
+        const limitValue: Int = (limit === undefined) ? defaultMaxLimit : limit;
         const tf = this.safeString (this.timeframes, timeframe, timeframe);
+        const nowMs = this.milliseconds ();
+        const duration = this.parseTimeframe (tf) * 1000;
         const request: Dict = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
         };
+        let sinceValue: Int = since;
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
-        const nowMillis = this.milliseconds ();
-        const requestedUntil = this.safeInteger (requestUntil, 'end_time');
-        if (requestedUntil === undefined) {
-            const durationMillis = this.parseTimeframe (tf) * 1000;
-            const candleCount: Int = (limit === undefined) ? defaultMaxLimit : limit;
-            if (since !== undefined) {
-                const windowEnd: int = this.parseToInt (this.sum (since - 1, candleCount * durationMillis));
-                const until: int = (windowEnd > nowMillis) ? nowMillis : windowEnd;
-                requestUntil['end_time'] = until;
+        if (this.safeInteger (requestUntil, 'end_time') === undefined) {
+            if (sinceValue === undefined) {
+                sinceValue = nowMs - limitValue * duration;
+            }
+            const windowEnd: int = this.parseToInt (this.sum (sinceValue - 1, limitValue * duration));
+            const until: int = (windowEnd > nowMs) ? nowMs : windowEnd;
+            requestUntil['end_time'] = until;
+        } else {
+            if (sinceValue === undefined) {
+                sinceValue = requestUntil['end_time'] - limitValue * duration;
             }
         }
+        requestUntil['start_time'] = sinceValue;
         const response = await this.publicGetKline (this.extend (requestUntil, paramsUntil));
         //
         // {
@@ -2859,7 +2861,7 @@ export default class pacifica extends Exchange {
     override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();

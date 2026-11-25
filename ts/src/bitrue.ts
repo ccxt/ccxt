@@ -979,6 +979,8 @@ export default class bitrue extends Exchange {
         const filters = this.safeList (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString (market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        const active = (status === 'TRADING') || (status === '1');
         const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString (market, 'pricePrecision');
@@ -1011,7 +1013,7 @@ export default class bitrue extends Exchange {
             'swap': isContract,
             'future': false,
             'option': false,
-            'active': (status === 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
@@ -3281,19 +3283,19 @@ export default class bitrue extends Exchange {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
             if (type === 'spot' || type === 'open') {
-                let query = this.urlencode (this.extend ({
+                const unsignedQuery = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, paramsOmitted));
-                const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
-                query += '&' + 'signature=' + signature;
+                const signature = this.hmac (this.encode (unsignedQuery), this.encode (this.secret), sha256);
+                const signedQuery = unsignedQuery + '&' + 'signature=' + signature;
                 if ((method === 'GET') || (method === 'DELETE')) {
-                    url += '?' + query;
+                    url += '?' + signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                     };
                 } else {
-                    requestBody = query;
+                    requestBody = signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -3411,7 +3413,7 @@ export default class bitrue extends Exchange {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {
             const limit = this.safeInteger (params, 'limit');
-            const byLimit = this.safeList (config, 'byLimit', []);
+            const byLimit: number[][] = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
                 const threshold = this.safeInteger (entry, 0);

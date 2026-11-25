@@ -8,14 +8,24 @@ public partial class BaseExchange
         return tmp.EndsWith(Path.DirectorySeparatorChar.ToString()) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
+    // no-op: file io is synchronous in c#, nothing to load before the first readFile call
+    public virtual Task<object> initFileSystem()
+    {
+        return Task.FromResult<object>(null);
+    }
+
     public void ensureWhitelistedFile(object filePath)
     {
-        var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
-            return;
+        var exts = new[] { "ccxtfile", "pem", "wasm" };
+        foreach (var ext in exts)
+        {
+            if (sanitized.EndsWith("." + ext))
+            {
+                return;
+            }
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}");
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(" | ", exts)}");
     }
 
     public string readFile(object filePath)

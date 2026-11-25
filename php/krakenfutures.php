@@ -128,7 +128,6 @@ class krakenfutures extends Exchange {
                         'notifications' => array( 'cost' => 1 ),
                         'accounts' => array( 'cost' => 1 ),
                         'openorders' => array( 'cost' => 1 ),
-                        'recentorders' => array( 'cost' => 1 ),
                         'fills' => array( 'cost' => 1 ),
                         'transfers' => array( 'cost' => 1 ),
                         'leveragepreferences' => array( 'cost' => 1 ),
@@ -2353,7 +2352,7 @@ class krakenfutures extends Exchange {
                     $executions[] = $item;
                 }
                 // Final order (after placement / editing / execution / canceling)
-                $orderTrigger = $this->safe_value($item, 'orderTrigger');
+                $orderTrigger = $this->safe_dict($item, 'orderTrigger');
                 if ($details === null) {
                     $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
                     if ($details !== null) {
@@ -3088,7 +3087,7 @@ class krakenfutures extends Exchange {
         return $this->index_by($fundingRates, 'symbol');
     }
 
-    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
+    public function parse_funding_rate(?array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PF_ENJUSD",
@@ -3580,7 +3579,7 @@ class krakenfutures extends Exchange {
                 'symbol' => $this->safe_symbol($marketId, $marketResolved),
                 'currency' => $marketResolved['quote'],
                 'minNotional' => $minNotional,
-                'maxNotional' => $this->safe_number_2($this->safe_value($marginLevels, $this->sum($i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional' => $this->safe_number_2($this->safe_dict($marginLevels, $this->sum($i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMargin)),
                 'info' => $tier,

@@ -19,6 +19,7 @@ public partial class toobit : ccxt.toobit
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
+                { "watchPositions", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
@@ -192,7 +193,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -210,7 +211,7 @@ public partial class toobit : ccxt.toobit
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -285,7 +286,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(stored, messageHash);
     }
 
-    public override ccxt.Trade parseWsTrade(object trade, object market = null)
+    public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)
     {
         return this.parseTrade(trade, market);
     }
@@ -303,12 +304,12 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        parameters["callerMethodName"] = "watchOHLCV";
         Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
     }
@@ -325,7 +326,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -431,7 +432,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(resolveData, messageHash);
     }
 
-    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    public override List<object> parseWsOHLCV(object ohlcv, IDictionary<string, object> market = null)
     {
         //
         //             {
@@ -460,7 +461,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -595,7 +596,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
@@ -614,7 +615,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -622,9 +623,9 @@ public partial class toobit : ccxt.toobit
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
-        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
+        (string?, IDictionary<string, object>) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         string? channel = channelparamsChannelVariable.Item1;
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
+        IDictionary<string, object> paramsChannel = (channelparamsChannelVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -765,7 +766,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -803,10 +804,10 @@ public partial class toobit : ccxt.toobit
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, paramsMarketType, subscriptionHash));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, object parameters = null)
+    public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
         {
             return;
         }
@@ -922,7 +923,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1057,7 +1058,7 @@ public partial class toobit : ccxt.toobit
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1152,7 +1153,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1177,42 +1178,38 @@ public partial class toobit : ccxt.toobit
         string? url = this.getUserStreamUrl();
         var client = this.client(url);
         this.setPositionsCache(client, type, symbolsNormalized);
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, type));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positionsByType, type));
         if ((cache == null))
         {
-            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future((type + ":fetchPositionsSnapshot")));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            object snapshot = await client.future((type + ":fetchPositionsSnapshot"));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, messageHash);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
-        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true));
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(cache), symbolsNormalized, since, limit, true));
     }
 
     public virtual void setPositionsCache(WebSocketClient client, object type, IList<object>? symbols = null)
     {
-        if ((this.positions == null))
-        {
-            this.positions = new Dictionary<string, object>() {};
-        }
-        if ((((IDictionary<string,object>)this.positions) != null && type is string entryKey0 && ((IDictionary<string,object>)this.positions).ContainsKey(entryKey0)))
+        if ((this.positionsByType != null && type is string inOpKey0 && this.positionsByType.ContainsKey(inOpKey0)))
         {
             return;
         }
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
         {
-            object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
+            string? messageHash = ((string)(add(type, ":fetchPositionsSnapshot")));
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
             }
         } else
         {
-            ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[(string)type] = new ArrayCacheBySymbolBySide();
         }
     }
 
@@ -1222,8 +1219,8 @@ public partial class toobit : ccxt.toobit
             { "type", type },
         };
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
-        ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
+        this.positionsByType[(string)type] = new ArrayCacheBySymbolBySide();
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && type != null && this.positionsByType.ContainsKey(type) ? this.positionsByType[type] : null));
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
@@ -1265,15 +1262,11 @@ public partial class toobit : ccxt.toobit
         // ]
         //
         string accountType = "swap";
-        if ((this.positions == null))
+        if (!((this.positionsByType != null && this.positionsByType.ContainsKey(accountType))))
         {
-            this.positions = new Dictionary<string, object>() {};
+            this.positionsByType[accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!((((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType))))
-        {
-            ((IDictionary<string,object>)this.positions)[accountType] = new ArrayCacheBySymbolBySide();
-        }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && accountType != null && ((IDictionary<string,object>)this.positions).ContainsKey(accountType) ? ((IDictionary<string,object>)this.positions)[accountType] : null));
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(this.positionsByType != null && accountType != null && this.positionsByType.ContainsKey(accountType) ? this.positionsByType[accountType] : null));
         // handleMessage's fallback dispatches one item at a time
         Dictionary<string, object> position = this.parseWsPosition(message);
         List<object> newPositions = new List<object>() {position};

@@ -42,8 +42,6 @@
 
 - [Bitfinex Fetch Trades](./examples/ts/bitfinex-fetch-trades.md)
 
-- [Bitmex Browser Cors Proxy](./examples/ts/bitmex-browser-cors-proxy.md)
-
 - [Bitpanda FetchMyTrades Reduce](./examples/ts/bitpanda-fetchMyTrades-reduce.md)
 
 - [Bitrue Fetch Balance](./examples/ts/bitrue-fetch-balance.md)
@@ -187,6 +185,12 @@
 - [HybridESMExample](./examples/ts/hybridESMExample.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/ts/hyperliquid-load-hip3-dexes.md)
+
+- [Ibkr Trade Bonds](./examples/ts/ibkr-trade-bonds.md)
+
+- [Ibkr Trade Crypto](./examples/ts/ibkr-trade-crypto.md)
+
+- [Ibkr Trade Stocks](./examples/ts/ibkr-trade-stocks.md)
 
 - [Instantiate All At Once](./examples/ts/instantiate-all-at-once.md)
 

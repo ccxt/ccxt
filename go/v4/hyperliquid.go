@@ -676,14 +676,14 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// builder-deployed perp dexs start at 110000
 		var dex map[string]any = SafeMapTyped(fetchDexes, i)
 		var secondPart int64 = (int64(i) * 10000) - 10000
-		var offset int64 = this.Sum(110000, secondPart).(int64)
+		var offset int64 = 110000 + secondPart
 		AddElementToObject(perpDexesOffset, this.SafeString(dex, "name", ""), offset)
 	}
 	var fetchDexesList any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var hip3 map[string]any = SafeMapTyped(options, "hip3")
 	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
-	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
+	var maxLimit int64 = *this.SafeInteger(hip3, "limit", 10)
 	var userProvidedDexesLength int = GetArrayLength(dexesProvided)
 	if userProvidedDexesLength > 0 {
 		if userProvidedDexesLength > 0 {
@@ -696,7 +696,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// python transpiler collapses every for-loop bound to an exclusive
 		// range(), so `<=` silently emits range(1, maxLimit) and loads one dex
 		// too few (build/transpile.ts treats <, <=, > and >= identically)
-		var maxIteration int64 = this.Sum(maxLimit, 1).(int64)
+		var maxIteration int64 = maxLimit + 1
 		for i := 1; int64(i) < maxIteration; i++ {
 			if i >= fetchDexesLength {
 				break
@@ -895,16 +895,16 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		// and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-		pricePrecision = mathMin(decimalsLeft, 5)
+		pricePrecision = min(decimalsLeft, 5)
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5
 		// Get the part after the decimal separator
 		var decimalPart *string = this.SafeString(priceSplitted, 1, "")
 		// Count the number of leading zeros in the decimal part
-		var leadingZeros int64 = this.ParseToInt(0)
+		var leadingZeros int64 = 0
 		for (leadingZeros <= int64(len(*decimalPart))) && (GetValue(decimalPart, leadingZeros) == "0") {
-			leadingZeros = this.ParseToInt(leadingZeros + 1)
+			leadingZeros = leadingZeros + 1
 		}
 		// Calculate price precision based on leading zeros and significant digits
 		pricePrecision = leadingZeros + int64(significantDigits)
@@ -998,7 +998,16 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 	var first map[string]any = SafeMapTyped(response, 0)
 	var second []any = SafeListTypedDefault(response, 1, []any{})
 	var meta []any = SafeListTyped(first, "universe")
-	var tokens []any = SafeListTypedDefault(first, "tokens", []any{})
+	var tokens []any = SafeListTyped(first, "tokens")
+	// a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+	var tokensByIndex map[string]any = map[string]any{}
+	for i := 0; i < len(tokens); i++ {
+		var token map[string]any = this.SafeDictMap(tokens, i, map[string]any{})
+		var tokenIndex *string = this.SafeString(token, "index")
+		if tokenIndex != nil {
+			tokensByIndex[*tokenIndex] = token
+		}
+	}
 	var markets []any = []any{}
 	for i := 0; i < len(meta); i++ {
 		var market map[string]any = this.SafeDictMap(meta, i, map[string]any{})
@@ -1016,10 +1025,10 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 		var taker *float64 = this.SafeNumber(fees, "taker")
 		var maker *float64 = this.SafeNumber(fees, "maker")
 		var tokensPos []any = SafeListTyped(market, "tokens")
-		var baseTokenPos *int64 = this.SafeInteger(tokensPos, 0)
-		var quoteTokenPos *int64 = this.SafeInteger(tokensPos, 1)
-		var baseTokenInfo map[string]any = this.SafeDictMap(tokens, baseTokenPos, map[string]any{})
-		var quoteTokenInfo map[string]any = SafeMapTyped(tokens, quoteTokenPos)
+		var baseTokenIndex *string = this.SafeString(tokensPos, 0)
+		var quoteTokenIndex *string = this.SafeString(tokensPos, 1)
+		var baseTokenInfo map[string]any = this.SafeDictMap(tokensByIndex, baseTokenIndex, map[string]any{})
+		var quoteTokenInfo map[string]any = SafeMapTyped(tokensByIndex, quoteTokenIndex)
 		var baseName *string = this.SafeString(baseTokenInfo, "name")
 		var quoteId *string = this.SafeString(quoteTokenInfo, "name")
 		if (baseName == nil) || (quoteId == nil) {
@@ -1331,19 +1340,19 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 		for i := 0; i < len(balances); i++ {
 			var balance map[string]any = SafeMapTyped(balances, i)
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
-			var code any = func() any {
-				if isSpot {
-					return this.UpdateSpotCurrencyCode(unifiedCode)
-				}
-				return unifiedCode
-			}()
+			var code *string
+			if isSpot {
+				code = this.UpdateSpotCurrencyCode(unifiedCode)
+			} else {
+				code = unifiedCode
+			}
 			var account map[string]any = this.Account()
 			var total *string = this.SafeString(balance, "total")
 			var used *string = this.SafeString(balance, "hold")
 			account["total"] = total
 			account["used"] = used
 			if code != nil {
-				AddElementToObject(spotBalances, code, account)
+				spotBalances[*code] = account
 			}
 		}
 
@@ -1991,7 +2000,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) *string {
 	if Precise.StringEq(result, "0") && Precise.StringGt(this.NumberToString(amount), "0") {
 		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(this.SafeNumber(market["precision"], "amount")))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = this.Market(symbol)
@@ -2024,12 +2033,12 @@ func (this *Hyperliquid) SignMessage(message any, privateKey string) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
 	var isTestnet bool = GetArgBool(optionalArgs, 0, true)
 	_ = isTestnet
-	var source string = func() string {
-		if isTestnet == true {
-			return "b"
-		}
-		return "a"
-	}()
+	var source string
+	if isTestnet == true {
+		source = "b"
+	} else {
+		source = "a"
+	}
 	return map[string]any{
 		"source":       source,
 		"connectionId": hash,
@@ -3102,7 +3111,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 			}
 		}
 	}
-	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
+	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
 	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
 	var grouping string = "na"
@@ -3199,7 +3208,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3221,12 +3230,12 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3243,7 +3252,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 		return nil
 	}
 
-	r1 := <-this.CancelOrdersAsync([]any{id}, symbol, params)
+	r1 := <-this.CancelOrdersAsync([]string{id}, symbol, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3270,12 +3279,12 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3346,12 +3355,12 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any,
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelTwapOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) CancelTwapOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelTwapOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3371,7 +3380,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 	var market map[string]any = this.Market(symbol)
 	vaultAddressOption, paramsUnwrapped := this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var params2 any = paramsUnwrapped
+	var params2 map[string]any = paramsUnwrapped
 	var action map[string]any = map[string]any{
 		"type": "twapCancel",
 		"a":    this.ParseToInt(market["baseId"]),
@@ -3385,13 +3394,13 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	var expiresAfter *int64 = this.SafeInteger(params2, "expiresAfter")
 	if expiresAfter != nil {
 		request["expiresAfter"] = expiresAfter
-		params2 = this.Omit(params2, "expiresAfter")
+		params2 = this.OmitDict(params2, "expiresAfter")
 	}
 
 	r1 := <-this.PrivatePostExchange(request)
@@ -3440,7 +3449,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	var fast *bool = this.SafeBool(params, "fast", false)
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id", "fast"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id", "fast"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3488,7 +3497,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3554,18 +3563,18 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		if (id != nil) && cancelByCloid {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId"))
 		}
-		var assetKey string = func() string {
-			if cancelByCloid {
-				return "asset"
-			}
-			return "a"
-		}()
-		var idKey string = func() string {
-			if cancelByCloid {
-				return "cloid"
-			}
-			return "o"
-		}()
+		var assetKey string
+		if cancelByCloid {
+			assetKey = "asset"
+		} else {
+			assetKey = "a"
+		}
+		var idKey string
+		if cancelByCloid {
+			idKey = "cloid"
+		} else {
+			idKey = "o"
+		}
 		var market map[string]any = this.Market(symbol)
 		var cancelObj map[string]any = map[string]any{}
 		cancelObj[assetKey] = this.ParseToNumeric(market["baseId"])
@@ -3656,7 +3665,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3676,7 +3685,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 
@@ -4086,13 +4095,13 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	if since != nil {
 		request["startTime"] = since
 	} else {
-		var maxLimit int64 = func() int64 {
-			if limit == nil {
-				return 500
-			}
-			return *limit
-		}()
-		request["startTime"] = (this.Milliseconds() - (((maxLimit * 60) * 60) * 1000))
+		var maxLimit int64
+		if limit == nil {
+			maxLimit = 500
+		} else {
+			maxLimit = *limit
+		}
+		request["startTime"] = this.Milliseconds() - (maxLimit*60)*60*1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
@@ -4776,12 +4785,13 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		return nil
 	}
 	var statuses map[string]any = map[string]any{
-		"triggered":      "open",
-		"filled":         "closed",
-		"open":           "open",
-		"canceled":       "canceled",
-		"rejected":       "rejected",
-		"marginCanceled": "canceled",
+		"triggered":       "open",
+		"filled":          "closed",
+		"open":            "open",
+		"canceled":        "canceled",
+		"rejected":        "rejected",
+		"marginCanceled":  "canceled",
+		"scheduledCancel": "canceled",
 	}
 	if strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
@@ -5423,11 +5433,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	if vaultAddressPtr != nil {
 		vaultAddress = *vaultAddressPtr
 	}
-	if vaultAddress != nil {
-		if StartsWith(vaultAddress, "0x") {
-			vaultAddress = Replace(vaultAddress, "0x", "")
-		}
-	}
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
 	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    updateAction,
@@ -5493,7 +5499,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	var isCross bool = (marginMode == "cross")
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var nonce int64 = this.IncrementingNonce()
-	var params2 any = this.Omit(params, "marginMode")
+	var params2 map[string]any = this.OmitDict(params, "marginMode")
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
 		"asset":    asset,
@@ -5514,7 +5520,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 
@@ -5824,12 +5830,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		var sendAssetToken string = *this.SafeString(sendAssetCurrencyInfo, "name", "") + ":" + *this.SafeString(sendAssetCurrencyInfo, "tokenId", "")
 		// '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
 		// keeps every balance in the spot clearinghouse so spot is the default on both sides
-		var defaultDex string = func() string {
-			if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
-				return ""
-			}
-			return "spot"
-		}()
+		var defaultDex string
+		if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
+			defaultDex = ""
+		} else {
+			defaultDex = "spot"
+		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
 		var sendAssetPayload map[string]any = map[string]any{
@@ -6015,7 +6021,7 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 			"type":         "vaultTransfer",
 			"vaultAddress": Add("0x", vaultAddress),
 			"isDeposit":    false,
-			"usd":          amount,
+			"usd":          this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000")),
 		}
 		sig = this.SignL1Action(action, nonce)
 	} else {
@@ -6981,13 +6987,9 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	//
 	var status string = *this.SafeString(response, "status", "")
 	var error *string = this.SafeString(response, "error")
-	var message any = nil
+	var message *string = nil
 	if status == "err" {
-		if derefPtr := this.SafeString(response, "response"); derefPtr != nil {
-			message = *derefPtr
-		} else {
-			message = nil
-		}
+		message = this.SafeString(response, "response")
 	} else if status == "unknownOid" {
 		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {
@@ -6997,12 +6999,8 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		var data map[string]any = SafeMapTyped(responsePayload, "data")
 		var statuses []any = SafeListTyped(data, "statuses")
 		for i := 0; i < len(statuses); i++ {
-			if derefPtr := this.SafeString(statuses[i], "error"); derefPtr != nil {
-				message = *derefPtr
-			} else {
-				message = nil
-			}
-			if !IsEqual(message, nil) {
+			message = this.SafeString(statuses[i], "error")
+			if message != nil {
 				break
 			}
 		}
@@ -7015,7 +7013,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		}
 	}
 	var feedback string = this.Id + " " + body
-	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
+	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
@@ -7039,12 +7037,11 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = this.ImplodeHostname(apiUrl) + "/" + path
 	var isPost bool = (method == "POST")
-	var postHeaders map[string]any = map[string]any{
-		"Content-Type": "application/json",
-	}
 	var requestHeaders map[string]any = nil
 	if isPost {
-		requestHeaders = postHeaders
+		requestHeaders = map[string]any{
+			"Content-Type": "application/json",
+		}
 	}
 	var requestBody *string = nil
 	if isPost {

@@ -943,7 +943,7 @@ class bitopro extends bitopro$1["default"] {
         let copyFrom = firstCandle;
         let timestamp = undefined;
         if (since === undefined) {
-            timestamp = this.safeValue(firstCandle, 0);
+            timestamp = this.safeInteger(firstCandle, 0);
         }
         else {
             timestamp = since;
@@ -964,7 +964,7 @@ class bitopro extends bitopro$1["default"] {
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = result.length;
-            copyFrom = this.safeValue(result, resultLength - 1);
+            copyFrom = this.safeList(result, resultLength - 1);
         }
         return result;
     }

@@ -106,7 +106,7 @@ func (this *Kucoinfutures) transferBody(ch chan AsyncResult[TransferEntry], code
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
+	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,

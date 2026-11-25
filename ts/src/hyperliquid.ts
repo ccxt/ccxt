@@ -800,9 +800,9 @@ export default class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt (0);
+            let leadingZeros = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = this.parseToInt (leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -883,6 +883,15 @@ export default class hyperliquid extends Exchange {
         const second = this.safeList (response, 1, []);
         const meta = this.safeList (first, 'universe', []);
         const tokens = this.safeList (first, 'tokens', []);
+        // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        const tokensByIndex: Dict = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const token = this.safeDict (tokens, i, {});
+            const tokenIndex = this.safeString (token, 'index');
+            if (tokenIndex !== undefined) {
+                tokensByIndex[tokenIndex] = token;
+            }
+        }
         const markets: Market[] = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
@@ -900,10 +909,10 @@ export default class hyperliquid extends Exchange {
             const taker = this.safeNumber (fees, 'taker');
             const maker = this.safeNumber (fees, 'maker');
             const tokensPos = this.safeList (market, 'tokens', []);
-            const baseTokenPos = this.safeInteger (tokensPos, 0);
-            const quoteTokenPos = this.safeInteger (tokensPos, 1);
-            const baseTokenInfo = this.safeDict (tokens, baseTokenPos, {});
-            const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
+            const baseTokenIndex = this.safeString (tokensPos, 0);
+            const quoteTokenIndex = this.safeString (tokensPos, 1);
+            const baseTokenInfo = this.safeDict (tokensByIndex, baseTokenIndex, {});
+            const quoteTokenInfo = this.safeDict (tokensByIndex, quoteTokenIndex, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
             if (baseName === undefined || quoteId === undefined) {
@@ -1424,7 +1433,7 @@ export default class hyperliquid extends Exchange {
         return this.parseFundingRates (result, symbolsNormalized);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "maxLeverage": "50",
@@ -3648,6 +3657,7 @@ export default class hyperliquid extends Exchange {
             'canceled': 'canceled',
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         };
         if (status.endsWith ('Rejected')) {
             return 'rejected';
@@ -4147,11 +4157,7 @@ export default class hyperliquid extends Exchange {
         };
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith ('0x')) {
-                vaultAddress = vaultAddress.replace ('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (updateAction, nonce, vaultAddress);
         const request: Dict = {
             'action': updateAction,
@@ -4560,7 +4566,8 @@ export default class hyperliquid extends Exchange {
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000')),
             };
             sig = this.signL1Action (action, nonce);
         } else {
@@ -5340,12 +5347,11 @@ export default class hyperliquid extends Exchange {
         }
         const url = this.implodeHostname (apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders: Dict = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders: NullableDict = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody: Str = undefined;
         if (isPost) {

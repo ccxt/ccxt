@@ -133,7 +133,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
         String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
@@ -153,8 +153,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             orderbook.reset(null);
         }
         orderbook.put("symbol", symbol);
-        List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-        List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+        List<Object> asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
         this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
         orderbook.put("timestamp", timestamp);
@@ -236,7 +236,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, (Map<String, Object>) null);
         String symbol = (String) ticker.get("symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -370,7 +370,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //         }
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
         String symbol = this.safeString(trade, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -466,25 +466,49 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         if (java.util.Objects.equals(type, "DATA"))
         {
             String topic = this.safeString(message, "channel", "");
-            Map<String, Object> methods = new HashMap<String, Object>() {{
-                put( "ORDERBOOK", "handleOrderBook");
-                put( "TICKER", "handleTicker");
-                put( "TRADE", "handleTrades");
+            Map<String, String> methods = new HashMap<String, String>() {{
+                put("ORDERBOOK", "handleOrderBook");
+                put("TICKER", "handleTicker");
+                put("TRADE", "handleTrades");
             }};
-            Object exacMethod = this.safeValue(methods, topic);
+            String exacMethod = methods.get(topic);
             if (!java.util.Objects.equals(exacMethod, null))
             {
-                Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
+                switch (exacMethod) {
+                    case "handleOrderBook":
+                        this.handleOrderBook(client, message);
+                        break;
+                    case "handleTicker":
+                        this.handleTicker(client, message);
+                        break;
+                    case "handleTrades":
+                        this.handleTrades(client, message);
+                        break;
+                    default:
+                        throw new RuntimeException("Method not found: " + exacMethod);
+                }
                 return;
             }
             List<String> keys = new ArrayList<String>(methods.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (((String)topic).indexOf(key) >= 0)
                 {
-                    Object method = (methods == null || key == null ? null : methods.get(key));
-                    Helpers.callDynamically(this, method, new Object[] {client, message});
+                    String method = methods.get(key);
+                    switch (method) {
+                        case "handleOrderBook":
+                            this.handleOrderBook(client, message);
+                            break;
+                        case "handleTicker":
+                            this.handleTicker(client, message);
+                            break;
+                        case "handleTrades":
+                            this.handleTrades(client, message);
+                            break;
+                        default:
+                            throw new RuntimeException("Method not found: " + method);
+                    }
                     return;
                 }
             }

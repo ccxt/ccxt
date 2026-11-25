@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official okxus API documentation:** [app.okx.com](https://app.okx.com/docs-v5/en/#overview)
 
-> 470 implicit endpoints across 2 access groups.
+> 473 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -119,6 +119,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetPublicVipInterestRateLoanQuota` | GET | `public/vip-interest-rate-loan-quota` | 10 |
 | `publicGetPublicMmInstrumentTypes` | GET | `public/mm-instrument-types` | 4 |
 | `publicGetPublicDeltaHedgeCurrencies` | GET | `public/delta-hedge-currencies` | 1 |
+| `publicGetPublicCorporateActions` | GET | `public/corporate-actions` | 1 |
 | `publicGetRubikStatTradingDataSupportCoin` | GET | `rubik/stat/trading-data/support-coin` | 4 |
 | `publicGetRubikStatContractsOpenInterestHistory` | GET | `rubik/stat/contracts/open-interest-history` | 2 |
 | `publicGetRubikStatTakerVolume` | GET | `rubik/stat/taker-volume` | 4 |
@@ -211,6 +212,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssetDepositHistory` | GET | `asset/deposit-history` | 1.6666666666666667 |
 | `privateGetAssetWithdrawalHistory` | GET | `asset/withdrawal-history` | 1.6666666666666667 |
 | `privateGetAssetDepositWithdrawStatus` | GET | `asset/deposit-withdraw-status` | 20 |
+| `privateGetAssetTravelRuleGetLocked` | GET | `asset/travel-rule/get-locked` | 3.3333333333333335 |
 | `privateGetAssetMonthlyStatement` | GET | `asset/monthly-statement` | 2 |
 | `privateGetAssetConvertCurrencies` | GET | `asset/convert/currencies` | 1.6666666666666667 |
 | `privateGetAssetConvertCurrencyPair` | GET | `asset/convert/currency-pair` | 1.6666666666666667 |
@@ -404,6 +406,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssetWithdrawal` | POST | `asset/withdrawal` | 1.6666666666666667 |
 | `privatePostAssetWithdrawalLightning` | POST | `asset/withdrawal-lightning` | 5 |
 | `privatePostAssetCancelWithdrawal` | POST | `asset/cancel-withdrawal` | 1.6666666666666667 |
+| `privatePostAssetTravelRuleUnlock` | POST | `asset/travel-rule/unlock` | 3.3333333333333335 |
 | `privatePostAssetConvertDustAssets` | POST | `asset/convert-dust-assets` | 10 |
 | `privatePostAssetMonthlyStatement` | POST | `asset/monthly-statement` | 1296000 |
 | `privatePostAssetConvertEstimateQuote` | POST | `asset/convert/estimate-quote` | 50 |

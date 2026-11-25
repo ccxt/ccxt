@@ -2768,6 +2768,18 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $tickerList = $this->safe_list($result, 'list', array());
+        if ($category === 'spot') {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            $spotTickers = array();
+            for ($i = 0; $i < count($tickerList); $i++) {
+                $tickerMarket = $this->safe_market($this->safe_string($tickerList[$i], 'symbol'), null, null, 'spot');
+                if (!$this->safe_bool($tickerMarket, 'contract', false)) {
+                    $spotTickers[] = $tickerList[$i];
+                }
+            }
+            $tickerList = $spotTickers;
+        }
         return $this->parse_tickers($tickerList, $parsedSymbols);
     }
 
@@ -2930,7 +2942,7 @@ class bybit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
-    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
+    public function parse_funding_rate(?array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -4185,7 +4197,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $types = $this->is_unified_enabled();
-        $enableUnifiedAccount = $types[1];
+        $enableUnifiedAccount = $this->safe_bool($types, 1, false);
         if ($enableUnifiedAccount !== true) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
@@ -4241,7 +4253,7 @@ class bybit extends Exchange {
         }
         $market = $this->market($symbol);
         $parts = $this->is_unified_enabled();
-        $enableUnifiedAccount = $parts[1];
+        $enableUnifiedAccount = $this->safe_bool($parts, 1, false);
         $isTrailingOrder = $this->safe_string_2($params, 'trailingAmount', 'trailingStop') !== null;
         $isStopLossOrder = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitOrder = $this->safe_string($params, 'takeProfitPrice') !== null;
@@ -4595,7 +4607,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $accounts = $this->is_unified_enabled();
-        $isUta = $accounts[1];
+        $isUta = $this->safe_bool($accounts, 1, false);
         $ordersRequests = array();
         $orderSymbols = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -4979,7 +4991,7 @@ class bybit extends Exchange {
         }
         $market = $this->market($symbol);
         $types = $this->is_unified_enabled();
-        $enableUnifiedAccount = $types[1];
+        $enableUnifiedAccount = $this->safe_bool($types, 1, false);
         if ($enableUnifiedAccount !== true) {
             throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
         }
@@ -5099,7 +5111,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $types = $this->is_unified_enabled();
-        $enableUnifiedAccount = $types[1];
+        $enableUnifiedAccount = $this->safe_bool($types, 1, false);
         if ($enableUnifiedAccount !== true) {
             throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
         }
@@ -6652,7 +6664,7 @@ class bybit extends Exchange {
          */
         list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         $accounts = $this->is_unified_enabled();
-        $isUta = $accounts[1];
+        $isUta = $this->safe_bool($accounts, 1, false);
         list($accountTypeOption, $paramsAccountType) = $this->handle_option_string_and_params($paramsWithdrawTag, 'withdraw', 'accountType');
         $defaultAccountType = ($isUta === true) ? 'UTA' : 'SPOT';
         $accountType = ($accountTypeOption === null) ? $defaultAccountType : $accountTypeOption;

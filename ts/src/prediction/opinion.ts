@@ -749,8 +749,8 @@ export default class opinion extends Exchange {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = this.safeValue (responses, priceIndex);
-            const bookResponse = this.safeValue (responses, this.sum (priceIndex, 1));
+            const priceResponse = this.safeDict (responses, priceIndex);
+            const bookResponse = this.safeDict (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker (response, outcomeObj as any);
             const symbolKey = this.safeString (ticker, 'outcome');
@@ -887,7 +887,7 @@ export default class opinion extends Exchange {
         }
         const response = await this.opinionPublicGetQuoteToken ({});
         const result = this.safeDict (response, 'result', {});
-        const list = this.safeList (result, 'list', []);
+        const list: Dict[] = this.safeList (result, 'list', []);
         const listLength = list.length;
         const quoteTokens: Dict = {};
         for (let i = 0; i < listLength; i++) {
@@ -1365,7 +1365,7 @@ export default class opinion extends Exchange {
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const tokenId = this.safeString (trade, 'tokenId');
-        const outcomeObj = this.safeOutcome (tokenId, market as any);
+        const outcomeObj = this.safeOutcome (tokenId, market);
         const timestamp = this.safeTimestamp (trade, 'createdAt');
         const side = this.safeStringLower (trade, 'side');
         return this.safePredictionTrade ({
@@ -1495,7 +1495,7 @@ export default class opinion extends Exchange {
      */
     override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const tokenId = this.safeString (position, 'tokenId');
-        const outcomeObj = this.safeOutcome (tokenId, market as any);
+        const outcomeObj = this.safeOutcome (tokenId, market);
         const outcomeSideEnum = this.safeStringLower (position, 'outcomeSideEnum');
         return this.safePredictionPosition ({
             'contracts': this.safeNumber (position, 'sharesOwned'),

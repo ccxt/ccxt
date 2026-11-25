@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::hyperliquid::HyperliquidCore;
+use super::hyperliquid::Hyperliquid;
 use crate::exchange::ExchangeRuntime;
 
-impl HyperliquidCore {
+impl Hyperliquid {
     /// Auto-generated wrapper for the `publicPostInfo` implicit endpoint.
     pub async fn public_post_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_info".into()), optional_args).await

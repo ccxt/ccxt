@@ -180,6 +180,9 @@ class okx extends okx$1["default"] {
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', ['public'], 'GET', params, { 'cost': 1 });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', ['public'], 'GET', params, { 'cost': 4 });
     }
@@ -440,6 +443,9 @@ class okx extends okx$1["default"] {
     }
     privateGetAssetDepositWithdrawStatus(params = {}) {
         return this.request('asset/deposit-withdraw-status', ['private'], 'GET', params, { 'cost': 20 });
+    }
+    privateGetAssetTravelRuleGetLocked(params = {}) {
+        return this.request('asset/travel-rule/get-locked', ['private'], 'GET', params, { 'cost': 3.3333333333333335 });
     }
     privateGetAssetMonthlyStatement(params = {}) {
         return this.request('asset/monthly-statement', ['private'], 'GET', params, { 'cost': 2 });
@@ -1019,6 +1025,9 @@ class okx extends okx$1["default"] {
     }
     privatePostAssetCancelWithdrawal(params = {}) {
         return this.request('asset/cancel-withdrawal', ['private'], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+    privatePostAssetTravelRuleUnlock(params = {}) {
+        return this.request('asset/travel-rule/unlock', ['private'], 'POST', params, { 'cost': 3.3333333333333335 });
     }
     privatePostAssetConvertDustAssets(params = {}) {
         return this.request('asset/convert-dust-assets', ['private'], 'POST', params, { 'cost': 10 });

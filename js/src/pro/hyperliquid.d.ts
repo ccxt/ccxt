@@ -1,6 +1,6 @@
 import hyperliquidRest from '../hyperliquid.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, Liquidation } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, Liquidation, type int } from '../base/types.js';
 export default class hyperliquid extends hyperliquidRest {
     describe(): Dict;
     /**
@@ -342,9 +342,10 @@ export default class hyperliquid extends hyperliquidRest {
     handlePositionsUnsubscription(client: Client, subscription: Dict): void;
     handleSpotBalanceUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, subscription: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;
-    requestId(): number;
+    requestId(): int;
     wrapAsPostAction(request: Dict): Dict;
 }

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::btcturk::BtcturkCore;
+use super::btcturk::Btcturk;
 use crate::exchange::ExchangeRuntime;
 
-impl BtcturkCore {
+impl Btcturk {
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
     pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook".into()), optional_args).await

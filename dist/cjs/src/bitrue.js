@@ -978,6 +978,8 @@ class bitrue extends bitrue$1["default"] {
         const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        const active = (status === 'TRADING') || (status === '1');
         const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
@@ -1010,7 +1012,7 @@ class bitrue extends bitrue$1["default"] {
             'swap': isContract,
             'future': false,
             'option': false,
-            'active': (status === 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
@@ -3294,20 +3296,20 @@ class bitrue extends bitrue$1["default"] {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
             if (type === 'spot' || type === 'open') {
-                let query = this.urlencode(this.extend({
+                const unsignedQuery = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,
                 }, paramsOmitted));
-                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
-                query += '&' + 'signature=' + signature;
+                const signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha2_js.sha256);
+                const signedQuery = unsignedQuery + '&' + 'signature=' + signature;
                 if ((method === 'GET') || (method === 'DELETE')) {
-                    url += '?' + query;
+                    url += '?' + signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                     };
                 }
                 else {
-                    requestBody = query;
+                    requestBody = signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                         'Content-Type': 'application/x-www-form-urlencoded',

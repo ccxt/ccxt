@@ -768,9 +768,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             # Get the part after the decimal separator
             decimalPart = self.safe_string(priceSplitted, 1, '')
             # Count the number of leading zeros in the decimal part
-            leadingZeros = self.parse_to_int(0)
+            leadingZeros = 0
             while((leadingZeros <= len(decimalPart)) and (decimalPart[leadingZeros] == '0')):
-                leadingZeros = self.parse_to_int(leadingZeros + 1)
+                leadingZeros = leadingZeros + 1
             # Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits
             # Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
@@ -847,6 +847,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         second = self.safe_list(response, 1, [])
         meta = self.safe_list(first, 'universe', [])
         tokens = self.safe_list(first, 'tokens', [])
+        # a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        tokensByIndex = {}
+        for i in range(0, len(tokens)):
+            token = self.safe_dict(tokens, i, {})
+            tokenIndex = self.safe_string(token, 'index')
+            if tokenIndex is not None:
+                tokensByIndex[tokenIndex] = token
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
@@ -864,10 +871,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             taker = self.safe_number(fees, 'taker')
             maker = self.safe_number(fees, 'maker')
             tokensPos = self.safe_list(market, 'tokens', [])
-            baseTokenPos = self.safe_integer(tokensPos, 0)
-            quoteTokenPos = self.safe_integer(tokensPos, 1)
-            baseTokenInfo = self.safe_dict(tokens, baseTokenPos, {})
-            quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            baseTokenIndex = self.safe_string(tokensPos, 0)
+            quoteTokenIndex = self.safe_string(tokensPos, 1)
+            baseTokenInfo = self.safe_dict(tokensByIndex, baseTokenIndex, {})
+            quoteTokenInfo = self.safe_dict(tokensByIndex, quoteTokenIndex, {})
             baseName = self.safe_string(baseTokenInfo, 'name')
             quoteId = self.safe_string(quoteTokenInfo, 'name')
             if baseName is None or quoteId is None:
@@ -1353,7 +1360,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_funding_rates(result, symbolsNormalized)
 
-    def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "maxLeverage": "50",
@@ -3368,6 +3375,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'canceled': 'canceled',
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled',  # canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         }
         if status.endswith('Rejected'):
             return 'rejected'
@@ -3823,9 +3831,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress')
-        if vaultAddress is not None:
-            if vaultAddress.startswith('0x'):
-                vaultAddress = vaultAddress.replace('0x', '')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -4207,7 +4213,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': False,
-                'usd': amount,
+                # like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000')),
             }
             sig = self.sign_l1_action(action, nonce)
         else:
@@ -4895,12 +4902,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/' + path
         isPost = (method == 'POST')
-        postHeaders = {
-            'Content-Type': 'application/json',
-        }
         requestHeaders = None
         if isPost:
-            requestHeaders = postHeaders
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            }
         requestBody = None
         if isPost:
             requestBody = self.json(params)

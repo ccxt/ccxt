@@ -789,12 +789,17 @@ class dydx extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         if ($since !== null) {
-            $request['fromIso'] = $this->iso8601($since);
+            $request['fromISO'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
         if ($until !== null) {
-            $request['toIso'] = $this->iso8601($until);
+            $request['toISO'] = $this->iso8601($until);
+        } elseif ($since !== null) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $count = ($limit !== null) ? min($limit, 1000) : 1000;
+            $request['toISO'] = $this->iso8601($this->sum($since, $duration * $count));
         }
         $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $paramsOmitted)));
         //
@@ -1257,7 +1262,7 @@ class dydx extends Exchange {
         return $this->parse_positions($rows, $symbols);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         return $this->hash($message, 'keccak', 'hex');
     }
 
@@ -1296,7 +1301,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, mixed $account, mixed $authenticators, mixed $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, mixed $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         $signatureR = $this->safe_string($signature, 'r', '');
@@ -2037,7 +2042,7 @@ class dydx extends Exchange {
         $account = Async\await($this->fetch_dydx_account());
         $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
         $payload = null;
-        $signingPayload = null;
+        $signingPayload = array();
         if ($fromAccount === 'main') {
             // deposit to subaccount
             if ($toSubaccountId === null) {

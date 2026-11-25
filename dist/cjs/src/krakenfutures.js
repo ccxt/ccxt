@@ -134,7 +134,6 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'notifications': { 'cost': 1 },
                         'accounts': { 'cost': 1 },
                         'openorders': { 'cost': 1 },
-                        'recentorders': { 'cost': 1 },
                         'fills': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
                         'leveragepreferences': { 'cost': 1 },
@@ -2351,7 +2350,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     executions.push(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                const orderTrigger = this.safeValue(item, 'orderTrigger');
+                const orderTrigger = this.safeDict(item, 'orderTrigger');
                 if (details === undefined) {
                     details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
@@ -3577,7 +3576,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'symbol': this.safeSymbol(marketId, marketResolved),
                 'currency': marketResolved['quote'],
                 'minNotional': minNotional,
-                'maxNotional': this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), 'numNonContractUnits', 'contracts'),
+                'maxNotional': this.safeNumber2(this.safeDict(marginLevels, this.sum(i, 1)), 'numNonContractUnits', 'contracts'),
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': this.parseNumber(Precise["default"].stringDiv('1', initialMargin)),
                 'info': tier,

@@ -2955,7 +2955,7 @@ class cryptocom(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #                 {
         #                     "v": "-0.000001884",
@@ -3007,7 +3007,7 @@ class cryptocom(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')

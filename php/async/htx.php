@@ -2965,9 +2965,9 @@ class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        $trades = $this->safe_value($response, 'data');
-        if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
-            $trades = $this->safe_list($trades, 'trades');
+        $trades = $this->safe_list($response, 'data');
+        if ($trades === null) {
+            $trades = $this->safe_list($this->safe_dict($response, 'data'), 'trades', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -3999,8 +3999,10 @@ class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data');
-        $order = (gettype($rawOrder) === 'array' && array_keys($rawOrder) === array_keys(array_keys($rawOrder))) ? $this->safe_dict($rawOrder, 0) : $rawOrder;
+        $order = $this->safe_dict($response, 'data');
+        if ($order === null) {
+            $order = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
+        }
         return $this->parse_order($order, $market);
     }
 
@@ -4270,8 +4272,10 @@ class htx extends Exchange {
                 }
             }
         }
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -4835,8 +4839,10 @@ class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -5133,7 +5139,7 @@ class htx extends Exchange {
             );
         }
         $average = $this->safe_string($order, 'trade_avg_price');
-        $trades = $this->safe_value($order, 'trades');
+        $trades = $this->safe_list($order, 'trades');
         $reduceOnly = null;
         if ($isLinearOrder) {
             $reduceOnly = $this->safe_bool($order, 'reduce_only');
@@ -5913,8 +5919,8 @@ class htx extends Exchange {
         if ($this->safe_bool($market, 'spot', false)) {
             $result = $this->safe_list($response, 'data', array());
         } else {
-            $data = $this->safe_value($response, 'data');
-            if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+            $data = $this->safe_list($response, 'data');
+            if ($data !== null) {
                 $result = $data;
             } else {
                 $batchData = $this->safe_dict($response, 'data', array());
@@ -7364,20 +7370,24 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding rate history for
          * @param {int} [$limit] the maximum number of structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate, linear swaps only
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
-        if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'current_page', 'page_index', 1, 50));
-        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        if ($paginate) {
+            if ($market['linear']) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 100));
+            }
+            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'current_page', 'page_index', 1, 50));
+        }
         $request = array(
             'contract_code' => $market['id'],
         );
@@ -7421,7 +7431,8 @@ class htx extends Exchange {
             //     }
             //
         } elseif ($this->safe_bool($market, 'linear', false)) {
-            $response = Async\await($this->contractPublicGetV5MarketFundingRateHistory($this->extend($request, $paramsPaginate)));
+            list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
+            $response = Async\await($this->contractPublicGetV5MarketFundingRateHistory($this->extend($requestUntil, $paramsUntil)));
             //
             //     {
             //         "code": 200,
@@ -7478,7 +7489,7 @@ class htx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // inverse swap
         //
@@ -7742,7 +7753,7 @@ class htx extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }

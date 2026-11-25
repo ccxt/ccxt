@@ -316,13 +316,17 @@ class bitfinex extends \ccxt\async\bitfinex {
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
         /**
          * unWatches the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->un_subscribe('trades', 'trades', $symbol, $params);
+        return Async\await($this->un_subscribe('trades', 'trades', $symbol, $params));
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -366,13 +370,17 @@ class bitfinex extends \ccxt\async\bitfinex {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
         /**
          * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_subscribe('ticker', 'ticker', $symbol, $params);
+        return Async\await($this->un_subscribe('ticker', 'ticker', $symbol, $params));
     }
 
     public function handle_my_trade(Client $client, array $message, array $subscription = array()) {
@@ -746,13 +754,13 @@ class bitfinex extends \ccxt\async\bitfinex {
             if ($isRaw) {
                 $deltas = $this->safe_list($message, 1, array());
                 for ($i = 0; $i < count($deltas); $i++) {
-                    $delta = $deltas[$i];
-                    $delta2 = $this->safe_number($delta, 2);
+                    $rawDelta = $deltas[$i];
+                    $delta2 = $this->safe_number($rawDelta, 2);
                     $size = ($delta2 !== null && $delta2 < 0) ? -$delta2 : $delta2;
                     $side = ($delta2 !== null && $delta2 < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $idString = $this->safe_string($delta, 0);
-                    $price = $this->safe_float($delta, 1);
+                    $idString = $this->safe_string($rawDelta, 0);
+                    $price = $this->safe_float($rawDelta, 1);
                     $bookside->storeArray(array( $price, $size, $idString ));
                 }
             } else {
@@ -775,7 +783,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $client->resolve($orderbook, $messageHash);
         } else {
             $orderbook = $this->orderbooks[$symbol];
-            $deltas = $this->safe_value($message, 1);
+            $deltas = $this->safe_list($message, 1);
             $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);

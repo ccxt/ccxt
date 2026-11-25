@@ -366,6 +366,14 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
             'needsCollectors': false,
         };
     }
+    // a required bare `boolean` is never undefined: a primitive Java boolean
+    if (!field.optional && (field.tsType.trim () === 'boolean')) {
+        return {
+            'javaType': 'boolean',
+            'statements': [ BODY + 'this.' + javaName + ' = Boolean.TRUE.equals(TypeHelper.safeBool(data, "' + key + '"));' ],
+            'needsCollectors': false,
+        };
+    }
     const scalar = scalarFor (field.tsType, key);
     if (scalar !== undefined) {
         return {

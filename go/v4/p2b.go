@@ -261,7 +261,7 @@ func (this *P2b) Describe() map[string]any {
 				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
-					"daysBack":       100000,
+					"daysBack":       90,
 					"untilDays":      1,
 					"symbolRequired": true,
 				},
@@ -277,8 +277,8 @@ func (this *P2b) Describe() map[string]any {
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            100,
-					"daysBack":         100000,
-					"daysBackCanceled": float64(1) / 12,
+					"daysBack":         90,
+					"daysBackCanceled": nil,
 					"untilDays":        1,
 					"trigger":          false,
 					"trailing":         false,
@@ -920,7 +920,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"interval": timeframe,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = min(*limit, 500)
 	}
 
 	r1 := <-this.PublicGetMarketKline(this.Extend(request, params))
@@ -1152,12 +1152,12 @@ func (this *P2b) createOrderBody(ch chan AsyncResult[Order], symbol string, type
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *P2b) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *P2b) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *P2b) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *P2b) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1421,8 +1421,8 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	}
 	var untilParam *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
-	var until int64 = this.ParseToInt(0)
-	var sinceResolved int64 = this.ParseToInt(0)
+	var until int64 = 0
+	var sinceResolved int64 = 0
 	if untilParam != nil {
 		until = this.ParseToInt(untilParam)
 		if since != nil {
@@ -1431,7 +1431,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 			}
 			sinceResolved = this.ParseToInt(since)
 		} else {
-			sinceResolved = this.ParseToInt(*untilParam - 86400000)
+			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
 		until = this.ParseToInt(*since + 86400000)
@@ -1439,7 +1439,7 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	} else {
 		var now int64 = this.Milliseconds()
 		until = this.ParseToInt(now)
-		sinceResolved = this.ParseToInt(now - 86400000)
+		sinceResolved = now - 86400000
 	}
 	var market map[string]any = this.Market(symbol)
 	var sinceSec int64 = this.ParseToInt(float64(sinceResolved) / 1000)
@@ -1535,8 +1535,8 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var until int64 = this.ParseToInt(0)
-	var sinceResolved int64 = this.ParseToInt(0)
+	var until int64 = 0
+	var sinceResolved int64 = 0
 	if untilParam != nil {
 		until = this.ParseToInt(untilParam)
 		if since != nil {
@@ -1545,7 +1545,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 			}
 			sinceResolved = this.ParseToInt(since)
 		} else {
-			sinceResolved = this.ParseToInt(*untilParam - 86400000)
+			sinceResolved = *untilParam - 86400000
 		}
 	} else if since != nil {
 		until = this.ParseToInt(*since + 86400000)
@@ -1553,7 +1553,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	} else {
 		var now int64 = this.Milliseconds()
 		until = this.ParseToInt(now)
-		sinceResolved = this.ParseToInt(now - 86400000)
+		sinceResolved = now - 86400000
 	}
 	var sinceSec int64 = this.ParseToInt(float64(sinceResolved) / 1000)
 	var untilSec int64 = this.ParseToInt(float64(until) / 1000)

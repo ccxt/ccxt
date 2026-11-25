@@ -1080,6 +1080,7 @@ public class Bingx extends BingxApi
                     put( "100490", BadSymbol.class );
                     put( "101481", DuplicateOrderId.class );
                     put( "109201", DuplicateOrderId.class );
+                    put( "104414", BadRequest.class );
                     put( "109400", BadRequest.class );
                     put( "109418", BadSymbol.class );
                     put( "109421", OrderNotFound.class );
@@ -1144,7 +1145,7 @@ public class Bingx extends BingxApi
                         put( "triggerPriceType", new HashMap<String, Object>() {{
                             put( "last", true );
                             put( "mark", true );
-                            put( "index", true );
+                            put( "index", false );
                         }} );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", true );
@@ -1153,7 +1154,7 @@ public class Bingx extends BingxApi
                             put( "triggerPriceType", new HashMap<String, Object>() {{
                                 put( "last", true );
                                 put( "mark", true );
-                                put( "index", true );
+                                put( "index", false );
                             }} );
                             put( "price", true );
                         }} );
@@ -1293,9 +1294,9 @@ public class Bingx extends BingxApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1369,7 +1370,7 @@ public class Bingx extends BingxApi
             //            },
             //            ...
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1380,9 +1381,9 @@ public class Bingx extends BingxApi
         String currencyId = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String name = this.safeString(rawCurrency, "name");
-        List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", (Object) null);
+        List<Object> networkList = this.safeList(rawCurrency, "networkList", null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        for (var j = 0; j < networkList.size(); j++)
         {
             Object rawNetwork = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(rawNetwork, "network");
@@ -1462,8 +1463,8 @@ public class Bingx extends BingxApi
             //         }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
-            List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", null);
+            List<Object> markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -1506,7 +1507,7 @@ public class Bingx extends BingxApi
             //        ]
             //    }
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -1536,7 +1537,7 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -1588,7 +1589,7 @@ public class Bingx extends BingxApi
         {
             symbol = (symbol + (":" + settle));
         }
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
         Double contractSize = null;
         if (Boolean.TRUE.equals(swap))
         {
@@ -1693,10 +1694,10 @@ public class Bingx extends BingxApi
                 ((List<Object>)requests).add(this.fetchInverseSwapMarkets(parameters));
                 ((List<Object>)requests).add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
             }
-            Object promises = (((List<?>)(requests)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            List<Object> linearSwapMarkets = (List<Object>) this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
-            List<Object> inverseSwapMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
-            List<Object> spotMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
+            List<Object> promises = (((List<?>)(requests)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> linearSwapMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> inverseSwapMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
             List<Object> swapMarkets = (List<Object>) this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
@@ -1730,19 +1731,21 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))) ? 1000L : 1440L;
+            Integer maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))) ? 1000 : 1440;
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
+                // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+                Integer paginationLimit = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1m")))) ? maxLimit : 1000;
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, ((Long) (switch ((Object) (paginationLimit)) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); })))).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : Math.min(limit, maxLimit);
+            Object requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : (limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit)));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", Math.max((since - 1L), 0));
@@ -1755,11 +1758,18 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", until);
+                Object endTime = until;
+                if (!java.util.Objects.equals(since, null))
+                {
+                    // the exchange aligns the window to endTime, so keep it within limit candles of since
+                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                    endTime = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(until, this.sum(since, Helpers.multiply(duration, requestLimit)));
+                }
+                request.put("endTime", endTime);
             } else if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && (!java.util.Objects.equals(since, null)))
             {
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("endTime", this.sum(since, (duration * requestLimit)));
+                request.put("endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
@@ -1957,7 +1967,7 @@ public class Bingx extends BingxApi
             //      ]
             //    }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2082,7 +2092,9 @@ public class Bingx extends BingxApi
         {
             time = null;
         }
-        String cost = this.safeString(trade, "quoteQty");
+        // Spot execution reports distinguish the last fill from the original order's p/q.
+        Boolean isSpotExecution = (java.util.Objects.equals(this.safeString(trade, "e"), "executionReport")) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE"));
+        String cost = ((Boolean.TRUE.equals(isSpotExecution))) ? this.safeString(trade, "Y") : this.safeString(trade, "quoteQty");
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         String currencyId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("currency", "N", "commissionAsset")));
         String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -2114,14 +2126,14 @@ public class Bingx extends BingxApi
         {
             takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
+        String amount = ((Boolean.TRUE.equals(isSpotExecution))) ? this.safeString(trade, "l") : this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
         if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))) && (((Map<?, ?>)trade).containsKey("volume")))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
-        String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
+        String price = ((Boolean.TRUE.equals(isSpotExecution))) ? this.safeString(trade, "L") : this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
         if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
         {
             String lastAmount = this.safeString(trade, "l");
@@ -2279,7 +2291,7 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long nonce = this.safeInteger(orderbook, "lastUpdateId");
             Long timestamp = (Long) this.safeInteger2(orderbook, "T", "ts");
             Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
@@ -2339,7 +2351,7 @@ public class Bingx extends BingxApi
             Map<String, Object> data = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                List<Object> dataList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -2384,7 +2396,7 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PublicGetQuotePremiumIndex(paramsSubType)).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
         }).thenApply(FundingRates::new);
 
@@ -2503,7 +2515,7 @@ public class Bingx extends BingxApi
             //        ]
             //    }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -2608,7 +2620,7 @@ public class Bingx extends BingxApi
             //                 }
             //             ]
             //         }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -2703,7 +2715,7 @@ public class Bingx extends BingxApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
@@ -2780,7 +2792,7 @@ public class Bingx extends BingxApi
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
+                response = (this.spotV2PublicGetQuoteTicker(this.extend(request, parameters))).join();
             } else
             {
                 if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
@@ -2819,13 +2831,13 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> data = this.safeList(response, "data", null);
             if (!java.util.Objects.equals(data, null))
             {
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(first, market);
             }
-            Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(dataDict, market);
         }).thenApply(Ticker::new);
 
@@ -2857,7 +2869,7 @@ public class Bingx extends BingxApi
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
             if (java.util.Objects.equals(type, "spot"))
             {
                 if ((!java.util.Objects.equals(market, null)) && ((symbolsLength != null && symbolsLength == 1)))
@@ -2874,13 +2886,13 @@ public class Bingx extends BingxApi
                 }
                 request.put("symbol", this.safeString(market, "id"));
                 Map<String, Object> response = (this.swapV2PublicGetQuoteBookTicker(this.extend(request, paramsMarketType))).join();
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 rows = new ArrayList<Object>(Arrays.asList(this.safeDict(data, "book_ticker", new HashMap<String, Object>() {{}})));
             }
             // a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
             Map<String, Object> rowMarket = ((((symbolsLength != null && symbolsLength == 1)))) ? market : null;
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 ((List<Object>)results).add(this.parseTicker((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), rowMarket));
             }
@@ -2928,7 +2940,7 @@ public class Bingx extends BingxApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "spot"))
             {
-                response = (this.spotV1PublicGetTicker24hr(paramsSubType)).join();
+                response = (this.spotV2PublicGetQuoteTicker(paramsSubType)).join();
             } else
             {
                 if (java.util.Objects.equals(subType, "inverse"))
@@ -2968,7 +2980,7 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> tickers = this.safeList(response, "data", null);
             return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -3086,7 +3098,7 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", (Object) null);
+            List<Object> tickers = this.safeList(response, "data", null);
             return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
@@ -3353,16 +3365,16 @@ public class Bingx extends BingxApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> contractBalances = (List<Object>) this.safeList(response, "data", (Object) null);
-        Map<String, Object> firstContractBalances = (Map<String, Object>) this.safeDict(contractBalances, 0, (Object) null);
+        List<Object> contractBalances = this.safeList(response, "data", null);
+        Map<String, Object> firstContractBalances = this.safeDict(contractBalances, 0, null);
         Boolean isContract = !java.util.Objects.equals(firstContractBalances, null);
-        Map<String, Object> spotData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> spotData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> spotBalances = (List<Object>) this.safeList2(spotData, "balances", "assets", new ArrayList<Object>(Arrays.asList()));
         if (Boolean.TRUE.equals(isContract))
         {
-            for (var i = 0; i < ((List<?>)contractBalances).size(); i++)
+            for (var i = 0; i < contractBalances.size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(contractBalances, i, (Object) null);
+                Map<String, Object> balance = this.safeDict(contractBalances, i, null);
                 String currencyId = this.safeString(balance, "asset");
                 if (java.util.Objects.equals(currencyId, null))
                 {
@@ -3380,9 +3392,9 @@ public class Bingx extends BingxApi
             }
         } else
         {
-            for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
+            for (var i = 0; i < spotBalances.size(); i++)
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
+                Map<String, Object> balance = this.safeDict(spotBalances, i, null);
                 String currencyId = this.safeString(balance, "asset");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 Map<String, Object> account = this.account();
@@ -3469,8 +3481,8 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> records = (List<Object>) this.safeList(data, "positionHistory", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> records = this.safeList(data, "positionHistory", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(records, (List<String>) null, new HashMap<String, Object>() {{}});
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3528,7 +3540,7 @@ public class Bingx extends BingxApi
                     response = (this.swapV2PrivateGetUserPositions(paramsSubType)).join();
                 }
             }
-            List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -3569,8 +3581,8 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PrivateGetUserPositions(this.extend(request, parameters))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
@@ -3941,8 +3953,8 @@ public class Bingx extends BingxApi
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
             Boolean isTrailing = Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder);
-            Map<String, Object> stopLossDict = (Map<String, Object>) this.safeDict(paramsPostOnly, "stopLoss", (Object) null);
-            Map<String, Object> takeProfitDict = (Map<String, Object>) this.safeDict(paramsPostOnly, "takeProfit", (Object) null);
+            Map<String, Object> stopLossDict = this.safeDict(paramsPostOnly, "stopLoss", null);
+            Map<String, Object> takeProfitDict = this.safeDict(paramsPostOnly, "takeProfit", null);
             Boolean hasStopLoss = !java.util.Objects.equals(stopLossDict, null);
             Boolean hasTakeProfit = !java.util.Objects.equals(takeProfitDict, null);
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
@@ -3963,6 +3975,11 @@ public class Bingx extends BingxApi
             Boolean reduceOnlyParam = (Boolean) this.safeBool(paramsTakeProfit, "reduceOnly", false);
             // stop loss / take profit price orders are always reduce only
             Boolean reduceOnly = Boolean.TRUE.equals(reduceOnlyParam) || (!Boolean.TRUE.equals(isTriggerOrder) && (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder)));
+            String triggerPriceType = this.safeString2(paramsTakeProfit, "triggerPriceType", "workingType");
+            if (!java.util.Objects.equals(triggerPriceType, null))
+            {
+                request.put("workingType", this.encodeTriggerPriceType(triggerPriceType));
+            }
             if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 request.put("stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
@@ -4023,14 +4040,15 @@ public class Bingx extends BingxApi
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
-                    String slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
-                    String slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
+                    String slWorkingType = this.safeString2(stopLossDict, "triggerPriceType", "workingType", "MARK_PRICE");
+                    String slPrice = this.safeString(stopLossDict, "price");
+                    String slDefaultType = (((!java.util.Objects.equals(slPrice, null)))) ? "STOP" : "STOP_MARKET";
+                    String slType = this.safeString(stopLossDict, "type", slDefaultType);
                     Map<String, Object> slRequest = new HashMap<String, Object>() {{
                         put( "stopPrice", Bingx.this.parseToNumeric(Bingx.this.priceToPrecision(symbol, slTriggerPrice)) );
-                        put( "workingType", slWorkingType );
+                        put( "workingType", Bingx.this.encodeTriggerPriceType(slWorkingType) );
                         put( "type", slType );
                     }};
-                    String slPrice = this.safeString(stopLossDict, "price");
                     if (!java.util.Objects.equals(slPrice, null))
                     {
                         slRequest.put("price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
@@ -4047,17 +4065,18 @@ public class Bingx extends BingxApi
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
-                    String tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
-                    String tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
+                    String tkWorkingType = this.safeString2(takeProfitDict, "triggerPriceType", "workingType", "MARK_PRICE");
+                    String tpPrice = this.safeString(takeProfitDict, "price");
+                    String tpDefaultType = (((!java.util.Objects.equals(tpPrice, null)))) ? "TAKE_PROFIT" : "TAKE_PROFIT_MARKET";
+                    String tpType = this.safeString(takeProfitDict, "type", tpDefaultType);
                     Map<String, Object> tpRequest = new HashMap<String, Object>() {{
                         put( "stopPrice", Bingx.this.parseToNumeric(Bingx.this.priceToPrecision(symbol, tkTriggerPrice)) );
-                        put( "workingType", tkWorkingType );
+                        put( "workingType", Bingx.this.encodeTriggerPriceType(tkWorkingType) );
                         put( "type", tpType );
                     }};
-                    String slPrice = this.safeString(takeProfitDict, "price");
-                    if (!java.util.Objects.equals(slPrice, null))
+                    if (!java.util.Objects.equals(tpPrice, null))
                     {
-                        tpRequest.put("price", this.parseToNumeric(this.priceToPrecision(symbol, slPrice)));
+                        tpRequest.put("price", this.parseToNumeric(this.priceToPrecision(symbol, tpPrice)));
                     }
                     String tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     Object tkQuantityRequest = this.parseToNumeric(tkQuantity);
@@ -4100,8 +4119,17 @@ public class Bingx extends BingxApi
                 request.put("quantity", amountReq); // precision not available for inverse contracts
             }
         }
-        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty")));
+        Object paramsRequest = this.omit(paramsOrder, new ArrayList<Object>(Arrays.asList("hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType")));
         return (Map<String, Object>) (this.extend(request, paramsRequest));
+    }
+
+    public String encodeTriggerPriceType(String triggerPriceType)
+    {
+        Map<String, Object> types = new HashMap<String, Object>() {{
+            put( "last", "CONTRACT_PRICE" );
+            put( "mark", "MARK_PRICE" );
+        }};
+        return this.safeString(types, triggerPriceType, triggerPriceType);
     }
 
     /**
@@ -4132,8 +4160,13 @@ public class Bingx extends BingxApi
      * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] *swap only* limit price of the attached take profit order, omit for a market take profit
+     * @param {string} [params.takeProfit.triggerPriceType] *swap only* 'mark' or 'last'
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] *swap only* limit price of the attached stop loss order, omit for a market stop loss
+     * @param {string} [params.stopLoss.triggerPriceType] *swap only* 'mark' or 'last'
+     * @param {string} [params.triggerPriceType] *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against
      * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
@@ -4250,7 +4283,7 @@ public class Bingx extends BingxApi
                 Object parsedResponse = this.parseJson(response);
                 response = parsedResponse;
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object result = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
@@ -4266,7 +4299,7 @@ public class Bingx extends BingxApi
                 result = data;
             }
             // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
-            Map<String, Object> stopLossDict = (Map<String, Object>) this.safeDict(result, "stopLoss", (Object) null);
+            Map<String, Object> stopLossDict = this.safeDict(result, "stopLoss", null);
             String stopLoss = this.safeString(result, "stopLoss");
             // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
             // so we need trick to check if it's non-parsed string yet
@@ -4308,19 +4341,19 @@ public class Bingx extends BingxApi
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = this.safeDict(orders, i, null);
                 String marketId = this.safeString(rawOrder, "symbol", "");
                 String type = this.safeString(rawOrder, "type");
                 marketIds.add(marketId);
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
-                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             List<String> symbols = this.marketSymbols(marketIds, (Object) null, false, true, true);
-            Integer symbolsLength = ((List<?>)symbols).size();
+            Integer symbolsLength = symbols.size();
             Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
@@ -4400,8 +4433,8 @@ public class Bingx extends BingxApi
                 Object parsedResponse = this.parseJson(response);
                 response = parsedResponse;
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> result = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> result = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -4722,7 +4755,6 @@ public class Bingx extends BingxApi
         //         "workingType": ""
         //     }
         //
-        Object info = order;
         Map<String, Object> newOrder = (Map<String, Object>) this.safeDict2(order, "newOrderResponse", "orderOpenResponse", (Object) null);
         Object orderData = (((!java.util.Objects.equals(newOrder, null)))) ? newOrder : order;
         String positionSide = this.safeString2(orderData, "positionSide", "ps");
@@ -4811,7 +4843,7 @@ public class Bingx extends BingxApi
             }
         }
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", info);
+        mapLiteral9.put("info", order);
         mapLiteral9.put("id", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("orderId", "i", "mainOrderId"))));
         mapLiteral9.put("clientOrderId", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))));
         mapLiteral9.put("symbol", this.safeSymbol(marketId, marketResolved, "-", marketType));
@@ -5031,7 +5063,7 @@ public class Bingx extends BingxApi
             //        }
             //    }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(data, "order", data);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -5090,7 +5122,7 @@ public class Bingx extends BingxApi
             {
                 throw new BadRequest((this.id + " cancelAllOrders is only supported for spot and swap markets.")) ;
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList2(data, "success", "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -5130,7 +5162,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", (Object) null);
+            List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
             Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
             Object idsToParse = ids;
             Boolean areClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null));
@@ -5138,12 +5170,12 @@ public class Bingx extends BingxApi
             {
                 idsToParse = clientOrderIds;
             }
-            Object parsedIds = new ArrayList<Object>(Arrays.asList());
+            List<String> parsedIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)idsToParse).size(); i++)
             {
                 String id = this.safeString(idsToParse, i, "");
                 String stringId = String.valueOf(id);
-                ((List<Object>)parsedIds).add(stringId);
+                parsedIds.add(stringId);
             }
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
@@ -5166,7 +5198,7 @@ public class Bingx extends BingxApi
                 }
                 response = (this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, paramsOmitted))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> success = (List<Object>) this.safeList2(data, "success", "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(success, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -5199,7 +5231,7 @@ public class Bingx extends BingxApi
                 put( "type", ((Boolean.TRUE.equals(isActive))) ? "ACTIVATE" : "CLOSE" );
                 put( "timeOut", ((Boolean.TRUE.equals(isActive))) ? ((Object) (Bingx.this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)))) : 0 );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -5312,7 +5344,7 @@ public class Bingx extends BingxApi
                     }
                 }
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeDict(data, "order", data);
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -5427,8 +5459,8 @@ public class Bingx extends BingxApi
             //       }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5629,7 +5661,7 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList2(data, "orders", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -5766,6 +5798,23 @@ public class Bingx extends BingxApi
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);
                 Map<String, Object> paramsOmitted = this.omit(paramsStandard, "twap");
+                if (!Boolean.TRUE.equals(isTwapOrder))
+                {
+                    if (!java.util.Objects.equals(limit, null))
+                    {
+                        request.put("limit", Math.min(limit, 1000));
+                    }
+                    if (!java.util.Objects.equals(since, null))
+                    {
+                        request.put("startTime", since);
+                    }
+                    Long until = this.safeInteger(paramsOmitted, "until");
+                    if (!java.util.Objects.equals(until, null))
+                    {
+                        request.put("endTime", until);
+                        paramsOmitted = this.omit(paramsOmitted, "until");
+                    }
+                }
                 if (Boolean.TRUE.equals(isTwapOrder))
                 {
                     request.put("pageIndex", 1);
@@ -5783,7 +5832,7 @@ public class Bingx extends BingxApi
                     response = (this.swapV2PrivateGetTradeAllOrders(this.extend(request, paramsOmitted))).join();
                 }
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList2(data, "orders", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -5812,7 +5861,7 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -5825,7 +5874,7 @@ public class Bingx extends BingxApi
             request.put("asset", currency.get("id"));
             request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, paramsSubType))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(response, "timestamp");
             //
             //     {
@@ -5885,7 +5934,7 @@ public class Bingx extends BingxApi
             {
                 currency = this.currency((String) (code));
             }
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromAccount = this.safeString(parameters, "fromAccount");
             String toAccount = this.safeString(parameters, "toAccount");
             String transferId = this.safeString(parameters, "transferId");
@@ -5940,7 +5989,7 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -5953,7 +6002,7 @@ public class Bingx extends BingxApi
         String currencyId = this.safeString(transfer, "asset");
         String currencyCode = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transfer, "status");
-        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromId = this.safeString(transfer, "fromAccount");
         String toId = this.safeString(transfer, "toAccount");
         String fromAccount = this.safeString(accountsById, fromId, fromId);
@@ -5988,7 +6037,7 @@ public class Bingx extends BingxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6025,7 +6074,7 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(this.safeDict(response, "data", (Object) null), "data", (Object) null);
+            List<Object> data = this.safeList(this.safeDict(response, "data", null), "data", new ArrayList<Object>(Arrays.asList()));
             Object parsed = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{}});
             return this.indexBy(parsed, "network");
         });
@@ -6049,22 +6098,22 @@ public class Bingx extends BingxApi
 
             String network = this.safeString(parameters, "network");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
-            Object addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
+            Map<String, Object> addressStructures = (this.fetchDepositAddressesByNetwork(code, paramsOmitted)).join();
             if (!java.util.Objects.equals(network, null))
             {
-                return this.safeDict(addressStructures, network, (Object) null);
+                return this.safeDict(addressStructures, network, null);
             } else
             {
-                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", (Object) null);
+                Map<String, Object> options = this.safeDict(this.options, "defaultNetworks", null);
                 String defaultNetworkForCurrency = this.safeString(options, code);
                 if (!java.util.Objects.equals(defaultNetworkForCurrency, null))
                 {
-                    return this.safeDict(addressStructures, defaultNetworkForCurrency, (Object) null);
+                    return this.safeDict(addressStructures, defaultNetworkForCurrency, null);
                 } else
                 {
-                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(addressStructures.keySet());
                     String key = this.safeString(keys, 0);
-                    return this.safeDict(addressStructures, key, (Object) null);
+                    return this.safeDict(addressStructures, key, null);
                 }
             }
         }).thenApply(DepositAddress::new);
@@ -6288,7 +6337,7 @@ public class Bingx extends BingxApi
         //
         // parse withdraw-type output first...
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(transaction, "data", (Object) null);
+        Map<String, Object> data = this.safeDict(transaction, "data", null);
         String dataId = (((java.util.Objects.equals(data, null)))) ? null : this.safeString(data, "id");
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");
@@ -6366,7 +6415,7 @@ public class Bingx extends BingxApi
                 put( "6", "ok" );
             }} );
         }};
-        Map<String, Object> directional = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> directional = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
             put( "1", "ok" );
@@ -6439,6 +6488,18 @@ public class Bingx extends BingxApi
 
     }
 
+    /**
+     * @method
+     * @name bingx#addMargin
+     * @description add margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
@@ -6452,6 +6513,18 @@ public class Bingx extends BingxApi
 
     }
 
+    /**
+     * @method
+     * @name bingx#reduceMargin
+     * @description remove margin from a position
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
@@ -6470,9 +6543,11 @@ public class Bingx extends BingxApi
      * @name bingx#setMargin
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
@@ -6494,11 +6569,31 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
+            String positionSide = this.safeString(parameters, "positionSide");
+            if ((java.util.Objects.equals(market.get("inverse"), true)) && (java.util.Objects.equals(positionSide, null)))
+            {
+                throw new ArgumentsRequired((this.id + " setMargin() requires a positionSide parameter for Coin-M markets")) ;
+            }
+            Object amountString = null;
+            if (java.util.Objects.equals(market.get("inverse"), true))
+            {
+                amountString = this.currencyToPrecision((String) (market.get("settle")), amount, (String) null);
+            } else
+            {
+                amountString = this.amountToPrecision(market.get("symbol"), amount);
+            }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
-            request.put("amount", this.amountToPrecision(market.get("symbol"), amount));
+            request.put("amount", amountString);
             request.put("type", type);
-            Map<String, Object> response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("inverse"), true))
+            {
+                response = (this.cswapV1PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
+            }
             //
             //    {
             //        "code": 0,
@@ -6507,7 +6602,17 @@ public class Bingx extends BingxApi
             //        "type": 1
             //    }
             //
-            return this.parseMarginModification(response, market);
+            Object responseData = response;
+            if (java.util.Objects.equals(market.get("inverse"), true))
+            {
+                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                mapLiteral12.put("amount", amountString);
+                mapLiteral12.put("type", type);
+                responseData = this.extend(mapLiteral12, this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+            }
+            Map<String, Object> result = (Map<String, Object>) this.parseMarginModification((Map<String, Object>) (responseData), market);
+            result.put("info", response);
+            return result;
         }).thenApply(MarginModification::new);
 
     }
@@ -6570,7 +6675,7 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PrivateGetTradeLeverage(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -6673,7 +6778,7 @@ public class Bingx extends BingxApi
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-     * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+     * @param {string} [params.tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
      * @param {string} params.orderId the order id required for inverse swap
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
@@ -6750,15 +6855,15 @@ public class Bingx extends BingxApi
                     }
                     paramsTrades = paramsUntil;
                     response = (this.spotV1PrivateGetTradeMyTrades(this.extend(request, paramsUntil))).join();
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     fills = this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
                 } else
                 {
-                    String tradingUnit = this.safeStringUpper(paramsUntil, "tradingUnit", "CONT");
+                    String tradingUnit = this.safeStringUpper(paramsUntil, "tradingUnit", "COIN");
                     paramsTrades = this.omit(paramsUntil, "tradingUnit");
                     request.put("tradingUnit", tradingUnit);
                     response = (this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, paramsTrades))).join();
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     fills = this.safeList(data, "fill_orders", new ArrayList<Object>(Arrays.asList()));
                 }
             }
@@ -6772,9 +6877,9 @@ public class Bingx extends BingxApi
         //
         // currencie structure
         //
-        Map<String, Object> networks = (Map<String, Object>) this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
         List<String> networkCodes = new ArrayList<String>(networks.keySet());
-        Integer networksLength = ((List<?>)networkCodes).size();
+        Integer networksLength = networkCodes.size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", networks );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -6792,7 +6897,7 @@ public class Bingx extends BingxApi
             for (var i = 0; (networksLength != null && i < networksLength); i++)
             {
                 String networkCode = this.safeString(networkCodes, i, "");
-                Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, networkCode, (Object) null);
+                Map<String, Object> network = this.safeDict(networks, networkCode, null);
                 Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
@@ -6806,7 +6911,7 @@ public class Bingx extends BingxApi
                 if (java.util.Objects.equals(networksLength, 1))
                 {
                     result.put("withdraw", new HashMap<String, Object>() {{
-    put( "fee", Bingx.this.safeNumber(network, "withdrawFee", (Object) null) );
+    put( "fee", Bingx.this.safeNumber(network, "fee", (Object) null) );
     put( "percentage", false );
 }});
                 }
@@ -6836,12 +6941,12 @@ public class Bingx extends BingxApi
             Object response = (this.fetchCurrencies(parameters)).join();
             Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
             List<String> responseCodes = new ArrayList<String>(((Map<String, Object>)response).keySet());
-            for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
+            for (var i = 0; i < responseCodes.size(); i++)
             {
                 String code = (responseCodes == null || i < 0 || i >= responseCodes.size() ? null : responseCodes.get(i));
                 if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
                 {
-                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, code, (Object) null);
+                    Map<String, Object> entry = this.safeDict(response, code, null);
                     depositWithdrawFees.put(code, this.parseDepositWithdrawFee(entry, (Map<String, Object>) null));
                 }
             }
@@ -6906,7 +7011,7 @@ public class Bingx extends BingxApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsWalletType, new ArrayList<Object>(Arrays.asList("walletType", "network")));
             Map<String, Object> response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, paramsOmitted))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = this.safeDict(response, "data", null);
             //    {
             //        "code":0,
             //        "timestamp":1689258953651,
@@ -6924,7 +7029,7 @@ public class Bingx extends BingxApi
         Object copied = this.clone(parameters);
         Map<String,Object> sortedParams = this.keysort(parameters);
         List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
-        Integer rawKeysLength = ((List<?>)rawKeys).size();
+        Integer rawKeysLength = rawKeys.size();
         for (var i = 0; (rawKeysLength != null && i < rawKeysLength); i++)
         {
             String key = (rawKeys == null || i < 0 || i >= rawKeys.size() ? null : rawKeys.get(i));
@@ -7058,7 +7163,7 @@ public class Bingx extends BingxApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 liquidations = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseLiquidations(liquidations, market, since, limit);
@@ -7153,7 +7258,7 @@ public class Bingx extends BingxApi
                     response = (this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters))).join();
                 }
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -7201,14 +7306,14 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, paramsSubType))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> success = (List<Object>) this.safeList(data, "success", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> success = this.safeList(data, "success", new ArrayList<Object>(Arrays.asList()));
             List<Object> positions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)success).size(); i++)
+            for (var i = 0; i < success.size(); i++)
             {
-                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                mapLiteral12.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
-                Map<String, Object> position = (Map<String, Object>) this.parsePosition(mapLiteral12, (Map<String, Object>) null);
+                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                mapLiteral13.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
+                Map<String, Object> position = (Map<String, Object>) this.parsePosition(mapLiteral13, (Map<String, Object>) null);
                 ((List<Object>)positions).add(position);
             }
             return positions;
@@ -7254,7 +7359,7 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String dualSidePosition = this.safeString(data, "dualSidePosition");
             {
                 HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
@@ -7387,7 +7492,7 @@ public class Bingx extends BingxApi
             {
                 response = (this.spotV1PrivatePostTradeOrderCancelReplace(request)).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -7427,7 +7532,7 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PrivateGetTradeMarginType(this.extend(request, paramsSubType))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -7523,7 +7628,7 @@ public class Bingx extends BingxApi
                     //         }
                     //     }
                     //
-                    Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     commission = this.safeDict(data, "commission", new HashMap<String, Object>() {{}});
                 }
             }
@@ -7546,7 +7651,7 @@ public class Bingx extends BingxApi
             put( "symbol", symbol );
             put( "maker", Bingx.this.safeNumber(fee, "makerCommissionRate", (Object) null) );
             put( "taker", Bingx.this.safeNumber(fee, "takerCommissionRate", (Object) null) );
-            put( "percentage", false );
+            put( "percentage", true );
             put( "tierBased", false );
         }};
     }
@@ -7555,7 +7660,7 @@ public class Bingx extends BingxApi
     {
         Map<String,Object> sortedParams = this.keysort(parameters);
         List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
-        Integer rawKeysLength = ((List<?>)rawKeys).size();
+        Integer rawKeysLength = rawKeys.size();
         String adjustedValue = null;
         String result = null;
         for (var i = 0; (rawKeysLength != null && i < rawKeysLength); i++)
@@ -7651,7 +7756,7 @@ public class Bingx extends BingxApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarketLeverageTiers(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
 
@@ -7674,7 +7779,7 @@ public class Bingx extends BingxApi
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
-            Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
+            Map<String, Object> tier = this.safeDict(info, i, null);
             String tierString = this.safeString(tier, "tier");
             List<Object> tierParts = new ArrayList<Object>(Arrays.asList(((String)tierString).split(java.util.regex.Pattern.quote(" "))));
             String marketId = this.safeString(tier, "symbol");
@@ -7775,14 +7880,12 @@ public class Bingx extends BingxApi
                 url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        String bodyResult = requestBody;
-        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
             h2kMap7.put("url", url);
             h2kMap7.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap7.put("body", bodyResult);
-            h2kMap7.put("headers", headersResult);
+            h2kMap7.put("body", requestBody);
+            h2kMap7.put("headers", requestHeaders);
             return h2kMap7;
         }
     }

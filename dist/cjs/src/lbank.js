@@ -535,8 +535,8 @@ class lbank extends lbank$1["default"] {
             this.fetchSwapMarkets(params),
         ];
         const resolvedMarkets = await Promise.all(marketsPromises);
-        const spotMarkets = this.safeValue(resolvedMarkets, 0);
-        const swapMarkets = this.safeValue(resolvedMarkets, 1);
+        const spotMarkets = this.safeList(resolvedMarkets, 0, []);
+        const swapMarkets = this.safeList(resolvedMarkets, 1, []);
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchSpotMarkets(params = {}) {
@@ -3132,7 +3132,7 @@ class lbank extends lbank$1["default"] {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length;
+        const secretLength = secret.length - 0;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i <= fullLines; i++) {

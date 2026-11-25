@@ -32,6 +32,8 @@ func (this *Phemex) Describe() map[string]any {
 			"watchOrders":              true,
 			"watchOrderBook":           true,
 			"watchOHLCV":               true,
+			"unWatchTrades":            true,
+			"unWatchOHLCV":             true,
 			"watchPositions":           nil,
 			"watchOrderBookForSymbols": false,
 			"watchTradesForSymbols":    false,
@@ -123,7 +125,7 @@ func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) 
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -185,7 +187,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -532,9 +534,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil && timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -545,7 +547,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		}
 		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ohlcvs[i]
-			stored.(ccxt.Appender).Append(candle)
+			stored.Append(candle)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -890,6 +892,189 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
+func (this *Phemex) UnSubscribePublicAsync(method string, subMessageHash string, marketParams []any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unSubscribePublicBody(ch, method, subMessageHash, marketParams, subscription, optionalArgs...)
+	return ch
+}
+func (this *Phemex) unSubscribePublicBody(ch chan ccxt.AsyncResult[any], method string, subMessageHash string, marketParams []any, subscription map[string]any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
+	var requestId int64 = this.RequestId()
+	var messageHash string = "unsubscribe:" + subMessageHash
+	var request map[string]any = map[string]any{
+		"method": method,
+		"id":     requestId,
+		"params": marketParams,
+	}
+	var unsubscription map[string]any = this.Extend(subscription, map[string]any{
+		"id":             requestId,
+		"unsubscribe":    true,
+		"subMessageHash": subMessageHash,
+		"messageHash":    messageHash,
+	})
+
+	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, unsubscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name phemex#unWatchTrades
+ * @description unWatches from the stream channel
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Phemex) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Phemex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var isUsdtSwap bool = (market["swap"] == true) && (market["settle"] == "USDT")
+	var name string = "trade"
+	if isUsdtSwap {
+		name = "trade_p"
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":   "trades",
+		"symbols": []any{symbolValue},
+	}
+
+	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "trade:"+*symbolValue, []any{market["id"]}, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+
+/**
+ * @method
+ * @name phemex#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+ * @param {string} symbol unified symbol of the market to unwatch the candles for
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Phemex) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var isUsdtSwap bool = (market["swap"] == true) && (market["settle"] == "USDT")
+	var name string = "kline"
+	if isUsdtSwap {
+		name = "kline_p"
+	}
+	var subscription map[string]any = map[string]any{
+		"topic":                "ohlcv",
+		"symbolsAndTimeframes": []any{[]any{symbolValue, timeframe}},
+	}
+	// phemex drops only the given interval when it is sent along with the symbol
+	var marketParams []any = []any{market["id"], this.SafeInteger(this.Timeframes, timeframe)}
+
+	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "kline:"+timeframe+":"+*symbolValue, marketParams, subscription, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+func (this *Phemex) HandleUnSubscription(client any, message any) {
+	//
+	// phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+	//
+	//     { "error": null, "id": 3, "result": { "status": "success" } }
+	//     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+	//
+	var id *string = this.SafeString(message, "id")
+	var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+	for i := 0; i < len(subscriptionHashes); i++ {
+		var subscriptionHash string = subscriptionHashes[i]
+		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
+		var isUnSubscription *bool = this.SafeBool(subscription, "unsubscribe", false)
+		var subscriptionId *string = this.SafeString(subscription, "id")
+		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
+			var subMessageHash *string = this.SafeString(subscription, "subMessageHash")
+			var messageHash *string = this.SafeString(subscription, "messageHash")
+			var error map[string]any = ccxt.SafeMapTyped(message, "error")
+			if error != nil {
+				// the stream stays subscribed, so drop only the pending unsubscribe
+				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
+				client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(this.Id+" "+this.Json(error)), subscriptionHash)
+				return
+			}
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+			this.CleanCache(subscription)
+			return
+		}
+	}
+}
 func (this *Phemex) CustomHandleDelta(bookside any, delta any, optionalArgs ...any) {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -958,8 +1143,8 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
-		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
-		ccxt.AddElementToObject(snapshot, "nonce", nonce)
+		var snapshot map[string]any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
+		snapshot["nonce"] = nonce
 		// reset the existing orderbook instead of replacing it: a consumer
 		// holds a reference to the old object and would never see updates
 		// after a re-subscription snapshot
@@ -1660,9 +1845,9 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	if lastTradeTimestamp != nil && *lastTradeTimestamp == 0 {
 		lastTradeTimestamp = nil
 	}
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	var stopPrice *string = this.SafeString(order, "stopPx")
-	var postOnly bool = (ccxt.IsEqual(timeInForce, "PO"))
+	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -1793,6 +1978,10 @@ func (this *Phemex) HandleMessage(client any, message any) {
 			return
 		}
 	}
+	if (ccxt.InOp(message, "result")) || (ccxt.InOp(message, "error")) {
+		this.HandleUnSubscription(client, message)
+		return
+	}
 	var methodName string = *this.SafeString(message, "method", "")
 	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (strings.Index(methodName, "perp_market24h_pack_p") >= 0) {
 		this.HandleTicker(client, message)
@@ -1846,12 +2035,12 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Phemex) SubscribePrivateAsync(typeVar any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Phemex) SubscribePrivateAsync(typeVar *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, typeVar, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar any, messageHash any, optionalArgs ...any) any {
+func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar *string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1873,7 +2062,7 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
 	var channel string = "aop.subscribe"
-	if ccxt.IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		channel = "wo.subscribe"
 	}
 	if settleIsUSDT {
@@ -2117,6 +2306,57 @@ func (this *Phemex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	}
 	var res []ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name phemex#unWatchTrades
+ * @description unWatches from the stream channel
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Phemex) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name phemex#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+ * @param {string} symbol unified symbol of the market to unwatch the candles for
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Phemex) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

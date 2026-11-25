@@ -35,7 +35,7 @@ func (this *Coinbase) Describe() map[string]any {
 			"fetchTradesWs":            false,
 			"watchBalance":             false,
 			"watchMyTrades":            false,
-			"watchOHLCV":               false,
+			"watchOHLCV":               true,
 			"watchOrderBook":           true,
 			"watchOrderBookForSymbols": true,
 			"watchOrders":              true,
@@ -366,9 +366,9 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (strings.Index(this.ApiKey, "organizations/") >= 0) || (strings.HasPrefix(this.Secret, "-----BEGIN"))
-	var isV2CloudAPiKey any = this.IsEddsaApiKey()
+	var isV2CloudAPiKey bool = this.IsEddsaApiKey()
 	var auth string = *timestamp + name + ccxt.Join(productIds, ",")
-	if !isCloudAPiKey && !(isV2CloudAPiKey == true) {
+	if !isCloudAPiKey && !isV2CloudAPiKey {
 		subscribe["api_key"] = this.ApiKey
 		subscribe["timestamp"] = timestamp
 		subscribe["signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
@@ -659,7 +659,7 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 		var tickersObj map[string]any = ccxt.SafeMapTyped(events, i)
 		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
 		for j := 0; j < len(tickers); j++ {
-			var ticker any = ccxt.DerefScalar(tickers[j])
+			var ticker any = tickers[j]
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
 			if wsMarketId == nil {
 				continue
@@ -726,6 +726,117 @@ func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) map[string]
 		"baseVolume":    this.SafeString(ticker, "volume_24_h"),
 		"quoteVolume":   nil,
 	}))
+}
+
+/**
+ * @method
+ * @name coinbase#watchOHLCV
+ * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+ * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents, only 5m is supported
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func (this *Coinbase) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Coinbase) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "5m")
+	_ = timeframe
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
+	_ = params
+	if timeframe != "5m" {
+		panic(ccxt.NotSupported(this.Id + " watchOHLCV() only supports the 5m timeframe"))
+	}
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolValue any = this.Symbol(symbol)
+	var name string = "candles"
+
+	r1 := <-this.SubscribeAsync(name, false, symbolValue, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var limitResolved *int64 = limit
+	if this.NewUpdates {
+		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbolValue, limit)
+	}
+
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
+	return nil
+}
+func (this *Coinbase) HandleOHLCV(client any, message any) {
+	//
+	//     {
+	//         "channel": "candles",
+	//         "timestamp": "2023-06-09T20:19:35.39625135Z",
+	//         "sequence_num": 0,
+	//         "events": [
+	//             {
+	//                 "type": "snapshot",
+	//                 "candles": [
+	//                     {
+	//                         "start": "1688998200",
+	//                         "high": "1867.72",
+	//                         "low": "1865.63",
+	//                         "open": "1867.38",
+	//                         "close": "1866.81",
+	//                         "volume": "0.20269406",
+	//                         "product_id": "ETH-USD"
+	//                     }
+	//                 ]
+	//             }
+	//         ]
+	//     }
+	//
+	var events []map[string]any = this.SafeListMapsTyped(message, "events")
+	var timeframe string = "5m"
+	for i := 0; i < len(events); i++ {
+		var event map[string]any = events[i]
+		var candles []map[string]any = this.SafeListMapsTyped(event, "candles")
+		for j := 0; j < len(candles); j++ {
+			var candle map[string]any = candles[j]
+			var marketId *string = this.SafeString(candle, "product_id")
+			var market map[string]any = this.SafeMarket(marketId)
+			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+			var parsed []any = []any{this.SafeTimestamp(candle, "start"), this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
+			if symbol != nil && this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
+			var stored ccxt.WsArrayCache
+			if symbol != nil {
+				stored, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
+			}
+			if stored == nil {
+				var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+				stored = ccxt.NewArrayCacheByTimestamp(limit)
+				if symbol != nil && this.Ohlcvs[*symbol] != nil {
+					this.Ohlcvs[*symbol][timeframe] = stored
+				}
+			}
+			stored.Append(parsed)
+			var messageHash string = "candles::" + *symbol
+			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+			this.TryResolveUsdc(client, messageHash, stored)
+		}
+	}
 }
 
 /**
@@ -1215,7 +1326,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 			continue
 		}
 		for j := 0; j < len(responseOrders); j++ {
-			var responseOrder any = ccxt.DerefScalar(responseOrders[j])
+			var responseOrder any = responseOrders[j]
 			var parsed map[string]any = this.ParseWsOrder(responseOrder)
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
@@ -1438,6 +1549,7 @@ func (this *Coinbase) HandleMessage(client any, message map[string]any) {
 		"subscriptions": this.HandleSubscriptionStatus,
 		"ticker":        this.HandleTickers,
 		"ticker_batch":  this.HandleTickers,
+		"candles":       this.HandleOHLCV,
 		"market_trades": this.HandleTrade,
 		"user":          this.HandleOrder,
 		"l2_data":       this.HandleOrderBook,
@@ -1565,6 +1677,33 @@ func (this *Coinbase) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 		return nil, r.Err
 	}
 	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name coinbase#watchOHLCV
+ * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+ * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+ * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents, only 5m is supported
+ * @param {int} [since] timestamp in ms of the earliest candle to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+ */
+func (this *Coinbase) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
+
+	opts := ccxt.WatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.OHLCV = r.Value
+	return res, nil
 }
 
 /**

@@ -5974,6 +5974,96 @@
     ],
     "fetchTickers": [
       {
+        "description": "spot tickers skip pairs that only resolve to a contract market with the same id",
+        "method": "fetchTickers",
+        "input": [
+          null,
+          {
+            "type": "spot"
+          }
+        ],
+        "httpResponse": {
+          "retCode": 0,
+          "retMsg": "OK",
+          "result": {
+            "category": "spot",
+            "list": [
+              {
+                "symbol": "ETHUSDT",
+                "bid1Price": "2242.07",
+                "bid1Size": "5.59119",
+                "ask1Price": "2242.08",
+                "ask1Size": "5.24558",
+                "lastPrice": "2242.08",
+                "prevPrice24h": "2239.23",
+                "price24hPcnt": "0.0013",
+                "highPrice24h": "2254.49",
+                "lowPrice24h": "2209.11",
+                "turnover24h": "201192048.6159983",
+                "volume24h": "90053.27116",
+                "usdIndexPrice": "2239.345394"
+              },
+              {
+                "symbol": "BTCUSD",
+                "bid1Price": "75717.4",
+                "bid1Size": "0.000015",
+                "ask1Price": "76882.7",
+                "ask1Size": "0.001695",
+                "lastPrice": "76128.3",
+                "prevPrice24h": "76217",
+                "price24hPcnt": "-0.0012",
+                "highPrice24h": "76217",
+                "lowPrice24h": "75449.3",
+                "turnover24h": "2275.0419078",
+                "volume24h": "0.030031"
+              }
+            ]
+          },
+          "retExtInfo": {},
+          "time": 1794047441435
+        },
+        "parsedResponse": {
+          "ETH/USDT": {
+            "symbol": "ETH/USDT",
+            "timestamp": null,
+            "datetime": null,
+            "high": 2254.49,
+            "low": 2209.11,
+            "bid": 2242.07,
+            "bidVolume": 5.59119,
+            "ask": 2242.08,
+            "askVolume": 5.24558,
+            "vwap": 2234.1448125580596,
+            "open": 2239.23,
+            "close": 2242.08,
+            "last": 2242.08,
+            "previousClose": null,
+            "change": 2.85,
+            "percentage": 0.13,
+            "average": 2240.65,
+            "baseVolume": 90053.27116,
+            "quoteVolume": 201192048.6159983,
+            "markPrice": null,
+            "indexPrice": null,
+            "info": {
+              "symbol": "ETHUSDT",
+              "bid1Price": "2242.07",
+              "bid1Size": "5.59119",
+              "ask1Price": "2242.08",
+              "ask1Size": "5.24558",
+              "lastPrice": "2242.08",
+              "prevPrice24h": "2239.23",
+              "price24hPcnt": "0.0013",
+              "highPrice24h": "2254.49",
+              "lowPrice24h": "2209.11",
+              "turnover24h": "201192048.6159983",
+              "volume24h": "90053.27116",
+              "usdIndexPrice": "2239.345394"
+            }
+          }
+        }
+      },
+      {
         "description": "Fetch tickers for a BTC option symbol",
         "method": "fetchTickers",
         "input": [

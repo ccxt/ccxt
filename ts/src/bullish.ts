@@ -1092,11 +1092,11 @@ export default class bullish extends Exchange {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let paramsExtended: Dict = params;
+        const orderIdParams: Dict = {};
         if (clientOrderId === undefined) {
-            paramsExtended = this.extend ({ 'orderId': id }, params);
+            orderIdParams['orderId'] = id;
         }
-        return await this.fetchMyTrades (symbol, since, limit, paramsExtended);
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (orderIdParams, params));
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1319,7 +1319,7 @@ export default class bullish extends Exchange {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = this.parseToInt (0);
+        let errors = 0;
         const paramsOmitted: Dict = this.omit (paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1336,7 +1336,7 @@ export default class bullish extends Exchange {
                 if (e instanceof RateLimitExceeded) {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
-                errors = this.parseToInt (errors + 1);
+                errors = errors + 1;
                 if (errors > maxRetries) {
                     throw e;
                 }
@@ -1473,7 +1473,7 @@ export default class bullish extends Exchange {
         //     ]
         //
         const rates: List = [];
-        const result = this.toArray (response);
+        const result: Dict[] = this.toArray (response);
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const datetime = this.safeString (entry, 'updatedAtDatetime');
@@ -1527,7 +1527,7 @@ export default class bullish extends Exchange {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         const [ methodResolved, paramsMethod ] = this.handleOptionStringAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', 'privateGetV2HistoryOrders');
-        let response: Dict | List = [];
+        let response: List = [];
         if (methodResolved === 'privateGetV2Orders') {
             //
             //     [

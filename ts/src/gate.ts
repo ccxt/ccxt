@@ -5,7 +5,7 @@ import Exchange from './abstract/gate.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, NullResponse } from './base/errors.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation, MarketType } from './base/types.js';
+import type { Dictionary, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, List, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, IndexType, CurrencyInterface, DepositWithdrawFees, MarginLoan, Endpoint, DepositAddresses, Liquidation, MarketType } from './base/types.js';
 
 /**
  * @class gate
@@ -2301,7 +2301,7 @@ export default class gate extends Exchange {
         return this.parseFundingRates (response, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //    {
         //        "name": "BTC_USDT",
@@ -2395,7 +2395,7 @@ export default class gate extends Exchange {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const addresses = this.safeList (response, 'multichain_addresses', []);
+        const addresses: Dict[] = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
         const codeValue: string = this.safeCurrencyCode (currencyId) as string;
         const result: Dict = {};
@@ -3023,7 +3023,7 @@ export default class gate extends Exchange {
         if (this.safeBool (market, 'option', false)) {
             const optionMarketId = this.safeString (market, 'id');
             for (let i = 0; i < (response as List).length; i++) {
-                const entry = response[i];
+                const entry = this.safeDict (response, i);
                 const entryName = this.safeString (entry, 'name');
                 if (entryName === optionMarketId) {
                     ticker = entry;
@@ -3472,7 +3472,7 @@ export default class gate extends Exchange {
         let data = response;
         if ('balances' in data) { // True for cross_margin and unified
             const flatBalances: Dict[] = [];
-            const balances = this.safeDict (data, 'balances', {});
+            const balances: Dictionary<Dict> = this.safeDict (data, 'balances', {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys (balances);
@@ -3617,7 +3617,7 @@ export default class gate extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         if (!this.safeBool (market, 'swap', false)) {
@@ -5648,7 +5648,7 @@ export default class gate extends Exchange {
         const spot = (type === 'spot') || (type === 'margin');
         const openStatus = (status === 'open');
         const openSpotOrders = spot && openStatus && (trigger !== true);
-        let response: Dict | List;
+        let response: List;
         if (spot) {
             if (trigger !== true) {
                 if (openStatus) {
@@ -5822,7 +5822,7 @@ export default class gate extends Exchange {
         //         }
         //     ]
         //
-        let result: Dict | List = response;
+        let result: List = response;
         if (openSpotOrders) {
             let spotResult: List = [];
             for (let i = 0; i < response.length; i++) {
@@ -6104,7 +6104,7 @@ export default class gate extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, paramsOmitted);
         const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
-        let response: Dict;
+        let response: List;
         if (type === 'spot' || type === 'margin') {
             if (trigger === true) {
                 response = await this.privateSpotDeletePriceOrders (this.extend (request, requestParams));
@@ -7125,7 +7125,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        let response = undefined;
+        let response: List;
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchBorrowInterest', paramsUntil, 'cross');
         if (isUnifiedAccount) {
             response = await this.privateUnifiedGetInterestRecords (this.extend (requestUntil, paramsMarginMode));
@@ -7134,8 +7134,8 @@ export default class gate extends Exchange {
                 requestUntil['currency_pair'] = market['id'];
             }
             response = await this.privateMarginGetUniInterestRecords (this.extend (requestUntil, paramsMarginMode));
-        } else if (marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords (this.extend (requestUntil, paramsMarginMode));
         }
         const interest = this.parseBorrowInterests (response, market);
@@ -8186,19 +8186,21 @@ export default class gate extends Exchange {
             quoteValueString = Precise.stringMul (baseValueString, priceString);
         }
         // --- derive side ---
+        // gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        // is the side of the liquidation order: a long is closed by a sell, a short by a buy
         // 1) options payload has explicit 'side': 'long' | 'short'
         const optPos = this.safeStringLower (liquidation, 'side');
         let side: Str = undefined;
         if (optPos === 'long') {
-            side = 'buy';
-        } else if (optPos === 'short') {
             side = 'sell';
+        } else if (optPos === 'short') {
+            side = 'buy';
         } else {
             if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
                 if (Precise.stringGt (size, '0')) {
-                    side = 'buy';
-                } else if (Precise.stringLt (size, '0')) {
                     side = 'sell';
+                } else if (Precise.stringLt (size, '0')) {
+                    side = 'buy';
                 }
             }
         }

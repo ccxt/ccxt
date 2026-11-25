@@ -74,10 +74,11 @@ function ensureWhitelistedFile(filePath: string) {
         throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+    const exts = [ 'ccxtfile', 'pem', 'wasm' ];
+    if (exts.some(ext => sanitizedFilePath.endsWith('.' + ext))) {
         return;
     }
-    throw new Error('invalid file path: ' + filePath);
+    throw new Error('invalid file path: ' + filePath + ', allowed extensions are: ' + exts.join(' | '));
 }
 
 /*  ------------------------------------------------------------------------ */

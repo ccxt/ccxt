@@ -336,9 +336,9 @@ public class TestCreateOrder extends BaseTest {
         {
             return true;
         }
-        Object needsCancel = exchange.inArray(((Map<String, Object>)orderFetched).get("status"), new ArrayList<Object>(Arrays.asList("open", "pending", null)));
+        boolean needsCancel = Boolean.TRUE.equals(exchange.inArray(((Map<String, Object>)orderFetched).get("status"), new ArrayList<Object>(Arrays.asList("open", "pending", null))));
         // if it was not reported as closed/filled, then try to cancel it
-        if (java.util.Objects.equals(needsCancel, true))
+        if (needsCancel)
         {
             tcoDebug(exchange, (String) (symbol), "trying to cancel the remaining amount of partially filled order...");
             try

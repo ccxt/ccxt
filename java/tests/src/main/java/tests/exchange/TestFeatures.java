@@ -26,7 +26,7 @@ public class TestFeatures extends BaseTest {
         List<String> subTypes = new ArrayList<String>(Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
         List<String> keys = new ArrayList<String>(((Map<String, Object>)features).keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
             String marketType = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -42,7 +42,7 @@ public class TestFeatures extends BaseTest {
             } else
             {
                 List<String> subKeys = new ArrayList<String>(((Map<String, Object>)value).keySet());
-                for (var j = 0; j < ((List<?>)subKeys).size(); j++)
+                for (var j = 0; j < subKeys.size(); j++)
                 {
                     String subKey = (subKeys == null || j < 0 || j >= subKeys.size() ? null : subKeys.get(j));
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
@@ -139,7 +139,7 @@ public class TestFeatures extends BaseTest {
         }};
         List<Object> featureKeys = Helpers.objectKeys(featureObj);
         List<Object> allMethods = Helpers.objectKeys(exchange.has);
-        for (var i = 0; i < ((List<?>)featureKeys).size(); i++)
+        for (var i = 0; i < featureKeys.size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);
             TestSharedMethods.AssertStructure(exchange, skippedProperties, "features", featureObj, format, null, true); // deep structure check

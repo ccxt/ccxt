@@ -2197,7 +2197,7 @@ export default class bitget extends Exchange {
             const instruments = this.safeList (instrumentsResponse, 'data', []);
             spotInstruments = this.indexBy (instruments, 'symbol');
         }
-        let markets: List = [];
+        let markets: Dict[] = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
         for (let i = 0; i < results.length; i++) {
@@ -2407,17 +2407,17 @@ export default class bitget extends Exchange {
             contract = true;
             inverse = (base === settle);
             linear = !inverse;
-            const priceDecimals = this.safeInteger (market, 'pricePlace');
-            const amountDecimals = this.safeInteger (market, 'volumePlace');
-            const priceStep = this.safeString (market, 'priceEndStep');
-            const amountStep = this.safeString (market, 'sizeMultiplier');
-            const precise = new Precise (priceStep as string);
-            precise.decimals = Math.max (precise.decimals, priceDecimals as number);
+            const pricePlaces = this.safeInteger (market, 'pricePlace');
+            const volumePlaces = this.safeInteger (market, 'volumePlace');
+            const priceEndStep = this.safeString (market, 'priceEndStep');
+            const sizeMultiplier = this.safeString (market, 'sizeMultiplier');
+            const precise = new Precise (priceEndStep as string);
+            precise.decimals = Math.max (precise.decimals, pricePlaces as number);
             precise.reduce ();
             const priceString = precise.toString ();
             pricePrecision = this.parseNumber (priceString);
-            const preciseAmount = new Precise (amountStep as string);
-            preciseAmount.decimals = Math.max (preciseAmount.decimals, amountDecimals as number);
+            const preciseAmount = new Precise (sizeMultiplier as string);
+            preciseAmount.decimals = Math.max (preciseAmount.decimals, volumePlaces as number);
             preciseAmount.reduce ();
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);
@@ -2501,7 +2501,7 @@ export default class bitget extends Exchange {
             promises.push (this.publicUtaGetV3MarketInstruments (req));
         }
         const results = await Promise.all (promises);
-        let markets: List = [];
+        let markets: Dict[] = [];
         for (let i = 0; i < results.length; i++) {
             const res = this.safeDict (results, i);
             const data = this.safeList (res, 'data', []);
@@ -2822,13 +2822,9 @@ export default class bitget extends Exchange {
         const code = this.safeCurrencyCode (id);
         const chains: Dict[] = this.safeList (entry, 'chains', []);
         const networks: Dict = {};
-        let withdraw: Bool = undefined;
-        let deposit: Bool = undefined;
+        let withdraw = false;
+        let deposit = false;
         const chainsLength = chains.length;
-        if (chainsLength === 0) {
-            withdraw = false;
-            deposit = false;
-        }
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict (chains, j);
             const networkId = this.safeString (chain, 'chain');
@@ -2841,8 +2837,8 @@ export default class bitget extends Exchange {
             const rechargeableString = this.safeString (chain, 'rechargeable');
             const withdrawable = (withdrawableString === 'true');
             const rechargeable = (rechargeableString === 'true');
-            withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
-            deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
+            withdraw = withdraw || withdrawable;
+            deposit = deposit || rechargeable;
             const withdrawMinScale = this.safeString (chain, 'withdrawMinScale');
             const precision = this.parsePrecision (withdrawMinScale);
             networks[network] = {
@@ -3084,7 +3080,7 @@ export default class bitget extends Exchange {
         const tiers: List = [];
         let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
-            const item = this.safeValue (info, i);
+            const item = this.safeDict (info, i, {});
             const minimumNotional = this.safeNumber2 (item, 'startUnit', 'minTierValue');
             if (minimumNotional !== undefined) {
                 minNotional = minimumNotional;
@@ -9785,7 +9781,7 @@ export default class bitget extends Exchange {
         return await this.fetchFundingRates (symbols, paramsExtended);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //

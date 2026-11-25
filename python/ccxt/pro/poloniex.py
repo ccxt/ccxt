@@ -176,10 +176,8 @@ class poloniex(ccxt.async_support.poloniex):
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             marketIds = self.market_ids(symbols)
         symbolsSuffix = '' if (symbols is None) else ','.join(symbols)
-        symbolsHash = None
-        if self.is_empty(symbols):
-            symbolsHash = messageHash
-        else:
+        symbolsHash = messageHash
+        if not self.is_empty(symbols):
             symbolsHash = messageHash + '::' + symbolsSuffix
         if name != 'balances':
             subscribe['symbols'] = marketIds
@@ -206,7 +204,7 @@ class poloniex(ccxt.async_support.poloniex):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
-    async def trade_request(self, name: str, params: dict = {}):
+    async def trade_request(self, name: str, params: dict = {}) -> list[Order]:
         """
  @ignore
         Connects to a websocket channel
@@ -447,7 +445,7 @@ class poloniex(ccxt.async_support.poloniex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -459,7 +457,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1328,7 +1326,7 @@ class poloniex(ccxt.async_support.poloniex):
             self.handle_authenticate(client, message)
         elif type is None:
             self.handle_order_request(client, message)
-        else:
+        elif method is not None:
             data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:

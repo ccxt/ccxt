@@ -932,7 +932,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		request["from"] = this.Iso8601(since)
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 200) // default is 10, max 200
+		request["limit"] = min(*limit, 200) // default is 10, max 200
 	}
 
 	responseRecv := <-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params))
@@ -1364,11 +1364,11 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if clientOrderId != nil {
 		request["clientOrderId"] = clientOrderId
 	}
-	var paramsTriggerPrice any = params
+	var paramsTriggerPrice map[string]any = params
 	if triggerPriceIsRequired {
-		paramsTriggerPrice = this.Omit(params, "triggerPrice")
+		paramsTriggerPrice = this.OmitDict(params, "triggerPrice")
 	}
-	var paramsOmitted any = this.Omit(paramsTriggerPrice, "clientOrderId")
+	var paramsOmitted map[string]any = this.OmitDict(paramsTriggerPrice, "clientOrderId")
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
@@ -1409,12 +1409,12 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcmarkets) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Btcmarkets) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1429,7 +1429,7 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 		}
 	}
 	var numericIds []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
+	for i := 0; i < len(ids); i++ {
 		// numericIds[i] = parseInt (ids[i]);
 		numericIds = append(numericIds, this.ParseToInt(this.SafeString(ids, i)))
 	}
@@ -1478,12 +1478,12 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcmarkets) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btcmarkets) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1519,6 +1519,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	/**
 	 * @method
+	 * @name btcmarkets#calculateFee
 	 * @description calculates the presumptive fee that would be charged for an order
 	 * @param {string} symbol unified market symbol
 	 * @param {string} type not used by btcmarkets.calculateFee
@@ -1776,11 +1777,11 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes130915 []any = OrdersToList(r.Value)
-	if retRes130915 == nil {
+	var retRes131015 []any = OrdersToList(r.Value)
+	if retRes131015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes130915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes131015)}
 	}
 	return nil
 }

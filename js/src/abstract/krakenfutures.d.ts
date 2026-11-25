@@ -15,7 +15,6 @@ declare abstract class Exchange extends _Exchange {
     privateGetNotifications(params?: {}): Promise<Dict>;
     privateGetAccounts(params?: {}): Promise<Dict>;
     privateGetOpenorders(params?: {}): Promise<Dict>;
-    privateGetRecentorders(params?: {}): Promise<Dict>;
     privateGetFills(params?: {}): Promise<Dict>;
     privateGetTransfers(params?: {}): Promise<Dict>;
     privateGetLeveragepreferences(params?: {}): Promise<Dict>;

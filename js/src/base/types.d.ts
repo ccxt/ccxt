@@ -82,15 +82,15 @@ export interface MarketInterface {
     active: Bool;
     type: MarketType;
     subType?: SubType;
-    spot: Bool;
+    spot: boolean;
     margin: Bool;
-    swap: Bool;
-    future: Bool;
-    option: Bool;
+    swap: boolean;
+    future: boolean;
+    option: boolean;
     index?: Bool;
     stock?: Bool;
     prediction?: Bool;
-    contract: Bool;
+    contract: boolean;
     settle: Str;
     settleId: Str;
     contractSize: Num;
@@ -239,7 +239,11 @@ export interface PredictionOutcome {
     id?: Str;
     negRisk?: Bool;
 }
-export interface PredictionOutcomeMarket extends MarketInterface {
+export interface PredictionOutcomeHandle extends MarketInterface {
+    outcome?: Str;
+    outcomeId?: Str;
+}
+export interface PredictionOutcomeMarket extends PredictionOutcomeHandle {
     outcome: string;
     outcomeId: string;
     label?: Str;

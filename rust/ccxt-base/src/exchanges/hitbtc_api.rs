@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::hitbtc::HitbtcCore;
+use super::hitbtc::Hitbtc;
 use crate::exchange::ExchangeRuntime;
 
-impl HitbtcCore {
+impl Hitbtc {
     /// Auto-generated wrapper for the `publicGetPublicCurrency` implicit endpoint.
     pub async fn public_get_public_currency(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_public_currency".into()), optional_args).await

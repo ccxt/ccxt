@@ -1078,8 +1078,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		}
 		var responses []any = ListTyped(r1.Value)
 		for i := 0; i < len(responses); i++ {
-			var parsed any = this.ParseMarket(responses[i])
-			if !IsEqual(parsed, nil) {
+			var parsed map[string]any = this.ParseMarket(responses[i])
+			if parsed != nil {
 				result = append(result, parsed)
 			}
 		}
@@ -1092,8 +1092,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 				var marketId *string = SafeStringPtr(marketIds[i])
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, strings.ToUpper(*marketId))
 				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
-					var parsed any = this.ParseMarket(pairInfo)
-					if !IsEqual(parsed, nil) {
+					var parsed map[string]any = this.ParseMarket(pairInfo)
+					if parsed != nil {
 						result = append(result, parsed)
 					}
 				}
@@ -1101,8 +1101,8 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		} else {
 			for i := 0; i < len(marketIds); i++ {
 				if !this.InArray(marketIds[i], brokenPairs) {
-					var parsed any = this.ParseMarket(marketIds[i])
-					if !IsEqual(parsed, nil) {
+					var parsed map[string]any = this.ParseMarket(marketIds[i])
+					if parsed != nil {
 						result = append(result, parsed)
 					}
 				}
@@ -1452,7 +1452,7 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan AsyncResult[Ticker], symbol s
 		"change":     this.SafeString(tickerB, "change"),
 		"percentage": this.SafeString(tickerB, "percentage"),
 		"average":    this.SafeString(tickerB, "average"),
-		"info":       this.SafeValue(tickerB, "info"),
+		"info":       this.SafeDict(tickerB, "info"),
 	}))}
 	return nil
 }
@@ -1784,7 +1784,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit_trades"] = mathMin(limit, 500)
+		request["limit_trades"] = min(*limit, 500)
 	}
 	if since != nil {
 		request["timestamp"] = since
@@ -2386,12 +2386,12 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Gemini) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Gemini) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Gemini) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2793,7 +2793,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
 	}
-	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
+	var networkId *string = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	var request map[string]any = map[string]any{
 		"network": networkId,
 	}

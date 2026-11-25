@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NetworkError
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -26,6 +27,8 @@ class bitrue(ccxt.async_support.bitrue):
                 'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': True,
+                'unWatchTrades': True,
+                'unWatchOHLCV': True,
             },
             'urls': {
                 'api': {
@@ -405,7 +408,10 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
+    def find_swap_market_by_ws_base_quote(self, wsBaseQuote: Str):
+        # typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        # and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        # dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if self.markets is None:
             return None
         markets = self.markets
@@ -420,7 +426,7 @@ class bitrue(ccxt.async_support.bitrue):
             if baseId is None or quoteId is None:
                 raise ExchangeError(self.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId')
             if baseId + quoteId == wsBaseQuote:
-                return candidate
+                return self.market(symbolId)
         return None
 
     def parse_contract_bids_asks(self, bidsAsks: list[object], symbol: str) -> list:
@@ -443,6 +449,39 @@ class bitrue(ccxt.async_support.bitrue):
         if contractSize is None:
             return rawQuantity
         return rawQuantity * contractSize
+
+    async def un_subscribe(self, subHash: str, channel: str, cbId: str, subscription: dict, params: dict = {}):
+        """
+ @ignore
+        sends an unsubscribe request and drops the subscription and its cache
+        :param str subHash: the messageHash the watch method subscribed with
+        :param str channel: the channel the watch method subscribed to
+        :param str cbId: the cb_id the watch method subscribed with
+        :param dict subscription: the cache to clean, see cleanCache
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True
+        """
+        url = self.urls['api']['ws']['futurePublic']
+        client = self.client(url)
+        if subHash in client.subscriptions:
+            request = {
+                'event': 'unsub',
+                'params': {
+                    'cb_id': cbId,
+                    'channel': channel,
+                },
+            }
+            try:
+                await client.send(self.deep_extend(request, params))
+            except Exception as e:
+                # the socket is not open (yet), so the queued subscribe has not gone out either -
+                # keep the subscription instead of letting that subscribe stream unwatched
+                raise NetworkError(self.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open')
+        # bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+        # so the subscription is cleaned up as soon as the request is sent
+        self.clean_cache(subscription)
+        self.clean_unsubscription(client, subHash, 'unsubscribe:' + subHash)
+        return True
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -483,6 +522,32 @@ class bitrue(ccxt.async_support.bitrue):
             limitResolved = trades.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unWatches public trades for a swap(futures) market
+
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+
+        :param str symbol: unified symbol of the market to unwatch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once the unsubscribe request has been sent(bitrue does not acknowledge it)
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchTrades is only supported for swap markets')
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        wsId = 'e_' + baseIdLower + quoteIdLower
+        channel = 'market_' + wsId + '_trade_ticker'
+        subscription = {
+            'topic': 'trades',
+            'symbols': [symbolValue],
+        }
+        return await self.un_subscribe('trades:' + symbolValue, channel, wsId, subscription, params)
+
     def handle_trades(self, client: Client, message: dict):
         #
         #     {
@@ -511,6 +576,11 @@ class bitrue(ccxt.async_support.bitrue):
         symbol = self.safe_string(market, 'symbol')
         if symbol is None:
             return
+        messageHash = 'trades:' + symbol
+        if not (messageHash in client.subscriptions):
+            # a late push for a channel that was unwatched - bitrue does not acknowledge
+            # an unsubscribe, so frames it sent before processing it can still arrive
+            return
         tick = self.safe_dict(message, 'tick', {})
         data = self.safe_list(tick, 'data', [])
         appended = False
@@ -524,7 +594,6 @@ class bitrue(ccxt.async_support.bitrue):
             stored.append(trade)
             appended = True
         if appended:
-            messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -593,6 +662,37 @@ class bitrue(ccxt.async_support.bitrue):
             limitResolved = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        unWatches OHLCV candles for a swap(futures) market
+
+        https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+
+        :param str symbol: unified symbol of the market to unwatch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns boolean: True once the unsubscribe request has been sent(bitrue does not acknowledge it)
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchOHLCV is only supported for swap markets')
+        futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
+        interval = self.safe_string(futuresTimeframes, timeframe)
+        if interval is None:
+            raise NotSupported(self.id + ' unWatchOHLCV does not support timeframe ' + timeframe)
+        baseIdLower = self.safe_string_lower(market, 'baseId')
+        quoteIdLower = self.safe_string_lower(market, 'quoteId')
+        wsId = 'e_' + baseIdLower + quoteIdLower
+        channel = 'market_' + wsId + '_kline_' + interval
+        subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[symbolValue, timeframe]],
+        }
+        return await self.un_subscribe('ohlcv:' + symbolValue + ':' + timeframe, channel, wsId, subscription, params)
+
     def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
@@ -624,6 +724,10 @@ class bitrue(ccxt.async_support.bitrue):
         timeframe = self.find_timeframe(wsInterval, futuresTimeframes)
         if timeframe is None:
             return
+        messageHash = 'ohlcv:' + symbol + ':' + timeframe
+        if not (messageHash in client.subscriptions):
+            # a late push for a channel that was unwatched, see handleTrades
+            return
         tick = self.safe_dict(message, 'tick')
         if tick is None:
             return
@@ -635,7 +739,6 @@ class bitrue(ccxt.async_support.bitrue):
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]
         stored.append(parsed)
-        messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
     def parse_ws_ohlcv(self, tick: object, market: Market = None) -> list:

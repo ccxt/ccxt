@@ -58,7 +58,7 @@ public partial class hollaex : ccxt.hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -139,7 +139,7 @@ public partial class hollaex : ccxt.hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -192,7 +192,7 @@ public partial class hollaex : ccxt.hollaex
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
         {
-            stored.append(this.safeValue(parsedTrades, i));
+            stored.append(this.safeDict(parsedTrades, i));
         }
         if ((channel != null))
         {
@@ -213,7 +213,7 @@ public partial class hollaex : ccxt.hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -235,7 +235,7 @@ public partial class hollaex : ccxt.hollaex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
@@ -280,7 +280,7 @@ public partial class hollaex : ccxt.hollaex
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < rawTrades.Count; i++)
         {
-            object trade = rawTrades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
             ccxt.Trade parsed = this.parseTrade(trade);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
             string? symbol = this.safeString(trade, "symbol");
@@ -316,7 +316,7 @@ public partial class hollaex : ccxt.hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -338,7 +338,7 @@ public partial class hollaex : ccxt.hollaex
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
@@ -421,7 +421,7 @@ public partial class hollaex : ccxt.hollaex
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
-            object order = this.safeValue(rawOrders, i);
+            IDictionary<string, object> order = this.safeDict(rawOrders, i, new Dictionary<string, object>() {});
             ccxt.Order parsed = this.parseOrder(order);
             stored.append(ccxt.BaseExchange.FromOrder(parsed));
             string? symbol = this.safeString(order, "symbol");
@@ -454,7 +454,7 @@ public partial class hollaex : ccxt.hollaex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "wallet";

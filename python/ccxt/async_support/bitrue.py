@@ -975,6 +975,8 @@ class bitrue(Exchange, ImplicitAPI):
         filters = self.safe_list(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
         status = self.safe_string(market, 'status')
+        # spot markets say TRADING, futures contracts 1 (0 when offline)
+        active = (status == 'TRADING') or (status == '1')
         priceFilter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
         amountFilter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
         defaultPricePrecision = self.safe_string(market, 'pricePrecision')
@@ -1005,7 +1007,7 @@ class bitrue(Exchange, ImplicitAPI):
             'swap': isContract,
             'future': False,
             'option': False,
-            'active': (status == 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
@@ -3114,19 +3116,19 @@ class bitrue(Exchange, ImplicitAPI):
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
             if type == 'spot' or type == 'open':
-                query = self.urlencode(self.extend({
+                unsignedQuery = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, paramsOmitted))
-                signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
-                query += '&' + 'signature=' + signature
+                signature = self.hmac(self.encode(unsignedQuery), self.encode(self.secret), hashlib.sha256)
+                signedQuery = unsignedQuery + '&' + 'signature=' + signature
                 if (method == 'GET') or (method == 'DELETE'):
-                    url += '?' + query
+                    url += '?' + signedQuery
                     requestHeaders = {
                         'X-MBX-APIKEY': self.apiKey,
                     }
                 else:
-                    requestBody = query
+                    requestBody = signedQuery
                     requestHeaders = {
                         'X-MBX-APIKEY': self.apiKey,
                         'Content-Type': 'application/x-www-form-urlencoded',

@@ -37,7 +37,7 @@ export default class xt extends Exchange {
     fetchMarkets(params?: Dict): Promise<Market[]>;
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapAndFutureMarkets(params?: Dict): Promise<Market[]>;
-    parseMarkets(markets: any): List;
+    parseMarkets(markets: List): List;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -323,6 +323,7 @@ export default class xt extends Exchange {
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
+    parseOrderType(type: Str): Str;
     parseOrderStatus(status: Str): Str;
     /**
      * @method
@@ -383,6 +384,7 @@ export default class xt extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
@@ -468,7 +470,6 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
@@ -482,7 +483,7 @@ export default class xt extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name xt#fetchOpenInterest

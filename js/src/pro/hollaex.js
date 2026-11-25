@@ -180,7 +180,7 @@ export default class hollaex extends hollaexRest {
         const data = this.safeList(message, 'data', []);
         const parsedTrades = this.parseTrades(data, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            stored.append(this.safeValue(parsedTrades, i));
+            stored.append(this.safeDict(parsedTrades, i));
         }
         if (channel !== undefined) {
             const messageHash = channel + ':' + marketIdValue;
@@ -382,7 +382,7 @@ export default class hollaex extends hollaexRest {
         const stored = this.orders;
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.safeValue(rawOrders, i);
+            const order = this.safeDict(rawOrders, i, {});
             const parsed = this.parseOrder(order);
             stored.append(parsed);
             const symbol = this.safeString(order, 'symbol');

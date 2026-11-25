@@ -487,7 +487,7 @@ export default class toobit extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': false,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -522,7 +522,7 @@ export default class toobit extends Exchange {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
@@ -1268,6 +1268,11 @@ export default class toobit extends Exchange {
             else {
                 request['to'] = this.sum(since, duration * limit * 1000);
             }
+        }
+        else if ((since !== undefined) && (limit !== undefined)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            request['endTime'] = Math.min(this.sum(since, duration * limit) - 1, this.milliseconds());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2067,6 +2072,9 @@ export default class toobit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (this.safeString(params, 'clientOrderId') === undefined) {
             request['orderId'] = id;
@@ -2407,7 +2415,7 @@ export default class toobit extends Exchange {
         const marketType = this.handleMarketTypeAndParams('fetchClosedOrders', market, paramsUntil)[0];
         let response = [];
         if (marketType === 'spot') {
-            throw new NotSupported(this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+            throw new NotSupported(this.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets');
         }
         else {
             response = await this.privateGetApiV1FuturesHistoryOrders(requestUntil);
@@ -2720,9 +2728,8 @@ export default class toobit extends Exchange {
         // }
         //
         const result = {};
-        const entry = response;
-        const marketResolved = this.safeMarket(this.safeString(entry, 'symbol'), market);
-        const fee = this.parseTradingFee(entry, marketResolved);
+        const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
+        const fee = this.parseTradingFee(response, marketResolved);
         result[marketResolved['symbol']] = fee;
         return result;
     }

@@ -736,7 +736,7 @@ class zaif extends Exchange {
         }
         $response = Async\await($this->privatePostActiveOrders($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'return', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($this->add_key_in_array_items($data, 'id'), $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -781,7 +781,7 @@ class zaif extends Exchange {
         }
         $response = Async\await($this->privatePostTradeHistory($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'return', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($this->add_key_in_array_items($data, 'id'), $market, $since, $limit);
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {

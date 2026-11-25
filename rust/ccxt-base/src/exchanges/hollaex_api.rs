@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::hollaex::HollaexCore;
+use super::hollaex::Hollaex;
 use crate::exchange::ExchangeRuntime;
 
-impl HollaexCore {
+impl Hollaex {
     /// Auto-generated wrapper for the `publicGetHealth` implicit endpoint.
     pub async fn public_get_health(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_health".into()), optional_args).await

@@ -538,8 +538,8 @@ class lbank(Exchange, ImplicitAPI):
             self.fetch_swap_markets(params),
         ]
         resolvedMarkets = marketsPromises
-        spotMarkets = self.safe_value(resolvedMarkets, 0)
-        swapMarkets = self.safe_value(resolvedMarkets, 1)
+        spotMarkets = self.safe_list(resolvedMarkets, 0, [])
+        swapMarkets = self.safe_list(resolvedMarkets, 1, [])
         return self.array_concat(spotMarkets, swapMarkets)
 
     def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
@@ -1343,7 +1343,7 @@ class lbank(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         return self.safe_balance(result)
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         # {
         #     "symbol": "BTCUSDT",
         #     "highestPrice": "69495.5",
@@ -2962,7 +2962,7 @@ class lbank(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
     def convert_secret_to_pem(self, secret: object) -> str:
-        secretLength = len(secret)
+        secretLength = len(secret) - 0
         fullLines = self.parse_to_int(secretLength / 64)
         pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
         for i in range(0, fullLines):

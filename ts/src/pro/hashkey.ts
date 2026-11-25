@@ -3,7 +3,7 @@
 
 import hashkeyRest from '../hashkey.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { List, Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { List, Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -53,9 +53,9 @@ export default class hashkey extends hashkeyRest {
         });
     }
 
-    async wathPublic (market: Market, topic: string, messageHash: string, params: Dict = {}) {
+    async wathPublic (market: MarketInterface, topic: string, messageHash: string, params: Dict = {}) {
         const request: Dict = {
-            'symbol': (market as Dict)['id'],
+            'symbol': market['id'],
             'topic': topic,
             'event': 'sub',
         };
@@ -617,7 +617,7 @@ export default class hashkey extends hashkeyRest {
             'id': this.safeString2 (trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': (marketResolved as Dict)['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
@@ -690,7 +690,7 @@ export default class hashkey extends hashkeyRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const positions: ArrayCacheBySymbolBySide = this.positions;
+        const positions = this.positions;
         const parsed = this.parseWsPosition (message);
         positions.append (parsed);
         const messageHash = 'positions';

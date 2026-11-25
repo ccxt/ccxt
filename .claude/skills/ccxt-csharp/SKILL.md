@@ -43,7 +43,7 @@ var exchange = new Binance();
 while (true)
 {
     var ticker = await exchange.WatchTicker("BTC/USDT");
-    Console.WriteLine(ticker.Last);  // Live updates!
+    Console.WriteLine(ticker.last);  // Live updates!
 }
 await exchange.Close();
 ```
@@ -59,7 +59,7 @@ await exchange.Close();
 | **Rate limits** | Strict (1-2 req/sec) | More lenient (continuous stream) |
 | **Best for** | Trading, account management | Price monitoring, arbitrage detection |
 
-**Method naming:** C# uses PascalCase - `FetchTicker` not `fetchTicker`, `WatchTicker` not `watchTicker`
+**Method naming:** C# uses PascalCase - `FetchTicker` not `fetchTicker`, `WatchTicker` not `watchTicker`. Exceptions that stay camelCase: `unWatch*` methods, synchronous helpers (`amountToPrecision`, `priceToPrecision`, `setSandboxMode`; `exchange.market(symbol)` returns the raw dictionary, while `exchange.Market(symbol)` returns the typed `Market` struct) and properties (`apiKey`, `secret`, `has`, `features`, `markets`, `verbose`). Result structs use lowercase fields (`ticker.last`, `order.id`, `balance["BTC"].free`).
 
 ## Creating Exchange Instance
 
@@ -68,18 +68,18 @@ await exchange.Close();
 using ccxt;
 
 // Public API (no authentication)
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    EnableRateLimit = true  // Recommended!
-};
+    { "enableRateLimit", true }, // Recommended!
+});
 
 // Private API (with authentication)
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    ApiKey = "YOUR_API_KEY",
-    Secret = "YOUR_SECRET",
-    EnableRateLimit = true
-};
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+    { "enableRateLimit", true },
+});
 ```
 
 ### WebSocket API
@@ -90,11 +90,11 @@ using ccxt.pro;
 var exchange = new Binance();
 
 // Private WebSocket (with authentication)
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    ApiKey = "YOUR_API_KEY",
-    Secret = "YOUR_SECRET"
-};
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+});
 
 // Always close when done
 await exchange.Close();
@@ -109,17 +109,17 @@ await exchange.LoadMarkets();
 
 // Access market information
 var btcMarket = exchange.Market("BTC/USDT");
-Console.WriteLine(btcMarket.Limits.Amount.Min);  // Minimum order amount
+Console.WriteLine(btcMarket.limits?.amount?.min);  // Minimum order amount
 ```
 
 ### Fetching Ticker
 ```csharp
 // Single ticker
 var ticker = await exchange.FetchTicker("BTC/USDT");
-Console.WriteLine(ticker.Last);      // Last price
-Console.WriteLine(ticker.Bid);       // Best bid
-Console.WriteLine(ticker.Ask);       // Best ask
-Console.WriteLine(ticker.Volume);    // 24h volume
+Console.WriteLine(ticker.last);      // Last price
+Console.WriteLine(ticker.bid);       // Best bid
+Console.WriteLine(ticker.ask);       // Best ask
+Console.WriteLine(ticker.baseVolume);    // 24h volume
 
 // Multiple tickers (if supported)
 var tickers = await exchange.FetchTickers(new[] { "BTC/USDT", "ETH/USDT" });
@@ -129,8 +129,8 @@ var tickers = await exchange.FetchTickers(new[] { "BTC/USDT", "ETH/USDT" });
 ```csharp
 // Full orderbook
 var orderbook = await exchange.FetchOrderBook("BTC/USDT");
-Console.WriteLine(orderbook.Bids[0]);  // [price, amount]
-Console.WriteLine(orderbook.Asks[0]);  // [price, amount]
+Console.WriteLine(orderbook.bids[0]);  // [price, amount]
+Console.WriteLine(orderbook.asks[0]);  // [price, amount]
 
 // Limited depth
 var orderbook = await exchange.FetchOrderBook("BTC/USDT", 5);  // Top 5 levels
@@ -142,7 +142,7 @@ var orderbook = await exchange.FetchOrderBook("BTC/USDT", 5);  // Top 5 levels
 ```csharp
 // Buy limit order
 var order = await exchange.CreateLimitBuyOrder("BTC/USDT", 0.01, 50000);
-Console.WriteLine(order.Id);
+Console.WriteLine(order.id);
 
 // Sell limit order
 var order = await exchange.CreateLimitSellOrder("BTC/USDT", 0.01, 60000);
@@ -166,9 +166,9 @@ var order = await exchange.CreateOrder("BTC/USDT", "market", "sell", 0.01);
 ### Fetching Balance
 ```csharp
 var balance = await exchange.FetchBalance();
-Console.WriteLine(balance["BTC"].Free);   // Available balance
-Console.WriteLine(balance["BTC"].Used);   // Balance in orders
-Console.WriteLine(balance["BTC"].Total);  // Total balance
+Console.WriteLine(balance["BTC"].free);   // Available balance
+Console.WriteLine(balance["BTC"].used);   // Balance in orders
+Console.WriteLine(balance["BTC"].total);  // Total balance
 ```
 
 ### Fetching Orders
@@ -214,7 +214,7 @@ var exchange = new Binance();
 while (true)
 {
     var ticker = await exchange.WatchTicker("BTC/USDT");
-    Console.WriteLine($"Last: {ticker.Last}");
+    Console.WriteLine($"Last: {ticker.last}");
 }
 await exchange.Close();
 ```
@@ -225,8 +225,10 @@ var exchange = new Binance();
 while (true)
 {
     var orderbook = await exchange.WatchOrderBook("BTC/USDT");
-    Console.WriteLine($"Best bid: {orderbook.Bids[0][0]}");
-    Console.WriteLine($"Best ask: {orderbook.Asks[0][0]}");
+    var bestBid = (IList<object>)orderbook.bids[0]; // each row is [price, amount]
+    var bestAsk = (IList<object>)orderbook.asks[0];
+    Console.WriteLine($"Best bid: {bestBid[0]}");
+    Console.WriteLine($"Best ask: {bestAsk[0]}");
 }
 await exchange.Close();
 ```
@@ -239,7 +241,7 @@ while (true)
     var trades = await exchange.WatchTrades("BTC/USDT");
     foreach (var trade in trades)
     {
-        Console.WriteLine($"{trade.Price} {trade.Amount} {trade.Side}");
+        Console.WriteLine($"{trade.price} {trade.amount} {trade.side}");
     }
 }
 await exchange.Close();
@@ -247,18 +249,18 @@ await exchange.Close();
 
 ### Watching Your Orders (Live Order Updates)
 ```csharp
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    ApiKey = "YOUR_API_KEY",
-    Secret = "YOUR_SECRET"
-};
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+});
 
 while (true)
 {
     var orders = await exchange.WatchOrders("BTC/USDT");
     foreach (var order in orders)
     {
-        Console.WriteLine($"{order.Id} {order.Status} {order.Filled}");
+        Console.WriteLine($"{order.id} {order.status} {order.filled}");
     }
 }
 await exchange.Close();
@@ -266,16 +268,16 @@ await exchange.Close();
 
 ### Watching Balance (Live Balance Updates)
 ```csharp
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    ApiKey = "YOUR_API_KEY",
-    Secret = "YOUR_SECRET"
-};
+    { "apiKey", "YOUR_API_KEY" },
+    { "secret", "YOUR_SECRET" },
+});
 
 while (true)
 {
     var balance = await exchange.WatchBalance();
-    Console.WriteLine($"BTC: {balance["BTC"].Total}");
+    Console.WriteLine($"BTC: {balance["BTC"].total}");
 }
 await exchange.Close();
 ```
@@ -288,15 +290,58 @@ var symbols = new[] { "BTC/USDT", "ETH/USDT", "SOL/USDT" };
 while (true)
 {
     var tickers = await exchange.WatchTickers(symbols);
-    foreach (var kvp in tickers)
+    foreach (var kvp in tickers.tickers)
     {
-        Console.WriteLine($"{kvp.Key}: {kvp.Value.Last}");
+        Console.WriteLine($"{kvp.Key}: {kvp.Value.last}");
     }
 }
 await exchange.Close();
 ```
 
+## Testnet, Capabilities, Precision and Pagination
+
+### Testnet / sandbox first
+```csharp
+var exchange = new Binance();
+exchange.apiKey = "...";
+exchange.secret = "...";
+exchange.setSandboxMode(true); // right after construction; throws NotSupported if there is no testnet
+```
+Always try orders on a testnet (or with the minimum size) before going live.
+
+### Check what an exchange supports
+```csharp
+var has = exchange.has;
+if (has.ContainsKey("fetchOHLCV") && has["fetchOHLCV"] is bool supported && supported) { /* ... */ }
+var features = exchange.features; // per market type: createOrder params, fetch limits, daysBack, ...
+```
+
+### Respect market precision and limits
+```csharp
+await exchange.LoadMarkets();
+var amount = exchange.amountToPrecision("BTC/USDT", 0.0012345); // string
+var price = exchange.priceToPrecision("BTC/USDT", 64123.456789);
+var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", Convert.ToDouble(amount), Convert.ToDouble(price));
+```
+
+### Pagination
+```csharp
+var candles = await exchange.FetchOHLCV("BTC/USDT", "1h", since, null, new Dictionary<string, object> { { "paginate", true } });
+```
+
+### Unsubscribing and closing (ccxt.pro)
+```csharp
+using ccxt.pro;
+
+var exchange = new Binance();
+await exchange.WatchTicker("BTC/USDT");
+await exchange.unWatchTicker("BTC/USDT"); // lowercase in C#: unWatch* are not PascalCased; check exchange.has["unWatchTicker"] first
+await exchange.Close();
+```
+
 ## Complete Method Reference
+
+Names below are the canonical camelCase unified names; use your language's casing (`fetch_ohlcv` in Python/PHP, `FetchOHLCV` in C#/Go). Arguments are **positional in this order** — trailing ones are optional and `params` (exchange-specific extras) is always last and omitted here. Signatures mirror `ts/src/base/Exchange.ts`. Support varies per exchange: check `exchange.has['<method>']` (and `exchange.features` for finer options) before calling.
 
 ### Market Data Methods
 
@@ -305,24 +350,25 @@ await exchange.Close();
 - `fetchTickers([symbols])` - Fetch multiple tickers at once
 - `fetchBidsAsks([symbols])` - Fetch best bid/ask for multiple symbols
 - `fetchLastPrices([symbols])` - Fetch last prices
+- `fetchMarkPrice(symbol)` - Fetch mark price (derivatives)
 - `fetchMarkPrices([symbols])` - Fetch mark prices (derivatives)
 
 #### Order Books
 - `fetchOrderBook(symbol, limit)` - Fetch order book
-- `fetchOrderBooks([symbols])` - Fetch multiple order books
-- `fetchL2OrderBook(symbol)` - Fetch level 2 order book
-- `fetchL3OrderBook(symbol)` - Fetch level 3 order book (if supported)
+- `fetchOrderBooks([symbols], limit)` - Fetch multiple order books
+- `fetchL2OrderBook(symbol, limit)` - Fetch level 2 order book
+- `fetchL3OrderBook(symbol, limit)` - Fetch level 3 order book (if supported)
 
 #### Trades
 - `fetchTrades(symbol, since, limit)` - Fetch public trades
 - `fetchMyTrades(symbol, since, limit)` - Fetch your trades (auth required)
-- `fetchOrderTrades(orderId, symbol)` - Fetch trades for specific order
+- `fetchOrderTrades(id, symbol, since, limit)` - Fetch trades for specific order
 
 #### OHLCV (Candlesticks)
 - `fetchOHLCV(symbol, timeframe, since, limit)` - Fetch candlestick data
-- `fetchIndexOHLCV(symbol, timeframe)` - Fetch index price OHLCV
-- `fetchMarkOHLCV(symbol, timeframe)` - Fetch mark price OHLCV
-- `fetchPremiumIndexOHLCV(symbol, timeframe)` - Fetch premium index OHLCV
+- `fetchIndexOHLCV(symbol, timeframe, since, limit)` - Fetch index price OHLCV
+- `fetchMarkOHLCV(symbol, timeframe, since, limit)` - Fetch mark price OHLCV
+- `fetchPremiumIndexOHLCV(symbol, timeframe, since, limit)` - Fetch premium index OHLCV
 
 ### Account & Balance
 
@@ -330,71 +376,83 @@ await exchange.Close();
 - `fetchAccounts()` - Fetch sub-accounts
 - `fetchLedger(code, since, limit)` - Fetch ledger history
 - `fetchLedgerEntry(id, code)` - Fetch specific ledger entry
-- `fetchTransactions(code, since, limit)` - Fetch transactions
 - `fetchDeposits(code, since, limit)` - Fetch deposit history
 - `fetchWithdrawals(code, since, limit)` - Fetch withdrawal history
-- `fetchDepositsWithdrawals(code, since, limit)` - Fetch both deposits and withdrawals
+- `fetchDepositsWithdrawals(code, since, limit)` - Fetch both deposits and withdrawals (replaces the older `fetchTransactions`)
 
 ### Trading Methods
 
 #### Creating Orders
-- `createOrder(symbol, type, side, amount, price, params)` - Create order (generic)
+- `createOrder(symbol, type, side, amount, price)` - Create order (generic; `price` is `undefined`/`None`/`null` for market orders)
 - `createLimitOrder(symbol, side, amount, price)` - Create limit order
 - `createMarketOrder(symbol, side, amount)` - Create market order
 - `createLimitBuyOrder(symbol, amount, price)` - Buy limit order
 - `createLimitSellOrder(symbol, amount, price)` - Sell limit order
 - `createMarketBuyOrder(symbol, amount)` - Buy market order
 - `createMarketSellOrder(symbol, amount)` - Sell market order
-- `createMarketBuyOrderWithCost(symbol, cost)` - Buy with specific cost
-- `createStopLimitOrder(symbol, side, amount, price, stopPrice)` - Stop-limit order
-- `createStopMarketOrder(symbol, side, amount, stopPrice)` - Stop-market order
-- `createStopLossOrder(symbol, side, amount, stopPrice)` - Stop-loss order
-- `createTakeProfitOrder(symbol, side, amount, takeProfitPrice)` - Take-profit order
-- `createTrailingAmountOrder(symbol, side, amount, trailingAmount)` - Trailing stop
-- `createTrailingPercentOrder(symbol, side, amount, trailingPercent)` - Trailing stop %
-- `createTriggerOrder(symbol, side, amount, triggerPrice)` - Trigger order
-- `createPostOnlyOrder(symbol, side, amount, price)` - Post-only order
-- `createReduceOnlyOrder(symbol, side, amount, price)` - Reduce-only order
+- `createMarketOrderWithCost(symbol, side, cost)` - Market order sized in quote currency
+- `createMarketBuyOrderWithCost(symbol, cost)` - Buy spending a quote amount (e.g. 100 USDT)
+- `createMarketSellOrderWithCost(symbol, cost)` - Sell for a quote amount
+- `createStopLimitOrder(symbol, side, amount, price, triggerPrice)` - Stop-limit order
+- `createStopMarketOrder(symbol, side, amount, triggerPrice)` - Stop-market order
+- `createStopLossOrder(symbol, type, side, amount, price, stopLossPrice)` - Stop-loss order
+- `createTakeProfitOrder(symbol, type, side, amount, price, takeProfitPrice)` - Take-profit order
+- `createTriggerOrder(symbol, type, side, amount, price, triggerPrice)` - Trigger (conditional) order
+- `createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice)` - Trailing stop (absolute)
+- `createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice)` - Trailing stop (%)
+- `createPostOnlyOrder(symbol, type, side, amount, price)` - Post-only (maker-only) order
+- `createReduceOnlyOrder(symbol, type, side, amount, price)` - Reduce-only order
+- `createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, takeProfit, stopLoss)` - Order with attached TP/SL
 - `createOrders([orders])` - Create multiple orders at once
-- `createOrderWithTakeProfitAndStopLoss(symbol, type, side, amount, price, tpPrice, slPrice)` - OCO order
+
+The unified way to attach conditions to any `createOrder` call is through `params`: `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `stopLoss: { triggerPrice, price }`, `takeProfit: { triggerPrice, price }`, `reduceOnly`, `postOnly`, `timeInForce`, `clientOrderId`, `marginMode`, `hedged`. Which ones an exchange accepts is declared in `exchange.features[marketType][subType].createOrder`. (`stopPrice` is a legacy alias; prefer `triggerPrice`.)
 
 #### Managing Orders
-- `fetchOrder(orderId, symbol)` - Fetch single order
+- `fetchOrder(id, symbol)` - Fetch single order
 - `fetchOrders(symbol, since, limit)` - Fetch all orders
 - `fetchOpenOrders(symbol, since, limit)` - Fetch open orders
 - `fetchClosedOrders(symbol, since, limit)` - Fetch closed orders
 - `fetchCanceledOrders(symbol, since, limit)` - Fetch canceled orders
-- `fetchOpenOrder(orderId, symbol)` - Fetch specific open order
-- `fetchOrdersByStatus(status, symbol)` - Fetch orders by status
-- `cancelOrder(orderId, symbol)` - Cancel single order
-- `cancelOrders([orderIds], symbol)` - Cancel multiple orders
+- `fetchCanceledAndClosedOrders(symbol, since, limit)` - Fetch canceled + closed orders
+- `fetchOrderWithClientOrderId(clientOrderId, symbol)` - Fetch by your client order id
+- `cancelOrder(id, symbol)` - Cancel single order
+- `cancelOrderWithClientOrderId(clientOrderId, symbol)` - Cancel by your client order id
+- `cancelOrders([ids], symbol)` - Cancel multiple orders
+- `cancelOrdersForSymbols([{ id, symbol }])` - Cancel orders across symbols
 - `cancelAllOrders(symbol)` - Cancel all orders for symbol
-- `editOrder(orderId, symbol, type, side, amount, price)` - Modify order
+- `cancelAllOrdersAfter(timeout)` - Dead-man switch: cancel everything after `timeout` ms (0 disables)
+- `editOrder(id, symbol, type, side, amount, price)` - Modify order
+- `editOrders([orders])` - Modify multiple orders
 
 ### Margin & Leverage
 
-- `fetchBorrowRate(code)` - Fetch borrow rate for margin
-- `fetchBorrowRates([codes])` - Fetch multiple borrow rates
-- `fetchBorrowRateHistory(code, since, limit)` - Historical borrow rates
-- `fetchCrossBorrowRate(code)` - Cross margin borrow rate
-- `fetchIsolatedBorrowRate(symbol, code)` - Isolated margin borrow rate
-- `borrowMargin(code, amount, symbol)` - Borrow margin
-- `repayMargin(code, amount, symbol)` - Repay margin
-- `fetchLeverage(symbol)` - Fetch leverage
+- `fetchCrossBorrowRate(code)` - Cross-margin borrow rate
+- `fetchCrossBorrowRates()` - All cross-margin borrow rates
+- `fetchIsolatedBorrowRate(symbol)` - Isolated-margin borrow rate
+- `fetchIsolatedBorrowRates()` - All isolated-margin borrow rates
+- `fetchBorrowInterest(code, symbol, since, limit)` - Borrow interest paid
+- `borrowCrossMargin(code, amount)` / `repayCrossMargin(code, amount)` - Cross-margin loans
+- `borrowIsolatedMargin(symbol, code, amount)` / `repayIsolatedMargin(symbol, code, amount)` - Isolated-margin loans
+- `fetchLeverage(symbol)` / `fetchLeverages([symbols])` - Current leverage
 - `setLeverage(leverage, symbol)` - Set leverage
-- `fetchLeverageTiers(symbols)` - Fetch leverage tiers
-- `fetchMarketLeverageTiers(symbol)` - Leverage tiers for market
-- `setMarginMode(marginMode, symbol)` - Set margin mode (cross/isolated)
-- `fetchMarginMode(symbol)` - Fetch margin mode
+- `fetchLeverageTiers([symbols])` - Leverage tiers
+- `fetchMarketLeverageTiers(symbol)` - Leverage tiers for one market
+- `fetchMarginMode(symbol)` / `fetchMarginModes([symbols])` - Margin mode (cross/isolated)
+- `setMarginMode(marginMode, symbol)` - Set margin mode
+- `addMargin(symbol, amount)` / `reduceMargin(symbol, amount)` / `setMargin(symbol, amount)` - Adjust isolated position margin
+- `fetchMarginAdjustmentHistory(symbol, type, since, limit)` - Margin adjustment history
+
+Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above (there is no `fetchBorrowRates`; use `fetchCrossBorrowRates` / `fetchIsolatedBorrowRates`).
 
 ### Derivatives & Futures
 
 #### Positions
 - `fetchPosition(symbol)` - Fetch single position
 - `fetchPositions([symbols])` - Fetch all positions
-- `fetchPositionsForSymbol(symbol)` - Fetch positions for symbol
-- `fetchPositionHistory(symbol, since, limit)` - Position history
-- `fetchPositionsHistory(symbols, since, limit)` - Multiple position history
+- `fetchPositionsForSymbol(symbol)` - All positions for one symbol (e.g. both hedge sides)
+- `fetchPositionHistory(symbol, since, limit)` - Position history for one symbol
+- `fetchPositionsHistory([symbols], since, limit)` - Position history for many symbols
+- `fetchPositionsRisk([symbols])` - Position risk info
 - `fetchPositionMode(symbol)` - Fetch position mode (one-way/hedge)
 - `setPositionMode(hedged, symbol)` - Set position mode
 - `closePosition(symbol, side)` - Close position
@@ -405,87 +463,97 @@ await exchange.Close();
 - `fetchFundingRates([symbols])` - Multiple funding rates
 - `fetchFundingRateHistory(symbol, since, limit)` - Funding rate history
 - `fetchFundingHistory(symbol, since, limit)` - Your funding payments
-- `fetchFundingInterval(symbol)` - Funding interval
-- `fetchSettlementHistory(symbol, since, limit)` - Settlement history
-- `fetchMySettlementHistory(symbol, since, limit)` - Your settlement history
+- `fetchFundingInterval(symbol)` / `fetchFundingIntervals([symbols])` - Funding interval
 
-#### Open Interest & Liquidations
+#### Open Interest, Liquidations & Sentiment
 - `fetchOpenInterest(symbol)` - Open interest for symbol
 - `fetchOpenInterests([symbols])` - Multiple open interests
 - `fetchOpenInterestHistory(symbol, timeframe, since, limit)` - OI history
 - `fetchLiquidations(symbol, since, limit)` - Public liquidations
 - `fetchMyLiquidations(symbol, since, limit)` - Your liquidations
+- `fetchLongShortRatioHistory(symbol, timeframe, since, limit)` - Long/short ratio history
 
 #### Options
 - `fetchOption(symbol)` - Fetch option info
 - `fetchOptionChain(code)` - Fetch option chain
 - `fetchGreeks(symbol)` - Fetch option greeks
-- `fetchVolatilityHistory(code, since, limit)` - Volatility history
-- `fetchUnderlyingAssets()` - Fetch underlying assets
+- `fetchAllGreeks([symbols])` - Greeks for many options
 
-### Fees & Limits
+Exchange-specific (implemented by only a few venues, not in the base class): `fetchSettlementHistory`, `fetchMySettlementHistory`, `fetchVolatilityHistory`, `fetchUnderlyingAssets`, `fetchBorrowRateHistory`, `fetchOpenOrder`, `fetchOrdersByStatus`, `fetchDeposit`, `fetchWithdrawal`. Always gate them on `exchange.has`.
+
+### Fees
 
 - `fetchTradingFee(symbol)` - Trading fee for symbol
-- `fetchTradingFees([symbols])` - Trading fees for multiple symbols
-- `fetchTradingLimits([symbols])` - Trading limits
-- `fetchTransactionFee(code)` - Transaction/withdrawal fee
-- `fetchTransactionFees([codes])` - Multiple transaction fees
+- `fetchTradingFees()` - Trading fees for all symbols
 - `fetchDepositWithdrawFee(code)` - Deposit/withdrawal fee
 - `fetchDepositWithdrawFees([codes])` - Multiple deposit/withdraw fees
+- `fetchTransactionFee(code)` / `fetchTransactionFees([codes])` - Older fee API, prefer `fetchDepositWithdrawFees`
 
 ### Deposits & Withdrawals
 
-- `fetchDepositAddress(code, params)` - Get deposit address
+- `fetchDepositAddress(code)` - Get deposit address (pass `{ network: 'TRC20' }` in params to choose a chain)
 - `fetchDepositAddresses([codes])` - Multiple deposit addresses
 - `fetchDepositAddressesByNetwork(code)` - Addresses by network
-- `createDepositAddress(code, params)` - Create new deposit address
-- `fetchDeposit(id, code)` - Fetch single deposit
-- `fetchWithdrawal(id, code)` - Fetch single withdrawal
-- `fetchWithdrawAddresses(code)` - Fetch withdrawal addresses
-- `fetchWithdrawalWhitelist(code)` - Fetch whitelist
-- `withdraw(code, amount, address, tag, params)` - Withdraw funds
-- `deposit(code, amount, params)` - Deposit funds (if supported)
+- `createDepositAddress(code)` - Create new deposit address
+- `withdraw(code, amount, address)` - Withdraw funds; pass the memo/tag and network in params: `{ tag: '...', network: 'ERC20' }`
 
 ### Transfer & Convert
 
-- `transfer(code, amount, fromAccount, toAccount)` - Internal transfer
+- `transfer(code, amount, fromAccount, toAccount)` - Internal transfer between accounts (`'spot'`, `'swap'`, `'funding'`, ...)
 - `fetchTransfer(id, code)` - Fetch transfer info
 - `fetchTransfers(code, since, limit)` - Fetch transfer history
 - `fetchConvertCurrencies()` - Currencies available for convert
-- `fetchConvertQuote(fromCode, toCode, amount)` - Get conversion quote
-- `createConvertTrade(fromCode, toCode, amount)` - Execute conversion
-- `fetchConvertTrade(id)` - Fetch convert trade
+- `fetchConvertQuote(fromCode, toCode, amount)` - Get conversion quote (returns a quote `id`)
+- `createConvertTrade(id, fromCode, toCode, amount)` - Execute a conversion using the quote `id`
+- `fetchConvertTrade(id, code)` - Fetch convert trade
 - `fetchConvertTradeHistory(code, since, limit)` - Convert history
 
 ### Market Info
 
-- `fetchMarkets()` - Fetch all markets
+- `loadMarkets(reload)` - Load and cache markets (call once; most methods do it for you)
+- `fetchMarkets()` - Fetch all markets (raw, uncached)
 - `fetchCurrencies()` - Fetch all currencies
 - `fetchTime()` - Fetch exchange server time
 - `fetchStatus()` - Fetch exchange status
-- `fetchBorrowInterest(code, symbol, since, limit)` - Borrow interest paid
-- `fetchLongShortRatio(symbol, timeframe, since, limit)` - Long/short ratio
-- `fetchLongShortRatioHistory(symbol, timeframe, since, limit)` - L/S ratio history
+
+### Precision & Market Helpers (synchronous, no network)
+
+- `market(symbol)` - Market structure: `precision`, `limits` (`amount.min`, `cost.min`, ...), `contractSize`, `type`, ...
+- `amountToPrecision(symbol, amount)` - Round an amount to the market's step (returns a string)
+- `priceToPrecision(symbol, price)` - Round a price to the market's tick (returns a string)
+- `costToPrecision(symbol, cost)` - Round a cost
+- `currencyToPrecision(code, fee)` - Round a currency amount (e.g. a fee)
+- `milliseconds()` / `iso8601(ts)` / `parse8601(str)` - Time helpers
+- `setSandboxMode(true)` - Switch to the exchange's testnet (call right after construction)
 
 ### WebSocket Methods (ccxt.pro)
 
-All REST methods have WebSocket equivalents with `watch*` prefix:
+Most market-data and account methods have a `watch*` equivalent; each returns the next update when awaited, so call it in a loop. Every `watch*` subscription has a matching `unWatch*` to unsubscribe without closing the whole connection.
 
 #### Real-time Market Data
-- `watchTicker(symbol)` - Watch single ticker
-- `watchTickers([symbols])` - Watch multiple tickers
-- `watchOrderBook(symbol)` - Watch order book updates
-- `watchOrderBookForSymbols([symbols])` - Watch multiple order books
-- `watchTrades(symbol)` - Watch public trades
-- `watchOHLCV(symbol, timeframe)` - Watch candlestick updates
-- `watchBidsAsks([symbols])` - Watch best bid/ask
+- `watchTicker(symbol)` / `watchTickers([symbols])` - Ticker updates
+- `watchOrderBook(symbol, limit)` / `watchOrderBookForSymbols([symbols], limit)` - Order book updates
+- `watchTrades(symbol, since, limit)` / `watchTradesForSymbols([symbols], since, limit)` - Public trades
+- `watchOHLCV(symbol, timeframe, since, limit)` / `watchOHLCVForSymbols([[symbol, timeframe]], since, limit)` - Candles
+- `watchBidsAsks([symbols])` - Best bid/ask
+- `watchMarkPrice(symbol)` / `watchMarkPrices([symbols])` - Mark price (derivatives)
+- `watchFundingRate(symbol)` / `watchFundingRates([symbols])` - Funding rate (derivatives)
+- `watchLiquidations(symbol, since, limit)` / `watchLiquidationsForSymbols([symbols], since, limit)` - Public liquidations
 
 #### Real-time Account Data (Auth Required)
-- `watchBalance()` - Watch balance updates
-- `watchOrders(symbol)` - Watch your order updates
-- `watchMyTrades(symbol)` - Watch your trade updates
-- `watchPositions([symbols])` - Watch position updates
-- `watchPositionsForSymbol(symbol)` - Watch positions for symbol
+- `watchBalance()` - Balance updates
+- `watchOrders(symbol, since, limit)` / `watchOrdersForSymbols([symbols], since, limit)` - Your order updates
+- `watchMyTrades(symbol, since, limit)` / `watchMyTradesForSymbols([symbols], since, limit)` - Your fills
+- `watchPositions([symbols], since, limit)` - Position updates
+- `watchPosition(symbol)` - One position
+- `watchMyLiquidations(symbol, since, limit)` - Your liquidations
+
+#### Unsubscribing
+- `unWatchTicker(symbol)`, `unWatchTickers([symbols])`, `unWatchOrderBook(symbol)`, `unWatchOrderBookForSymbols([symbols])`, `unWatchTrades(symbol)`, `unWatchTradesForSymbols([symbols])`, `unWatchOHLCV(symbol, timeframe)`, `unWatchOHLCVForSymbols([[symbol, timeframe]])`, `unWatchBidsAsks([symbols])`, `unWatchMarkPrice(symbol)`, `unWatchMarkPrices([symbols])`, `unWatchFundingRate(symbol)`, `unWatchFundingRates([symbols])`, `unWatchOrders(symbol)`, `unWatchMyTrades(symbol)`, `unWatchPositions([symbols])`
+- Check support first: `exchange.has['unWatchTicker']`. Use `close()` to drop every subscription and the socket.
+
+#### Trading over WebSocket (lower latency, where supported)
+- `createOrderWs(symbol, type, side, amount, price)`, `editOrderWs(id, symbol, type, side, amount, price)`, `cancelOrderWs(id, symbol)`, `cancelOrdersWs([ids], symbol)`, `cancelAllOrdersWs(symbol)`, `fetchOrderBookWs(symbol, limit)`
 
 ### Authentication Required
 
@@ -496,7 +564,7 @@ Methods marked with 🔒 require API credentials:
 - All `edit*` methods (modifying orders)
 - All `fetchMy*` methods (your trades, orders)
 - `fetchBalance`, `fetchLedger`, `fetchAccounts`
-- `withdraw`, `transfer`, `deposit`
+- `withdraw`, `transfer`
 - Margin/leverage methods
 - Position methods
 - `watchBalance`, `watchOrders`, `watchMyTrades`, `watchPositions`
@@ -662,19 +730,19 @@ if (exchange.has['createOrderWs']) {
 ### Setting API Keys
 
 ```csharp
-using System;
+using ccxt;
 
 // During instantiation (recommended)
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    ApiKey = Environment.GetEnvironmentVariable("BINANCE_API_KEY"),
-    Secret = Environment.GetEnvironmentVariable("BINANCE_SECRET"),
-    EnableRateLimit = true
-};
+    { "apiKey", Environment.GetEnvironmentVariable("BINANCE_API_KEY") },
+    { "secret", Environment.GetEnvironmentVariable("BINANCE_SECRET") },
+    { "enableRateLimit", true },
+});
 
 // After instantiation
-exchange.ApiKey = Environment.GetEnvironmentVariable("BINANCE_API_KEY");
-exchange.Secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
+exchange.apiKey = Environment.GetEnvironmentVariable("BINANCE_API_KEY");
+exchange.secret = Environment.GetEnvironmentVariable("BINANCE_SECRET");
 ```
 
 ### Testing Authentication
@@ -777,7 +845,7 @@ async Task<Ticker> FetchWithRetry(int maxRetries = 3)
             }
         }
     }
-    return null;
+    throw new Exception("all retries failed");
 }
 ```
 
@@ -785,22 +853,22 @@ async Task<Ticker> FetchWithRetry(int maxRetries = 3)
 
 ### Built-in Rate Limiter (Recommended)
 ```csharp
-var exchange = new Binance
+var exchange = new Binance(new Dictionary<string, object>
 {
-    EnableRateLimit = true  // Automatically throttles requests
-};
+    { "enableRateLimit", true }, // Automatically throttles requests
+});
 ```
 
 ### Manual Delays
 ```csharp
 await exchange.FetchTicker("BTC/USDT");
-await Task.Delay((int)exchange.RateLimit);  // Wait between requests
+await Task.Delay((int)exchange.rateLimit);  // Wait between requests
 await exchange.FetchTicker("ETH/USDT");
 ```
 
 ### Checking Rate Limit
 ```csharp
-Console.WriteLine(exchange.RateLimit);  // Milliseconds between requests
+Console.WriteLine(exchange.rateLimit);  // Milliseconds between requests
 ```
 
 ## Common Pitfalls
@@ -818,11 +886,11 @@ var ticker = await exchange.FetchTicker("BTC/USDT");
 ```csharp
 // Wrong - missing await
 var ticker = exchange.FetchTicker("BTC/USDT");  // Returns Task, not Ticker!
-Console.WriteLine(ticker.Last);  // ERROR!
+Console.WriteLine(ticker.last);  // ERROR!
 
 // Correct
 var ticker = await exchange.FetchTicker("BTC/USDT");
-Console.WriteLine(ticker.Last);  // Works!
+Console.WriteLine(ticker.last);  // Works!
 ```
 
 ### Using REST for Real-time Monitoring
@@ -831,7 +899,7 @@ Console.WriteLine(ticker.Last);  // Works!
 while (true)
 {
     var ticker = await exchange.FetchTicker("BTC/USDT");  // REST
-    Console.WriteLine(ticker.Last);
+    Console.WriteLine(ticker.last);
     await Task.Delay(1000);
 }
 
@@ -841,7 +909,7 @@ var exchange = new Binance();
 while (true)
 {
     var ticker = await exchange.WatchTicker("BTC/USDT");  // WebSocket
-    Console.WriteLine(ticker.Last);
+    Console.WriteLine(ticker.last);
 }
 ```
 
@@ -859,7 +927,7 @@ try
     while (true)
     {
         var ticker = await exchange.WatchTicker("BTC/USDT");
-        Console.WriteLine(ticker.Last);
+        Console.WriteLine(ticker.last);
     }
 }
 finally
@@ -887,7 +955,7 @@ finally
 - Solution: Run `dotnet add package CCXT.NET`
 
 **2. "RateLimitExceeded"**
-- Solution: Set `EnableRateLimit = true`
+- Solution: keep `exchange.enableRateLimit = true` (the default)
 
 **3. "AuthenticationError"**
 - Solution: Check API key and secret
@@ -899,7 +967,7 @@ finally
 - Use only one exchange instance per API key
 
 **5. "InsufficientFunds"**
-- Solution: Check available balance (`balance["BTC"].Free`)
+- Solution: Check available balance (`balance["BTC"].free`)
 - Account for trading fees
 
 **6. "ExchangeNotAvailable"**
@@ -910,10 +978,10 @@ finally
 
 ```csharp
 // Enable verbose logging
-exchange.Verbose = true;
+exchange.verbose = true;
 
 // Check exchange capabilities
-Console.WriteLine(exchange.Has);
+Console.WriteLine(exchange.has);
 // {
 //   FetchTicker = true,
 //   FetchOrderBook = true,
@@ -922,11 +990,11 @@ Console.WriteLine(exchange.Has);
 // }
 
 // Check market information
-var market = exchange.Markets["BTC/USDT"];
+var market = exchange.markets["BTC/USDT"];
 
 // Check last request/response
-Console.WriteLine(exchange.LastHttpResponse);
-Console.WriteLine(exchange.LastJsonResponse);
+Console.WriteLine(exchange.last_http_response);
+Console.WriteLine(exchange.last_json_response);
 ```
 
 ## Prediction Markets
@@ -937,17 +1005,17 @@ CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad
 using ccxt;
 
 var exchange = new ccxt.prediction.polymarket();
-await exchange.loadMarkets();
+await exchange.LoadMarkets();
 // discover events -> markets -> outcomes (each outcome has: outcome (handle),
 // outcomeId, market, label); also fetchEvents / fetchEvent are available
-var events = await exchange.fetchEvents(new Dictionary<string, object>() {{ "query", "Trump" }});
+var events = await exchange.FetchEvents(new Dictionary<string, object>() {{ "query", "Trump" }});
 // an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
 string handle = "TRUMP_OUT_PRESIDENT_2027:YES";
-var ticker = await exchange.fetchTicker(handle);
-var book = await exchange.fetchOrderBook(handle);
+var ticker = await exchange.FetchTicker(handle);
+var book = await exchange.FetchOrderBook(handle);
 // limit buy 5 YES shares @ 0.40 USDC (price is 0..1 per share)
-var order = await exchange.createOrder(handle, "limit", "buy", 5, 0.40);
-await exchange.cancelOrder(exchange.safeString(order, "id"), handle);
+var order = await exchange.CreateOrder(handle, "limit", "buy", 5, 0.40);
+await exchange.CancelOrder(order.id, handle);
 ```
 
 - Price/trade methods (`fetchTicker`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, `cancelOrder`, …) take an **outcome handle or outcomeId** (the `outcome` / `outcomes` parameter), not `symbol`.
@@ -963,8 +1031,11 @@ service and no API key. It is **not** an exchange: it does not derive from `Exch
 methods, and is constructed directly.
 
 ```csharp
+using ccxt;
 using dict = System.Collections.Generic.Dictionary<string, object>;
 
+var binance = new Binance();
+var kraken = new Kraken();
 var router = new ccxt.OrderRouter(new dict());
 
 // exactly one of amountIn / amountOut
@@ -1118,7 +1189,7 @@ A step is one order on one venue. Required: `exchangeId`, `symbol`, `side`, `amo
 ```csharp
 var plan = new Dictionary<string, object> {
     { "requestId", "my-strategy-0001" },        // identity; a live run refuses without one
-    { "calculatedAt", exchange.Milliseconds() },
+    { "calculatedAt", exchange.milliseconds() },
     { "steps", new List<object> {
         new Dictionary<string, object> {
             { "exchangeId", "binance" }, { "symbol", "BTC/USDT" }, { "side", "buy" },

@@ -46,6 +46,84 @@
                     "BTC/USD:USDC"
                 ],
                 "output": null
+            },
+            {
+                "description": "since bounds the range to one page from since, rows run newest first",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=1000&start_at=1790600000000&end_at=1790605000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "the range of a smaller page is shorter",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&start_at=1790600000000&end_at=1790600050000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until past one page from since is clamped to that page",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600050000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10,
+                    {
+                        "until": 1790600600000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until inside one page from since is kept",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=10&end_at=1790600030000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    10,
+                    {
+                        "until": 1790600030000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "paginate asks for full pages back from as many pages after since as the calls allow",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=5000&start_at=1790600000000&end_at=1790850000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1790600000000,
+                    null,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
             }
         ],
         "fetchFundingHistory": [
@@ -86,6 +164,19 @@
                 "method": "fetchMarkets",
                 "url": "https://api.testnet.paradex.trade/v1/markets",
                 "input": []
+            },
+            {
+                "description": "types filter the parsed markets and are not sent",
+                "method": "fetchMarkets",
+                "url": "https://api.prod.paradex.trade/v1/markets",
+                "input": [
+                    {
+                        "types": [
+                            "swap",
+                            "spot"
+                        ]
+                    }
+                ]
             }
         ],
         "fetchTradingFee": [
@@ -141,7 +232,6 @@
                 ],
                 "output": null
             },
-            
             {
                 "description": "mark ohlcv",
                 "method": "fetchOHLCV",
@@ -167,18 +257,71 @@
                     null,
                     5
                 ]
+            },
+            {
+                "description": "an until past the bar cap is clamped to the window from since",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790606059999&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100,
+                    {
+                        "until": 1790700000000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
+            },
+            {
+                "description": "an until inside the window from since is kept as the end",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=1&symbol=BTC-USD-PERP&end_at=1790600300000&start_at=1790600000000",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1m",
+                    1790600000000,
+                    100,
+                    {
+                        "until": 1790600300000
+                    }
+                ],
+                "forceCheckKeys": [
+                    "start_at",
+                    "end_at"
+                ]
             }
         ],
         "fetchTickers": [
             {
-                "description": "fetchTickers",
+                "description": "a single symbol is asked for by name, not the whole venue",
                 "method": "fetchTickers",
-                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=ALL",
+                "url": "https://api.testnet.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
                 "input": [
                     [
                         "BTC/USD:USDC"
                     ]
                 ]
+            },
+            {
+                "description": "two symbols need the whole venue",
+                "method": "fetchTickers",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": [
+                    [
+                        "BTC/USD:USDC",
+                        "ETH/USD:USDC"
+                    ]
+                ]
+            },
+            {
+                "description": "no symbols need the whole venue",
+                "method": "fetchTickers",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
             }
         ],
         "fetchTicker": [
@@ -199,6 +342,24 @@
                 "input": [
                     "BTC/USD:USDC"
                 ]
+            },
+            {
+                "description": "limit is sent as depth",
+                "method": "fetchOrderBook",
+                "url": "https://api.prod.paradex.trade/v1/orderbook/BTC-USD-PERP?depth=50",
+                "input": [
+                    "BTC/USD:USDC",
+                    50
+                ]
+            },
+            {
+                "description": "depth is capped at the venue maximum of 100",
+                "method": "fetchOrderBook",
+                "url": "https://api.prod.paradex.trade/v1/orderbook/BTC-USD-PERP?depth=100",
+                "input": [
+                    "BTC/USD:USDC",
+                    500
+                ]
             }
         ],
         "fetchTrades": [
@@ -210,6 +371,30 @@
                     "BTC/USD:USDC",
                     null,
                     1
+                ]
+            },
+            {
+                "description": "an expired option symbol is sent as its market id",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=BTC-USD-29MAY26-80000-C",
+                "input": [
+                    "BTC/USD:USDC-260529-80000-C"
+                ]
+            },
+            {
+                "description": "an option that is not listed keeps the underscore of a decimal strike in its id",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=NEAR-USD-30OCT26-5_6-C",
+                "input": [
+                    "NEAR/USD:USDC-261030-5.6-C"
+                ]
+            },
+            {
+                "description": "an expired option id drops the leading zero of the day",
+                "method": "fetchTrades",
+                "url": "https://api.prod.paradex.trade/v1/trades?market=ETH-USD-5JUN26-2500-P",
+                "input": [
+                    "ETH/USD:USDC-260605-2500-P"
                 ]
             }
         ],
@@ -268,26 +453,6 @@
                     0.1
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"MARKET\",\"instruction\":\"GTC\",\"size\":\"0.1\",\"signature\":\"[\\\"1468894355587050285420949071350345737433437568442442138979146276284680442953\\\",\\\"2574741288777905528175391129576450744028621767206012283486121432563461556821\\\"]\",\"signature_timestamp\":1721829219000}",
-                "disabledRS": true
-            },
-            {
-                "disabledGO": true,
-                "disabledJava": true,
-                "description": "trigger postOnly order",
-                "method": "createOrder",
-                "url": "https://api.testnet.paradex.trade/v1/orders",
-                "input": [
-                    "SOL/USD:USDC",
-                    "limit",
-                    "buy",
-                    5,
-                    60,
-                    {
-                        "triggerPrice": 60,
-                        "postOnly": true
-                    }
-                ],
-                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"size\":\"5\",\"instruction\":\"POST_ONLY\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"405019133243389523227124401986152572914421013989070242205295296137801865967\\\",\\\"1748135842845179971618758228738423761246707634334073467171466626514884721167\\\"]\",\"signature_timestamp\":1722426053000}",
                 "disabledRS": true
             },
             {
@@ -420,6 +585,233 @@
                     2500
                 ],
                 "output": "{\"market\":\"ETH-USD\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.01\",\"price\":\"2500\",\"signature\":\"[\\\"1\\\",\\\"2\\\"]\",\"signature_timestamp\":1721903698000}"
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "trigger limit order with IOC",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    5,
+                    60,
+                    {
+                        "triggerPrice": 60,
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"instruction\":\"IOC\",\"size\":\"5\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "limit order with recvWindow",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "recvWindow": 5000
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.1\",\"price\":\"100\",\"recv_window\":5000,\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "RPI limit order with postOnly stays RPI",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    250,
+                    {
+                        "timeInForce": "RPI",
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"instruction\":\"RPI\",\"size\":\"0.1\",\"price\":\"250\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "RPI limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    250,
+                    {
+                        "timeInForce": "RPI"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"instruction\":\"RPI\",\"size\":\"0.1\",\"price\":\"250\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "timeInForce PO limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"POST_ONLY\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "postOnly limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"POST_ONLY\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "market IOC order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"instruction\":\"IOC\",\"size\":\"0.1\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "limit IOC order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"instruction\":\"IOC\",\"size\":\"0.1\",\"price\":\"100\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "sized take profit limit order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "limit",
+                    "sell",
+                    0.5,
+                    210,
+                    {
+                        "takeProfitPrice": 200
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"TAKE_PROFIT_LIMIT\",\"instruction\":\"GTC\",\"size\":\"0.5\",\"price\":\"210\",\"trigger_price\":\"200\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "sized stop loss market order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "sell",
+                    0.5,
+                    150,
+                    {
+                        "stopLossPrice": 90
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"STOP_LOSS_MARKET\",\"instruction\":\"GTC\",\"size\":\"0.5\",\"trigger_price\":\"90\",\"flags\":[\"REDUCE_ONLY\"],\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "stop market order with a price omits the price",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    2,
+                    150,
+                    {
+                        "triggerPrice": 200
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"instruction\":\"GTC\",\"size\":\"2\",\"trigger_price\":\"200\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "disabledJava": true,
+                "description": "market order with a price omits the price",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                    "SOL/USD:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    100
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"instruction\":\"GTC\",\"size\":\"0.1\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
+                "disabledRS": true
             }
         ],
         "createOrders": [
@@ -468,6 +860,25 @@
                     120
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"price\":\"120\",\"size\":\"0.1\",\"id\":\"1748360402930201709192260002\",\"signature\":\"[\\\"1550347720778479803103413270701343092751011658362356790867450174181548850256\\\",\\\"94313813924990052144412796520492445389263123508915591934044630975089252381\\\"]\",\"signature_timestamp\":1779257936000}",
+                "disabledRS": true
+            },
+            {
+                "disabledGO": true,
+                "description": "edit stop loss market order without a price",
+                "method": "editOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders/1760000000000201709220290001",
+                "input": [
+                    "1760000000000201709220290001",
+                    "SOL/USD:USDC",
+                    "market",
+                    "sell",
+                    0.5,
+                    null,
+                    {
+                        "stopLossPrice": 95
+                    }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"STOP_LOSS_MARKET\",\"size\":\"0.5\",\"trigger_price\":\"95\",\"id\":\"1760000000000201709220290001\",\"signature\":\"[\\\"104565671699689255617045221676213933354547023392637360160424962908972623940\\\",\\\"1024923935778142599387806777674251553503240530550535269897388545298737398098\\\"]\",\"signature_timestamp\":1760000000000}",
                 "disabledRS": true
             }
         ],
@@ -579,6 +990,17 @@
                 "method": "fetchPositions",
                 "url": "https://api.testnet.paradex.trade/v1/positions?",
                 "input": []
+            },
+            {
+                "description": "fetchPositions forwards params",
+                "method": "fetchPositions",
+                "url": "https://api.prod.paradex.trade/v1/positions?market=SOL-USD-PERP",
+                "input": [
+                    null,
+                    {
+                        "market": "SOL-USD-PERP"
+                    }
+                ]
             }
         ],
         "fetchMyLiquidations": [
@@ -677,15 +1099,25 @@
                     }
                 ],
                 "output": "{\"leverage\":10,\"margin_type\":\"CROSS\"}"
+            },
+            {
+                "description": "setMarginMode without leverage reads the current leverage first",
+                "method": "setMarginMode",
+                "url": "https://api.prod.paradex.trade/v1/account/margin?market=SOL-USD-PERP",
+                "input": [
+                    "cross",
+                    "SOL/USD:USDC"
+                ],
+                "output": null
             }
         ],
         "fetchGreeks": [
             {
-                "description": "Fetch greeks for an option symbol",
+                "description": "greeks of a dated option with a decimal strike",
                 "method": "fetchGreeks",
-                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-117000-P",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=NEAR-USD-26MAR27-8_8-C",
                 "input": [
-                    "BTC/USD:USDC-117000-P"
+                    "NEAR/USD:USDC-270326-8.8-C"
                 ]
             }
         ],
@@ -695,6 +1127,16 @@
                 "method": "fetchAllGreeks",
                 "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
                 "input": []
+            },
+            {
+                "description": "a single option is asked for by name",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-25JUN27-86000-C",
+                "input": [
+                    [
+                        "BTC/USD:USDC-270625-86000-C"
+                    ]
+                ]
             }
         ],
         "fetchIndexOHLCV": [
@@ -723,6 +1165,54 @@
                     100
                 ],
                 "output": null
+            }
+        ],
+        "fetchOption": [
+            {
+                "description": "fetchOption",
+                "method": "fetchOption",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=NEAR-USD-26MAR27-8_8-C",
+                "input": [
+                    "NEAR/USD:USDC-270326-8.8-C"
+                ]
+            }
+        ],
+        "fetchOptionChain": [
+            {
+                "description": "the chain is cut from the whole venue",
+                "method": "fetchOptionChain",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "a single symbol is asked for by name",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ]
+            },
+            {
+                "description": "no symbols need the whole venue",
+                "method": "fetchFundingRates",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate asks for its market by name",
+                "method": "fetchFundingRate",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
             }
         ]
     }

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Endpoint, Order } from './base/types.js';
+import type { Dictionary, Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict, Endpoint, Order } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -488,7 +488,7 @@ export default class coinspot extends Exchange {
         //    }
         //
         const result: Dict = {};
-        const prices = this.safeDict (response, 'prices', {});
+        const prices: Dictionary<Dict> = this.safeDict (response, 'prices', {});
         const ids = Object.keys (prices);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];

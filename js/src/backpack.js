@@ -1623,9 +1623,10 @@ export default class backpack extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const maxLimit = 2000;
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const duration = this.parseTimeframe(timeframe);
+        const duration = this.parseTimeframe(timeframe) * 1000;
         const dataRequest = this.stockDataRequest('fetchOHLCV', params, market);
         const request = { 'symbol': this.safeString(dataRequest, 'symbol'), 'interval': interval };
         const [until, paramsUntil] = this.handleOptionIntegerAndParams(this.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until');
@@ -1634,28 +1635,26 @@ export default class backpack extends Exchange {
         }
         const defaultLimit = 100;
         let limitResolved = limit;
-        if ((since === undefined) && (limit === undefined)) {
-            limitResolved = defaultLimit;
+        if (limitResolved !== undefined) {
+            limitResolved = Math.min(limitResolved, maxLimit);
         }
-        const windowLimit = (limit === undefined) ? defaultLimit : limit;
-        let startTime = undefined;
-        if (since === undefined) {
-            let endTime = this.seconds();
-            if (until !== undefined && until !== 0) {
-                endTime = this.parseToInt(until / 1000);
+        const windowLimit = (limitResolved === undefined) ? defaultLimit : limitResolved;
+        const now = this.milliseconds();
+        let startTime = since;
+        let untilValue = until;
+        if (startTime === undefined) {
+            if (untilValue === undefined) {
+                untilValue = now;
             }
-            startTime = endTime - (windowLimit * duration);
+            startTime = untilValue - (windowLimit * duration);
         }
-        else {
-            startTime = this.parseToInt(since / 1000); // convert milliseconds to seconds
-        }
-        request['startTime'] = startTime;
-        if (until === undefined) {
-            const currentMs = this.seconds(); // default to current time in seconds
+        request['startTime'] = this.parseToInt(startTime / 1000);
+        // set until value
+        if (untilValue === undefined) {
             const windowEnd = this.sum(startTime, windowLimit * duration);
-            const minTimestamp = Math.min(currentMs, windowEnd);
-            request['endTime'] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
+            untilValue = Math.min(now, windowEnd);
         }
+        request['endTime'] = this.parseToInt(untilValue / 1000);
         const price = this.safeString(paramsUntil, 'price');
         const paramsOmitted = (price !== undefined) ? this.omit(paramsUntil, 'price') : paramsUntil;
         if (price !== undefined) {
@@ -3252,8 +3251,8 @@ export default class backpack extends Exchange {
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
-        const entryPrice = this.safeString(position, 'entryPrice');
-        const markPrice = this.safeString(position, 'markPrice');
+        const entryPrice = this.safeNumber(position, 'entryPrice');
+        const markPrice = this.safeNumber(position, 'markPrice');
         const netCost = this.safeString(position, 'netCost');
         let hedged = false;
         let side = 'long';
@@ -3264,9 +3263,9 @@ export default class backpack extends Exchange {
             hedged = undefined;
             side = undefined;
         }
-        const unrealizedPnl = this.safeString(position, 'pnlUnrealized');
-        const realizedPnl = this.safeString(position, 'pnlRealized');
-        const liquidationPrice = this.safeString(position, 'estLiquidationPrice');
+        const unrealizedPnl = this.safeNumber(position, 'pnlUnrealized');
+        const realizedPnl = this.safeNumber(position, 'pnlRealized');
+        const liquidationPrice = this.safeNumber(position, 'estLiquidationPrice');
         return this.safePosition({
             'info': position,
             'id': id,
@@ -3276,18 +3275,18 @@ export default class backpack extends Exchange {
             'lastUpdateTimestamp': undefined,
             'hedged': hedged,
             'side': side,
-            'contracts': this.safeString(position, 'netExposureQuantity'),
+            'contracts': this.safeNumber(position, 'netExposureQuantity'),
             'contractSize': undefined,
             'entryPrice': entryPrice,
             'markPrice': markPrice,
             'lastPrice': undefined,
-            'notional': Precise.stringAbs(netCost),
+            'notional': this.parseNumber(Precise.stringAbs(netCost)),
             'leverage': undefined,
             'collateral': undefined,
             'initialMargin': undefined,
-            'initialMarginPercentage': this.safeString(position, 'imf'),
+            'initialMarginPercentage': this.safeNumber(position, 'imf'),
             'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': this.safeString(position, 'mmf'),
+            'maintenanceMarginPercentage': this.safeNumber(position, 'mmf'),
             'realizedPnl': realizedPnl,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': liquidationPrice,

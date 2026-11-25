@@ -121,6 +121,85 @@
                 ]
             }
         ],
+        "unWatchMarkPrice": [
+            {
+                "description": "linear swap mark price unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws.okx.com:443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "mark-price",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "117ac9e3"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "mark-price",
+                                "instId": "BTC-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchMarkPrices": [
+            {
+                "description": "linear swap mark prices of two markets in one unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://ws.okx.com:443/ws/v5/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "mark-price",
+                            "instId": "BTC-USDT-SWAP"
+                        },
+                        "connId": "117ac9e3"
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "mark-price",
+                            "instId": "ETH-USDT-SWAP"
+                        },
+                        "connId": "117ac9e3"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "mark-price",
+                                "instId": "BTC-USDT-SWAP"
+                            },
+                            {
+                                "channel": "mark-price",
+                                "instId": "ETH-USDT-SWAP"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
         "watchBidsAsks": [
             {
                 "description": "spot bids asks via bbo-tbt",
@@ -1027,6 +1106,67 @@
                             64025.7,
                             64038.2,
                             2.25101046
+                        ]
+                    ]
+                ]
+            },
+            {
+                "description": "text pong frame dispatched before the error handler",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.okx.com:443/ws/v5/business",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "candle1m",
+                            "instId": "BTC-USDT"
+                        },
+                        "connId": "4280e5d7"
+                    },
+                    "pong",
+                    {
+                        "arg": {
+                            "channel": "candle1m",
+                            "instId": "BTC-USDT"
+                        },
+                        "data": [
+                            [
+                                "1786538760000",
+                                "64040.2",
+                                "64040.2",
+                                "64025.7",
+                                "64033.5",
+                                "2.16787395",
+                                "138825.265446816",
+                                "138825.265446816",
+                                "0"
+                            ]
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "candle1m",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786538760000,
+                            64040.2,
+                            64040.2,
+                            64025.7,
+                            64033.5,
+                            2.16787395
                         ]
                     ]
                 ]

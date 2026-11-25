@@ -578,7 +578,7 @@ class coinmate(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(keys)):
             market = self.market(keys[i])
-            ticker = self.parse_ticker(self.safe_value(data, keys[i]), market)
+            ticker = self.parse_ticker(self.safe_dict(data, keys[i], {}), market)
             result[market['symbol']] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
@@ -609,12 +609,12 @@ class coinmate(Exchange, ImplicitAPI):
             'ask': self.safe_number(ticker, 'ask'),
             'vwap': None,
             'askVolume': None,
-            'open': None,
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'change'),
             'average': None,
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,

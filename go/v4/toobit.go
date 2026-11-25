@@ -672,7 +672,7 @@ func (this *Toobit) Describe() map[string]any {
 				"sandbox": false,
 				"createOrder": map[string]any{
 					"marginMode":                 false,
-					"triggerPrice":               true,
+					"triggerPrice":               false,
 					"triggerPriceType":           nil,
 					"triggerDirection":           false,
 					"stopLossPrice":              false,
@@ -707,7 +707,7 @@ func (this *Toobit) Describe() map[string]any {
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
-					"symbolRequired": false,
+					"symbolRequired": true,
 				},
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
@@ -983,9 +983,9 @@ func (this *Toobit) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coinId")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var rawNetworks []any = SafeListTyped(rawCurrency, "chainTypes")
+	var rawNetworks []map[string]any = this.SafeListMapsTyped(rawCurrency, "chainTypes")
 	for j := 0; j < len(rawNetworks); j++ {
-		var rawNetwork any = rawNetworks[j]
+		var rawNetwork map[string]any = rawNetworks[j]
 		var networkId *string = this.SafeString(rawNetwork, "chainType")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -1622,6 +1622,10 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		} else {
 			request["to"] = this.Sum(since, (duration**limit)*1000)
 		}
+	} else if (since != nil) && (limit != nil) {
+		// without an end time the exchange returns the latest candles, not the ones starting at since
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
+		request["endTime"] = mathMin(Subtract(this.Sum(since, duration**limit), 1), this.Milliseconds())
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2075,11 +2079,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes165819 []any = r1.Value
-		if retRes165819 == nil {
+		var retRes166219 []any = r1.Value
+		if retRes166219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166219)}
 		}
 		return nil
 	}
@@ -2179,8 +2183,8 @@ func (this *Toobit) ParseBalanceList(response any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances any = this.SafeList(response, "balances", response)
-	for i := 0; i < GetArrayLength(balances); i++ {
+	var balances []any = this.SafeListSlice(response, "balances", response)
+	for i := 0; i < len(balances); i++ {
 		var balance map[string]any = SafeMapTyped(balances, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
 		var account map[string]any = this.Account()
@@ -2500,7 +2504,7 @@ func (this *Toobit) ParseOrder(order any, optionalArgs ...any) Order {
 		rawSideLower = this.SafeString(sideParts, 0)
 	}
 	// omitZero already maps '0.0' to undefined
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "stopPrice"))
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "stopPrice"))
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
@@ -2568,18 +2572,25 @@ func (this *Toobit) ParseOrderType(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Toobit) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Toobit) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	var request map[string]any = map[string]any{}
 	if this.SafeString(params, "clientOrderId") == nil {
 		request["orderId"] = id
@@ -2596,23 +2607,23 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var response any = map[string]any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
-		if r.Err != nil {
-			panic(r.Err)
-		}
-		response = r.Raw
-	} else {
-
-		r1 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		r1 := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Raw
+	} else {
+
+		r2 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
 	if status == nil || *status != "open" {
-		panic(OrderNotFound(Add(Add(Add(this.Id+" order ", id), " can not be canceled, "), this.Json(response))))
+		panic(OrderNotFound(this.Id + " order " + id + " can not be canceled, " + this.Json(response)))
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
@@ -2692,12 +2703,12 @@ func (this *Toobit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Toobit) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Toobit) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2712,7 +2723,7 @@ func (this *Toobit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 		}
 	}
 	var request map[string]any = map[string]any{
-		"ids": Join(ids, ","),
+		"ids": strings.Join(ids, ","),
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3008,7 +3019,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	marketType, _ := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil)
 	var response any = []any{}
 	if marketType != nil && *marketType == "spot" {
-		panic(NotSupported(this.Id + " fetchOrders() is not supported for " + *marketType + " markets"))
+		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for " + *marketType + " markets"))
 	} else {
 
 		r1 := <-this.PrivateGetApiV1FuturesHistoryOrders(requestUntil)
@@ -3363,9 +3374,8 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	// }
 	//
 	var result map[string]any = map[string]any{}
-	var entry any = response
-	var marketResolved map[string]any = this.SafeMarket(this.SafeString(entry, "symbol"), market)
-	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, marketResolved))
+	var marketResolved map[string]any = this.SafeMarket(this.SafeString(response, "symbol"), market)
+	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(response, marketResolved))
 	AddElementToObject(result, marketResolved["symbol"], fee)
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -3417,11 +3427,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes276815 []any = TransactionsToList(r.Value)
-	if retRes276815 == nil {
+	var retRes277415 []any = TransactionsToList(r.Value)
+	if retRes277415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes276815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277415)}
 	}
 	return nil
 }
@@ -3458,11 +3468,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278315 []any = TransactionsToList(r.Value)
-	if retRes278315 == nil {
+	var retRes278915 []any = TransactionsToList(r.Value)
+	if retRes278915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278915)}
 	}
 	return nil
 }
@@ -3512,12 +3522,12 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		}
 		response = r2.Raw
 	}
-	var transactType string = func() string {
-		if typeVar == "deposits" {
-			return "deposit"
-		}
-		return "withdrawal"
-	}()
+	var transactType string
+	if typeVar == "deposits" {
+		transactType = "deposit"
+	} else {
+		transactType = "withdrawal"
+	}
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		results = append(results, this.Extend(this.ParseTransactionWithType(GetValue(response, i), currency, transactType), paramsUntil))
@@ -3605,12 +3615,12 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var isWithdraw bool = (InOp(transaction, "arriveQuantity")) || (InOp(transaction, "success"))
-	var typeVar string = func() string {
-		if isWithdraw {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string
+	if isWithdraw {
+		typeVar = "withdrawal"
+	} else {
+		typeVar = "deposit"
+	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
@@ -3961,12 +3971,12 @@ func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
 	var marginType *string = this.SafeStringLower(leverage, "marginType")
-	var marginMode string = func() string {
-		if marginType != nil && *marginType == "cross" {
-			return "cross"
-		}
-		return "isolated"
-	}()
+	var marginMode string
+	if marginType != nil && *marginType == "cross" {
+		marginMode = "cross"
+	} else {
+		marginMode = "isolated"
+	}
 	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),

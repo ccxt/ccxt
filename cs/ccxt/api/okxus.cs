@@ -417,6 +417,13 @@ public partial class okxus : okx
         return await this.callAsync<Dictionary<string, object>> ("publicGetPublicDeltaHedgeCurrencies",parameters);
     }
 
+    /// <summary>Calls the publicGetPublicCorporateActions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPublicCorporateActions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPublicCorporateActions",parameters);
+    }
+
     /// <summary>Calls the publicGetRubikStatTradingDataSupportCoin endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetRubikStatTradingDataSupportCoin (object parameters = null)
@@ -1024,6 +1031,13 @@ public partial class okxus : okx
     public async Task<Dictionary<string, object>> privateGetAssetDepositWithdrawStatus (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositWithdrawStatus",parameters);
+    }
+
+    /// <summary>Calls the privateGetAssetTravelRuleGetLocked endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetTravelRuleGetLocked (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetTravelRuleGetLocked",parameters);
     }
 
     /// <summary>Calls the privateGetAssetMonthlyStatement endpoint.</summary>
@@ -2375,6 +2389,13 @@ public partial class okxus : okx
     public async Task<Dictionary<string, object>> privatePostAssetCancelWithdrawal (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAssetCancelWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostAssetTravelRuleUnlock endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetTravelRuleUnlock (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetTravelRuleUnlock",parameters);
     }
 
     /// <summary>Calls the privatePostAssetConvertDustAssets endpoint.</summary>

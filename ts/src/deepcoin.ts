@@ -386,11 +386,10 @@ export default class deepcoin extends Exchange {
         const instType = this.safeString (params, 'instType');
         const paramsOmitted = this.omit (params, 'instType');
         const type = this.safeString (paramsOmitted, 'type');
-        let paramsExtended = paramsOmitted;
         if ((type === undefined) && (instType !== undefined)) {
-            paramsExtended = this.extend (paramsOmitted, { 'type': instType });
+            return super.handleMarketTypeAndParams (methodName, market, this.extend (paramsOmitted, { 'type': instType }), defaultValue);
         }
-        return super.handleMarketTypeAndParams (methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams (methodName, market, paramsOmitted, defaultValue);
     }
 
     convertToInstrumentType (type: Str): Str {
@@ -697,7 +696,10 @@ export default class deepcoin extends Exchange {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool (paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil) ? [ 'price', 'until', 'calculateUntil' ] : [ 'price', 'until' ];
+        const keysToOmit: string[] = [ 'price', 'until' ];
+        if (calculateUntil) {
+            keysToOmit.push ('calculateUntil');
+        }
         const paramsOmitted = this.omit (paramsPaginate, keysToOmit);
         if (calculateUntil) {
             if (since !== undefined) {
@@ -1790,17 +1792,15 @@ export default class deepcoin extends Exchange {
 
     handleTypePostOnlyAndTimeInForce (type: Str, params: Dict): [Str, Dict] {
         const [ postOnly, paramsPostOnly ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        let typePostOnly: Str = type;
-        if (postOnly) {
-            typePostOnly = 'post_only';
-        }
         const timeInForce = this.handleTimeInForce (paramsPostOnly);
         const paramsOmitted: Dict = this.omit (paramsPostOnly, 'timeInForce');
-        let typeValue: Str = typePostOnly;
         if (timeInForce === 'IOC') {
-            typeValue = 'ioc';
+            return [ 'ioc', paramsOmitted ];
         }
-        return [ typeValue, paramsOmitted ];
+        if (postOnly) {
+            return [ 'post_only', paramsOmitted ];
+        }
+        return [ type, paramsOmitted ];
     }
 
     /**
@@ -2859,7 +2859,7 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrumentId": "ETHUSDT",
