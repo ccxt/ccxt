@@ -568,16 +568,19 @@ public class Mercado extends MercadoApi
         String side = this.safeString(trade, "type");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "amount", "quantity");
-        String feeCost = this.safeString(trade, "fee_rate");
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        String feeRate = this.safeString(trade, "fee_rate");
         Map<String, Object> fee = null;
-        if (!java.util.Objects.equals(feeCost, null))
+        if ((!java.util.Objects.equals(feeRate, null)) && (!java.util.Objects.equals(side, null)))
         {
-            {
-                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
-                hx4NewMap0.put("cost", feeCost);
-                hx4NewMap0.put("currency", null);
-                fee = hx4NewMap0;
-            }
+            String rate = Precise.stringDiv(feeRate, "100");
+            Boolean isBuy = (java.util.Objects.equals(side, "buy"));
+            String feeBase = ((Boolean.TRUE.equals(isBuy))) ? amount : Precise.stringMul(amount, price);
+            fee = new HashMap<String, Object>() {{
+                put( "cost", Precise.stringMul(feeBase, rate) );
+                put( "currency", ((Boolean.TRUE.equals(isBuy))) ? marketResolved.get("base") : marketResolved.get("quote") );
+                put( "rate", rate );
+            }};
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
@@ -869,7 +872,13 @@ public class Mercado extends MercadoApi
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed_quantity");
         Long lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
-        List<Object> rawTrades = this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
+        List<Object> operations = this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < operations.size(); i++)
+        {
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            ((List<Object>)rawTrades).add(this.extend((operations == null || i < 0 || i >= operations.size() ? null : operations.get(i)), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("type", side); yield j39v2; } })));
+        }
         String symbol = (String) marketResolved.get("symbol");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
