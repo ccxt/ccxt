@@ -1855,7 +1855,20 @@ export default class blofin extends Exchange {
             request['newSize'] = this.amountToPrecision(symbol, amount);
         }
         const query = this.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice']);
-        let response = undefined;
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
         if (isTpsl) {
             const stopLossPrice = this.safeString(params, 'stopLossPrice');
             if (stopLossPrice !== undefined) {
@@ -1879,7 +1892,8 @@ export default class blofin extends Exchange {
                     request['newTpOrderPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
                 }
             }
-            response = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            const tpslResponse = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            return this.parseOrder(this.safeDict(tpslResponse, 'data', {}), market);
         }
         else if (isTrigger) {
             const triggerPrice = this.safeString(params, 'triggerPrice');
@@ -1892,30 +1906,16 @@ export default class blofin extends Exchange {
             else if (price !== undefined) {
                 request['newOrderPrice'] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            const algoResponse = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            return this.parseOrder(this.safeDict(algoResponse, 'data', {}), market);
         }
         else {
             if (price !== undefined) {
                 request['newPrice'] = this.priceToPrecision(symbol, price);
             }
-            response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            const response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            return this.parseOrder(this.safeDict(response, 'data', {}), market);
         }
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "Order modified",
-        //         "data": {
-        //             "orderId": "6000004088576",
-        //             "clientOrderId": "",
-        //             "requestId": "",
-        //             "msg": "Order modified",
-        //             "code": "0",
-        //             "ts": "1795184228537"
-        //         }
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
     }
     /**
      * @method

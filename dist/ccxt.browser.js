@@ -235212,7 +235212,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
                     'available balance is only': _base_errors_js__rspack_import_2.InsufficientFunds,
                     'not enough exchange balance': _base_errors_js__rspack_import_2.InsufficientFunds,
                     'Order not found': _base_errors_js__rspack_import_2.OrderNotFound,
-                    'symbol: invalid': _base_errors_js__rspack_import_2.BadSymbol
+                    'symbol: invalid': _base_errors_js__rspack_import_2.BadSymbol,
+                    'Min price step': _base_errors_js__rspack_import_2.InvalidOrder
                 }
             },
             'commonCurrencies': {
@@ -280250,6 +280251,8 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
      * @name blofin#editOrder
      * @description edit a trade order
      * @see https://docs.blofin.com/index.html#amend-order
+     * @see https://docs.blofin.com/index.html#amend-algo-order
+     * @see https://docs.blofin.com/index.html#amend-tp%2Fsl-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {string} type 'market' or 'limit'
@@ -280258,6 +280261,13 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.trigger] True if editing a trigger order
+     * @param {boolean} [params.tpsl] True if editing a tpsl order
+     * @param {float} [params.triggerPrice] the new trigger price of a trigger order
+     * @param {float} [params.stopLossPrice] the new stop loss trigger price of a tpsl order
+     * @param {float} [params.takeProfitPrice] the new take profit trigger price of a tpsl order
+     * @param {float} [params.stopLossLimitPrice] the new stop loss order price of a tpsl order, when the type is not market
+     * @param {float} [params.takeProfitLimitPrice] the new take profit order price of a tpsl order, when the type is not market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -280267,19 +280277,32 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const request = {
             'instId': market['id']
         };
+        const isTrigger = this.safeBool(params, 'trigger', false);
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
+        } else if (isTpsl) {
+            request['tpslId'] = id;
+        } else if (isTrigger) {
+            request['algoId'] = id;
         } else {
             request['orderId'] = id;
         }
         if (amount !== undefined) {
             request['newSize'] = this.amountToPrecision(symbol, amount);
         }
-        if (price !== undefined) {
-            request['newPrice'] = this.priceToPrecision(symbol, price);
-        }
-        const response = await this.privatePostTradeAmendOrder(this.extend(request, this.omit(params, 'clientOrderId')));
+        const query = this.omit(params, [
+            'clientOrderId',
+            'trigger',
+            'tpsl',
+            'TPSL',
+            'triggerPrice',
+            'stopLossPrice',
+            'takeProfitPrice',
+            'stopLossLimitPrice',
+            'takeProfitLimitPrice'
+        ]);
         //
         //     {
         //         "code": "0",
@@ -280294,8 +280317,48 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        if (isTpsl) {
+            const stopLossPrice = this.safeString(params, 'stopLossPrice');
+            if (stopLossPrice !== undefined) {
+                request['newSlTriggerPrice'] = this.priceToPrecision(symbol, stopLossPrice);
+                const slLimitPrice = this.safeString(params, 'stopLossLimitPrice');
+                if (type === 'market') {
+                    request['newSlOrderPrice'] = '-1';
+                } else if (slLimitPrice !== undefined) {
+                    request['newSlOrderPrice'] = this.priceToPrecision(symbol, slLimitPrice);
+                }
+            }
+            const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+            if (takeProfitPrice !== undefined) {
+                request['newTpTriggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
+                const tpLimitPrice = this.safeString(params, 'takeProfitLimitPrice');
+                if (type === 'market') {
+                    request['newTpOrderPrice'] = '-1';
+                } else if (tpLimitPrice !== undefined) {
+                    request['newTpOrderPrice'] = this.priceToPrecision(symbol, tpLimitPrice);
+                }
+            }
+            const tpslResponse = await this.privatePostTradeAmendTpsl(this.extend(request, query));
+            return this.parseOrder(this.safeDict(tpslResponse, 'data', {}), market);
+        } else if (isTrigger) {
+            const triggerPrice = this.safeString(params, 'triggerPrice');
+            if (triggerPrice !== undefined) {
+                request['newTriggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+            }
+            if (type === 'market') {
+                request['newOrderPrice'] = '-1';
+            } else if (price !== undefined) {
+                request['newOrderPrice'] = this.priceToPrecision(symbol, price);
+            }
+            const algoResponse = await this.privatePostTradeAmendAlgo(this.extend(request, query));
+            return this.parseOrder(this.safeDict(algoResponse, 'data', {}), market);
+        } else {
+            if (price !== undefined) {
+                request['newPrice'] = this.priceToPrecision(symbol, price);
+            }
+            const response = await this.privatePostTradeAmendOrder(this.extend(request, query));
+            return this.parseOrder(this.safeDict(response, 'data', {}), market);
+        }
     }
     /**
      * @method
@@ -405696,7 +405759,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'open': 'open',
             'canceled': 'canceled',
             'rejected': 'rejected',
-            'marginCanceled': 'canceled'
+            'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled'
         };
         if (status.endsWith('Rejected')) {
             return 'rejected';
@@ -417387,7 +417451,7 @@ class kraken extends _abstract_kraken_js__rspack_import_0/* ["default"] */.A {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        const idLength = id.length;
+        const idLength = id.length - 0;
         if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;
@@ -441922,7 +441986,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length;
+        const secretLength = secret.length - 0;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for(let i = 0; i <= fullLines; i++){
@@ -447599,8 +447663,8 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var _noble_hashes_sha2_js__rspack_import_4 = __webpack_require__(4006);
 /* import */ var _abstract_mercado_js__rspack_import_0 = __webpack_require__(4930);
-/* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
-/* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
+/* import */ var _base_errors_js__rspack_import_3 = __webpack_require__(1453);
+/* import */ var _base_Precise_js__rspack_import_2 = __webpack_require__(7749);
 //  ---------------------------------------------------------------------------
 
 
@@ -448115,12 +448179,21 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const side = this.safeString(trade, 'type');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString2(trade, 'amount', 'quantity');
-        const feeCost = this.safeString(trade, 'fee_rate');
+        // fee_rate is a percentage ("0.70" means 0.7%), charged in the base currency on buys and in the quote currency on sells
+        const feeRate = this.safeString(trade, 'fee_rate');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeRate !== undefined && side !== undefined) {
+            const rate = _base_Precise_js__rspack_import_2/* .Precise.stringDiv */.Y.stringDiv(feeRate, '100');
+            const isBuy = side === 'buy';
+            const feeBase = isBuy ? amount : _base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(amount, price);
+            let feeCurrency = this.safeString(marketResolved, 'quote');
+            if (isBuy) {
+                feeCurrency = this.safeString(marketResolved, 'base');
+            }
             fee = {
-                'cost': feeCost,
-                'currency': undefined
+                'cost': _base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(feeBase, rate),
+                'currency': feeCurrency,
+                'rate': rate
             };
         }
         return this.safeTrade({
@@ -448237,11 +448310,11 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         } else {
             if (side === 'buy') {
                 if (price === undefined) {
-                    throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
+                    throw new _base_errors_js__rspack_import_3.InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
                 const amountString = this.numberToString(amount);
                 const priceString = this.numberToString(price);
-                request['cost'] = this.priceToPrecision(precisionSymbol, this.parseToNumeric(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString)));
+                request['cost'] = this.priceToPrecision(precisionSymbol, this.parseToNumeric(_base_Precise_js__rspack_import_2/* .Precise.stringMul */.Y.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, params));
             } else {
                 request['quantity'] = this.amountToPrecision(precisionSymbol, amount);
@@ -448264,7 +448337,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448356,7 +448429,14 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp(order, 'updated_timestamp');
-        const rawTrades = this.safeList(order, 'operations', []);
+        const operations = this.safeList(order, 'operations', []);
+        const rawTrades = [];
+        for(let i = 0; i < operations.length; i++){
+            // operations carry no side, parseTrade reads it from 'type' like in public trades
+            rawTrades.push(this.extend(operations[i], {
+                'type': side
+            }));
+        }
         const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeOrder({
             'info': order,
@@ -448392,7 +448472,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448432,17 +448512,17 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         if (code === 'BRL') {
             const account_ref = 'account_ref' in paramsWithdrawTag;
             if (!account_ref) {
-                throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
+                throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires account_ref parameter to withdraw ' + code);
             }
         } else if (code !== 'LTC') {
             const tx_fee = 'tx_fee' in paramsWithdrawTag;
             if (!tx_fee) {
-                throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
+                throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires tx_fee parameter to withdraw ' + code);
             }
             if (code === 'XRP') {
                 if (tagWithdrawTag === undefined) {
                     if (!('destination_tag' in paramsWithdrawTag)) {
-                        throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
+                        throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tagWithdrawTag;
@@ -448566,7 +448646,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448591,7 +448671,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448617,7 +448697,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new _base_errors_js__rspack_import_3.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -448654,7 +448734,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const apiName = api[0];
         const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
-            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+            throw new _base_errors_js__rspack_import_3.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
@@ -448708,7 +448788,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         //
         const errorMessage = this.safeString(response, 'error_message');
         if (errorMessage !== undefined) {
-            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' ' + this.json(response));
+            throw new _base_errors_js__rspack_import_3.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
     }
@@ -448747,7 +448827,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             ],
             'rateLimit': 50,
             'version': 'v3',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -580710,9 +580790,9 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         }
         this.checkRequiredCredentials();
         const wsBaseUrl = this.safeString(this.urls['api'], 'ws', '');
-        const startIndex = wsBaseUrl.length;
+        const startIndex = wsBaseUrl.length - 0;
         const urlParamsIndex = url.indexOf('?');
-        const urlLength = url.length;
+        const urlLength = url.length - 0;
         const endIndex = urlParamsIndex >= 0 ? urlParamsIndex : urlLength;
         const request = url.slice(startIndex, endIndex);
         const payload = {
