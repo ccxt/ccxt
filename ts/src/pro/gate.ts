@@ -18,7 +18,7 @@ export default class gate extends gateRest {
         return this.deepExtend (super.describe (), this.describeData ());
     }
 
-    describeData (): any {
+    describeData (): Dict {
         return {
             'has': {
                 'ws': true,

@@ -17,7 +17,7 @@ export default class bybit extends bybitRest {
         return this.deepExtend (super.describe (), this.describeData ());
     }
 
-    describeData (): any {
+    describeData (): Dict {
         return {
             'has': {
                 'ws': true,
