@@ -6333,7 +6333,8 @@ function lendOptionalArgs(content: string): string {
         const decl = new RegExp(`\\bfn ${n}\\([^)]*optional_args: &\\[Value\\]\\)[^{]*\\{`).exec(content);
         if (decl === null) continue;
         const body = content.slice(decl.index + decl[0].length, balancedCloseIndex(content, decl.index + decl[0].length));
-        if (body.replace(/get_arg\(optional_args, /g, '').includes('optional_args')) continue;
+        // a typed `get_arg_dict` read borrows the slot the same way
+        if (body.replace(/get_arg(?:_dict)?\(optional_args, /g, '').includes('optional_args')) continue;
         names.push(n);
     }
     if (names.length > 0) content = content.replace(new RegExp(`(\\bfn (?:${names.join('|')})\\([^)]*optional_args: &\\[)Value(\\]\\))`, 'g'), '$1&Value$2');
@@ -18820,6 +18821,7 @@ function rustPassesSelfTest(): string[] {
     ok(lent.includes('optional_args: &[&Value]') && lent.includes('self.authenticate(&[&params])') && lent.includes('self.authenticate(&args[..].iter().collect::<Vec<_>>())') && lent.includes('self.authenticate(&[])'), 'lendOptionalArgs: get_arg-only method lends');
     const kept = lendOptionalArgs(lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'));
     ok(kept === lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'), 'lendOptionalArgs: other optional_args use keeps the slice');
+    ok(lendOptionalArgs(lendSrc.replace('let mut params = get_arg(optional_args, 0, Value::Null);', 'let params: crate::value::Dict = get_arg_dict(optional_args, 0);')).includes('optional_args: &[&Value]'), 'lendOptionalArgs: get_arg_dict-only method lends');
     const disp = lendOptionalArgs('fn g(&mut self) { self.call_method_t("x_get_y", &[params.clone()]).await; self.parent.call_method(Value::Str("z".into()), &[Value::Dict(r)]).await; }\n');
     ok(disp.includes('call_method_t("x_get_y", &[&params])') && disp.includes('&[&Value::Dict(r)]'), 'lendOptionalArgs: by-name dispatcher lends');
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
