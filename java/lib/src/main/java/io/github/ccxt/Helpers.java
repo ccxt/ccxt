@@ -749,20 +749,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return s.replaceFirst(java.util.regex.Pattern.quote(find),  java.util.regex.Matcher.quoteReplacement(repl)); // literal (non-regex) replacement
     }
 
-    public static String replaceAll(Object baseString, Object search, Object replacement) {
-        if (baseString == null) {
-            return null;
-        }
-        String s     = String.valueOf(baseString);
-        String find  = (search == null) ? "" : String.valueOf(search);
-        if (find.isEmpty()) {
-            // Avoid weird behavior of replacing "" (would insert between every char)
-            return s;
-        }
-        String repl  = (replacement == null) ? "" : String.valueOf(replacement);
-        return s.replace(find, repl); // literal (non-regex) replacement
-    }
-
     public static Object getArg(Object[] v, int index, Object def) {
         if (v == null || v.length <= index) {
             return def;

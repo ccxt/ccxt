@@ -5092,8 +5092,8 @@ export function patchJavaStringReceiverCasts (transpiler) {
     patchJavaStringReceiverCall (printer, 'printToLowerCaseCall', (clean) => `${clean}.toLowerCase()`);
     patchJavaStringReceiverCall (printer, 'printTrimCall', (clean) => `${clean}.trim()`);
     patchJavaStringReceiverCall (printer, 'printSearchCall', (clean, arg) => `${clean}.indexOf(${arg})`);
-    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg, _a2, node) => `${clean}.startsWith(${javaAffixArgText (node, arg)})`);
-    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg, _a2, node) => `${clean}.endsWith(${javaAffixArgText (node, arg)})`);
+    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg, _a2, node) => `${clean}.startsWith(${javaAffixArgText (printer, node, arg)})`);
+    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg, _a2, node) => `${clean}.endsWith(${javaAffixArgText (printer, node, arg)})`);
     patchJavaStringReceiverCall (printer, 'printReplaceCall', (clean, arg, arg2) => `Helpers.replace(${clean}, (String)${arg}, (String)${arg2})`);
     patchJavaStringReceiverCall (printer, 'printReplaceAllCall', (clean, arg, arg2) => `Helpers.replaceAll(${clean}, (String)${arg}, (String)${arg2})`);
     patchJavaStringReceiverCall (printer, 'printPadEndCall', (clean, arg, arg2) => `Helpers.padEnd(${clean}, ((Number)${arg}).intValue(), ((String)${arg2}).charAt(0))`);
@@ -5125,7 +5125,19 @@ function observeJavaStringDeclaration (printer, node, identation, printed) {
     }
     javaEmittedStringLocals.add (declaration);
 }
-// the printed receiver text with the redundant `(String)` wrapper removed, or undefined when the node is not a String-declared local worth touching. `node` is the receiver express...
+function javaDeclaredStringParameter (declaration) {
+    if (declaration.kind !== ts.SyntaxKind.Parameter) { return false; }
+    if (declaration.initializer !== undefined || declaration.dotDotDotToken !== undefined || declaration.questionToken !== undefined) { return false; }
+    const method = declaration.parent;
+    if (method === undefined || !ts.isMethodDeclaration (method) || method.name === undefined || !ts.isIdentifier (method.name)) { return false; }
+    const t = declaration.type;
+    const isStrType = t !== undefined && (t.kind === ts.SyntaxKind.StringKeyword
+        || (ts.isTypeReferenceNode (t) && ts.isIdentifier (t.typeName) && (t.typeName.text === 'Str' || t.typeName.text === 'OrderType' || t.typeName.text === 'OrderSide')));
+    if (!isStrType) { return false; }
+    const idx = method.parameters?.indexOf (declaration) ?? -1;
+    return idx >= 0 && javaStringParamPositions (method.name.text).includes (idx);
+}
+// the printed receiver text with the redundant `(String)` wrapper removed, or undefined when the node is not a String-declared local or parameter worth touching. `node` is the receiver express...
 function javaEmittedStringReceiverText (printer, node, printedName) {
     // a statement that prints a ternary stays byte-identical: its receiver keeps the printer's (redundant but correct) cast
     if (javaStatementPrintsTernary (node)) { return undefined; }
@@ -5140,8 +5152,8 @@ function javaEmittedStringReceiverText (printer, node, printedName) {
     if (current === undefined || current.kind !== ts.SyntaxKind.Identifier) { return undefined; }
     let declaration;
     try { declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve (); } catch (e) { return undefined; }
-    if (declaration === undefined || !javaEmittedStringLocals.has (declaration)) {
-        return undefined; // not a local this module declares String
+    if (declaration === undefined || (!javaEmittedStringLocals.has (declaration) && !javaDeclaredStringParameter (declaration))) {
+        return undefined; // not a local or fixed String parameter this module declares String
     }
     if (current.text !== declaration.name?.text) {
         return undefined; // a `finalX` capture rename / shadowed binding: different emitted type
@@ -5167,7 +5179,20 @@ function isJavaStringMethodReceiver (node) {
     return grand !== undefined && ts.isCallExpression (grand) && grand.expression === parent;
 }
 // wrap one cast-emitting printer method: when the receiver is a String-declared local, rebuild the call with the receiver slot cleaned; otherwise defer to the printer. a string li...
-function javaAffixArgText (node, arg) { const first = unwrapParens (node?.arguments?.[0]); return first !== undefined && ts.isStringLiteral (first) ? arg : `((String)${arg})`; }
+function javaAffixArgText (printer, node, arg) {
+    const first = unwrapParens (node?.arguments?.[0]);
+    return first !== undefined && (ts.isStringLiteral (first) || javaEmittedStringReceiverText (printer, first, undefined) !== undefined) ? arg : `((String)${arg})`;
+}
+function javaTsStringIdentifier (printer, arg) {
+    const bare = unwrapParens (arg);
+    if (bare === undefined || bare.kind !== ts.SyntaxKind.Identifier || !/^[\w$]+$/.test (bare.text)) { return undefined; }
+    let type;
+    try { type = printer.getChecker ().getTypeAtLocation (bare); } catch (e) { return undefined; }
+    if (type === undefined) { return undefined; }
+    const parts = (type.flags & ts.TypeFlags.Union) ? (ts.typeParts (type) ?? []) : [ type ];
+    const arms = parts.filter ((t) => t !== undefined && !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    return (arms.length > 0 && arms.every ((t) => (t.flags & ts.TypeFlags.StringLike) !== 0)) ? bare.text : undefined;
+}
 function patchJavaStringReceiverCall (printer, method, rebuild) {
     const upstream = printer[method];
     if (typeof upstream !== 'function') { return; }
@@ -5181,14 +5206,14 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
         // a printer-native padEnd (pad + truncate on a String receiver) needs no receiver rebuild either
         const nativePad = clean !== undefined && method === 'printPadEndCall' ? upstream.apply (printer, arguments) : undefined;
         if (typeof nativePad === 'string' && !/^Helpers\.padEnd\(/.test (nativePad)) { return nativePad; }
-        const typedReplace = clean !== undefined && method === 'printReplaceCall' ? javaStringLocalsReplaceText (printer, node, clean) : undefined;
+        const typedReplace = clean !== undefined && isReplace ? javaStringLocalsReplaceText (printer, node, clean, method === 'printReplaceAllCall') : undefined;
         if (typedReplace !== undefined) { return typedReplace; }
         if (clean !== undefined) { return rebuild (clean, parsedArg, parsedArg2, node); }
         return upstream.apply (printer, arguments);
     };
 }
-// `s.replace (a, b)` with s, a, b String-declared locals or literals: Helpers.replace is a literal first-occurrence replace, null receiver -> null and a null a/b read as "" (Objec...
-function javaStringLocalsReplaceText (printer, node, clean) {
+// `s.replace (a, b)` / `s.replaceAll (a, b)` with s, a, b String-declared locals/params or literals: null receiver -> null, null a/b -> ""
+function javaStringLocalsReplaceText (printer, node, clean, isAll = false) {
     const args = node.arguments;
     if (args?.length !== 2) { return undefined; }
     const parts = [];
@@ -5200,7 +5225,7 @@ function javaStringLocalsReplaceText (printer, node, clean) {
             parts.push ({ text: printed, literal: bare.text });
             continue;
         }
-        const local = javaEmittedStringReceiverText (printer, arg, undefined);
+        const local = javaEmittedStringReceiverText (printer, arg, undefined) ?? javaTsStringIdentifier (printer, arg);
         if (local === undefined || !/^[\w$]+$/.test (local)) { return undefined; }
         parts.push ({ text: `java.util.Objects.toString(${local}, "")` });
     }
@@ -5208,9 +5233,15 @@ function javaStringLocalsReplaceText (printer, node, clean) {
         return undefined; // literal pairs belong to the literal-replace pass
     }
     const [ find, repl ] = parts;
+    if (isAll) {
+        if (find.literal !== undefined && find.literal.length > 0) {
+            return `(${clean} == null ? null : ${clean}.replace(${find.text}, ${repl.text}))`;
+        }
+        return `(${clean} == null ? null : (${find.text}.isEmpty() ? ${clean} : ${clean}.replace(${find.text}, ${repl.text})))`;
+    }
     const pattern = (find.literal !== undefined && !/[\\^$.|?*+()[\]{}]/.test (find.literal)) ? find.text : `java.util.regex.Pattern.quote(${find.text})`;
     const replacement = (repl.literal !== undefined && !/[$\\]/.test (repl.literal)) ? repl.text : `java.util.regex.Matcher.quoteReplacement(${repl.text})`;
-    return `(${clean} == null ? null : ((String)${clean}).replaceFirst(${pattern}, ${replacement}))`;
+    return `(${clean} == null ? null : ${clean}.replaceFirst(${pattern}, ${replacement}))`;
 }
 // Drops `((String)x)` in Helpers.addElementToObject / GetValue / HashMap.put / safeString* arguments (all `Object` parameters) when the declaration of `x` printed `String`. a sing...
 const SS09_STRING_DECLARATION = /^\s*(?:final\s+)?String\s+[A-Za-z_$][A-Za-z0-9_$]*\s*=/;
@@ -10905,10 +10936,17 @@ function javaArithMemberCtx (lines, from, to) {
         writeCache.set (name, out);
         return out;
     };
-    // the guard at line g holds at line j: every write precedes it, no lambda between, and a guard inside a loop needs a single-assignment local (a later write cannot reach the next i...
-    const guardHolds = (name, g, j) => {
+    // the guard at line g holds at line j: for an enclosing `if` block, no write in g..j and no intervening loop can invalidate it;
+    // for early-return guards outside an enclosing block, every write precedes g and a guard inside a loop needs a single-assignment local.
+    const guardHolds = (name, g, j, enclosingIf = false) => {
         const ws = writes (name);
-        if (ws === undefined || ws.some ((w) => w.line >= g) || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
+        if (ws === undefined || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
+        if (enclosingIf) {
+            if (ws.some ((w) => w.line >= g && w.line <= j)) return false;
+            if (ws.some ((w) => w.line > j) && lines.slice (g + 1, j).some ((l) => /^\s*(?:for|while|do)\b/.test (l))) return false;
+            return true;
+        }
+        if (ws.some ((w) => w.line >= g)) return false;
         if (ws.length > 1) {
             for (let k = g - 1; k > from; k--) {
                 if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || javaLineIndent (lines[k]) >= javaLineIndent (lines[g])) continue;
@@ -10932,7 +10970,7 @@ function javaArithMemberCtx (lines, from, to) {
                 // `if (!Objects.equals(x, null) && ..)` whose then-block is still open at j
                 let open = true;
                 for (let k = g + 2; k < j; k++) if (lines[k].trim () !== '' && javaLineIndent (lines[k]) <= ig) { open = false; break; }
-                if (open) for (const x of javaGuardNames (m[2], false)) if (guardHolds (x, g, j)) out.add (x);
+                if (open) for (const x of javaGuardNames (m[2], false)) if (guardHolds (x, g, j, true)) out.add (x);
             }
             // `if (Objects.equals(x, null) || ..) { return|throw ..; }` earlier in an enclosing block
             const body = lines[g + 2]?.trim () ?? '';

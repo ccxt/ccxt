@@ -214,7 +214,7 @@ const RETYPE_AUDITED_USE_SHAPES = [
 // the plain copy shape `Object x = y;` (the async-param inside-wrapper `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
 const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
 // every one of these callees declares an `Object` parameter at the position the hoisted name can occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrow...
-const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.(?:equals|toString)|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
 // callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol, :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232...
 const RETYPE_STRING_RETURN_CALLEES = new Set ([
     'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString', 'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace', 'Precise.stringMul',
@@ -305,8 +305,8 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
     // native literal String.replaceFirst/replace (section 52) returns String
     if ((token === 'String' || token === 'java.lang.String') && /^(?:\(\(String\)[\w$]+\)|[\w$]+)\.replace(?:First)?\("/.test (value)) return true;
-    // Guarded native replaceFirst is a String (null arm included)
-    return Boolean((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value) || value.indexOf ('+') !== -1 && /"/.test (value));
+    // Guarded native replaceFirst/replace is a String (null arm included)
+    return Boolean((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : (?:\([^?]+\? \1 : )?(?:\(\(String\)\1\)|\1)\.replace(?:First)?\(/.test (value) || value.indexOf ('+') !== -1 && /"/.test (value));
 }
 // a later declaration of the same name is a DIFFERENT variable (Java forbids redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
 function retypeDeclaresName (code: string, name: string): boolean { return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code); }
@@ -1580,6 +1580,7 @@ class NewTranspiler {
         content = nativeJavaNumberDivModNeg(content);
         // Object locals holding only Long boxes retype to Long, then the typed arithmetic/compare passes re-run
         content = nativeJavaLongBoxLocals(content, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaSumLongLocals(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaParamCompare(nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaTypedArithmetic(c))))))))));
+        content = nativeJavaStringReplaceAll(content);
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
     // Insert `@Deprecated` annotation on every method whose preceding JSDoc block contains an `@deprecated` tag. Silences javac `[dep-ann]` warnings and lets IDEs surface the deprecat...
@@ -4265,7 +4266,27 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     content = nativeJavaContainerOps(content);
     content = nativeJavaCoreArgHelpers(nativeJavaStringAdd(content));
     content = nativeJavaInlineCompare(nativeJavaInlineDivModNeg(content));
+    content = nativeJavaStringReplaceAll(content);
     return content;
+}
+// Helpers.replaceAll(recv, find, repl) on three String-declared locals/params: null receiver -> null, null/empty find -> recv, else String.replace
+function nativeJavaStringReplaceAll (content: string): string {
+    if (!content.includes ('Helpers.replaceAll(')) { return content; }
+    const lines = content.split ('\n');
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes ('Helpers.replaceAll(')) { continue; }
+        const from = retypeMemberStart (lines, i);
+        const to = retypeMemberEnd (lines, i);
+        if (from < 0) { continue; }
+        const typeOf = memberDeclaredTypeOf (lines.slice (from, to + 1).join ('\n'));
+        const next = lines[i].replace (/Helpers\.replaceAll\((?:\(\(String\))?([A-Za-z_$]\w*)\)?,\s*([A-Za-z_$]\w*),\s*([A-Za-z_$]\w*)\)/g, (m, recv, find, repl) => {
+            if ((typeOf (recv) !== 'String') || (typeOf (find) !== 'String') || (typeOf (repl) !== 'String')) { return m; }
+            return `(${recv} == null ? null : (java.util.Objects.toString(${find}, "").isEmpty() ? ${recv} : ${recv}.replace(java.util.Objects.toString(${find}, ""), java.util.Objects.toString(${repl}, ""))))`;
+        });
+        if (next !== lines[i]) { lines[i] = next; changed = true; }
+    }
+    return changed ? lines.join ('\n') : content;
 }
 // the single declared type of a name in a printed member (params included); undefined when the name is shadowed by a lambda parameter or declared with mixed types. Memoised per me...
 function memberDeclaredTypeOf (member: string, skipYield = false): (name: string) => string | undefined {
