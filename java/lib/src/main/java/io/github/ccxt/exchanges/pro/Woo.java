@@ -700,7 +700,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "date", timestamp );
             }}), market);
             this.tickers.put((String)market.get("symbol"), ticker);
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
         }
         client.resolve(result, topic);
     }
@@ -1769,7 +1769,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}}), market);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");
             String messageHash = ("positions::" + marketSymbol);

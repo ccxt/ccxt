@@ -3286,7 +3286,7 @@ public class Whitebit extends WhitebitApi
             for (var j = 0; j < orders.size(); j++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(orders, j, new HashMap<String, Object>() {{}}), marketNew);
-                ((List<Object>)results).add(this.extend(order, new HashMap<String, Object>() {{
+                results.add(this.extend(order, new HashMap<String, Object>() {{
                     put( "status", "closed" );
                 }}));
             }
@@ -3847,7 +3847,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> subAccount = this.safeDict(subAccounts, i, new HashMap<String, Object>() {{}});
             String accountId = this.safeString(subAccount, "id");
             String accountName = this.safeString(subAccount, "alias");
-            ((List<Object>)accounts).add(new HashMap<String, Object>() {{
+            accounts.add(new HashMap<String, Object>() {{
                 put( "id", accountId );
                 put( "type", "subaccount" );
                 put( "name", accountName );
@@ -4638,7 +4638,7 @@ public class Whitebit extends WhitebitApi
         for (var i = 0; i < contracts.size(); i++)
         {
             Map<String, Object> contract = this.safeDict(contracts, i, null);
-            ((List<Object>)result).add(this.parseFundingHistory(contract, market));
+            result.add(this.parseFundingHistory(contract, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);

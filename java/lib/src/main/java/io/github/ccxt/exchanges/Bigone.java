@@ -659,7 +659,8 @@ public class Bigone extends BigoneApi
             type = "fiat";
         } else if (java.util.Objects.equals(chainLength, 0))
         {
-            if (this.isLeveragedCurrency(id, false, null))
+            String leveragedId = this.safeString(rawCurrency, "symbol", "");
+            if (this.isLeveragedCurrency(leveragedId, false, null))
             {
                 type = "leveraged";
             } else
@@ -782,36 +783,36 @@ public class Bigone extends BigoneApi
             {
                 continue;
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", this.safeString(market, "name"));
-            j39v1.put("uuid", this.safeString(market, "id"));
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", true);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", this.safeString(market, "name"));
+            mapLiteral3.put("uuid", this.safeString(market, "id"));
+            mapLiteral3.put("symbol", ((base + "/") + quote));
+            mapLiteral3.put("base", base);
+            mapLiteral3.put("quote", quote);
+            mapLiteral3.put("settle", null);
+            mapLiteral3.put("baseId", baseId);
+            mapLiteral3.put("quoteId", quoteId);
+            mapLiteral3.put("settleId", null);
+            mapLiteral3.put("type", "spot");
+            mapLiteral3.put("spot", true);
+            mapLiteral3.put("margin", false);
+            mapLiteral3.put("swap", false);
+            mapLiteral3.put("future", false);
+            mapLiteral3.put("option", false);
+            mapLiteral3.put("active", true);
+            mapLiteral3.put("contract", false);
+            mapLiteral3.put("linear", null);
+            mapLiteral3.put("inverse", null);
+            mapLiteral3.put("contractSize", null);
+            mapLiteral3.put("expiry", null);
+            mapLiteral3.put("expiryDatetime", null);
+            mapLiteral3.put("strike", null);
+            mapLiteral3.put("optionType", null);
+            mapLiteral3.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "base_scale"))) );
                     put( "price", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "quote_scale"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral3.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -829,9 +830,9 @@ public class Bigone extends BigoneApi
                         put( "max", Bigone.this.safeNumber(market, "max_quote_value", null) );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(j39v1));
+            mapLiteral3.put("created", null);
+            mapLiteral3.put("info", market);
+            result.add(this.safeMarketStructure(mapLiteral3));
         }
         for (var i = 0; i < contractMarkets.size(); i++)
         {
@@ -848,35 +849,35 @@ public class Bigone extends BigoneApi
             }
             String settle = this.safeCurrencyCode(settleId, null);
             Boolean inverse = (Boolean) this.safeBool(market, "isInverse", null);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", marketId);
-            j39v2.put("symbol", ((((base + "/") + quote) + ":") + settle));
-            j39v2.put("base", base);
-            j39v2.put("quote", quote);
-            j39v2.put("settle", settle);
-            j39v2.put("baseId", baseId);
-            j39v2.put("quoteId", quoteId);
-            j39v2.put("settleId", settleId);
-            j39v2.put("type", "swap");
-            j39v2.put("spot", false);
-            j39v2.put("margin", false);
-            j39v2.put("swap", true);
-            j39v2.put("future", false);
-            j39v2.put("option", false);
-            j39v2.put("active", this.safeBool(market, "enable", null));
-            j39v2.put("contract", true);
-            j39v2.put("linear", (!java.util.Objects.equals(inverse, true)));
-            j39v2.put("inverse", inverse);
-            j39v2.put("contractSize", this.safeNumber(market, "multiplier", null));
-            j39v2.put("expiry", null);
-            j39v2.put("expiryDatetime", null);
-            j39v2.put("strike", null);
-            j39v2.put("optionType", null);
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("id", marketId);
+            mapLiteral4.put("symbol", ((((base + "/") + quote) + ":") + settle));
+            mapLiteral4.put("base", base);
+            mapLiteral4.put("quote", quote);
+            mapLiteral4.put("settle", settle);
+            mapLiteral4.put("baseId", baseId);
+            mapLiteral4.put("quoteId", quoteId);
+            mapLiteral4.put("settleId", settleId);
+            mapLiteral4.put("type", "swap");
+            mapLiteral4.put("spot", false);
+            mapLiteral4.put("margin", false);
+            mapLiteral4.put("swap", true);
+            mapLiteral4.put("future", false);
+            mapLiteral4.put("option", false);
+            mapLiteral4.put("active", this.safeBool(market, "enable", null));
+            mapLiteral4.put("contract", true);
+            mapLiteral4.put("linear", (!java.util.Objects.equals(inverse, true)));
+            mapLiteral4.put("inverse", inverse);
+            mapLiteral4.put("contractSize", this.safeNumber(market, "multiplier", null));
+            mapLiteral4.put("expiry", null);
+            mapLiteral4.put("expiryDatetime", null);
+            mapLiteral4.put("strike", null);
+            mapLiteral4.put("optionType", null);
+            mapLiteral4.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "valuePrecision"))) );
                     put( "price", Bigone.this.parseNumber(Bigone.this.parsePrecision(Bigone.this.safeString(market, "pricePrecision"))) );
                 }});
-            j39v2.put("limits", new HashMap<String, Object>() {{
+            mapLiteral4.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -894,8 +895,8 @@ public class Bigone extends BigoneApi
                         put( "max", null );
                     }} );
                 }});
-            j39v2.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(j39v2));
+            mapLiteral4.put("info", market);
+            result.add(this.safeMarketStructure(mapLiteral4));
         }
         return result;
 
@@ -1253,7 +1254,7 @@ public class Bigone extends BigoneApi
         {
             String price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
             Object amount = (bidsAsks == null || price == null ? null : bidsAsks.get(price));
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount))));
+            result.add(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount))));
         }
         return result;
     }
@@ -1414,26 +1415,26 @@ public class Bigone extends BigoneApi
             String makerCode = makerCurrencyCode;
             if (!java.util.Objects.equals(takerFeeCost, null))
             {
-                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                mapLiteral3.put("cost", makerFeeCost);
-                mapLiteral3.put("currency", makerCode);
-                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                mapLiteral4.put("cost", takerFeeCost);
-                mapLiteral4.put("currency", takerCurrencyCode);
-                result.put("fees", new ArrayList<Object>(Arrays.asList(mapLiteral3, mapLiteral4)));
-            } else
-            {
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
                 mapLiteral5.put("cost", makerFeeCost);
                 mapLiteral5.put("currency", makerCode);
-                result.put("fee", mapLiteral5);
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("cost", takerFeeCost);
+                mapLiteral6.put("currency", takerCurrencyCode);
+                result.put("fees", new ArrayList<Object>(Arrays.asList(mapLiteral5, mapLiteral6)));
+            } else
+            {
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("cost", makerFeeCost);
+                mapLiteral7.put("currency", makerCode);
+                result.put("fee", mapLiteral7);
             }
         } else if (!java.util.Objects.equals(takerFeeCost, null))
         {
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("cost", takerFeeCost);
-            mapLiteral6.put("currency", takerCurrencyCode);
-            result.put("fee", mapLiteral6);
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("cost", takerFeeCost);
+            mapLiteral8.put("currency", takerCurrencyCode);
+            result.put("fee", mapLiteral8);
         } else
         {
             result.put("fee", null);
@@ -1741,29 +1742,29 @@ public class Bigone extends BigoneApi
             amount = this.safeString(order, "amount");
             filled = this.safeString(order, "filled_amount");
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", order);
-        mapLiteral7.put("id", id);
-        mapLiteral7.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("lastTradeTimestamp", this.parse8601(this.safeString(order, "updated_at")));
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("type", type);
-        mapLiteral7.put("timeInForce", timeInForce);
-        mapLiteral7.put("postOnly", this.safeBool(order, "post_only", null));
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("price", price);
-        mapLiteral7.put("triggerPrice", triggerPrice);
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("cost", cost);
-        mapLiteral7.put("average", this.safeString(order, "avg_deal_price"));
-        mapLiteral7.put("filled", filled);
-        mapLiteral7.put("remaining", null);
-        mapLiteral7.put("status", this.parseOrderStatus(this.safeString(order, "state")));
-        mapLiteral7.put("fee", null);
-        mapLiteral7.put("trades", null);
-        return this.safeOrder(mapLiteral7, market);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", order);
+        mapLiteral9.put("id", id);
+        mapLiteral9.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", this.parse8601(this.safeString(order, "updated_at")));
+        mapLiteral9.put("symbol", symbol);
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("timeInForce", timeInForce);
+        mapLiteral9.put("postOnly", this.safeBool(order, "post_only", null));
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("triggerPrice", triggerPrice);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("cost", cost);
+        mapLiteral9.put("average", this.safeString(order, "avg_deal_price"));
+        mapLiteral9.put("filled", filled);
+        mapLiteral9.put("remaining", null);
+        mapLiteral9.put("status", this.parseOrderStatus(this.safeString(order, "state")));
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("trades", null);
+        return this.safeOrder(mapLiteral9, market);
     }
 
     /**
@@ -2026,7 +2027,7 @@ public class Bigone extends BigoneApi
         for (var i = 0; i < cancelled.size(); i++)
         {
             Object orderId = (cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i));
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", orderId );
                 put( "id", orderId );
                 put( "status", "canceled" );
@@ -2035,7 +2036,7 @@ public class Bigone extends BigoneApi
         for (var i = 0; i < failed.size(); i++)
         {
             Object orderId = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", orderId );
                 put( "id", orderId );
                 put( "status", "failed" );

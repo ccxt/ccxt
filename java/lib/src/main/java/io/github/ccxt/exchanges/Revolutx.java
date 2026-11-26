@@ -470,7 +470,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> marketData = this.extend(market, new HashMap<String, Object>() {{
                 put( "id", marketId );
             }});
-            ((List<Object>)result).add(this.parseMarket(marketData));
+            result.add(this.parseMarket(marketData));
         }
         return result;
 
@@ -657,12 +657,12 @@ public class Revolutx extends RevolutxApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbols, null))
         {
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)marketIds).add(market.get("id"));
+                marketIds.add(this.safeString(market, "id", ""));
             }
             request.put("symbols", String.join(",", (List<String>)marketIds));
         }
@@ -1000,7 +1000,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseTrade(trade, market));
+            result.add(this.parseTrade(trade, market));
         }
         return this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit, false);
 
@@ -1615,7 +1615,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseOrder(order, null));
+            result.add(this.parseOrder(order, null));
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
@@ -1703,7 +1703,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseOrder(order, null));
+            result.add(this.parseOrder(order, null));
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
@@ -1859,7 +1859,7 @@ public class Revolutx extends RevolutxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.parseMyTrade(trade, market));
+            result.add(this.parseMyTrade(trade, market));
         }
         return result;
 

@@ -1029,7 +1029,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-                ((List<Object>)marketIds).add(market.get("id"));
+                marketIds.add(market.get("id"));
             }
             request.put("market", marketIds);
         }
@@ -1317,7 +1317,7 @@ public class Extended extends ExtendedApi
                 mapLiteral3.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral3);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         return this.parseTrades(result, market, since, limit, new HashMap<String, Object>() {{}});
 
@@ -1405,7 +1405,7 @@ public class Extended extends ExtendedApi
                 mapLiteral4.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral4);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         return this.parseFundingHistories(result, market, since, limit);
 
@@ -1448,7 +1448,7 @@ public class Extended extends ExtendedApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)histories).size(); i++)
         {
-            ((List<Object>)result).add(this.parseFundingHistory(this.safeDict(histories, i, new HashMap<String, Object>() {{}}), market));
+            result.add(this.parseFundingHistory(this.safeDict(histories, i, new HashMap<String, Object>() {{}}), market));
         }
         String symbol = (((java.util.Objects.equals(market, null)))) ? null : this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
@@ -1699,7 +1699,7 @@ public class Extended extends ExtendedApi
                 mapLiteral6.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral6);
             }
-            ((List<Object>)result).add(this.parseFundingRateHistory(entry, market));
+            result.add(this.parseFundingRateHistory(entry, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbolValue, sinceResolved, limitResolved, false);
@@ -2040,7 +2040,7 @@ public class Extended extends ExtendedApi
                 mapLiteral7.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral7);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         return this.parseLedger(result, currency, since, limit, new HashMap<String, Object>() {{}});
 
@@ -2176,7 +2176,7 @@ public class Extended extends ExtendedApi
                 mapLiteral9.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral9);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{}});
 
@@ -2372,7 +2372,7 @@ public class Extended extends ExtendedApi
                 mapLiteral10.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral10);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         return this.parseTransfers(result, currency, since, limit, new HashMap<String, Object>() {{}});
 
@@ -2976,7 +2976,7 @@ public class Extended extends ExtendedApi
                 mapLiteral11.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral11);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         List<Object> positions = this.parsePositions(result, symbolsList, new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
@@ -3063,10 +3063,10 @@ public class Extended extends ExtendedApi
 
     public CompletableFuture<Map<String, Object>> fetchExtendedAccount(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchExtendedAccountCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchExtendedAccountCore(parameters));
     }
 
-    private Object fetchExtendedAccountCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchExtendedAccountCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> cachedAccount = this.safeDict(this.options, "account", null);
@@ -3997,7 +3997,7 @@ public class Extended extends ExtendedApi
                 mapLiteral17.put("cursor", cursor);
                 entry = this.extend(entry, mapLiteral17);
             }
-            ((List<Object>)result).add(entry);
+            result.add(entry);
         }
         List<Object> orders = this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);

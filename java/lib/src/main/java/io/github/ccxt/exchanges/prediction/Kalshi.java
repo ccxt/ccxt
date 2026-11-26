@@ -417,7 +417,7 @@ public class Kalshi extends KalshiApi
                 Integer eventMarketsLength = eventMarkets.size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
-                    ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
+                    queryMarkets.add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                 }
             }
             return queryMarkets;
@@ -461,7 +461,7 @@ public class Kalshi extends KalshiApi
                 for (var j = 0; j < parsed.size(); j++)
                 {
                     Object m = (parsed == null || j < 0 || j >= parsed.size() ? null : parsed.get(j));
-                    ((List<Object>)flatMarkets).add(m);
+                    flatMarkets.add(m);
                     if (!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, ""))
                     {
                         String eventKey = this.shortenSlug(eventTitle);
@@ -900,7 +900,7 @@ public class Kalshi extends KalshiApi
             mapLiteral5.put("liquidity", liquidity);
             mapLiteral5.put("openInterest", openInt);
             mapLiteral4.put("info", mapLiteral5);
-            ((List<Object>)outcomes).add(mapLiteral4);
+            outcomes.add(mapLiteral4);
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         String marketResolvedOutcome = resolvedOutcome;
@@ -1329,7 +1329,7 @@ public class Kalshi extends KalshiApi
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             List<Object> grouped = this.safeList(outcomesByTicker, ticker, new ArrayList<Object>(Arrays.asList()));
-            ((List<Object>)grouped).add(outcomeObj);
+            grouped.add(outcomeObj);
             outcomesByTicker.put(ticker, grouped);
         }
         Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
@@ -1427,13 +1427,13 @@ public class Kalshi extends KalshiApi
             for (var bi = 0; bi < rawNo.size(); bi++)
             {
                 Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0, null);
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, null))));
+                bids.add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, null))));
             }
             for (var ai = 0; ai < rawYes.size(); ai++)
             {
                 Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0, null);
                 Object price = (((!java.util.Objects.equals(yesPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1, null))));
+                asks.add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 1, null))));
             }
         } else
         {
@@ -1441,13 +1441,13 @@ public class Kalshi extends KalshiApi
             for (var bi = 0; bi < rawYes.size(); bi++)
             {
                 Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0, null);
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, null))));
+                bids.add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, null))));
             }
             for (var ai = 0; ai < rawNo.size(); ai++)
             {
                 Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0, null);
                 Object price = (((!java.util.Objects.equals(noPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1, null))));
+                asks.add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 1, null))));
             }
         }
         return this.safePredictionOrderBook((Map<String, Object>) (this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), null, bids, asks)), outcomeObj);
@@ -1588,7 +1588,7 @@ public class Kalshi extends KalshiApi
             Double previousPrice = this.safeNumber(priceObj, "previous_dollars", null);
             if ((!java.util.Objects.equals(openPrice, null)) || (!java.util.Objects.equals(previousPrice, null)))
             {
-                ((List<Object>)usableCandles).add(candle);
+                usableCandles.add(candle);
             }
         }
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
@@ -1691,7 +1691,7 @@ public class Kalshi extends KalshiApi
             String tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
             if (java.util.Objects.equals(tradeTicker, null) || java.util.Objects.equals(tradeTicker, ticker))
             {
-                ((List<Object>)filteredTrades).add(trade);
+                filteredTrades.add(trade);
             }
         }
         return this.parsePredictionTrades(filteredTrades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
@@ -1808,7 +1808,7 @@ public class Kalshi extends KalshiApi
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (fillsLength != null && i < fillsLength); i++)
         {
-            ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
+            trades.add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
         }
         Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome(outcome) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
@@ -1818,7 +1818,7 @@ public class Kalshi extends KalshiApi
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             if ((java.util.Objects.equals(wantedOutcome, null)) || (java.util.Objects.equals(this.safeString(trade, "outcome"), wantedOutcome)))
             {
-                ((List<Object>)result).add(trade);
+                result.add(trade);
             }
         }
         return this.filterBySinceLimit(result, since, limit, "timestamp", false);
@@ -2022,7 +2022,7 @@ public class Kalshi extends KalshiApi
             String positionTicker = this.safeString(positionInfo, "ticker");
             if ((!java.util.Objects.equals(positionTicker, null)) && (wantedTickers.containsKey(positionTicker)))
             {
-                ((List<Object>)result).add(position);
+                result.add(position);
             }
         }
         return result;
@@ -2073,7 +2073,7 @@ public class Kalshi extends KalshiApi
             Map<String, Object> settlement = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             if ((java.util.Objects.equals(wantedOutcome, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcome"), wantedOutcome)))
             {
-                ((List<Object>)result).add(settlement);
+                result.add(settlement);
             }
         }
         return this.filterBySinceLimit(result, since, limit, "timestamp", false);
@@ -2332,7 +2332,7 @@ public class Kalshi extends KalshiApi
             String status = this.safeString(order, "status");
             if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
             {
-                ((List<Object>)result).add(order);
+                result.add(order);
             }
         }
         return this.filterBySinceLimit(result, since, limit, "timestamp", false);
@@ -2732,7 +2732,7 @@ public class Kalshi extends KalshiApi
                 // carries the true side/outcome/price/count, then mark it canceled
                 Map<String, Object> parsed = this.parsePredictionOrder(this.safeDict(restingOrders, i, new HashMap<String, Object>() {{}}), null);
                 parsed.put("status", "canceled");
-                ((List<Object>)canceledOrders).add(parsed);
+                canceledOrders.add(parsed);
             }
         }
         return canceledOrders;
@@ -2825,7 +2825,7 @@ public class Kalshi extends KalshiApi
         for (var di = 0; (rawEventsLength != null && di < rawEventsLength); di++)
         {
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || di < 0 || di >= rawEvents.size() ? null : rawEvents.get(di))));
-            ((List<Object>)result).add(parsedEvent);
+            result.add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             Object parsedMarkets = parsedEvent.get("markets");
             Integer parsedMarketsLength = ((List<?>)parsedMarkets).size();
@@ -2908,7 +2908,7 @@ public class Kalshi extends KalshiApi
             try
             {
                 Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) ((eventTickers == null || ei < 0 || ei >= eventTickers.size() ? null : eventTickers.get(ei))), rest)).join();
-                ((List<Object>)rawEvents).add(fullEvent);
+                rawEvents.add(fullEvent);
             } catch(Exception e)
             {
                 if (!(Helpers.isInstance(e, BadSymbol.class)))
@@ -2986,7 +2986,7 @@ public class Kalshi extends KalshiApi
                 String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
                 if (!java.util.Objects.equals(st, null))
                 {
-                    ((List<Object>)collected).add(st);
+                    collected.add(st);
                 }
             }
         }
@@ -3003,7 +3003,7 @@ public class Kalshi extends KalshiApi
                 String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
                 if (!java.util.Objects.equals(st, null))
                 {
-                    ((List<Object>)collected).add(st);
+                    collected.add(st);
                 }
             }
         }
@@ -3015,7 +3015,7 @@ public class Kalshi extends KalshiApi
             Integer partsLength = parts.size();
             for (var pi = 0; (partsLength != null && pi < partsLength); pi++)
             {
-                ((List<Object>)collected).add((parts == null || pi < 0 || pi >= parts.size() ? null : parts.get(pi)));
+                collected.add((parts == null || pi < 0 || pi >= parts.size() ? null : parts.get(pi)));
             }
         }
         // deduplicate preserving order
@@ -3029,7 +3029,7 @@ public class Kalshi extends KalshiApi
             if ((!java.util.Objects.equals(st, null)) && (!java.util.Objects.equals(st, "")) && (java.util.Objects.equals(already, null)))
             {
                 seen.put(st, st);
-                ((List<Object>)ordered).add(st);
+                ordered.add(st);
             }
         }
         return ordered;
@@ -3100,7 +3100,7 @@ public class Kalshi extends KalshiApi
                 Integer pageEventsLength = pageEvents.size();
                 for (var ei = 0; (pageEventsLength != null && ei < pageEventsLength); ei++)
                 {
-                    ((List<Object>)rawEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
+                    rawEvents.add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
                 }
                 cursor = this.safeString(response, "cursor");
                 Integer collectedAfterPage = rawEvents.size();
@@ -3233,7 +3233,7 @@ public class Kalshi extends KalshiApi
         {
             Object rawMarket = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
             MarketInterface parsed = this.parseMarket(rawMarket);
-            ((List<Object>)marketsList).add(parsed);
+            marketsList.add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Long marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));

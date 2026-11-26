@@ -375,7 +375,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return base.toLowerCase();
     }
 
-    public String getStockUnifiedSymbol(String stockSymbol, Object quote)
+    public String getStockUnifiedSymbol(String stockSymbol, String quote)
     {
         if (java.util.Objects.equals(stockSymbol, null))
         {
@@ -2166,7 +2166,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 utcSuffix = suffix;
             }
-            ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
+            rawHashes.add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
             messageHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             subscribeHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2271,7 +2271,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 utcSuffix = suffix;
             }
-            ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
+            rawHashes.add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
             subMessageHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             messageHashes.add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2935,7 +2935,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < stockSymbols.size(); i++)
             {
                 String stockTicker = this.getStockTickerFromSymbol((String) ((stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
-                ((List<Object>)stockStreams).add((stockTicker + "@quote"));
+                stockStreams.add((stockTicker + "@quote"));
                 stockMessageHashes.add(("stock:quote:" + (stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
             }
             Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock)).join();
@@ -3060,7 +3060,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     if (!(seenUnderlyings.containsKey(underlying)))
                     {
                         seenUnderlyings.put(underlying, true);
-                        ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
+                        subscriptionArgs.add((underlying + "@optionMarkPrice"));
                     }
                 } else if (Boolean.TRUE.equals(isOptionTicker))
                 {
@@ -3076,11 +3076,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     if (!(seenUnderlyings.containsKey(subscriptionArg)))
                     {
                         seenUnderlyings.put(subscriptionArg, true);
-                        ((List<Object>)subscriptionArgs).add(subscriptionArg);
+                        subscriptionArgs.add(subscriptionArg);
                     }
                 } else
                 {
-                    ((List<Object>)subscriptionArgs).add((((this.safeString(market, "lowercaseId", "") + "@") + channel) + suffix));
+                    subscriptionArgs.add((((this.safeString(market, "lowercaseId", "") + "@") + channel) + suffix));
                 }
             }
         } else
@@ -3100,11 +3100,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     {
                         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")) ;
                     }
-                    ((List<Object>)subscriptionArgs).add(((underlying + "@optionTicker@") + expirationDate));
+                    subscriptionArgs.add(((underlying + "@optionTicker@") + expirationDate));
                 } else
                 {
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
-                    ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
+                    subscriptionArgs.add((underlying + "@optionMarkPrice"));
                 }
                 messageHashes.add(((unifiedPrefix + "s:") + channel));
                 unsubscribeMessageHashes.add(("unsubscribe::" + channel));
@@ -3114,17 +3114,17 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires symbols for this channel for spot markets")) ;
                 }
-                ((List<Object>)subscriptionArgs).add(("!" + channel));
+                subscriptionArgs.add(("!" + channel));
                 messageHashes.add(((unifiedPrefix + "s:") + channel));
                 unsubscribeMessageHashes.add(("unsubscribe::" + channel));
             } else if (Boolean.TRUE.equals(isMarkPrice))
             {
-                ((List<Object>)subscriptionArgs).add(((("!" + channel) + "@arr") + suffix));
+                subscriptionArgs.add(((("!" + channel) + "@arr") + suffix));
                 messageHashes.add(((unifiedPrefix + "s:") + channel));
                 unsubscribeMessageHashes.add(("unsubscribe::" + channel));
             } else
             {
-                ((List<Object>)subscriptionArgs).add((("!" + channel) + "@arr"));
+                subscriptionArgs.add((("!" + channel) + "@arr"));
                 messageHashes.add(((unifiedPrefix + "s:") + channel));
                 unsubscribeMessageHashes.add(("unsubscribe::" + channel));
             }
@@ -3450,7 +3450,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             rawTickers = (List<Object>) message;
         } else
         {
-            ((List<Object>)rawTickers).add(message);
+            rawTickers.add(message);
         }
         for (var i = 0; i < rawTickers.size(); i++)
         {
@@ -3562,12 +3562,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    public CompletableFuture<Void> ensureUserDataStreamWsSubscribeSignature(Object marketType)
+    public CompletableFuture<Void> ensureUserDataStreamWsSubscribeSignature(String marketType)
     {
         return BaseExchange.supplyAsync(() -> this.ensureUserDataStreamWsSubscribeSignatureCore(marketType));
     }
 
-    private Void ensureUserDataStreamWsSubscribeSignatureCore(Object marketType)
+    private Void ensureUserDataStreamWsSubscribeSignatureCore(String marketType)
     {
 
         Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -4427,7 +4427,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String entryPrice = this.safeString(parsed, "entryPrice");
             if ((!java.util.Objects.equals(entryPrice, "0")) && (!java.util.Objects.equals(entryPrice, "0.0")) && (!java.util.Objects.equals(entryPrice, "0.00000000")))
             {
-                ((List<Object>)positions).add(parsed);
+                positions.add(parsed);
             }
         }
         client.resolve(positions, messageHash);
@@ -4584,8 +4584,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.balance.put(accountType, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
         Map<String, Object> balance = this.safeDict(this.balance, accountType, new HashMap<String, Object>() {{}});
+        balance.put("info", message);
         String eventVar = this.safeString(message, "e");
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         Map<String, Object> balanceMessage = (Map<String, Object>) this.safeDict(message, "a", message);
@@ -5389,7 +5389,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Order order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
             if (java.util.Objects.equals(this.safeString(order, "status"), "closed"))
             {
-                ((List<Object>)closedOrders).add(order);
+                closedOrders.add(order);
             }
         }
         return closedOrders;
@@ -6431,7 +6431,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Long timestamp = this.safeInteger(message, "E");
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
@@ -6925,7 +6925,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         }
                         // save this trade in the order
                         List<Object> orderTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-                        ((List<Object>)orderTrades).add(trade);
+                        orderTrades.add(trade);
                         order.put("trades", orderTrades);
                         // write the updated order back into the cache: php
                         // arrays are value types, so the fee/trades mutations
@@ -7061,7 +7061,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> position = this.parseWsOptionsPosition(rawPosition, null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));

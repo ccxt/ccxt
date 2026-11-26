@@ -1367,7 +1367,7 @@ public class Aster extends AsterApi
             // tmp skip some markets with base = undefined
             if (!java.util.Objects.equals(this.safeString(market, "baseAsset"), null))
             {
-                ((List<Object>)fapiRowsFiltered).add(market);
+                fapiRowsFiltered.add(market);
             }
         }
         List<Object> rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
@@ -2224,7 +2224,7 @@ public class Aster extends AsterApi
             String marketId = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
             Map<String, Object> safeMarket = this.safeMarket(marketId, null, null, marketType);
             Map<String, Object> priceData = this.extend(this.parseLastPrice(this.extend(new HashMap<String, Object>() {{}}, (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), safeMarket), paramsMarketType);
-            ((List<Object>)results).add(priceData);
+            results.add(priceData);
         }
         List<String> symbolsNormalized2 = this.marketSymbols(symbolsNormalized, null, true, false, false);
         return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized2, false), "symbol");
@@ -3350,14 +3350,14 @@ public class Aster extends AsterApi
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> currentMarket = this.market(marketId);
-            ((List<Object>)orderSymbols).add(currentMarket.get("symbol"));
+            orderSymbols.add(currentMarket.get("symbol"));
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
             Double amount = this.safeNumber(rawOrder, "amount", null);
             Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<String> orderSymbolsResolved = this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> market = this.market((orderSymbolsResolved == null || 0 >= ((List<?>)orderSymbolsResolved).size() ? null : ((List<?>)orderSymbolsResolved).get(0)));
@@ -3751,7 +3751,7 @@ public class Aster extends AsterApi
             List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ids.size(); i++)
             {
-                ((List<Object>)orderIdList).add(this.parseToNumeric((ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))));
+                orderIdList.add(this.parseToNumeric((ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))));
             }
             request.put("orderIdList", orderIdList);
         }
@@ -4089,10 +4089,10 @@ public class Aster extends AsterApi
 
     public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
+    private Map<String, Object> modifyMarginHelperCore(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
 
         (this.loadMarketsAndSignIn()).join();
@@ -4611,7 +4611,7 @@ public class Aster extends AsterApi
             String entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (Precise.stringGt(entryPriceString, "0"))
             {
-                ((List<Object>)result).add(this.parsePositionRisk(rawPosition, null));
+                result.add(this.parsePositionRisk(rawPosition, null));
             }
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
@@ -4705,7 +4705,7 @@ public class Aster extends AsterApi
                     mapLiteral9.put("crossMargin", this.safeString(balance, "crossMargin"));
                     mapLiteral9.put("crossWalletBalance", this.safeString(balance, "crossWalletBalance"));
                     Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, mapLiteral9), market);
-                    ((List<Object>)result).add(parsed);
+                    result.add(parsed);
                 }
             }
         }
@@ -4995,7 +4995,7 @@ public class Aster extends AsterApi
                     Map<String, Object> bracket = this.safeDict(brackets, j, null);
                     String floorValue = this.safeString(bracket, "notionalFloor");
                     String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
-                    ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
+                    result.add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
                 }
                 Map<String, Object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
                 leverageBracketsDict.put(symbol, result);

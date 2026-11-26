@@ -267,7 +267,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < statuses.size(); i++)
         {
             Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
-            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+            orders.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", status );
                 put( "status", status );
             }}, null));
@@ -989,7 +989,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             // liquidator fills carry the liquidated counterparty here
             if (java.util.Objects.equals(this.safeStringLower(liquidation, "liquidatedUser"), user))
             {
-                ((List<Object>)newLiquidations).add(this.parseLiquidation(fill, null));
+                newLiquidations.add(this.parseLiquidation(fill, null));
             }
         }
         Integer newLiquidationsLength = newLiquidations.size();
@@ -1569,7 +1569,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             account = "swap";
             Map<String, Object> clearinghouseState = this.safeDict(data, "clearinghouseState", null);
-            ((List<Object>)rawBalances).add(clearinghouseState);
+            rawBalances.add(clearinghouseState);
             info = clearinghouseState;
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client, message);
@@ -1583,9 +1583,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.balance.put(account, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "info", info);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "timestamp", timestamp);
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), "datetime", this.iso8601(timestamp));
         Map<String, Object> accountEntry = this.safeDict(this.balance, account, new HashMap<String, Object>() {{}});
+        accountEntry.put("timestamp", timestamp);
+        accountEntry.put("datetime", this.iso8601(timestamp));
         this.balance.put(account, this.safeBalance(accountEntry));
         if (!java.util.Objects.equals(topic, null))
         {
@@ -1754,7 +1754,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = this.parsePosition(rawPosition, null);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         String baseMessageHash = "clearinghouseState::positions";

@@ -488,7 +488,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         List<Object> futures = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < messageHashes.size(); i++)
         {
-            ((List<Object>)futures).add(client.reusableFuture((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))));
+            futures.add(client.reusableFuture((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))));
         }
         for (var i = 0; i < marketSymbols.size(); i++)
         {
@@ -699,7 +699,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             Long ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(unifiedSymbol)).containsKey(java.util.Objects.requireNonNullElse(timeframe, "1m"))))
             {
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(unifiedSymbol), java.util.Objects.requireNonNullElse(timeframe, "1m"), new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
+                this.ohlcvs.get(unifiedSymbol).put(java.util.Objects.requireNonNullElse(timeframe, "1m"), new ArrayCache.ArrayCacheByTimestamp(((Number)ohlcvLimit).intValue()));
             }
             Map<String, Object> options = this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -824,22 +824,25 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         }
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> bars = new ArrayList<Object>(Arrays.asList());
-        Object lastHistoryTimestamp = null;
+        Long lastHistoryTimestamp = null;
         for (var i = 0; i < data.size(); i++)
         {
             List<Object> parsed = this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
-            Object timestamp = ((List<Object>)parsed).get(0);
-            if (java.util.Objects.equals(timestamp, null))
+            if (java.util.Objects.equals(this.safeInteger(parsed, 0), null))
             {
                 continue;
             }
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(timestamp, 100000000000L))
+            Long timestamp = this.safeInteger(parsed, 0, 0);
+            if (((timestamp == null || timestamp < 100000000000L)))
             {
-                timestamp = Helpers.multiply(timestamp, 1000); // seconds
+                timestamp = (timestamp * 1000L); // seconds
                 parsed.set(0, timestamp);
             }
-            ((List<Object>)bars).add(parsed);
-            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(timestamp, lastHistoryTimestamp)))
+            bars.add(parsed);
+            if (java.util.Objects.equals(lastHistoryTimestamp, null))
+            {
+                lastHistoryTimestamp = timestamp;
+            } else if ((timestamp != null && (lastHistoryTimestamp == null || timestamp > lastHistoryTimestamp)))
             {
                 lastHistoryTimestamp = timestamp;
             }
@@ -850,7 +853,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             Object candle = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
             if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(candle, 0), lastHistoryTimestamp)))
             {
-                ((List<Object>)bars).add(candle);
+                bars.add(candle);
             }
         }
         List<Object> sorted = this.sortBy(bars, 0);
@@ -1175,11 +1178,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             String ask = this.ibkrParseValue(this.safeString(row, "ask"));
             if (!java.util.Objects.equals(bid, null))
             {
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, bid)));
+                bids.add(new ArrayList<Object>(Arrays.asList(price, bid)));
             }
             if (!java.util.Objects.equals(ask, null))
             {
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, ask)));
+                asks.add(new ArrayList<Object>(Arrays.asList(price, ask)));
             }
         }
         // the placeholder ladder sent right after subscribing has no sizes, it is not emitted

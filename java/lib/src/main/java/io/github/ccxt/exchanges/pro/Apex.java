@@ -328,7 +328,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageHash = this.safeString(messageHashes, i, "");
             if (!(client.subscriptions.containsKey(messageHash)))
             {
-                ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
+                newTopics.add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
             }
         }
         Integer newTopicsLength = newTopics.size();
@@ -1011,17 +1011,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     {
 
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<CompletableFuture<?>> fetchFunctions = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})));
-        List<Object> promises = (CompletableFuture.allOf(fetchFunctions.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(fetchFunctions.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
         this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        for (var i = 0; i < promises.size(); i++)
+        for (var i = 0; i < positions.size(); i++)
         {
-            List<?> positions = (List<?>) (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
-            for (var ii = 0; ii < positions.size(); ii++)
-            {
-                cache.append((positions == null || ii < 0 || ii >= positions.size() ? null : positions.get(ii)));
-            }
+            cache.append((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
         }
         // don't remove the future from the .futures cache
         if (client.futures.containsKey(messageHash))
@@ -1070,7 +1065,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             if (java.util.Objects.equals(side, null) || java.util.Objects.equals(side, ""))
             {
                 // closing update, adding both sides to "reset" both sides

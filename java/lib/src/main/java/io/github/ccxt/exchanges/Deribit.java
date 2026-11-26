@@ -1204,7 +1204,7 @@ public class Deribit extends DeribitApi
         if (Boolean.TRUE.equals(fetchAllMarkets))
         {
             Map<String, Object> instrumentsResponse = (this.publicGetGetInstruments(paramsFetchAllMarkets)).join();
-            ((List<Object>)instrumentsResponses).add(instrumentsResponse);
+            instrumentsResponses.add(instrumentsResponse);
         } else
         {
             Map<String, Object> currenciesResponse = (this.publicGetGetCurrencies(paramsFetchAllMarkets)).join();
@@ -1313,7 +1313,7 @@ public class Deribit extends DeribitApi
                 //         "testnet":false
                 //     }
                 //
-                ((List<Object>)instrumentsResponses).add(instrumentsResponse);
+                instrumentsResponses.add(instrumentsResponse);
             }
         }
         for (var i = 0; i < instrumentsResponses.size(); i++)
@@ -1400,37 +1400,37 @@ public class Deribit extends DeribitApi
                 }
                 Double minTradeAmount = this.safeNumber(market, "min_trade_amount", null);
                 Double tickSize = this.safeNumber(market, "tick_size", null);
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", id);
-                j39v1.put("symbol", symbol);
-                j39v1.put("base", base);
-                j39v1.put("quote", quote);
-                j39v1.put("settle", settle);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", quoteId);
-                j39v1.put("settleId", settleId);
-                j39v1.put("type", type);
-                j39v1.put("spot", isSpot);
-                j39v1.put("margin", false);
-                j39v1.put("swap", swap);
-                j39v1.put("future", future);
-                j39v1.put("option", option);
-                j39v1.put("active", this.safeBool(market, "is_active", null));
-                j39v1.put("contract", !Boolean.TRUE.equals(isSpot));
-                j39v1.put("linear", linear);
-                j39v1.put("inverse", inverse);
-                j39v1.put("taker", this.safeNumber(market, "taker_commission", null));
-                j39v1.put("maker", this.safeNumber(market, "maker_commission", null));
-                j39v1.put("contractSize", this.safeNumber(market, "contract_size", null));
-                j39v1.put("expiry", expiry);
-                j39v1.put("expiryDatetime", this.iso8601(expiry));
-                j39v1.put("strike", strike);
-                j39v1.put("optionType", optionType);
-                j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("id", id);
+                mapLiteral2.put("symbol", symbol);
+                mapLiteral2.put("base", base);
+                mapLiteral2.put("quote", quote);
+                mapLiteral2.put("settle", settle);
+                mapLiteral2.put("baseId", baseId);
+                mapLiteral2.put("quoteId", quoteId);
+                mapLiteral2.put("settleId", settleId);
+                mapLiteral2.put("type", type);
+                mapLiteral2.put("spot", isSpot);
+                mapLiteral2.put("margin", false);
+                mapLiteral2.put("swap", swap);
+                mapLiteral2.put("future", future);
+                mapLiteral2.put("option", option);
+                mapLiteral2.put("active", this.safeBool(market, "is_active", null));
+                mapLiteral2.put("contract", !Boolean.TRUE.equals(isSpot));
+                mapLiteral2.put("linear", linear);
+                mapLiteral2.put("inverse", inverse);
+                mapLiteral2.put("taker", this.safeNumber(market, "taker_commission", null));
+                mapLiteral2.put("maker", this.safeNumber(market, "maker_commission", null));
+                mapLiteral2.put("contractSize", this.safeNumber(market, "contract_size", null));
+                mapLiteral2.put("expiry", expiry);
+                mapLiteral2.put("expiryDatetime", this.iso8601(expiry));
+                mapLiteral2.put("strike", strike);
+                mapLiteral2.put("optionType", optionType);
+                mapLiteral2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", minTradeAmount );
                         put( "price", tickSize );
                     }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+                mapLiteral2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1448,9 +1448,9 @@ public class Deribit extends DeribitApi
                             put( "max", null );
                         }} );
                     }});
-                j39v1.put("created", this.safeInteger(market, "creation_timestamp"));
-                j39v1.put("info", market);
-                ((List<Object>)result).add(j39v1);
+                mapLiteral2.put("created", this.safeInteger(market, "creation_timestamp"));
+                mapLiteral2.put("info", market);
+                result.add(mapLiteral2);
             }
         }
         return result;
@@ -2101,21 +2101,21 @@ public class Deribit extends DeribitApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("order", this.safeString(trade, "order_id"));
-        mapLiteral2.put("type", this.safeString(trade, "order_type"));
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", priceString);
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("cost", cost);
-        mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("order", this.safeString(trade, "order_id"));
+        mapLiteral3.put("type", this.safeString(trade, "order_type"));
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -2536,29 +2536,29 @@ public class Deribit extends DeribitApi
         List<Object> trades = this.safeList(order, "trades", null);
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
         Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("clientOrderId", null);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("timeInForce", timeInForce);
-        mapLiteral3.put("postOnly", postOnly);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("triggerPrice", this.safeNumber(order, "stop_price", null));
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("cost", cost);
-        mapLiteral3.put("average", averageString);
-        mapLiteral3.put("filled", filledString);
-        mapLiteral3.put("remaining", null);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("fee", fee);
-        mapLiteral3.put("trades", trades);
-        return this.safeOrder(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", priceString);
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", null));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("average", averageString);
+        mapLiteral4.put("filled", filledString);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", trades);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -2949,9 +2949,9 @@ public class Deribit extends DeribitApi
         //        testnet: true
         //    }
         //
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, null)));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", response);
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral5, null)));
 
     }
 
@@ -3687,7 +3687,7 @@ public class Deribit extends DeribitApi
         {
             Long timestamp = this.safeInteger((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 0);
             Double volatilityObj = this.safeNumber((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 1, null);
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "info", volatilityObj );
                 put( "timestamp", timestamp );
                 put( "datetime", Deribit.this.iso8601(timestamp) );
@@ -4092,8 +4092,7 @@ public class Deribit extends DeribitApi
         Long duration = (((long) this.parseTimeframe(eachItemDuration)) * 1000L);
         Long now = this.milliseconds();
         Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
-        Object defaultSince = (now - month);
-        Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
+        Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? ((now - month)) : since;
         Long time = now;
         if (!java.util.Objects.equals(since, null))
         {
@@ -4101,7 +4100,7 @@ public class Deribit extends DeribitApi
         }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("instrument_name", market.get("id"));
-        request.put("start_timestamp", ((((Number) sinceResolved).longValue()) - 1L));
+        request.put("start_timestamp", (sinceResolved - 1L));
         Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
         Long endTimestamp = time;
@@ -4147,9 +4146,9 @@ public class Deribit extends DeribitApi
         {
             Map<String, Object> fr = this.safeDict(result, i, new HashMap<String, Object>() {{}});
             Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
-            ((List<Object>)rates).add(rate);
+            rates.add(rate);
         }
-        return this.filterBySymbolSinceLimit(rates, symbol, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); })), limit, false);
+        return this.filterBySymbolSinceLimit(rates, symbol, sinceResolved, limit, false);
 
     }
 
@@ -4830,14 +4829,14 @@ public class Deribit extends DeribitApi
         {
             openInterestValue = openInterest;
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
-        mapLiteral5.put("openInterestAmount", openInterestAmount);
-        mapLiteral5.put("openInterestValue", openInterestValue);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("info", interest);
-        return this.safeOpenInterest(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
+        mapLiteral6.put("openInterestAmount", openInterestAmount);
+        mapLiteral6.put("openInterestValue", openInterestValue);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("info", interest);
+        return this.safeOpenInterest(mapLiteral6, marketResolved);
     }
 
     public Long nonce()

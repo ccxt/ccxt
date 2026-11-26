@@ -240,7 +240,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(ticker, "symbol");
             this.tickers.put(symbol, ticker);
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {
                 String messageHash = ((eventVar + "@") + this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "market", ""));
@@ -288,7 +288,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Ticker ticker = this.parseWsBidAsk(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol", "");
             this.bidsasks.put(symbol, ticker);
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
             String messageHash = ((eventVar + ":") + symbol);
             client.resolve(ticker, messageHash);
         }
@@ -649,11 +649,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < intervals.size(); i++)
         {
             String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("name", name);
-            j39v1.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
-            j39v1.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
-            ((List<Object>)channels).add(j39v1);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("name", name);
+            mapLiteral4.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
+            mapLiteral4.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+            channels.add(mapLiteral4);
         }
         String url = this.safeString(this.urls.get("api"), "ws");
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -742,11 +742,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < intervals.size(); i++)
         {
             String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("name", name);
-            j39v2.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
-            j39v2.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
-            ((List<Object>)channels).add(j39v2);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("name", name);
+            mapLiteral5.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
+            mapLiteral5.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+            channels.add(mapLiteral5);
         }
         Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
             put( "symbolsAndTimeframes", symbolsAndTimeframes );
@@ -783,10 +783,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String url = this.safeString(this.urls.get("api"), "ws");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("action", "subscribe");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("name", name);
-        mapLiteral4.put("markets", new ArrayList<Object>(Arrays.asList(market.get("id"))));
-        request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral4)));
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("name", name);
+        mapLiteral6.put("markets", new ArrayList<Object>(Arrays.asList(market.get("id"))));
+        request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral6)));
         Map<String, Object> subscription = new HashMap<String, Object>();
         subscription.put("messageHash", messageHash);
         subscription.put("name", name);
@@ -836,10 +836,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String url = this.safeString(this.urls.get("api"), "ws");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("action", "subscribe");
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("name", name);
-        mapLiteral5.put("markets", marketIds);
-        request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral5)));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("name", name);
+        mapLiteral7.put("markets", marketIds);
+        request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral7)));
         // the per-market snapshot machinery reads the marketId from the buffered
         // delta messages, so the shared subscription only carries the common fields
         Map<String, Object> subscription = new HashMap<String, Object>();
@@ -905,10 +905,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             marketIds.add(((String)market.get("id")));
             subMessageHashes.add(((name + "@") + this.safeString(market, "id", "")));
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("name", name);
-        mapLiteral6.put("markets", marketIds);
-        List<Object> channels = new ArrayList<Object>(Arrays.asList(mapLiteral6));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("name", name);
+        mapLiteral8.put("markets", marketIds);
+        List<Object> channels = new ArrayList<Object>(Arrays.asList(mapLiteral8));
         Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
             put( "symbols", symbolsNormalized );
         }};

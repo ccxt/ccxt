@@ -730,11 +730,11 @@ public class TestSharedMethods extends BaseTest {
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)a).size(); i++)
             {
-                ((List<Object>)result).add((a == null || i < 0 || i >= ((List<?>)a).size() ? null : ((List<?>)a).get(i)));
+                result.add((a == null || i < 0 || i >= ((List<?>)a).size() ? null : ((List<?>)a).get(i)));
             }
             for (var j = 0; j < ((List<?>)b).size(); j++)
             {
-                ((List<Object>)result).add((b == null || j < 0 || j >= ((List<?>)b).size() ? null : ((List<?>)b).get(j)));
+                result.add((b == null || j < 0 || j >= ((List<?>)b).size() ? null : ((List<?>)b).get(j)));
             }
             return result;
         }

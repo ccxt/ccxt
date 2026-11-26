@@ -1330,7 +1330,7 @@ public class Alpaca extends AlpacaApi
                 put( "baseVolume", Alpaca.this.safeString(dailyBar, "v") );
                 put( "quoteVolume", Precise.stringMul(Alpaca.this.safeString(dailyBar, "v"), Alpaca.this.safeString(dailyBar, "vw")) );
             }}, market);
-            ((List<Object>)results).add(ticker);
+            results.add(ticker);
         }
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 
@@ -2312,7 +2312,7 @@ public class Alpaca extends AlpacaApi
                 }
                 if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                 {
-                    ((List<Object>)filtered).add(entry);
+                    filtered.add(entry);
                 }
             }
             return this.parseTransactions(filtered, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
@@ -2347,10 +2347,10 @@ public class Alpaca extends AlpacaApi
             String direction = this.safeString(entry, "direction");
             if (java.util.Objects.equals(direction, type))
             {
-                ((List<Object>)results).add(entry);
+                results.add(entry);
             } else if (java.util.Objects.equals(type, "BOTH"))
             {
-                ((List<Object>)results).add(entry);
+                results.add(entry);
             }
         }
         return this.parseTransactions(results, currency, since, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));

@@ -1505,7 +1505,7 @@ public class Modetrade extends ModetradeApi
             Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
             String marketId = this.safeString(entry, "symbol");
             Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Modetrade.this.safeSymbol(marketId, null, null, null) );
                 put( "fundingRate", Modetrade.this.safeNumber(entry, "funding_rate", null) );
@@ -1667,7 +1667,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseTicker(ticker, null));
+            result.add(this.parseTicker(ticker, null));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -1775,7 +1775,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseOpenInterest(interest, null));
+            result.add(this.parseOpenInterest(interest, null));
         }
         return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
 
@@ -2384,7 +2384,7 @@ public class Modetrade extends ModetradeApi
                 stopLossOrder.put("trigger_price", this.priceToPrecision(symbol, stopLossPrice));
                 stopLossOrder.put("type", "LIMIT");
                 stopLossOrder.put("reduce_only", true);
-                ((List<Object>)childOrders).add(stopLossOrder);
+                childOrders.add(stopLossOrder);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
@@ -2395,7 +2395,7 @@ public class Modetrade extends ModetradeApi
                 takeProfitOrder.put("trigger_price", this.priceToPrecision(symbol, takeProfitPrice));
                 takeProfitOrder.put("type", "LIMIT");
                 takeProfitOrder.put("reduce_only", true);
-                ((List<Object>)childOrders).add(takeProfitOrder);
+                childOrders.add(takeProfitOrder);
             }
             outterOrder.put("child_orders", childOrders);
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
@@ -2509,7 +2509,7 @@ public class Modetrade extends ModetradeApi
                 throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
             }
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orders", ordersRequests );
@@ -4170,7 +4170,7 @@ public class Modetrade extends ModetradeApi
                         List<Object> taggedOrders = new ArrayList<Object>(Arrays.asList());
                         for (var i = 0; i < ordersList.size(); i++)
                         {
-                            ((List<Object>)taggedOrders).add(this.extend(this.safeDict(ordersList, i, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+                            taggedOrders.add(this.extend(this.safeDict(ordersList, i, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
                                 put( "order_tag", brokerId );
                             }}));
                         }

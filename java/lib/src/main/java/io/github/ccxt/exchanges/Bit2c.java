@@ -500,7 +500,7 @@ public class Bit2c extends Bit2cApi
             String bidAmount = this.safeString(bidRow, 1);
             if (Precise.stringGt(bidAmount, "0"))
             {
-                ((List<Object>)bids).add(bidRow);
+                bids.add(bidRow);
             }
         }
         for (var i = 0; i < rawAsks.size(); i++)
@@ -509,7 +509,7 @@ public class Bit2c extends Bit2cApi
             String askAmount = this.safeString(askRow, 1);
             if (Precise.stringGt(askAmount, "0"))
             {
-                ((List<Object>)asks).add(askRow);
+                asks.add(askRow);
             }
         }
         Map<String, Object> filtered = new HashMap<String, Object>() {{

@@ -332,7 +332,7 @@ public class Predictfun extends PredictfunApi
             Integer eventMarketsLength = eventMarkets.size();
             for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
             {
-                ((List<Object>)markets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
+                markets.add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
             }
         }
         return markets;
@@ -447,7 +447,7 @@ public class Predictfun extends PredictfunApi
                 }
                 request.put("tagIds", String.join(",", (List<String>)tagIds));
             }
-            ((List<Object>)postOmitKeys).add("limit");
+            postOmitKeys.add("limit");
             Map<String, Object> paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));
             Map<String, Object> extendedRequest = this.extend(request, paramsCategories);
             Map<String, Object> rawTopicsResponse = (this.predictfunGetV1Categories(extendedRequest)).join();
@@ -642,7 +642,7 @@ public class Predictfun extends PredictfunApi
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
-            ((List<Object>)result).add(parsedEvent);
+            result.add(parsedEvent);
             List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer parsedMarketsLength = parsedMarkets.size();
             for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
@@ -785,11 +785,11 @@ public class Predictfun extends PredictfunApi
                 if (java.util.Objects.equals(categorySlug, null))
                 {
                     // nothing to key a duplicate on, keep the row rather than drop it
-                    ((List<Object>)result).add(category);
+                    result.add(category);
                 } else if (!(seenSlugs.containsKey(categorySlug)))
                 {
                     seenSlugs.put(categorySlug, true);
-                    ((List<Object>)result).add(category);
+                    result.add(category);
                 }
             }
             // a term can match a market whose category row is not in the response - those rows are
@@ -855,7 +855,7 @@ public class Predictfun extends PredictfunApi
                 mapLiteral3.put("status", topicStatus);
                 mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
                 mapLiteral3.put("markets", markets);
-                ((List<Object>)result).add(mapLiteral3);
+                result.add(mapLiteral3);
             }
         }
         return result;
@@ -1038,7 +1038,7 @@ public class Predictfun extends PredictfunApi
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
             Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), rawTopic);
-            ((List<Object>)marketsList).add(parsed);
+            marketsList.add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
                 anyActive = true;
@@ -1315,22 +1315,22 @@ public class Predictfun extends PredictfunApi
                 }
             }
             Integer settleFraction = settleFractionRaw;
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", tokenId);
-            j39v1.put("outcomeId", tokenId);
-            j39v1.put("outcome", outcomeHandle);
-            j39v1.put("market", marketSymbol);
-            j39v1.put("event", eventHandle);
-            j39v1.put("label", label);
-            j39v1.put("price", null);
-            j39v1.put("active", active);
-            j39v1.put("winner", winner);
-            j39v1.put("settleFraction", settleFraction);
-            j39v1.put("precision", precision);
-            j39v1.put("info", this.extend(new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("id", tokenId);
+            mapLiteral4.put("outcomeId", tokenId);
+            mapLiteral4.put("outcome", outcomeHandle);
+            mapLiteral4.put("market", marketSymbol);
+            mapLiteral4.put("event", eventHandle);
+            mapLiteral4.put("label", label);
+            mapLiteral4.put("price", null);
+            mapLiteral4.put("active", active);
+            mapLiteral4.put("winner", winner);
+            mapLiteral4.put("settleFraction", settleFraction);
+            mapLiteral4.put("precision", precision);
+            mapLiteral4.put("info", this.extend(new HashMap<String, Object>() {{
                     put( "marketId", marketId );
                 }}, rawOutcome));
-            ((List<Object>)outcomes).add(j39v1);
+            outcomes.add(mapLiteral4);
         }
         String resolvedOutcome = resolvedOutcomeRaw;
         String collateral = "USDT";
@@ -1467,7 +1467,7 @@ public class Predictfun extends PredictfunApi
                 String bidPrice = this.safeString(bid, 0);
                 Double bidSize = this.parseNumber(this.safeString(bid, 1));
                 Double complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
-                ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(complementPrice, bidSize)));
+                noAsks.add(new ArrayList<Object>(Arrays.asList(complementPrice, bidSize)));
             }
             for (var i = 0; i < asks.size(); i++)
             {
@@ -1475,7 +1475,7 @@ public class Predictfun extends PredictfunApi
                 String askPrice = this.safeString(ask, 0);
                 Double askSize = this.parseNumber(this.safeString(ask, 1));
                 Double complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
-                ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(complementPrice, askSize)));
+                noBids.add(new ArrayList<Object>(Arrays.asList(complementPrice, askSize)));
             }
             Map<String, Object> noOrderbook = new HashMap<String, Object>() {{
                 put( "bids", Predictfun.this.sortBy(noBids, 0, true) );
@@ -1703,7 +1703,7 @@ public class Predictfun extends PredictfunApi
                     put( "takerOrMaker", "taker" );
                     put( "type", "market" );
                 }});
-                ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
+                flattenTrades.add(this.extend(entry, new HashMap<String, Object>() {{
                     put( "partyToParse", takerParty );
                 }}));
             }
@@ -1720,7 +1720,7 @@ public class Predictfun extends PredictfunApi
                         put( "takerOrMaker", "maker" );
                         put( "type", "limit" );
                     }});
-                    ((List<Object>)flattenTrades).add(this.extend(entry, new HashMap<String, Object>() {{
+                    flattenTrades.add(this.extend(entry, new HashMap<String, Object>() {{
                         put( "partyToParse", makerParty );
                     }}));
                 }
@@ -1818,9 +1818,9 @@ public class Predictfun extends PredictfunApi
                     put( "type", "market" );
                 }};
                 partyToParse = this.extend(partyToParse, takerParty);
-                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                mapLiteral4.put("partyToParse", partyToParse);
-                ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral4));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("partyToParse", partyToParse);
+                flattenTrades.add(this.extend(entry, mapLiteral5));
             } else
             {
                 List<Object> makers = this.safeList(entry, "makers", new ArrayList<Object>(Arrays.asList()));
@@ -1838,9 +1838,9 @@ public class Predictfun extends PredictfunApi
                     {
                         partyToParse = maker;
                         partyToParse = this.extend(partyToParse, makerParty);
-                        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                        mapLiteral5.put("partyToParse", partyToParse);
-                        ((List<Object>)flattenTrades).add(this.extend(entry, mapLiteral5));
+                        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                        mapLiteral6.put("partyToParse", partyToParse);
+                        flattenTrades.add(this.extend(entry, mapLiteral6));
                     }
                 }
             }
@@ -1909,24 +1909,24 @@ public class Predictfun extends PredictfunApi
             }
         }
         Long timestamp = this.parse8601(this.safeString(trade, "executedAt"));
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", this.safeString(trade, "settlementId"));
-        mapLiteral6.put("order", order);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
-        mapLiteral6.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral6.put("type", this.safeString(party, "type"));
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("takerOrMaker", this.safeString(party, "takerOrMaker"));
-        mapLiteral6.put("price", this.parseNumber(priceStr));
-        mapLiteral6.put("amount", this.parseNumber(amountStr));
-        mapLiteral6.put("cost", null);
-        mapLiteral6.put("fee", fee);
-        mapLiteral6.put("info", this.omit(trade, "partyToParse"));
-        return this.safePredictionTrade(mapLiteral6, null);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", this.safeString(trade, "settlementId"));
+        mapLiteral7.put("order", order);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
+        mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral7.put("type", this.safeString(party, "type"));
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", this.safeString(party, "takerOrMaker"));
+        mapLiteral7.put("price", this.parseNumber(priceStr));
+        mapLiteral7.put("amount", this.parseNumber(amountStr));
+        mapLiteral7.put("cost", null);
+        mapLiteral7.put("fee", fee);
+        mapLiteral7.put("info", this.omit(trade, "partyToParse"));
+        return this.safePredictionTrade(mapLiteral7, null);
     }
 
     /**
@@ -2346,28 +2346,28 @@ public class Predictfun extends PredictfunApi
         // the venue answers with an id and a hash and nothing else - no price, size, side or
         // status - so the returned order is built from what was requested and signed, with only
         // the identifiers taken from the response
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("id", this.safeString2(result, "orderHash", "hash"));
-        mapLiteral7.put("clientOrderId", null);
-        mapLiteral7.put("info", response);
-        mapLiteral7.put("timestamp", null);
-        mapLiteral7.put("datetime", null);
-        mapLiteral7.put("status", null);
-        mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-        mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral7.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral7.put("type", type);
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("price", this.parseNumber(priceString));
-        mapLiteral7.put("amount", this.parseNumber(amountString));
-        mapLiteral7.put("filled", null);
-        mapLiteral7.put("remaining", null);
-        mapLiteral7.put("cost", null);
-        mapLiteral7.put("fee", null);
-        mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
-        return this.safePredictionOrder(mapLiteral7, null);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", this.safeString2(result, "orderHash", "hash"));
+        mapLiteral8.put("clientOrderId", null);
+        mapLiteral8.put("info", response);
+        mapLiteral8.put("timestamp", null);
+        mapLiteral8.put("datetime", null);
+        mapLiteral8.put("status", null);
+        mapLiteral8.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+        mapLiteral8.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral8.put("event", this.safeString(outcomeObj, "event"));
+        mapLiteral8.put("type", type);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("price", this.parseNumber(priceString));
+        mapLiteral8.put("amount", this.parseNumber(amountString));
+        mapLiteral8.put("filled", null);
+        mapLiteral8.put("remaining", null);
+        mapLiteral8.put("cost", null);
+        mapLiteral8.put("fee", null);
+        mapLiteral8.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral8, null);
 
     }
 
@@ -2463,7 +2463,7 @@ public class Predictfun extends PredictfunApi
             String outcomeId = this.safeString(position, "outcomeId");
             if ((!java.util.Objects.equals(outcomeId, null)) && (wanted.containsKey(outcomeId)))
             {
-                ((List<Object>)result).add(position);
+                result.add(position);
             }
         }
         return result;
@@ -2559,32 +2559,32 @@ public class Predictfun extends PredictfunApi
             realizedPnl = pnl;
             unrealizedPnl = null;
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", this.safeString(position, "id"));
-        mapLiteral8.put("timestamp", null);
-        mapLiteral8.put("datetime", null);
-        mapLiteral8.put("contracts", this.parseNumber(contracts));
-        mapLiteral8.put("contractSize", 1);
-        mapLiteral8.put("side", "long");
-        mapLiteral8.put("notional", this.parseNumber(notional));
-        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
-        mapLiteral8.put("realizedPnl", this.parseNumber(realizedPnl));
-        mapLiteral8.put("collateral", this.parseNumber(collateral));
-        mapLiteral8.put("entryPrice", this.parseNumber(entryPrice));
-        mapLiteral8.put("markPrice", this.parseNumber(markPrice));
-        mapLiteral8.put("lastPrice", null);
-        mapLiteral8.put("percentage", this.parseNumber(percentage));
-        mapLiteral8.put("resolved", resolved);
-        mapLiteral8.put("won", won);
-        mapLiteral8.put("settleFraction", this.parseNumber(settleFraction));
-        mapLiteral8.put("payout", this.parseNumber(payout));
-        mapLiteral8.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
-        mapLiteral8.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
-        mapLiteral8.put("label", this.safeString(outcomeObj, "label", this.safeStringUpper(rawOutcome, "name")));
-        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral8.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral8.put("info", position);
-        return this.safePredictionPosition(mapLiteral8);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", this.safeString(position, "id"));
+        mapLiteral9.put("timestamp", null);
+        mapLiteral9.put("datetime", null);
+        mapLiteral9.put("contracts", this.parseNumber(contracts));
+        mapLiteral9.put("contractSize", 1);
+        mapLiteral9.put("side", "long");
+        mapLiteral9.put("notional", this.parseNumber(notional));
+        mapLiteral9.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral9.put("realizedPnl", this.parseNumber(realizedPnl));
+        mapLiteral9.put("collateral", this.parseNumber(collateral));
+        mapLiteral9.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral9.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral9.put("lastPrice", null);
+        mapLiteral9.put("percentage", this.parseNumber(percentage));
+        mapLiteral9.put("resolved", resolved);
+        mapLiteral9.put("won", won);
+        mapLiteral9.put("settleFraction", this.parseNumber(settleFraction));
+        mapLiteral9.put("payout", this.parseNumber(payout));
+        mapLiteral9.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
+        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
+        mapLiteral9.put("label", this.safeString(outcomeObj, "label", this.safeStringUpper(rawOutcome, "name")));
+        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral9.put("event", this.safeString(outcomeObj, "event"));
+        mapLiteral9.put("info", position);
+        return this.safePredictionPosition(mapLiteral9);
     }
 
     /**
@@ -2679,19 +2679,19 @@ public class Predictfun extends PredictfunApi
         Integer removedLength = removed.size();
         for (var i = 0; (removedLength != null && i < removedLength); i++)
         {
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
-            j39v2.put("status", "CANCELLED");
-            ((List<Object>)rows).add(this.extend(response, j39v2));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("orderHash", (removed == null || i < 0 || i >= removed.size() ? null : removed.get(i)));
+            j39v1.put("status", "CANCELLED");
+            rows.add(this.extend(response, j39v1));
         }
         Integer noopLength = noop.size();
         for (var i = 0; (noopLength != null && i < noopLength); i++)
         {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i)));
-            ((List<Object>)rows).add(this.extend(response, j39v3));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i)));
+            rows.add(this.extend(response, j39v2));
         }
         return this.parsePredictionOrders(rows, outcomeObj, null, null, new HashMap<String, Object>() {{}});
 
@@ -2978,30 +2978,30 @@ public class Predictfun extends PredictfunApi
         String amountFilled = this.safeString(order, "amountFilled");
         String filled = Precise.stringDiv(amountFilled, "1000000000000000000");
         String filledCost = Precise.stringMul(filled, price);
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("id", orderHash);
-        mapLiteral9.put("clientOrderId", null);
-        mapLiteral9.put("timestamp", null);
-        mapLiteral9.put("datetime", null);
-        mapLiteral9.put("status", this.parseOrderStatus(this.safeString(order, "status")));
-        mapLiteral9.put("type", this.safeStringLower(order, "strategy"));
-        mapLiteral9.put("timeInForce", null);
-        mapLiteral9.put("side", side);
-        mapLiteral9.put("price", price);
-        mapLiteral9.put("amount", amount);
-        mapLiteral9.put("filled", filled);
-        mapLiteral9.put("remaining", null);
-        mapLiteral9.put("cost", filledCost);
-        mapLiteral9.put("fee", null);
-        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", null));
-        mapLiteral9.put("trades", null);
-        mapLiteral9.put("outcome", this.safeOutcomeSymbol(tokenId, outcomeObj));
-        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
-        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral9.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral9.put("info", order);
-        return this.safePredictionOrder(mapLiteral9, null);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("id", orderHash);
+        mapLiteral10.put("clientOrderId", null);
+        mapLiteral10.put("timestamp", null);
+        mapLiteral10.put("datetime", null);
+        mapLiteral10.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral10.put("type", this.safeStringLower(order, "strategy"));
+        mapLiteral10.put("timeInForce", null);
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("price", price);
+        mapLiteral10.put("amount", amount);
+        mapLiteral10.put("filled", filled);
+        mapLiteral10.put("remaining", null);
+        mapLiteral10.put("cost", filledCost);
+        mapLiteral10.put("fee", null);
+        mapLiteral10.put("postOnly", this.safeBool(order, "isPostOnly", null));
+        mapLiteral10.put("trades", null);
+        mapLiteral10.put("outcome", this.safeOutcomeSymbol(tokenId, outcomeObj));
+        mapLiteral10.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
+        mapLiteral10.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral10.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral10.put("event", this.safeString(outcomeObj, "event"));
+        mapLiteral10.put("info", order);
+        return this.safePredictionOrder(mapLiteral10, null);
     }
 
     /**
@@ -3282,7 +3282,7 @@ public class Predictfun extends PredictfunApi
                 // second one looks up already counts the first
                 String approvalHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit)).join();
                 Object receipt = (this.waitForTransactionReceipt(rpcUrl, approvalHash, 60000L)).join();
-                ((List<Object>)receipts).add(receipt);
+                receipts.add(receipt);
             }
             return receipts;
         }
@@ -3453,7 +3453,7 @@ public class Predictfun extends PredictfunApi
             String handle = this.safeString((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)), "outcome");
             if (!java.util.Objects.equals(handle, null))
             {
-                ((List<Object>)hashes).add(("orderbook::" + handle));
+                hashes.add(("orderbook::" + handle));
             }
         }
         return hashes;
@@ -3546,9 +3546,9 @@ public class Predictfun extends PredictfunApi
             String subHash = this.safeString(subMessageHashes, i);
             if ((java.util.Objects.equals(subHash, "orders")) || (java.util.Objects.equals(subHash, "myTrades")))
             {
-                HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                mapLiteral10.put("topic", subHash);
-                this.cleanCache(mapLiteral10);
+                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                mapLiteral11.put("topic", subHash);
+                this.cleanCache(mapLiteral11);
             }
         }
     }
@@ -3769,12 +3769,12 @@ public class Predictfun extends PredictfunApi
             String future = (futures == null || i < 0 || i >= futures.size() ? null : futures.get(i));
             if (((future.indexOf("orders::") == 0)) || ((future.indexOf("myTrades::") == 0)))
             {
-                ((List<Object>)hashes).add(future);
+                hashes.add(future);
             }
         }
         if ((!java.util.Objects.equals(messageHash, null)) && !this.inArray(messageHash, hashes))
         {
-            ((List<Object>)hashes).add(messageHash);
+            hashes.add(messageHash);
         }
         return hashes;
     }
@@ -3902,7 +3902,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(info, "marketId"), marketId))
             {
-                ((List<Object>)result).add(outcomeObj);
+                result.add(outcomeObj);
             }
         }
         return result;
@@ -3969,9 +3969,9 @@ public class Predictfun extends PredictfunApi
             List<Object> bid = this.safeList(rawBids, i, null);
             String bidPrice = this.safeString(bid, 0);
             Double bidSize = this.parseNumber(this.safeString(bid, 1));
-            ((List<Object>)yesBids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(bidPrice), bidSize)));
+            yesBids.add(new ArrayList<Object>(Arrays.asList(this.parseNumber(bidPrice), bidSize)));
             // a bid for yes at p is an offer of no at 1 - p
-            ((List<Object>)noAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", bidPrice)), bidSize)));
+            noAsks.add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", bidPrice)), bidSize)));
         }
         Integer asksLength = rawAsks.size();
         for (var i = 0; (asksLength != null && i < asksLength); i++)
@@ -3979,8 +3979,8 @@ public class Predictfun extends PredictfunApi
             List<Object> ask = this.safeList(rawAsks, i, null);
             String askPrice = this.safeString(ask, 0);
             Double askSize = this.parseNumber(this.safeString(ask, 1));
-            ((List<Object>)yesAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(askPrice), askSize)));
-            ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", askPrice)), askSize)));
+            yesAsks.add(new ArrayList<Object>(Arrays.asList(this.parseNumber(askPrice), askSize)));
+            noBids.add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", askPrice)), askSize)));
         }
         List<Object> outcomes = this.outcomesByMarketId(marketId);
         Integer outcomesLength = outcomes.size();
@@ -4004,16 +4004,16 @@ public class Predictfun extends PredictfunApi
                     bids = this.sortBy(noBids, 0, true);
                     asks = this.sortBy(noAsks, 0);
                 }
-                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-                mapLiteral11.put("bids", bids);
-                mapLiteral11.put("asks", asks);
-                mapLiteral11.put("timestamp", timestamp);
-                mapLiteral11.put("datetime", this.iso8601(timestamp));
-                mapLiteral11.put("outcome", outcomeHandle);
-                mapLiteral11.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-                mapLiteral11.put("market", this.safeString(outcomeObj, "market"));
-                mapLiteral11.put("nonce", this.safeInteger(data, "version"));
-                orderbook.reset(mapLiteral11);
+                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                mapLiteral12.put("bids", bids);
+                mapLiteral12.put("asks", asks);
+                mapLiteral12.put("timestamp", timestamp);
+                mapLiteral12.put("datetime", this.iso8601(timestamp));
+                mapLiteral12.put("outcome", outcomeHandle);
+                mapLiteral12.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+                mapLiteral12.put("market", this.safeString(outcomeObj, "market"));
+                mapLiteral12.put("nonce", this.safeInteger(data, "version"));
+                orderbook.reset(mapLiteral12);
                 client.resolve(orderbook, ("orderbook::" + outcomeHandle));
             }
         }
@@ -4272,34 +4272,34 @@ public class Predictfun extends PredictfunApi
             remaining = Precise.stringSub(amount, filled);
         }
         Long timestamp = this.safeInteger(eventVar, "timestamp");
-        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-        mapLiteral12.put("id", this.safeString2(eventVar, "orderHash", "orderId"));
-        mapLiteral12.put("clientOrderId", null);
-        mapLiteral12.put("timestamp", timestamp);
-        mapLiteral12.put("datetime", this.iso8601(timestamp));
-        mapLiteral12.put("lastTradeTimestamp", null);
-        mapLiteral12.put("lastUpdateTimestamp", timestamp);
-        mapLiteral12.put("status", status);
-        mapLiteral12.put("type", this.safeStringLower(details, "strategyType"));
-        mapLiteral12.put("timeInForce", null);
-        mapLiteral12.put("side", side);
-        mapLiteral12.put("price", this.safeNumber(details, "price", null));
-        mapLiteral12.put("average", null);
-        mapLiteral12.put("amount", this.parseNumber(amount));
-        mapLiteral12.put("filled", this.parseNumber(filled));
-        mapLiteral12.put("remaining", this.parseNumber(remaining));
-        mapLiteral12.put("cost", this.safeNumber(details, "valueFilled", null));
-        mapLiteral12.put("fee", null);
-        mapLiteral12.put("reduceOnly", null);
-        mapLiteral12.put("postOnly", null);
-        mapLiteral12.put("trades", new ArrayList<Object>(Arrays.asList()));
-        mapLiteral12.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
-        mapLiteral12.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
-        mapLiteral12.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral12.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral12.put("event", this.safeString(outcomeObj, "event"));
-        mapLiteral12.put("info", eventVar);
-        return this.safePredictionOrder(mapLiteral12, null);
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("id", this.safeString2(eventVar, "orderHash", "orderId"));
+        mapLiteral13.put("clientOrderId", null);
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        mapLiteral13.put("lastTradeTimestamp", null);
+        mapLiteral13.put("lastUpdateTimestamp", timestamp);
+        mapLiteral13.put("status", status);
+        mapLiteral13.put("type", this.safeStringLower(details, "strategyType"));
+        mapLiteral13.put("timeInForce", null);
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("price", this.safeNumber(details, "price", null));
+        mapLiteral13.put("average", null);
+        mapLiteral13.put("amount", this.parseNumber(amount));
+        mapLiteral13.put("filled", this.parseNumber(filled));
+        mapLiteral13.put("remaining", this.parseNumber(remaining));
+        mapLiteral13.put("cost", this.safeNumber(details, "valueFilled", null));
+        mapLiteral13.put("fee", null);
+        mapLiteral13.put("reduceOnly", null);
+        mapLiteral13.put("postOnly", null);
+        mapLiteral13.put("trades", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral13.put("outcome", this.safeOutcomeSymbol(null, outcomeObj));
+        mapLiteral13.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral13.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral13.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral13.put("event", this.safeString(outcomeObj, "event"));
+        mapLiteral13.put("info", eventVar);
+        return this.safePredictionOrder(mapLiteral13, null);
     }
 
     /**
@@ -4344,24 +4344,24 @@ public class Predictfun extends PredictfunApi
             }
         }
         Long timestamp = this.safeInteger(eventVar, "timestamp");
-        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-        mapLiteral13.put("id", this.safeString(eventVar, "settlementId"));
-        mapLiteral13.put("order", this.safeString(eventVar, "orderHash"));
-        mapLiteral13.put("timestamp", timestamp);
-        mapLiteral13.put("datetime", this.iso8601(timestamp));
-        mapLiteral13.put("outcome", this.safeString(order, "outcome"));
-        mapLiteral13.put("outcomeId", this.safeString(order, "outcomeId"));
-        mapLiteral13.put("label", this.safeString(order, "label"));
-        mapLiteral13.put("market", this.safeString(order, "market"));
-        mapLiteral13.put("type", this.safeString(order, "type"));
-        mapLiteral13.put("side", this.safeString(order, "side"));
-        mapLiteral13.put("takerOrMaker", takerOrMaker);
-        mapLiteral13.put("price", this.parseNumber(price));
-        mapLiteral13.put("amount", this.parseNumber(amount));
-        mapLiteral13.put("cost", this.parseNumber(cost));
-        mapLiteral13.put("fee", fee);
-        mapLiteral13.put("info", eventVar);
-        return this.safePredictionTrade(mapLiteral13, null);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("id", this.safeString(eventVar, "settlementId"));
+        mapLiteral14.put("order", this.safeString(eventVar, "orderHash"));
+        mapLiteral14.put("timestamp", timestamp);
+        mapLiteral14.put("datetime", this.iso8601(timestamp));
+        mapLiteral14.put("outcome", this.safeString(order, "outcome"));
+        mapLiteral14.put("outcomeId", this.safeString(order, "outcomeId"));
+        mapLiteral14.put("label", this.safeString(order, "label"));
+        mapLiteral14.put("market", this.safeString(order, "market"));
+        mapLiteral14.put("type", this.safeString(order, "type"));
+        mapLiteral14.put("side", this.safeString(order, "side"));
+        mapLiteral14.put("takerOrMaker", takerOrMaker);
+        mapLiteral14.put("price", this.parseNumber(price));
+        mapLiteral14.put("amount", this.parseNumber(amount));
+        mapLiteral14.put("cost", this.parseNumber(cost));
+        mapLiteral14.put("fee", fee);
+        mapLiteral14.put("info", eventVar);
+        return this.safePredictionTrade(mapLiteral14, null);
     }
 
     /**

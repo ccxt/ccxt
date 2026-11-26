@@ -153,7 +153,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
             productIds.add(marketId);
-            ((List<Object>)messageHashes).add(((messageHashStart + ":") + this.safeString(market, "symbol", "")));
+            messageHashes.add(((messageHashStart + ":") + this.safeString(market, "symbol", "")));
         }
         String url = this.safeString(this.urls.get("api"), "ws");
         if (java.util.Objects.equals(url, null))
@@ -853,7 +853,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     {
                         Map<String, Object> trade = this.parseWsTrade(message, null);
                         List<Object> previousTrades = this.safeList(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
-                        ((List<Object>)previousTrades).add(trade);
+                        previousTrades.add(trade);
                         previousOrder.put("trades", previousTrades);
                         previousOrder.put("lastTradeTimestamp", this.safeInteger(trade, "timestamp"));
                         String totalCost = "0";

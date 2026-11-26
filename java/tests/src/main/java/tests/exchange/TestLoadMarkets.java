@@ -47,7 +47,7 @@ public class TestLoadMarkets extends BaseTest {
             Object market = (allMarkets == null || i < 0 || i >= allMarkets.size() ? null : allMarkets.get(i));
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
             {
-                ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));
+                collectedTypes.add(Helpers.GetValue(market, "type"));
             }
         }
         for (var i = 0; i < marketTypes.size(); i++)

@@ -645,35 +645,35 @@ public class Bithumb extends BithumbApi
                 {
                     continue;
                 }
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", marketId);
-                j39v1.put("symbol", ((base + "/") + quote));
-                j39v1.put("base", base);
-                j39v1.put("quote", quote);
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", quoteId);
-                j39v1.put("settleId", null);
-                j39v1.put("type", "spot");
-                j39v1.put("spot", true);
-                j39v1.put("margin", false);
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("active", true);
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", null);
-                j39v1.put("expiryDatetime", null);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", marketId);
+                mapLiteral1.put("symbol", ((base + "/") + quote));
+                mapLiteral1.put("base", base);
+                mapLiteral1.put("quote", quote);
+                mapLiteral1.put("settle", null);
+                mapLiteral1.put("baseId", baseId);
+                mapLiteral1.put("quoteId", quoteId);
+                mapLiteral1.put("settleId", null);
+                mapLiteral1.put("type", "spot");
+                mapLiteral1.put("spot", true);
+                mapLiteral1.put("margin", false);
+                mapLiteral1.put("swap", false);
+                mapLiteral1.put("future", false);
+                mapLiteral1.put("option", false);
+                mapLiteral1.put("active", true);
+                mapLiteral1.put("contract", false);
+                mapLiteral1.put("linear", null);
+                mapLiteral1.put("inverse", null);
+                mapLiteral1.put("contractSize", null);
+                mapLiteral1.put("expiry", null);
+                mapLiteral1.put("expiryDatetime", null);
+                mapLiteral1.put("strike", null);
+                mapLiteral1.put("optionType", null);
+                mapLiteral1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Long.parseLong("4") );
                         put( "price", Long.parseLong("4") );
                     }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -691,9 +691,9 @@ public class Bithumb extends BithumbApi
                             put( "max", null );
                         }} );
                     }});
-                j39v1.put("created", null);
-                j39v1.put("info", entry);
-                ((List<Object>)result).add(j39v1);
+                mapLiteral1.put("created", null);
+                mapLiteral1.put("info", entry);
+                result.add(mapLiteral1);
             }
         } else
         {
@@ -735,35 +735,35 @@ public class Bithumb extends BithumbApi
                             active = false;
                         }
                     }
-                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                    mapLiteral1.put("id", currencyId);
-                    mapLiteral1.put("symbol", ((base + "/") + quote));
-                    mapLiteral1.put("base", base);
-                    mapLiteral1.put("quote", quote);
-                    mapLiteral1.put("settle", null);
-                    mapLiteral1.put("baseId", currencyId);
-                    mapLiteral1.put("quoteId", quote);
-                    mapLiteral1.put("settleId", null);
-                    mapLiteral1.put("type", "spot");
-                    mapLiteral1.put("spot", true);
-                    mapLiteral1.put("margin", false);
-                    mapLiteral1.put("swap", false);
-                    mapLiteral1.put("future", false);
-                    mapLiteral1.put("option", false);
-                    mapLiteral1.put("active", active);
-                    mapLiteral1.put("contract", false);
-                    mapLiteral1.put("linear", null);
-                    mapLiteral1.put("inverse", null);
-                    mapLiteral1.put("contractSize", null);
-                    mapLiteral1.put("expiry", null);
-                    mapLiteral1.put("expiryDatetime", null);
-                    mapLiteral1.put("strike", null);
-                    mapLiteral1.put("optionType", null);
-                    mapLiteral1.put("precision", new HashMap<String, Object>() {{
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("id", currencyId);
+                    mapLiteral2.put("symbol", ((base + "/") + quote));
+                    mapLiteral2.put("base", base);
+                    mapLiteral2.put("quote", quote);
+                    mapLiteral2.put("settle", null);
+                    mapLiteral2.put("baseId", currencyId);
+                    mapLiteral2.put("quoteId", quote);
+                    mapLiteral2.put("settleId", null);
+                    mapLiteral2.put("type", "spot");
+                    mapLiteral2.put("spot", true);
+                    mapLiteral2.put("margin", false);
+                    mapLiteral2.put("swap", false);
+                    mapLiteral2.put("future", false);
+                    mapLiteral2.put("option", false);
+                    mapLiteral2.put("active", active);
+                    mapLiteral2.put("contract", false);
+                    mapLiteral2.put("linear", null);
+                    mapLiteral2.put("inverse", null);
+                    mapLiteral2.put("contractSize", null);
+                    mapLiteral2.put("expiry", null);
+                    mapLiteral2.put("expiryDatetime", null);
+                    mapLiteral2.put("strike", null);
+                    mapLiteral2.put("optionType", null);
+                    mapLiteral2.put("precision", new HashMap<String, Object>() {{
                             put( "amount", Long.parseLong("4") );
                             put( "price", Long.parseLong("4") );
                         }});
-                    mapLiteral1.put("limits", new HashMap<String, Object>() {{
+                    mapLiteral2.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -778,10 +778,10 @@ public class Bithumb extends BithumbApi
                             }} );
                             put( "cost", new HashMap<String, Object>() {{}} );
                         }});
-                    mapLiteral1.put("created", null);
-                    mapLiteral1.put("info", market);
-                    Map<String,Object> entry = this.deepExtend(mapLiteral1, extension);
-                    ((List<Object>)result).add(entry);
+                    mapLiteral2.put("created", null);
+                    mapLiteral2.put("info", market);
+                    Map<String,Object> entry = this.deepExtend(mapLiteral2, extension);
+                    result.add(entry);
                 }
             }
         }
@@ -836,7 +836,7 @@ public class Bithumb extends BithumbApi
             }
         } else
         {
-            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
             {
                 Map<String, Object> entry = this.safeDict(response, i, null);
                 Map<String, Object> account = this.account();
@@ -955,11 +955,11 @@ public class Bithumb extends BithumbApi
             for (var i = 0; i < orderBookUnits.size(); i++)
             {
                 Map<String, Object> entry = this.safeDict(orderBookUnits, i, null);
-                ((List<Object>)bids).add(new HashMap<String, Object>() {{
+                bids.add(new HashMap<String, Object>() {{
                     put( "price", Bithumb.this.safeString(entry, "bid_price") );
                     put( "quantity", Bithumb.this.safeString(entry, "bid_size") );
                 }});
-                ((List<Object>)asks).add(new HashMap<String, Object>() {{
+                asks.add(new HashMap<String, Object>() {{
                     put( "price", Bithumb.this.safeString(entry, "ask_price") );
                     put( "quantity", Bithumb.this.safeString(entry, "ask_size") );
                 }});
@@ -1109,28 +1109,28 @@ public class Bithumb extends BithumbApi
         {
             low = close;
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", high);
-        mapLiteral2.put("low", low);
-        mapLiteral2.put("bid", this.safeString(ticker, "buy_price"));
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "acc_bid_volume"));
-        mapLiteral2.put("ask", this.safeString(ticker, "sell_price"));
-        mapLiteral2.put("askVolume", this.safeString(ticker, "acc_ask_volume"));
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", open);
-        mapLiteral2.put("close", close);
-        mapLiteral2.put("last", close);
-        mapLiteral2.put("previousClose", this.safeString(ticker, "prev_closing_price"));
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", null);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
-        mapLiteral2.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", high);
+        mapLiteral3.put("low", low);
+        mapLiteral3.put("bid", this.safeString(ticker, "buy_price"));
+        mapLiteral3.put("bidVolume", this.safeString(ticker, "acc_bid_volume"));
+        mapLiteral3.put("ask", this.safeString(ticker, "sell_price"));
+        mapLiteral3.put("askVolume", this.safeString(ticker, "acc_ask_volume"));
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("open", open);
+        mapLiteral3.put("close", close);
+        mapLiteral3.put("last", close);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prev_closing_price"));
+        mapLiteral3.put("change", null);
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", this.safeString2(ticker, "units_traded_24H", "acc_trade_volume_24h"));
+        mapLiteral3.put("quoteVolume", this.safeString2(ticker, "acc_trade_value_24H", "acc_trade_price_24h"));
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, market);
     }
 
     /**
@@ -1199,7 +1199,7 @@ public class Bithumb extends BithumbApi
                 Boolean isLastMarketId = ((i == ((((long) marketIdsLength) - 1L))));
                 if (((maxMarketIdsPerRequest == null || (marketIdsChunkLength != null && marketIdsChunkLength >= maxMarketIdsPerRequest))) || Boolean.TRUE.equals(isLastMarketId))
                 {
-                    ((List<Object>)marketIdsChunks).add(marketIdsChunk);
+                    marketIdsChunks.add(marketIdsChunk);
                     request.put("markets", String.join(",", (List<String>)marketIdsChunk));
                     promises.add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = new ArrayList<String>(Arrays.asList());
@@ -1780,21 +1780,21 @@ public class Bithumb extends BithumbApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("order", null);
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("takerOrMaker", null);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("cost", costString);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("order", null);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", null);
+        mapLiteral4.put("price", priceString);
+        mapLiteral4.put("amount", amountString);
+        mapLiteral4.put("cost", costString);
+        mapLiteral4.put("fee", fee);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1940,7 +1940,7 @@ public class Bithumb extends BithumbApi
             Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<String> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -2139,13 +2139,13 @@ public class Bithumb extends BithumbApi
         {
             throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
         }
-        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-        j39v5.put("info", response);
-        j39v5.put("symbol", symbol);
-        j39v5.put("type", type);
-        j39v5.put("side", side);
-        j39v5.put("id", id);
-        return this.extend(this.parseOrder(response, market), j39v5);
+        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        j39v4.put("info", response);
+        j39v4.put("symbol", symbol);
+        j39v4.put("type", type);
+        j39v4.put("side", side);
+        j39v4.put("id", id);
+        return this.extend(this.parseOrder(response, market), j39v4);
 
     }
 
@@ -2648,29 +2648,29 @@ public class Bithumb extends BithumbApi
             timeInForce = "PO";
             postOnly = true;
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", datetime);
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("triggerPrice", null);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("average", this.safeNumber(order, "avg_trade_price", null));
-        mapLiteral4.put("filled", null);
-        mapLiteral4.put("remaining", remaining);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", rawTrades);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", datetime);
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", null);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("average", this.safeNumber(order, "avg_trade_price", null));
+        mapLiteral5.put("filled", null);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", rawTrades);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -3969,9 +3969,9 @@ public class Bithumb extends BithumbApi
                 requestHeaders.put("Authorization", ("Bearer " + token));
             } else
             {
-                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                mapLiteral5.put("endpoint", endpoint);
-                String encodedBody = this.urlencode(this.extend(mapLiteral5, query));
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("endpoint", endpoint);
+                String encodedBody = this.urlencode(this.extend(mapLiteral6, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 List<String> bodyParts = new ArrayList<String>(Arrays.asList(((String)encodedBody).split(java.util.regex.Pattern.quote("%20"))));
                 requestBody = String.join("+", bodyParts);

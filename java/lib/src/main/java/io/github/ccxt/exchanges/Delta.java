@@ -1168,7 +1168,7 @@ public class Delta extends DeltaApi
                 marketStructure.put("inverse", !Boolean.TRUE.equals(linear));
                 marketStructure.put("contractSize", contractSize);
             }
-            ((List<Object>)result).add(this.safeMarketStructure(marketStructure));
+            result.add(this.safeMarketStructure(marketStructure));
         }
         return result;
 
@@ -3826,7 +3826,7 @@ public class Delta extends DeltaApi
         for (var i = 0; i < settlements.size(); i++)
         {
             Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
-            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
+            result.add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

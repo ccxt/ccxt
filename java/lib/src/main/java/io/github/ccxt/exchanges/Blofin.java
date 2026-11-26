@@ -1460,7 +1460,7 @@ public class Blofin extends BlofinApi
         {
             Map<String, Object> rate = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(rate, "fundingTime");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", rate );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Blofin.this.safeNumber(rate, "fundingRate", null) );
@@ -2124,11 +2124,11 @@ public class Blofin extends BlofinApi
         List<Object> consumedKeys = new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"));
         if ((!java.util.Objects.equals(stopLossPrice, null)) && (!java.util.Objects.equals(type, "market")))
         {
-            ((List<Object>)consumedKeys).add("stopLossLimitPrice");
+            consumedKeys.add("stopLossLimitPrice");
         }
         if ((!java.util.Objects.equals(takeProfitPrice, null)) && (!java.util.Objects.equals(type, "market")))
         {
-            ((List<Object>)consumedKeys).add("takeProfitLimitPrice");
+            consumedKeys.add("takeProfitLimitPrice");
         }
         return this.extend(request, this.omit(parameters, consumedKeys));
     }
@@ -2237,7 +2237,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -3569,36 +3569,36 @@ public class Blofin extends BlofinApi
             {
                 for (var i = 0; i < tpslIds.size(); i++)
                 {
-                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("tpslId", this.safeString(tpslIds, i));
-                    j39v1.put("instId", market.get("id"));
-                    ((List<Object>)request).add(j39v1);
+                    HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                    mapLiteral8.put("tpslId", this.safeString(tpslIds, i));
+                    mapLiteral8.put("instId", market.get("id"));
+                    request.add(mapLiteral8);
                 }
             }
             for (var i = 0; i < ids.size(); i++)
             {
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("tpslId", this.safeString(ids, i));
-                    j39v2.put("instId", market.get("id"));
-                    ((List<Object>)request).add(j39v2);
+                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                    mapLiteral9.put("tpslId", this.safeString(ids, i));
+                    mapLiteral9.put("instId", market.get("id"));
+                    request.add(mapLiteral9);
                 } else
                 {
-                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("orderId", this.safeString(ids, i));
-                    j39v3.put("instId", market.get("id"));
-                    ((List<Object>)request).add(j39v3);
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("orderId", this.safeString(ids, i));
+                    mapLiteral10.put("instId", market.get("id"));
+                    request.add(mapLiteral10);
                 }
             }
         } else
         {
             for (var i = 0; i < clientOrderIds.size(); i++)
             {
-                HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("instId", market.get("id"));
-                j39v4.put("clientOrderId", this.safeString(clientOrderIds, i));
-                ((List<Object>)request).add(j39v4);
+                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                mapLiteral11.put("instId", market.get("id"));
+                mapLiteral11.put("clientOrderId", this.safeString(clientOrderIds, i));
+                request.add(mapLiteral11);
             }
         }
         Map<String, Object> response = null;
@@ -3959,38 +3959,38 @@ public class Blofin extends BlofinApi
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("info", position);
-        mapLiteral8.put("id", null);
-        mapLiteral8.put("symbol", symbol);
-        mapLiteral8.put("notional", notional);
-        mapLiteral8.put("marginMode", marginMode);
-        mapLiteral8.put("liquidationPrice", liquidationPrice);
-        mapLiteral8.put("entryPrice", this.parseNumber(entryPriceString));
-        mapLiteral8.put("exitPrice", this.safeNumber(position, "closeAveragePrice", null));
-        mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
-        mapLiteral8.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
-        mapLiteral8.put("percentage", percentage);
-        mapLiteral8.put("contracts", contracts);
-        mapLiteral8.put("contractSize", contractSize);
-        mapLiteral8.put("markPrice", this.parseNumber(markPriceString));
-        mapLiteral8.put("lastPrice", null);
-        mapLiteral8.put("side", side);
-        mapLiteral8.put("hedged", hedged);
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("lastUpdateTimestamp", null);
-        mapLiteral8.put("maintenanceMargin", maintenanceMargin);
-        mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
-        mapLiteral8.put("positionMargin", this.parseNumber(marginString));
-        mapLiteral8.put("collateral", this.parseNumber(collateralString));
-        mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral8.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
-        mapLiteral8.put("leverage", this.parseNumber(leverageString));
-        mapLiteral8.put("marginRatio", marginRatio);
-        mapLiteral8.put("stopLossPrice", null);
-        mapLiteral8.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral8);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("info", position);
+        mapLiteral12.put("id", null);
+        mapLiteral12.put("symbol", symbol);
+        mapLiteral12.put("notional", notional);
+        mapLiteral12.put("marginMode", marginMode);
+        mapLiteral12.put("liquidationPrice", liquidationPrice);
+        mapLiteral12.put("entryPrice", this.parseNumber(entryPriceString));
+        mapLiteral12.put("exitPrice", this.safeNumber(position, "closeAveragePrice", null));
+        mapLiteral12.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
+        mapLiteral12.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
+        mapLiteral12.put("percentage", percentage);
+        mapLiteral12.put("contracts", contracts);
+        mapLiteral12.put("contractSize", contractSize);
+        mapLiteral12.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral12.put("lastPrice", null);
+        mapLiteral12.put("side", side);
+        mapLiteral12.put("hedged", hedged);
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        mapLiteral12.put("lastUpdateTimestamp", null);
+        mapLiteral12.put("maintenanceMargin", maintenanceMargin);
+        mapLiteral12.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral12.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral12.put("collateral", this.parseNumber(collateralString));
+        mapLiteral12.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral12.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+        mapLiteral12.put("leverage", this.parseNumber(leverageString));
+        mapLiteral12.put("marginRatio", marginRatio);
+        mapLiteral12.put("stopLossPrice", null);
+        mapLiteral12.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral12);
     }
 
     /**
@@ -4048,20 +4048,20 @@ public class Blofin extends BlofinApi
     public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> tier = this.safeDict(info, i, null);
             String marketId = this.safeString(tier, "symbol");
-            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-            j39v5.put("tier", this.sum(i, 1));
-            j39v5.put("symbol", this.safeSymbol(marketId, market, null, null));
-            j39v5.put("currency", this.safeString(market, "quote"));
-            j39v5.put("minNotional", this.safeNumber(tier, "minSize", null));
-            j39v5.put("maxNotional", this.safeNumber(tier, "maxSize", null));
-            j39v5.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMarginRate", null));
-            j39v5.put("maxLeverage", this.safeNumber(tier, "maxLeverage", null));
-            j39v5.put("info", tier);
-            ((List<Object>)tiers).add(j39v5);
+            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+            mapLiteral13.put("tier", this.sum(i, 1));
+            mapLiteral13.put("symbol", this.safeSymbol(marketId, market, null, null));
+            mapLiteral13.put("currency", this.safeString(market, "quote"));
+            mapLiteral13.put("minNotional", this.safeNumber(tier, "minSize", null));
+            mapLiteral13.put("maxNotional", this.safeNumber(tier, "maxSize", null));
+            mapLiteral13.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMarginRate", null));
+            mapLiteral13.put("maxLeverage", this.safeNumber(tier, "maxLeverage", null));
+            mapLiteral13.put("info", tier);
+            tiers.add(mapLiteral13);
         }
         return tiers;
     }

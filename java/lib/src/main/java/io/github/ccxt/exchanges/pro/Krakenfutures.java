@@ -180,7 +180,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
         {
             String symbol = (String) (symbolsValue == null || i < 0 || i >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(i));
-            ((List<Object>)marketIds).add(this.marketId(symbol));
+            marketIds.add(this.marketId(symbol));
         }
         Integer length = ((List<?>)symbolsValue).size();
         if (java.util.Objects.equals(length, 1))
@@ -490,7 +490,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Long timestamp = this.safeInteger(message, "timestamp");
             Map<String, Object> position = this.parseWsPosition((Map<String, Object>) (rawPosition), null, timestamp);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "positions::");
@@ -1950,11 +1950,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String messageHash = this.getMessageHash(unifiedName, null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
-            ((List<Object>)messageHashes).add(messageHash);
+            messageHashes.add(messageHash);
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             if (!this.subscriptionExistsForHash(url, messageHash))
             {
-                ((List<Object>)rawSubs).add(market.get("id"));
+                rawSubs.add(market.get("id"));
             }
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};

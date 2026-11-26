@@ -1970,7 +1970,7 @@ public class Woo extends WooApi
                 stopLossOrder.put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
                 stopLossOrder.put("type", "CLOSE_POSITION");
                 stopLossOrder.put("reduceOnly", true);
-                ((List<Object>)childOrders).add(stopLossOrder);
+                childOrders.add(stopLossOrder);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
@@ -1981,7 +1981,7 @@ public class Woo extends WooApi
                 takeProfitOrder.put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
                 takeProfitOrder.put("type", "CLOSE_POSITION");
                 takeProfitOrder.put("reduceOnly", true);
-                ((List<Object>)childOrders).add(takeProfitOrder);
+                childOrders.add(takeProfitOrder);
             }
             Map<String, Object> outterOrder = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2969,7 +2969,7 @@ public class Woo extends WooApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseTicker(ticker, null));
+            result.add(this.parseTicker(ticker, null));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -4662,7 +4662,7 @@ public class Woo extends WooApi
             Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
             String marketId = this.safeString(entry, "symbol");
             Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Woo.this.safeSymbol(marketId, null, null, null) );
                 put( "fundingRate", Woo.this.safeNumber(entry, "fundingRate", null) );

@@ -454,7 +454,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 continue;
             }
             String price = this.safeString(entries, i);
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, this.safeString(entries, (((long) i) + 1L)))));
+            result.add(new ArrayList<Object>(Arrays.asList(price, this.safeString(entries, (((long) i) + 1L)))));
         }
         return result;
     }
@@ -561,7 +561,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(type, "update"))
         {
             Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-            ((List<Object>)rawOrders).add(data); // update is a single order
+            rawOrders.add(data); // update is a single order
         } else
         {
             rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of orders
@@ -693,7 +693,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(type, "update"))
         {
             Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-            ((List<Object>)rawTrades).add(data); // update is a single trade
+            rawTrades.add(data); // update is a single trade
         } else
         {
             rawTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList())); // snapshot is a list of trades
@@ -907,7 +907,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(messageType, "update"))
         {
             Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-            ((List<Object>)rawPositions).add(data);
+            rawPositions.add(data);
         } else
         {
             rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -922,7 +922,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
             positions.append(position);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)

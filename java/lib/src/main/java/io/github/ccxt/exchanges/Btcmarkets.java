@@ -573,8 +573,8 @@ public class Btcmarkets extends BtcmarketsApi
         Map<String, Object> cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
         String addressRaw = this.safeString(cryptoPaymentDetail, "address");
-        Object address = null;
-        Object tag = null;
+        String address = null;
+        String tag = null;
         if (!java.util.Objects.equals(addressRaw, null))
         {
             List<String> addressParts = new ArrayList<String>(Arrays.asList(((String)addressRaw).split(java.util.regex.Pattern.quote("?dt="))));
@@ -1074,10 +1074,10 @@ public class Btcmarkets extends BtcmarketsApi
         String feeCurrencyCode = null;
         if (java.util.Objects.equals(marketResolved.get("quote"), "AUD"))
         {
-            feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
+            feeCurrencyCode = this.safeString(marketResolved, "quote");
         } else
         {
-            feeCurrencyCode = java.util.Objects.toString(marketResolved.get("base"), null);
+            feeCurrencyCode = this.safeString(marketResolved, "base");
         }
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "Bid"))
@@ -1297,7 +1297,7 @@ public class Btcmarkets extends BtcmarketsApi
         for (var i = 0; i < ids.size(); i++)
         {
             // numericIds[i] = parseInt (ids[i]);
-            ((List<Object>)numericIds).add(this.parseToInt(this.safeString(ids, i)));
+            numericIds.add(this.parseToInt(this.safeString(ids, i)));
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "ids", numericIds );

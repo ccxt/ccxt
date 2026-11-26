@@ -823,13 +823,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         for (var i = 0; i < bids.size(); i++)
         {
             List<Object> bid = this.safeList(bids, i, new ArrayList<Object>(Arrays.asList()));
-            ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList((bid == null || 1 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(1)), (bid == null || 2 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(2)))));
+            cleanedBids.add(new ArrayList<Object>(Arrays.asList((bid == null || 1 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(1)), (bid == null || 2 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(2)))));
         }
         List<Object> cleanedAsks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < asks.size(); i++)
         {
             List<Object> ask = this.safeList(asks, i, new ArrayList<Object>(Arrays.asList()));
-            ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList((ask == null || 1 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(1)), (ask == null || 2 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(2)))));
+            cleanedAsks.add(new ArrayList<Object>(Arrays.asList((ask == null || 1 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(1)), (ask == null || 2 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(2)))));
         }
         data.put("bids", cleanedBids);
         data.put("asks", cleanedAsks);

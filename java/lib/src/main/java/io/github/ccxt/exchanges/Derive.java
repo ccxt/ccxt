@@ -856,7 +856,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < subaccountIds.size(); i++)
         {
             String subaccountId = this.safeString(subaccountIds, i);
-            ((List<Object>)accounts).add(new HashMap<String, Object>() {{
+            accounts.add(new HashMap<String, Object>() {{
                 put( "id", subaccountId );
                 put( "type", null );
                 put( "code", null );
@@ -1755,7 +1755,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < settlements.size(); i++)
         {
             Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
-            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
+            result.add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -2007,7 +2007,7 @@ public class Derive extends DeriveApi
             }
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(this.safeDict(tradesArray, i, new HashMap<String, Object>() {{}}), market);
             Map<String, Object> trade = this.extend(parsed, parameters);
-            ((List<Object>)result).add(trade);
+            result.add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         String symbol = this.safeString(market, "symbol");
@@ -2264,7 +2264,7 @@ public class Derive extends DeriveApi
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Long timestamp = this.safeInteger(entry, "timestamp");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Derive.this.safeNumber(entry, "funding_rate", null) );
@@ -2427,7 +2427,7 @@ public class Derive extends DeriveApi
         return this.signHash((String) (this.hashMessage(message)), privateKey);
     }
 
-    public String parseUnits(String num, Object dec)
+    public String parseUnits(String num, String dec)
     {
         return Precise.stringMul(num, java.util.Objects.requireNonNullElse(dec, "1000000000000000000"));
     }
@@ -4480,7 +4480,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < transfers.size(); i++)
         {
             Map<String, Object> transfer = this.extend(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), null), new HashMap<String, Object>() {{}});
-            ((List<Object>)parsed).add(transfer);
+            parsed.add(transfer);
         }
         List<Object> sorted = this.sortBy(parsed, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
@@ -4565,7 +4565,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < rows.size(); i++)
         {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
-            ((List<Object>)rates).add(this.parseBorrowRate(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), currency));
+            rates.add(this.parseBorrowRate(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), currency));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);

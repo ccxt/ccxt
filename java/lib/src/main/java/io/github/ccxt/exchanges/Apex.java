@@ -527,10 +527,10 @@ public class Apex extends ApexApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
@@ -1458,7 +1458,7 @@ public class Apex extends ApexApi
             Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
             Long timestamp = this.safeInteger(entry, "fundingTimestamp");
             String marketId = this.safeString(entry, "symbol");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Apex.this.safeSymbol(marketId, market, null, null) );
                 put( "fundingRate", Apex.this.safeNumber(entry, "rate", null) );

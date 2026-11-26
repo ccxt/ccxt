@@ -566,7 +566,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             rows = dataList;
         } else
         {
-            ((List<Object>)rows).add(this.safeValue(message, "data"));
+            rows.add(this.safeValue(message, "data"));
         }
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
@@ -886,7 +886,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(data, null))
         {
-            ((List<Object>)rows).add(data);
+            rows.add(data);
         }
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
@@ -998,7 +998,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             rows = dataList;
         } else
         {
-            ((List<Object>)rows).add(this.safeValue(message, "data"));
+            rows.add(this.safeValue(message, "data"));
         }
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
@@ -1254,7 +1254,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 put( "timestamp", timestamp );
             }});
             Map<String, Object> position = this.parsePosition(extended, null);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         client.resolve(newPositions, "positions");

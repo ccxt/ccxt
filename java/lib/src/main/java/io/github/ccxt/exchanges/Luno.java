@@ -690,37 +690,37 @@ public class Luno extends LunoApi
                 taker = this.parseNumber("0.001");
                 maker = this.parseNumber("0.0008");
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("taker", taker);
-            j39v1.put("maker", maker);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", (java.util.Objects.equals(status, "ACTIVE")));
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", id);
+            mapLiteral2.put("symbol", ((base + "/") + quote));
+            mapLiteral2.put("taker", taker);
+            mapLiteral2.put("maker", maker);
+            mapLiteral2.put("base", base);
+            mapLiteral2.put("quote", quote);
+            mapLiteral2.put("settle", null);
+            mapLiteral2.put("baseId", baseId);
+            mapLiteral2.put("quoteId", quoteId);
+            mapLiteral2.put("settleId", null);
+            mapLiteral2.put("type", "spot");
+            mapLiteral2.put("spot", true);
+            mapLiteral2.put("margin", false);
+            mapLiteral2.put("swap", false);
+            mapLiteral2.put("future", false);
+            mapLiteral2.put("option", false);
+            mapLiteral2.put("active", (java.util.Objects.equals(status, "ACTIVE")));
+            mapLiteral2.put("contract", false);
+            mapLiteral2.put("linear", null);
+            mapLiteral2.put("inverse", null);
+            mapLiteral2.put("contractSize", null);
+            mapLiteral2.put("expiry", null);
+            mapLiteral2.put("expiryDatetime", null);
+            mapLiteral2.put("strike", null);
+            mapLiteral2.put("optionType", null);
+            mapLiteral2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "volume_scale"))) );
                     put( "price", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "price_scale"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -738,9 +738,9 @@ public class Luno extends LunoApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral2.put("created", null);
+            mapLiteral2.put("info", market);
+            result.add(mapLiteral2);
         }
         return result;
 
@@ -771,7 +771,7 @@ public class Luno extends LunoApi
             String accountId = this.safeString(account, "account_id");
             String currencyId = this.safeString(account, "asset");
             String code = this.safeCurrencyCode(currencyId, null);
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "id", accountId );
                 put( "type", null );
                 put( "code", code );
@@ -802,10 +802,10 @@ public class Luno extends LunoApi
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("used", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
-                j39v2.put("total", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
-                result.put(code, this.extend((result == null || code == null ? null : result.get(code)), j39v2));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("used", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
+                j39v1.put("total", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                result.put(code, this.extend((result == null || code == null ? null : result.get(code)), j39v1));
             } else if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = this.account();
@@ -957,29 +957,29 @@ public class Luno extends LunoApi
             }
         }
         String id = this.safeString(order, "order_id");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", null);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("lastTradeTimestamp", null);
-        mapLiteral2.put("status", status);
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("timeInForce", null);
-        mapLiteral2.put("postOnly", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("triggerPrice", null);
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("filled", filled);
-        mapLiteral2.put("cost", cost);
-        mapLiteral2.put("remaining", null);
-        mapLiteral2.put("trades", null);
-        mapLiteral2.put("fee", fee);
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("average", null);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", filled);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("trades", null);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("average", null);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1308,24 +1308,24 @@ public class Luno extends LunoApi
             }
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral3.put("order", orderId);
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("price", this.safeString(trade, "price"));
-        mapLiteral3.put("amount", this.safeString2(trade, "volume", "base"));
-        mapLiteral3.put("cost", this.safeString(trade, "counter"));
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("cost", feeCost);
-        mapLiteral4.put("currency", feeCurrency);
-        mapLiteral3.put("fee", mapLiteral4);
-        return this.safeTrade(mapLiteral3, market);
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral4.put("order", orderId);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("price", this.safeString(trade, "price"));
+        mapLiteral4.put("amount", this.safeString2(trade, "volume", "base"));
+        mapLiteral4.put("cost", this.safeString(trade, "counter"));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("cost", feeCost);
+        mapLiteral5.put("currency", feeCurrency);
+        mapLiteral4.put("fee", mapLiteral5);
+        return this.safeTrade(mapLiteral4, market);
     }
 
     /**
@@ -1617,10 +1617,10 @@ public class Luno extends LunoApi
             throw new NullResponse((this.id + " createOrder() returned empty response")) ;
         }
         String orderId = this.safeString(response, "order_id");
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", response);
-        mapLiteral5.put("id", orderId);
-        return this.safeOrder(mapLiteral5, market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", response);
+        mapLiteral6.put("id", orderId);
+        return this.safeOrder(mapLiteral6, market);
 
     }
 
@@ -1829,23 +1829,23 @@ public class Luno extends LunoApi
         {
             direction = "out";
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", entry);
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("direction", direction);
-        mapLiteral6.put("account", account_id);
-        mapLiteral6.put("referenceId", resultReferenceId);
-        mapLiteral6.put("referenceAccount", null);
-        mapLiteral6.put("type", resultType);
-        mapLiteral6.put("currency", code);
-        mapLiteral6.put("amount", this.parseToNumeric(amount));
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("before", this.parseToNumeric(before));
-        mapLiteral6.put("after", this.parseToNumeric(after));
-        mapLiteral6.put("status", status);
-        mapLiteral6.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", entry);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", account_id);
+        mapLiteral7.put("referenceId", resultReferenceId);
+        mapLiteral7.put("referenceAccount", null);
+        mapLiteral7.put("type", resultType);
+        mapLiteral7.put("currency", code);
+        mapLiteral7.put("amount", this.parseToNumeric(amount));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("before", this.parseToNumeric(before));
+        mapLiteral7.put("after", this.parseToNumeric(after));
+        mapLiteral7.put("status", status);
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
     /**

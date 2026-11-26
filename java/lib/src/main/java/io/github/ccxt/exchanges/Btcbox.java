@@ -313,33 +313,33 @@ public class Btcbox extends BtcboxApi
             Double fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             Map<String, Object> details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
             Map<String, Object> tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("uppercaseId", null);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", baseCurr);
-            j39v1.put("baseId", id);
-            j39v1.put("quote", quote);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settle", null);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("taker", fee);
-            j39v1.put("maker", fee);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("uppercaseId", null);
+            mapLiteral1.put("symbol", symbol);
+            mapLiteral1.put("base", baseCurr);
+            mapLiteral1.put("baseId", id);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", true);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("taker", fee);
+            mapLiteral1.put("maker", fee);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("limits", new HashMap<String, Object>() {{
                     put( "amount", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -357,14 +357,14 @@ public class Btcbox extends BtcboxApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(tradeDetails, "pricedecimal"))) );
                     put( "amount", null );
                 }});
-            j39v1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
-            j39v1.put("created", null);
-            j39v1.put("info", res);
-            ((List<Object>)markets).add(this.safeMarketStructure(j39v1));
+            mapLiteral1.put("active", java.util.Objects.equals(this.safeString(tradeDetails, "enable"), "1"));
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", res);
+            markets.add(this.safeMarketStructure(mapLiteral1));
         }
         return markets;
 
@@ -381,31 +381,31 @@ public class Btcbox extends BtcboxApi
             return null;
         }
         String symbol = ((base + "/") + quote);
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", this.safeString(market, "symbol"));
-        mapLiteral1.put("uppercaseId", null);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("base", base);
-        mapLiteral1.put("baseId", baseId);
-        mapLiteral1.put("quote", quote);
-        mapLiteral1.put("quoteId", quoteId);
-        mapLiteral1.put("settle", null);
-        mapLiteral1.put("settleId", null);
-        mapLiteral1.put("type", "spot");
-        mapLiteral1.put("spot", true);
-        mapLiteral1.put("margin", false);
-        mapLiteral1.put("swap", false);
-        mapLiteral1.put("future", false);
-        mapLiteral1.put("option", false);
-        mapLiteral1.put("contract", false);
-        mapLiteral1.put("linear", null);
-        mapLiteral1.put("inverse", null);
-        mapLiteral1.put("contractSize", null);
-        mapLiteral1.put("expiry", null);
-        mapLiteral1.put("expiryDatetime", null);
-        mapLiteral1.put("strike", null);
-        mapLiteral1.put("optionType", null);
-        mapLiteral1.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeString(market, "symbol"));
+        mapLiteral2.put("uppercaseId", null);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settle", null);
+        mapLiteral2.put("settleId", null);
+        mapLiteral2.put("type", "spot");
+        mapLiteral2.put("spot", true);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", false);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("contract", false);
+        mapLiteral2.put("linear", null);
+        mapLiteral2.put("inverse", null);
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount", null) );
                     put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount", null) );
@@ -423,14 +423,14 @@ public class Btcbox extends BtcboxApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral1.put("precision", new HashMap<String, Object>() {{
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "quotePrecision"))) );
                 put( "amount", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "basePrecision"))) );
             }});
-        mapLiteral1.put("active", null);
-        mapLiteral1.put("created", null);
-        mapLiteral1.put("info", market);
-        return this.safeMarketStructure(mapLiteral1);
+        mapLiteral2.put("active", null);
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     public Balances parseBalance(Map<String, Object> response)
@@ -818,29 +818,29 @@ public class Btcbox extends BtcboxApi
         List<String> trades = null; // todo: this.parseTrades (order['trades']);
         Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String side = this.safeString(order, "type");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("clientOrderId", null);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("lastTradeTimestamp", null);
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("remaining", remaining);
-        mapLiteral2.put("filled", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("timeInForce", null);
-        mapLiteral2.put("postOnly", null);
-        mapLiteral2.put("status", status);
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("triggerPrice", null);
-        mapLiteral2.put("cost", null);
-        mapLiteral2.put("trades", trades);
-        mapLiteral2.put("fee", null);
-        mapLiteral2.put("info", order);
-        mapLiteral2.put("average", null);
-        return this.safeOrder(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("remaining", remaining);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("trades", trades);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("average", null);
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     /**

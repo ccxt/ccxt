@@ -1417,7 +1417,7 @@ public class Phemex extends PhemexApi
             }
             if (!java.util.Objects.equals(market, null))
             {
-                ((List<Object>)result).add(market);
+                result.add(market);
             }
         }
         return result;
@@ -1518,7 +1518,7 @@ public class Phemex extends PhemexApi
         return new ArrayList<Object>(Arrays.asList(this.parseNumber(this.fromEp(this.safeString(bidask, java.util.Objects.requireNonNullElse(priceKey, 0)), market)), this.parseNumber(amount)));
     }
 
-    public Map<String, Object> customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Map<String, Object> market)
+    public Map<String, Object> customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, String asksKey, Object priceKey, Object amountKey, Map<String, Object> market)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1526,15 +1526,15 @@ public class Phemex extends PhemexApi
             put( "datetime", Phemex.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
-        List<Object> sides = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(bidsKey, "bids"), java.util.Objects.requireNonNullElse(asksKey, "asks")));
+        List<String> sides = new ArrayList<String>(Arrays.asList(java.util.Objects.requireNonNullElse(bidsKey, "bids"), java.util.Objects.requireNonNullElse(asksKey, "asks")));
         for (var i = 0; i < sides.size(); i++)
         {
-            String side = (String) (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i));
+            String side = (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<Object> bidasks = this.safeList(orderbook, side, new ArrayList<Object>(Arrays.asList()));
             for (var k = 0; k < bidasks.size(); k++)
             {
-                ((List<Object>)orders).add(this.customParseBidAsk((bidasks == null || k < 0 || k >= bidasks.size() ? null : bidasks.get(k)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), market));
+                orders.add(this.customParseBidAsk((bidasks == null || k < 0 || k >= bidasks.size() ? null : bidasks.get(k)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), market));
             }
             Boolean descending = ((i == 0));
             result.put(side, this.sortBy(orders, 0, descending));
@@ -4724,7 +4724,7 @@ public class Phemex extends PhemexApi
         for (var i = 0; i < positions.size(); i++)
         {
             Map<String, Object> position = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-            ((List<Object>)result).add(this.parsePosition(position, null));
+            result.add(this.parsePosition(position, null));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -5061,7 +5061,7 @@ public class Phemex extends PhemexApi
             Long timestamp = this.safeInteger(entry, "createTime");
             String execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
             String currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"), null);
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Phemex.this.safeString(entry, "symbol") );
                 put( "code", currencyCode );
@@ -5548,16 +5548,16 @@ public class Phemex extends PhemexApi
             Map<String, Object> tier = this.safeDict(riskLimits, i, null);
             Long maxNotional = this.safeInteger(tier, "limit");
             Long minNotionalResponse = minNotional; // java req
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("tier", this.sum(i, 1));
-            j39v1.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
-            j39v1.put("currency", marketResolved.get("settle"));
-            j39v1.put("minNotional", minNotionalResponse);
-            j39v1.put("maxNotional", maxNotional);
-            j39v1.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", null));
-            j39v1.put("maxLeverage", null);
-            j39v1.put("info", tier);
-            ((List<Object>)tiers).add(j39v1);
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("tier", this.sum(i, 1));
+            mapLiteral12.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
+            mapLiteral12.put("currency", marketResolved.get("settle"));
+            mapLiteral12.put("minNotional", minNotionalResponse);
+            mapLiteral12.put("maxNotional", maxNotional);
+            mapLiteral12.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", null));
+            mapLiteral12.put("maxLeverage", null);
+            mapLiteral12.put("info", tier);
+            tiers.add(mapLiteral12);
             minNotional = maxNotional;
         }
         return tiers;
@@ -5599,9 +5599,9 @@ public class Phemex extends PhemexApi
                     if (java.util.Objects.equals(this.safeString(parameters, "clOrdID"), null))
                     {
                         String id = this.safeString(this.options, "brokerId", "CCXT123456");
-                        HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("clOrdID", (id + this.uuid16()));
-                        payload = this.json(this.extend(parameters, j39v2));
+                        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                        j39v1.put("clOrdID", (id + this.uuid16()));
+                        payload = this.json(this.extend(parameters, j39v1));
                     }
                 }
                 requestBody = payload;
@@ -6038,13 +6038,13 @@ public class Phemex extends PhemexApi
         {
             Object item = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
             Long timestamp = this.safeInteger(item, "fundingTime");
-            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-            mapLiteral12.put("info", item);
-            mapLiteral12.put("symbol", symbol);
-            mapLiteral12.put("fundingRate", this.safeNumber(item, "fundingRate", null));
-            mapLiteral12.put("timestamp", timestamp);
-            mapLiteral12.put("datetime", this.iso8601(timestamp));
-            ((List<Object>)result).add(mapLiteral12);
+            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+            mapLiteral13.put("info", item);
+            mapLiteral13.put("symbol", symbol);
+            mapLiteral13.put("fundingRate", this.safeNumber(item, "fundingRate", null));
+            mapLiteral13.put("timestamp", timestamp);
+            mapLiteral13.put("datetime", this.iso8601(timestamp));
+            result.add(mapLiteral13);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
@@ -6224,16 +6224,16 @@ public class Phemex extends PhemexApi
             timestamp = this.parseToInt((((double) timestampNs) / ((double) 1000000)));
         }
         String id = this.safeString(interest, "symbol");
-        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-        mapLiteral13.put("info", interest);
-        mapLiteral13.put("symbol", this.safeSymbol(id, market, null, null));
-        mapLiteral13.put("baseVolume", this.safeString(interest, "volumeRq"));
-        mapLiteral13.put("quoteVolume", null);
-        mapLiteral13.put("openInterestAmount", this.safeString(interest, "openInterestRv"));
-        mapLiteral13.put("openInterestValue", null);
-        mapLiteral13.put("timestamp", timestamp);
-        mapLiteral13.put("datetime", this.iso8601(timestamp));
-        return this.safeOpenInterest(mapLiteral13, market);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("info", interest);
+        mapLiteral14.put("symbol", this.safeSymbol(id, market, null, null));
+        mapLiteral14.put("baseVolume", this.safeString(interest, "volumeRq"));
+        mapLiteral14.put("quoteVolume", null);
+        mapLiteral14.put("openInterestAmount", this.safeString(interest, "openInterestRv"));
+        mapLiteral14.put("openInterestValue", null);
+        mapLiteral14.put("timestamp", timestamp);
+        mapLiteral14.put("datetime", this.iso8601(timestamp));
+        return this.safeOpenInterest(mapLiteral14, market);
     }
 
     /**
@@ -6585,7 +6585,7 @@ public class Phemex extends PhemexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ranks.size(); i++)
         {
-            ((List<Object>)result).add(this.parseADLRank(this.extend(new HashMap<String, Object>() {{}}, (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i))), null));
+            result.add(this.parseADLRank(this.extend(new HashMap<String, Object>() {{}}, (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i))), null));
         }
         return this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false);
 

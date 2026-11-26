@@ -2107,30 +2107,30 @@ public class Zebpay extends ZebpayApi
                 continue;
             }
             String symbol = ((base + "/") + quote);
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("swap", false);
-            j39v1.put("margin", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", null);
-            j39v1.put("contract", null);
-            j39v1.put("taker", this.safeNumber(market, "takerFee", null));
-            j39v1.put("maker", this.safeNumber(market, "makerFee", null));
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+            mapLiteral9.put("id", id);
+            mapLiteral9.put("symbol", symbol);
+            mapLiteral9.put("base", base);
+            mapLiteral9.put("quote", quote);
+            mapLiteral9.put("baseId", baseId);
+            mapLiteral9.put("quoteId", quoteId);
+            mapLiteral9.put("type", "spot");
+            mapLiteral9.put("spot", true);
+            mapLiteral9.put("swap", false);
+            mapLiteral9.put("margin", false);
+            mapLiteral9.put("future", false);
+            mapLiteral9.put("option", false);
+            mapLiteral9.put("active", null);
+            mapLiteral9.put("contract", null);
+            mapLiteral9.put("taker", this.safeNumber(market, "takerFee", null));
+            mapLiteral9.put("maker", this.safeNumber(market, "makerFee", null));
+            mapLiteral9.put("strike", null);
+            mapLiteral9.put("optionType", null);
+            mapLiteral9.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Zebpay.this.safeNumber(market, "lotSz", null) );
                     put( "price", Zebpay.this.safeNumber(market, "tickSz", null) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral9.put("limits", new HashMap<String, Object>() {{
                     put( "amount", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -2144,8 +2144,8 @@ public class Zebpay extends ZebpayApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral9.put("info", market);
+            result.add(mapLiteral9);
         }
         return result;
 
@@ -2200,37 +2200,37 @@ public class Zebpay extends ZebpayApi
             }
             String status = this.safeString(market, "status");
             String symbol = ((base + "/") + quote);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", id);
-            j39v2.put("symbol", ((symbol + ":") + quote));
-            j39v2.put("base", base);
-            j39v2.put("quote", quote);
-            j39v2.put("baseId", baseId);
-            j39v2.put("quoteId", quoteId);
-            j39v2.put("spot", false);
-            j39v2.put("margin", false);
-            j39v2.put("swap", true);
-            j39v2.put("future", false);
-            j39v2.put("type", "swap");
-            j39v2.put("option", false);
-            j39v2.put("active", (java.util.Objects.equals(status, "Open")));
-            j39v2.put("contract", true);
-            j39v2.put("taker", this.safeNumber(market, "takerFee", null));
-            j39v2.put("maker", this.safeNumber(market, "makerFee", null));
-            j39v2.put("strike", null);
-            j39v2.put("optionType", null);
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+            mapLiteral10.put("id", id);
+            mapLiteral10.put("symbol", ((symbol + ":") + quote));
+            mapLiteral10.put("base", base);
+            mapLiteral10.put("quote", quote);
+            mapLiteral10.put("baseId", baseId);
+            mapLiteral10.put("quoteId", quoteId);
+            mapLiteral10.put("spot", false);
+            mapLiteral10.put("margin", false);
+            mapLiteral10.put("swap", true);
+            mapLiteral10.put("future", false);
+            mapLiteral10.put("type", "swap");
+            mapLiteral10.put("option", false);
+            mapLiteral10.put("active", (java.util.Objects.equals(status, "Open")));
+            mapLiteral10.put("contract", true);
+            mapLiteral10.put("taker", this.safeNumber(market, "takerFee", null));
+            mapLiteral10.put("maker", this.safeNumber(market, "makerFee", null));
+            mapLiteral10.put("strike", null);
+            mapLiteral10.put("optionType", null);
+            mapLiteral10.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Zebpay.this.safeNumber(market, "lotSz", null) );
                     put( "price", Zebpay.this.safeNumber(market, "tickSz", null) );
                 }});
-            j39v2.put("limits", new HashMap<String, Object>() {{
+            mapLiteral10.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", Zebpay.this.safeNumber(market, "minLeverage", null) );
                         put( "max", Zebpay.this.safeNumber(market, "maxLeverage", null) );
                     }} );
                 }});
-            j39v2.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(j39v2));
+            mapLiteral10.put("info", market);
+            result.add(this.safeMarketStructure(mapLiteral10));
         }
         return result;
 
@@ -2286,31 +2286,31 @@ public class Zebpay extends ZebpayApi
         {
             positionMargin = initialMargin;
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", position);
-        mapLiteral9.put("id", this.safeString(position, "id"));
-        mapLiteral9.put("symbol", marketResolved.get("symbol"));
-        mapLiteral9.put("timestamp", this.parse8601(datetime));
-        mapLiteral9.put("datetime", datetime);
-        mapLiteral9.put("initialMargin", initialMargin);
-        mapLiteral9.put("initialMarginPercentage", null);
-        mapLiteral9.put("maintenanceMargin", null);
-        mapLiteral9.put("maintenanceMarginPercentage", null);
-        mapLiteral9.put("entryPrice", this.safeNumber(position, "entryPrice", null));
-        mapLiteral9.put("notional", this.safeNumber(position, "notional", null));
-        mapLiteral9.put("leverage", leverage);
-        mapLiteral9.put("unrealizedPnl", null);
-        mapLiteral9.put("contracts", this.safeNumber(position, "contracts", null));
-        mapLiteral9.put("contractSize", this.safeNumber(marketResolved, "contractSize", null));
-        mapLiteral9.put("marginRatio", null);
-        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", null));
-        mapLiteral9.put("markPrice", null);
-        mapLiteral9.put("positionMargin", positionMargin);
-        mapLiteral9.put("collateral", null);
-        mapLiteral9.put("marginMode", marginMode);
-        mapLiteral9.put("side", this.safeStringLower(position, "side"));
-        mapLiteral9.put("percentage", null);
-        return this.safePosition(mapLiteral9);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", position);
+        mapLiteral11.put("id", this.safeString(position, "id"));
+        mapLiteral11.put("symbol", marketResolved.get("symbol"));
+        mapLiteral11.put("timestamp", this.parse8601(datetime));
+        mapLiteral11.put("datetime", datetime);
+        mapLiteral11.put("initialMargin", initialMargin);
+        mapLiteral11.put("initialMarginPercentage", null);
+        mapLiteral11.put("maintenanceMargin", null);
+        mapLiteral11.put("maintenanceMarginPercentage", null);
+        mapLiteral11.put("entryPrice", this.safeNumber(position, "entryPrice", null));
+        mapLiteral11.put("notional", this.safeNumber(position, "notional", null));
+        mapLiteral11.put("leverage", leverage);
+        mapLiteral11.put("unrealizedPnl", null);
+        mapLiteral11.put("contracts", this.safeNumber(position, "contracts", null));
+        mapLiteral11.put("contractSize", this.safeNumber(marketResolved, "contractSize", null));
+        mapLiteral11.put("marginRatio", null);
+        mapLiteral11.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", null));
+        mapLiteral11.put("markPrice", null);
+        mapLiteral11.put("positionMargin", positionMargin);
+        mapLiteral11.put("collateral", null);
+        mapLiteral11.put("marginMode", marginMode);
+        mapLiteral11.put("side", this.safeStringLower(position, "side"));
+        mapLiteral11.put("percentage", null);
+        return this.safePosition(mapLiteral11);
     }
 
     public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
@@ -2457,9 +2457,9 @@ public class Zebpay extends ZebpayApi
                 Object paramsBody = this.omit(paramsOmitted, "priceType");
                 if (!java.util.Objects.equals(priceType, null))
                 {
-                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                    mapLiteral10.put("priceType", priceType);
-                    suffix = ("?" + this.urlencode(mapLiteral10));
+                    HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                    mapLiteral12.put("priceType", priceType);
+                    suffix = ("?" + this.urlencode(mapLiteral12));
                 }
                 bodySigned = this.json(paramsBody);
                 headersSigned = new HashMap<String, Object>() {{

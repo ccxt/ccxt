@@ -1069,7 +1069,7 @@ public class Cryptomus extends CryptomusApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < result.size(); i++)
         {
-            ((List<Object>)orders).add(this.parseOrder(this.safeDict(result, i, new HashMap<String, Object>() {{}}), market));
+            orders.add(this.parseOrder(this.safeDict(result, i, new HashMap<String, Object>() {{}}), market));
         }
         return orders;
 
@@ -1374,8 +1374,8 @@ public class Cryptomus extends CryptomusApi
             String maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(maker))));
-            ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(taker))));
+            makerFees.add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(maker))));
+            takerFees.add(new ArrayList<Object>(Arrays.asList(turnover, this.parseNumber(taker))));
         }
         return new HashMap<String, Object>() {{
             put( "maker", makerFees );

@@ -559,7 +559,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 continue;
             }
             Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             stored.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "positions::");

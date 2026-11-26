@@ -275,7 +275,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             args.put(topicOrChannel, "ticker");
             args.put(symbolOrInstId, marketInner.get("id"));
-            ((List<Object>)topics).add(args);
+            topics.add(args);
             messageHashes.add(("ticker:" + symbol));
         }
         Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, paramsValue)).join();
@@ -551,7 +551,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             args.put(topicOrChannel, "ticker");
             args.put(symbolOrInstId, marketInner.get("id"));
-            ((List<Object>)topics).add(args);
+            topics.add(args);
             messageHashes.add(("bidask:" + symbol));
         }
         Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, paramsValue)).join();
@@ -743,10 +743,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             messageHash = ("kline" + symbol);
         } else
         {
-            channel = ("candle" + interval);
+            String intervalValue = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), "");
+            channel = ("candle" + intervalValue);
             args.put("channel", channel);
             args.put("instId", market.get("id"));
-            messageHash = ("candles:" + interval);
+            messageHash = ("candles:" + intervalValue);
         }
         return (this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", paramsRequest)).join();
 
@@ -1113,7 +1114,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             args.put(topicOrChannel, channel);
             args.put(symbolOrInstId, market.get("id"));
-            ((List<Object>)topics).add(args);
+            topics.add(args);
             messageHashes.add(("orderbook:" + symbol));
         }
         if (Boolean.TRUE.equals(isStockOrUta))
@@ -1316,7 +1317,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
-        ((List<Object>)bidAsk).add(delta);
+        bidAsk.add(delta);
         bookside.storeArray(bidAsk);
     }
 
@@ -1420,7 +1421,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             args.put(topicOrChannel, tradeTopic);
             args.put(symbolOrInstId, market.get("id"));
-            ((List<Object>)topics).add(args);
+            topics.add(args);
             messageHashes.add(("trade:" + symbol));
         }
         Map<String, Object> paramsRequest = paramsCursor;
@@ -1871,7 +1872,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String marketId = this.safeString2(rawPosition, "instId", "symbol");
             Map<String, Object> market = this.safeMarket(marketId, null, null, "contract");
             Map<String, Object> position = this.parseWsPosition(rawPosition, market);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, (instType + ":positions::"));

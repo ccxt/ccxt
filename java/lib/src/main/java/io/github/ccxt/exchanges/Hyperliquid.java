@@ -727,7 +727,7 @@ public class Hyperliquid extends HyperliquidApi
                     break;
                 }
                 String dexName = this.safeString(this.safeDict(fetchDexes, i, null), "name");
-                ((List<Object>)fetchDexesList).add(dexName);
+                fetchDexesList.add(dexName);
             }
         }
         List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>();
@@ -777,7 +777,7 @@ public class Hyperliquid extends HyperliquidApi
 }});
                     this.options.put("hip3TokensByName", hip3TokensByName);
                 }
-                ((List<Object>)result).add(data);
+                result.add(data);
             }
             markets = this.arrayConcat(markets, this.parseMarkets(result));
         }
@@ -875,7 +875,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             Map<String, Object> data = this.extend(this.safeDict(universe, i, new HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new HashMap<String, Object>() {{}}));
             data.put("baseId", i);
-            ((List<Object>)result).add(data);
+            result.add(data);
         }
         return this.parseMarkets(result);
 
@@ -1119,7 +1119,7 @@ public class Hyperliquid extends HyperliquidApi
                 }});
             entry.put("created", null);
             entry.put("info", this.extend(extraData, market));
-            ((List<Object>)markets).add(this.safeMarketStructure(entry));
+            markets.add(this.safeMarketStructure(entry));
         }
         return markets;
 
@@ -1622,7 +1622,7 @@ public class Hyperliquid extends HyperliquidApi
         for (var i = 0; i < universe.size(); i++)
         {
             Map<String, Object> data = this.extend(this.safeDict(universe, i, new HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new HashMap<String, Object>() {{}}));
-            ((List<Object>)result).add(data);
+            result.add(data);
         }
         return this.parseFundingRates(result, symbolsNormalized);
 
@@ -2736,12 +2736,12 @@ public class Hyperliquid extends HyperliquidApi
             Object order = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
             if (java.util.Objects.equals(this.safeString(statuses, i), "waitingForTrigger"))
             {
-                ((List<Object>)ordersToBeParsed).add(new HashMap<String, Object>() {{
+                ordersToBeParsed.add(new HashMap<String, Object>() {{
                     put( "status", order );
                 }}); // tp/sl orders can return a string like "waitingForTrigger",
             } else
             {
-                ((List<Object>)ordersToBeParsed).add(order);
+                ordersToBeParsed.add(order);
             }
         }
         return this.parseOrders(ordersToBeParsed, null, null, null, new HashMap<String, Object>() {{}});
@@ -2918,7 +2918,7 @@ public class Hyperliquid extends HyperliquidApi
                     takeProfitOrderType = "market";
                 } else if (java.util.Objects.equals(grouping, "normalTpsl"))
                 {
-                    ((List<Object>)orderReq).add(mainOrderObj);
+                    orderReq.add(mainOrderObj);
                 } else
                 {
                     throw new NotSupported((this.id + " only support grouping normalTpsl and positionTpsl.")) ;
@@ -2938,7 +2938,7 @@ public class Hyperliquid extends HyperliquidApi
                         put( "takeProfitPrice", takeProfitOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
-                    ((List<Object>)orderReq).add(orderObj);
+                    orderReq.add(orderObj);
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
@@ -2946,11 +2946,11 @@ public class Hyperliquid extends HyperliquidApi
                         put( "stopLossPrice", stopLossOrderTriggerPrice );
                         put( "reduceOnly", true );
                     }}));
-                    ((List<Object>)orderReq).add(orderObj);
+                    orderReq.add(orderObj);
                 }
             } else
             {
-                ((List<Object>)orderReq).add(mainOrderObj);
+                orderReq.add(mainOrderObj);
             }
         }
         Pair<String, Map<String, Object>> vaultAddressOptionVariable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress", null);
@@ -3078,7 +3078,7 @@ public class Hyperliquid extends HyperliquidApi
         for (var i = 0; i < statuses.size(); i++)
         {
             Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
-            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+            orders.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", status );
                 put( "status", status );
             }}, null));
@@ -3101,10 +3101,10 @@ public class Hyperliquid extends HyperliquidApi
      */
     public CompletableFuture<Map<String, Object>> cancelTwapOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.cancelTwapOrderCore(id, symbol, parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.cancelTwapOrderCore(id, symbol, parameters));
     }
 
-    private Object cancelTwapOrderCore(String id, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> cancelTwapOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3202,7 +3202,7 @@ public class Hyperliquid extends HyperliquidApi
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
                 mapLiteral5.put("asset", baseId);
                 mapLiteral5.put("cloid", this.safeString(clientOrderIds, i));
-                ((List<Object>)cancelReq).add(mapLiteral5);
+                cancelReq.add(mapLiteral5);
             }
         } else
         {
@@ -3210,7 +3210,7 @@ public class Hyperliquid extends HyperliquidApi
             for (var i = 0; i < ids.size(); i++)
             {
                 Object o = this.parseToNumeric(this.safeString(ids, i));
-                ((List<Object>)cancelReq).add(new HashMap<String, Object>() {{
+                cancelReq.add(new HashMap<String, Object>() {{
                     put( "a", baseId );
                     put( "o", o );
                 }});
@@ -3297,7 +3297,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> cancelObj = new HashMap<String, Object>() {{}};
             cancelObj.put(assetKey, this.parseToNumeric(market.get("baseId")));
             cancelObj.put(idKey, ((Boolean.TRUE.equals(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
-            ((List<Object>)cancelReq).add(cancelObj);
+            cancelReq.add(cancelObj);
         }
         cancelAction.put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
         cancelAction.put("cancels", cancelReq);
@@ -3511,7 +3511,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "oid", Hyperliquid.this.parseToInt(id) );
                 put( "order", orderReq );
             }};
-            ((List<Object>)modifies).add(modifyReq);
+            modifies.add(modifyReq);
         }
         Long nonce = this.incrementingNonce();
         Map<String, Object> modifyAction = new HashMap<String, Object>() {{
@@ -3762,7 +3762,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             Map<String, Object> entry = this.safeDict(fundings, i, null);
             Long timestamp = this.safeInteger(entry, "time");
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Hyperliquid.this.safeSymbol(null, market, null, null) );
                 put( "fundingRate", Hyperliquid.this.safeNumber(entry, "fundingRate", null) );
@@ -3859,7 +3859,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 extendOrder.put("ccxtStatus", "open");
             }
-            ((List<Object>)orderWithStatus).add(this.extend(order, extendOrder));
+            orderWithStatus.add(this.extend(order, extendOrder));
         }
         return this.parseOrders(orderWithStatus, market, since, limit, new HashMap<String, Object>() {{}});
 
@@ -4580,7 +4580,7 @@ public class Hyperliquid extends HyperliquidApi
             // liquidator fills carry the liquidated counterparty here
             if (java.util.Objects.equals(this.safeStringLower(liquidation, "liquidatedUser"), user))
             {
-                ((List<Object>)fills).add(fill);
+                fills.add(fill);
             }
         }
         return this.parseLiquidations(fills, market, since, limit);
@@ -4759,7 +4759,7 @@ public class Hyperliquid extends HyperliquidApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
-            ((List<Object>)result).add(parsedPosition);
+            result.add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -5041,10 +5041,10 @@ public class Hyperliquid extends HyperliquidApi
 
     public CompletableFuture<Map<String, Object>> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
+    private Map<String, Object> modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5795,9 +5795,10 @@ public class Hyperliquid extends HyperliquidApi
             if (java.util.Objects.equals(this.safeString(record, "type"), "vaultDeposit"))
             {
                 Map<String, Object> delta = this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeString(delta, "vault", ""), ("0x" + vaultAddress)))
+                String deltaVault = this.safeString(delta, "vault", "");
+                if (java.util.Objects.equals(deltaVault, ("0x" + vaultAddress)))
                 {
-                    ((List<Object>)deposits).add(record);
+                    deposits.add(record);
                 }
             }
         }
@@ -5879,9 +5880,10 @@ public class Hyperliquid extends HyperliquidApi
             if (java.util.Objects.equals(this.safeString(record, "type"), "vaultWithdraw"))
             {
                 Map<String, Object> delta = this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeString(delta, "vault", ""), ("0x" + vaultAddress)))
+                String deltaVault = this.safeString(delta, "vault", "");
+                if (java.util.Objects.equals(deltaVault, ("0x" + vaultAddress)))
                 {
-                    ((List<Object>)withdrawals).add(record);
+                    withdrawals.add(record);
                 }
             }
         }
@@ -6172,7 +6174,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> record = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> delta = this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
             record.put("type", delta.get("type"));
-            ((List<Object>)records).add(record);
+            records.add(record);
         }
         return records;
     }

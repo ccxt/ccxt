@@ -898,35 +898,35 @@ public class Gemini extends GeminiApi
             {
                 continue;
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", marketId);
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", null);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", marketId);
+            mapLiteral3.put("symbol", ((base + "/") + quote));
+            mapLiteral3.put("base", base);
+            mapLiteral3.put("quote", quote);
+            mapLiteral3.put("settle", null);
+            mapLiteral3.put("baseId", baseId);
+            mapLiteral3.put("quoteId", quoteId);
+            mapLiteral3.put("settleId", null);
+            mapLiteral3.put("type", "spot");
+            mapLiteral3.put("spot", true);
+            mapLiteral3.put("margin", false);
+            mapLiteral3.put("swap", false);
+            mapLiteral3.put("future", false);
+            mapLiteral3.put("option", false);
+            mapLiteral3.put("active", null);
+            mapLiteral3.put("contract", false);
+            mapLiteral3.put("linear", null);
+            mapLiteral3.put("inverse", null);
+            mapLiteral3.put("contractSize", null);
+            mapLiteral3.put("expiry", null);
+            mapLiteral3.put("expiryDatetime", null);
+            mapLiteral3.put("strike", null);
+            mapLiteral3.put("optionType", null);
+            mapLiteral3.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Gemini.this.safeNumber(amountPrecisionParts, 0, null) );
                     put( "price", Gemini.this.safeNumber(pricePrecisionParts, 0, null) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral3.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -944,9 +944,9 @@ public class Gemini extends GeminiApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", row);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral3.put("created", null);
+            mapLiteral3.put("info", row);
+            result.add(mapLiteral3);
         }
         return result;
 
@@ -970,10 +970,10 @@ public class Gemini extends GeminiApi
 
     public CompletableFuture<List<Object>> fetchUSDTMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchUSDTMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchUSDTMarketsCore(parameters));
     }
 
-    private Object fetchUSDTMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchUSDTMarketsCore(Map<String, Object> parameters)
     {
 
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
@@ -995,7 +995,7 @@ public class Gemini extends GeminiApi
             MarketInterface parsed = this.parseMarket(rawResponse);
             if (!java.util.Objects.equals(parsed, null))
             {
-                ((List<Object>)result).add(parsed);
+                result.add(parsed);
             }
         }
         return result;
@@ -1031,7 +1031,7 @@ public class Gemini extends GeminiApi
         {
             if (!this.inArray((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)), brokenPairs))
             {
-                ((List<Object>)marketIds).add((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)));
+                marketIds.add((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)));
             }
         }
         if (Boolean.TRUE.equals(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
@@ -1051,7 +1051,7 @@ public class Gemini extends GeminiApi
                 MarketInterface parsed = this.parseMarket((responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
                 if (!java.util.Objects.equals(parsed, null))
                 {
-                    ((List<Object>)result).add(parsed);
+                    result.add(parsed);
                 }
             }
         } else
@@ -1070,7 +1070,7 @@ public class Gemini extends GeminiApi
                         MarketInterface parsed = this.parseMarket(pairInfo);
                         if (!java.util.Objects.equals(parsed, null))
                         {
-                            ((List<Object>)result).add(parsed);
+                            result.add(parsed);
                         }
                     }
                 }
@@ -1083,7 +1083,7 @@ public class Gemini extends GeminiApi
                         MarketInterface parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                         if (!java.util.Objects.equals(parsed, null))
                         {
-                            ((List<Object>)result).add(parsed);
+                            result.add(parsed);
                         }
                     }
                 }
@@ -1181,7 +1181,7 @@ public class Gemini extends GeminiApi
             } else
             {
                 Object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < (switch ((Object)(quoteCurrencies)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(quoteCurrencies)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     String quoteCurrency = this.safeString(quoteCurrencies, i, "");
                     if (marketIdWithoutPerp.endsWith(((String)quoteCurrency)))
@@ -1220,55 +1220,55 @@ public class Gemini extends GeminiApi
             type = "swap";
         }
         Boolean isSpot = !Boolean.TRUE.equals(swap);
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", marketId);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("base", base);
-        mapLiteral3.put("quote", quote);
-        mapLiteral3.put("settle", settle);
-        mapLiteral3.put("baseId", baseId);
-        mapLiteral3.put("quoteId", quoteId);
-        mapLiteral3.put("settleId", settleId);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("spot", isSpot);
-        mapLiteral3.put("margin", false);
-        mapLiteral3.put("swap", swap);
-        mapLiteral3.put("future", false);
-        mapLiteral3.put("option", false);
-        mapLiteral3.put("active", status);
-        mapLiteral3.put("contract", swap);
-        mapLiteral3.put("linear", linear);
-        mapLiteral3.put("inverse", inverse);
-        mapLiteral3.put("contractSize", contractSize);
-        mapLiteral3.put("expiry", null);
-        mapLiteral3.put("expiryDatetime", null);
-        mapLiteral3.put("strike", null);
-        mapLiteral3.put("optionType", null);
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("price", tickSize);
-        mapLiteral4.put("amount", amountPrecision);
-        mapLiteral3.put("precision", mapLiteral4);
+        mapLiteral4.put("id", marketId);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("base", base);
+        mapLiteral4.put("quote", quote);
+        mapLiteral4.put("settle", settle);
+        mapLiteral4.put("baseId", baseId);
+        mapLiteral4.put("quoteId", quoteId);
+        mapLiteral4.put("settleId", settleId);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("spot", isSpot);
+        mapLiteral4.put("margin", false);
+        mapLiteral4.put("swap", swap);
+        mapLiteral4.put("future", false);
+        mapLiteral4.put("option", false);
+        mapLiteral4.put("active", status);
+        mapLiteral4.put("contract", swap);
+        mapLiteral4.put("linear", linear);
+        mapLiteral4.put("inverse", inverse);
+        mapLiteral4.put("contractSize", contractSize);
+        mapLiteral4.put("expiry", null);
+        mapLiteral4.put("expiryDatetime", null);
+        mapLiteral4.put("strike", null);
+        mapLiteral4.put("optionType", null);
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("leverage", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", null );
-                }});
+        mapLiteral5.put("price", tickSize);
+        mapLiteral5.put("amount", amountPrecision);
+        mapLiteral4.put("precision", mapLiteral5);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("min", minSize);
-        mapLiteral6.put("max", null);
-        mapLiteral5.put("amount", mapLiteral6);
-        mapLiteral5.put("price", new HashMap<String, Object>() {{
+        mapLiteral6.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }});
-        mapLiteral5.put("cost", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("min", minSize);
+        mapLiteral7.put("max", null);
+        mapLiteral6.put("amount", mapLiteral7);
+        mapLiteral6.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
                 }});
-        mapLiteral3.put("limits", mapLiteral5);
-        mapLiteral3.put("created", null);
-        mapLiteral3.put("info", response);
-        return this.safeMarketStructure(mapLiteral3);
+        mapLiteral6.put("cost", new HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }});
+        mapLiteral4.put("limits", mapLiteral6);
+        mapLiteral4.put("created", null);
+        mapLiteral4.put("info", response);
+        return this.safeMarketStructure(mapLiteral4);
     }
 
     /**
@@ -1510,28 +1510,28 @@ public class Gemini extends GeminiApi
         String open = this.safeString(ticker, "open");
         String baseVolume = this.safeString(volume, baseId);
         String quoteVolume = this.safeString(volume, quoteId);
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("high", this.safeString(ticker, "high"));
-        mapLiteral7.put("low", this.safeString(ticker, "low"));
-        mapLiteral7.put("bid", this.safeString(ticker, "bid"));
-        mapLiteral7.put("bidVolume", null);
-        mapLiteral7.put("ask", this.safeString(ticker, "ask"));
-        mapLiteral7.put("askVolume", null);
-        mapLiteral7.put("vwap", null);
-        mapLiteral7.put("open", open);
-        mapLiteral7.put("close", last);
-        mapLiteral7.put("last", last);
-        mapLiteral7.put("previousClose", null);
-        mapLiteral7.put("change", null);
-        mapLiteral7.put("percentage", percentage);
-        mapLiteral7.put("average", null);
-        mapLiteral7.put("baseVolume", baseVolume);
-        mapLiteral7.put("quoteVolume", quoteVolume);
-        mapLiteral7.put("info", ticker);
-        return this.safeTicker(mapLiteral7, marketResolved);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("high", this.safeString(ticker, "high"));
+        mapLiteral8.put("low", this.safeString(ticker, "low"));
+        mapLiteral8.put("bid", this.safeString(ticker, "bid"));
+        mapLiteral8.put("bidVolume", null);
+        mapLiteral8.put("ask", this.safeString(ticker, "ask"));
+        mapLiteral8.put("askVolume", null);
+        mapLiteral8.put("vwap", null);
+        mapLiteral8.put("open", open);
+        mapLiteral8.put("close", last);
+        mapLiteral8.put("last", last);
+        mapLiteral8.put("previousClose", null);
+        mapLiteral8.put("change", null);
+        mapLiteral8.put("percentage", percentage);
+        mapLiteral8.put("average", null);
+        mapLiteral8.put("baseVolume", baseVolume);
+        mapLiteral8.put("quoteVolume", quoteVolume);
+        mapLiteral8.put("info", ticker);
+        return this.safeTicker(mapLiteral8, marketResolved);
     }
 
     /**
@@ -1962,29 +1962,29 @@ public class Gemini extends GeminiApi
                 postOnly = true;
             }
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", id);
-        mapLiteral8.put("clientOrderId", clientOrderId);
-        mapLiteral8.put("info", order);
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("lastTradeTimestamp", null);
-        mapLiteral8.put("status", status);
-        mapLiteral8.put("symbol", symbol);
-        mapLiteral8.put("type", type);
-        mapLiteral8.put("timeInForce", timeInForce);
-        mapLiteral8.put("postOnly", postOnly);
-        mapLiteral8.put("side", side);
-        mapLiteral8.put("price", price);
-        mapLiteral8.put("triggerPrice", null);
-        mapLiteral8.put("average", average);
-        mapLiteral8.put("cost", null);
-        mapLiteral8.put("amount", amount);
-        mapLiteral8.put("filled", filled);
-        mapLiteral8.put("remaining", remaining);
-        mapLiteral8.put("fee", null);
-        mapLiteral8.put("trades", null);
-        return this.safeOrder(mapLiteral8, market);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", id);
+        mapLiteral9.put("clientOrderId", clientOrderId);
+        mapLiteral9.put("info", order);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", null);
+        mapLiteral9.put("status", status);
+        mapLiteral9.put("symbol", symbol);
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("timeInForce", timeInForce);
+        mapLiteral9.put("postOnly", postOnly);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("triggerPrice", null);
+        mapLiteral9.put("average", average);
+        mapLiteral9.put("cost", null);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("filled", filled);
+        mapLiteral9.put("remaining", remaining);
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("trades", null);
+        return this.safeOrder(mapLiteral9, market);
     }
 
     /**
@@ -2586,10 +2586,10 @@ public class Gemini extends GeminiApi
             put( "network", networkId );
         }};
         List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode))).join();
-        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-        j39v5.put("network", networkCode);
-        j39v5.put("currency", codeValue);
-        List<Object> results = this.parseDepositAddresses(response, new ArrayList<String>(Arrays.asList(codeValue)), false, j39v5);
+        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+        j39v4.put("network", networkCode);
+        j39v4.put("currency", codeValue);
+        List<Object> results = this.parseDepositAddresses(response, new ArrayList<String>(Arrays.asList(codeValue)), false, j39v4);
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, "network");

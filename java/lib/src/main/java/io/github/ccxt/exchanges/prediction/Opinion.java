@@ -261,7 +261,7 @@ public class Opinion extends OpinionApi
             for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
                 Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                ((List<Object>)fetchedRawRows).add(raw);
+                fetchedRawRows.add(raw);
                 Long marketType = this.safeInteger(raw, "marketType");
                 if ((marketType != null && marketType == 1))
                 {
@@ -270,17 +270,17 @@ public class Opinion extends OpinionApi
                     Integer childMarketsLength = childMarkets.size();
                     for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
                     {
-                        ((List<Object>)flatMarkets).add((childMarkets == null || ci < 0 || ci >= childMarkets.size() ? null : childMarkets.get(ci)));
+                        flatMarkets.add((childMarkets == null || ci < 0 || ci >= childMarkets.size() ? null : childMarkets.get(ci)));
                     }
                     String eventKey = this.safeString(eventVar, "event");
                     if ((!java.util.Objects.equals(eventKey, null)) && (!java.util.Objects.equals(eventKey, "")) && !(seenEvents.containsKey(eventKey)))
                     {
                         seenEvents.put(eventKey, true);
-                        ((List<Object>)eventsList).add(eventVar);
+                        eventsList.add(eventVar);
                     }
                 } else
                 {
-                    ((List<Object>)flatMarkets).add(this.parseOpinionMarket(raw, null));
+                    flatMarkets.add(this.parseOpinionMarket(raw, null));
                 }
             }
             Integer collectedLength = flatMarkets.size();
@@ -409,7 +409,7 @@ public class Opinion extends OpinionApi
             mapLiteral1.put("winner", winner);
             mapLiteral1.put("settleFraction", settleFraction);
             mapLiteral1.put("info", raw);
-            ((List<Object>)outcomes).add(mapLiteral1);
+            outcomes.add(mapLiteral1);
         }
         String marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
@@ -554,7 +554,7 @@ public class Opinion extends OpinionApi
             Integer pageEventsLength = pageEvents.size();
             for (var i = 0; (pageEventsLength != null && i < pageEventsLength); i++)
             {
-                ((List<Object>)rawEvents).add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
+                rawEvents.add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
             }
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
             Integer fetchedRawCount = rawEvents.size();
@@ -573,7 +573,7 @@ public class Opinion extends OpinionApi
         for (var i = 0; (rawEventsLength != null && i < rawEventsLength); i++)
         {
             Map<String, Object> eventVar = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
-            ((List<Object>)parsedEvents).add(eventVar);
+            parsedEvents.add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<Object> eventMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer eventMarketsLength = eventMarkets.size();
@@ -744,7 +744,7 @@ public class Opinion extends OpinionApi
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
-            ((List<Object>)marketsList).add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
+            marketsList.add(this.parseOpinionMarket((Map<String, Object>) ((rawChildren == null || i < 0 || i >= rawChildren.size() ? null : rawChildren.get(i))), slug));
         }
         String statusEnum = this.safeString(rawEvent, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
@@ -924,7 +924,7 @@ public class Opinion extends OpinionApi
                 put( "price", priceResponse );
                 put( "book", bookResponse );
             }};
-            Map<String, Object> ticker = this.parsePredictionTicker(response, ((Map<String, Object>) (switch ((Object) (((Object)outcomeObj))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+            Map<String, Object> ticker = this.parsePredictionTicker(response, outcomeObj);
             String symbolKey = this.safeString(ticker, "outcome");
             if (!java.util.Objects.equals(symbolKey, null))
             {
@@ -1035,7 +1035,7 @@ public class Opinion extends OpinionApi
             Long timestamp = this.safeTimestamp(point, "t");
             if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(timestamp, null)))
             {
-                ((List<Object>)candles).add(new ArrayList<Object>(Arrays.asList(timestamp, price, price, price, price, null)));
+                candles.add(new ArrayList<Object>(Arrays.asList(timestamp, price, price, price, price, null)));
             }
         }
         List<Object> sorted = this.sortBy(candles, 0);
@@ -1475,7 +1475,7 @@ public class Opinion extends OpinionApi
             put( "filled", Opinion.this.safeNumber(order, "filledShares", null) );
             put( "fee", null );
             put( "trades", new ArrayList<Object>(Arrays.asList()) );
-        }}, ((Object)market));
+        }}, market);
     }
 
     /**
@@ -1656,10 +1656,10 @@ public class Opinion extends OpinionApi
                 {
                     extra.put("tokenId", this.safeString(info, "noTokenId"));
                 }
-                ((List<Object>)filled).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), extra));
+                filled.add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), extra));
             } else
             {
-                ((List<Object>)filled).add((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
+                filled.add((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
             }
         }
         return this.parsePredictionTrades(filled, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
@@ -1869,7 +1869,7 @@ public class Opinion extends OpinionApi
             String tokenId = this.safeString(info, "tokenId");
             if ((!java.util.Objects.equals(tokenId, null)) && (wantedTokenIds.containsKey(tokenId)))
             {
-                ((List<Object>)filtered).add(position);
+                filtered.add(position);
             }
         }
         return filtered;

@@ -510,10 +510,10 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.safeNumber(delta, 1, null), this.safeNumber(delta, 2, null)));
                 if (java.util.Objects.equals(this.safeString(delta, 0), "buy"))
                 {
-                    ((List<Object>)bidsSnapshot).add(bidAsk);
+                    bidsSnapshot.add(bidAsk);
                 } else
                 {
-                    ((List<Object>)asksSnapshot).add(bidAsk);
+                    asksSnapshot.add(bidAsk);
                 }
             }
             Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
@@ -1130,13 +1130,13 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Boolean.TRUE.equals(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && java.util.Objects.equals(eventsLength, 2));
                 if (Boolean.TRUE.equals(isBidAsk))
                 {
-                    ((List<Object>)bidaskItems).add(eventVar);
+                    bidaskItems.add(eventVar);
                 } else if (Boolean.TRUE.equals(isOrderBook))
                 {
-                    ((List<Object>)orderBookItems).add(eventVar);
+                    orderBookItems.add(eventVar);
                 } else if (java.util.Objects.equals(eventType, "trade"))
                 {
-                    ((List<Object>)collectedEventsOfTrades).add(eventVar);
+                    collectedEventsOfTrades.add(eventVar);
                 }
             }
             Integer lengthBa = bidaskItems.size();

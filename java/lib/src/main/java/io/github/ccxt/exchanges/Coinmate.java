@@ -545,35 +545,35 @@ public class Coinmate extends CoinmateApi
                 continue;
             }
             String symbol = ((base + "/") + quote);
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", null);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("symbol", symbol);
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", true);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", null);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "lotDecimals"))) );
                     put( "price", Coinmate.this.parseNumber(Coinmate.this.parsePrecision(Coinmate.this.safeString(market, "priceDecimals"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -591,9 +591,9 @@ public class Coinmate extends CoinmateApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", market);
+            result.add(mapLiteral1);
         }
         return result;
 
@@ -1160,21 +1160,21 @@ public class Coinmate extends CoinmateApi
         }
         String takerOrMaker = this.safeString(trade, "feeType");
         takerOrMaker = (((java.util.Objects.equals(takerOrMaker, "MAKER")))) ? "maker" : "taker";
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", marketResolved.get("symbol"));
-        mapLiteral1.put("type", type);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("order", orderId);
-        mapLiteral1.put("takerOrMaker", takerOrMaker);
-        mapLiteral1.put("price", priceString);
-        mapLiteral1.put("amount", amountString);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1522,10 +1522,10 @@ public class Coinmate extends CoinmateApi
             throw new InvalidOrder(((this.id + " createOrder() does not support order type ") + type)) ;
         }
         String id = this.safeString(response, "data");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", response);
-        mapLiteral2.put("id", id);
-        return this.safeOrder(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", response);
+        mapLiteral3.put("id", id);
+        return this.safeOrder(mapLiteral3, market);
 
     }
 
@@ -1634,12 +1634,12 @@ public class Coinmate extends CoinmateApi
             String nonce = String.valueOf(this.incrementingNonce());
             String auth = ((nonce + this.uid) + this.apiKey);
             String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("clientId", this.uid);
-            j39v2.put("nonce", nonce);
-            j39v2.put("publicKey", this.apiKey);
-            j39v2.put("signature", signature.toUpperCase());
-            bodySigned = this.urlencode(this.extend(j39v2, parameters));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("clientId", this.uid);
+            j39v1.put("nonce", nonce);
+            j39v1.put("publicKey", this.apiKey);
+            j39v1.put("signature", signature.toUpperCase());
+            bodySigned = this.urlencode(this.extend(j39v1, parameters));
             headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};

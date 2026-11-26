@@ -923,7 +923,7 @@ public class Deepcoin extends DeepcoinApi
         List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("price", "until"));
         if (Boolean.TRUE.equals(calculateUntil))
         {
-            ((List<Object>)keysToOmit).add("calculateUntil");
+            keysToOmit.add("calculateUntil");
         }
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if (Boolean.TRUE.equals(calculateUntil))
@@ -2025,20 +2025,20 @@ public class Deepcoin extends DeepcoinApi
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("clOrdId", clientOrderId);
-            ((List<Object>)keysToOmit).add("clientOrderId");
+            keysToOmit.add("clientOrderId");
         }
         Map<String, Object> stopLoss = this.safeDict(paramsOrderType, "stopLoss", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLoss, "triggerPrice");
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
-            ((List<Object>)keysToOmit).add("stopLoss");
+            keysToOmit.add("stopLoss");
             request.put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
         }
         Map<String, Object> takeProfit = this.safeDict(paramsOrderType, "takeProfit", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
-            ((List<Object>)keysToOmit).add("takeProfit");
+            keysToOmit.add("takeProfit");
             request.put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitPrice));
         }
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
@@ -2063,7 +2063,7 @@ public class Deepcoin extends DeepcoinApi
                 {
                     throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot market orders only")) ;
                 }
-                ((List<Object>)keysToOmit).add("cost");
+                keysToOmit.add("cost");
                 request.put("sz", this.costToPrecision(symbol, cost));
                 request.put("tgtCcy", "quote_ccy");
             } else

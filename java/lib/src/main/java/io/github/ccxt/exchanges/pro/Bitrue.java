@@ -544,13 +544,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             List<Object> level = this.safeList(bidsAsks, i, null);
             Double price = this.safeNumber(level, 0, null);
             Double rawAmount = this.safeNumber(level, 1, null);
-            Object amount = this.convertFromRawQuantity(symbol, rawAmount);
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
+            Double amount = this.convertFromRawQuantity(symbol, rawAmount);
+            result.add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
         return result;
     }
 
-    public Object convertFromRawQuantity(String symbol, Double rawQuantity)
+    public Double convertFromRawQuantity(String symbol, Double rawQuantity)
     {
         if (java.util.Objects.equals(rawQuantity, null))
         {
@@ -775,7 +775,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String sideLower = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
         Double rawVol = this.safeNumber(trade, "vol", null);
-        Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
+        Double baseAmount = this.convertFromRawQuantity(symbol, rawVol);
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
@@ -970,7 +970,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Double low = this.safeNumber(tick, "low", null);
         Double close = this.safeNumber(tick, "close", null);
         Double rawVol = this.safeNumber(tick, "vol", null);
-        Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        Double baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new ArrayList<Object>(Arrays.asList(timestamp, open, high, low, close, baseVolume));
     }
 
@@ -1063,8 +1063,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String symbol = this.safeString(market, "symbol", "");
         Double rawVol = this.safeNumber(tick, "vol", null);
         Double rawAmount = this.safeNumber(tick, "amount", null);
-        Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
-        Object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
+        Double baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        Double quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         Double close = this.safeNumber(tick, "close", null);
         Double rose = this.safeNumber(tick, "rose", null);
         Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);

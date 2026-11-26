@@ -699,7 +699,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("id", tradeId);
-            ((List<Object>)trades).add(mapLiteral1);
+            trades.add(mapLiteral1);
         }
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(order, "orderID") );

@@ -945,7 +945,7 @@ public class Nado extends NadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < cancelledOrders.size(); i++)
         {
-            ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
+            result.add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
         }
@@ -974,7 +974,7 @@ public class Nado extends NadoApi
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            ((List<Object>)productIds).add(this.parseToInt(market.get("id")));
+            productIds.add(this.parseToInt(market.get("id")));
         }
         Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
@@ -1059,7 +1059,7 @@ public class Nado extends NadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < cancelledOrders.size(); i++)
         {
-            ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
+            result.add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "status", "canceled" );
             }}, (cancelledOrders == null || i < 0 || i >= cancelledOrders.size() ? null : cancelledOrders.get(i))), market));
         }
@@ -1094,7 +1094,7 @@ public class Nado extends NadoApi
         List<Object> productIds = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ids.size(); i++)
         {
-            ((List<Object>)productIds).add(productId);
+            productIds.add(productId);
         }
         List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsSubaccount, "cancelOrders", "recvWindow", 5000L);
         Long recvWindow = (Long) ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
@@ -1221,7 +1221,7 @@ public class Nado extends NadoApi
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
-            ((List<Object>)productIds).add(this.parseToInt(this.safeString(market, "id")));
+            productIds.add(this.parseToInt(this.safeString(market, "id")));
         }
         Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
@@ -1462,7 +1462,7 @@ public class Nado extends NadoApi
             Map<String, Object> order = (Map<String, Object>) ((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
             if (this.isArchiveOrderClosed(order))
             {
-                ((List<Object>)closedOrders).add(this.extend(new HashMap<String, Object>() {{
+                closedOrders.add(this.extend(new HashMap<String, Object>() {{
                     put( "status", "closed" );
                 }}, order));
             }
@@ -1612,7 +1612,7 @@ public class Nado extends NadoApi
             Object match = (matches == null || i < 0 || i >= matches.size() ? null : matches.get(i));
             String submissionIdx = this.safeString(match, "submission_idx");
             Map<String, Object> tx = this.safeDict(txsBySubmission, submissionIdx, new HashMap<String, Object>() {{}});
-            ((List<Object>)trades).add(this.extend(tx, match));
+            trades.add(this.extend(tx, match));
         }
         return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
@@ -1818,7 +1818,7 @@ public class Nado extends NadoApi
             Map<String, Object> transaction = this.extend(new HashMap<String, Object>() {{}}, tx);
             transaction = this.extend(transaction, eventVar);
             transaction.put("transaction_type", transactionType);
-            ((List<Object>)transactions).add(this.parseTransaction(transaction, currency));
+            transactions.add(this.parseTransaction(transaction, currency));
         }
         return this.filterByCurrencySinceLimit(transactions, code, since, limit, false);
 
@@ -1909,7 +1909,7 @@ public class Nado extends NadoApi
             }
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("product", product);
-            ((List<Object>)result).add(this.parsePosition(this.extend(mapLiteral1, position), null));
+            result.add(this.parsePosition(this.extend(mapLiteral1, position), null));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -2165,7 +2165,7 @@ public class Nado extends NadoApi
                 marketEntry.put("inverse", false);
                 marketEntry.put("contractSize", 1);
             }
-            ((List<Object>)markets).add(this.safeMarketStructure(marketEntry));
+            markets.add(this.safeMarketStructure(marketEntry));
         }
         return markets;
 
@@ -2413,7 +2413,7 @@ public class Nado extends NadoApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < fundingPayments.size(); i++)
         {
-            ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) ((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i))), market));
+            result.add(this.parseFundingHistory((Map<String, Object>) ((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i))), market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
@@ -2469,7 +2469,7 @@ public class Nado extends NadoApi
         for (var i = 0; i < tickers.size(); i++)
         {
             String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            ((List<Object>)rates).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
+            rates.add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
         }
         return this.parseFundingRates(rates, symbolsNormalized);
 
@@ -2578,7 +2578,7 @@ public class Nado extends NadoApi
         for (var i = 0; i < tickers.size(); i++)
         {
             String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            ((List<Object>)interests).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
+            interests.add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
         }
         return this.parseOpenInterests(interests, symbolsNormalized);
 
@@ -3601,10 +3601,10 @@ public class Nado extends NadoApi
 
     public CompletableFuture<Map<String, Object>> queryContracts(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.queryContractsCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.queryContractsCore(parameters));
     }
 
-    private Object queryContractsCore(Map<String, Object> parameters)
+    private Map<String, Object> queryContractsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> gatewayContracts = this.safeDict(this.options, "gatewayContracts", null);

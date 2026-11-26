@@ -5074,7 +5074,7 @@ public class Binance extends BinanceApi
             {
                 continue;
             }
-            ((List<Object>)fetchMarkets).add(type);
+            fetchMarkets.add(type);
         }
         Boolean fetchMargins = (Boolean) this.safeBool(this.options, "fetchMargins", false);
         for (var i = 0; i < fetchMarkets.size(); i++)
@@ -5386,7 +5386,7 @@ public class Binance extends BinanceApi
             MarketInterface parsed = this.parseMarket((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
             if (!java.util.Objects.equals(parsed, null))
             {
-                ((List<Object>)result).add(parsed);
+                result.add(parsed);
             }
         }
         return result;
@@ -6826,7 +6826,7 @@ public class Binance extends BinanceApi
             Map<String, Object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
             Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(this.safeDict(response, i, new HashMap<String, Object>() {{}}), null);
             parsedTicker.put("symbol", tickerMarket.get("symbol"));
-            ((List<Object>)results).add(parsedTicker);
+            results.add(parsedTicker);
         }
         return this.filterByArrayTickers(results, "symbol", symbols);
     }
@@ -8143,7 +8143,7 @@ public class Binance extends BinanceApi
                 throw new NotSupported((this.id + " editOrders() does not support portfolio margin orders")) ;
             }
             Map<String, Object> orderRequest = this.editContractOrderRequest(id, marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<String> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -9011,7 +9011,7 @@ public class Binance extends BinanceApi
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, this.extend(orderParams, new HashMap<String, Object>() {{
                 put( "isAlgoOrder", false );
             }}));
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<String> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -9414,7 +9414,7 @@ public class Binance extends BinanceApi
                     {
                         batchOrder.put(batchClientOrderIdKey, this.generateClientOrderId(null, api, path));
                     }
-                    ((List<Object>)checkedBatchOrders).add(batchOrder);
+                    checkedBatchOrders.add(batchOrder);
                 }
                 parameters.put("batchOrders", checkedBatchOrders);
             }
@@ -9487,7 +9487,7 @@ public class Binance extends BinanceApi
         {
             if (java.util.Objects.equals(marketType, "margin") || ((!Boolean.TRUE.equals(this.safeBool(market, "contract", false))) && (!java.util.Objects.equals(marginMode, null))))
             {
-                ((List<Object>)omitKeys).add("reduceOnly");
+                omitKeys.add("reduceOnly");
                 request.put("sideEffectType", "AUTO_REPAY");
             }
         }
@@ -9524,7 +9524,7 @@ public class Binance extends BinanceApi
                 if ((!java.util.Objects.equals(uppercaseType, "STOP_LOSS")) && (!java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")) && (!java.util.Objects.equals(uppercaseType, "STOP_LOSS_LIMIT")) && (!java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
                 {
                     String stopLossOrTakeProfit = this.safeString(paramsPapi, "stopLossOrTakeProfit");
-                    ((List<Object>)omitKeys).add("stopLossOrTakeProfit");
+                    omitKeys.add("stopLossOrTakeProfit");
                     if ((!java.util.Objects.equals(stopLossOrTakeProfit, "stopLoss")) && (!java.util.Objects.equals(stopLossOrTakeProfit, "takeProfit")))
                     {
                         throw new InvalidOrder(((this.id + this.safeString(market, "symbol", "")) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
@@ -9892,7 +9892,7 @@ public class Binance extends BinanceApi
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if (java.util.Objects.equals(this.safeString(paramsPapi, "timeInForce"), "PO"))
         {
-            ((List<Object>)omitKeys).add("timeInForce");
+            omitKeys.add("timeInForce");
         }
         Boolean hedged = (Boolean) this.safeBool(paramsPapi, "hedged", false);
         if ((!Boolean.TRUE.equals(this.safeBool(market, "spot", false))) && (!Boolean.TRUE.equals(this.safeBool(market, "option", false))) && Boolean.TRUE.equals(hedged))
@@ -9900,7 +9900,7 @@ public class Binance extends BinanceApi
             String positionSide = side;
             if (Boolean.TRUE.equals(reduceOnly))
             {
-                ((List<Object>)omitKeys).add("reduceOnly");
+                omitKeys.add("reduceOnly");
                 positionSide = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
             }
             request.put("positionSide", (((java.util.Objects.equals(positionSide, "buy")))) ? "LONG" : "SHORT");
@@ -12123,7 +12123,7 @@ public class Binance extends BinanceApi
             List<Object> logs = this.safeList(this.safeDict(results, i, null), "userAssetDribbletDetails", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < logs.size(); j++)
             {
-                ((List<Object>)data).add(this.extend((logs == null || j < 0 || j >= logs.size() ? null : logs.get(j)), new HashMap<String, Object>() {{
+                data.add(this.extend((logs == null || j < 0 || j >= logs.size() ? null : logs.get(j)), new HashMap<String, Object>() {{
                     put( "isDustTrade", true );
                 }}));
             }
@@ -12788,10 +12788,10 @@ public class Binance extends BinanceApi
             }
             String fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
             String toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
-            Object isolatedSymbol = null;
+            String isolatedSymbol = null;
             if (!java.util.Objects.equals(market, null))
             {
-                isolatedSymbol = market.get("id");
+                isolatedSymbol = this.safeString(market, "id");
             }
             if (java.util.Objects.equals(fromId, "ISOLATED"))
             {
@@ -14104,7 +14104,7 @@ public class Binance extends BinanceApi
                     j39v1.put("crossMargin", this.safeString((balances == null || marginCode == null ? null : balances.get(marginCode)), "crossMargin"));
                     j39v1.put("crossWalletBalance", this.safeString((balances == null || marginCode == null ? null : balances.get(marginCode)), "crossWalletBalance"));
                     Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, j39v1), market);
-                    ((List<Object>)result).add(parsed);
+                    result.add(parsed);
                 }
             }
         }
@@ -14726,7 +14726,7 @@ public class Binance extends BinanceApi
                     Map<String, Object> bracket = this.safeDict(brackets, j, null);
                     String floorValue = this.safeString2(bracket, "notionalFloor", "qtyFloor");
                     String maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
-                    ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
+                    result.add(new ArrayList<Object>(Arrays.asList(floorValue, maintenanceMarginPercentage)));
                 }
                 Map<String, Object> leverageBracketsDict = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
                 leverageBracketsDict.put(symbol, result);
@@ -14868,7 +14868,7 @@ public class Binance extends BinanceApi
         for (var j = 0; j < brackets.size(); j++)
         {
             Object bracket = (brackets == null || j < 0 || j >= brackets.size() ? null : brackets.get(j));
-            ((List<Object>)tiers).add(new HashMap<String, Object>() {{
+            tiers.add(new HashMap<String, Object>() {{
                 put( "tier", Binance.this.safeNumber(bracket, "bracket", null) );
                 put( "symbol", Binance.this.safeSymbol(marketId, marketResolved, null, null) );
                 put( "currency", marketResolved.get("quote") );
@@ -15012,7 +15012,7 @@ public class Binance extends BinanceApi
         List<Object> positions = this.toArray(response);
         for (var i = 0; i < positions.size(); i++)
         {
-            ((List<Object>)result).add(this.parseOptionPosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
+            result.add(this.parseOptionPosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -15400,7 +15400,7 @@ public class Binance extends BinanceApi
             String entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (Precise.stringGt(entryPriceString, "0"))
             {
-                ((List<Object>)result).add(this.parsePositionRisk(rawPosition, null));
+                result.add(this.parsePositionRisk(rawPosition, null));
             }
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
@@ -16080,7 +16080,7 @@ public class Binance extends BinanceApi
         for (var i = 0; i < settlements.size(); i++)
         {
             Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
-            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
+            result.add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -16463,7 +16463,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            Map<String, Object> requestParams = this.handleClientOrderId((Map<String, Object>) (parameters), apiName, path, (String) (java.util.Objects.requireNonNullElse(method, "GET")));
+            Map<String, Object> requestParams = this.handleClientOrderId((Map<String, Object>) (parameters), apiName, path, java.util.Objects.requireNonNullElse(method, "GET"));
             String query = "";
             // handle batchOrders
             if ((java.util.Objects.equals(path, "batchOrders")) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))))

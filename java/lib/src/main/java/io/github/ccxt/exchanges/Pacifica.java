@@ -2168,7 +2168,7 @@ public class Pacifica extends PacificaApi
                 put( "type", "Create" );
                 put( "data", ((List<Object>)requestList).get(0) );
             }};
-            ((List<Object>)actions).add(action);
+            actions.add(action);
         }
         return this.batchOrdersRequest(actions);
     }
@@ -2236,7 +2236,7 @@ public class Pacifica extends PacificaApi
             mapLiteral7.put("info", order);
             mapLiteral7.put("id", orderId);
             mapLiteral7.put("status", status);
-            ((List<Object>)ordersToReturn).add(this.safeOrder(mapLiteral7, null));
+            ordersToReturn.add(this.safeOrder(mapLiteral7, null));
         }
         return ordersToReturn;
 
@@ -2313,7 +2313,7 @@ public class Pacifica extends PacificaApi
             mapLiteral8.put("info", order);
             mapLiteral8.put("status", status);
             mapLiteral8.put("symbol", symbol);
-            ((List<Object>)ordersToReturn).add(this.safeOrder(mapLiteral8, null));
+            ordersToReturn.add(this.safeOrder(mapLiteral8, null));
         }
         return ordersToReturn;
 
@@ -2330,7 +2330,7 @@ public class Pacifica extends PacificaApi
                 put( "type", "Cancel" );
                 put( "data", request );
             }};
-            ((List<Object>)actions).add(action);
+            actions.add(action);
         }
         List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
@@ -2345,7 +2345,7 @@ public class Pacifica extends PacificaApi
                 put( "type", "Cancel" );
                 put( "data", request );
             }};
-            ((List<Object>)actions).add(action);
+            actions.add(action);
         }
         return this.batchOrdersRequest(actions);
     }
@@ -2658,7 +2658,7 @@ public class Pacifica extends PacificaApi
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Long timestamp = this.safeInteger(entry, "created_at");
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Pacifica.this.safeNumber(entry, "funding_rate", null) );
@@ -3376,7 +3376,7 @@ public class Pacifica extends PacificaApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
-            ((List<Object>)result).add(parsedPosition);
+            result.add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -4642,7 +4642,7 @@ public class Pacifica extends PacificaApi
             List<Object> sortedList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
-                ((List<Object>)sortedList).add(this.sortJsonKeys((value == null || i < 0 || i >= ((List<?>)value).size() ? null : ((List<?>)value).get(i))));
+                sortedList.add(this.sortJsonKeys((value == null || i < 0 || i >= ((List<?>)value).size() ? null : ((List<?>)value).get(i))));
             }
             return sortedList;
         } else

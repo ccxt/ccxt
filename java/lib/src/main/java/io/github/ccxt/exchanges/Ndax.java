@@ -986,10 +986,10 @@ public class Ndax extends NdaxApi
             Long levelSide = this.safeInteger(level, 9);
             if (!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0))
             {
-                ((List<Object>)asks).add(bidask);
+                asks.add(bidask);
             } else
             {
-                ((List<Object>)bids).add(bidask);
+                bids.add(bidask);
             }
         }
         result.put("bids", this.sortBy(bids, 0, true));
@@ -1587,7 +1587,7 @@ public class Ndax extends NdaxApi
         for (var i = 0; i < response.size(); i++)
         {
             String accountId = this.safeString(response, i);
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "id", accountId );
                 put( "type", null );
                 put( "currency", null );

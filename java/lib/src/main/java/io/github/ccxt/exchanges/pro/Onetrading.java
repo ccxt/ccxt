@@ -1250,10 +1250,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }
         }
         Map<String, Object> marketTimeframes = this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
-        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), null))
-        {
-            marketTimeframes.put((String)java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
-        }
+        marketTimeframes.put((String)java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
         subscription.put(marketId, marketTimeframes);
         List<Object> properties = new ArrayList<Object>(Arrays.asList());
         List<String> marketIds = new ArrayList<String>(subscription.keySet());
@@ -1267,7 +1264,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Map<String, Object> property = new HashMap<String, Object>();
                 property.put("instrument_code", (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                 property.put("time_granularity", marketTimeframeId);
-                ((List<Object>)properties).add(property);
+                properties.add(property);
             }
         }
         Map<String, Object> request = new HashMap<String, Object>();

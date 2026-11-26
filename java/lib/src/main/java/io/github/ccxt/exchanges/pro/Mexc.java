@@ -389,7 +389,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 this.tickers.put(symbol, ticker);
             }
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
             String messageHash = ("ticker:" + this.safeString(ticker, "symbol", ""));
             client.resolve(ticker, messageHash);
         }

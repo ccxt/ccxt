@@ -1043,7 +1043,7 @@ public class Dydx extends DydxApi
             Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
             Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
             String marketId = this.safeString(entry, "ticker");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Dydx.this.safeSymbol(marketId, market, null, null) );
                 put( "fundingRate", Dydx.this.safeNumber(entry, "rate", null) );
@@ -1479,9 +1479,9 @@ public class Dydx extends DydxApi
         return this.hash(message, keccak(), "hex");
     }
 
-    public Map<String, Object> signHash(String hash, Object privateKey)
+    public Map<String, Object> signHash(String hash, String privateKey)
     {
-        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         String r = this.safeString(signature, "r", "");
         String s = this.safeString(signature, "s", "");
         return new HashMap<String, Object>() {{
@@ -1493,7 +1493,7 @@ public class Dydx extends DydxApi
 
     public Map<String, Object> signMessage(Object message, String privateKey)
     {
-        return this.signHash((String) (this.hashMessage(message)), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public Map<String, Object> signOnboardingAction()
@@ -1560,10 +1560,10 @@ public class Dydx extends DydxApi
 
     public CompletableFuture<Map<String, Object>> fetchDydxAccount()
     {
-        return BaseExchange.supplyAsync(() -> this.fetchDydxAccountCore()).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchDydxAccountCore());
     }
 
-    private Object fetchDydxAccountCore()
+    private Map<String, Object> fetchDydxAccountCore()
     {
 
         // required in js
@@ -1886,7 +1886,8 @@ public class Dydx extends DydxApi
         Object orderId = ((List<Object>)orderRequestRes).get(0);
         Object orderRequest = ((List<Object>)orderRequestRes).get(1);
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), (Map<String, Object>) (orderRequest), "", chainName, account, null, null);
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, (Map<String, Object>) (orderRequest), "", chainName, account, null, null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2017,7 +2018,8 @@ public class Dydx extends DydxApi
             put( "value", cancelPayload );
         }};
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, null);
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2099,7 +2101,8 @@ public class Dydx extends DydxApi
             put( "value", cancelPayload );
         }};
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, null);
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2441,7 +2444,8 @@ public class Dydx extends DydxApi
         }
         Map<String, Object> txFee = (this.estimateTxFee(signingPayload, "", account)).join();
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, "", chainName, account, null, txFee);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2653,7 +2657,8 @@ public class Dydx extends DydxApi
         }};
         Map<String, Object> txFee = (this.estimateTxFee(signingPayload, tag, account)).join();
         String chainName = this.safeString(this.options, "chainName");
-        String signedTx = this.signDydxTx(this.safeString(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
+        String privateKey = this.safeString(credentials, "privateKey", "");
+        String signedTx = this.signDydxTx(privateKey, signingPayload, tag, chainName, account, null, txFee);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "tx", signedTx );
         }};
@@ -2908,7 +2913,7 @@ public class Dydx extends DydxApi
         {
             Object account = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
             String accountId = this.safeString(account, "subaccountNumber");
-            ((List<Object>)result).add(new HashMap<String, Object>() {{
+            result.add(new HashMap<String, Object>() {{
                 put( "id", accountId );
                 put( "type", null );
                 put( "currency", null );

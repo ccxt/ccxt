@@ -1731,7 +1731,7 @@ public class Cex extends CexApi
         for (var i = 0; i < ids.size(); i++)
         {
             Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-            ((List<Object>)orders).add(new HashMap<String, Object>() {{
+            orders.add(new HashMap<String, Object>() {{
                 put( "clientOrderId", id );
             }});
         }

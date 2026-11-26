@@ -804,7 +804,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         for (var i = 0; i < deleted.size(); i++)
         {
             Object entry = (deleted == null || i < 0 || i >= deleted.size() ? null : deleted.get(i));
-            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+            orders.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "id", Bit2me.this.safeString(entry, "id") );
                 put( "status", Bit2me.this.parseOrderStatus(Bit2me.this.safeString(entry, "status")) );
@@ -813,7 +813,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         for (var i = 0; i < notDeleted.size(); i++)
         {
             Object entry = (notDeleted == null || i < 0 || i >= notDeleted.size() ? null : notDeleted.get(i));
-            ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
+            orders.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "id", Bit2me.this.safeString(entry, "id") );
                 put( "status", null );
@@ -881,7 +881,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             mapLiteral3.put("id", this.safeString(ids, i));
             mapLiteral3.put("symbol", this.safeString(market, "symbol"));
             mapLiteral3.put("status", "canceled");
-            ((List<Object>)orders).add(this.safeOrder(mapLiteral3, market));
+            orders.add(this.safeOrder(mapLiteral3, market));
         }
         this.settleRequest(client, ("canceled-all-orders:" + this.safeString(message, "symbol", "")), orders, null);
     }

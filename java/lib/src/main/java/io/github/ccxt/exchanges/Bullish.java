@@ -1808,13 +1808,13 @@ public class Bullish extends BullishApi
         {
             Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
             String datetime = this.safeString(entry, "updatedAtDatetime");
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("info", entry);
-            j39v1.put("symbol", symbol);
-            j39v1.put("fundingRate", this.safeNumber(entry, "fundingRate", null));
-            j39v1.put("timestamp", this.parse8601(datetime));
-            j39v1.put("datetime", datetime);
-            ((List<Object>)rates).add(j39v1);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", entry);
+            mapLiteral3.put("symbol", symbol);
+            mapLiteral3.put("fundingRate", this.safeNumber(entry, "fundingRate", null));
+            mapLiteral3.put("timestamp", this.parse8601(datetime));
+            mapLiteral3.put("datetime", datetime);
+            rates.add(mapLiteral3);
         }
         return this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit, false);
 
@@ -1932,9 +1932,9 @@ public class Bullish extends BullishApi
         Long until = this.safeInteger(paramsExtended, "until");
         if (java.util.Objects.equals(until, null))
         {
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("until", now);
-            return this.extend(paramsExtended, mapLiteral3);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("until", now);
+            return this.extend(paramsExtended, mapLiteral4);
         }
         return paramsExtended;
     }
@@ -2489,29 +2489,29 @@ public class Bullish extends BullishApi
             fee.put("currency", marketResolved.get("quote"));
         }
         String average = this.safeString(order, "averageFillPrice");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("type", this.parseOrderType(type));
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", java.util.Objects.equals(type, "POST_ONLY"));
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("triggerPrice", stopPrice);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("filled", filled);
-        mapLiteral4.put("remaining", null);
-        mapLiteral4.put("cost", cost);
-        mapLiteral4.put("trades", null);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("average", average);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", this.parseOrderType(type));
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", java.util.Objects.equals(type, "POST_ONLY"));
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", stopPrice);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("trades", null);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("average", average);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseOrderStatus(String status)

@@ -231,7 +231,7 @@ public class Binance extends BinanceApi
                 Integer eventMarketsLength = eventMarkets.size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
-                    ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
+                    queryMarkets.add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                 }
             }
             return queryMarkets;
@@ -245,12 +245,12 @@ public class Binance extends BinanceApi
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
-            ((List<Object>)parsedEvents).add(parsedEvent);
+            parsedEvents.add(parsedEvent);
             List<Object> eventMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer eventMarketsLength = eventMarkets.size();
             for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
             {
-                ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
+                flatMarkets.add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
             }
         }
         this.setEvents(parsedEvents);
@@ -339,7 +339,7 @@ public class Binance extends BinanceApi
             Integer pageTopicsLength = pageTopics.size();
             for (var i = 0; (pageTopicsLength != null && i < pageTopicsLength); i++)
             {
-                ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
+                collected.add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
             }
             Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
             if ((!Boolean.TRUE.equals(hasMore)) || ((reqLimit != null && (pageTopicsLength == null || pageTopicsLength < reqLimit))))
@@ -409,14 +409,14 @@ public class Binance extends BinanceApi
             }
             if (Boolean.TRUE.equals(hasOutcomes))
             {
-                ((List<Object>)result).add(rawTopic);
+                result.add(rawTopic);
             } else
             {
                 String topicId = this.safeString(rawTopic, "marketTopicId");
                 if (!java.util.Objects.equals(topicId, null))
                 {
                     Map<String, Object> detail = (this.fetchRawTopicDetail(topicId, new HashMap<String, Object>() {{}})).join();
-                    ((List<Object>)result).add(detail);
+                    result.add(detail);
                 }
             }
         }
@@ -463,11 +463,11 @@ public class Binance extends BinanceApi
         List<Object> allQueries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < queries.size(); i++)
         {
-            ((List<Object>)allQueries).add((queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
+            allQueries.add((queries == null || i < 0 || i >= queries.size() ? null : queries.get(i)));
         }
         for (var i = 0; (tagsLength != null && i < tagsLength); i++)
         {
-            ((List<Object>)allQueries).add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
+            allQueries.add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
         }
         Integer allQueriesLength = allQueries.size();
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
@@ -523,8 +523,8 @@ public class Binance extends BinanceApi
                 if (!java.util.Objects.equals(sortBy, null))
                 {
                     listingRequest.put("sortBy", sortBy);
-                    ((List<Object>)postOmitKeys).add("sort");
-                    ((List<Object>)postOmitKeys).add("sortBy");
+                    postOmitKeys.add("sort");
+                    postOmitKeys.add("sortBy");
                 }
             }
             List<Object> listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
@@ -535,7 +535,7 @@ public class Binance extends BinanceApi
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
-            ((List<Object>)result).add(parsedEvent);
+            result.add(parsedEvent);
             List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer parsedMarketsLength = parsedMarkets.size();
             for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
@@ -619,7 +619,7 @@ public class Binance extends BinanceApi
                     if (java.util.Objects.equals(already, null))
                     {
                         seen.put(topicId, topicId);
-                        ((List<Object>)collected).add(rawTopic);
+                        collected.add(rawTopic);
                     }
                 }
             }
@@ -703,7 +703,7 @@ public class Binance extends BinanceApi
         for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
         {
             Map<String, Object> parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i))), rawTopic);
-            ((List<Object>)marketsList).add(parsed);
+            marketsList.add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
                 anyActive = true;
@@ -857,7 +857,7 @@ public class Binance extends BinanceApi
             mapLiteral2.put("conditionId", this.safeString(rawMarket, "conditionId"));
             mapLiteral2.put("externalId", this.safeString(rawMarket, "externalId"));
             mapLiteral1.put("info", mapLiteral2);
-            ((List<Object>)outcomes).add(mapLiteral1);
+            outcomes.add(mapLiteral1);
         }
         String resolvedOutcome = resolvedOutcomeRaw;
         {
@@ -1574,7 +1574,7 @@ public class Binance extends BinanceApi
             String positionOutcome = this.safeString(position, "outcome");
             if ((!java.util.Objects.equals(positionOutcome, null)) && (requestedOutcomeSymbols.containsKey(positionOutcome)))
             {
-                ((List<Object>)filtered).add(position);
+                filtered.add(position);
             }
         }
         return filtered;
@@ -2259,7 +2259,7 @@ public class Binance extends BinanceApi
             order.put("market", this.safeString(outcomeObj, "market"));
             order.put("timestamp", null);
             order.put("datetime", null);
-            ((List<Object>)orders).add(this.safePredictionOrder(order, null));
+            orders.add(this.safePredictionOrder(order, null));
         }
         return orders;
 

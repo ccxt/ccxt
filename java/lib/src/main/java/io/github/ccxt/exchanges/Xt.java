@@ -1632,7 +1632,7 @@ public class Xt extends XtApi
             MarketInterface parsed = this.parseMarket(this.safeValue(markets, i));
             if (!java.util.Objects.equals(parsed, null))
             {
-                ((List<Object>)result).add(parsed);
+                result.add(parsed);
             }
         }
         return result;
@@ -5866,7 +5866,7 @@ public class Xt extends XtApi
             String marketId = this.safeString(info, "symbol");
             Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", "contract");
             Double minNotional = this.safeNumber(this.safeDict(brackets, (((long) i) - 1L), null), "maxNominalValue", 0);
-            ((List<Object>)tiers).add(new HashMap<String, Object>() {{
+            tiers.add(new HashMap<String, Object>() {{
                 put( "tier", Xt.this.safeInteger(tier, "bracket") );
                 put( "symbol", Xt.this.safeSymbol(marketId, marketResolved, "_", "contract") );
                 put( "currency", marketResolved.get("settle") );
@@ -5970,7 +5970,7 @@ public class Xt extends XtApi
             String marketId = this.safeString(entry, "symbol");
             String symbolInner = this.safeSymbol(marketId, market, null, null);
             Long timestamp = this.safeInteger(entry, "createdTime");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", symbolInner );
                 put( "fundingRate", Xt.this.safeNumber(entry, "fundingRate", null) );
@@ -6378,7 +6378,7 @@ public class Xt extends XtApi
         for (var i = 0; i < items.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(items, i, null);
-            ((List<Object>)result).add(this.parseFundingHistory(entry, market));
+            result.add(this.parseFundingHistory(entry, market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
@@ -6643,7 +6643,7 @@ public class Xt extends XtApi
             String marketId = this.safeString(entry, "symbol");
             Map<String, Object> marketInner = this.safeMarket(marketId, null, null, "contract");
             Map<String, Object> merged = (Map<String, Object>) this.mergePositionBreakInfo(entry, breakBySymbolSide);
-            ((List<Object>)result).add(this.parsePosition(merged, marketInner));
+            result.add(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, "symbol", symbols);
 

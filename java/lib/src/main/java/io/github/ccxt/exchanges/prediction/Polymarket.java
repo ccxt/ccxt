@@ -637,7 +637,7 @@ public class Polymarket extends PolymarketApi
             List<Object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (var mi = 0; mi < ccxtMarkets.size(); mi++)
             {
-                ((List<Object>)flatMarkets).add((ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi)));
+                flatMarkets.add((ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi)));
             }
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, rawEvent));
             String eventSlug = this.safeString(rawEvent, "slug");
@@ -742,7 +742,7 @@ public class Polymarket extends PolymarketApi
             List<Object> remainingPages = new ArrayList<Object>(Arrays.asList());
             for (var p = 2; ((totalPages != null && p <= totalPages)); p++)
             {
-                ((List<Object>)remainingPages).add(p);
+                remainingPages.add(p);
             }
             List<CompletableFuture<?>> restPromises = new ArrayList<CompletableFuture<?>>();
             for (var pi = 0; pi < remainingPages.size(); pi++)
@@ -756,14 +756,14 @@ public class Polymarket extends PolymarketApi
             List<Object> allEvents = new ArrayList<Object>(Arrays.asList());
             for (var fi = 0; fi < firstEvents.size(); fi++)
             {
-                ((List<Object>)allEvents).add((firstEvents == null || fi < 0 || fi >= firstEvents.size() ? null : firstEvents.get(fi)));
+                allEvents.add((firstEvents == null || fi < 0 || fi >= firstEvents.size() ? null : firstEvents.get(fi)));
             }
             for (var ri = 0; ri < restResponses.size(); ri++)
             {
                 List<Object> pageEvents = this.safeList((restResponses == null || ri < 0 || ri >= restResponses.size() ? null : restResponses.get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
                 for (var ei = 0; ei < pageEvents.size(); ei++)
                 {
-                    ((List<Object>)allEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
+                    allEvents.add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
                 }
             }
             for (var ei = 0; ei < allEvents.size(); ei++)
@@ -773,7 +773,7 @@ public class Polymarket extends PolymarketApi
                 if ((!java.util.Objects.equals(eventId, null) && !java.util.Objects.equals(eventId, "")) && !(seen.containsKey(eventId)))
                 {
                     seen.put(eventId, true);
-                    ((List<Object>)rawEvents).add(rawEvent);
+                    rawEvents.add(rawEvent);
                 }
             }
         }
@@ -884,7 +884,7 @@ public class Polymarket extends PolymarketApi
                     if ((!java.util.Objects.equals(eventId, null)) && !(seen.containsKey(eventId)))
                     {
                         seen.put(eventId, true);
-                        ((List<Object>)unioned).add(rawEvent);
+                        unioned.add(rawEvent);
                     }
                 }
             }
@@ -918,14 +918,14 @@ public class Polymarket extends PolymarketApi
         List<Object> allRawEvents = new ArrayList<Object>(Arrays.asList());
         for (var fi = 0; (firstPageLength != null && fi < firstPageLength); fi++)
         {
-            ((List<Object>)allRawEvents).add((firstPage == null || fi < 0 || fi >= firstPage.size() ? null : firstPage.get(fi)));
+            allRawEvents.add((firstPage == null || fi < 0 || fi >= firstPage.size() ? null : firstPage.get(fi)));
         }
         if ((pageSize == null || (firstPageLength != null && firstPageLength >= pageSize)))
         {
             List<Object> offsets = new ArrayList<Object>(Arrays.asList());
             for (var p = 1; (maxPages != null && maxPages > p); p++)
             {
-                ((List<Object>)offsets).add((((long) p) * pageSize));
+                offsets.add((((long) p) * pageSize));
             }
             List<CompletableFuture<?>> restPromises = new ArrayList<CompletableFuture<?>>();
             for (var oi = 0; oi < offsets.size(); oi++)
@@ -942,7 +942,7 @@ public class Polymarket extends PolymarketApi
                 Integer pageLength = page.size();
                 for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
                 {
-                    ((List<Object>)allRawEvents).add((page == null || pi < 0 || pi >= page.size() ? null : page.get(pi)));
+                    allRawEvents.add((page == null || pi < 0 || pi >= page.size() ? null : page.get(pi)));
                 }
             }
         }
@@ -1141,67 +1141,67 @@ public class Polymarket extends PolymarketApi
                 // inner class, which cannot capture a reassigned local
                 Boolean winner = winnerRaw;
                 Integer settleFraction = settleFractionRaw;
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("outcome", outcomeHandle);
-                j39v1.put("outcomeId", clobTokenId);
-                j39v1.put("market", marketSymbol);
-                j39v1.put("label", outcomeLabel);
-                j39v1.put("price", outcomePrice);
-                j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                j39v1.put("winner", winner);
-                j39v1.put("settleFraction", settleFraction);
-                j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("outcome", outcomeHandle);
+                mapLiteral1.put("outcomeId", clobTokenId);
+                mapLiteral1.put("market", marketSymbol);
+                mapLiteral1.put("label", outcomeLabel);
+                mapLiteral1.put("price", outcomePrice);
+                mapLiteral1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+                mapLiteral1.put("winner", winner);
+                mapLiteral1.put("settleFraction", settleFraction);
+                mapLiteral1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", tickSize );
                         put( "price", tickSize );
                     }});
-                j39v1.put("negRisk", negRisk);
-                j39v1.put("info", market);
-                ((List<Object>)outcomes).add(j39v1);
+                mapLiteral1.put("negRisk", negRisk);
+                mapLiteral1.put("info", market);
+                outcomes.add(mapLiteral1);
             }
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
             String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             String marketResolvedOutcome = resolvedOutcome;
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", conditionId);
-            j39v2.put("market", marketSymbol);
-            j39v2.put("marketType", marketType);
-            j39v2.put("executionModel", "clob");
-            j39v2.put("collateral", "USDC");
-            j39v2.put("base", "USDC");
-            j39v2.put("quote", "USDC");
-            j39v2.put("settle", null);
-            j39v2.put("baseId", baseId);
-            j39v2.put("quoteId", "USDC");
-            j39v2.put("settleId", null);
-            j39v2.put("type", "prediction");
-            j39v2.put("spot", false);
-            j39v2.put("margin", false);
-            j39v2.put("swap", false);
-            j39v2.put("future", false);
-            j39v2.put("option", false);
-            j39v2.put("prediction", true);
-            j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-            j39v2.put("resolved", marketResolved);
-            j39v2.put("resolvedOutcome", marketResolvedOutcome);
-            j39v2.put("contract", false);
-            j39v2.put("linear", null);
-            j39v2.put("inverse", null);
-            j39v2.put("contractSize", null);
-            j39v2.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-            j39v2.put("expiryDatetime", endDate);
-            j39v2.put("strike", null);
-            j39v2.put("optionType", null);
-            j39v2.put("taker", 0);
-            j39v2.put("maker", 0);
-            j39v2.put("percentage", true);
-            j39v2.put("tierBased", false);
-            j39v2.put("feeSide", "get");
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", conditionId);
+            mapLiteral2.put("market", marketSymbol);
+            mapLiteral2.put("marketType", marketType);
+            mapLiteral2.put("executionModel", "clob");
+            mapLiteral2.put("collateral", "USDC");
+            mapLiteral2.put("base", "USDC");
+            mapLiteral2.put("quote", "USDC");
+            mapLiteral2.put("settle", null);
+            mapLiteral2.put("baseId", baseId);
+            mapLiteral2.put("quoteId", "USDC");
+            mapLiteral2.put("settleId", null);
+            mapLiteral2.put("type", "prediction");
+            mapLiteral2.put("spot", false);
+            mapLiteral2.put("margin", false);
+            mapLiteral2.put("swap", false);
+            mapLiteral2.put("future", false);
+            mapLiteral2.put("option", false);
+            mapLiteral2.put("prediction", true);
+            mapLiteral2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+            mapLiteral2.put("resolved", marketResolved);
+            mapLiteral2.put("resolvedOutcome", marketResolvedOutcome);
+            mapLiteral2.put("contract", false);
+            mapLiteral2.put("linear", null);
+            mapLiteral2.put("inverse", null);
+            mapLiteral2.put("contractSize", null);
+            mapLiteral2.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            mapLiteral2.put("expiryDatetime", endDate);
+            mapLiteral2.put("strike", null);
+            mapLiteral2.put("optionType", null);
+            mapLiteral2.put("taker", 0);
+            mapLiteral2.put("maker", 0);
+            mapLiteral2.put("percentage", true);
+            mapLiteral2.put("tierBased", false);
+            mapLiteral2.put("feeSide", "get");
+            mapLiteral2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", tickSize );
                     put( "price", tickSize );
                 }});
-            j39v2.put("limits", new HashMap<String, Object>() {{
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", 1 );
                         put( "max", 1 );
@@ -1219,10 +1219,10 @@ public class Polymarket extends PolymarketApi
                         put( "max", null );
                     }} );
                 }});
-            j39v2.put("outcomes", outcomes);
-            j39v2.put("info", market);
-            j39v2.put("created", null);
-            ((List<Object>)result).add(j39v2);
+            mapLiteral2.put("outcomes", outcomes);
+            mapLiteral2.put("info", market);
+            mapLiteral2.put("created", null);
+            result.add(mapLiteral2);
         }
         return result;
     }
@@ -1507,9 +1507,9 @@ public class Polymarket extends PolymarketApi
             List<Object> bookParams = new ArrayList<Object>(Arrays.asList());
             for (long i = startIndex; i < endIndex; i++)
             {
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("token_id", this.safeString(tokenIds, i));
-                ((List<Object>)bookParams).add(mapLiteral1);
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("token_id", this.safeString(tokenIds, i));
+                bookParams.add(mapLiteral3);
             }
             List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
             List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
@@ -1629,31 +1629,31 @@ public class Polymarket extends PolymarketApi
         {
             quoteVolume = this.safeNumber2(this.safeDict(market, "info", null), "volume24hr", "volume", null);
         }
-        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-        j39v3.put("outcome", outcome);
-        j39v3.put("outcomeId", this.safeString(market, "outcomeId"));
-        j39v3.put("label", this.safeString(market, "label"));
-        j39v3.put("market", this.safeString(market, "market"));
-        j39v3.put("timestamp", timestamp);
-        j39v3.put("datetime", this.iso8601(timestamp));
-        j39v3.put("high", null);
-        j39v3.put("low", null);
-        j39v3.put("bid", this.safeNumber(bestBid, "price", null));
-        j39v3.put("bidVolume", this.safeNumber(bestBid, "size", null));
-        j39v3.put("ask", this.safeNumber(bestAsk, "price", null));
-        j39v3.put("askVolume", this.safeNumber(bestAsk, "size", null));
-        j39v3.put("vwap", null);
-        j39v3.put("open", null);
-        j39v3.put("close", last);
-        j39v3.put("last", last);
-        j39v3.put("previousClose", null);
-        j39v3.put("change", null);
-        j39v3.put("percentage", null);
-        j39v3.put("average", mid);
-        j39v3.put("baseVolume", null);
-        j39v3.put("quoteVolume", quoteVolume);
-        j39v3.put("info", ticker);
-        return (Map<String, Object>) (this.safePredictionTicker(j39v3, market));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcome);
+        j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
+        j39v1.put("label", this.safeString(market, "label"));
+        j39v1.put("market", this.safeString(market, "market"));
+        j39v1.put("timestamp", timestamp);
+        j39v1.put("datetime", this.iso8601(timestamp));
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", this.safeNumber(bestBid, "price", null));
+        j39v1.put("bidVolume", this.safeNumber(bestBid, "size", null));
+        j39v1.put("ask", this.safeNumber(bestAsk, "price", null));
+        j39v1.put("askVolume", this.safeNumber(bestAsk, "size", null));
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", last);
+        j39v1.put("last", last);
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", mid);
+        j39v1.put("baseVolume", null);
+        j39v1.put("quoteVolume", quoteVolume);
+        j39v1.put("info", ticker);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, market));
     }
 
     /**
@@ -1846,7 +1846,7 @@ public class Polymarket extends PolymarketApi
         List<Object> unsortedCandles = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < bucketKeys.size(); i++)
         {
-            ((List<Object>)unsortedCandles).add((buckets == null || (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)) == null ? null : buckets.get((bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)))));
+            unsortedCandles.add((buckets == null || (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)) == null ? null : buckets.get((bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i)))));
         }
         List<Object> candles = this.sortBy(unsortedCandles, 0);
         Integer candlesLength = candles.size();
@@ -2073,7 +2073,7 @@ public class Polymarket extends PolymarketApi
             String tradeAsset = this.safeString(trade, "asset");
             if (java.util.Objects.equals(tradeAsset, tokenId))
             {
-                ((List<Object>)filteredTrades).add(trade);
+                filteredTrades.add(trade);
             }
         }
         // the trades are already narrowed to this outcome by asset id above;
@@ -2155,7 +2155,7 @@ public class Polymarket extends PolymarketApi
             }
             if (Boolean.TRUE.equals(belongs))
             {
-                ((List<Object>)result).add(trade);
+                result.add(trade);
             }
         }
         return this.filterBySinceLimit(result, since, limit, "timestamp", false);
@@ -2216,24 +2216,24 @@ public class Polymarket extends PolymarketApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("outcome", outcome);
-        mapLiteral2.put("outcomeId", assetId);
-        mapLiteral2.put("label", this.safeString(mkt, "label"));
-        mapLiteral2.put("market", this.safeString(mkt, "market"));
-        mapLiteral2.put("order", this.safeString2(trade, "orderId", "taker_order_id"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("amount", amount);
-        mapLiteral2.put("cost", null);
-        mapLiteral2.put("fee", fee);
-        return this.safePredictionTrade(mapLiteral2, mkt);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("outcome", outcome);
+        mapLiteral4.put("outcomeId", assetId);
+        mapLiteral4.put("label", this.safeString(mkt, "label"));
+        mapLiteral4.put("market", this.safeString(mkt, "market"));
+        mapLiteral4.put("order", this.safeString2(trade, "orderId", "taker_order_id"));
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("fee", fee);
+        return this.safePredictionTrade(mapLiteral4, mkt);
     }
 
     /**
@@ -2286,11 +2286,11 @@ public class Polymarket extends PolymarketApi
         {
             total = this.parseNumber(Precise.stringDiv(raw, "1000000"));
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("free", total);
-        mapLiteral3.put("used", null);
-        mapLiteral3.put("total", total);
-        result.put("USDC", mapLiteral3);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("free", total);
+        mapLiteral5.put("used", null);
+        mapLiteral5.put("total", total);
+        result.put("USDC", mapLiteral5);
         return this.safeBalance(result);
     }
 
@@ -2354,7 +2354,7 @@ public class Polymarket extends PolymarketApi
             String assetId = this.safeString(info, "asset");
             if ((!java.util.Objects.equals(assetId, null)) && (wantedIds.containsKey(assetId)))
             {
-                ((List<Object>)result).add(position);
+                result.add(position);
             }
         }
         return result;
@@ -2404,37 +2404,37 @@ public class Polymarket extends PolymarketApi
         {
             notional = ((size == null || curPrice == null) ? null : (((double) size) * ((double) curPrice)));
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", this.safeString(position, "id"));
-        mapLiteral4.put("outcome", this.safeString(marketData, "outcome"));
-        mapLiteral4.put("outcomeId", this.safeString(marketData, "outcomeId"));
-        mapLiteral4.put("market", this.safeString(marketData, "market"));
-        mapLiteral4.put("label", this.safeString(marketData, "label"));
-        mapLiteral4.put("event", this.safeString(marketData, "event"));
-        mapLiteral4.put("timestamp", null);
-        mapLiteral4.put("datetime", null);
-        mapLiteral4.put("contracts", size);
-        mapLiteral4.put("contractSize", 1);
-        mapLiteral4.put("side", "long");
-        mapLiteral4.put("notional", notional);
-        mapLiteral4.put("leverage", 1);
-        mapLiteral4.put("unrealizedPnl", null);
-        mapLiteral4.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
-        mapLiteral4.put("collateral", null);
-        mapLiteral4.put("entryPrice", entryPrice);
-        mapLiteral4.put("markPrice", curPrice);
-        mapLiteral4.put("liquidationPrice", null);
-        mapLiteral4.put("hedged", false);
-        mapLiteral4.put("maintenanceMargin", null);
-        mapLiteral4.put("maintenanceMarginPercentage", null);
-        mapLiteral4.put("initialMargin", null);
-        mapLiteral4.put("initialMarginPercentage", null);
-        mapLiteral4.put("marginRatio", null);
-        mapLiteral4.put("marginMode", "cross");
-        mapLiteral4.put("marginType", "cross");
-        mapLiteral4.put("percentage", null);
-        mapLiteral4.put("info", position);
-        return this.safePredictionPosition(mapLiteral4);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", this.safeString(position, "id"));
+        mapLiteral6.put("outcome", this.safeString(marketData, "outcome"));
+        mapLiteral6.put("outcomeId", this.safeString(marketData, "outcomeId"));
+        mapLiteral6.put("market", this.safeString(marketData, "market"));
+        mapLiteral6.put("label", this.safeString(marketData, "label"));
+        mapLiteral6.put("event", this.safeString(marketData, "event"));
+        mapLiteral6.put("timestamp", null);
+        mapLiteral6.put("datetime", null);
+        mapLiteral6.put("contracts", size);
+        mapLiteral6.put("contractSize", 1);
+        mapLiteral6.put("side", "long");
+        mapLiteral6.put("notional", notional);
+        mapLiteral6.put("leverage", 1);
+        mapLiteral6.put("unrealizedPnl", null);
+        mapLiteral6.put("realizedPnl", this.safeNumber(position, "realizedPnl", null));
+        mapLiteral6.put("collateral", null);
+        mapLiteral6.put("entryPrice", entryPrice);
+        mapLiteral6.put("markPrice", curPrice);
+        mapLiteral6.put("liquidationPrice", null);
+        mapLiteral6.put("hedged", false);
+        mapLiteral6.put("maintenanceMargin", null);
+        mapLiteral6.put("maintenanceMarginPercentage", null);
+        mapLiteral6.put("initialMargin", null);
+        mapLiteral6.put("initialMarginPercentage", null);
+        mapLiteral6.put("marginRatio", null);
+        mapLiteral6.put("marginMode", "cross");
+        mapLiteral6.put("marginType", "cross");
+        mapLiteral6.put("percentage", null);
+        mapLiteral6.put("info", position);
+        return this.safePredictionPosition(mapLiteral6);
     }
 
     /**
@@ -2675,9 +2675,9 @@ public class Polymarket extends PolymarketApi
                 }});
             }
             Map<String, Object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount", null), this.safeNumber(o, "price", null), orderParams);
-            ((List<Object>)bodies).add(this.safeDict(built, "body", new HashMap<String, Object>() {{}}));
-            ((List<Object>)outcomes).add(this.safeDict(built, "outcome", new HashMap<String, Object>() {{}}));
-            ((List<Object>)requests).add(this.safeDict(built, "request", new HashMap<String, Object>() {{}}));
+            bodies.add(this.safeDict(built, "body", new HashMap<String, Object>() {{}}));
+            outcomes.add(this.safeDict(built, "outcome", new HashMap<String, Object>() {{}}));
+            requests.add(this.safeDict(built, "request", new HashMap<String, Object>() {{}}));
         }
         List<Object> response = (this.clobPrivatePostOrders(bodies)).join();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2690,11 +2690,11 @@ public class Polymarket extends PolymarketApi
                 Map<String, Object> enriched = this.extend(this.safeDict(requests, i, null), rawItem);
                 Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(outcomes, i, null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 ((Map<String, Object>)parsedItem).put("info", rawItem); // keep info the raw exchange response
-                ((List<Object>)result).add(parsedItem);
+                result.add(parsedItem);
             }
         } else
         {
-            ((List<Object>)result).add(this.parsePredictionOrder(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), null));
+            result.add(this.parsePredictionOrder(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), null));
         }
         return result;
 
@@ -2845,22 +2845,22 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> orderBody = new HashMap<String, Object>();
         orderBody.put("deferExec", false);
         orderBody.put("postOnly", postOnly);
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("salt", this.parseToInt(salt));
-        mapLiteral5.put("maker", maker);
-        mapLiteral5.put("signer", signer);
-        mapLiteral5.put("taker", "0x0000000000000000000000000000000000000000");
-        mapLiteral5.put("tokenId", tokenId);
-        mapLiteral5.put("makerAmount", makerAmount);
-        mapLiteral5.put("takerAmount", takerAmount);
-        mapLiteral5.put("side", sideStr);
-        mapLiteral5.put("signatureType", signatureType);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("expiration", expiration);
-        mapLiteral5.put("metadata", bytes32Zero);
-        mapLiteral5.put("builder", builderBytes32);
-        mapLiteral5.put("signature", signature);
-        orderBody.put("order", mapLiteral5);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("salt", this.parseToInt(salt));
+        mapLiteral7.put("maker", maker);
+        mapLiteral7.put("signer", signer);
+        mapLiteral7.put("taker", "0x0000000000000000000000000000000000000000");
+        mapLiteral7.put("tokenId", tokenId);
+        mapLiteral7.put("makerAmount", makerAmount);
+        mapLiteral7.put("takerAmount", takerAmount);
+        mapLiteral7.put("side", sideStr);
+        mapLiteral7.put("signatureType", signatureType);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("expiration", expiration);
+        mapLiteral7.put("metadata", bytes32Zero);
+        mapLiteral7.put("builder", builderBytes32);
+        mapLiteral7.put("signature", signature);
+        orderBody.put("order", mapLiteral7);
         orderBody.put("owner", owner);
         orderBody.put("orderType", orderTypeStr);
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
@@ -3126,11 +3126,11 @@ public class Polymarket extends PolymarketApi
         {
             status = "canceled";
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("status", status);
-        mapLiteral6.put("info", response);
-        return this.safePredictionOrder(mapLiteral6, null);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", id);
+        mapLiteral8.put("status", status);
+        mapLiteral8.put("info", response);
+        return this.safePredictionOrder(mapLiteral8, null);
 
     }
 
@@ -3159,11 +3159,11 @@ public class Polymarket extends PolymarketApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < canceled.size(); i++)
         {
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("id", this.safeString(canceled, i));
-            mapLiteral7.put("status", "canceled");
-            mapLiteral7.put("info", response);
-            ((List<Object>)orders).add(this.safePredictionOrder(mapLiteral7, null));
+            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+            mapLiteral9.put("id", this.safeString(canceled, i));
+            mapLiteral9.put("status", "canceled");
+            mapLiteral9.put("info", response);
+            orders.add(this.safePredictionOrder(mapLiteral9, null));
         }
         return orders;
 
@@ -3206,11 +3206,11 @@ public class Polymarket extends PolymarketApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < canceled.size(); i++)
         {
-            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-            mapLiteral8.put("id", this.safeString(canceled, i));
-            mapLiteral8.put("status", "canceled");
-            mapLiteral8.put("info", response);
-            ((List<Object>)orders).add(this.safePredictionOrder(mapLiteral8, null));
+            HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+            mapLiteral10.put("id", this.safeString(canceled, i));
+            mapLiteral10.put("status", "canceled");
+            mapLiteral10.put("info", response);
+            orders.add(this.safePredictionOrder(mapLiteral10, null));
         }
         return orders;
 
@@ -3300,14 +3300,14 @@ public class Polymarket extends PolymarketApi
                 Map<String, Object> detailedEvent = null;
                 if (!java.util.Objects.equals(eventId, null))
                 {
-                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                    mapLiteral9.put("id", eventId);
-                    detailedEvent = (this.gammaPublicGetEventsId(mapLiteral9)).join();
+                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                    mapLiteral11.put("id", eventId);
+                    detailedEvent = (this.gammaPublicGetEventsId(mapLiteral11)).join();
                 } else if (!java.util.Objects.equals(rawEventSlug, null))
                 {
-                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                    mapLiteral10.put("slug", rawEventSlug);
-                    detailedEvent = (this.gammaPublicGetEventsSlugSlug(mapLiteral10)).join();
+                    HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                    mapLiteral12.put("slug", rawEventSlug);
+                    detailedEvent = (this.gammaPublicGetEventsSlugSlug(mapLiteral12)).join();
                 }
                 if (!java.util.Objects.equals(detailedEvent, null))
                 {
@@ -3325,7 +3325,7 @@ public class Polymarket extends PolymarketApi
                 ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
             }
             Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, eventForParsing));
-            ((List<Object>)result).add(parsedEvent);
+            result.add(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
         // shared applyEventFetchParams then caches (setEvents) and applies the unified
@@ -3479,27 +3479,27 @@ public class Polymarket extends PolymarketApi
                 parsedTags.add(tagLabel);
             }
         }
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("id", this.safeString(rawEvent, "id"));
-        mapLiteral11.put("slug", slug);
-        mapLiteral11.put("event", (((!java.util.Objects.equals(slug, null) && !java.util.Objects.equals(slug, "")))) ? this.shortenSlug(slug) : null);
-        mapLiteral11.put("title", this.safeString(rawEvent, "title"));
-        mapLiteral11.put("tags", parsedTags);
-        mapLiteral11.put("markets", marketsList);
-        mapLiteral11.put("active", active);
-        mapLiteral11.put("url", this.safeString(rawEvent, "url"));
-        mapLiteral11.put("image", this.safeString2(rawEvent, "image", "image_url"));
-        mapLiteral11.put("created", this.parse8601(createdAt));
-        mapLiteral11.put("createdDatetime", createdAt);
-        mapLiteral11.put("end", this.parse8601(endDate));
-        mapLiteral11.put("endDatetime", endDate);
-        mapLiteral11.put("category", this.safeString(rawEvent, "category"));
-        mapLiteral11.put("lastUpdatedAt", this.parse8601(updatedAt));
-        mapLiteral11.put("lastUpdatedAtDatetime", updatedAt);
-        mapLiteral11.put("resolutionSource", this.safeString2(rawEvent, "resolutionSource", "resolution_source"));
-        mapLiteral11.put("resolved", this.safeBool2(rawEvent, "closed", "resolved", null));
-        mapLiteral11.put("info", rawEvent);
-        return ((Map<String, Object>) this.extend(mapLiteral11));
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("id", this.safeString(rawEvent, "id"));
+        mapLiteral13.put("slug", slug);
+        mapLiteral13.put("event", (((!java.util.Objects.equals(slug, null) && !java.util.Objects.equals(slug, "")))) ? this.shortenSlug(slug) : null);
+        mapLiteral13.put("title", this.safeString(rawEvent, "title"));
+        mapLiteral13.put("tags", parsedTags);
+        mapLiteral13.put("markets", marketsList);
+        mapLiteral13.put("active", active);
+        mapLiteral13.put("url", this.safeString(rawEvent, "url"));
+        mapLiteral13.put("image", this.safeString2(rawEvent, "image", "image_url"));
+        mapLiteral13.put("created", this.parse8601(createdAt));
+        mapLiteral13.put("createdDatetime", createdAt);
+        mapLiteral13.put("end", this.parse8601(endDate));
+        mapLiteral13.put("endDatetime", endDate);
+        mapLiteral13.put("category", this.safeString(rawEvent, "category"));
+        mapLiteral13.put("lastUpdatedAt", this.parse8601(updatedAt));
+        mapLiteral13.put("lastUpdatedAtDatetime", updatedAt);
+        mapLiteral13.put("resolutionSource", this.safeString2(rawEvent, "resolutionSource", "resolution_source"));
+        mapLiteral13.put("resolved", this.safeBool2(rawEvent, "closed", "resolved", null));
+        mapLiteral13.put("info", rawEvent);
+        return ((Map<String, Object>) this.extend(mapLiteral13));
     }
 
     /**
@@ -3515,7 +3515,7 @@ public class Polymarket extends PolymarketApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawEvents.size(); i++)
         {
-            ((List<Object>)result).add(this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i)))));
+            result.add(this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i)))));
         }
         return result;
     }
@@ -3684,13 +3684,13 @@ public class Polymarket extends PolymarketApi
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = (signature == null ? null : ((String)signature).replace("+", "-"));
                 signature = (signature == null ? null : ((String)signature).replace("/", "_"));
-                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                mapLiteral12.put("POLY_ADDRESS", address);
-                mapLiteral12.put("POLY_API_KEY", apiKey);
-                mapLiteral12.put("POLY_PASSPHRASE", passphrase);
-                mapLiteral12.put("POLY_SIGNATURE", signature);
-                mapLiteral12.put("POLY_TIMESTAMP", timestamp);
-                headersValue = this.extend(headersValue, mapLiteral12);
+                HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+                mapLiteral14.put("POLY_ADDRESS", address);
+                mapLiteral14.put("POLY_API_KEY", apiKey);
+                mapLiteral14.put("POLY_PASSPHRASE", passphrase);
+                mapLiteral14.put("POLY_SIGNATURE", signature);
+                mapLiteral14.put("POLY_TIMESTAMP", timestamp);
+                headersValue = this.extend(headersValue, mapLiteral14);
             }
         }
         {
@@ -3994,24 +3994,24 @@ public class Polymarket extends PolymarketApi
         for (var i = 0; i < rawBids.size(); i++)
         {
             Map<String, Object> b = this.safeDict(rawBids, i, null);
-            ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(b, "price", null), this.safeNumber(b, "size", null))));
+            bids.add(new ArrayList<Object>(Arrays.asList(this.safeNumber(b, "price", null), this.safeNumber(b, "size", null))));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var j = 0; j < rawAsks.size(); j++)
         {
             Map<String, Object> a = this.safeDict(rawAsks, j, null);
-            ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price", null), this.safeNumber(a, "size", null))));
+            asks.add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price", null), this.safeNumber(a, "size", null))));
         }
         Map<String, Object> outcomeObj = this.safeOutcome(outcome, null);
-        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-        mapLiteral13.put("bids", bids);
-        mapLiteral13.put("asks", asks);
-        mapLiteral13.put("timestamp", timestamp);
-        mapLiteral13.put("datetime", this.iso8601(timestamp));
-        mapLiteral13.put("outcome", outcome);
-        mapLiteral13.put("outcomeId", tokenId);
-        mapLiteral13.put("market", this.safeString(outcomeObj, "market"));
-        orderbook.reset(mapLiteral13);
+        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+        mapLiteral15.put("bids", bids);
+        mapLiteral15.put("asks", asks);
+        mapLiteral15.put("timestamp", timestamp);
+        mapLiteral15.put("datetime", this.iso8601(timestamp));
+        mapLiteral15.put("outcome", outcome);
+        mapLiteral15.put("outcomeId", tokenId);
+        mapLiteral15.put("market", this.safeString(outcomeObj, "market"));
+        orderbook.reset(mapLiteral15);
         client.resolve(orderbook, ("orderbook::" + outcome));
         client.resolve(orderbook, ("ticker::" + outcome));
     }
@@ -4064,24 +4064,24 @@ public class Polymarket extends PolymarketApi
         Double price = this.safeNumber(eventVar, "price", null);
         Double amount = this.safeNumber(eventVar, "size", null);
         Map<String, Object> market = this.safeOutcome(tokenId, null);
-        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-        mapLiteral14.put("id", this.safeString(eventVar, "transaction_hash"));
-        mapLiteral14.put("info", eventVar);
-        mapLiteral14.put("timestamp", timestamp);
-        mapLiteral14.put("datetime", this.iso8601(timestamp));
-        mapLiteral14.put("outcome", outcome);
-        mapLiteral14.put("outcomeId", this.safeString(market, "outcomeId"));
-        mapLiteral14.put("label", this.safeString(market, "label"));
-        mapLiteral14.put("market", this.safeString(market, "market"));
-        mapLiteral14.put("order", null);
-        mapLiteral14.put("type", null);
-        mapLiteral14.put("side", this.safeStringLower(eventVar, "side"));
-        mapLiteral14.put("takerOrMaker", "taker");
-        mapLiteral14.put("price", price);
-        mapLiteral14.put("amount", amount);
-        mapLiteral14.put("cost", null);
-        mapLiteral14.put("fee", null);
-        Map<String,Object> trade = this.safePredictionTrade(mapLiteral14, market);
+        HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+        mapLiteral16.put("id", this.safeString(eventVar, "transaction_hash"));
+        mapLiteral16.put("info", eventVar);
+        mapLiteral16.put("timestamp", timestamp);
+        mapLiteral16.put("datetime", this.iso8601(timestamp));
+        mapLiteral16.put("outcome", outcome);
+        mapLiteral16.put("outcomeId", this.safeString(market, "outcomeId"));
+        mapLiteral16.put("label", this.safeString(market, "label"));
+        mapLiteral16.put("market", this.safeString(market, "market"));
+        mapLiteral16.put("order", null);
+        mapLiteral16.put("type", null);
+        mapLiteral16.put("side", this.safeStringLower(eventVar, "side"));
+        mapLiteral16.put("takerOrMaker", "taker");
+        mapLiteral16.put("price", price);
+        mapLiteral16.put("amount", amount);
+        mapLiteral16.put("cost", null);
+        mapLiteral16.put("fee", null);
+        Map<String,Object> trade = this.safePredictionTrade(mapLiteral16, market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = new HashMap<String, Object>() {{}};
@@ -4240,31 +4240,31 @@ public class Polymarket extends PolymarketApi
             mid = bestAsk;
         }
         Map<String, Object> market = this.safeOutcome(outcomeValue, null);
-        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-        mapLiteral15.put("outcome", outcomeValue);
-        mapLiteral15.put("outcomeId", this.safeString(market, "outcomeId"));
-        mapLiteral15.put("label", this.safeString(market, "label"));
-        mapLiteral15.put("market", this.safeString(market, "market"));
-        mapLiteral15.put("timestamp", this.safeInteger(orderbook, "timestamp"));
-        mapLiteral15.put("datetime", this.safeString(orderbook, "datetime"));
-        mapLiteral15.put("high", null);
-        mapLiteral15.put("low", null);
-        mapLiteral15.put("bid", bestBid);
-        mapLiteral15.put("bidVolume", bestBidVolume);
-        mapLiteral15.put("ask", bestAsk);
-        mapLiteral15.put("askVolume", bestAskVolume);
-        mapLiteral15.put("vwap", null);
-        mapLiteral15.put("open", null);
-        mapLiteral15.put("close", mid);
-        mapLiteral15.put("last", mid);
-        mapLiteral15.put("previousClose", null);
-        mapLiteral15.put("change", null);
-        mapLiteral15.put("percentage", null);
-        mapLiteral15.put("average", mid);
-        mapLiteral15.put("baseVolume", null);
-        mapLiteral15.put("quoteVolume", null);
-        mapLiteral15.put("info", orderbook);
-        return this.safePredictionTicker(mapLiteral15, market);
+        HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
+        mapLiteral17.put("outcome", outcomeValue);
+        mapLiteral17.put("outcomeId", this.safeString(market, "outcomeId"));
+        mapLiteral17.put("label", this.safeString(market, "label"));
+        mapLiteral17.put("market", this.safeString(market, "market"));
+        mapLiteral17.put("timestamp", this.safeInteger(orderbook, "timestamp"));
+        mapLiteral17.put("datetime", this.safeString(orderbook, "datetime"));
+        mapLiteral17.put("high", null);
+        mapLiteral17.put("low", null);
+        mapLiteral17.put("bid", bestBid);
+        mapLiteral17.put("bidVolume", bestBidVolume);
+        mapLiteral17.put("ask", bestAsk);
+        mapLiteral17.put("askVolume", bestAskVolume);
+        mapLiteral17.put("vwap", null);
+        mapLiteral17.put("open", null);
+        mapLiteral17.put("close", mid);
+        mapLiteral17.put("last", mid);
+        mapLiteral17.put("previousClose", null);
+        mapLiteral17.put("change", null);
+        mapLiteral17.put("percentage", null);
+        mapLiteral17.put("average", mid);
+        mapLiteral17.put("baseVolume", null);
+        mapLiteral17.put("quoteVolume", null);
+        mapLiteral17.put("info", orderbook);
+        return this.safePredictionTicker(mapLiteral17, market);
 
     }
 

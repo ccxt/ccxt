@@ -1298,7 +1298,7 @@ public class Foxbit extends FoxbitApi
             {
                 request.put("price", this.priceToPrecision(symbol, this.safeString(order, "price")));
             }
-            ((List<Object>)ordersRequests).add(this.extend(request, orderParams));
+            ordersRequests.add(this.extend(request, orderParams));
         }
         Map<String, Object> createOrdersRequest = new HashMap<String, Object>() {{
             put( "data", ordersRequests );

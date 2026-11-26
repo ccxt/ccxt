@@ -396,35 +396,35 @@ public class Mercado extends MercadoApi
                 continue;
             }
             String id = (quote + base);
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", null);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("symbol", ((base + "/") + quote));
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", true);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", null);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Mercado.this.parseNumber("1e-8") );
                     put( "price", Mercado.this.parseNumber("1e-5") );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -442,9 +442,9 @@ public class Mercado extends MercadoApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", coin);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", coin);
+            result.add(mapLiteral1);
         }
         return result;
 
@@ -594,21 +594,21 @@ public class Mercado extends MercadoApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("symbol", marketResolved.get("symbol"));
-        mapLiteral1.put("order", null);
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("takerOrMaker", null);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("fee", fee);
-        return this.safeTrade(mapLiteral1, marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("order", null);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -768,10 +768,10 @@ public class Mercado extends MercadoApi
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", response);
-        mapLiteral2.put("id", this.safeString(this.safeDict(this.safeDict(response, "response_data", null), "order", null), "order_id"));
-        return this.safeOrder(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", response);
+        mapLiteral3.put("id", this.safeString(this.safeDict(this.safeDict(response, "response_data", null), "order", null), "order_id"));
+        return this.safeOrder(mapLiteral3, market);
 
     }
 
@@ -898,34 +898,34 @@ public class Mercado extends MercadoApi
         for (var i = 0; i < operations.size(); i++)
         {
             // operations carry no side, parseTrade reads it from 'type' like in public trades
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("type", side);
-            ((List<Object>)rawTrades).add(this.extend((operations == null || i < 0 || i >= operations.size() ? null : operations.get(i)), j39v2));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("type", side);
+            rawTrades.add(this.extend((operations == null || i < 0 || i >= operations.size() ? null : operations.get(i)), j39v1));
         }
         String symbol = this.safeString(marketResolved, "symbol");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("clientOrderId", null);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", "limit");
-        mapLiteral3.put("timeInForce", null);
-        mapLiteral3.put("postOnly", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", price);
-        mapLiteral3.put("triggerPrice", null);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("average", average);
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("filled", filled);
-        mapLiteral3.put("remaining", null);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("fee", fee);
-        mapLiteral3.put("trades", rawTrades);
-        return this.safeOrder(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", "limit");
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", rawTrades);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1267,7 +1267,7 @@ public class Mercado extends MercadoApi
             List<Object> trades = this.safeList(this.safeDict(orders, i, null), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < trades.size(); y++)
             {
-                ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
+                result.add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
             }
         }
         return result;

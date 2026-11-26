@@ -841,58 +841,58 @@ public class Kraken extends KrakenApi
                 symbol = (((base + "/") + quote));
             }
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("amount", precisionAmount);
-            mapLiteral1.put("price", precisionPrice);
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("wsId", this.safeString(market, "wsname"));
+            mapLiteral1.put("symbol", symbol);
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("altname", this.safeString(market, "altname"));
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", spot);
+            mapLiteral1.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", isActive);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("taker", taker);
+            mapLiteral1.put("maker", maker);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("min", this.parseNumber("1"));
-            mapLiteral2.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("wsId", this.safeString(market, "wsname"));
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("altname", this.safeString(market, "altname"));
-            j39v1.put("type", "spot");
-            j39v1.put("spot", spot);
-            j39v1.put("margin", ((leverageBuyLength != null && leverageBuyLength > 0)));
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", isActive);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("taker", taker);
-            j39v1.put("maker", maker);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", mapLiteral1);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("leverage", mapLiteral2);
-            j39v2.put("amount", new HashMap<String, Object>() {{
+            mapLiteral2.put("amount", precisionAmount);
+            mapLiteral2.put("price", precisionPrice);
+            mapLiteral1.put("precision", mapLiteral2);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("min", this.parseNumber("1"));
+            mapLiteral4.put("max", this.safeNumber(leverageBuy, (((long) leverageBuyLength) - 1L), 1));
+            mapLiteral3.put("leverage", mapLiteral4);
+            mapLiteral3.put("amount", new HashMap<String, Object>() {{
                         put( "min", Kraken.this.safeNumber(market, "ordermin", null) );
                         put( "max", null );
                     }});
-            j39v2.put("price", new HashMap<String, Object>() {{
+            mapLiteral3.put("price", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }});
-            j39v2.put("cost", new HashMap<String, Object>() {{
+            mapLiteral3.put("cost", new HashMap<String, Object>() {{
                         put( "min", Kraken.this.safeNumber(market, "costmin", null) );
                         put( "max", null );
                     }});
-            j39v1.put("limits", j39v2);
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("limits", mapLiteral3);
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", market);
+            result.add(mapLiteral1);
         }
         this.options.put("marketsByAltname", this.indexBy(result, "altname"));
         return result;
@@ -1063,18 +1063,18 @@ public class Kraken extends KrakenApi
         }
         Boolean isFiat = ((String)code).indexOf(".HOLD") >= 0;
         Object rawCurrencyOmitted = this.omit(rawCurrency, "_coin_id");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("code", code);
-        mapLiteral3.put("info", rawCurrencyOmitted);
-        mapLiteral3.put("name", this.safeString(rawCurrencyOmitted, "altname"));
-        mapLiteral3.put("active", java.util.Objects.equals(this.safeString(rawCurrencyOmitted, "status"), "enabled"));
-        mapLiteral3.put("type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto");
-        mapLiteral3.put("deposit", null);
-        mapLiteral3.put("withdraw", null);
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrencyOmitted, "decimals"))));
-        mapLiteral3.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("code", code);
+        mapLiteral5.put("info", rawCurrencyOmitted);
+        mapLiteral5.put("name", this.safeString(rawCurrencyOmitted, "altname"));
+        mapLiteral5.put("active", java.util.Objects.equals(this.safeString(rawCurrencyOmitted, "status"), "enabled"));
+        mapLiteral5.put("type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto");
+        mapLiteral5.put("deposit", null);
+        mapLiteral5.put("withdraw", null);
+        mapLiteral5.put("fee", null);
+        mapLiteral5.put("precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrencyOmitted, "decimals"))));
+        mapLiteral5.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1084,8 +1084,8 @@ public class Kraken extends KrakenApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral3.put("networks", new HashMap<String, Object>() {{}});
-        return this.safeCurrencyStructure(mapLiteral3);
+        mapLiteral5.put("networks", new HashMap<String, Object>() {{}});
+        return this.safeCurrencyStructure(mapLiteral5);
     }
 
     public String safeCurrencyCode(String currencyId, Map<String, Object> currency)
@@ -1528,26 +1528,26 @@ public class Kraken extends KrakenApi
             direction = "in";
         }
         Long timestamp = this.safeIntegerProduct(item, "time", 1000);
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", item);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("direction", direction);
-        mapLiteral4.put("account", null);
-        mapLiteral4.put("referenceId", referenceId);
-        mapLiteral4.put("referenceAccount", null);
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("currency", code);
-        mapLiteral4.put("amount", this.parseNumber(amount));
-        mapLiteral4.put("before", null);
-        mapLiteral4.put("after", this.safeNumber(item, "balance", null));
-        mapLiteral4.put("status", "ok");
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", null);
+        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", this.parseNumber(amount));
+        mapLiteral6.put("before", null);
+        mapLiteral6.put("after", this.safeNumber(item, "balance", null));
+        mapLiteral6.put("status", "ok");
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Kraken.this.safeNumber(item, "fee", null) );
                 put( "currency", code );
             }});
-        return this.safeLedgerEntry(mapLiteral4, currencyResolved);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     /**
@@ -1613,7 +1613,7 @@ public class Kraken extends KrakenApi
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = this.extend(new HashMap<String, Object>() {{}}, (ledger == null || key == null ? null : ledger.get(key)));
             value.put("id", key);
-            ((List<Object>)items).add(value);
+            items.add(value);
         }
         return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});
 
@@ -1654,7 +1654,7 @@ public class Kraken extends KrakenApi
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = this.extend(new HashMap<String, Object>() {{}}, (result == null || key == null ? null : result.get(key)));
             value.put("id", key);
-            ((List<Object>)items).add(value);
+            items.add(value);
         }
         return this.parseLedger(items, null, null, null, new HashMap<String, Object>() {{}});
 
@@ -1820,21 +1820,21 @@ public class Kraken extends KrakenApi
         {
             timestamp = this.parse8601(datetime);
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("order", orderId);
-        mapLiteral5.put("info", trade);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", datetime);
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("type", type);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("takerOrMaker", takerOrMaker);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("cost", cost);
-        mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("order", orderId);
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", datetime);
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", takerOrMaker);
+        mapLiteral7.put("price", price);
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("cost", cost);
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, marketResolved);
     }
 
     /**
@@ -2142,7 +2142,7 @@ public class Kraken extends KrakenApi
                 put( "volume", parsedAmount );
             }};
             List<Object> orderRequest = (List<Object>) this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
+            ordersRequests.add(((List<Object>)orderRequest).get(0));
         }
         this.marketSymbols(orderSymbols, null, false, true, true);
         Map<String, Object> response = null;
@@ -2508,15 +2508,15 @@ public class Kraken extends KrakenApi
             String rawTradeId = this.safeString(rawTrades, i);
             if (!java.util.Objects.equals(rawTradeId, null))
             {
-                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-                mapLiteral6.put("id", rawTradeId);
-                mapLiteral6.put("order", id);
-                mapLiteral6.put("symbol", symbol);
-                mapLiteral6.put("info", new HashMap<String, Object>() {{}});
-                ((List<Object>)trades).add(this.safeTrade(mapLiteral6, null));
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("id", rawTradeId);
+                mapLiteral8.put("order", id);
+                mapLiteral8.put("symbol", symbol);
+                mapLiteral8.put("info", new HashMap<String, Object>() {{}});
+                trades.add(this.safeTrade(mapLiteral8, null));
             } else
             {
-                ((List<Object>)trades).add((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)));
+                trades.add((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)));
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2564,33 +2564,33 @@ public class Kraken extends KrakenApi
         {
             isPostOnly = null;
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("id", id);
-        mapLiteral7.put("clientOrderId", clientOrderId);
-        mapLiteral7.put("info", orderOmitted);
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("lastTradeTimestamp", null);
-        mapLiteral7.put("lastUpdateTimestamp", this.safeTimestamp(orderOmitted, "closetm"));
-        mapLiteral7.put("status", status);
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("type", typeParsed);
-        mapLiteral7.put("timeInForce", null);
-        mapLiteral7.put("postOnly", isPostOnly);
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("price", price);
-        mapLiteral7.put("triggerPrice", triggerPrice);
-        mapLiteral7.put("takeProfitPrice", takeProfitPrice);
-        mapLiteral7.put("stopLossPrice", stopLossPrice);
-        mapLiteral7.put("cost", cost);
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("filled", filled);
-        mapLiteral7.put("average", average);
-        mapLiteral7.put("remaining", null);
-        mapLiteral7.put("reduceOnly", this.safeBool2(orderOmitted, "reduceOnly", "reduce_only", null));
-        mapLiteral7.put("fee", fee);
-        mapLiteral7.put("trades", trades);
-        return this.safeOrder(mapLiteral7, marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", id);
+        mapLiteral9.put("clientOrderId", clientOrderId);
+        mapLiteral9.put("info", orderOmitted);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", null);
+        mapLiteral9.put("lastUpdateTimestamp", this.safeTimestamp(orderOmitted, "closetm"));
+        mapLiteral9.put("status", status);
+        mapLiteral9.put("symbol", symbol);
+        mapLiteral9.put("type", typeParsed);
+        mapLiteral9.put("timeInForce", null);
+        mapLiteral9.put("postOnly", isPostOnly);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("triggerPrice", triggerPrice);
+        mapLiteral9.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral9.put("stopLossPrice", stopLossPrice);
+        mapLiteral9.put("cost", cost);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("filled", filled);
+        mapLiteral9.put("average", average);
+        mapLiteral9.put("remaining", null);
+        mapLiteral9.put("reduceOnly", this.safeBool2(orderOmitted, "reduceOnly", "reduce_only", null));
+        mapLiteral9.put("fee", fee);
+        mapLiteral9.put("trades", trades);
+        return this.safeOrder(mapLiteral9, marketResolved);
     }
 
     public Pair<Map<String, Object>, Map<String, Object>> orderRequest(String method, String symbol, String type, Map<String, Object> request, Double amount, Object price, Map<String, Object> parameters)
@@ -2928,9 +2928,9 @@ public class Kraken extends KrakenApi
         {
             throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", id);
-        return this.parseOrder(this.extend(mapLiteral8, (result == null || id == null ? null : result.get(id))), null);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("id", id);
+        return this.parseOrder(this.extend(mapLiteral10, (result == null || id == null ? null : result.get(id))), null);
 
     }
 
@@ -2991,11 +2991,11 @@ public class Kraken extends KrakenApi
             Integer batchLength = batch.size();
             if ((batchSize == null || (batchLength != null && batchLength >= batchSize)))
             {
-                ((List<Object>)batches).add(String.join(",", (List<String>)batch));
+                batches.add(String.join(",", (List<String>)batch));
                 batch = new ArrayList<String>(Arrays.asList());
             }
         }
-        ((List<Object>)batches).add(String.join(",", (List<String>)batch));
+        batches.add(String.join(",", (List<String>)batch));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var j = 0; j < batches.size(); j++)
         {
@@ -3077,7 +3077,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, item), null);
-            ((List<Object>)orders).add(order);
+            orders.add(order);
         }
         return orders;
 
@@ -3221,9 +3221,9 @@ public class Kraken extends KrakenApi
             }
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", response);
-        return this.safeOrder(mapLiteral9, null);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", response);
+        return this.safeOrder(mapLiteral11, null);
 
     }
 
@@ -3441,7 +3441,7 @@ public class Kraken extends KrakenApi
         {
             String id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
             Object item = (open == null || id == null ? null : open.get(id));
-            ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
+            orders.add(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, item));
         }
@@ -3548,7 +3548,7 @@ public class Kraken extends KrakenApi
         {
             String id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
             Object item = (closed == null || id == null ? null : closed.get(id));
-            ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
+            orders.add(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, item));
         }
@@ -3684,10 +3684,10 @@ public class Kraken extends KrakenApi
             h2kMap1.put("datetime", this.iso8601(timestamp));
             h2kMap1.put("comment", null);
             h2kMap1.put("internal", null);
-            HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-            mapLiteral10.put("currency", code);
-            mapLiteral10.put("cost", feeCost);
-            h2kMap1.put("fee", mapLiteral10);
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("currency", code);
+            mapLiteral12.put("cost", feeCost);
+            h2kMap1.put("fee", mapLiteral12);
             return h2kMap1;
         }
     }
@@ -3700,7 +3700,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
             }}, (transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i))), null);
-            ((List<Object>)result).add(transaction);
+            result.add(transaction);
         }
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
@@ -4257,36 +4257,36 @@ public class Kraken extends KrakenApi
         {
             side = "long";
         }
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("info", position);
-        mapLiteral11.put("id", null);
-        mapLiteral11.put("symbol", this.safeSymbol(marketId, market, null, null));
-        mapLiteral11.put("notional", null);
-        mapLiteral11.put("marginMode", null);
-        mapLiteral11.put("liquidationPrice", null);
-        mapLiteral11.put("entryPrice", null);
-        mapLiteral11.put("unrealizedPnl", this.safeNumber(position, "net", null));
-        mapLiteral11.put("realizedPnl", null);
-        mapLiteral11.put("percentage", null);
-        mapLiteral11.put("contracts", this.safeNumber(position, "vol", null));
-        mapLiteral11.put("contractSize", null);
-        mapLiteral11.put("markPrice", null);
-        mapLiteral11.put("lastPrice", null);
-        mapLiteral11.put("side", side);
-        mapLiteral11.put("hedged", null);
-        mapLiteral11.put("timestamp", null);
-        mapLiteral11.put("datetime", null);
-        mapLiteral11.put("lastUpdateTimestamp", null);
-        mapLiteral11.put("maintenanceMargin", null);
-        mapLiteral11.put("maintenanceMarginPercentage", null);
-        mapLiteral11.put("collateral", null);
-        mapLiteral11.put("initialMargin", this.safeNumber(position, "margin", null));
-        mapLiteral11.put("initialMarginPercentage", null);
-        mapLiteral11.put("leverage", this.safeNumber(position, "leverage", null));
-        mapLiteral11.put("marginRatio", null);
-        mapLiteral11.put("stopLossPrice", null);
-        mapLiteral11.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral11);
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", position);
+        mapLiteral13.put("id", null);
+        mapLiteral13.put("symbol", this.safeSymbol(marketId, market, null, null));
+        mapLiteral13.put("notional", null);
+        mapLiteral13.put("marginMode", null);
+        mapLiteral13.put("liquidationPrice", null);
+        mapLiteral13.put("entryPrice", null);
+        mapLiteral13.put("unrealizedPnl", this.safeNumber(position, "net", null));
+        mapLiteral13.put("realizedPnl", null);
+        mapLiteral13.put("percentage", null);
+        mapLiteral13.put("contracts", this.safeNumber(position, "vol", null));
+        mapLiteral13.put("contractSize", null);
+        mapLiteral13.put("markPrice", null);
+        mapLiteral13.put("lastPrice", null);
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("hedged", null);
+        mapLiteral13.put("timestamp", null);
+        mapLiteral13.put("datetime", null);
+        mapLiteral13.put("lastUpdateTimestamp", null);
+        mapLiteral13.put("maintenanceMargin", null);
+        mapLiteral13.put("maintenanceMarginPercentage", null);
+        mapLiteral13.put("collateral", null);
+        mapLiteral13.put("initialMargin", this.safeNumber(position, "margin", null));
+        mapLiteral13.put("initialMarginPercentage", null);
+        mapLiteral13.put("leverage", this.safeNumber(position, "leverage", null));
+        mapLiteral13.put("marginRatio", null);
+        mapLiteral13.put("stopLossPrice", null);
+        mapLiteral13.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral13);
     }
 
     public String parseAccountType(String account)
@@ -4368,11 +4368,11 @@ public class Kraken extends KrakenApi
         //   }
         //
         Map<String, Object> transfer = this.parseTransfer(response, currency);
-        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-        mapLiteral12.put("amount", amount);
-        mapLiteral12.put("fromAccount", fromAccountParsed);
-        mapLiteral12.put("toAccount", toAccountParsed);
-        return this.extend(transfer, mapLiteral12);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("amount", amount);
+        mapLiteral14.put("fromAccount", fromAccountParsed);
+        mapLiteral14.put("toAccount", toAccountParsed);
+        return this.extend(transfer, mapLiteral14);
 
     }
 
@@ -4433,14 +4433,14 @@ public class Kraken extends KrakenApi
             String bodySigned = null;
             if (Boolean.TRUE.equals(isJsonBody))
             {
-                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-                mapLiteral13.put("nonce", nonce);
-                bodySigned = this.json(this.extend(mapLiteral13, parameters));
+                HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+                mapLiteral15.put("nonce", nonce);
+                bodySigned = this.json(this.extend(mapLiteral15, parameters));
             } else
             {
-                HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-                mapLiteral14.put("nonce", nonce);
-                bodySigned = this.urlencodeNested(this.extend(mapLiteral14, parameters));
+                HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+                mapLiteral16.put("nonce", nonce);
+                bodySigned = this.urlencodeNested(this.extend(mapLiteral16, parameters));
             }
             byte[] auth = this.encode((nonce + bodySigned));
             Object hash = this.hash(auth, sha256(), "binary");

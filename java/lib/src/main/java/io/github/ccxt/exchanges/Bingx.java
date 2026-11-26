@@ -2930,7 +2930,7 @@ public class Bingx extends BingxApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)results).add(this.parseTicker(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), rowMarket));
+            results.add(this.parseTicker(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), rowMarket));
         }
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 
@@ -4425,7 +4425,7 @@ public class Bingx extends BingxApi
             Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<String> symbols = this.marketSymbols(marketIds, null, false, true, true);
         Integer symbolsLength = symbols.size();
@@ -7416,7 +7416,7 @@ public class Bingx extends BingxApi
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
             Map<String, Object> position = this.parsePosition(mapLiteral14, null);
-            ((List<Object>)positions).add(position);
+            positions.add(position);
         }
         return positions;
 
@@ -7905,7 +7905,7 @@ public class Bingx extends BingxApi
             List<Object> tierParts = new ArrayList<Object>(Arrays.asList(((String)tierString).split(java.util.regex.Pattern.quote(" "))));
             String marketId = this.safeString(tier, "symbol");
             Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, "swap");
-            ((List<Object>)tiers).add(new HashMap<String, Object>() {{
+            tiers.add(new HashMap<String, Object>() {{
                 put( "tier", Bingx.this.safeNumber(tierParts, 1, null) );
                 put( "symbol", Bingx.this.safeSymbol(marketId, marketResolved, null, null) );
                 put( "currency", Bingx.this.safeString(marketResolved, "settle") );

@@ -517,7 +517,7 @@ public class Coincheck extends CoincheckApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsedOrders.size(); i++)
         {
-            ((List<Object>)result).add(this.extend((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), new HashMap<String, Object>() {{
+            result.add(this.extend((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), new HashMap<String, Object>() {{
                 put( "status", "open" );
             }}));
         }

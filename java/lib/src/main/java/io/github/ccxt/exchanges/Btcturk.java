@@ -957,7 +957,7 @@ public class Btcturk extends BtcturkApi
             mapLiteral8.put("low", this.safeNumber(low, i, null));
             mapLiteral8.put("close", this.safeNumber(close, i, null));
             mapLiteral8.put("volume", this.safeNumber(volume, i, null));
-            ((List<Object>)rows).add(mapLiteral8);
+            rows.add(mapLiteral8);
         }
         return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1h"), since, limitResolved, false);
 
@@ -969,7 +969,7 @@ public class Btcturk extends BtcturkApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
+            results.add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));

@@ -2598,8 +2598,8 @@ public class Poloniex extends PoloniexApi
                     merged.put("posSide", "BOTH");
                 }
             }
-            ((List<Object>)ordersRequests).add(merged);
-            ((List<Object>)ordersMarkets).add(marketInner);
+            ordersRequests.add(merged);
+            ordersMarkets.add(marketInner);
         }
         List<Object> data = new ArrayList<Object>(Arrays.asList());
         if (Boolean.TRUE.equals(isContract))
@@ -2633,7 +2633,7 @@ public class Poloniex extends PoloniexApi
         {
             Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> entryMarket = (Map<String, Object>) (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
-            ((List<Object>)results).add(this.parseOrder(entry, entryMarket));
+            results.add(this.parseOrder(entry, entryMarket));
         }
         return results;
 
@@ -3463,7 +3463,7 @@ public class Poloniex extends PoloniexApi
             {
                 Double price = this.safeNumber(asks, i, null);
                 Double amount = this.safeNumber(asks, this.sum(i, 1), null);
-                ((List<Object>)asksResult).add(new ArrayList<Object>(Arrays.asList(price, amount)));
+                asksResult.add(new ArrayList<Object>(Arrays.asList(price, amount)));
             }
         }
         for (var i = 0; i < bids.size(); i++)
@@ -3472,7 +3472,7 @@ public class Poloniex extends PoloniexApi
             {
                 Double price = this.safeNumber(bids, i, null);
                 Double amount = this.safeNumber(bids, this.sum(i, 1), null);
-                ((List<Object>)bidsResult).add(new ArrayList<Object>(Arrays.asList(price, amount)));
+                bidsResult.add(new ArrayList<Object>(Arrays.asList(price, amount)));
             }
         }
         return new HashMap<String, Object>() {{

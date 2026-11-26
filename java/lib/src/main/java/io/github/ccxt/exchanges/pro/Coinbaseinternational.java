@@ -1954,7 +1954,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 this.handleAuthenticationMessage(client, message);
                 return;
             }
-            client.resolve(this.safeValue(message, "result", message), requestId);
+            if (message.containsKey("result"))
+            {
+                client.resolve(this.safeValue(message, "result"), requestId);
+            } else
+            {
+                client.resolve(message, requestId);
+            }
         }
     }
 

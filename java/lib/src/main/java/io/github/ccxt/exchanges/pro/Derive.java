@@ -1275,7 +1275,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 if (((Map<?, ?>)this.positionsByType).containsKey(subaccountIdKey))
                 {
                     Map<String, Object> position = this.handlePositionDelta(subaccountIdKey, entry);
-                    ((List<Object>)positionUpdates).add(position);
+                    positionUpdates.add(position);
                 }
                 continue;
             }

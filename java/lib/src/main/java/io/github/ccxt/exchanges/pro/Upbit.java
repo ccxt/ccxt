@@ -109,7 +109,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         for (var i = 0; i < channelKeys.size(); i++)
         {
             String key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
-            ((List<Object>)finalMessage).add((subscriptions == null || key == null ? null : subscriptions.get(key)));
+            finalMessage.add((subscriptions == null || key == null ? null : subscriptions.get(key)));
         }
         return (this.watchMultiple(url, messageHashes, finalMessage, messageHashes, null)).join();
 
@@ -371,11 +371,11 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Double askSize = this.safeNumber(entry, "ask_size", null);
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
-                ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
+                bidsSnapshot.add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
             }
             if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
             {
-                ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
+                asksSnapshot.add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
             }
         }
         Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
@@ -512,7 +512,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < channelKeys.size(); i++)
         {
-            ((List<Object>)message).add((subscriptions == null || (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)) == null ? null : subscriptions.get((channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)))));
+            message.add((subscriptions == null || (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)) == null ? null : subscriptions.get((channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i)))));
         }
         return (this.watch(url, messageHashResolved, message, messageHashResolved, null)).join();
 

@@ -1498,7 +1498,7 @@ public class Weex extends WeexApi
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             String marketId = this.safeString(rawTicker, "symbol");
             Map<String, Object> tickerMarket = this.safeMarket(marketId, null, null, marketType);
-            ((List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
+            results.add(this.parseTicker(rawTicker, tickerMarket));
         }
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 

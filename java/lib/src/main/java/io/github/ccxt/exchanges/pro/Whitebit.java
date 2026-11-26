@@ -357,7 +357,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             messageHashes.add(("ticker:" + market.get("symbol")));
-            ((List<Object>)args).add(market.get("id"));
+            args.add(market.get("id"));
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "id", id );

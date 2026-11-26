@@ -458,38 +458,38 @@ public class Indodax extends IndodaxApi
             }
             Long isMaintenance = this.safeInteger(market, "is_maintenance");
             Boolean inMaintenance = (!java.util.Objects.equals(isMaintenance, null)) && ((isMaintenance == null || isMaintenance != 0));
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("taker", this.safeNumber(market, "trade_fee_percent", null));
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("percentage", true);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", id);
+            mapLiteral1.put("symbol", ((base + "/") + quote));
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", true);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("taker", this.safeNumber(market, "trade_fee_percent", null));
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("percentage", true);
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Indodax.this.parseNumber("1e-8") );
                     put( "price", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "price_round"))) );
                     put( "cost", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "volume_precision"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -507,9 +507,9 @@ public class Indodax extends IndodaxApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", market);
+            result.add(mapLiteral1);
         }
         return result;
 
@@ -989,29 +989,29 @@ public class Indodax extends IndodaxApi
         }
         Long timestamp = this.safeInteger(order, "submit_time");
         String id = this.safeString(order, "order_id");
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", order);
-        mapLiteral1.put("id", id);
-        mapLiteral1.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("datetime", this.iso8601(timestamp));
-        mapLiteral1.put("lastTradeTimestamp", null);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("type", "limit");
-        mapLiteral1.put("timeInForce", null);
-        mapLiteral1.put("postOnly", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("triggerPrice", null);
-        mapLiteral1.put("cost", cost);
-        mapLiteral1.put("average", null);
-        mapLiteral1.put("amount", amount);
-        mapLiteral1.put("filled", filled);
-        mapLiteral1.put("remaining", remaining);
-        mapLiteral1.put("status", status);
-        mapLiteral1.put("fee", null);
-        mapLiteral1.put("trades", null);
-        return this.safeOrder(mapLiteral1, null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", "limit");
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("remaining", remaining);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, null);
     }
 
     /**
@@ -1781,13 +1781,13 @@ public class Indodax extends IndodaxApi
                 Object finalNetwork = network; // java req
                 if (!java.util.Objects.equals(code, null))
                 {
-                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                    mapLiteral2.put("info", new HashMap<String, Object>() {{}});
-                    mapLiteral2.put("currency", code);
-                    mapLiteral2.put("network", finalNetwork);
-                    mapLiteral2.put("address", address);
-                    mapLiteral2.put("tag", null);
-                    ((List<Object>)result).add(mapLiteral2);
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("info", new HashMap<String, Object>() {{}});
+                    mapLiteral3.put("currency", code);
+                    mapLiteral3.put("network", finalNetwork);
+                    mapLiteral3.put("address", address);
+                    mapLiteral3.put("tag", null);
+                    result.add(mapLiteral3);
                 }
             }
         }
@@ -1879,7 +1879,7 @@ public class Indodax extends IndodaxApi
         if (java.util.Objects.equals(this.safeInteger(response, "success", 0), 1L))
         {
             // { success: 1, return: { orders: [] }}
-            if (!((switch ((Object)(response)) { case List<?> j39v3 -> j39v3.contains("return"); case Map<?, ?> j39v2 -> j39v2.containsKey("return"); case null, default -> false; })))
+            if (!((switch ((Object)(response)) { case List<?> j39v2 -> j39v2.contains("return"); case Map<?, ?> j39v1 -> j39v1.containsKey("return"); case null, default -> false; })))
             {
                 throw new ExchangeError(((this.id + ": malformed response: ") + this.json(response))) ;
             } else

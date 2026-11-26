@@ -1997,24 +1997,23 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
 
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<CompletableFuture<?>> fetchFunctions = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
-    put( "type", "swap" );
-    put( "subType", "linear" );
-}}), this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
-    put( "type", "swap" );
-    put( "subType", "inverse" );
-}})));
-        List<Object> promises = (CompletableFuture.allOf(fetchFunctions.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(fetchFunctions.stream().<Object>map(CompletableFuture::join).toList()))).join();
+        List<Position> linearPositions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
+            put( "type", "swap" );
+            put( "subType", "linear" );
+        }})).join();
+        List<Position> inversePositions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
+            put( "type", "swap" );
+            put( "subType", "inverse" );
+        }})).join();
         this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        for (var i = 0; i < promises.size(); i++)
+        for (var i = 0; i < linearPositions.size(); i++)
         {
-            List<?> positions = (List<?>) (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
-            for (var ii = 0; ii < positions.size(); ii++)
-            {
-                Object position = (positions == null || ii < 0 || ii >= positions.size() ? null : positions.get(ii));
-                cache.append(position);
-            }
+            cache.append((linearPositions == null || i < 0 || i >= linearPositions.size() ? null : linearPositions.get(i)));
+        }
+        for (var i = 0; i < inversePositions.size(); i++)
+        {
+            cache.append((inversePositions == null || i < 0 || i >= inversePositions.size() ? null : inversePositions.get(i)));
         }
         // don't remove the future from the .futures cache
         if (client.futures.containsKey(messageHash))
@@ -2082,7 +2081,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             if (java.util.Objects.equals(side, null) || java.util.Objects.equals(side, ""))
             {
                 // closing update, adding both sides to "reset" both sides
@@ -2930,7 +2929,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 if (!(client.subscriptions.containsKey(messageHash)))
                 {
-                    ((List<Object>)newTopics).add(this.safeString(topics, i, ""));
+                    newTopics.add(this.safeString(topics, i, ""));
                 }
             }
         } else
@@ -2956,7 +2955,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object topic = (topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i));
                 if (!(subscribedTopics.containsKey(topic)))
                 {
-                    ((List<Object>)newTopics).add(topic);
+                    newTopics.add(topic);
                 }
             }
         }

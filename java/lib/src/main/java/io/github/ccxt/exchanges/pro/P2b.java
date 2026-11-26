@@ -226,8 +226,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            ((List<Object>)messageHashes).add(((nameOption + "::") + this.safeString(market, "symbol", "")));
-            ((List<Object>)args).add(market.get("id"));
+            messageHashes.add(((nameOption + "::") + this.safeString(market, "symbol", "")));
+            args.add(market.get("id"));
         }
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Map<String, Object> request = new HashMap<String, Object>();

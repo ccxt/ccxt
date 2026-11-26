@@ -719,7 +719,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String symbol = this.safeString(symbolsNormalized, i);
             Map<String, Object> market = this.market(symbol);
             String subMessageHash = ((messageHash + ":") + this.safeString(market, "symbol", ""));
-            ((List<Object>)messageHashes).add(subMessageHash);
+            messageHashes.add(subMessageHash);
         }
         Object tickers = (this.subscribePublicMultipleUta(messageHashes, "ticker", symbolsNormalized, parameters, null)).join();
         if (this.newUpdates)
@@ -1506,14 +1506,14 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-            ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
-            ((List<Object>)subscriptionHashes).add(("trades:" + symbol));
+            messageHashes.add(("unsubscribe:trades:" + symbol));
+            subscriptionHashes.add(("trades:" + symbol));
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        ((List<Object>)messageHashes).add(topic);
-        ((List<Object>)subscriptionHashes).add(topic);
+        messageHashes.add(topic);
+        subscriptionHashes.add(topic);
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "messageHashes", messageHashes );
             put( "subMessageHashes", subscriptionHashes );

@@ -262,7 +262,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     put( "symbol", symbol );
     put( "bidAsk", java.util.Objects.requireNonNullElse(bidAsk, false) );
 }});
-                ((List<Object>)messageHashes).add(messageHash);
+                messageHashes.add(messageHash);
             }
             client.subscriptions.put(subscriptionKey, subscriptions);
             List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());

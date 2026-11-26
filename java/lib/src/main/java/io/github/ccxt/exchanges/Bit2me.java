@@ -912,7 +912,7 @@ public class Bit2me extends Bit2meApi
         Integer length = response.size();
         for (var i = 0; (length != null && i < length); i++)
         {
-            ((List<Object>)reversed).add((response == null || ((int) ((((long) length) - 1L) - ((long) i))) < 0 || ((int) ((((long) length) - 1L) - ((long) i))) >= response.size() ? null : response.get(((int) ((((long) length) - 1L) - ((long) i))))));
+            reversed.add((response == null || ((int) ((((long) length) - 1L) - ((long) i))) < 0 || ((int) ((((long) length) - 1L) - ((long) i))) >= response.size() ? null : response.get(((int) ((((long) length) - 1L) - ((long) i))))));
         }
         return this.parseTrades(reversed, market, since, limit, new HashMap<String, Object>() {{}});
 

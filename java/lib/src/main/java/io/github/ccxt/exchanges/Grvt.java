@@ -2243,10 +2243,10 @@ public class Grvt extends GrvtApi
                 String direction = this.safeString(parsedMetadata, "direction");
                 if (java.util.Objects.equals(direction, transferType))
                 {
-                    ((List<Object>)matchedResults).add(transfer);
+                    matchedResults.add(transfer);
                 } else
                 {
-                    ((List<Object>)nonMatchedResults).add(transfer);
+                    nonMatchedResults.add(transfer);
                 }
             }
         }
@@ -2814,7 +2814,7 @@ public class Grvt extends GrvtApi
             {
                 legOrder.put("limitPrice", 0); // should be zero to validate type-check
             }
-            ((List<Object>)legs).add(legOrder);
+            legs.add(legOrder);
         }
         Map<String, Object> orderSignature = this.safeDict(order, "signature", new HashMap<String, Object>() {{}});
         Map<String, Object> returnValue = new HashMap<String, Object>() {{
@@ -2956,8 +2956,8 @@ public class Grvt extends GrvtApi
                 {
                     throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                ((List<Object>)baseIds).add(market.get("baseId"));
-                ((List<Object>)quoteIds).add(market.get("quoteId"));
+                baseIds.add(market.get("baseId"));
+                quoteIds.add(market.get("quoteId"));
             }
             request.put("base", baseIds);
             request.put("quote", quoteIds);

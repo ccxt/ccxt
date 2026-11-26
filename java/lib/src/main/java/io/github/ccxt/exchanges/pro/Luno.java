@@ -324,7 +324,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (bidasksValue == null ? 0 : bidasksValue.size()); i++)
         {
-            ((List<Object>)result).add(this.customParseBidAsk((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(thirdKey, 2)));
+            result.add(this.customParseBidAsk((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(thirdKey, 2)));
         }
         return result;
     }
@@ -336,7 +336,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(thirdKey, 2), null))
         {
-            ((List<Object>)result).add(((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2))));
+            result.add(((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2))));
         }
         return result;
     }

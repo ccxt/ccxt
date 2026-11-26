@@ -511,13 +511,13 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
-            ((List<Object>)messageHashes).add(this.getMessageHash("ticker", null, null));
+            messageHashes.add(this.getMessageHash("ticker", null, null));
         } else
         {
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
-                ((List<Object>)messageHashes).add(this.getMessageHash("ticker", symbol, null));
+                messageHashes.add(this.getMessageHash("ticker", symbol, null));
             }
         }
         Object newTicker = (this.subscribePublicMultiple(messageHashes, this.extend(request, parameters))).join();

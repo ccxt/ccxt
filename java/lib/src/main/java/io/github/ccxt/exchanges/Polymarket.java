@@ -845,7 +845,7 @@ public class Polymarket extends PolymarketApi
             Object entry = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String instrumentId = this.safeString(entry, "instrument_id");
             Map<String, Object> previous = this.safeDict(merged, instrumentId, new HashMap<String, Object>() {{}});
-            ((List<Object>)result).add(this.extend(previous, entry));
+            result.add(this.extend(previous, entry));
         }
         return this.parseTickers(result, symbolsNormalized, new HashMap<String, Object>() {{}});
 
@@ -1346,7 +1346,7 @@ public class Polymarket extends PolymarketApi
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Long timestamp = this.safeInteger(entry, "timestamp");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Polymarket.this.safeNumber(entry, "funding_rate", null) );
@@ -1688,10 +1688,10 @@ public class Polymarket extends PolymarketApi
             String price = this.safeString(rawOrder, "price");
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> request = this.createOrderRequest(market, (String) (type), (String) (side), amount, price, orderParams);
-            ((List<Object>)rows).add(request.get("signable"));
-            ((List<Object>)entries).add(request.get("entry"));
-            ((List<Object>)ordersMarkets).add(market);
-            ((List<Object>)ordersEntries).add(request.get("entry"));
+            rows.add(request.get("signable"));
+            entries.add(request.get("entry"));
+            ordersMarkets.add(market);
+            ordersEntries.add(request.get("entry"));
         }
         List<Object> signable = new ArrayList<Object>(Arrays.asList("createOrders", rows));
         Map<String, Object> bodyOp = new HashMap<String, Object>() {{
@@ -1725,7 +1725,7 @@ public class Polymarket extends PolymarketApi
             }
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, marketInner);
             parsed.put("info", ack);
-            ((List<Object>)results).add(parsed);
+            results.add(parsed);
         }
         return results;
 
@@ -1805,7 +1805,7 @@ public class Polymarket extends PolymarketApi
             List<Object> numericIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ids.size(); i++)
             {
-                ((List<Object>)numericIds).add(this.parseToInt(this.safeString(ids, i)));
+                numericIds.add(this.parseToInt(this.safeString(ids, i)));
             }
             signable = new ArrayList<Object>(Arrays.asList("cancelOrders", numericIds));
             bodyOp = new HashMap<String, Object>() {{
@@ -1834,7 +1834,7 @@ public class Polymarket extends PolymarketApi
             }};
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(merged, null);
             parsed.put("info", ack);
-            ((List<Object>)results).add(parsed);
+            results.add(parsed);
         }
         return results;
 
@@ -2204,7 +2204,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> extended = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }});
-            ((List<Object>)positions).add(this.parsePosition(extended, null));
+            positions.add(this.parsePosition(extended, null));
         }
         return this.filterByArrayPositions(positions, "symbol", symbolsNormalized);
 
@@ -2573,15 +2573,15 @@ public class Polymarket extends PolymarketApi
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(entry, "instrument_id");
             Long timestamp = this.safeInteger(entry, "timestamp");
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("info", entry);
-            j39v3.put("symbol", this.safeSymbol(marketId, market, null, null));
-            j39v3.put("code", this.safeCurrencyCode(this.safeString(entry, "funding_asset"), null));
-            j39v3.put("timestamp", timestamp);
-            j39v3.put("datetime", this.iso8601(timestamp));
-            j39v3.put("id", this.safeString(entry, "id"));
-            j39v3.put("amount", this.safeNumber(entry, "funding", null));
-            ((List<Object>)result).add(j39v3);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", entry);
+            mapLiteral6.put("symbol", this.safeSymbol(marketId, market, null, null));
+            mapLiteral6.put("code", this.safeCurrencyCode(this.safeString(entry, "funding_asset"), null));
+            mapLiteral6.put("timestamp", timestamp);
+            mapLiteral6.put("datetime", this.iso8601(timestamp));
+            mapLiteral6.put("id", this.safeString(entry, "id"));
+            mapLiteral6.put("amount", this.safeNumber(entry, "funding", null));
+            result.add(mapLiteral6);
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
 
@@ -3079,10 +3079,10 @@ public class Polymarket extends PolymarketApi
         List<Object> signable = new ArrayList<Object>(Arrays.asList("updateMargin", new ArrayList<Object>(Arrays.asList(instrumentId, amountString))));
         Map<String, Object> bodyOp = new HashMap<String, Object>();
         bodyOp.put("type", "updateMargin");
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("amt", amountString);
-        mapLiteral6.put("iid", instrumentId);
-        bodyOp.put("args", mapLiteral6);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("amt", amountString);
+        mapLiteral7.put("iid", instrumentId);
+        bodyOp.put("args", mapLiteral7);
         Map<String, Object> signed = (this.signPerpsOp(signable, bodyOp, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> response = (this.tradePatchTradeMargin(signed)).join();
         //
@@ -3369,7 +3369,7 @@ public class Polymarket extends PolymarketApi
         {
             if (!java.util.Objects.equals((row == null || i < 0 || i >= row.size() ? null : row.get(i)), null))
             {
-                ((List<Object>)result).add((row == null || i < 0 || i >= row.size() ? null : row.get(i)));
+                result.add((row == null || i < 0 || i >= row.size() ? null : row.get(i)));
             }
         }
         return result;

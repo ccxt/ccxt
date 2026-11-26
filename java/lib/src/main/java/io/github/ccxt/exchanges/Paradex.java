@@ -936,7 +936,7 @@ public class Paradex extends ParadexApi
             String assetKind = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset_kind");
             if (Boolean.TRUE.equals(this.safeBool(assetKinds, assetKind, false)))
             {
-                ((List<Object>)wanted).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                wanted.add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             }
         }
         return this.parseMarkets(wanted);
@@ -1647,13 +1647,13 @@ public class Paradex extends ParadexApi
             {
                 if (java.util.Objects.equals(marketType, null))
                 {
-                    ((List<Object>)result).add(summary);
+                    result.add(summary);
                 } else
                 {
                     Map<String, Object> market = this.safeMarket(marketId, null, null, null);
                     if (java.util.Objects.equals(market.get("type"), marketType))
                     {
-                        ((List<Object>)result).add(summary);
+                        result.add(summary);
                     }
                 }
             }
@@ -2025,7 +2025,7 @@ public class Paradex extends ParadexApi
         List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
         {
-            ((List<Object>)tagged).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
+            tagged.add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
                 put( "next", Paradex.this.safeString(response, "next") );
             }}));
         }
@@ -2215,10 +2215,10 @@ public class Paradex extends ParadexApi
 
     public CompletableFuture<Map<String, Object>> getSystemConfig()
     {
-        return BaseExchange.supplyAsync(() -> this.getSystemConfigCore()).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.getSystemConfigCore());
     }
 
-    private Object getSystemConfigCore()
+    private Map<String, Object> getSystemConfigCore()
     {
 
         if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", null), null))
@@ -2259,10 +2259,10 @@ public class Paradex extends ParadexApi
 
     public CompletableFuture<Map<String, Object>> retrieveAccount()
     {
-        return BaseExchange.supplyAsync(() -> this.retrieveAccountCore()).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.retrieveAccountCore());
     }
 
-    private Object retrieveAccountCore()
+    private Map<String, Object> retrieveAccountCore()
     {
 
         if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", null), null))
@@ -2729,7 +2729,7 @@ public class Paradex extends ParadexApi
         if (java.util.Objects.requireNonNullElse(modify, false))
         {
             orderReq.put("id", this.safeString(request, "id"));
-            ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
+            orderFields.add(new HashMap<String, Object>() {{
                 put( "name", "id" );
                 put( "type", "felt" );
             }});
@@ -2947,7 +2947,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> extendedParams = this.extend(parameters, orderParams);
             Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = (this.signOrderRequest(orderRequest, false)).join();
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
         //
@@ -2983,11 +2983,11 @@ public class Paradex extends ParadexApi
             Map<String, Object> responseOrder = this.safeDict(responseOrders, i, null);
             if (!java.util.Objects.equals(responseOrder, null))
             {
-                ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, responseOrder), null));
+                result.add(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, responseOrder), null));
             } else
             {
                 Map<String, Object> error = this.safeDict(errors, i, null);
-                ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+                result.add(this.safeOrder(new HashMap<String, Object>() {{
                     put( "info", error );
                     put( "status", "rejected" );
                 }}, null));
@@ -3126,13 +3126,13 @@ public class Paradex extends ParadexApi
             {
                 orderStatus = "rejected";
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("info", result);
-            j39v1.put("id", this.safeString(result, "id"));
-            j39v1.put("clientOrderId", this.safeString(result, "client_id"));
-            j39v1.put("status", orderStatus);
-            j39v1.put("symbol", market.get("symbol"));
-            ((List<Object>)orders).add(this.safeOrder(j39v1, market));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", result);
+            mapLiteral6.put("id", this.safeString(result, "id"));
+            mapLiteral6.put("clientOrderId", this.safeString(result, "client_id"));
+            mapLiteral6.put("status", orderStatus);
+            mapLiteral6.put("symbol", market.get("symbol"));
+            orders.add(this.safeOrder(mapLiteral6, market));
         }
         return orders;
 
@@ -3338,9 +3338,9 @@ public class Paradex extends ParadexApi
         Integer ordersLength = orders.size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
         {
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("next", paginationCursor);
-            Map<String, Object> first = this.extend((orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0)), j39v2);
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("next", paginationCursor);
+            Map<String, Object> first = this.extend((orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0)), j39v1);
             orders.set(0, first);
         }
         return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
@@ -3553,7 +3553,7 @@ public class Paradex extends ParadexApi
         List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
         {
-            ((List<Object>)tagged).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
+            tagged.add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
                 put( "next", Paradex.this.safeString(response, "next") );
             }}));
         }
@@ -3594,7 +3594,7 @@ public class Paradex extends ParadexApi
             String rowMarketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "market", "");
             if (java.util.Objects.equals(rowMarketId, marketId))
             {
-                ((List<Object>)matching).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                matching.add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
             }
         }
         Object positions = this.parsePositions(matching, new ArrayList<String>(Arrays.asList(this.safeString(market, "symbol", ""))), new HashMap<String, Object>() {{}});
@@ -3663,7 +3663,7 @@ public class Paradex extends ParadexApi
             String size = this.safeString(position, "size");
             if ((!java.util.Objects.equals(status, "CLOSED")) && !Precise.stringEq(size, "0"))
             {
-                ((List<Object>)openPositions).add(position);
+                openPositions.add(position);
             }
         }
         return this.parsePositions(openPositions, symbolsNormalized, new HashMap<String, Object>() {{}});
@@ -3899,7 +3899,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> withCursor = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
                     put( "next", next );
                 }});
-                ((List<Object>)deposits).add(withCursor);
+                deposits.add(withCursor);
             }
         }
         return this.parseTransactions(deposits, null, since, limit, new HashMap<String, Object>() {{}});
@@ -3991,7 +3991,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> withCursor = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
                     put( "next", next );
                 }});
-                ((List<Object>)deposits).add(withCursor);
+                deposits.add(withCursor);
             }
         }
         return this.parseTransactions(deposits, null, since, limit, new HashMap<String, Object>() {{}});
@@ -4076,7 +4076,7 @@ public class Paradex extends ParadexApi
         List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)tagged).add(this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
+            tagged.add(this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
                 put( "next", next );
             }}));
         }
@@ -4195,7 +4195,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> info = this.safeDict((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), "info", null);
             if (java.util.Objects.equals(this.safeString(info, "kind"), kind))
             {
-                ((List<Object>)result).add((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)));
+                result.add((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)));
             }
         }
         return result;
@@ -4301,7 +4301,8 @@ public class Paradex extends ParadexApi
         if (java.util.Objects.equals(leverage, null))
         {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
-            Leverage currentLeverage = (this.fetchLeverage(((String)symbol), new HashMap<String, Object>() {{}})).join();
+            String leverageSymbol = this.safeString(market, "symbol", "");
+            Leverage currentLeverage = (this.fetchLeverage(leverageSymbol, new HashMap<String, Object>() {{}})).join();
             leverage = this.safeInteger(currentLeverage, "longLeverage");
             if (java.util.Objects.equals(leverage, null))
             {
@@ -4872,7 +4873,7 @@ public class Paradex extends ParadexApi
         List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < results.size(); i++)
         {
-            ((List<Object>)tagged).add(this.extend((results == null || i < 0 || i >= results.size() ? null : results.get(i)), new HashMap<String, Object>() {{
+            tagged.add(this.extend((results == null || i < 0 || i >= results.size() ? null : results.get(i)), new HashMap<String, Object>() {{
                 put( "next", next );
             }}));
         }
@@ -4963,9 +4964,9 @@ public class Paradex extends ParadexApi
             {
                 endAt = until;
             }
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("end_at", endAt);
-            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v3);
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("end_at", endAt);
+            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v2);
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
             Object pages = (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, null, paramsEndAt, "next", "cursor", null, 5000L)).join();
             List<Object> sortedPages = this.sortBy(pages, "timestamp");
@@ -5029,7 +5030,7 @@ public class Paradex extends ParadexApi
             }
             Long timestamp = this.safeInteger(rate, "created_at");
             String datetime = this.iso8601(timestamp);
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", rate );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Paradex.this.safeNumber(rate, "funding_rate", null) );

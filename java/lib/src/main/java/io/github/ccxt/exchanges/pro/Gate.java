@@ -634,7 +634,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             channel = (messageType + ".order_book_update");
             payload = new ArrayList<Object>(Arrays.asList(marketId, interval));
             String stringLimit = String.valueOf(limitResolved);
-            ((List<Object>)payload).add(stringLimit);
+            payload.add(stringLimit);
         }
         Map<String, Object> subscription = new HashMap<String, Object>();
         subscription.put("symbol", symbolValue);
@@ -710,7 +710,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             channel = (messageType + ".order_book_update");
             payload = new ArrayList<Object>(Arrays.asList(marketId, intervalOption));
             String stringLimit = String.valueOf(limit);
-            ((List<Object>)payload).add(stringLimit);
+            payload.add(stringLimit);
         }
         String subMessageHash = (("orderbook" + ":") + symbolValue);
         String messageHash = (("unsubscribe:orderbook" + ":") + symbolValue);
@@ -2032,26 +2032,26 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if (!java.util.Objects.equals(prevLongPosition, null))
                 {
                     position.put("side", prevLongPosition.get("side"));
-                    ((List<Object>)newPositions).add(position);
+                    newPositions.add(position);
                     cache.append(position);
                 }
                 Map<String, Object> prevShortPosition = this.safeDict(cache, (symbol + "short"), null);
                 if (!java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", prevShortPosition.get("side"));
-                    ((List<Object>)newPositions).add(position);
+                    newPositions.add(position);
                     cache.append(position);
                 }
                 // if no prev position is found, default to long
                 if (java.util.Objects.equals(prevLongPosition, null) && java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", "long");
-                    ((List<Object>)newPositions).add(position);
+                    newPositions.add(position);
                     cache.append(position);
                 }
             } else
             {
-                ((List<Object>)newPositions).add(position);
+                newPositions.add(position);
                 cache.append(position);
             }
         }
@@ -2345,7 +2345,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 throw new BadRequest((this.id + " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.")) ;
             }
             messageHash = "myLiquidations";
-            ((List<Object>)payload).add("!all");
+            payload.add("!all");
         } else
         {
             Integer symbolsLength = symbolsNormalized.size();
@@ -2354,7 +2354,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 throw new BadRequest((this.id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
             }
             messageHash = ("myLiquidations::" + (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
-            ((List<Object>)payload).add(market.get("id"));
+            payload.add(market.get("id"));
         }
         String channel = (typeId + ".liquidates");
         List<Object> newLiquidations = (List<Object>) (this.subscribePrivate(url, messageHash, payload, channel, query, true)).join();
@@ -2425,12 +2425,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             Map<String, Object> liquidation = this.parseWsLiquidation(rawLiquidation, null);
             cache.append(liquidation);
-            ((List<Object>)newLiquidations).add(liquidation);
+            newLiquidations.add(liquidation);
             String symbol = this.safeString(liquidation, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 List<Object> symbolLiquidations = this.safeList(liquidationsBySymbol, symbol, new ArrayList<Object>(Arrays.asList()));
-                ((List<Object>)symbolLiquidations).add(liquidation);
+                symbolLiquidations.add(liquidation);
                 liquidationsBySymbol.put(symbol, symbolLiquidations);
             }
         }

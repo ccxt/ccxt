@@ -177,8 +177,8 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> properties = Helpers.objectKeys(exchange.has);
-            ((List<Object>)properties).add("loadMarkets");
-            ((List<Object>)properties).add("afterConstruct");
+            properties.add("loadMarkets");
+            properties.add("afterConstruct");
             if (Helpers.isTrue(isSync()))
             {
                 this.testFiles = getTestFilesSync(properties, this.wsTests);
@@ -644,7 +644,7 @@ public class TestMain extends BaseTest
             {
                 Object testName = (testNames == null || i < 0 || i >= testNames.size() ? null : testNames.get(i));
                 Object testArgs = Helpers.GetValue(tests, testName);
-                ((List<Object>)promises).add(this.testSafe(testName, exchange, testArgs, isPublicTest));
+                promises.add(this.testSafe(testName, exchange, testArgs, isPublicTest));
             }
             // todo - not yet ready in other langs too
             // promises.push (testThrottle ());
@@ -790,7 +790,7 @@ public class TestMain extends BaseTest
             List<Object> activeSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < Helpers.getArrayLength(activeMarkets); i++)
             {
-                ((List<Object>)activeSymbols).add(Helpers.GetValue(Helpers.GetValue(activeMarkets, i), "symbol"));
+                activeSymbols.add(Helpers.GetValue(Helpers.GetValue(activeMarkets, i), "symbol"));
             }
             symbol = this.getTestSymbol(exchange, java.util.Objects.requireNonNullElse(spot, true), activeSymbols);
         }
@@ -907,7 +907,7 @@ public class TestMain extends BaseTest
                             Map<String, Object> entry = new HashMap<String, Object>() {{}};
                             entry.put("symbol", tickerSymbol);
                             entry.put("volume", volume);
-                            ((List<Object>)candidates).add(entry);
+                            candidates.add(entry);
                         }
                     }
                 }
@@ -921,7 +921,7 @@ public class TestMain extends BaseTest
             List<Object> result = new ArrayList<Object>(Arrays.asList(exchange.safeString(Helpers.GetValue(ranked, 0), "symbol")));
             if ((rankedLength != null && rankedLength > 1))
             {
-                ((List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
+                result.add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
             }
             return result;
         });
@@ -1178,7 +1178,7 @@ public class TestMain extends BaseTest
                         // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                         // since eventId is reassigned above. every venue must refetch an event by its own id
                         String eventIdScope = eventId;
-                        ((List<Object>)scopesToTest).add(new HashMap<String, Object>() {{
+                        scopesToTest.add(new HashMap<String, Object>() {{
                             put( "eventId", eventIdScope );
                         }});
                     }
@@ -1188,7 +1188,7 @@ public class TestMain extends BaseTest
                     Integer extraScopesLength = Helpers.getArrayLength(extraScopes);
                     for (var si = 0; (extraScopesLength != null && si < extraScopesLength); si++)
                     {
-                        ((List<Object>)scopesToTest).add(Helpers.GetValue(extraScopes, si));
+                        scopesToTest.add(Helpers.GetValue(extraScopes, si));
                     }
                     Integer scopesToTestLength = scopesToTest.size();
                     for (var sj = 0; (scopesToTestLength != null && sj < scopesToTestLength); sj++)
@@ -1920,7 +1920,7 @@ public class TestMain extends BaseTest
             Object key = (rawSkipKeys == null || i < 0 || i >= ((List<?>)rawSkipKeys).size() ? null : ((List<?>)rawSkipKeys).get(i));
             if (!Helpers.isTrue((exchange.inArray(key, forceCheckKeys))))
             {
-                ((List<Object>)skipKeys).add(key);
+                skipKeys.add(key);
             }
         }
         return skipKeys;
@@ -2325,10 +2325,10 @@ public class TestMain extends BaseTest
             Object current = Helpers.GetValue(input, i);
             if (Helpers.isTrue(isNullValue(current)))
             {
-                ((List<Object>)newInput).add(null);
+                newInput.add(null);
             } else
             {
-                ((List<Object>)newInput).add(current);
+                newInput.add(current);
             }
         }
         return newInput;
@@ -2844,7 +2844,7 @@ public class TestMain extends BaseTest
                     // on prediction structures and must be absent
                     Assert(!java.util.Objects.equals(exchange.safeString(evMarket, "market"), null), (exchangeName + " static events fixture: market row missing the unified market handle"));
                     Assert(java.util.Objects.equals(exchange.safeString(evMarket, "symbol"), null), (exchangeName + " static events fixture: market row must not carry the deprecated symbol key"));
-                    ((List<Object>)eventMarkets).add(evMarket);
+                    eventMarkets.add(evMarket);
                 }
             }
             if (eventMarkets.size() > 0)
@@ -3181,13 +3181,13 @@ public class TestMain extends BaseTest
                 sum = exchange.sum(sum, numberOfTests);
                 if (java.util.Objects.equals(type, "request"))
                 {
-                    ((List<Object>)promises).add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+                    promises.add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
                 } else if (java.util.Objects.equals(type, "ws"))
                 {
-                    ((List<Object>)promises).add(this.testExchangeWsStatically(exchangeName, (Map<String, Object>) (exchangeData), testName));
+                    promises.add(this.testExchangeWsStatically(exchangeName, (Map<String, Object>) (exchangeData), testName));
                 } else
                 {
-                    ((List<Object>)promises).add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
+                    promises.add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
                 }
             }
             try

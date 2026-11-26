@@ -129,7 +129,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return newValue;
     }
 
-    public Map<String, Object> createPublicRequest(Map<String, Object> market, Object requestId, String topicID, Object suffix, Boolean unWatch)
+    public Map<String, Object> createPublicRequest(Map<String, Object> market, Object requestId, String topicID, String suffix, Boolean unWatch)
     {
         String marketId = this.safeString(market, "symbol", ""); // spot markets use symbol with slash
         if (java.util.Objects.equals(this.safeString(market, "type"), "swap"))
@@ -152,12 +152,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return request;
     }
 
-    public CompletableFuture<Object> watchPublic(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Object suffix)
+    public CompletableFuture<Object> watchPublic(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, String suffix)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicCore(market, messageHash, topicID, parameters, suffix));
     }
 
-    private Object watchPublicCore(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Object suffix)
+    private Object watchPublicCore(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, String suffix)
     {
 
         String marketType = this.safeString(market, "type", "");
@@ -172,12 +172,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
+    public CompletableFuture<Object> unWatchPublic(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, String suffix)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchPublicCore(market, messageHash, topicID, parameters, subscription, suffix));
     }
 
-    private Object unWatchPublicCore(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
+    private Object unWatchPublicCore(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, String suffix)
     {
 
         String marketType = this.safeString(market, "type", "");
@@ -824,7 +824,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         var suffixparamsValueVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, suffix)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, java.util.Objects.toString(suffix, null))).join();
         return orderbook.limit();
 
     }
@@ -859,7 +859,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "topic", "orderbook" );
         }};
-        return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix)).join();
+        return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, java.util.Objects.toString(suffix, null))).join();
 
     }
 
@@ -965,11 +965,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (java.util.Objects.equals(side, "0"))
             {
                 // bid
-                ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, volume)));
+                bids.add(new ArrayList<Object>(Arrays.asList(price, volume)));
             } else if (java.util.Objects.equals(side, "1"))
             {
                 // ask
-                ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, volume)));
+                asks.add(new ArrayList<Object>(Arrays.asList(price, volume)));
             }
         }
         Map<String, Object> orderedEntries = new HashMap<String, Object>() {{

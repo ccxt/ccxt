@@ -736,35 +736,35 @@ public class Lbank extends LbankApi
                 continue;
             }
             String symbol = ((base + "/") + quote);
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", marketId);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settle", null);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", true);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", marketId);
+            mapLiteral2.put("symbol", symbol);
+            mapLiteral2.put("base", base);
+            mapLiteral2.put("quote", quote);
+            mapLiteral2.put("baseId", baseId);
+            mapLiteral2.put("quoteId", quoteId);
+            mapLiteral2.put("settle", null);
+            mapLiteral2.put("settleId", null);
+            mapLiteral2.put("type", "spot");
+            mapLiteral2.put("spot", true);
+            mapLiteral2.put("margin", false);
+            mapLiteral2.put("swap", false);
+            mapLiteral2.put("future", false);
+            mapLiteral2.put("option", false);
+            mapLiteral2.put("active", true);
+            mapLiteral2.put("contract", false);
+            mapLiteral2.put("linear", null);
+            mapLiteral2.put("inverse", null);
+            mapLiteral2.put("contractSize", null);
+            mapLiteral2.put("expiry", null);
+            mapLiteral2.put("expiryDatetime", null);
+            mapLiteral2.put("strike", null);
+            mapLiteral2.put("optionType", null);
+            mapLiteral2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "quantityAccuracy"))) );
                     put( "price", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "priceAccuracy"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -782,9 +782,9 @@ public class Lbank extends LbankApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral2.put("created", null);
+            mapLiteral2.put("info", market);
+            result.add(mapLiteral2);
         }
         return result;
 
@@ -846,35 +846,35 @@ public class Lbank extends LbankApi
                 continue;
             }
             String symbol = ((((base + "/") + quote) + ":") + quote);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", marketId);
-            j39v2.put("symbol", symbol);
-            j39v2.put("base", base);
-            j39v2.put("quote", quote);
-            j39v2.put("settle", quote);
-            j39v2.put("baseId", baseId);
-            j39v2.put("quoteId", quoteId);
-            j39v2.put("settleId", settleId);
-            j39v2.put("type", "swap");
-            j39v2.put("spot", false);
-            j39v2.put("margin", false);
-            j39v2.put("swap", true);
-            j39v2.put("future", false);
-            j39v2.put("option", false);
-            j39v2.put("active", true);
-            j39v2.put("contract", true);
-            j39v2.put("linear", true);
-            j39v2.put("inverse", false);
-            j39v2.put("contractSize", this.safeNumber(market, "volumeMultiple", null));
-            j39v2.put("expiry", null);
-            j39v2.put("expiryDatetime", null);
-            j39v2.put("strike", null);
-            j39v2.put("optionType", null);
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", marketId);
+            mapLiteral3.put("symbol", symbol);
+            mapLiteral3.put("base", base);
+            mapLiteral3.put("quote", quote);
+            mapLiteral3.put("settle", quote);
+            mapLiteral3.put("baseId", baseId);
+            mapLiteral3.put("quoteId", quoteId);
+            mapLiteral3.put("settleId", settleId);
+            mapLiteral3.put("type", "swap");
+            mapLiteral3.put("spot", false);
+            mapLiteral3.put("margin", false);
+            mapLiteral3.put("swap", true);
+            mapLiteral3.put("future", false);
+            mapLiteral3.put("option", false);
+            mapLiteral3.put("active", true);
+            mapLiteral3.put("contract", true);
+            mapLiteral3.put("linear", true);
+            mapLiteral3.put("inverse", false);
+            mapLiteral3.put("contractSize", this.safeNumber(market, "volumeMultiple", null));
+            mapLiteral3.put("expiry", null);
+            mapLiteral3.put("expiryDatetime", null);
+            mapLiteral3.put("strike", null);
+            mapLiteral3.put("optionType", null);
+            mapLiteral3.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Lbank.this.safeNumber(market, "volumeTick", null) );
                     put( "price", Lbank.this.safeNumber(market, "priceTick", null) );
                 }});
-            j39v2.put("limits", new HashMap<String, Object>() {{
+            mapLiteral3.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -892,9 +892,9 @@ public class Lbank extends LbankApi
                         put( "max", null );
                     }} );
                 }});
-            j39v2.put("created", null);
-            j39v2.put("info", market);
-            ((List<Object>)result).add(j39v2);
+            mapLiteral3.put("created", null);
+            mapLiteral3.put("info", market);
+            result.add(mapLiteral3);
         }
         return result;
 
@@ -943,28 +943,28 @@ public class Lbank extends LbankApi
         Map<String, Object> tickerData = this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Map<String, Object> data = ((Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))))) ? ticker : tickerData;
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString2(data, "high", "highestPrice"));
-        mapLiteral2.put("low", this.safeString2(data, "low", "lowestPrice"));
-        mapLiteral2.put("bid", null);
-        mapLiteral2.put("bidVolume", null);
-        mapLiteral2.put("ask", null);
-        mapLiteral2.put("askVolume", null);
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(data, "openPrice"));
-        mapLiteral2.put("close", null);
-        mapLiteral2.put("last", this.safeString2(data, "latest", "lastPrice"));
-        mapLiteral2.put("previousClose", null);
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", this.safeString(data, "change"));
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(data, "vol", "volume"));
-        mapLiteral2.put("quoteVolume", this.safeString(data, "turnover"));
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("high", this.safeString2(data, "high", "highestPrice"));
+        mapLiteral4.put("low", this.safeString2(data, "low", "lowestPrice"));
+        mapLiteral4.put("bid", null);
+        mapLiteral4.put("bidVolume", null);
+        mapLiteral4.put("ask", null);
+        mapLiteral4.put("askVolume", null);
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", this.safeString(data, "openPrice"));
+        mapLiteral4.put("close", null);
+        mapLiteral4.put("last", this.safeString2(data, "latest", "lastPrice"));
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", null);
+        mapLiteral4.put("percentage", this.safeString(data, "change"));
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", this.safeString2(data, "vol", "volume"));
+        mapLiteral4.put("quoteVolume", this.safeString(data, "turnover"));
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1322,21 +1322,21 @@ public class Lbank extends LbankApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("order", order);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("cost", costString);
-        mapLiteral3.put("fee", fee);
-        mapLiteral3.put("info", trade);
-        return this.safeTrade(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", order);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", costString);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("info", trade);
+        return this.safeTrade(mapLiteral5, market);
     }
 
     /**
@@ -2223,29 +2223,29 @@ public class Lbank extends LbankApi
             amountString = this.safeString2(order, "origQty", "amount");
         }
         String filledString = this.safeString2(order, "executedQty", "deal_amount");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", clientOrderId);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("status", this.parseOrderStatus(rawStatus));
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("type", type);
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("triggerPrice", null);
-        mapLiteral4.put("cost", costString);
-        mapLiteral4.put("amount", amountString);
-        mapLiteral4.put("filled", filledString);
-        mapLiteral4.put("remaining", null);
-        mapLiteral4.put("trades", null);
-        mapLiteral4.put("fee", null);
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("average", null);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("status", this.parseOrderStatus(rawStatus));
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", postOnly);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", null);
+        mapLiteral6.put("cost", costString);
+        mapLiteral6.put("amount", amountString);
+        mapLiteral6.put("filled", filledString);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("fee", null);
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("average", null);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     /**
@@ -3548,28 +3548,28 @@ public class Lbank extends LbankApi
                         if (!java.util.Objects.equals(networkCode, null))
                         {
                             Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
-                            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-                            mapLiteral6.put("fee", withdrawFee);
-                            mapLiteral6.put("percentage", null);
-                            mapLiteral5.put("withdraw", mapLiteral6);
-                            mapLiteral5.put("deposit", new HashMap<String, Object>() {{
+                            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                            mapLiteral8.put("fee", withdrawFee);
+                            mapLiteral8.put("percentage", null);
+                            mapLiteral7.put("withdraw", mapLiteral8);
+                            mapLiteral7.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                            networkFees.put(networkCode, mapLiteral5);
+                            networkFees.put(networkCode, mapLiteral7);
                             Map<String, Object> networks = this.extend(this.safeDict(this.safeDict(result, code, new HashMap<String, Object>() {{}}), "networks", new HashMap<String, Object>() {{}}), networkFees);
                             result.put(code, this.extend(this.safeDict(result, code, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
     put( "networks", networks );
 }}));
                         } else
                         {
-                            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-                            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-                            mapLiteral8.put("fee", withdrawFee);
-                            mapLiteral8.put("percentage", null);
-                            mapLiteral7.put("withdraw", mapLiteral8);
-                            result.put(code, this.extend(this.safeDict(result, code, new HashMap<String, Object>() {{}}), mapLiteral7));
+                            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                            HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                            mapLiteral10.put("fee", withdrawFee);
+                            mapLiteral10.put("percentage", null);
+                            mapLiteral9.put("withdraw", mapLiteral10);
+                            result.put(code, this.extend(this.safeDict(result, code, new HashMap<String, Object>() {{}}), mapLiteral9));
                         }
                     }
                 }
@@ -3619,24 +3619,24 @@ public class Lbank extends LbankApi
             {
                 if (Boolean.TRUE.equals(isDefault))
                 {
-                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-                    mapLiteral9.put("fee", withdrawFee);
-                    mapLiteral9.put("percentage", null);
-                    result.put("withdraw", mapLiteral9);
+                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                    mapLiteral11.put("fee", withdrawFee);
+                    mapLiteral11.put("percentage", null);
+                    result.put("withdraw", mapLiteral11);
                 }
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
-                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-                    mapLiteral11.put("fee", withdrawFee);
-                    mapLiteral11.put("percentage", null);
-                    mapLiteral10.put("withdraw", mapLiteral11);
-                    mapLiteral10.put("deposit", new HashMap<String, Object>() {{
+                    HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                    HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                    mapLiteral13.put("fee", withdrawFee);
+                    mapLiteral13.put("percentage", null);
+                    mapLiteral12.put("withdraw", mapLiteral13);
+                    mapLiteral12.put("deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }});
-                    networkFees.put(networkCode, mapLiteral10);
+                    networkFees.put(networkCode, mapLiteral12);
                     result.put("networks", this.extend(this.safeDict(result, "networks", new HashMap<String, Object>() {{}}), networkFees));
                 }
             }
@@ -3749,7 +3749,7 @@ public class Lbank extends LbankApi
 
     public String convertSecretToPem(Object secret)
     {
-        Integer secretLength = (switch ((Object)(secret)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+        Integer secretLength = (switch ((Object)(secret)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; });
         Long fullLines = this.parseToInt((((double) secretLength) / ((double) 64)));
         String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; ((fullLines != null && i <= fullLines)); i++)

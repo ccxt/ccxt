@@ -423,56 +423,56 @@ public class Blockchaincom extends BlockchaincomApi
                 String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                 maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("info", market);
-            j39v1.put("id", marketId);
-            j39v1.put("numericId", numericId);
-            j39v1.put("symbol", ((base + "/") + quote));
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", null);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", null);
-            j39v1.put("type", "spot");
-            j39v1.put("spot", true);
-            j39v1.put("margin", false);
-            j39v1.put("swap", false);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", active);
-            j39v1.put("contract", false);
-            j39v1.put("linear", null);
-            j39v1.put("inverse", null);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("info", market);
+            mapLiteral1.put("id", marketId);
+            mapLiteral1.put("numericId", numericId);
+            mapLiteral1.put("symbol", ((base + "/") + quote));
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", null);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", null);
+            mapLiteral1.put("type", "spot");
+            mapLiteral1.put("spot", true);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("swap", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", active);
+            mapLiteral1.put("contract", false);
+            mapLiteral1.put("linear", null);
+            mapLiteral1.put("inverse", null);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Blockchaincom.this.parseNumber(amountPrecisionString) );
                     put( "price", Blockchaincom.this.parseNumber(pricePrecisionString) );
                 }});
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("leverage", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }});
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("min", minOrderSize);
-            j39v3.put("max", maxOrderSize);
-            j39v2.put("amount", j39v3);
-            j39v2.put("price", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("min", minOrderSize);
+            mapLiteral3.put("max", maxOrderSize);
+            mapLiteral2.put("amount", mapLiteral3);
+            mapLiteral2.put("price", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }});
-            j39v2.put("cost", new HashMap<String, Object>() {{
+            mapLiteral2.put("cost", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
                     }});
-            j39v1.put("limits", j39v2);
-            j39v1.put("created", null);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("limits", mapLiteral2);
+            mapLiteral1.put("created", null);
+            result.add(mapLiteral1);
         }
         return result;
 
@@ -702,27 +702,27 @@ public class Blockchaincom extends BlockchaincomApi
         String datetime = this.iso8601(timestamp);
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("id", exchangeOrderId);
-        mapLiteral1.put("clientOrderId", clientOrderId);
-        mapLiteral1.put("datetime", datetime);
-        mapLiteral1.put("timestamp", timestamp);
-        mapLiteral1.put("lastTradeTimestamp", null);
-        mapLiteral1.put("status", state);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("type", type);
-        mapLiteral1.put("timeInForce", null);
-        mapLiteral1.put("side", side);
-        mapLiteral1.put("price", price);
-        mapLiteral1.put("average", average);
-        mapLiteral1.put("amount", null);
-        mapLiteral1.put("filled", filled);
-        mapLiteral1.put("remaining", remaining);
-        mapLiteral1.put("cost", null);
-        mapLiteral1.put("trades", new ArrayList<Object>(Arrays.asList()));
-        mapLiteral1.put("fees", new ArrayList<Object>(Arrays.asList()));
-        mapLiteral1.put("info", order);
-        Order result = this.safeOrder(mapLiteral1, null);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", exchangeOrderId);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("datetime", datetime);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", state);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("amount", null);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("trades", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral4.put("fees", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral4.put("info", order);
+        Order result = this.safeOrder(mapLiteral4, null);
         return (Order) result;
     }
 
@@ -1056,21 +1056,21 @@ public class Blockchaincom extends BlockchaincomApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", tradeId);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", datetime);
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("order", orderId);
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", null);
-        mapLiteral2.put("price", priceString);
-        mapLiteral2.put("amount", amountString);
-        mapLiteral2.put("cost", null);
-        mapLiteral2.put("fee", fee);
-        mapLiteral2.put("info", trade);
-        return this.safeTrade(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", tradeId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", datetime);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", null);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("info", trade);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**

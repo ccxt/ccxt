@@ -1317,7 +1317,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = this.parsePosition(rawPosition, null);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "positions::");

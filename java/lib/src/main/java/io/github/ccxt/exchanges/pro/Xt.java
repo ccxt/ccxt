@@ -1288,7 +1288,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 this.tickers.put(symbol, ticker);
             }
-            ((List<Object>)newTickers).add(ticker);
+            newTickers.add(ticker);
         }
         String messageHashStart = ((this.safeString(message, "topic", "") + "::") + tradeType);
         List<Object> messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));

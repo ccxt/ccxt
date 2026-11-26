@@ -1261,36 +1261,36 @@ public class Bitstamp extends BitstampApi
             }
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             String settle = (((!java.util.Objects.equals(settleId, null) && !java.util.Objects.equals(settleId, "")))) ? this.safeCurrencyCode(settleId, null) : null;
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", this.safeString(market, "market_symbol"));
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", settle);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", settleId);
-            j39v1.put("type", type);
-            j39v1.put("subType", subType);
-            j39v1.put("spot", isSpot);
-            j39v1.put("margin", false);
-            j39v1.put("future", false);
-            j39v1.put("swap", !Boolean.TRUE.equals(isSpot));
-            j39v1.put("option", false);
-            j39v1.put("active", (java.util.Objects.equals(this.safeString(market, "trading"), "Enabled")));
-            j39v1.put("contract", !Boolean.TRUE.equals(isSpot));
-            j39v1.put("linear", ((Boolean.TRUE.equals(isSpot))) ? null : true);
-            j39v1.put("inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false);
-            j39v1.put("contractSize", null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", this.safeString(market, "market_symbol"));
+            mapLiteral1.put("symbol", symbol);
+            mapLiteral1.put("base", base);
+            mapLiteral1.put("quote", quote);
+            mapLiteral1.put("settle", settle);
+            mapLiteral1.put("baseId", baseId);
+            mapLiteral1.put("quoteId", quoteId);
+            mapLiteral1.put("settleId", settleId);
+            mapLiteral1.put("type", type);
+            mapLiteral1.put("subType", subType);
+            mapLiteral1.put("spot", isSpot);
+            mapLiteral1.put("margin", false);
+            mapLiteral1.put("future", false);
+            mapLiteral1.put("swap", !Boolean.TRUE.equals(isSpot));
+            mapLiteral1.put("option", false);
+            mapLiteral1.put("active", (java.util.Objects.equals(this.safeString(market, "trading"), "Enabled")));
+            mapLiteral1.put("contract", !Boolean.TRUE.equals(isSpot));
+            mapLiteral1.put("linear", ((Boolean.TRUE.equals(isSpot))) ? null : true);
+            mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false);
+            mapLiteral1.put("contractSize", null);
+            mapLiteral1.put("expiry", null);
+            mapLiteral1.put("expiryDatetime", null);
+            mapLiteral1.put("strike", null);
+            mapLiteral1.put("optionType", null);
+            mapLiteral1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Bitstamp.this.parseNumber(Bitstamp.this.parsePrecision(Bitstamp.this.safeString(market, "base_decimals"))) );
                     put( "price", Bitstamp.this.parseNumber(Bitstamp.this.parsePrecision(Bitstamp.this.safeString(market, "counter_decimals"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -1308,9 +1308,9 @@ public class Bitstamp extends BitstampApi
                         put( "max", Bitstamp.this.safeNumber(market, "maximum_order_value", null) );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral1.put("created", null);
+            mapLiteral1.put("info", market);
+            result.add(mapLiteral1);
         }
         return result;
 
@@ -1397,10 +1397,10 @@ public class Bitstamp extends BitstampApi
             //            "market_type": "SPOT"
             //        },
             //
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("response", response);
-            mapLiteral1.put("timestamp", now);
-            this.options.put("fetchMarkets", this.extend(options, mapLiteral1));
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("response", response);
+            mapLiteral2.put("timestamp", now);
+            this.options.put("fetchMarkets", this.extend(options, mapLiteral2));
         }
         Map<String, Object> cache = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
         List<Object> markets = this.safeList(cache, "response", new ArrayList<Object>(Arrays.asList()));
@@ -1901,21 +1901,21 @@ public class Bitstamp extends BitstampApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", id);
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("order", this.safeString(trade, "order_id"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", null);
-        mapLiteral2.put("price", priceString);
-        mapLiteral2.put("amount", amountString);
-        mapLiteral2.put("cost", costString);
-        mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("order", this.safeString(trade, "order_id"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -3028,7 +3028,7 @@ public class Bitstamp extends BitstampApi
         String currencyId = this.getCurrencyIdFromTransaction(transaction);
         String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
-        Object feeCurrency = null;
+        String feeCurrency = null;
         String amount = null;
         String transactionAmount = this.safeString(transaction, "amount");
         if (!java.util.Objects.equals(transactionAmount, null))
@@ -3037,7 +3037,7 @@ public class Bitstamp extends BitstampApi
         } else if (!java.util.Objects.equals(currency, null))
         {
             amount = this.safeString(transaction, currency.get("id"));
-            feeCurrency = currency.get("code");
+            feeCurrency = this.safeString(currency, "code");
         } else if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(currencyId, null)))
         {
             amount = this.safeString(transaction, currencyId);
@@ -3222,29 +3222,29 @@ public class Bitstamp extends BitstampApi
         String amount = this.safeString(order, "amount");
         List<Object> transactions = this.safeList(order, "transactions", new ArrayList<Object>(Arrays.asList()));
         String price = this.safeString(order, "price");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("clientOrderId", clientOrderId);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("lastTradeTimestamp", null);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("timeInForce", null);
-        mapLiteral3.put("postOnly", null);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", price);
-        mapLiteral3.put("triggerPrice", null);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("amount", amount);
-        mapLiteral3.put("filled", null);
-        mapLiteral3.put("remaining", null);
-        mapLiteral3.put("trades", transactions);
-        mapLiteral3.put("fee", null);
-        mapLiteral3.put("info", order);
-        mapLiteral3.put("average", null);
-        return this.safeOrder(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", null);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("trades", transactions);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("average", null);
+        return this.safeOrder(mapLiteral4, market);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3309,23 +3309,23 @@ public class Bitstamp extends BitstampApi
                 market = this.getMarketFromTrade(item);
             }
             String direction = (((java.util.Objects.equals(this.safeString(parsedTrade, "side"), "buy")))) ? "in" : "out";
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("info", item);
-            mapLiteral4.put("id", parsedTrade.get("id"));
-            mapLiteral4.put("timestamp", parsedTrade.get("timestamp"));
-            mapLiteral4.put("datetime", parsedTrade.get("datetime"));
-            mapLiteral4.put("direction", direction);
-            mapLiteral4.put("account", null);
-            mapLiteral4.put("referenceId", parsedTrade.get("order"));
-            mapLiteral4.put("referenceAccount", null);
-            mapLiteral4.put("type", type);
-            mapLiteral4.put("currency", this.safeString(market, "base"));
-            mapLiteral4.put("amount", parsedTrade.get("amount"));
-            mapLiteral4.put("before", null);
-            mapLiteral4.put("after", null);
-            mapLiteral4.put("status", "ok");
-            mapLiteral4.put("fee", parsedTrade.get("fee"));
-            return this.safeLedgerEntry(mapLiteral4, currency);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", item);
+            mapLiteral5.put("id", parsedTrade.get("id"));
+            mapLiteral5.put("timestamp", parsedTrade.get("timestamp"));
+            mapLiteral5.put("datetime", parsedTrade.get("datetime"));
+            mapLiteral5.put("direction", direction);
+            mapLiteral5.put("account", null);
+            mapLiteral5.put("referenceId", parsedTrade.get("order"));
+            mapLiteral5.put("referenceAccount", null);
+            mapLiteral5.put("type", type);
+            mapLiteral5.put("currency", this.safeString(market, "base"));
+            mapLiteral5.put("amount", parsedTrade.get("amount"));
+            mapLiteral5.put("before", null);
+            mapLiteral5.put("after", null);
+            mapLiteral5.put("status", "ok");
+            mapLiteral5.put("fee", parsedTrade.get("fee"));
+            return this.safeLedgerEntry(mapLiteral5, currency);
         } else
         {
             Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction(item, currency);
@@ -3346,23 +3346,23 @@ public class Bitstamp extends BitstampApi
                 String amount = this.safeString(item, this.safeString(currencyResolved, "id"));
                 direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("info", item);
-            mapLiteral5.put("id", parsedTransaction.get("id"));
-            mapLiteral5.put("timestamp", parsedTransaction.get("timestamp"));
-            mapLiteral5.put("datetime", parsedTransaction.get("datetime"));
-            mapLiteral5.put("direction", direction);
-            mapLiteral5.put("account", null);
-            mapLiteral5.put("referenceId", parsedTransaction.get("txid"));
-            mapLiteral5.put("referenceAccount", null);
-            mapLiteral5.put("type", type);
-            mapLiteral5.put("currency", parsedTransaction.get("currency"));
-            mapLiteral5.put("amount", parsedTransaction.get("amount"));
-            mapLiteral5.put("before", null);
-            mapLiteral5.put("after", null);
-            mapLiteral5.put("status", parsedTransaction.get("status"));
-            mapLiteral5.put("fee", parsedTransaction.get("fee"));
-            return this.safeLedgerEntry(mapLiteral5, currencyResolved);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", item);
+            mapLiteral6.put("id", parsedTransaction.get("id"));
+            mapLiteral6.put("timestamp", parsedTransaction.get("timestamp"));
+            mapLiteral6.put("datetime", parsedTransaction.get("datetime"));
+            mapLiteral6.put("direction", direction);
+            mapLiteral6.put("account", null);
+            mapLiteral6.put("referenceId", parsedTransaction.get("txid"));
+            mapLiteral6.put("referenceAccount", null);
+            mapLiteral6.put("type", type);
+            mapLiteral6.put("currency", parsedTransaction.get("currency"));
+            mapLiteral6.put("amount", parsedTransaction.get("amount"));
+            mapLiteral6.put("before", null);
+            mapLiteral6.put("after", null);
+            mapLiteral6.put("status", parsedTransaction.get("status"));
+            mapLiteral6.put("fee", parsedTransaction.get("fee"));
+            return this.safeLedgerEntry(mapLiteral6, currencyResolved);
         }
     }
 
@@ -3833,7 +3833,7 @@ public class Bitstamp extends BitstampApi
             List<Object> errors = new ArrayList<Object>(Arrays.asList());
             if ((error instanceof String))
             {
-                ((List<Object>)errors).add(error);
+                errors.add(error);
             } else if (!java.util.Objects.equals(error, null))
             {
                 Map<String, Object> errorDict = this.extend(new HashMap<String, Object>() {{}}, error);
@@ -3847,20 +3847,20 @@ public class Bitstamp extends BitstampApi
                         errors = this.arrayConcat(errors, value);
                     } else
                     {
-                        ((List<Object>)errors).add(value);
+                        errors.add(value);
                     }
                 }
             }
             Object reasonInner = this.safeValue(response, "reason", new HashMap<String, Object>() {{}});
             if ((reasonInner instanceof String))
             {
-                ((List<Object>)errors).add(reasonInner);
+                errors.add(reasonInner);
             } else
             {
                 List<Object> all = this.safeList(reasonInner, "__all__", new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < all.size(); i++)
                 {
-                    ((List<Object>)errors).add((all == null || i < 0 || i >= all.size() ? null : all.get(i)));
+                    errors.add((all == null || i < 0 || i >= all.size() ? null : all.get(i)));
                 }
             }
             String codeError = this.safeString(response, "code");

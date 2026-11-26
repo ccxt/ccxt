@@ -938,7 +938,7 @@ public class Backpack extends BackpackApi
                 marketIds.put(marketId, true);
                 if (!Boolean.TRUE.equals(stock) || Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
                 {
-                    ((List<Object>)markets).add(market);
+                    markets.add(market);
                 }
             }
         }
@@ -966,7 +966,7 @@ public class Backpack extends BackpackApi
                     if (!java.util.Objects.equals(market, null))
                     {
                         marketIds.put(marketId, true);
-                        ((List<Object>)markets).add(market);
+                        markets.add(market);
                     }
                 }
             }
@@ -1749,7 +1749,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> market = this.safeDict(this.markets, symbol, null);
             if (Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
             {
-                ((List<Object>)result).add((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)));
+                result.add((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)));
             }
         }
         return result;
@@ -2317,7 +2317,7 @@ public class Backpack extends BackpackApi
             Object rate = (rawRates == null || i < 0 || i >= rawRates.size() ? null : rawRates.get(i));
             String datetime = this.safeString(rate, "intervalEndTimestamp");
             Long timestamp = this.parse8601(datetime);
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", rate );
                 put( "symbol", market.get("symbol") );
                 put( "fundingRate", Backpack.this.safeNumber(rate, "fundingRate", null) );
@@ -2467,7 +2467,7 @@ public class Backpack extends BackpackApi
                 Long timestamp = this.safeInteger((rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i)), "timestamp");
                 if ((java.util.Objects.equals(until, null)) || ((!java.util.Objects.equals(timestamp, null)) && ((timestamp == null || (until != null && timestamp <= until)))))
                 {
-                    ((List<Object>)filtered).add((rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i)));
+                    filtered.add((rfqTrades == null || i < 0 || i >= rfqTrades.size() ? null : rfqTrades.get(i)));
                 }
             }
             List<Object> sorted = this.sortBy(filtered, "timestamp");
@@ -3365,7 +3365,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> baseQuery = this.extend(baseParams, query);
             Map<String, Object> extendedParams = this.extend(baseQuery, orderParams);
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
         return this.parseOrders(response, null, null, null, new HashMap<String, Object>() {{}});
@@ -3424,8 +3424,8 @@ public class Backpack extends BackpackApi
             if (!java.util.Objects.equals(cost, null))
             {
                 request.put("quoteQuantity", this.costToPrecision(symbol, cost));
-                ((List<Object>)omitKeys).add("cost");
-                ((List<Object>)omitKeys).add("quoteQuantity");
+                omitKeys.add("cost");
+                omitKeys.add("quoteQuantity");
             } else
             {
                 request.put(quantityKey, this.amountToPrecision(symbol, amount));
@@ -3434,13 +3434,13 @@ public class Backpack extends BackpackApi
         if (Boolean.TRUE.equals(isTriggerOrder))
         {
             request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-            ((List<Object>)omitKeys).add("triggerPrice");
+            omitKeys.add("triggerPrice");
         }
         Long clientOrderId = this.safeInteger(query, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("clientId", clientOrderId);
-            ((List<Object>)omitKeys).add("clientOrderId");
+            omitKeys.add("clientOrderId");
         }
         Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), false, this.omit(query, omitKeys));
         Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
@@ -3463,7 +3463,7 @@ public class Backpack extends BackpackApi
             {
                 request.put("takeProfitLimitPrice", this.priceToPrecision(symbol, takeProfitPrice));
             }
-            ((List<Object>)bracketKeys).add("takeProfit");
+            bracketKeys.add("takeProfit");
         }
         Map<String, Object> stopLoss = this.safeDict(paramsPostOnly, "stopLoss", null);
         if (!java.util.Objects.equals(stopLoss, null))
@@ -3478,7 +3478,7 @@ public class Backpack extends BackpackApi
             {
                 request.put("stopLossLimitPrice", this.priceToPrecision(symbol, stopLossPrice));
             }
-            ((List<Object>)bracketKeys).add("stopLoss");
+            bracketKeys.add("stopLoss");
         }
         Pair<String, Map<String, Object>> selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.omit(paramsPostOnly, bracketKeys)), "createOrder", "selfTradePrevention", null);
         String selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.first();

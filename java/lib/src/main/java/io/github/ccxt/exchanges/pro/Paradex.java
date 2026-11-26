@@ -408,7 +408,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (java.util.Objects.equals(topic, "trades"))
             {
                 // the liquidations of a market come from its trades channel
-                ((List<Object>)hashes).add(("liquidations:" + symbol));
+                hashes.add(("liquidations:" + symbol));
             }
         }
         Map<String, Object> subscription = new HashMap<String, Object>();
@@ -1004,8 +1004,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> feedMarket = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), true));
-            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), false));
+            feeds.add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), true));
+            feeds.add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), false));
         }
         (this.waitForPendingUnsubscribe(url, feeds)).join();
         Client client = this.client(url);
@@ -1035,7 +1035,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 (this.sendRequest(url, unsubscribe, null)).join();
             }
             String channel = ((Boolean.TRUE.equals(isDeltas))) ? deltasChannel : snapshotChannel;
-            ((List<Object>)channels).add(channel);
+            channels.add(channel);
             messageHashes.add(("orderbook:" + market.get("symbol")));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeChannels(url, messageHashes, channels, paramsDeltas)).join();
@@ -1111,7 +1111,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 channel = snapshotChannel;
             }
-            ((List<Object>)channels).add(channel);
+            channels.add(channel);
             subMessageHashes.add(("orderbook:" + market.get("symbol")));
         }
         return (this.unsubscribeChannels(url, "orderbook", channels, subMessageHashes, symbolsNormalized, paramsDeltas)).join();
@@ -1195,10 +1195,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 String size = ((Boolean.TRUE.equals(isDelete))) ? "0" : this.safeString(level, "size");
                 if (java.util.Objects.equals(this.safeString(level, "side"), "BUY"))
                 {
-                    ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, size)));
+                    bids.add(new ArrayList<Object>(Arrays.asList(price, size)));
                 } else
                 {
-                    ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, size)));
+                    asks.add(new ArrayList<Object>(Arrays.asList(price, size)));
                 }
             }
         }
@@ -1466,7 +1466,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String marketId = this.safeString(market, "id", "");
             marketIds.add(marketId);
             subscribeHashes.add(((channel + ".") + marketId));
-            ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
+            subMessageHashes.add(((channel + ".") + symbol));
         }
         List<String> tickerSymbols = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
         if (((symbolsLength != null && symbolsLength > 0)) && (client.subscriptions.containsKey(channel)))
@@ -1752,7 +1752,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 String marketId = this.safeString(market, "id", "");
                 channels.add(("bbo." + marketId));
                 subMessageHashes.add(("bidask:" + market.get("symbol")));
-                ((List<Object>)bidAskSymbols).add(market.get("symbol"));
+                bidAskSymbols.add(market.get("symbol"));
             }
         } else
         {
@@ -2117,11 +2117,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "lastUpdateTimestamp", Paradex.this.safeInteger(position, "lastUpdateTimestamp") );
                 }});
                 cache.append(flattened);
-                ((List<Object>)newPositions).add(flattened);
+                newPositions.add(flattened);
             }
         }
         cache.append(position);
-        ((List<Object>)newPositions).add(position);
+        newPositions.add(position);
         client.resolve(newPositions, "positions");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -2670,7 +2670,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < 63; i++)
         {
             Object next = (((long) i) + 1L);
-            if (!java.util.Objects.equals((raw == null ? null : raw.substring((int) Math.min(Math.min(((Number)i).intValue(), raw.length()), Math.min(((Number)next).intValue(), raw.length())), (int) Math.min(((Number)next).intValue(), raw.length()))), "0"))
+            if (!java.util.Objects.equals((raw == null ? null : raw.substring((int) Math.min(Math.min(i, raw.length()), Math.min(((Number)next).intValue(), raw.length())), (int) Math.min(((Number)next).intValue(), raw.length()))), "0"))
             {
                 start = i;
                 break;
@@ -2701,7 +2701,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return new ArrayList<Object>(Arrays.asList());
             }
-            ((List<Object>)result).add(this.sbeReadString(frameHex, (position + 1L), length));
+            result.add(this.sbeReadString(frameHex, (position + 1L), length));
             position = next;
         }
         return result;
@@ -2817,11 +2817,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             for (var j = 0; (numInGroup != null && j < numInGroup); j++)
             {
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
-                j39v1.put("price", this.sbeReadDecimal(frameHex, position));
-                j39v1.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
-                ((List<Object>)levels).add(j39v1);
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
+                mapLiteral4.put("price", this.sbeReadDecimal(frameHex, position));
+                mapLiteral4.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
+                levels.add(mapLiteral4);
                 position = this.parseToInt(this.sum(position, entryLength));
             }
         }
@@ -3031,7 +3031,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String name = this.safeString(names, i, "");
             if (((bit != null && bit == 1)) && (!java.util.Objects.equals(name, "")))
             {
-                ((List<Object>)flags).add(name);
+                flags.add(name);
             }
             bits = this.parseToInt((((double) bits) / ((double) 2)));
         }

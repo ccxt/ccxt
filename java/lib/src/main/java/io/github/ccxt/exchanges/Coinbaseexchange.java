@@ -934,7 +934,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 }});
             j39v1.put("created", null);
             j39v1.put("info", market);
-            ((List<Object>)result).add(this.extend((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), j39v1));
+            result.add(this.extend((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), j39v1));
         }
         return result;
 
@@ -2388,7 +2388,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             HashMap<String, Object> j39v2 = new HashMap<String, Object>();
             j39v2.put("currency", code);
-            ((List<Object>)entriesWithCurrency).add(this.extend((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), j39v2));
+            entriesWithCurrency.add(this.extend((entries == null || i < 0 || i >= entries.size() ? null : entries.get(i)), j39v2));
         }
         return this.parseLedger(entriesWithCurrency, currency, since, limit, new HashMap<String, Object>() {{}});
 

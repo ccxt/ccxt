@@ -937,35 +937,35 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Boolean isActive = Boolean.TRUE.equals(isTradingSwap) || ((isAllowedRaw == null || isAllowedRaw != 0));
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", settle);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", settleId);
-            j39v1.put("type", type);
-            j39v1.put("spot", spot);
-            j39v1.put("margin", margin);
-            j39v1.put("swap", swap);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", isActive);
-            j39v1.put("contract", swap);
-            j39v1.put("linear", isLinear);
-            j39v1.put("inverse", isInverse);
-            j39v1.put("contractSize", this.safeNumber(market, "contract_value", null));
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", id);
+            mapLiteral2.put("symbol", symbol);
+            mapLiteral2.put("base", base);
+            mapLiteral2.put("quote", quote);
+            mapLiteral2.put("settle", settle);
+            mapLiteral2.put("baseId", baseId);
+            mapLiteral2.put("quoteId", quoteId);
+            mapLiteral2.put("settleId", settleId);
+            mapLiteral2.put("type", type);
+            mapLiteral2.put("spot", spot);
+            mapLiteral2.put("margin", margin);
+            mapLiteral2.put("swap", swap);
+            mapLiteral2.put("future", false);
+            mapLiteral2.put("option", false);
+            mapLiteral2.put("active", isActive);
+            mapLiteral2.put("contract", swap);
+            mapLiteral2.put("linear", isLinear);
+            mapLiteral2.put("inverse", isInverse);
+            mapLiteral2.put("contractSize", this.safeNumber(market, "contract_value", null));
+            mapLiteral2.put("expiry", null);
+            mapLiteral2.put("expiryDatetime", null);
+            mapLiteral2.put("strike", null);
+            mapLiteral2.put("optionType", null);
+            mapLiteral2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "amount_precision"))) );
                     put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -983,9 +983,9 @@ public class Digifinex extends DigifinexApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            j39v1.put("info", market);
-            ((List<Object>)result).add(j39v1);
+            mapLiteral2.put("created", null);
+            mapLiteral2.put("info", market);
+            result.add(mapLiteral2);
         }
         return result;
 
@@ -1034,35 +1034,35 @@ public class Digifinex extends DigifinexApi
             {
                 continue;
             }
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", id);
-            j39v2.put("symbol", ((base + "/") + quote));
-            j39v2.put("base", base);
-            j39v2.put("quote", quote);
-            j39v2.put("settle", null);
-            j39v2.put("baseId", baseId);
-            j39v2.put("quoteId", quoteId);
-            j39v2.put("settleId", null);
-            j39v2.put("type", "spot");
-            j39v2.put("spot", true);
-            j39v2.put("margin", null);
-            j39v2.put("swap", false);
-            j39v2.put("future", false);
-            j39v2.put("option", false);
-            j39v2.put("active", null);
-            j39v2.put("contract", false);
-            j39v2.put("linear", null);
-            j39v2.put("inverse", null);
-            j39v2.put("contractSize", null);
-            j39v2.put("expiry", null);
-            j39v2.put("expiryDatetime", null);
-            j39v2.put("strike", null);
-            j39v2.put("optionType", null);
-            j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", id);
+            mapLiteral3.put("symbol", ((base + "/") + quote));
+            mapLiteral3.put("base", base);
+            mapLiteral3.put("quote", quote);
+            mapLiteral3.put("settle", null);
+            mapLiteral3.put("baseId", baseId);
+            mapLiteral3.put("quoteId", quoteId);
+            mapLiteral3.put("settleId", null);
+            mapLiteral3.put("type", "spot");
+            mapLiteral3.put("spot", true);
+            mapLiteral3.put("margin", null);
+            mapLiteral3.put("swap", false);
+            mapLiteral3.put("future", false);
+            mapLiteral3.put("option", false);
+            mapLiteral3.put("active", null);
+            mapLiteral3.put("contract", false);
+            mapLiteral3.put("linear", null);
+            mapLiteral3.put("inverse", null);
+            mapLiteral3.put("contractSize", null);
+            mapLiteral3.put("expiry", null);
+            mapLiteral3.put("expiryDatetime", null);
+            mapLiteral3.put("strike", null);
+            mapLiteral3.put("optionType", null);
+            mapLiteral3.put("precision", new HashMap<String, Object>() {{
                     put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                     put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "volume_precision"))) );
                 }});
-            j39v2.put("limits", new HashMap<String, Object>() {{
+            mapLiteral3.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -1080,8 +1080,8 @@ public class Digifinex extends DigifinexApi
                         put( "max", null );
                     }} );
                 }});
-            j39v2.put("info", market);
-            ((List<Object>)result).add(j39v2);
+            mapLiteral3.put("info", market);
+            result.add(mapLiteral3);
         }
         return result;
 
@@ -1583,30 +1583,30 @@ public class Digifinex extends DigifinexApi
             // swap endpoints return a raw ratio, spot already returns a percent
             percentage = Precise.stringMul(percentage, "100");
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString2(ticker, "high", "high_24h"));
-        mapLiteral2.put("low", this.safeString2(ticker, "low", "low_24h"));
-        mapLiteral2.put("bid", this.safeString2(ticker, "buy", "best_bid"));
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "best_bid_size"));
-        mapLiteral2.put("ask", this.safeString2(ticker, "sell", "best_ask"));
-        mapLiteral2.put("askVolume", this.safeString(ticker, "best_ask_size"));
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(ticker, "open_24h"));
-        mapLiteral2.put("close", last);
-        mapLiteral2.put("last", last);
-        mapLiteral2.put("previousClose", null);
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", percentage);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(ticker, "vol", "volume_24h"));
-        mapLiteral2.put("quoteVolume", this.safeString(ticker, "base_vol"));
-        mapLiteral2.put("markPrice", this.safeString(ticker, "mark_price"));
-        mapLiteral2.put("indexPrice", indexPrice);
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("high", this.safeString2(ticker, "high", "high_24h"));
+        mapLiteral4.put("low", this.safeString2(ticker, "low", "low_24h"));
+        mapLiteral4.put("bid", this.safeString2(ticker, "buy", "best_bid"));
+        mapLiteral4.put("bidVolume", this.safeString(ticker, "best_bid_size"));
+        mapLiteral4.put("ask", this.safeString2(ticker, "sell", "best_ask"));
+        mapLiteral4.put("askVolume", this.safeString(ticker, "best_ask_size"));
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", this.safeString(ticker, "open_24h"));
+        mapLiteral4.put("close", last);
+        mapLiteral4.put("last", last);
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", null);
+        mapLiteral4.put("percentage", percentage);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", this.safeString2(ticker, "vol", "volume_24h"));
+        mapLiteral4.put("quoteVolume", this.safeString(ticker, "base_vol"));
+        mapLiteral4.put("markPrice", this.safeString(ticker, "mark_price"));
+        mapLiteral4.put("indexPrice", indexPrice);
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, marketResolved);
     }
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
@@ -1755,21 +1755,21 @@ public class Digifinex extends DigifinexApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("order", orderId);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -2207,7 +2207,7 @@ public class Digifinex extends DigifinexApi
                 }
             }
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2260,7 +2260,7 @@ public class Digifinex extends DigifinexApi
             individualOrder.put("instrument_id", market.get("id"));
             individualOrder.put("amount", this.safeNumber(rawOrder, "amount", null));
             individualOrder.put("price", this.safeNumber(rawOrder, "price", null));
-            ((List<Object>)result).add(individualOrder);
+            result.add(individualOrder);
         }
         return this.parseOrders(result, market, null, null, new HashMap<String, Object>() {{}});
 
@@ -2369,7 +2369,7 @@ public class Digifinex extends DigifinexApi
             List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("postOnly"));
             if (Boolean.TRUE.equals(isMarketBuy))
             {
-                ((List<Object>)keysToOmit).add("cost");
+                keysToOmit.add("cost");
             }
             paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
             if (Boolean.TRUE.equals(isMarketBuy))
@@ -2545,10 +2545,10 @@ public class Digifinex extends DigifinexApi
             return canceled;
         } else
         {
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("info", response);
-            mapLiteral4.put("id", this.safeString(response, "data"));
-            return this.safeOrder(mapLiteral4, null);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            mapLiteral6.put("id", this.safeString(response, "data"));
+            return this.safeOrder(mapLiteral6, null);
         }
 
     }
@@ -2561,7 +2561,7 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < success.size(); i++)
         {
             String order = this.safeString(success, i);
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "symbol", Digifinex.this.safeString(symbolsById, order) );
@@ -2571,7 +2571,7 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < error.size(); i++)
         {
             String order = this.safeString(error, i);
-            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+            result.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "symbol", Digifinex.this.safeString(symbolsById, order) );
@@ -2626,7 +2626,7 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> orderItem = new HashMap<String, Object>();
                 orderItem.put("id", this.safeString(ids, i, ""));
                 orderItem.put("symbol", marketSymbol);
-                ((List<Object>)orders).add(orderItem);
+                orders.add(orderItem);
             }
             return (this.cancelOrdersForSymbols(orders, paramsOmitted)).join();
         }
@@ -2699,7 +2699,7 @@ public class Digifinex extends DigifinexApi
                 throw new BadRequest((this.id + " cancelOrdersForSymbols() requires all orders to be of the same market type (spot or swap)")) ;
             }
             ids.add(id);
-            ((List<Object>)symbols).add(market.get("symbol"));
+            symbols.add(market.get("symbol"));
             symbolsById.put(id, market.get("symbol"));
         }
         if (java.util.Objects.equals(marketType, "swap"))
@@ -2715,7 +2715,7 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> market = this.market(this.safeString(symbols, i));
                 String marketId = this.safeString(market, "id");
                 String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                ((List<Object>)ordersRequests).add(new HashMap<String, Object>() {{
+                ordersRequests.add(new HashMap<String, Object>() {{
                     put( "instrument_id", marketId );
                     put( "order_id", orderId );
                 }});
@@ -2738,12 +2738,12 @@ public class Digifinex extends DigifinexApi
                 String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 boolean isCanceled = this.inArray(orderId, data);
                 String status = ((isCanceled)) ? "canceled" : "failed";
-                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-                mapLiteral5.put("info", orderId);
-                mapLiteral5.put("id", orderId);
-                mapLiteral5.put("symbol", this.safeString(symbols, i));
-                mapLiteral5.put("status", status);
-                ((List<Object>)result).add(this.safeOrder(mapLiteral5, null));
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("info", orderId);
+                mapLiteral7.put("id", orderId);
+                mapLiteral7.put("symbol", this.safeString(symbols, i));
+                mapLiteral7.put("status", status);
+                result.add(this.safeOrder(mapLiteral7, null));
             }
             return result;
         }
@@ -2852,7 +2852,7 @@ public class Digifinex extends DigifinexApi
         Long timestamp = null;
         Long lastTradeTimestamp = null;
         String timeInForce = null;
-        Object type = null;
+        String type = null;
         Boolean reduceOnly = null;
         String side = this.safeString(order, "type");
         String sideRaw = this.safeString(order, "type");
@@ -2920,32 +2920,32 @@ public class Digifinex extends DigifinexApi
                 }
             }
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", order);
-        mapLiteral6.put("id", this.safeString2(order, "order_id", "data"));
-        mapLiteral6.put("clientOrderId", null);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral6.put("symbol", symbol);
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("timeInForce", timeInForce);
-        mapLiteral6.put("postOnly", null);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("price", this.safeNumber(order, "price", null));
-        mapLiteral6.put("triggerPrice", null);
-        mapLiteral6.put("reduceOnly", reduceOnly);
-        mapLiteral6.put("amount", this.safeNumber2(order, "amount", "size", null));
-        mapLiteral6.put("filled", this.safeNumber2(order, "executed_amount", "filled_qty", null));
-        mapLiteral6.put("remaining", null);
-        mapLiteral6.put("cost", null);
-        mapLiteral6.put("average", this.safeNumber2(order, "avg_price", "price_avg", null));
-        mapLiteral6.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
-        mapLiteral6.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", order);
+        mapLiteral8.put("id", this.safeString2(order, "order_id", "data"));
+        mapLiteral8.put("clientOrderId", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("type", type);
+        mapLiteral8.put("timeInForce", timeInForce);
+        mapLiteral8.put("postOnly", null);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("price", this.safeNumber(order, "price", null));
+        mapLiteral8.put("triggerPrice", null);
+        mapLiteral8.put("reduceOnly", reduceOnly);
+        mapLiteral8.put("amount", this.safeNumber2(order, "amount", "size", null));
+        mapLiteral8.put("filled", this.safeNumber2(order, "executed_amount", "filled_qty", null));
+        mapLiteral8.put("remaining", null);
+        mapLiteral8.put("cost", null);
+        mapLiteral8.put("average", this.safeNumber2(order, "avg_price", "price_avg", null));
+        mapLiteral8.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
+        mapLiteral8.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Digifinex.this.safeNumber(order, "fee", null) );
             }});
-        mapLiteral6.put("trades", null);
-        return this.safeOrder(mapLiteral6, marketResolved);
+        mapLiteral8.put("trades", null);
+        return this.safeOrder(mapLiteral8, marketResolved);
     }
 
     /**
@@ -3514,23 +3514,23 @@ public class Digifinex extends DigifinexApi
         {
             timestamp = (Long) this.safeInteger(item, "timestamp");
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("info", item);
-        mapLiteral7.put("id", null);
-        mapLiteral7.put("direction", null);
-        mapLiteral7.put("account", null);
-        mapLiteral7.put("referenceId", null);
-        mapLiteral7.put("referenceAccount", null);
-        mapLiteral7.put("type", type);
-        mapLiteral7.put("currency", code);
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("before", null);
-        mapLiteral7.put("after", after);
-        mapLiteral7.put("status", null);
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", item);
+        mapLiteral9.put("id", null);
+        mapLiteral9.put("direction", null);
+        mapLiteral9.put("account", null);
+        mapLiteral9.put("referenceId", null);
+        mapLiteral9.put("referenceAccount", null);
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("currency", code);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("before", null);
+        mapLiteral9.put("after", after);
+        mapLiteral9.put("status", null);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral9, currencyResolved);
     }
 
     /**
@@ -3781,9 +3781,9 @@ public class Digifinex extends DigifinexApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("type", type);
-        return this.parseTransactions(data, currency, since, limit, mapLiteral8);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("type", type);
+        return this.parseTransactions(data, currency, since, limit, mapLiteral10);
 
     }
 
@@ -4524,7 +4524,7 @@ public class Digifinex extends DigifinexApi
             String marketId = this.safeString(data, "instrument_id");
             String symbolInner = this.safeSymbol(marketId, null, null, null);
             Long timestamp = this.safeInteger(entry, "time");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", symbolInner );
                 put( "fundingRate", Digifinex.this.safeNumber(entry, "rate", null) );
@@ -4743,7 +4743,7 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < positions.size(); i++)
         {
             Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
-            ((List<Object>)result).add(parsedPosition);
+            result.add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
@@ -4951,34 +4951,34 @@ public class Digifinex extends DigifinexApi
         {
             maintenanceMarginString = Precise.stringAdd(maintenanceMarginString, forceCloseFee);
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", position);
-        mapLiteral9.put("id", null);
-        mapLiteral9.put("symbol", symbol);
-        mapLiteral9.put("notional", this.safeNumber(position, "amount", null));
-        mapLiteral9.put("marginMode", marginMode);
-        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "liquidation_price", null));
-        mapLiteral9.put("entryPrice", this.safeNumber2(position, "avg_cost", "entry_price", null));
-        mapLiteral9.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
-        mapLiteral9.put("contracts", this.safeNumber2(position, "position", "avail_position", null));
-        mapLiteral9.put("contractSize", this.safeNumber(marketResolved, "contractSize", null));
-        mapLiteral9.put("markPrice", this.safeNumber2(position, "mark_price", "last", null));
-        mapLiteral9.put("side", side);
-        mapLiteral9.put("hedged", null);
-        mapLiteral9.put("timestamp", timestamp);
-        mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
-        mapLiteral9.put("maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio", null));
-        mapLiteral9.put("positionMargin", this.parseNumber(marginString));
-        mapLiteral9.put("collateral", this.parseNumber(collateralString));
-        mapLiteral9.put("initialMargin", this.parseNumber(positionMargin));
-        mapLiteral9.put("initialMarginPercentage", null);
-        mapLiteral9.put("leverage", this.safeNumber2(position, "leverage", "leverage_ratio", null));
-        mapLiteral9.put("marginRatio", this.safeNumber(position, "margin_ratio", null));
-        mapLiteral9.put("percentage", null);
-        mapLiteral9.put("stopLossPrice", null);
-        mapLiteral9.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral9);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", position);
+        mapLiteral11.put("id", null);
+        mapLiteral11.put("symbol", symbol);
+        mapLiteral11.put("notional", this.safeNumber(position, "amount", null));
+        mapLiteral11.put("marginMode", marginMode);
+        mapLiteral11.put("liquidationPrice", this.safeNumber(position, "liquidation_price", null));
+        mapLiteral11.put("entryPrice", this.safeNumber2(position, "avg_cost", "entry_price", null));
+        mapLiteral11.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral11.put("contracts", this.safeNumber2(position, "position", "avail_position", null));
+        mapLiteral11.put("contractSize", this.safeNumber(marketResolved, "contractSize", null));
+        mapLiteral11.put("markPrice", this.safeNumber2(position, "mark_price", "last", null));
+        mapLiteral11.put("side", side);
+        mapLiteral11.put("hedged", null);
+        mapLiteral11.put("timestamp", timestamp);
+        mapLiteral11.put("datetime", this.iso8601(timestamp));
+        mapLiteral11.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
+        mapLiteral11.put("maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio", null));
+        mapLiteral11.put("positionMargin", this.parseNumber(marginString));
+        mapLiteral11.put("collateral", this.parseNumber(collateralString));
+        mapLiteral11.put("initialMargin", this.parseNumber(positionMargin));
+        mapLiteral11.put("initialMarginPercentage", null);
+        mapLiteral11.put("leverage", this.safeNumber2(position, "leverage", "leverage_ratio", null));
+        mapLiteral11.put("marginRatio", this.safeNumber(position, "margin_ratio", null));
+        mapLiteral11.put("percentage", null);
+        mapLiteral11.put("stopLossPrice", null);
+        mapLiteral11.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral11);
     }
 
     /**
@@ -5031,8 +5031,8 @@ public class Digifinex extends DigifinexApi
         List<Object> omitKeys = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(marginMode, null))
         {
-            ((List<Object>)omitKeys).add("marginMode");
-            ((List<Object>)omitKeys).add("defaultMarginMode");
+            omitKeys.add("marginMode");
+            omitKeys.add("defaultMarginMode");
         }
         String side = this.safeString(parameters, "side");
         Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -5048,7 +5048,7 @@ public class Digifinex extends DigifinexApi
         }
         if (Boolean.TRUE.equals(isIsolated) && (!java.util.Objects.equals(side, null)))
         {
-            ((List<Object>)omitKeys).add("side");
+            omitKeys.add("side");
         }
         Map<String, Object> paramsRequest = this.omit(parameters, omitKeys);
         return (this.privateSwapPostAccountLeverage(this.extend(request, paramsRequest))).join();
@@ -5270,16 +5270,16 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < brackets.size(); i++)
         {
             Map<String, Object> tier = this.safeDict(brackets, i, null);
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("tier", this.sum(i, 1));
-            j39v3.put("symbol", this.safeSymbol(marketId, marketResolved, null, "swap"));
-            j39v3.put("currency", marketResolved.get("settle"));
-            j39v3.put("minNotional", null);
-            j39v3.put("maxNotional", this.safeNumber(tier, "max_limit", null));
-            j39v3.put("maintenanceMarginRate", null);
-            j39v3.put("maxLeverage", this.safeNumber(tier, "leverage", null));
-            j39v3.put("info", tier);
-            ((List<Object>)tiers).add(j39v3);
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("tier", this.sum(i, 1));
+            mapLiteral12.put("symbol", this.safeSymbol(marketId, marketResolved, null, "swap"));
+            mapLiteral12.put("currency", marketResolved.get("settle"));
+            mapLiteral12.put("minNotional", null);
+            mapLiteral12.put("maxNotional", this.safeNumber(tier, "max_limit", null));
+            mapLiteral12.put("maintenanceMarginRate", null);
+            mapLiteral12.put("maxLeverage", this.safeNumber(tier, "leverage", null));
+            mapLiteral12.put("info", tier);
+            tiers.add(mapLiteral12);
         }
         return tiers;
     }
@@ -5540,9 +5540,9 @@ public class Digifinex extends DigifinexApi
             status = "ok";
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-        j39v4.put("status", status);
-        return this.extend(this.parseMarginModification(data, market), j39v4);
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("status", status);
+        return this.extend(this.parseMarginModification(data, market), j39v1);
 
     }
 

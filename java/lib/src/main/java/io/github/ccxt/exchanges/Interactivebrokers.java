@@ -46,7 +46,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             put( "name", "Interactive Brokers" );
             put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
             put( "version", "v1" );
-            put( "rateLimit", Helpers.multiply(100, 1.2) );
+            put( "rateLimit", 120 );
             put( "pro", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
@@ -1877,8 +1877,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> markets = this.arraysConcat(results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return this.toArray(this.ibkrDisambiguateContractSymbols(markets));
+        return this.ibkrDisambiguateContractSymbols(markets);
 
     }
 
@@ -1930,7 +1929,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             }
             String finalSymbol = this.safeString(market, "symbol");
             seen.put(finalSymbol, true);
-            ((List<Object>)result).add(market);
+            result.add(market);
         }
         return result;
     }
@@ -1990,7 +1989,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 Object secdef = (secdefs == null || j < 0 || j >= secdefs.size() ? null : secdefs.get(j));
                 String conid = this.safeString(secdef, "conid", "");
                 Map<String, Object> entry = this.safeDict(plainEntries, conid, null);
-                ((List<Object>)entries).add(this.extend(entry, secdef));
+                entries.add(this.extend(entry, secdef));
             }
         }
         return entries;
@@ -2144,7 +2143,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 String symbol = this.safeString(contract, "symbol");
                 if ((!java.util.Objects.equals(symbol, null)) && (java.util.Objects.equals(listingExchange, "COINDERIV")) && !this.inArray(symbol, result))
                 {
-                    ((List<Object>)result).add(symbol);
+                    result.add(symbol);
                 }
             }
         }
@@ -2225,7 +2224,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             String venue = this.safeString((details == null || i < 0 || i >= details.size() ? null : details.get(i)), "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
-                ((List<Object>)detailMarkets).add(this.safeDict(details, i, null));
+                detailMarkets.add(this.safeDict(details, i, null));
             }
         }
         List<Object> markets = this.parseMarkets(detailMarkets);
@@ -2238,10 +2237,10 @@ public class Interactivebrokers extends InteractivebrokersApi
             String parsedType = this.safeString(market, "type");
             if (withSwaps && (java.util.Objects.equals(parsedType, "swap")))
             {
-                ((List<Object>)result).add(market);
+                result.add(market);
             } else if (withFutures && (java.util.Objects.equals(parsedType, "future")))
             {
-                ((List<Object>)result).add(market);
+                result.add(market);
             }
         }
         return result;
@@ -2299,7 +2298,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 String listingExchange = this.safeString((detailMarkets == null || j < 0 || j >= detailMarkets.size() ? null : detailMarkets.get(j)), "listingExchange", "");
                 if (java.util.Objects.equals(listingExchange, cfdExchange))
                 {
-                    ((List<Object>)result).add(this.safeDict(detailMarkets, j, null));
+                    result.add(this.safeDict(detailMarkets, j, null));
                 }
             }
         }
@@ -2660,7 +2659,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 market = this.extend(market, mapLiteral2);
             }
             seen.put(symbol, true);
-            ((List<Object>)result).add(market);
+            result.add(market);
         }
         return result;
 
@@ -3218,10 +3217,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             settleId = quoteId;
             settle = quote;
-            symbol = ((symbol + ":") + settle);
+            symbol = (((((((base + ".") + microNanoPrefix) + listingExchange) + "/") + quote) + ":") + settle);
             if (Boolean.TRUE.equals(isFuture))
             {
-                symbol = ((symbol + "-") + this.yymmdd(expiry));
+                symbol = (((((((((base + ".") + microNanoPrefix) + listingExchange) + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry));
             }
         }
         String marketType = "spot";
@@ -3316,7 +3315,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var query = ((List<Object>) fieldsqueryVariable).get(1);
         String fieldsString = String.join(",", (List<String>)fields);
         List<String> readyFields = new ArrayList<String>(Arrays.asList("31", "84", "86"));
-        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         //
         //     [
         //         {
@@ -3876,7 +3875,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> accounts = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < portfolioAccounts.size(); i++)
         {
-            ((List<Object>)accounts).add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= portfolioAccounts.size() ? null : portfolioAccounts.get(i)))));
+            accounts.add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= portfolioAccounts.size() ? null : portfolioAccounts.get(i)))));
         }
         return accounts;
 
@@ -4680,7 +4679,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             String status = this.safeString((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)), "status");
             if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
             {
-                ((List<Object>)result).add((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
+                result.add((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
             }
         }
         return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
@@ -5354,7 +5353,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             Map<String, Object> position = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
             if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
-                ((List<Object>)result).add(position);
+                result.add(position);
             }
         }
         return result;
@@ -5416,10 +5415,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         return (encoded == null ? null : ((String)encoded).substring(Math.min(2, ((String)encoded).length())));  // strip the 'v=' prefix
     }
 
-    public String ibkrBaseString(String method, String url, Map<String, Object> parameters, Object prepend)
+    public String ibkrBaseString(String method, String url, Map<String, Object> parameters, String prepend)
     {
         String query = this.rawencode(this.keysort(parameters));
-        return ((((Helpers.add(java.util.Objects.requireNonNullElse(prepend, ""), method) + "&") + this.ibkrEncrypt(url)) + "&") + this.ibkrEncrypt(query));
+        return (((((java.util.Objects.requireNonNullElse(prepend, "") + method) + "&") + this.ibkrEncrypt(url)) + "&") + this.ibkrEncrypt(query));
     }
 
     public String ibkrAuthHeader(Map<String, Object> parameters)
@@ -5493,7 +5492,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             String segment = (String) (segments == null || i < 0 || i >= segments.size() ? null : segments.get(i));
             if (segment.startsWith(":"))
             {
-                ((List<Object>)pathParams).add((segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length()))));
+                pathParams.add((segment == null ? null : ((String)segment).substring(Math.min(1, ((String)segment).length()))));
             }
         }
         return pathParams;
@@ -5621,7 +5620,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             Object signatureKey = ((String)this.readFile(this.options.get("signaturePemPath")));
             oauthParams.put("oauth_signature_method", "RSA-SHA256");
             Map<String, Object> authParams = this.extend(oauthParams, query);
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), baseUrl, authParams, accessTokenSecretHex);
+            String auth = this.ibkrBaseString(java.util.Objects.requireNonNullElse(method, "GET"), baseUrl, authParams, accessTokenSecretHex);
             String signature = rsa(auth, signatureKey, sha256());
             authParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{
@@ -5650,7 +5649,7 @@ public class Interactivebrokers extends InteractivebrokersApi
             {
                 requestBody = this.json(query);
             }
-            String auth = this.ibkrBaseString((String) (java.util.Objects.requireNonNullElse(method, "GET")), baseUrl, signingParams, "");
+            String auth = this.ibkrBaseString(java.util.Objects.requireNonNullElse(method, "GET"), baseUrl, signingParams, "");
             String signature = this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256(), "base64");
             oauthParams.put("oauth_signature", this.ibkrEncrypt(signature));
             requestHeaders = new HashMap<String, Object>() {{

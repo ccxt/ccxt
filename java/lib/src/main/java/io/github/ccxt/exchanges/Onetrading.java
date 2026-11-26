@@ -952,8 +952,8 @@ public class Onetrading extends OnetradingApi
             String maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(volume, this.parseNumber(maker))));
-            ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(volume, this.parseNumber(taker))));
+            makerFees.add(new ArrayList<Object>(Arrays.asList(volume, this.parseNumber(maker))));
+            takerFees.add(new ArrayList<Object>(Arrays.asList(volume, this.parseNumber(taker))));
         }
         return new HashMap<String, Object>() {{
             put( "maker", makerFees );

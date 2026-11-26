@@ -1043,7 +1043,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Map<String, Object> position = this.parsePosition(data, null);
         ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)newPositions).add(position);
+        newPositions.add(position);
         client.resolve(newPositions, ("positions::" + this.safeString(position, "symbol", "")));
         client.resolve(newPositions, "positions");
     }

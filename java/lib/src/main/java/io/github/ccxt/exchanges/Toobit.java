@@ -1210,7 +1210,7 @@ public class Toobit extends ToobitApi
             MarketInterface parsed = this.parseMarket(this.safeDict(all, i, new HashMap<String, Object>() {{}}));
             if (!java.util.Objects.equals(parsed, null))
             {
-                ((List<Object>)result).add(parsed);
+                result.add(parsed);
             }
         }
         return result;
@@ -1687,7 +1687,7 @@ public class Toobit extends ToobitApi
             String marketId = this.safeString(ticker, "s");
             if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
-                ((List<Object>)rows).add(ticker);
+                rows.add(ticker);
             }
         }
         return this.parseTickers(rows, symbolsNormalized, paramsMarketType);
@@ -1847,7 +1847,7 @@ public class Toobit extends ToobitApi
         {
             Map<String, Object> parsedTicker = this.parseBidAskCustom((Map<String, Object>) ((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i))));
             Map<String, Object> ticker = this.extend(parsedTicker, parameters);
-            ((List<Object>)results).add(ticker);
+            results.add(ticker);
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
@@ -2823,9 +2823,9 @@ public class Toobit extends ToobitApi
         }
         for (var i = 0; i < responseList.size(); i++)
         {
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
-            ((List<Object>)ordersList).add(j39v1);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
+            ordersList.add(mapLiteral6);
         }
         return this.parseOrders(ordersList, market, since, limit, new HashMap<String, Object>() {{}});
 
@@ -3044,23 +3044,23 @@ public class Toobit extends ToobitApi
         {
             direction = "out";
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", item);
-        mapLiteral6.put("id", this.safeString(item, "id"));
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("direction", direction);
-        mapLiteral6.put("account", null);
-        mapLiteral6.put("referenceId", null);
-        mapLiteral6.put("referenceAccount", null);
-        mapLiteral6.put("type", this.parseLedgerType(this.safeString(item, "flowType")));
-        mapLiteral6.put("currency", currencyResolved.get("code"));
-        mapLiteral6.put("amount", amount);
-        mapLiteral6.put("before", null);
-        mapLiteral6.put("after", after);
-        mapLiteral6.put("status", null);
-        mapLiteral6.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", item);
+        mapLiteral7.put("id", this.safeString(item, "id"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", null);
+        mapLiteral7.put("referenceId", null);
+        mapLiteral7.put("referenceAccount", null);
+        mapLiteral7.put("type", this.parseLedgerType(this.safeString(item, "flowType")));
+        mapLiteral7.put("currency", currencyResolved.get("code"));
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("before", null);
+        mapLiteral7.put("after", after);
+        mapLiteral7.put("status", null);
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
     public String parseLedgerType(String type)
@@ -3234,7 +3234,7 @@ public class Toobit extends ToobitApi
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
         {
-            ((List<Object>)results).add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new HashMap<String, Object>() {{}}), currency, transactType), paramsUntil));
+            results.add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new HashMap<String, Object>() {{}}), currency, transactType), paramsUntil));
         }
         List<Object> sorted = this.sortBy(results, "timestamp");
         String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);

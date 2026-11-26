@@ -1660,7 +1660,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseTicker(ticker, null));
+            result.add(this.parseTicker(ticker, null));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -1796,7 +1796,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }}, row);
-            ((List<Object>)result).add(this.parseOpenInterest(interest, null));
+            result.add(this.parseOpenInterest(interest, null));
         }
         return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
 
@@ -1877,7 +1877,7 @@ public class Woofipro extends WoofiproApi
             Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
             String marketId = this.safeString(entry, "symbol");
             Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Woofipro.this.safeSymbol(marketId, null, null, null) );
                 put( "fundingRate", Woofipro.this.safeNumber(entry, "funding_rate", null) );
@@ -2456,7 +2456,7 @@ public class Woofipro extends WoofiproApi
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
-                ((List<Object>)childOrders).add(stopLossOrder);
+                childOrders.add(stopLossOrder);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
@@ -2468,7 +2468,7 @@ public class Woofipro extends WoofiproApi
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
-                ((List<Object>)childOrders).add(takeProfitOrder);
+                childOrders.add(takeProfitOrder);
             }
             Map<String, Object> outterOrder = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
@@ -2580,7 +2580,7 @@ public class Woofipro extends WoofiproApi
                 throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
             }
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orders", ordersRequests );
@@ -4425,7 +4425,7 @@ public class Woofipro extends WoofiproApi
                             Map<String, Object> orderRow = this.extend((ordersList == null || i < 0 || i >= ordersList.size() ? null : ordersList.get(i)), new HashMap<String, Object>() {{
                                 put( "order_tag", brokerId );
                             }});
-                            ((List<Object>)taggedOrders).add(orderRow);
+                            taggedOrders.add(orderRow);
                             hasOrders = true;
                         }
                         if (Boolean.TRUE.equals(hasOrders))

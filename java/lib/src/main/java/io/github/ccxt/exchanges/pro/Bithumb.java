@@ -209,7 +209,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 streamMarketId = ((this.safeString(market, "base", "") + "_") + this.safeString(market, "quote", ""));
             }
-            ((List<Object>)streamMarketIds).add(streamMarketId);
+            streamMarketIds.add(streamMarketId);
             messageHashes.add(("ticker:" + market.get("symbol")));
         }
         String tickTypes = this.safeString(paramsGeneration, "tickTypes", "24H");
@@ -602,11 +602,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Double askSize = this.safeNumber(entry, "ask_size", null);
             if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
             {
-                ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
+                bidsSnapshot.add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
             }
             if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
             {
-                ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
+                asksSnapshot.add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
             }
         }
         Map<String, Object> snapshot = this.parseOrderBook(new HashMap<String, Object>() {{
@@ -1006,7 +1006,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         List<String> keys = new ArrayList<String>(subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            ((List<Object>)request).add((subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))));
+            request.add((subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))));
         }
         return request;
     }

@@ -656,7 +656,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Map<String, Object> rawTrade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade(rawTrade, market);
-            ((List<Object>)newTrades).add(trade);
+            newTrades.add(trade);
         }
         List<Object> sorted = this.sortBy(newTrades, "timestamp");
         for (var j = 0; j < sorted.size(); j++)
@@ -2331,7 +2331,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> rawPosition = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> position = this.parseWsPosition(rawPosition, null);
             cache.append(position);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < messageHashes.size(); i++)

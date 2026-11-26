@@ -64,7 +64,7 @@ public class TestAfterConstruct extends BaseTest {
                 {
                     Assert(!Helpers.isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + networkId) + "\""));
                 }
-                ((List<Object>)collectedNetworkIds).add(networkId);
+                collectedNetworkIds.add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
             List<String> collectedNetworkCodes = new ArrayList<String>(Arrays.asList());

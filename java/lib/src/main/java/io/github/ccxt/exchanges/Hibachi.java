@@ -1179,7 +1179,7 @@ public class Hibachi extends HibachiApi
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest((nonce + ((long) i)), symbol, type, side, amount, price, orderParams);
             orderRequest.put("action", "place");
-            ((List<Object>)requestOrders).add(orderRequest);
+            requestOrders.add(orderRequest);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
@@ -1194,7 +1194,7 @@ public class Hibachi extends HibachiApi
         for (var i = 0; i < responseOrders.size(); i++)
         {
             Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+            ret.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", responseOrder );
                 put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                 put( "status", "pending" );
@@ -1308,7 +1308,7 @@ public class Hibachi extends HibachiApi
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.editOrderRequest((nonce + ((long) i)), id, symbol, type, side, amount, price, orderParams);
             orderRequest.put("action", "modify");
-            ((List<Object>)requestOrders).add(orderRequest);
+            requestOrders.add(orderRequest);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
@@ -1323,7 +1323,7 @@ public class Hibachi extends HibachiApi
         for (var i = 0; i < responseOrders.size(); i++)
         {
             Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+            ret.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", responseOrder );
                 put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                 put( "status", "pending" );
@@ -1402,7 +1402,7 @@ public class Hibachi extends HibachiApi
         {
             Map<String, Object> orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ""));
             orderRequest.put("action", "cancel");
-            ((List<Object>)orders).add(orderRequest);
+            orders.add(orderRequest);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
@@ -1417,7 +1417,7 @@ public class Hibachi extends HibachiApi
         for (var i = 0; i < responseOrders.size(); i++)
         {
             Object responseOrder = (responseOrders == null || i < 0 || i >= responseOrders.size() ? null : responseOrders.get(i));
-            ((List<Object>)ret).add(this.safeOrder(new HashMap<String, Object>() {{
+            ret.add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", responseOrder );
                 put( "id", Hibachi.this.safeString(responseOrder, "orderId") );
                 put( "status", "canceled" );
@@ -2631,7 +2631,7 @@ public class Hibachi extends HibachiApi
         for (var i = 0; i < settlements.size(); i++)
         {
             Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
-            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
+            result.add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -2883,7 +2883,7 @@ public class Hibachi extends HibachiApi
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Long timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", symbol );
                 put( "fundingRate", Hibachi.this.safeNumber(entry, "fundingRate", null) );

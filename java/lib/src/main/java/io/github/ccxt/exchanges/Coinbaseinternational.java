@@ -2440,7 +2440,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String transactionType = this.safeString(transaction, "type");
             if ((java.util.Objects.equals(transactionType, "deposit")) || (java.util.Objects.equals(transactionType, "withdrawal")))
             {
-                ((List<Object>)transactions).add(transaction);
+                transactions.add(transaction);
             }
         }
         return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});

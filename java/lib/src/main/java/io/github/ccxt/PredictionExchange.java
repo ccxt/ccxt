@@ -133,7 +133,7 @@ public Map<String, Object> describe()
             {
                 throw new BadRequest((this.id + " params.queries must be a list of strings")) ;
             }
-            ((List<Object>)queries).add(query);
+            queries.add(query);
         }
         return queries;
     }
@@ -190,7 +190,7 @@ public Map<String, Object> describe()
                 Boolean slugMatch = (!java.util.Objects.equals(slug, null)) && (java.util.Objects.equals(this.safeString(eventVar, "slug"), slug));
                 if (Boolean.TRUE.equals(idMatch) || Boolean.TRUE.equals(slugMatch))
                 {
-                    ((List<Object>)filtered).add(this.safeValue(result, i));
+                    filtered.add(this.safeValue(result, i));
                 }
             }
             result = filtered;
@@ -267,7 +267,7 @@ public Map<String, Object> describe()
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
-                ((List<Object>)result).add(this.safeValue(events, i));
+                result.add(this.safeValue(events, i));
             }
         }
         return result;
@@ -311,7 +311,7 @@ public Map<String, Object> describe()
             }
             if (Boolean.TRUE.equals(matched))
             {
-                ((List<Object>)result).add(this.safeValue(events, i));
+                result.add(this.safeValue(events, i));
             }
         }
         return result;
@@ -407,7 +407,7 @@ public Map<String, Object> describe()
             }
             if (Boolean.TRUE.equals(matched))
             {
-                ((List<Object>)result).add(this.safeValue(events, i));
+                result.add(this.safeValue(events, i));
             }
         }
         return result;
@@ -480,7 +480,7 @@ public Map<String, Object> describe()
             if (!(seen.containsKey(identity)))
             {
                 seen.put(identity, true);
-                ((List<Object>)result).add(eventVar);
+                result.add(eventVar);
             }
         }
         return result;
@@ -758,7 +758,7 @@ public Map<String, Object> describe()
             Object row = (marketsList == null || i < 0 || i >= marketsList.size() ? null : marketsList.get(i));
             Map<String, Object> copy = this.extend(new HashMap<String, Object>() {{}}, row);
             copy.put("symbol", PredictionExchange.this.safeString2(row, "market", "symbol"));
-            ((List<Object>)aliased).add(copy);
+            aliased.add(copy);
         }
         Map<String, Object> stored = super.setMarkets((Object) (aliased), currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
@@ -1607,7 +1607,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Map<String, Object> safePredictionOrder(Map<String, Object> outcomeOrder, Object outcomeObj)
+    public Map<String, Object> safePredictionOrder(Map<String, Object> outcomeOrder, Map<String, Object> outcomeObj)
     {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
@@ -1668,7 +1668,7 @@ public Map<String, Object> describe()
                 Map<String, Object> tradeFee = this.safeDict(trade, "fee", null);
                 if (!java.util.Objects.equals(tradeFee, null))
                 {
-                    ((List<Object>)feeList).add(tradeFee);
+                    feeList.add(tradeFee);
                 }
             }
         }
@@ -1943,7 +1943,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public List<Object> parsePredictionTrades(Object trades, Object outcomeObj, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parsePredictionTrades(Object trades, Map<String, Object> outcomeObj, Long since, Long limit, Map<String, Object> parameters)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1953,9 +1953,9 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), outcomeObj);
             Map<String, Object> trade = this.extend(parsed, parameters);
-            ((List<Object>)results).add(trade);
+            results.add(trade);
         }
         results = this.sortBy2(results, "timestamp", "id");
         String outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -1974,16 +1974,16 @@ public Map<String, Object> describe()
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parsePredictionOrders(Object orders, Object outcomeObj, Long since, Long limit, Map<String, Object> parameters)
+    public Object parsePredictionOrders(Object orders, Map<String, Object> outcomeObj, Long since, Long limit, Map<String, Object> parameters)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         List<Object> rows = this.toArray(orders);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), outcomeObj);
             Map<String, Object> order = this.extend(parsed, parameters);
-            ((List<Object>)results).add(order);
+            results.add(order);
         }
         results = this.sortBy(results, "timestamp");
         String outcomeHandle = this.safeString(outcomeObj, "outcome");
@@ -2011,7 +2011,7 @@ public Map<String, Object> describe()
         {
             Map<String, Object> parsed = this.parsePredictionPosition(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), null);
             Map<String, Object> position = this.extend(parsed, parameters);
-            ((List<Object>)results).add(position);
+            results.add(position);
         }
         return results;
     }
@@ -2173,11 +2173,11 @@ public Map<String, Object> describe()
         Integer total = h.length();
         for (var i = 0; (total != null && i < total); i++)
         {
-            if (java.util.Objects.equals(Helpers.slice(h, i, (((long) i) + 1L)), "0"))
+            if (java.util.Objects.equals((h == null ? null : h.substring((int) Math.min(Math.min(i, h.length()), Math.min(((((long) i) + 1L)), h.length())), (int) Math.min(((((long) i) + 1L)), h.length()))), "0"))
             {
                 continue;
             }
-            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(((Number)i).intValue(), h.length())))));
+            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(i, h.length())))));
         }
         return "";
     }

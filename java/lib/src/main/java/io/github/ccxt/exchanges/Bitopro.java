@@ -1114,13 +1114,13 @@ public class Bitopro extends BitoproApi
             List<Object> candle = this.safeList(candles, i, new ArrayList<Object>(Arrays.asList()));
             if (Helpers.isEqual((candle == null || 0 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(0)), timestamp))
             {
-                ((List<Object>)result).add(candle);
+                result.add(candle);
                 i = (i + 1L);
             } else
             {
                 // set open, high, low to close
                 Object closeValue = this.safeValue(copyFrom, 4);
-                ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber("0"))));
+                result.add(new ArrayList<Object>(Arrays.asList(timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber("0"))));
             }
             timestamp = this.sum(timestamp, distanceInMs);
             resultLength = result.size();
@@ -1451,11 +1451,11 @@ public class Bitopro extends BitoproApi
             List<Object> orderIds = this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < orderIds.size(); j++)
             {
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
-                j39v1.put("id", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
-                j39v1.put("symbol", this.safeSymbol(marketId, null, null, null));
-                ((List<Object>)orders).add(this.safeOrder(j39v1, null));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                mapLiteral5.put("id", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));
+                mapLiteral5.put("symbol", this.safeSymbol(marketId, null, null, null));
+                orders.add(this.safeOrder(mapLiteral5, null));
             }
         }
         return orders;

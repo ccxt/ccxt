@@ -296,17 +296,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (message.containsKey("market24h"))
         {
             Map<String, Object> ticker = this.safeDict(message, "market24h", new HashMap<String, Object>() {{}});
-            ((List<Object>)tickers).add(this.parseSwapTicker(ticker, null));
+            tickers.add(this.parseSwapTicker(ticker, null));
         } else if (message.containsKey("spot_market24h"))
         {
             Map<String, Object> ticker = this.safeDict(message, "spot_market24h", new HashMap<String, Object>() {{}});
-            ((List<Object>)tickers).add(this.parseTicker(ticker, null));
+            tickers.add(this.parseTicker(ticker, null));
         } else if (message.containsKey("data"))
         {
             List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < data.size(); i++)
             {
-                ((List<Object>)tickers).add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), null));
+                tickers.add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), null));
             }
         }
         for (var i = 0; i < tickers.size(); i++)
@@ -1532,7 +1532,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 if ((!java.util.Objects.equals(action, null)) && (!java.util.Objects.equals(action, "Cancel")))
                 {
                     // order + trade info together
-                    ((List<Object>)trades).add(update);
+                    trades.add(update);
                 }
                 Order parsedOrder = this.parseWSSwapOrder((Map<String, Object>) (update), null);
                 parsedOrders.add(parsedOrder);

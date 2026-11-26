@@ -625,35 +625,35 @@ public class Latoken extends LatokenApi
                 String lowercaseQuote = quote.toLowerCase();
                 String capitalizedQuote = this.capitalize(lowercaseQuote);
                 String status = this.safeString(market, "status");
-                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", id);
-                j39v1.put("symbol", ((base + "/") + quote));
-                j39v1.put("base", base);
-                j39v1.put("quote", quote);
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", quoteId);
-                j39v1.put("settleId", null);
-                j39v1.put("type", "spot");
-                j39v1.put("spot", true);
-                j39v1.put("margin", false);
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("active", (java.util.Objects.equals(status, "PAIR_STATUS_ACTIVE")));
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", null);
-                j39v1.put("expiryDatetime", null);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", id);
+                mapLiteral1.put("symbol", ((base + "/") + quote));
+                mapLiteral1.put("base", base);
+                mapLiteral1.put("quote", quote);
+                mapLiteral1.put("settle", null);
+                mapLiteral1.put("baseId", baseId);
+                mapLiteral1.put("quoteId", quoteId);
+                mapLiteral1.put("settleId", null);
+                mapLiteral1.put("type", "spot");
+                mapLiteral1.put("spot", true);
+                mapLiteral1.put("margin", false);
+                mapLiteral1.put("swap", false);
+                mapLiteral1.put("future", false);
+                mapLiteral1.put("option", false);
+                mapLiteral1.put("active", (java.util.Objects.equals(status, "PAIR_STATUS_ACTIVE")));
+                mapLiteral1.put("contract", false);
+                mapLiteral1.put("linear", null);
+                mapLiteral1.put("inverse", null);
+                mapLiteral1.put("contractSize", null);
+                mapLiteral1.put("expiry", null);
+                mapLiteral1.put("expiryDatetime", null);
+                mapLiteral1.put("strike", null);
+                mapLiteral1.put("optionType", null);
+                mapLiteral1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Latoken.this.safeNumber(market, "quantityTick", null) );
                         put( "price", Latoken.this.safeNumber(market, "priceTick", null) );
                     }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -671,9 +671,9 @@ public class Latoken extends LatokenApi
                             put( "max", Latoken.this.safeNumber(market, ("maxOrderCost" + capitalizedQuote), null) );
                         }} );
                     }});
-                j39v1.put("created", this.safeInteger(market, "created"));
-                j39v1.put("info", market);
-                ((List<Object>)result).add(j39v1);
+                mapLiteral1.put("created", this.safeInteger(market, "created"));
+                mapLiteral1.put("info", market);
+                result.add(mapLiteral1);
             }
         }
         return result;
@@ -764,11 +764,11 @@ public class Latoken extends LatokenApi
             Map<String, Object> mergedCurrency = rawCurrency;
             if (!java.util.Objects.equals(bindings, null))
             {
-                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-                mapLiteral1.put("bindings", bindings);
-                mergedCurrency = this.extend(rawCurrency, mapLiteral1);
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("bindings", bindings);
+                mergedCurrency = this.extend(rawCurrency, mapLiteral2);
             }
-            ((List<Object>)merged).add(mergedCurrency);
+            merged.add(mergedCurrency);
         }
         return this.parseCurrencies(merged);
 
@@ -793,16 +793,16 @@ public class Latoken extends LatokenApi
             // deterministic binding id, since withdrawals resolve the chain through it
             if ((!java.util.Objects.equals(networkCode, null)) && !(networks.containsKey(networkCode)))
             {
-                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-                mapLiteral2.put("info", binding);
-                mapLiteral2.put("id", this.safeString(binding, "id"));
-                mapLiteral2.put("network", networkCode);
-                mapLiteral2.put("active", null);
-                mapLiteral2.put("deposit", null);
-                mapLiteral2.put("withdraw", null);
-                mapLiteral2.put("fee", this.safeNumber(binding, "fee", null));
-                mapLiteral2.put("precision", null);
-                mapLiteral2.put("limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("info", binding);
+                mapLiteral3.put("id", this.safeString(binding, "id"));
+                mapLiteral3.put("network", networkCode);
+                mapLiteral3.put("active", null);
+                mapLiteral3.put("deposit", null);
+                mapLiteral3.put("withdraw", null);
+                mapLiteral3.put("fee", this.safeNumber(binding, "fee", null));
+                mapLiteral3.put("precision", null);
+                mapLiteral3.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -812,7 +812,7 @@ public class Latoken extends LatokenApi
             put( "max", null );
         }} );
     }});
-                networks.put(networkCode, mapLiteral2);
+                networks.put(networkCode, mapLiteral3);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -990,7 +990,7 @@ public class Latoken extends LatokenApi
             String askQuantity = this.safeString(askEntry, "quantity");
             if (Precise.stringGt(askQuantity, "0"))
             {
-                ((List<Object>)asks).add(askEntry);
+                asks.add(askEntry);
             }
         }
         for (var i = 0; i < rawBids.size(); i++)
@@ -999,7 +999,7 @@ public class Latoken extends LatokenApi
             String bidQuantity = this.safeString(bidEntry, "quantity");
             if (Precise.stringGt(bidQuantity, "0"))
             {
-                ((List<Object>)bids).add(bidEntry);
+                bids.add(bidEntry);
             }
         }
         Map<String, Object> filtered = new HashMap<String, Object>() {{
@@ -1064,28 +1064,28 @@ public class Latoken extends LatokenApi
         {
             askVolume = null;
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("low", null);
-        mapLiteral3.put("high", null);
-        mapLiteral3.put("bid", this.safeString(ticker, "bestBid"));
-        mapLiteral3.put("bidVolume", bidVolume);
-        mapLiteral3.put("ask", this.safeString(ticker, "bestAsk"));
-        mapLiteral3.put("askVolume", askVolume);
-        mapLiteral3.put("vwap", null);
-        mapLiteral3.put("open", null);
-        mapLiteral3.put("close", last);
-        mapLiteral3.put("last", last);
-        mapLiteral3.put("previousClose", null);
-        mapLiteral3.put("change", null);
-        mapLiteral3.put("percentage", this.safeString(ticker, "change24h"));
-        mapLiteral3.put("average", null);
-        mapLiteral3.put("baseVolume", this.safeString(ticker, "amount24h"));
-        mapLiteral3.put("quoteVolume", this.safeString(ticker, "volume24h"));
-        mapLiteral3.put("info", ticker);
-        return this.safeTicker(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("low", null);
+        mapLiteral4.put("high", null);
+        mapLiteral4.put("bid", this.safeString(ticker, "bestBid"));
+        mapLiteral4.put("bidVolume", bidVolume);
+        mapLiteral4.put("ask", this.safeString(ticker, "bestAsk"));
+        mapLiteral4.put("askVolume", askVolume);
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", null);
+        mapLiteral4.put("close", last);
+        mapLiteral4.put("last", last);
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", null);
+        mapLiteral4.put("percentage", this.safeString(ticker, "change24h"));
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", this.safeString(ticker, "amount24h"));
+        mapLiteral4.put("quoteVolume", this.safeString(ticker, "volume24h"));
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1271,21 +1271,21 @@ public class Latoken extends LatokenApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", trade);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("order", orderId);
-        mapLiteral4.put("type", null);
-        mapLiteral4.put("takerOrMaker", takerOrMaker);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", priceString);
-        mapLiteral4.put("amount", amountString);
-        mapLiteral4.put("cost", costString);
-        mapLiteral4.put("fee", fee);
-        return this.safeTrade(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", costString);
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1627,29 +1627,29 @@ public class Latoken extends LatokenApi
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("clientOrderId", clientOrderId);
-        mapLiteral5.put("info", order);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("status", status);
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("type", type);
-        mapLiteral5.put("timeInForce", timeInForce);
-        mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("triggerPrice", this.safeString(order, "stopPrice"));
-        mapLiteral5.put("cost", cost);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("filled", filled);
-        mapLiteral5.put("average", null);
-        mapLiteral5.put("remaining", null);
-        mapLiteral5.put("fee", null);
-        mapLiteral5.put("trades", null);
-        return this.safeOrder(mapLiteral5, marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", null);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", this.safeString(order, "stopPrice"));
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("fee", null);
+        mapLiteral6.put("trades", null);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     /**
@@ -2048,9 +2048,9 @@ public class Latoken extends LatokenApi
         //         "status":"SUCCESS"
         //     }
         //
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", response);
-        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, null)));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", response);
+        return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral7, null)));
 
     }
 

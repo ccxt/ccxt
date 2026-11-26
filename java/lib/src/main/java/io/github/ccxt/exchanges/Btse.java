@@ -1189,7 +1189,7 @@ public class Btse extends BtseApi
             Long timestamp = this.safeInteger(rate, "timestamp");
             if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
             {
-                ((List<Object>)result).add(rate);
+                result.add(rate);
             }
         }
         return result;
@@ -1409,16 +1409,16 @@ public class Btse extends BtseApi
                     Double maxNotional = this.safeNumber(level, "value", null);
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
-                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("tier", this.safeInteger(level, "level"));
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("currency", market.get("settle"));
-                    j39v1.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
-                    j39v1.put("maxNotional", maxNotional);
-                    j39v1.put("maintenanceMarginRate", null);
-                    j39v1.put("maxLeverage", null);
-                    j39v1.put("info", level);
-                    ((List<Object>)tiers).add(j39v1);
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("tier", this.safeInteger(level, "level"));
+                    mapLiteral2.put("symbol", symbol);
+                    mapLiteral2.put("currency", market.get("settle"));
+                    mapLiteral2.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
+                    mapLiteral2.put("maxNotional", maxNotional);
+                    mapLiteral2.put("maintenanceMarginRate", null);
+                    mapLiteral2.put("maxLeverage", null);
+                    mapLiteral2.put("info", level);
+                    tiers.add(mapLiteral2);
                     minNotional = maxNotional;
                 }
                 result.put(symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
@@ -1567,30 +1567,30 @@ public class Btse extends BtseApi
             }
         }
         Long timestamp = this.safeTimestamp(ticker, "closeTime");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString(ticker, "highPrice"));
-        mapLiteral2.put("low", this.safeString(ticker, "lowPrice"));
-        mapLiteral2.put("bid", this.safeString(ticker, "bidPrice"));
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "bidQty"));
-        mapLiteral2.put("ask", this.safeString(ticker, "askPrice"));
-        mapLiteral2.put("askVolume", this.safeString(ticker, "askQty"));
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(ticker, "openPrice"));
-        mapLiteral2.put("close", last);
-        mapLiteral2.put("last", last);
-        mapLiteral2.put("previousClose", this.safeString(ticker, "prevClosePrice"));
-        mapLiteral2.put("change", this.safeString(ticker, "priceChange"));
-        mapLiteral2.put("percentage", null);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", baseVolume);
-        mapLiteral2.put("quoteVolume", this.safeString(ticker, "volume"));
-        mapLiteral2.put("markPrice", null);
-        mapLiteral2.put("indexPrice", null);
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", this.safeString(ticker, "highPrice"));
+        mapLiteral3.put("low", this.safeString(ticker, "lowPrice"));
+        mapLiteral3.put("bid", this.safeString(ticker, "bidPrice"));
+        mapLiteral3.put("bidVolume", this.safeString(ticker, "bidQty"));
+        mapLiteral3.put("ask", this.safeString(ticker, "askPrice"));
+        mapLiteral3.put("askVolume", this.safeString(ticker, "askQty"));
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("open", this.safeString(ticker, "openPrice"));
+        mapLiteral3.put("close", last);
+        mapLiteral3.put("last", last);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prevClosePrice"));
+        mapLiteral3.put("change", this.safeString(ticker, "priceChange"));
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", baseVolume);
+        mapLiteral3.put("quoteVolume", this.safeString(ticker, "volume"));
+        mapLiteral3.put("markPrice", null);
+        mapLiteral3.put("indexPrice", null);
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1654,7 +1654,7 @@ public class Btse extends BtseApi
             // spot rows do not carry an open interest
             if (!java.util.Objects.equals(this.safeString(row, "openInterest"), null))
             {
-                ((List<Object>)rows).add(row);
+                rows.add(row);
             }
         }
         return this.parseOpenInterests(rows, symbolsNormalized);
@@ -1740,7 +1740,7 @@ public class Btse extends BtseApi
             // spot rows do not carry a funding rate
             if (!java.util.Objects.equals(this.safeString(row, "fundingRate"), null))
             {
-                ((List<Object>)rows).add(row);
+                rows.add(row);
             }
         }
         return this.parseFundingRates(rows, symbolsNormalized);
@@ -1879,7 +1879,7 @@ public class Btse extends BtseApi
             Long timestamp = this.safeInteger(trade, "timestamp");
             if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
             {
-                ((List<Object>)result).add(trade);
+                result.add(trade);
             }
         }
         return result;
@@ -2158,21 +2158,21 @@ public class Btse extends BtseApi
                 fee = hx4NewMap2;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "serialId", "id"))));
-        mapLiteral3.put("order", this.safeString(trade, "orderId"));
-        mapLiteral3.put("type", this.parseOrderType(this.safeString2(trade, "orderType", "type")));
-        mapLiteral3.put("side", this.safeStringLower2(trade, "side", "orderSide"));
-        mapLiteral3.put("takerOrMaker", null);
-        mapLiteral3.put("price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("filledPrice", "avgFilledPrice", "price"))));
-        mapLiteral3.put("amount", this.safeString2(trade, "filledSize", "size"));
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("fee", fee);
-        return this.safeTrade(mapLiteral3, marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("tradeId", "serialId", "id"))));
+        mapLiteral4.put("order", this.safeString(trade, "orderId"));
+        mapLiteral4.put("type", this.parseOrderType(this.safeString2(trade, "orderType", "type")));
+        mapLiteral4.put("side", this.safeStringLower2(trade, "side", "orderSide"));
+        mapLiteral4.put("takerOrMaker", null);
+        mapLiteral4.put("price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("filledPrice", "avgFilledPrice", "price"))));
+        mapLiteral4.put("amount", this.safeString2(trade, "filledSize", "size"));
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("fee", fee);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -3193,33 +3193,33 @@ public class Btse extends BtseApi
             status = "closed";
         }
         String rawTimeInForce = this.safeString2(order, "time_in_force", "timeInForce");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", this.safeString2(order, "orderID", "orderId"));
-        mapLiteral4.put("clientOrderId", this.safeString2(order, "clOrderID", "clOrderId"));
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("lastUpdateTimestamp", null);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("type", orderType);
-        mapLiteral4.put("timeInForce", this.parseTimeInForce(rawTimeInForce));
-        mapLiteral4.put("postOnly", this.safeBool(order, "postOnly", null));
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
-        mapLiteral4.put("side", this.safeStringLower2(order, "side", "orderSide"));
-        mapLiteral4.put("price", this.safeString2(order, "price", "orderPrice"));
-        mapLiteral4.put("triggerPrice", this.omitZero(this.safeString2(order, "triggerOriginalPrice", "triggerPrice")));
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("takeProfitPrice", null);
-        mapLiteral4.put("amount", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("currentOrderBaseSize", "currentOrderSize", "orderSize"))));
-        mapLiteral4.put("filled", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("totalFilledBaseSize", "totalFilledSize", "filledSize"))));
-        mapLiteral4.put("remaining", this.safeString2(order, "remainingOrderBaseSize", "remainingSize"));
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("trades", null);
-        mapLiteral4.put("fee", null);
-        mapLiteral4.put("average", this.omitZero(this.safeString2(order, "avgFilledPrice", "averageFillPrice")));
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString2(order, "orderID", "orderId"));
+        mapLiteral5.put("clientOrderId", this.safeString2(order, "clOrderID", "clOrderId"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("lastUpdateTimestamp", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", orderType);
+        mapLiteral5.put("timeInForce", this.parseTimeInForce(rawTimeInForce));
+        mapLiteral5.put("postOnly", this.safeBool(order, "postOnly", null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral5.put("side", this.safeStringLower2(order, "side", "orderSide"));
+        mapLiteral5.put("price", this.safeString2(order, "price", "orderPrice"));
+        mapLiteral5.put("triggerPrice", this.omitZero(this.safeString2(order, "triggerOriginalPrice", "triggerPrice")));
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("takeProfitPrice", null);
+        mapLiteral5.put("amount", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("currentOrderBaseSize", "currentOrderSize", "orderSize"))));
+        mapLiteral5.put("filled", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("totalFilledBaseSize", "totalFilledSize", "filledSize"))));
+        mapLiteral5.put("remaining", this.safeString2(order, "remainingOrderBaseSize", "remainingSize"));
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("trades", null);
+        mapLiteral5.put("fee", null);
+        mapLiteral5.put("average", this.omitZero(this.safeString2(order, "avgFilledPrice", "averageFillPrice")));
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -3434,7 +3434,7 @@ public class Btse extends BtseApi
             String type = this.safeString(entry, "type", "");
             if (allowed.containsKey(type))
             {
-                ((List<Object>)rows).add(entry);
+                rows.add(entry);
             }
         }
         return this.parseTransactions(rows, currency, since, limit, new HashMap<String, Object>() {{}});

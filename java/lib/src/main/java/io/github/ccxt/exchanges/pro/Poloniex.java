@@ -491,7 +491,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             Map<String, Object> order = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order, null);
-            ((List<Object>)orders).add(parsedOrder);
+            orders.add(parsedOrder);
         }
         client.resolve(orders, messageHash);
     }
@@ -1409,7 +1409,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             trades = new ArrayList<Object>(Arrays.asList());
             Trade trade = this.parseWsOrderTrade(order, null);
-            ((List<Object>)trades).add(trade);
+            trades.add(trade);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("info", order);

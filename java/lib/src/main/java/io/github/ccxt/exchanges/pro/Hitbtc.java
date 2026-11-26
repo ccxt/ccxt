@@ -626,7 +626,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String symbol = this.safeSymbol(marketId, market, null, null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.safeDict(data, marketId, new HashMap<String, Object>() {{}}), market);
             this.tickers.put(symbol, ticker);
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
             String messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
         }
@@ -773,7 +773,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String symbol = this.safeSymbol(marketId, market, null, null);
             Ticker ticker = this.parseWsBidAsk(this.safeDict(data, marketId, new HashMap<String, Object>() {{}}), market);
             this.bidsasks.put(symbol, ticker);
-            ((List<Object>)result).add(ticker);
+            result.add(ticker);
             String messageHash = ((topic + "::") + symbol);
             client.resolve(ticker, messageHash);
         }
@@ -944,7 +944,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         for (var i = 0; i < tradesArray.size(); i++)
         {
             Map<String, Object> trade = this.extend(this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market), parameters);
-            ((List<Object>)result).add(trade);
+            result.add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         String symbol = this.safeString(market, "symbol");
@@ -1766,7 +1766,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             for (var i = 0; (rowsLength != null && i < rowsLength); i++)
             {
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), null);
-                ((List<Object>)parsedOrders).add(parsedOrder);
+                parsedOrders.add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
         }

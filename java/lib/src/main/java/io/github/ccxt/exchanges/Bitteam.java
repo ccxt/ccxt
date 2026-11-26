@@ -622,10 +622,10 @@ public class Bitteam extends BitteamApi
      */
     public CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters)).thenApply(res -> (Map<String, Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchCurrenciesCore(parameters));
     }
 
-    private Object fetchCurrenciesCore(Map<String, Object> parameters)
+    private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
@@ -1673,7 +1673,7 @@ public class Bitteam extends BitteamApi
         for (var i = 0; i < rawTickers.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(rawTickers, i, new HashMap<String, Object>() {{}}), null);
-            ((List<Object>)tickers).add(ticker);
+            tickers.add(ticker);
         }
         return this.filterByArrayTickers(tickers, "symbol", symbols);
 

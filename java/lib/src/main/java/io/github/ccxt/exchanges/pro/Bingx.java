@@ -158,7 +158,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> symbols = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(market, null))
         {
-            ((List<Object>)symbols).add(market.get("symbol"));
+            symbols.add(market.get("symbol"));
         }
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "unsubscribe", true );
@@ -1736,7 +1736,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long timestamp = this.safeInteger(message, "E");
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
         }
         List<Object> messageHashes = this.findMessageHashes(client, "swap:positions::");

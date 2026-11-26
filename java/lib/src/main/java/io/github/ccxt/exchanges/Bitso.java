@@ -657,8 +657,8 @@ public class Bitso extends BitsoApi
                 Double volume = this.safeNumber(tier, "volume", null);
                 Double takerFee = this.safeNumber(tier, "taker", null);
                 Double makerFee = this.safeNumber(tier, "maker", null);
-                ((List<Object>)takerFees).add(new ArrayList<Object>(Arrays.asList(volume, takerFee)));
-                ((List<Object>)makerFees).add(new ArrayList<Object>(Arrays.asList(volume, makerFee)));
+                takerFees.add(new ArrayList<Object>(Arrays.asList(volume, takerFee)));
+                makerFees.add(new ArrayList<Object>(Arrays.asList(volume, makerFee)));
                 if ((j == 0))
                 {
                     fee.put("taker", takerFee);
@@ -721,7 +721,7 @@ public class Bitso extends BitsoApi
                 }});
             j39v1.put("created", null);
             j39v1.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(this.extend(j39v1, fee)));
+            result.add(this.safeMarketStructure(this.extend(j39v1, fee)));
         }
         return result;
 
@@ -1517,11 +1517,11 @@ public class Bitso extends BitsoApi
         for (var i = 0; i < payload.size(); i++)
         {
             String id = this.safeString(payload, i);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("info", this.safeString(payload, i));
-            j39v2.put("id", id);
-            j39v2.put("symbol", this.safeSymbol(null, market, "_", null));
-            ((List<Object>)orders).add(this.safeOrder(j39v2, market));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", this.safeString(payload, i));
+            mapLiteral3.put("id", id);
+            mapLiteral3.put("symbol", this.safeSymbol(null, market, "_", null));
+            orders.add(this.safeOrder(mapLiteral3, market));
         }
         return orders;
 
@@ -1560,11 +1560,11 @@ public class Bitso extends BitsoApi
         for (var i = 0; i < payload.size(); i++)
         {
             String id = this.safeString(payload, i);
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("info", this.safeString(payload, i));
-            j39v3.put("id", id);
-            j39v3.put("symbol", this.safeSymbol(null, null, "_", null));
-            ((List<Object>)canceledOrders).add(this.safeOrder(j39v3, null));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", this.safeString(payload, i));
+            mapLiteral4.put("id", id);
+            mapLiteral4.put("symbol", this.safeSymbol(null, null, "_", null));
+            canceledOrders.add(this.safeOrder(mapLiteral4, null));
         }
         return canceledOrders;
 
@@ -2002,14 +2002,14 @@ public class Bitso extends BitsoApi
             }
             if (!java.util.Objects.equals(code, null))
             {
-                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-                mapLiteral3.put("deposit", this.safeNumber(this.safeDict(result, code, null), "deposit", null));
-                mapLiteral3.put("withdraw", this.safeNumber(withdrawalFees, currencyId, null));
-                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-                mapLiteral4.put("deposit", this.safeValue(this.safeDict(this.safeDict(result, code, null), "info", null), "deposit"));
-                mapLiteral4.put("withdraw", this.safeNumber(withdrawalFees, currencyId, null));
-                mapLiteral3.put("info", mapLiteral4);
-                result.put(code, mapLiteral3);
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("deposit", this.safeNumber(this.safeDict(result, code, null), "deposit", null));
+                mapLiteral5.put("withdraw", this.safeNumber(withdrawalFees, currencyId, null));
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("deposit", this.safeValue(this.safeDict(this.safeDict(result, code, null), "info", null), "deposit"));
+                mapLiteral6.put("withdraw", this.safeNumber(withdrawalFees, currencyId, null));
+                mapLiteral5.put("info", mapLiteral6);
+                result.put(code, mapLiteral5);
             }
         }
         return result;

@@ -493,7 +493,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> market = this.market((symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i)));
             messageHashes.add(("bidask:" + market.get("symbol")));
-            ((List<Object>)args).add(new HashMap<String, Object>() {{
+            args.add(new HashMap<String, Object>() {{
                 put( "channel", channel );
                 put( "instId", market.get("id") );
             }});
@@ -993,7 +993,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> position = this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             cache.append(position);
             if (!java.util.Objects.equals(channelName, null))
             {
@@ -1121,14 +1121,14 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 Map<String, Object> topic = new HashMap<String, Object>();
                 topic.put("channel", channel);
                 topic.put("instId", market.get("id"));
-                ((List<Object>)rawSubscriptions).add(topic);
+                rawSubscriptions.add(topic);
                 messageHashes.add(((channel + ":") + this.safeString(market, "symbol", "")));
             }
         } else
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("channel", channelName);
-            ((List<Object>)rawSubscriptions).add(mapLiteral1);
+            rawSubscriptions.add(mapLiteral1);
             messageHashes.add(channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
@@ -1199,7 +1199,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 put( "channel", channel );
                 put( "instId", market.get("id") );
             }};
-            ((List<Object>)topics).add(topic);
+            topics.add(topic);
             messageHashes.add(((("unsubscribe:" + channel) + ":") + market.get("symbol")));
         }
         Map<String, Object> request = new HashMap<String, Object>() {{

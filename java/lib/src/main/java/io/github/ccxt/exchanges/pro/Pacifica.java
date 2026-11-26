@@ -405,13 +405,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "canceled";
             }
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", orderId);
-            j39v1.put("clientOrderId", clientOrderId);
-            j39v1.put("status", status);
-            j39v1.put("info", response);
-            j39v1.put("symbol", market.get("symbol"));
-            ((List<Object>)ordersToReturn).add(this.safeOrder(j39v1, null));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", orderId);
+            mapLiteral3.put("clientOrderId", clientOrderId);
+            mapLiteral3.put("status", status);
+            mapLiteral3.put("info", response);
+            mapLiteral3.put("symbol", market.get("symbol"));
+            ordersToReturn.add(this.safeOrder(mapLiteral3, null));
         }
         return ordersToReturn;
 
@@ -496,13 +496,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String orderId = this.safeString(order, "i");
         String clientOrderId = this.safeString(order, "I");
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", orderId);
-        mapLiteral3.put("clientOrderId", clientOrderId);
-        mapLiteral3.put("status", status);
-        mapLiteral3.put("info", response);
-        mapLiteral3.put("symbol", symbol);
-        return this.safeOrder(mapLiteral3, null);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", orderId);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("info", response);
+        mapLiteral4.put("symbol", symbol);
+        return this.safeOrder(mapLiteral4, null);
 
     }
 
@@ -1295,24 +1295,24 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             takerOrMaker = null;
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", trade);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("order", this.safeString(trade, "i"));
-        mapLiteral4.put("type", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("takerOrMaker", takerOrMaker);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("cost", null);
-        mapLiteral4.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", this.safeString(trade, "i"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
             }});
-        return this.safeTrade(mapLiteral4, marketResolved);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**

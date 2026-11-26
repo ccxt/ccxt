@@ -652,7 +652,7 @@ public class Mudrex extends MudrexApi
             }
             for (var i = 0; (numItems != null && i < numItems); i++)
             {
-                ((List<Object>)aggregated).add((items == null || i < 0 || i >= items.size() ? null : items.get(i)));
+                aggregated.add((items == null || i < 0 || i >= items.size() ? null : items.get(i)));
             }
             if ((pageLimit != null && (numItems == null || numItems < pageLimit)))
             {
@@ -666,7 +666,7 @@ public class Mudrex extends MudrexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < aggregated.size(); i++)
         {
-            ((List<Object>)result).add(this.parseMarket((aggregated == null || i < 0 || i >= aggregated.size() ? null : aggregated.get(i))));
+            result.add(this.parseMarket((aggregated == null || i < 0 || i >= aggregated.size() ? null : aggregated.get(i))));
         }
         return result;
 
@@ -1266,7 +1266,7 @@ public class Mudrex extends MudrexApi
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            ((List<Object>)orders).add(this.parseOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
+            orders.add(this.parseOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
 
@@ -1372,7 +1372,7 @@ public class Mudrex extends MudrexApi
             String symRaw = this.safeString((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "symbol");
             Map<String, Object> m = this.safeMarket(symRaw, null, null, null);
             Map<String, Object> pos = (Map<String, Object>) this.parsePosition(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), m);
-            ((List<Object>)outPos).add(pos);
+            outPos.add(pos);
         }
         return this.filterByArrayPositions(outPos, "symbol", symbols);
 
@@ -1691,7 +1691,7 @@ public class Mudrex extends MudrexApi
             for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                ((List<Object>)allRows).add(entry);
+                allRows.add(entry);
                 if (java.util.Objects.equals(this.safeString(entry, "fee_type"), "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
@@ -1726,11 +1726,11 @@ public class Mudrex extends MudrexApi
             String pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
             if (java.util.Objects.equals(feeType, "TRANSACTION"))
             {
-                ((List<Object>)transactions).add(entry);
+                transactions.add(entry);
                 transactionKeys.add(pairKey);
             } else if (java.util.Objects.equals(feeType, "REBATE"))
             {
-                ((List<Object>)rebateKeys).add(pairKey);
+                rebateKeys.add(pairKey);
                 rebateAmounts.add(this.safeString(entry, "fee_amount", "0"));
             }
         }
@@ -1750,12 +1750,12 @@ public class Mudrex extends MudrexApi
             }
             if (java.util.Objects.equals(rebate, null))
             {
-                ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
+                rows.add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
             } else
             {
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                 j39v1.put("rebate_amount", rebate);
-                ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), j39v1));
+                rows.add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), j39v1));
             }
         }
         return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});

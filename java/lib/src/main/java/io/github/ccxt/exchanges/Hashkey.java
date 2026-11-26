@@ -3291,7 +3291,7 @@ public class Hashkey extends HashkeyApi
             {
                 orderRequest.put("clientOrderId", this.uuid()); // both spot and swap endpoints require clientOrderId
             }
-            ((List<Object>)ordersRequests).add(orderRequest);
+            ordersRequests.add(orderRequest);
         }
         Map<String, Object> firstOrder = this.safeDict(ordersRequests, 0, null);
         String firstSymbol = this.safeString(firstOrder, "symbol");
@@ -3317,7 +3317,7 @@ public class Hashkey extends HashkeyApi
         {
             Map<String, Object> responseEntry = this.safeDict(result, i, new HashMap<String, Object>() {{}});
             Map<String, Object> responseOrder = this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
-            ((List<Object>)responseOrders).add(responseOrder);
+            responseOrders.add(responseOrder);
         }
         return this.parseOrders(responseOrders, null, null, null, new HashMap<String, Object>() {{}});
 
@@ -4304,7 +4304,7 @@ public class Hashkey extends HashkeyApi
         {
             Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
             Long timestamp = this.safeInteger(entry, "settleTime");
-            ((List<Object>)rates).add(new HashMap<String, Object>() {{
+            rates.add(new HashMap<String, Object>() {{
                 put( "info", entry );
                 put( "symbol", Hashkey.this.safeSymbol(Hashkey.this.safeString(entry, "symbol"), market, null, "swap") );
                 put( "fundingRate", Hashkey.this.safeNumber(entry, "settleRate", null) );
@@ -4832,16 +4832,16 @@ public class Hashkey extends HashkeyApi
         {
             Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("tier", this.sum(i, 1));
-            j39v2.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
-            j39v2.put("currency", marketResolved.get("settle"));
-            j39v2.put("minNotional", null);
-            j39v2.put("maxNotional", this.safeNumber(tier, "quantity", null));
-            j39v2.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", null));
-            j39v2.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
-            j39v2.put("info", tier);
-            ((List<Object>)tiers).add(j39v2);
+            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+            mapLiteral13.put("tier", this.sum(i, 1));
+            mapLiteral13.put("symbol", this.safeSymbol(marketId, marketResolved, null, null));
+            mapLiteral13.put("currency", marketResolved.get("settle"));
+            mapLiteral13.put("minNotional", null);
+            mapLiteral13.put("maxNotional", this.safeNumber(tier, "quantity", null));
+            mapLiteral13.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", null));
+            mapLiteral13.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
+            mapLiteral13.put("info", tier);
+            tiers.add(mapLiteral13);
         }
         return tiers;
     }
@@ -5014,9 +5014,9 @@ public class Hashkey extends HashkeyApi
                 headersSigned.put("Content-Type", "application/json");
                 bodySigned = this.json(this.safeList(parameters, "orders", null));
                 signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256());
-                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-                mapLiteral13.put("signature", signature);
-                query = this.customUrlencode(this.extend(additionalParams, mapLiteral13));
+                HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+                mapLiteral14.put("signature", signature);
+                query = this.customUrlencode(this.extend(additionalParams, mapLiteral14));
                 url = ((((apiUrl + "/") + path) + "?") + query);
             } else
             {
