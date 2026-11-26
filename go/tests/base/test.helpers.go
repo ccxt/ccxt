@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"sync"
 	"time"
@@ -389,7 +390,7 @@ func ParseInt(number interface{}) int64 {
 }
 
 func mathAbs(a interface{}) interface{} {
-	return ccxt.MathAbs(a)
+	return math.Abs(ccxt.ToFloat64(a))
 }
 
 func parseInt(input interface{}) interface{} {
