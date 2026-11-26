@@ -5846,7 +5846,6 @@ function rustStrParamCopyDrop (content: string): string {
         if (ptype === undefined) continue;
         // a borrowed `Dict` row copy: `Value::from(row)` re-boxes the same shared map (or `Null`); an immutable copy only
         const row = ptype === 'Option<&crate::value::Dict>';
-        if (m[2] === undefined && !row) continue;
         const bodyStart = m.index + m[0].length;
         let depth = 1, bodyEnd = bodyStart;
         for (; bodyEnd < masked.length && depth > 0; bodyEnd++) {
@@ -18833,6 +18832,11 @@ function rustPassesSelfTest(): string[] {
     ok(rko.includes('insert(crate::runtime::stringify_param(&v.as_map()') && rko.includes('insert(crate::runtime::stringify_param(&self.safe_string_k(&v, "name", &[])), Value::Int(2))'), 'nativeInserts: computed string key');
     ok(nativeInserts(rk.replace('&v.as_map()', '&d.as_map()')).includes('add_element_to_object(&mut d, &d.as_map()'), 'nativeInserts: key reading the receiver keeps the helper');
     ok(nativeInserts(rk.replace('&self.safe_string_k(&v', '&self.safe_value_k(&v')).includes('add_element_to_object(&mut d, &self.safe_value_k'), 'nativeInserts: non-string reader keeps the helper');
+    // a scalar copy that lost its `mut` (rustDropUnusedMut runs first) drops like a `let mut` one; a write keeps it
+    const strCopy = 'pub fn f(&self, a: Option<&str>) -> Option<String> {\n    let a: Value = a.into();\n    if (a == Value::Null) {\n        return None;\n    }\n    return a.as_str().map(str::to_owned);\n}\n';
+    ok(rustStrParamCopyDrop(strCopy).includes('if (a.is_none()) {') && rustStrParamCopyDrop(strCopy).includes('return a.map(str::to_owned);') && !rustStrParamCopyDrop(strCopy).includes('a.into()'), 'rustStrParamCopyDrop: immutable str copy drops');
+    const strKept = strCopy.replace('return a.as_str()', 'g(&mut a);\n    return a.as_str()');
+    ok(rustStrParamCopyDrop(strKept) === strKept, 'rustStrParamCopyDrop: &mut use keeps the copy');
     return problems;
 }
 
