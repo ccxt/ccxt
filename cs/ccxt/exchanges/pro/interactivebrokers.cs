@@ -514,7 +514,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         List<object> parts = topic.Split(new [] {"+"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         IDictionary<string, object> previous = this.safeDict(this.tickers, symbol);

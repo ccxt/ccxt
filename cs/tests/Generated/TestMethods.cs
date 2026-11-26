@@ -1798,7 +1798,7 @@ public partial class testMainClass
         return false;
     }
 
-    public virtual object countSignificantKeys(BaseExchange exchange, object target, object otherKeys)
+    public virtual object countSignificantKeys(BaseExchange exchange, object target, IList<object> otherKeys)
     {
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)

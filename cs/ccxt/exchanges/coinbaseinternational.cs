@@ -799,7 +799,7 @@ public partial class coinbaseinternational : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        string? instrumentName = this.safeString(market, "instrument_name");
+        string? instrumentName = this.safeString(market, "instrument_name", "");
         string? lowercaseId = this.safeStringLower(market, "instrument_name");
         string? baseId = this.safeString(market, "base_currency");
         string? quoteId = this.safeString(market, "counter_currency");
@@ -858,7 +858,7 @@ public partial class coinbaseinternational : Exchange
             {
                 optionTypeLetter = "C";
             }
-            string? strikeString = this.numberToString(strike);
+            string? strikeString = this.safeString(market, "strike", "");
             symbol = (symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter);
         }
         Dictionary<string, object> marketStructure = new Dictionary<string, object>() {

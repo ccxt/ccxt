@@ -234,7 +234,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.authenticate();
         }
         List<object> unWatchMessageHashes = new List<object>() {};
-        int channelsLength = channels?.Count ?? 0;
+        int channelsLength = (channels?.Count ?? 0);
         for (int i = 0; i < channelsLength; i++)
         {
             unWatchMessageHashes.Add(("unsubscribe:" + this.safeString(channels, i, "")));

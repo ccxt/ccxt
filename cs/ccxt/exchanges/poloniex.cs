@@ -3448,17 +3448,15 @@ public partial class poloniex : Exchange
             throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? networkCode = null;
-        object query = null;
-        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-        networkCode = networkCodequeryVariable.Item1;
-        query = networkCodequeryVariable.Item2;
-        if ((networkCode == null))
+        (string?, object) networkCodeRawqueryVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCodeRaw = networkCodeRawqueryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodeRawqueryVariable.Item2);
+        if ((networkCodeRaw == null))
         {
             throw new ArgumentsRequired ((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
         }
         string? exchangeNetworkId = null;
-        networkCode = this.networkIdToCode(networkCode, code);
+        string? networkCode = this.networkIdToCode(networkCodeRaw, code);
         IDictionary<string, object> networkEntry = ((networkCode == null)) ? null : this.safeDict((currency.ContainsKey("networks") ? currency["networks"] : null), networkCode);
         if ((networkEntry != null))
         {

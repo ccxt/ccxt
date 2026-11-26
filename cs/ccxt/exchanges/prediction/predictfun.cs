@@ -658,7 +658,7 @@ public partial class predictfun : PredictionExchange
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"});
-        int queriesLength = queries?.Count ?? 0;
+        int queriesLength = (queries?.Count ?? 0);
         List<object> result = new List<object>() {};
         // the venue answers every term separately and the same category comes back for each term
         // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
@@ -3116,7 +3116,7 @@ public partial class predictfun : PredictionExchange
                 string approvalData = (("0xa22cb465" + this.padHexAddress(operatorAddress)) + approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                object approvalHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit);
+                string? approvalHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit);
                 object receipt = await this.waitForTransactionReceipt(rpcUrl, approvalHash);
                 receipts.Add(receipt);
             }
@@ -3150,7 +3150,7 @@ public partial class predictfun : PredictionExchange
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         string approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + (amountHex));
-        object txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
+        string? txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
         return await this.waitForTransactionReceipt(rpcUrl, txHash);
     }
 

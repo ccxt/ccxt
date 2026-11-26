@@ -2038,7 +2038,7 @@ public partial class mexc : Exchange
             //
             timestamp = this.safeInteger(trade, "t");
             marketResolved = this.safeMarket(((string)null), market);
-            symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+            symbol = this.safeString(marketResolved, "symbol");
             priceString = this.safeString(trade, "p");
             amountString = this.safeString(trade, "v");
             side = this.parseOrderSide(this.safeString(trade, "T"));
@@ -2097,7 +2097,7 @@ public partial class mexc : Exchange
             //
             string? marketId = this.safeString(trade, "symbol");
             marketResolved = this.safeMarket(marketId, market);
-            symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+            symbol = this.safeString(marketResolved, "symbol");
             id = this.safeString2(trade, "id", "a");
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");
@@ -6555,7 +6555,7 @@ public partial class mexc : Exchange
         return this.parseTransactionFees(response, codes);
     }
 
-    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, IList<object>? codes = null)
     {
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)

@@ -2024,7 +2024,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88629 && ((hxArr88629 is IList<object>) || (hxArr88629 is not null && hxArr88629.GetType().IsGenericType && hxArr88629.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630 is not null && hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2700,8 +2700,8 @@ public partial class bybit : ccxt.bybit
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
-        int topicsLength = topics?.Count ?? 0;
-        int messageHashesLength = messageHashes?.Count ?? 0;
+        int topicsLength = (topics?.Count ?? 0);
+        int messageHashesLength = (messageHashes?.Count ?? 0);
         if ((topicsLength == messageHashesLength))
         {
             for (int i = 0; i < messageHashesLength; i++)

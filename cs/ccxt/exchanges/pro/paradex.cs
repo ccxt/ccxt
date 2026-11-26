@@ -180,7 +180,7 @@ public partial class paradex : ccxt.paradex
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
         parameters ??= new Dictionary<string, object>();
         await this.waitForPendingUnsubscribe(url, channels);
-        int channelsLength = channels?.Count ?? 0;
+        int channelsLength = (channels?.Count ?? 0);
         for (int attempt = 0; attempt < channelsLength; attempt++)
         {
             List<Int64> pending = this.unsubscribedChannels(url, channels);
@@ -296,13 +296,13 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, string topic, IList<object> channels, IList<object> subMessageHashes, IList<object> symbols, object start, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, string topic, IList<object> channels, IList<object> subMessageHashes, IList<object> symbols, Int64 start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? refused = 0;
         for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
-            if (isGreaterThanOrEqual(i, start))
+            if ((i >= start))
             {
                 try
                 {
@@ -3051,15 +3051,16 @@ public partial class paradex : ccxt.paradex
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
+        // error replies are JSON text frames only, the binary frames never carry one
+        if ((this.handleErrorMessage(client, message) != true))
+        {
+            return;
+        }
         this.handleStreamMessage(client, message);
     }
 
     public virtual void handleStreamMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if ((this.handleErrorMessage(client,((IDictionary<string, object>)message)) != true))
-        {
-            return;
-        }
         //
         // auth response
         //

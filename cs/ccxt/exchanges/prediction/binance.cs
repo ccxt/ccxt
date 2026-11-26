@@ -514,7 +514,7 @@ public partial class binance : PredictionExchange
         rest ??= new Dictionary<string, object>();
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
-        int queriesLength = queries?.Count ?? 0;
+        int queriesLength = (queries?.Count ?? 0);
         Int64? limitValue = 20;
         if ((limit != null))
         {

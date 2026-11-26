@@ -3026,7 +3026,7 @@ public partial class toobit : Exchange
             results.Add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new Dictionary<string, object>() {}), currency, transactType), paramsUntil));
         }
         List<object> sorted = this.sortBy(results, "timestamp");
-        string? currencyCode = ((string)(((currency != null)) ? (currency.ContainsKey("code") ? currency["code"] : null) : null));
+        string? currencyCode = ((currency != null)) ? this.safeString(currency, "code") : null;
         return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(sorted,currencyCode, since, limit));
     }
 

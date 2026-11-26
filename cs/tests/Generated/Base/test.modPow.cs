@@ -14,20 +14,20 @@ public partial class BaseTest
             });
             // intToBase16 emits uppercase hex in some target languages, assign before toLowerCase (php transpiler)
             // small values
-            object small = exchange.modPow(exchange.convertToBigInt("4"), exchange.convertToBigInt("13"), exchange.convertToBigInt("497"));
+            System.Numerics.BigInteger small = exchange.modPow(exchange.convertToBigInt("4"), exchange.convertToBigInt("13"), exchange.convertToBigInt("497"));
             string smallHexRaw = exchange.intToBase16(small);
             string smallHex = smallHexRaw.ToLower();
             Assert(smallHex == "1bd", ("modPow small failed, expected: 1bd, got: " + smallHex));
             // results above 2^64 must survive intToBase16 (the interactivebrokers diffie-hellman challenge is 2048-bit)
             // 2 ^ 100 mod (2 ^ 127 - 1) = 2 ^ 100
             object modulus = exchange.convertToBigInt("0x7fffffffffffffffffffffffffffffff");
-            object big = exchange.modPow(exchange.convertToBigInt("2"), exchange.convertToBigInt("100"), modulus);
+            System.Numerics.BigInteger big = exchange.modPow(exchange.convertToBigInt("2"), exchange.convertToBigInt("100"), modulus);
             string bigHexRaw = exchange.intToBase16(big);
             string bigHex = bigHexRaw.ToLower();
             Assert(bigHex == "10000000000000000000000000", ("modPow big failed, expected: 10000000000000000000000000, got: " + bigHex));
             // 0xffffffffffffffffffff ^ 3 mod (2 ^ 127 - 1)
             object bs = exchange.convertToBigInt("0xffffffffffffffffffff");
-            object cubed = exchange.modPow(bs, exchange.convertToBigInt("3"), modulus);
+            System.Numerics.BigInteger cubed = exchange.modPow(bs, exchange.convertToBigInt("3"), modulus);
             string cubedHexRaw = exchange.intToBase16(cubed);
             string cubedHex = cubedHexRaw.ToLower();
             Assert(cubedHex == "200000002fffffffffff9ffffffff", ("modPow cubed failed, expected: 200000002fffffffffff9ffffffff, got: " + cubedHex));

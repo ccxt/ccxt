@@ -1521,8 +1521,8 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object response = null;
-        object data = new List<object>() {};
+        Dictionary<string, object> response = null;
+        List<object> data = new List<object>() {};
         if ((this.safeBool(market, "swap", false) == true))
         {
             IDictionary<string, object> timeframesFuture = this.safeDict(timeframes, "future", new Dictionary<string, object>() {});
@@ -1536,12 +1536,11 @@ public partial class bitrue : Exchange
             }
             if ((this.safeBool(market, "linear", false) == true))
             {
-                response = await this.fapiV1PublicGetKlines(this.extend(request, parameters));
+                data = await this.fapiV1PublicGetKlines(this.extend(request, parameters));
             } else if ((this.safeBool(market, "inverse", false) == true))
             {
-                response = await this.dapiV1PublicGetKlines(this.extend(request, parameters));
+                data = await this.dapiV1PublicGetKlines(this.extend(request, parameters));
             }
-            data = response;
         } else if ((this.safeBool(market, "spot", false) == true))
         {
             IDictionary<string, object> timeframesSpot = this.safeDict(timeframes, "spot", new Dictionary<string, object>() {});

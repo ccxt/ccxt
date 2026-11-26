@@ -2726,7 +2726,7 @@ public partial class deepcoin : Exchange
             {
                 throw new NotSupported ((this.id + " editOrder() is not supported for spot markets")) ;
             }
-            symbolResolved = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbolResolved = this.safeString(market, "symbol");
         }
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");

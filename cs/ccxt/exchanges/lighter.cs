@@ -924,7 +924,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
         };
         // create lighter client
-        object signer = this.lighterCreateClient(signerNotLoad, this.safeInteger(this.options, "chainId"), privateKey, apiKeyIndex, accountIndex);
+        LighterSigner.Signer signer = this.lighterCreateClient(signerNotLoad, this.safeInteger(this.options, "chainId"), privateKey, apiKeyIndex, accountIndex);
         var txTypetxInfomessageToSignVariable = this.lighterSignChangePubkey(signer, this.extend(signRaw, paramsAccountIndex));
         var txType = ((IList<object>) txTypetxInfomessageToSignVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfomessageToSignVariable)[1];

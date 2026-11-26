@@ -4341,13 +4341,13 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0, new Dictionary<string, object>() {}));
     }
 
-    public virtual string? getDexFromSymbols(string? methodName, IList<object> symbols = null)
+    public virtual string? getDexFromSymbols(string? methodName, IList<object>? symbols = null)
     {
         if ((symbols == null))
         {
             return null;
         }
-        int symbolsLength = symbols?.Count ?? 0;
+        int symbolsLength = (symbols?.Count ?? 0);
         if ((symbolsLength == 0))
         {
             return null;

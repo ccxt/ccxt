@@ -618,7 +618,7 @@ public partial class sxbet : PredictionExchange
     public virtual bool matchesEventQuery(object raw, IList<object> queries)
     {
         List<object> fields = new List<object> {this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")};
-        int queriesLength = queries?.Count ?? 0;
+        int queriesLength = (queries?.Count ?? 0);
         for (int qi = 0; qi < queriesLength; qi++)
         {
             string query = ((string)(queries != null && qi < queries.Count ? queries[qi] : null)).ToLower();
@@ -1964,7 +1964,7 @@ public partial class sxbet : PredictionExchange
         int rawTradesLength = rawTrades.Count;
         for (int i = 0; i < rawTradesLength; i++)
         {
-            Dictionary<string, object> settlement = this.parseSettlement(((IDictionary<string, object>)(rawTrades != null && i < rawTrades.Count ? rawTrades[i] : null)));
+            Dictionary<string, object> settlement = this.parseSettlement(this.safeDict(rawTrades, i, new Dictionary<string, object>() {}));
             if (((wantedOutcomeId == null)) || ((this.safeString(settlement, "outcomeId") == wantedOutcomeId)))
             {
                 result.Add(settlement);
@@ -2233,7 +2233,7 @@ public partial class sxbet : PredictionExchange
     public virtual object parseSxbetTickersByHash(IList<object> outcomesList, IDictionary<string, object> rowsByHash)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int outcomesLength = outcomesList?.Count ?? 0;
+        int outcomesLength = (outcomesList?.Count ?? 0);
         for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));

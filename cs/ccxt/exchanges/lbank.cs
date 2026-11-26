@@ -923,7 +923,7 @@ public partial class lbank : Exchange
         if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {marketSymbol}, parameters));
-            IDictionary<string, object> swapTicker = this.safeDict(responseForSwap, (market.ContainsKey("symbol") ? market["symbol"] : null));
+            IDictionary<string, object> swapTicker = this.safeDict(responseForSwap, marketSymbol);
             return ccxt.BaseExchange.ToTicker(swapTicker);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3139,7 +3139,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(await this.FetchPublicDepositWithdrawFees(codes, parameters));
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(object codes = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPrivateDepositWithdrawFees(IList<object>? codes = null, IDictionary<string, object>? parameters = null)
     {
         // complete response
         // incl. for coins which undefined in public method
@@ -3180,10 +3180,10 @@ public partial class lbank : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return this.parseDepositWithdrawFees(data, this.toArray(codes), "coin");
+        return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(object codes = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchPublicDepositWithdrawFees(IList<object>? codes = null, IDictionary<string, object> parameters = null)
     {
         // extremely incomplete response
         // vast majority fees undefined
@@ -3219,7 +3219,7 @@ public partial class lbank : Exchange
         return this.parsePublicDepositWithdrawFees(data, codes);
     }
 
-    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(IList<object> response, object codes = null)
+    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(IList<object> response, IList<object>? codes = null)
     {
         //
         //    [

@@ -888,9 +888,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < newLiquidationsLength; i++)
         {
-            object liquidation = (newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null);
-            cache.append(liquidation);
-            symbols[(string)((string)getValue(liquidation, "symbol"))] = true;
+            cache.append((newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null));
+            string? liquidationSymbol = this.safeString((newLiquidations != null && i < newLiquidations.Count ? newLiquidations[i] : null), "symbol", "");
+            symbols[(string)liquidationSymbol] = true;
         }
         List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; i < keys.Count; i++)

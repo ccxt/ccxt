@@ -992,12 +992,12 @@ public partial class interactivebrokers : Exchange
         string encryptionKey = ((string)this.readFile(encryptionPemPath));
         object dhPrime = this.convertToBigInt(("0x" + (this.readDhParam(dhParamPemPath))));
         // the access token secret is encrypted with the consumer's public encryption key
-        object decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
+        byte[] decrypted = this.decryptPrivateKey(encryptionKey, this.secret);
         object accessTokenSecretHex = this.binaryToBase16(decrypted);
         this.options["accessTokenSecretHex"] = accessTokenSecretHex; // prepended to the signature base string in sign ()
         this.options["serviceAccountsLoaded"] = false; // a new brokerage session needs iserver/accounts again
         object dhRandom = this.convertToBigInt(("0x" + this.randomBytes(32)));
-        object dhChallenge = this.modPow((this.options != null && this.options.ContainsKey("dhGen") ? this.options["dhGen"] : null), dhRandom, dhPrime);
+        System.Numerics.BigInteger dhChallenge = this.modPow((this.options != null && this.options.ContainsKey("dhGen") ? this.options["dhGen"] : null), dhRandom, dhPrime);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "diffie_hellman_challenge", this.intToBase16(dhChallenge) },
         };
@@ -1010,7 +1010,7 @@ public partial class interactivebrokers : Exchange
         //     }
         //
         string? dhResponse = this.safeString(response, "diffie_hellman_response", "");
-        object sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
+        System.Numerics.BigInteger sharedSecret = this.modPow(this.convertToBigInt(("0x" + dhResponse)), dhRandom, dhPrime);
         string liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1, "base64");
         string? consumerKey = this.safeString(this.options, "consumer_key", "");
         string check = this.hmac(consumerKey, this.base64ToBinary(liveSessionToken), sha1, "hex");
@@ -1254,7 +1254,7 @@ public partial class interactivebrokers : Exchange
             return false;
         }
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        object wait = subtract(this.sum(lostTimestamp, regainDelay), this.milliseconds());
+        object wait = (this.sum(lostTimestamp, regainDelay) - this.milliseconds());
         if (isLessThanOrEqual(wait, 0))
         {
             wait = regainDelay;
@@ -3236,7 +3236,7 @@ public partial class interactivebrokers : Exchange
         {
             return false;
         }
-        int numFields = fieldIds?.Count ?? 0;
+        int numFields = (fieldIds?.Count ?? 0);
         for (int i = 0; i < numItems; i++)
         {
             bool found = false;
@@ -3652,7 +3652,8 @@ public partial class interactivebrokers : Exchange
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         parameters ??= new Dictionary<string, object>();
         List<object> portfolioAccounts = await this.fetchPortfolioAccounts(parameters);
-        List<object> accountIds = new List<object>(((IDictionary<string,object>)this.indexBy(portfolioAccounts, "accountId")).Keys);
+        Dictionary<string, object> accountsById = this.indexBy(portfolioAccounts, "accountId");
+        List<object> accountIds = new List<object>(accountsById.Keys);
         int length = accountIds.Count;
         if ((length == 0))
         {
@@ -4687,11 +4688,11 @@ public partial class interactivebrokers : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchMyTradesFromTransactions(market, since, limit, query));
         }
-        object days = this.safeInteger(options, "days", 7);
+        Int64? days = this.safeInteger(options, "days", 7);
         if ((since != null))
         {
             object daysPassed = ((double?)((this.milliseconds() - since)) / 86400000);
-            days = mathMin(7, Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
+            days = Math.Min(7, Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed)))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "days", days },

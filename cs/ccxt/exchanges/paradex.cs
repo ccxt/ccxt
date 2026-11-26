@@ -1519,7 +1519,7 @@ public partial class paradex : Exchange
     {
         if ((symbols != null))
         {
-            int symbolsLength = symbols?.Count ?? 0;
+            int symbolsLength = (symbols?.Count ?? 0);
             if ((symbolsLength == 1))
             {
                 return this.safeString(this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null)), "id", "");
@@ -1716,8 +1716,9 @@ public partial class paradex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Dictionary<string, object> rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object> {this.safeString(market, "symbol", "")}, parameters));
-        IDictionary<string, object> rate = this.safeDict(rates, (market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        Dictionary<string, object> rates = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {marketSymbol}, parameters));
+        IDictionary<string, object> rate = this.safeDict(rates, marketSymbol);
         if ((rate == null))
         {
             throw new BadSymbol (((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
@@ -2150,7 +2151,7 @@ public partial class paradex : Exchange
     { "type", "felt" },
 }} },
         };
-        object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+        string msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signature", signature },
@@ -2207,7 +2208,7 @@ public partial class paradex : Exchange
     { "type", "felt" },
 }} },
         };
-        object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+        string msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signature", signature },
@@ -2579,7 +2580,7 @@ public partial class paradex : Exchange
             };
         }
         Dictionary<string, object> domain = await this.prepareParadexDomain();
-        object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
+        string msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
         string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
         Dictionary<string, object> signedRequest = this.extend(request, new Dictionary<string, object>() {
             { "signature", signature },

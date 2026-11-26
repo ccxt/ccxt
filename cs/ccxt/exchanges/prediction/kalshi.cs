@@ -2685,7 +2685,7 @@ public partial class kalshi : PredictionExchange
         // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> eventTickers = new List<object>() {};
-        int queriesLength = queries?.Count ?? 0;
+        int queriesLength = (queries?.Count ?? 0);
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> searchResponse = await this.electionsPublicGetSearchSeries(new Dictionary<string, object>() {
@@ -2854,7 +2854,7 @@ public partial class kalshi : PredictionExchange
     {
         rest ??= new Dictionary<string, object>();
         List<object> rawEvents = new List<object>() {};
-        int seriesTickersLength = seriesTickers?.Count ?? 0;
+        int seriesTickersLength = (seriesTickers?.Count ?? 0);
         Int64? pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 200));
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         bool hasLimit = (!(limit == null));

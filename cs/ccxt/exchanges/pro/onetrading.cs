@@ -1424,7 +1424,7 @@ public partial class onetrading : ccxt.onetrading
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
         IList<object> marketIds = new List<object>() {};
-        int numSymbols = symbols?.Count ?? 0;
+        int numSymbols = (symbols?.Count ?? 0);
         if ((numSymbols == 0))
         {
             IDictionary<string, List<object>> marketsById = this.markets_by_id;

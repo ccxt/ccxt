@@ -500,13 +500,13 @@ public partial class bitrue : ccxt.bitrue
             List<object> level = this.safeList(bidsAsks, i);
             double? price = this.safeNumber(level, 0);
             double? rawAmount = this.safeNumber(level, 1);
-            object amount = this.convertFromRawQuantity(symbol, rawAmount);
+            double? amount = this.convertFromRawQuantity(symbol, rawAmount);
             result.Add(new List<object>() {price, amount});
         }
         return result;
     }
 
-    public virtual object convertFromRawQuantity(string symbol, double? rawQuantity)
+    public virtual double? convertFromRawQuantity(string symbol, double? rawQuantity)
     {
         if ((rawQuantity == null))
         {
@@ -522,7 +522,7 @@ public partial class bitrue : ccxt.bitrue
         {
             return rawQuantity;
         }
-        return ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(rawQuantity, contractSize);
+        return (rawQuantity * contractSize);
     }
 
     /**
@@ -713,7 +713,7 @@ public partial class bitrue : ccxt.bitrue
         string? sideLower = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
         double? rawVol = this.safeNumber(trade, "vol");
-        object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
+        double? baseAmount = this.convertFromRawQuantity(symbol, rawVol);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", null },
@@ -900,7 +900,7 @@ public partial class bitrue : ccxt.bitrue
         double? low = this.safeNumber(tick, "low");
         double? close = this.safeNumber(tick, "close");
         double? rawVol = this.safeNumber(tick, "vol");
-        object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        double? baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new List<object>() {timestamp, open, high, low, close, baseVolume};
     }
 
@@ -987,8 +987,8 @@ public partial class bitrue : ccxt.bitrue
         string? symbol = this.safeString(market, "symbol", "");
         double? rawVol = this.safeNumber(tick, "vol");
         double? rawAmount = this.safeNumber(tick, "amount");
-        object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
-        object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
+        double? baseVolume = this.convertFromRawQuantity(symbol, rawVol);
+        double? quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         double? close = this.safeNumber(tick, "close");
         double? rose = this.safeNumber(tick, "rose");
         object percentage = ((rose == null)) ? null : ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(rose, 100);
