@@ -3819,6 +3819,7 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         // drop the operator's own parens where the call already sits alone inside parens or a call argument list
         let nativeText = native.text.replace (/^(math\.\w+)\(\((.*)\)\)$/, (all: string, fn: string, inner: string) => (goArithClose (inner, inner.indexOf ('(')) !== -1 || inner.indexOf ('(') < 0) && goArithClose ('(' + inner + ')', 0) === inner.length + 1 ? fn + '(' + inner + ')' : all);
         if (nativeText.startsWith ('(') && /\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (after))) { nativeText = nativeText.slice (1, -1); }
+        if ((native.kind === 'i64') && /\.IsRoundNumber\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (after))) { nativeText = 'float64(' + nativeText + ')'; }
         native.text = nativeText;
         usesMath = usesMath || native.text.startsWith ('math.');
         text = text.slice (0, call.start) + native.text + text.slice (after);

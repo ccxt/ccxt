@@ -6653,7 +6653,7 @@ export function csharpDeclaredGetValue (content: string): string {
     const dictFields = [ 'features', 'userAgents', 'has', 'timeframes', 'precision', 'markets', 'markets_by_id', 'currencies_by_id', 'options', 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs', 'events' ];
     const listFields = [ 'symbols', 'codes', 'ids' ];
     const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook', 'ccxt.pro.IOrderBook?', 'IDictionary<string,List<object>>' ];
-    const listTypes = [ 'List<object>', 'IList<object>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
+    const listTypes = [ 'List<object>', 'IList<object>', 'IList<Int64>', 'List<Int64>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
     return csharpTwoArgCallPass (content, 'getValue', (region, i, { start: at, close, masked: line, a: r, b: keyMask, bText: k }) => {
         const { start, params, declarations, lines: masked } = region;
         // every typed binding of `name` in the method is `type`, and no lambda rebinds it
@@ -6689,7 +6689,8 @@ export function csharpDeclaredGetValue (content: string): string {
             }
         } else if (rType === 'list') {
             // the IList<object> branch: at or past Count reads null, a negative index throws in both
-            if (intIndex (keyMask)) return `(${r} != null && ${k} < ${r}.Count ? ${r}[${k}] : null)`;
+            const fallback = ((local !== undefined) && ((local.type === 'IList<Int64>') || (local.type === 'List<Int64>'))) ? '(Int64?)null' : 'null';
+            if (intIndex (keyMask)) return `(${r} != null && ${k} < ${r}.Count ? ${r}[${k}] : ${fallback})`;
         } else if (/^\d{1,9}$/.test (keyMask) || intName (keyMask)) {
             // the string branch: `str[i].ToString()` (out of range throws in both); only where the read is compared, so the `string` result cannot rebind an overload
             const after = line.substring (close + 1);
