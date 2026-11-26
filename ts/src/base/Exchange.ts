@@ -4325,7 +4325,7 @@ export class BaseExchange {
         }
     }
 
-    featuresMapper (initialFeatures: Dict, marketType: Str, subType: Str = undefined): NullableDict {
+    featuresMapper (initialFeatures: Dict, marketType: string, subType: Str = undefined): NullableDict {
         let featuresObj = this.safeDict (initialFeatures, marketType);
         if (subType !== undefined) {
             featuresObj = this.safeDict (featuresObj, subType);
