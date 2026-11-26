@@ -7872,11 +7872,11 @@ class Exchange extends BaseExchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
-    public function fetch_rest_order_book_safe(mixed $symbol, ?int $limit = null, $params = array()) {
+    public function fetch_rest_order_book_safe(string $symbol, ?int $limit = null, $params = array()) {
         return Async\async(self::do_fetch_rest_order_book_safe(...))($symbol, $limit, $params);
     }
 
-    private function do_fetch_rest_order_book_safe(mixed $symbol, ?int $limit = null, $params = array()) {
+    private function do_fetch_rest_order_book_safe(string $symbol, ?int $limit = null, $params = array()) {
         list($fetchSnapshotMaxRetries, $fetchParams) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'maxRetries', 3);
         for ($i = 0; $i < $fetchSnapshotMaxRetries; $i++) {
             try {

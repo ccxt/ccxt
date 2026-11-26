@@ -1297,7 +1297,10 @@ class gate extends \ccxt\async\gate {
             $parts = explode('_', $subscription);
             $timeframeId = $this->safe_string($parts, 0);
             $timeframe = $this->find_timeframe($timeframeId);
-            $prefix = $timeframe . '_';
+            $prefix = '';
+            if ($timeframe !== null) {
+                $prefix = $timeframe . '_';
+            }
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);

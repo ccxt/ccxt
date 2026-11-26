@@ -1159,7 +1159,7 @@ class hyperliquid extends Exchange {
     }
 
     public function parse_outcome_input_side_hint(string $outcomeInput): ?string {
-        if (($outcomeInput === null) || ($outcomeInput === '')) {
+        if ($outcomeInput === '') {
             return null;
         }
         $colonIndex = mb_strpos($outcomeInput, ':');

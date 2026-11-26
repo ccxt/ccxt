@@ -319,7 +319,10 @@ class woo extends \ccxt\async\woo {
     }
 
     private function do_fetch_order_book_snapshot(Client $client, array $message, array $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
+        $symbol = $this->safe_string($subscription, 'symbol', '');
+        if ($symbol === '') {
+            return;
+        }
         $messageHash = $this->safe_string($message, 'topic');
         try {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
@@ -346,9 +349,7 @@ class woo extends \ccxt\async\woo {
                     $this->handle_order_book_message($client, $messageItem, $orderbook);
                 }
             }
-            if ($symbol !== null) {
-                $this->orderbooks[$symbol] = $orderbook;
-            }
+            $this->orderbooks[$symbol] = $orderbook;
             $client->resolve($orderbook, $messageHash);
         } catch (Exception $e) {
             if ($messageHash !== null) {

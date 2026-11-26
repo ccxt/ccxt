@@ -3969,7 +3969,7 @@ class paradex extends Exchange {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             list($paginationCalls, $paramsCalls) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             $until = $this->safe_integer($paramsCalls, 'until');
-            $pageSpan = $this->parse_to_int($paginationCalls * 5000 * $rowSpacing);
+            $pageSpan = $this->parse_to_int($paginationCalls * 25000000); // 5000 rows per page * 5000ms rowSpacing
             $sinceEnd = $this->sum($since, $pageSpan);
             $endAt = $this->milliseconds();
             if ($sinceEnd < $endAt) {
