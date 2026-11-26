@@ -10154,6 +10154,7 @@ class NewTranspiler {
                 "asyncTickerMapCallees": [ ...goChan3Table () ].filter (([ name, type ]) => (type === 'map[string]Ticker') && !name.includes ('.')).map (([ name ]) => name),
                 "asyncStringCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === 'string').map (([ name ]) => name),
                 "asyncStringPtrCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '*string').map (([ name ]) => name),
+                "asyncStringListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]string').map (([ name ]) => name),
                 // struct-list channels (receive is the `*ToList` carrier of maps): names only, read by the h27g08 rule
                 "asyncStructRowListCallees": Object.fromEntries ([ ...goChan3Table () ].filter (([ name, type ]) => /^\[\][A-Z]\w*$/.test (type) && !name.includes ('.')).map (([ name, type ]) => [ name, type ])),
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,
