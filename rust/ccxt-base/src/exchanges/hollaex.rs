@@ -2160,7 +2160,7 @@ impl Hollaex {
         let meta: crate::value::Dict = self.safe_dict_k_t(&params, "meta");
         let exchangeSpecificParam: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         let isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam == true), &[&params]);
         if !isMarketOrder {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }

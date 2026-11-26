@@ -2201,7 +2201,7 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price argument for market orders")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&params)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&Value::from(&params)]);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }

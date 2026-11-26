@@ -5600,10 +5600,11 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (month.is_none()) {
             return Value::Null;
         }
-        let dayPart: Option<String> = parts.get(2).and_then(Value::as_str).map(str::to_owned);
-        let day: Option<String> = (if let Some(__s) = dayPart.as_deref() { Some(format!("{:0>2}", __s)) } else { None });
+        let dayPart: String = self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let day: String = format!("{:0>2}", dayPart);
         let offset: String = self.safe_string(&offsets, parts.get(4).cloned().unwrap_or(Value::Null), &[Value::Str("+00:00".into())]).as_str().unwrap_or("+00:00").to_string();
-        return Value::from(self.parse8601(Value::Str(format!("{}{}{}{}{}{}{}{}", parts.get(5).cloned().unwrap_or(Value::Null), "-", month.map(Value::from).unwrap_or(Value::Null), "-", day.map(Value::from).unwrap_or(Value::Null), "T", parts.get(3).cloned().unwrap_or(Value::Null), offset).into())));
+        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", parts.get(5).cloned().unwrap_or(Value::Null), "-").into()), month.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()),
+            day).into()), "T").into()), parts.get(3).cloned().unwrap_or(Value::Null)).into()), offset).into())));
 
     Value::Null
 }

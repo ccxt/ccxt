@@ -3360,7 +3360,7 @@ impl Woo {
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
         let isMarket: bool = orderType == "MARKET";
         let timeInForce: Option<String> = self.safe_string_lower_k_opt(&paramsMarginMode, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&paramsMarginMode)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&Value::from(&paramsMarginMode)]);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();

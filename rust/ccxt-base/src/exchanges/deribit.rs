@@ -3697,8 +3697,8 @@ impl Deribit {
         let isStopOrder: bool = (isStopLossOrder || isTakeProfitOrder);
         let isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
-        let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k_opt(&params, "post_only", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[&params]);
+        let exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k_opt(&params, "post_only", &[]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificPostOnly == Some(true)), &[&params]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));

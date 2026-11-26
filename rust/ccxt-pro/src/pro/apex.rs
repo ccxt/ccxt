@@ -1281,7 +1281,7 @@ impl Apex {
             let message: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("login".into()));
-                    m.insert("args".to_string(), Value::from(vec![json_stringify(&Value::Map({
+                    m.insert("args".to_string(), Value::from(vec![self.json(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("login".into()));
         m.insert("topics".to_string(), Value::from(vec![Value::Str("ws_zk_accounts_v3".into())]));

@@ -3466,7 +3466,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             m
         });
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&paramsOmitted3, "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[&Value::from(&paramsOmitted3)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&paramsOmitted3)]);
         if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }
@@ -4632,11 +4632,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let secretOrPrivkey: Option<String> = (if usesPrivKey { self.privateKey.as_str().map(str::to_owned) } else { self.secret.as_str().map(str::to_owned) });
         let privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey.map(Value::from).unwrap_or(Value::Null));
         let signature: crate::value::Dict = ecdsa(Value::from(self.hash(&ethEncodedMessage, "keccak", &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
+        let rHex: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let sHex: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut signatureEntry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signer".to_string(), Value::Null);
-                m.insert("r".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "r")).as_str().unwrap_or_default()));
-                m.insert("s".to_string(), self.format_signature_rs((crate::value::KeyRead::key_read(&&signature, "s")).as_str().unwrap_or_default()));
+                m.insert("r".to_string(), self.format_signature_rs(rHex.as_str()));
+                m.insert("s".to_string(), self.format_signature_rs(sHex.as_str()));
                 m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
                 m.insert("expiration".to_string(), requestSignature.get("expiration").cloned().unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), requestSignature.get("nonce").cloned().unwrap_or(Value::Null));

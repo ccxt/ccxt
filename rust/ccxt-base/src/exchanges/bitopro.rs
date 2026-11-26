@@ -1738,7 +1738,7 @@ impl Bitopro {
             }
         }
         let paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit_t(&params, &["triggerPrice", "stopPrice"], &[]) } else { params });
-        let postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[&Value::from(&paramsOmitted)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Bool(false), &[&Value::from(&paramsOmitted)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }

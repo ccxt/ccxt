@@ -3253,7 +3253,7 @@ impl Modetrade {
         let isConditional: bool = ((((triggerPrice.is_some()) || hasStopLoss) || hasTakeProfit) || (paramsChildOrders.is_some()));
         let isMarket: bool = orderType.as_deref() == Some("MARKET");
         let timeInForce: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&params]);
         let mut orderQtyKey: String = "order_quantity".to_string();
         if isConditional {
             orderQtyKey = "quantity".to_string();
@@ -3555,7 +3555,7 @@ impl Modetrade {
             let orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
             let timeInForce: Option<String> = self.safe_string_lower_k_opt(&paramsOmitted, "timeInForce", &[]);
             let isMarket: bool = orderType == "MARKET";
-            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&paramsOmitted)]);
+            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&Value::from(&paramsOmitted)]);
             if postOnly {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
             }  else if (timeInForce.as_deref() == Some("fok")) {

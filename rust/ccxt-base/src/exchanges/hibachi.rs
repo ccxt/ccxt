@@ -1575,7 +1575,7 @@ impl Hibachi {
                 m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
             m
         });
-        let postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Bool(false), &[&params]);
         let reduceOnly: Option<bool> = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let timeInForce: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[]);
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);

@@ -3529,7 +3529,7 @@ impl Paradex {
         let isStopLossOrder: bool = (stopLossPrice.is_some());
         let isStopOrder: bool = (((triggerPrice.is_some()) || isTakeProfitOrder) || isStopLossOrder);
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&params]);
         let mut instruction: Option<String> = Some("GTC".to_string());
         if (timeInForce.is_some()) {
             instruction = self.encode_time_in_force(timeInForce.as_deref());

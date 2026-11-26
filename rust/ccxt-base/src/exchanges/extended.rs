@@ -3893,7 +3893,7 @@ impl Extended {
         }
         let amountString: Option<String> = self.amount_to_precision(symbol, Value::from(amount));
         let priceString: Option<String> = self.price_to_precision(symbol, Value::from(price));
-        let postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(false), &[&params]);
         let reduceOnly: bool = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
         if (timeInForce.is_none()) {

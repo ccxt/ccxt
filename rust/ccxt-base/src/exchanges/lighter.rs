@@ -2129,7 +2129,7 @@ if _try_result.is_err() {
         let isConditional: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let isMarketOrder: bool = orderType.as_deref() == Some("MARKET");
         let timeInForce: Option<String> = self.safe_string_lower_k_opt(&paramsOrderExpiry, "timeInForce", &[Value::Str("gtt".into())]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[&Value::from(&paramsOrderExpiry)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&paramsOrderExpiry)]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsOrderExpiry, &["stopLoss", "takeProfit", "timeInForce"], &[]);
         let mut orderTypeNum: Option<i64> = None;
         let mut timeInForceNum: Option<i64> = None;

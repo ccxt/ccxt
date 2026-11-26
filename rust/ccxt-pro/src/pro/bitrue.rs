@@ -1243,8 +1243,8 @@ if _try_result.is_err() {
         let baseVolume: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawVol));
         let quoteVolume: Value = self.convert_from_raw_quantity(symbol.as_str(), Value::from(rawAmount));
         let close: Option<f64> = self.safe_number_k(&tick, "close", &[]).as_f64();
-        let rose: Option<f64> = self.safe_number_k(&tick, "rose", &[]).as_f64();
-        let percentage: Option<f64> = (if (rose.is_none()) { None } else { (if let Some(__l) = rose { Some(__l * 100.0) } else { None }) });
+        let rose: Option<String> = self.safe_string_k_opt(&tick, "rose", &[]);
+        let percentage: Option<String> = crate::precise::Precise::stringMul(&rose, &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tick.clone());
@@ -1263,7 +1263,7 @@ if _try_result.is_err() {
         m.insert("last".to_string(), Value::from(close));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::from(percentage));
+        m.insert("percentage".to_string(), percentage.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);

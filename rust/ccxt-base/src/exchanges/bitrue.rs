@@ -3059,7 +3059,7 @@ impl Bitrue {
         if (market).swap {
             let isMarket: bool = uppercaseType == "MARKET";
             let timeInForce: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[]);
-            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&params)]);
+            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&Value::from(&params)]);
             if postOnly {
                 request.insert("type".into(), Value::Str("POST_ONLY".into()));
             }  else if (timeInForce.as_deref() == Some("fok")) {

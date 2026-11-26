@@ -2199,7 +2199,7 @@ impl Dydx {
         let isConditional: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let isMarket: bool = orderType == "MARKET";
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&paramsSubAccountId, "timeInForce", &[Value::Str("GTT".into())]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&paramsSubAccountId)]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&Value::from(&paramsSubAccountId)]);
         let amountStr: Option<String> = self.amount_to_precision(symbol, Value::from(amount));
         let priceStr: Option<String> = self.price_to_precision(symbol, Value::from(price));
         let marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
@@ -2843,13 +2843,20 @@ impl Dydx {
             gasPrice = self.safe_string_k_opt(&feeDenom, "CHAINTOKEN_GAS_PRICE", &[]);
             denom = self.safe_string_k_opt(&feeDenom, "CHAINTOKEN_DENOM", &[]);
         }
-        let gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed, &defaultFeeMultiplier))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&gasLimit)), &gasPrice).as_str().map(str::to_owned);
+        let gasLimitNum: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&gasUsed, &defaultFeeMultiplier), &[]).as_f64();
+        if (gasLimitNum.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " estimateTxFee() missing gasLimit")));
+        }
+        let gasLimit: Option<f64> = (if let Some(__x) = gasLimitNum { Some(f64::ceil(__x)) } else { None });
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(gasLimit))), &gasPrice).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " estimateTxFee() missing feeAmount")));
         }
         if feeAmount.as_deref().unwrap_or_default().contains(".") {
-            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+            let feeAmountNum: Option<f64> = self.parse_number(Value::from(feeAmount.as_deref()), &[]).as_f64();
+            if (feeAmountNum.is_some()) {
+                feeAmount = self.number_to_string(Value::from((if let Some(__x) = feeAmountNum { Some(f64::ceil(__x)) } else { None })));
+            }
         }
         let feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2860,7 +2867,7 @@ impl Dydx {
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(vec![Value::Map(feeObj)]));
-        m.insert("gasLimit".to_string(), gasLimit);
+        m.insert("gasLimit".to_string(), Value::from(gasLimit));
     m
 });
 }

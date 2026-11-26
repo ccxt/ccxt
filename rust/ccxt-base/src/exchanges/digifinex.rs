@@ -1064,11 +1064,11 @@ impl crate::exchange::DerivedExchange for Digifinex {
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload);
         let query: Value = self.omit(&params, self.extract_params(Value::from(path)), &[]);
-        let mut urlencoded: Value = Value::Str("".into());
+        let mut urlencoded: Option<String> = Some("".to_string());
         if signed && (pathPart == "/swap/v2") && (method.as_str() == Some("POST")) {
-            urlencoded = json_stringify(&params);
+            urlencoded = json_stringify(&params).as_str().map(str::to_owned);
         }  else {
-            urlencoded = Value::from(self.urlencode(self.keysort(query, &[]), &[]));
+            urlencoded = Some(self.urlencode(self.keysort(query, &[]), &[]));
         }
         if signed {
             let mut auth: Value = Value::Str("".into());
@@ -1077,26 +1077,26 @@ impl crate::exchange::DerivedExchange for Digifinex {
                 nonce = format!("{}", self.milliseconds());
                 auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), payload).into());
                 if (method.as_str() == Some("GET")) {
-                    if (urlencoded.as_str() != Some("")) {
-                        auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", "?", urlencoded).into())).into());
+                    if (urlencoded.as_deref() != Some("")) {
+                        auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", "?", urlencoded.as_deref().unwrap_or("null")).into())).into());
                     }
                 }  else if (method.as_str() == Some("POST")) {
-                    auth = Value::Str(format!("{}{}", auth, urlencoded).into());
+                    auth = Value::Str(format!("{}{}", auth, urlencoded.as_deref().unwrap_or("null")).into());
                 }
             }  else {
                 nonce = format!("{}", self.seconds());
-                auth = urlencoded.clone();
+                auth = Value::from(urlencoded.as_deref());
             }
             let signature: String = self.hmac(self.encode(auth), self.encode(&self.secret), "sha256", &[]);
             if (method.as_str() == Some("GET")) {
-                if (urlencoded.as_str() != Some("")) {
-                    url.push_str(&format!("{}{}", "?", urlencoded));
+                if (urlencoded.as_deref() != Some("")) {
+                    url.push_str(&format!("{}{}", "?", urlencoded.as_deref().unwrap_or("null")));
                 }
             }
-            let hasPostBody: bool = (method.as_str() == Some("POST")) && (urlencoded.as_str() != Some(""));
-            let mut requestBody: Value = Value::Null;
+            let hasPostBody: bool = (method.as_str() == Some("POST")) && (urlencoded.as_deref() != Some(""));
+            let mut requestBody: Option<String> = None;
             if hasPostBody {
-                requestBody = urlencoded;
+                requestBody = urlencoded.take();
             }
             let privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1109,13 +1109,13 @@ impl crate::exchange::DerivedExchange for Digifinex {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
 }));
         }  else {
-            if (urlencoded.as_str() != Some("")) {
-                url.push_str(&format!("{}{}", "?", urlencoded));
+            if (urlencoded.as_deref() != Some("")) {
+                url.push_str(&format!("{}{}", "?", urlencoded.as_deref().unwrap_or("null")));
             }
         }
         return Some(std::sync::Arc::new({
