@@ -5792,14 +5792,16 @@ export class BaseExchange {
             let content: string = response;
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split (startRegex);
-                if (splitted_by_start.length < 2) {
+                const startLen = splitted_by_start.length;
+                if (startLen < 2) {
                     throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
                 }
                 content = splitted_by_start[1]; // we need second part after start
             }
             if (endRegex !== undefined) {
                 const splitted_by_end = content.split (endRegex);
-                if (splitted_by_end.length < 1) {
+                const endLen = splitted_by_end.length;
+                if (endLen < 1) {
                     throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
                 }
                 content = splitted_by_end[0]; // we need first part after start
