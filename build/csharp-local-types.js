@@ -3052,7 +3052,10 @@ function typedCoreFunnelType (csharp, declaration) {
             return own;
         }
     }
-    return undefined;
+    // a site new to this run has no funnel line on disk yet: the typed list core's From<Family>List box
+    const listCore = (typeof csharp.csharpTypedCoreType === 'function') ? csharp.csharpTypedCoreType (call, core) : undefined;
+    const family = (typeof listCore === 'string' && /^List<[A-Za-z]+>$/.test (listCore)) ? listCore.slice (5, -1) : undefined;
+    return (family !== undefined && table.get ('From' + family + 'List') === 'List<object>') ? 'List<object>' : undefined;
 }
 
 // `x = await this.<core> (...)` whose generated line is `x = ccxt.BaseExchange.From<Family>List(await

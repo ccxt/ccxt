@@ -1655,19 +1655,15 @@ export default class bybit extends bybitRest {
 
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        const fetchFunctions = [
-            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
-            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' }),
-        ];
-        const promises = await Promise.all (fetchFunctions);
+        const linearPositions = await this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' });
+        const inversePositions = await this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' });
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
-        for (let i = 0; i < promises.length; i++) {
-            const positions = promises[i];
-            for (let ii = 0; ii < positions.length; ii++) {
-                const position = positions[ii];
-                cache.append (position);
-            }
+        for (let i = 0; i < linearPositions.length; i++) {
+            cache.append (linearPositions[i]);
+        }
+        for (let i = 0; i < inversePositions.length; i++) {
+            cache.append (inversePositions[i]);
         }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
