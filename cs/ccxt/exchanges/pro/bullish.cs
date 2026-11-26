@@ -128,8 +128,7 @@ public partial class bullish : ccxt.bullish
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
-        string? wsUrl = this.safeString(wsUrls, "public");
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " unsubscribePublic() has no public websocket url")) ;
@@ -175,7 +174,7 @@ public partial class bullish : ccxt.bullish
         this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache(subscription);
         string? requestId = this.safeString(subscription, "id", "");
-        if ((this.safeDict(client.subscriptions, requestId) != null))
+        if (((requestId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(requestId))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(requestId);
         }
@@ -221,12 +220,7 @@ public partial class bullish : ccxt.bullish
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
-        string? url = this.safeString(wsUrls, "private");
-        if ((url == null))
-        {
-            throw new ExchangeError ((this.id + " unsubscribePrivate() has no private websocket url")) ;
-        }
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null));
         string? token = await this.handleToken();
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
@@ -1167,7 +1161,7 @@ public partial class bullish : ccxt.bullish
         //     }
         //
         string? messageId = this.safeString(message, "id");
-        if ((messageId == null))
+        if (((messageId == null)) || !(((messageId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageId)))))
         {
             return;
         }
@@ -1207,7 +1201,7 @@ public partial class bullish : ccxt.bullish
                 this.handlePong(client, (Dictionary<string, object>)message);
             }
             string? messageId = this.safeString(message, "id");
-            if ((messageId != null))
+            if (((messageId != null)) && (((messageId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageId)))))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageId);
                 if (((subscription != null)) && (this.safeBool(subscription, "unsubscribe", false) == true))
