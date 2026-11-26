@@ -25729,7 +25729,8 @@ function proPresenceFlagDecide (csharp, declaration) {
         return false;
     }
     const file = String (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
-    if (!/(^|\/)ts\/src\/pro\/[a-z0-9_]+\.ts$/.test (file)) {
+    if (!/(^|\/)ts\/src\/pro\/[a-z0-9_]+\.ts$/.test (file)
+            && !/(^|\/)ts\/src\/[a-z0-9_]+\.ts$/.test (file)) { // REST venue files too
         return false;
     }
     const scope = enclosingFunction (declaration);
