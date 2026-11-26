@@ -1277,7 +1277,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual string? parseOutcomeInputSideHint(string? outcomeInput)
     {
-        if (((outcomeInput == null)) || ((outcomeInput == "")))
+        if ((outcomeInput == ""))
         {
             return null;
         }

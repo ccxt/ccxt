@@ -3960,7 +3960,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190563 && ((hxArr190563 is IList<object>) || (hxArr190563 is not null && hxArr190563.GetType().IsGenericType && hxArr190563.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190571 && ((hxArr190571 is IList<object>) || (hxArr190571 is not null && hxArr190571.GetType().IsGenericType && hxArr190571.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});

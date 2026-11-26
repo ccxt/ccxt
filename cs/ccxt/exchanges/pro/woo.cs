@@ -324,7 +324,11 @@ public partial class woo : ccxt.woo
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
-        string? symbol = this.safeString(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol", "");
+        if (symbol == "")
+        {
+            return;
+        }
         string? messageHash = this.safeString(message, "topic");
         try
         {
@@ -357,10 +361,7 @@ public partial class woo : ccxt.woo
                     this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
             }
-            if ((symbol != null))
-            {
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-            }
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
             client.resolve(orderbook, messageHash);
         } catch(Exception e)
         {

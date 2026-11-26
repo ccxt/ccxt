@@ -4621,7 +4621,7 @@ public partial class paradex : Exchange
             Int64? paginationCalls = paginationCallsparamsCallsVariable.Item1;
             IDictionary<string, object> paramsCalls = ((IDictionary<string, object>)paginationCallsparamsCallsVariable.Item2);
             Int64? until = this.safeInteger(paramsCalls, "until");
-            Int64? pageSpan = this.parseToInt(((paginationCalls * 5000) * rowSpacing));
+            Int64? pageSpan = this.parseToInt((paginationCalls * 25000000)); // 5000 rows per page * 5000ms rowSpacing
             Int64 sinceEnd = this.sum(since, pageSpan);
             Int64? endAt = this.milliseconds();
             if (sinceEnd < endAt)

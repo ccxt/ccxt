@@ -1383,7 +1383,11 @@ public partial class gate : ccxt.gate
             List<object> parts = subscription.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? timeframeId = this.safeString(parts, 0);
             string? timeframe = this.findTimeframe(timeframeId);
-            string? prefix = ((string)(timeframe == null ? null : timeframe + "_"));
+            string prefix = "";
+            if ((timeframe != null))
+            {
+                prefix = (timeframe + "_");
+            }
             string marketId = subscription.Replace(prefix, (string)"");
             string? symbol = this.safeSymbol(marketId, null, "_", marketType);
             IList<object> parsed = this.parseOHLCV(ohlcv);

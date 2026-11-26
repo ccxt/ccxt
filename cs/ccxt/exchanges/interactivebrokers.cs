@@ -1254,8 +1254,8 @@ public partial class interactivebrokers : Exchange
             return false;
         }
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        object wait = (this.sum(lostTimestamp, regainDelay) - this.milliseconds());
-        if (isLessThanOrEqual(wait, 0))
+        Int64? wait = (this.sum(lostTimestamp, regainDelay) - this.milliseconds());
+        if ((wait == null || wait <= 0))
         {
             wait = regainDelay;
         }
