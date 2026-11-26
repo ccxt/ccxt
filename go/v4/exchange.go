@@ -679,8 +679,7 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("[ccxtError]::[%s]::[%s]", e.Type, e.Message)
 }
 
-func NewError(errType any, message ...any) error {
-	typeErr := ToString(errType)
+func NewError(errType string, message ...any) error {
 	msg := ""
 	stack := ""
 	if len(message) > 0 {
@@ -698,7 +697,7 @@ func NewError(errType any, message ...any) error {
 			stack = ToString(message[1])
 		}
 	}
-	return &Error{Type: ErrorType(string(typeErr)), Message: msg, Stack: stack}
+	return &Error{Type: ErrorType(errType), Message: msg, Stack: stack}
 }
 
 func Exception(v ...any) error {

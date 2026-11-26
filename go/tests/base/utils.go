@@ -64,7 +64,7 @@ func InvalidNonce(v ...any) error {
 }
 
 func Error(v ...any) error {
-	return ccxt.NewError(v)
+	return ccxt.NewError("Exception", v...)
 }
 
 func NetworkError(v ...any) error {
