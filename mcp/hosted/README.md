@@ -124,39 +124,66 @@ Every caller shares this server's IP addresses at each exchange. One abusive cli
 
 **Phase 2 seam.** `verifyBearer()` in `src/app.ts` is the one place a bearer token would become `AuthInfo`. In phase 1 it returns `undefined`, and an `Authorization` header is ignored. Everything downstream, from the factory and `ctx.http.authInfo` to the request scope, already carries it.
 
-## Deploy (Hetzner VM, Docker Compose, nginx)
+## Deploy (docs.ccxt.com machine, GitHub Actions, Docker Compose, nginx)
 
-**One-time setup on the VM** (Docker with the compose plugin; nginx already serves docs.ccxt.com):
+Deploys are automated by [`.github/workflows/deploy-mcp-hosted.yml`](../../.github/workflows/deploy-mcp-hosted.yml). It runs after the `MCP` workflow passes on master, and on demand.
+
+- It builds the image on the self-hosted `deploy` runner and pushes it to `ghcr.io/ccxt/ccxt-mcp-hosted:<short sha>`.
+- It copies this release's `docker-compose.yml` and `deploy/` to `/srv/ccxt-mcp-hosted/releases/<short sha>` on the machine, then runs [`deploy/remote-deploy.sh`](deploy/remote-deploy.sh) there over SSH.
+- It reaches the machine with the same repository secrets as the docs and playground deploys: `DOCS_DEPLOY_SSH_KEY`, `DOCS_DEPLOY_KNOWN_HOSTS`, `DOCS_DEPLOY_HOST`, `DOCS_DEPLOY_USER`. Nothing else is stored in GitHub.
+- Finally it checks that `https://docs.ccxt.com/mcp` reports the new build as its `serverInfo.version`.
+
+`remote-deploy.sh` switches without downtime, like the docs site's own deploy:
+
+1. It starts the new build as a second compose project (`ccxt-mcp-<port>`) on the spare loopback port, 8098 or 8099.
+2. It smoke-tests it there: `/readyz` turns 200, then MCP `initialize`, `tools/list` and one tool call.
+3. It installs the release's nginx files with the upstream pointing at the new port, runs `nginx -t` and reloads gracefully.
+4. It stops the old container, which drains its in-flight calls on SIGTERM.
+
+A failed smoke test removes the new container. A failed `nginx -t` restores the previous nginx files. In both cases the live build is untouched.
+
+**Rollback:** run the workflow by hand with `build_id` set to an earlier short sha. It redeploys that image from GHCR without building, using the current release's compose and nginx files. The machine keeps the last 5 release directories and 3 images.
+
+**One-time setup on the machine** (as root; Docker with the compose plugin, `apt-get install docker-compose-v2` on Ubuntu; nginx already serves docs.ccxt.com):
 
 ```bash
-# only mcp/ is needed: the image is built from mcp/, and ccxt comes from npm. A full clone
-# of the repository is several GB of history and generated code
-git clone --depth 1 --filter=blob:none --sparse https://github.com/ccxt/ccxt.git /srv/ccxt
-cd /srv/ccxt && git sparse-checkout set mcp && cd mcp/hosted
-cp .env.example .env && chmod 600 .env    # set EXCHANGES, OPENAI_APPS_CHALLENGE, POSTHOG_PROJECT_TOKEN, CLIENT_HASH_SECRET
-# secrets: generate them with `openssl rand -hex 32`. Compose expands $NAME in unquoted .env
-# values, so single-quote any value that contains a '$'
-sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env   # the deployed build
-docker compose build
-docker compose run --rm hosted node /app/check-exchanges.mjs   # reachability from THIS machine
-# drop every exchange the check reports as unreachable from EXCHANGES in .env, then:
-docker compose up -d
-curl -s http://127.0.0.1:8080/readyz | head -c 400
+install -d -m 700 /srv/ccxt-mcp-hosted
+# the server's secrets and settings; never in git. Start from .env.example in this folder.
+# Set EXCHANGES, POSTHOG_PROJECT_TOKEN, CLIENT_HASH_SECRET (openssl rand -hex 32) and, for
+# the OpenAI directory, OPENAI_APPS_CHALLENGE. BUILD_ID and HOST_PORT are managed by the deploy.
+# Compose expands $NAME in unquoted .env values: single-quote any value that contains a '$'
+install -m 600 /dev/null /srv/ccxt-mcp-hosted/.env && "${EDITOR:-vi}" /srv/ccxt-mcp-hosted/.env
+# once: let the docs site's HTTPS server block include the MCP locations, next to its own
+#   include snippets/ccxt-docs-locations.conf;
+#   include snippets/ccxt-mcp-locations.conf;
+# in /etc/nginx/sites-available/docs (the deploy installs the snippet and the http{} part)
 ```
 
-`BUILD_ID` lives in `.env`, not in the shell, so every compose command (an `.env` edit, a `run` of the reachability check, a rollback) uses the build that is deployed. Compose refuses to run without it.
+Before the first deploy, check which exchanges the machine can reach and drop the ones it cannot from `EXCHANGES`:
+
+```bash
+docker run --rm --env-file /srv/ccxt-mcp-hosted/.env ghcr.io/ccxt/ccxt-mcp-hosted:<short sha> node /app/check-exchanges.mjs
+```
+
+**By hand** (the same script, e.g. for a build you made on the machine with `docker compose build`, tagged `ccxt-mcp-hosted:<id>`):
+
+```bash
+IMAGE=ccxt-mcp-hosted BUILD_ID=<id> RELEASE_DIR=/srv/ccxt-mcp-hosted/releases/<id> bash /srv/ccxt-mcp-hosted/releases/<id>/deploy/remote-deploy.sh
+```
+
+`BUILD_ID` and the live port are recorded in `/srv/ccxt-mcp-hosted/.env` and `active-port`, and `current` links to the live release.
 
 **nginx** ([`deploy/nginx/`](deploy/nginx/)):
 
 - [`ccxt-mcp-http.conf`](deploy/nginx/ccxt-mcp-http.conf) goes in the `http {}` context (`/etc/nginx/conf.d/`): the upstream, the per-address `limit_conn` / `limit_req` zones (Anthropic's and OpenAI's egress ranges exempt: generated by `scripts/refresh-egress-ranges.mjs`, checked by `test/nginx.test.ts`), and the `ccxt_mcp` log format.
 - [`ccxt-mcp-locations.conf`](deploy/nginx/ccxt-mcp-locations.conf) goes inside the existing `server {}` for docs.ccxt.com (`include /etc/nginx/snippets/ccxt-mcp-locations.conf;`). Add `client_header_timeout 10s;` to that server block too.
-- Then run `nginx -t && systemctl reload nginx`. `test/nginx.test.ts` loads both files in a real nginx and exercises them (CI installs nginx for it).
+- The deploy installs both files, with the upstream port set to the live color, and runs `nginx -t` before every reload. `test/nginx.test.ts` loads both files in a real nginx and exercises them (CI installs nginx for it).
 - It proxies only `/mcp` and the two reserved `/.well-known` paths, with these settings:
   - responses unbuffered (`proxy_buffering off`, for SSE), requests buffered (`proxy_request_buffering on`, `client_body_timeout 10s`): a client trickling a body holds an nginx connection, never one of the app's;
   - at most 20 open connections and 10 requests/s (burst 40) per client address, 429 beyond — except from the Claude and ChatGPT egress ranges, which carry every user of those hosts and are budgeted by the app per host (or per ChatGPT user);
   - a 300 s read timeout, `Host` passed through, `X-Real-IP` overwritten with `$remote_addr`, a 256 KB body cap;
   - its own access log, `/var/log/nginx/ccxt-mcp.log`, in a format without the client address (the privacy text promises no IP addresses in logs); `$request_id` joins it to the app's lines;
-  - while the container is being recreated, a JSON-RPC 503 with `Retry-After: 5` instead of nginx's HTML 502.
+  - if the upstream is down, a JSON-RPC 503 with `Retry-After: 5` instead of nginx's HTML 502.
 - **Capacity.** Every `subscriptions/listen` stream holds two nginx connections for as long as the client keeps it, next to the docs site's traffic. Keep `worker_processes` × `worker_connections` comfortably above 2 × `MAX_SUBSCRIPTIONS` plus the docs load: e.g. `worker_connections 4096;` and `worker_rlimit_nofile 8192;` in `nginx.conf` (Ubuntu's stock 768 per worker is too small).
 - nginx's error log can still record a client address for a failed connection; rotate it accordingly.
 
@@ -172,29 +199,19 @@ claude mcp add --transport http ccxt https://docs.ccxt.com/mcp && claude mcp lis
 - read-only root filesystem, no tmpfs needed;
 - runs as the non-root `node` user, with all capabilities dropped and `no-new-privileges`;
 - 1.5 GB memory limit, `NODE_OPTIONS=--max-old-space-size=1024`;
-- `restart: unless-stopped`, plus the `autoheal` service, which restarts it when its health check fails (Docker itself never acts on an unhealthy status);
-- port bound to `127.0.0.1:8080` only (`HOST_PORT` in `.env` moves it when 8080 is taken on the machine; change the upstream in `ccxt-mcp-http.conf` to match, and use that port in the `curl` checks here).
+- `restart: unless-stopped`, plus one `autoheal` container (compose project `ccxt-mcp-autoheal`), which restarts it when its health check fails (Docker itself never acts on an unhealthy status);
+- port bound to loopback only: `127.0.0.1:${HOST_PORT:-8080}`. On the docs.ccxt.com machine the deploy alternates between 8098 and 8099 (8080 there belongs to the order router); `cat /srv/ccxt-mcp-hosted/active-port` shows the live one.
 
 The image is the single bundle on `node:22-bookworm-slim`, with no `node_modules` and no package managers (npm, npx, corepack and yarn are removed).
 
 ## Upgrading
 
-```bash
-cd /srv/ccxt && git pull --depth 1
-cd mcp/hosted && sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env && docker compose up -d --build
-docker compose logs --tail 20 hosted && curl -s http://127.0.0.1:8080/readyz | head -c 400
-```
+Merging to master is the upgrade: the workflow above builds and switches to the new build.
 
-- `docker compose up` sends SIGTERM to the old container. It then:
-  - stops accepting MCP requests (503 + `Retry-After: 5`, and `/readyz` reports `draining`);
-  - lets in-flight calls finish within `DRAIN_TIMEOUT_MS`;
-  - flushes telemetry, then exits 0.
-- `stop_grace_period` is 30 s.
-- The gap has two parts. From the old container's exit until the new one listens (about a second), nginx answers a JSON-RPC 503 with `Retry-After: 5`. After that, while the new container warms its markets (typically 2–10 s), calls are served and cold exchanges answer `EXCHANGE_WARMING` with `retryAfterSeconds`.
-- A zero-downtime switch needs a second container behind the same nginx upstream. That is not built.
-- **Rollback:** `sed -i 's/^BUILD_ID=.*/BUILD_ID=<previous sha>/' .env && docker compose up -d --no-build` (each build is kept as `ccxt-mcp-hosted:<sha>`).
-- **Old images:** each is about 380 MB. Keep the last few: `docker image ls ccxt-mcp-hosted --format '{{.Tag}}' | tail -n +4 | xargs -r -I{} docker image rm ccxt-mcp-hosted:{}` (the listing is newest first).
-- **New ccxt version:** `npm update ccxt` in `mcp/`, commit the lockfile, and rebuild.
+- **The old container drains.** On SIGTERM it stops accepting MCP requests (503 + `Retry-After: 5`, and `/readyz` reports `draining`), lets in-flight calls finish within `DRAIN_TIMEOUT_MS`, flushes telemetry and exits 0. `stop_grace_period` is 30 s. nginx has already moved to the new container by then, so callers see no gap.
+- **Live views reconnect on their own.** A view's next `live_update` poll lands on the new container, which opens its own streams; the old one closes its streams when it exits.
+- **Old images:** each is about 380 MB; the deploy keeps the last 3.
+- **New ccxt version:** `npm update ccxt` in `mcp/`, commit the lockfile, and merge.
 - **Changed views:** their URIs change by content hash on their own.
 
 ## Monitoring
@@ -208,7 +225,7 @@ Nothing in the container alerts anyone; an outage is otherwise reported by users
     -H 'accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' >/dev/null
   ```
 
-- **A readiness check on the VM** (cron, every minute): `curl -fsS http://127.0.0.1:8080/readyz >/dev/null || <alert>`. It catches an allowlist that is entirely `failed` and a draining or polluted process.
+- **A readiness check on the VM** (cron, every minute): `curl -fsS http://127.0.0.1:$(cat /srv/ccxt-mcp-hosted/active-port)/readyz >/dev/null || <alert>`. It catches an allowlist that is entirely `failed` and a draining or polluted process.
 - **Automatic restart** when the container health check fails: the `autoheal` service in `docker-compose.yml`. Without the Docker socket mount it needs, use a systemd timer that runs every minute: `[ "$(docker inspect -f '{{.State.Health.Status}}' ccxt-mcp-hosted-1)" = unhealthy ] && docker restart ccxt-mcp-hosted-1`.
 - **PostHog log alerts** on `breaker_open`, `markets load failed` and `uncaught exception`, and on `/readyz` reporting `telemetry.analytics` as `error`.
 
@@ -224,7 +241,7 @@ Nothing in the container alerts anyone; an outage is otherwise reported by users
 
 Lines are also mirrored to PostHog Logs when a token is set (see Telemetry). nginx's `$request_id` arrives as `X-Request-Id`, and the `ccxt_mcp` log format writes it to `/var/log/nginx/ccxt-mcp.log`, so nginx and app lines join on it. An incoming `X-Request-Id` is used only under the same rule as the client-IP headers (`TRUSTED_PROXY` set and a loopback or private peer); otherwise the server makes its own, because the id also becomes the analytics session id.
 
-**Readiness.** `curl -s 127.0.0.1:8080/readyz | jq`. Per exchange it shows:
+**Readiness.** `curl -s 127.0.0.1:$(cat /srv/ccxt-mcp-hosted/active-port)/readyz | jq`. Per exchange it shows:
 
 - `state`: `cold`, `loading`, `warm` or `failed`;
 - `markets`, `loadedAt` and the last `error`;

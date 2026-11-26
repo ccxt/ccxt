@@ -1,0 +1,151 @@
+name: Deploy hosted MCP
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('deploy {0}', inputs.build_id || github.sha) || github.event.workflow_run.head_commit.message }}
+
+# Builds the hosted CCXT MCP server (mcp/hosted) as a container and deploys it behind nginx
+# at https://docs.ccxt.com/mcp, on the same machine and with the same DOCS_DEPLOY_* secrets
+# as docs-fumadocs.yml and deploy-playground.yml: build image -> push to GHCR -> the machine
+# pulls it, smoke-tests it on the spare port, switches nginx, drains the old container
+# (mcp/hosted/deploy/remote-deploy.sh; no downtime, auto-abort on failure).
+#
+# Runs after the MCP workflow (tests, bundle smoke, docker smoke) passes on master, or by
+# hand. A manual run with build_id set redeploys an image already in GHCR: that is the
+# rollback, and it builds nothing.
+#
+# Secrets (repository, shared with the docs deploys): DOCS_DEPLOY_SSH_KEY,
+# DOCS_DEPLOY_KNOWN_HOSTS, DOCS_DEPLOY_HOST, DOCS_DEPLOY_USER (root, or a user that may run
+# docker and reload nginx). The server's own secrets (PostHog token, CLIENT_HASH_SECRET,
+# OPENAI_APPS_CHALLENGE) live only on the machine, in /srv/ccxt-mcp-hosted/.env (root-only),
+# never in GitHub. One-time machine setup: mcp/hosted/README.md, "Deploy".
+
+on:
+  workflow_run:
+    workflows: [ MCP ]
+    types: [ completed ]
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'Redeploy this existing image tag (a short commit sha) instead of building: the rollback. Empty = build and deploy the selected ref.'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-mcp-hosted
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    # only from the main repository, and after a workflow_run only when the tests passed on a push
+    if: >-
+      github.repository == 'ccxt/ccxt' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    runs-on: [ self-hosted, linux, x64, deploy ]          # amd64, the runner the docs deploys use
+    env:
+      IMAGE: ghcr.io/ccxt/ccxt-mcp-hosted
+      DEPLOY_DIR: /srv/ccxt-mcp-hosted
+      PUBLIC_URL: https://docs.ccxt.com/mcp
+      # the commit that passed the MCP workflow (workflow_run), or the ref picked by hand
+      REF: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      # the image is built from mcp/ (ts/ shared code + hosted/); ccxt comes from npm
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.REF }}
+          sparse-checkout: mcp
+
+      - name: Resolve the build id
+        id: build
+        env:
+          INPUT_BUILD_ID: ${{ inputs.build_id }}
+        run: |
+          if [ -n "${INPUT_BUILD_ID}" ]; then
+            [[ "${INPUT_BUILD_ID}" =~ ^[0-9a-f]{7,40}$ ]] || { echo "::error::build_id must be a commit sha"; exit 1; }
+            echo "id=${INPUT_BUILD_ID}" >> "$GITHUB_OUTPUT"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "id=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image
+        if: steps.build.outputs.build == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: mcp
+          file: mcp/hosted/Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            BUILD_ID=${{ steps.build.outputs.id }}
+          # the short sha is what the machine deploys and what the server reports as its
+          # version; the full sha tag ties the image to its commit
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.build.outputs.id }}
+            ${{ env.IMAGE }}:${{ env.REF }}
+
+      - name: Configure SSH (pinned host key)
+        env:
+          SSH_KEY: ${{ secrets.DOCS_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DOCS_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' > ~/.ssh/config
+
+      # this release's compose file, nginx files and deploy script go to
+      # $DEPLOY_DIR/releases/<build id>; the machine's .env stays where it is
+      - name: Ship the release files
+        env:
+          HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          BUILD_ID: ${{ steps.build.outputs.id }}
+        run: |
+          tar -cz -C mcp/hosted docker-compose.yml deploy \
+            | ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+                "set -e; mkdir -p '${DEPLOY_DIR}/releases/${BUILD_ID}' && tar -xz -C '${DEPLOY_DIR}/releases/${BUILD_ID}'"
+
+      - name: Deploy (canary on the spare port, switch nginx, drain the old one)
+        env:
+          HOST: ${{ secrets.DOCS_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DOCS_DEPLOY_USER }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_ID: ${{ steps.build.outputs.id }}
+        run: |
+          ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+            IMAGE="${IMAGE}" BUILD_ID="${BUILD_ID}" DEPLOY_DIR="${DEPLOY_DIR}" \
+            RELEASE_DIR="${DEPLOY_DIR}/releases/${BUILD_ID}" \
+            GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" \
+            "bash '${DEPLOY_DIR}/releases/${BUILD_ID}/deploy/remote-deploy.sh'"
+
+      # the public path end to end: DNS, TLS, nginx, the new container
+      - name: Check the public endpoint
+        env:
+          BUILD_ID: ${{ steps.build.outputs.id }}
+        run: |
+          body='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"deploy-check","version":"1"}}}'
+          for _ in 1 2 3 4 5; do
+            out=$(curl -sS --max-time 20 -X POST "$PUBLIC_URL" -H 'Content-Type: application/json' \
+              -H 'Accept: application/json, text/event-stream' -d "$body" || true)
+            if echo "$out" | grep -q "\"version\":\"${BUILD_ID}\""; then
+              echo "public endpoint serves ${BUILD_ID}"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::${PUBLIC_URL} does not report version ${BUILD_ID}: ${out:0:300}"
+          exit 1

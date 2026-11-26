@@ -16,7 +16,10 @@ services:
     # The deployed build lives in .env, not in the shell: with a "latest" fallback, any later
     # compose command run without BUILD_ID (an .env edit, check-exchanges) silently went
     # back to the first image ever built
-    image: ccxt-mcp-hosted:${BUILD_ID:?set BUILD_ID in .env (README, Deploy)}
+    # IMAGE: the registry repository on the machine (deploy/remote-deploy.sh pulls
+    # ghcr.io/ccxt/ccxt-mcp-hosted:<BUILD_ID>); a local `docker compose build` tags
+    # ccxt-mcp-hosted:<BUILD_ID>
+    image: ${IMAGE:-ccxt-mcp-hosted}:${BUILD_ID:?set BUILD_ID in .env (README, Deploy)}
     restart: unless-stopped
     labels:
       # the autoheal service below restarts this container when its HEALTHCHECK fails
