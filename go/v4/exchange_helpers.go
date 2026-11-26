@@ -3105,8 +3105,8 @@ func endpointValue[T any](raw any) T {
 
 // Fetch2Result relays the single Fetch2Async outcome unchanged in Raw/Err, adding its typed view.
 func Fetch2Result[T any](this interface {
-	Fetch2Async(path any, optionalArgs ...any) <-chan AsyncResult[any]
-}, path any, optionalArgs ...any) <-chan EndpointResult[T] {
+	Fetch2Async(path string, optionalArgs ...any) <-chan AsyncResult[any]
+}, path string, optionalArgs ...any) <-chan EndpointResult[T] {
 	out := make(chan EndpointResult[T], 1)
 	in := this.Fetch2Async(path, optionalArgs...)
 	go func() {

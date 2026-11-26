@@ -10299,7 +10299,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async fetchRestOrderBookSafe (symbol: any, limit: Int = undefined, params: Dict = {}): Promise<OrderBook | undefined> {
+    async fetchRestOrderBookSafe (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook | undefined> {
         const [ fetchSnapshotMaxRetries, fetchParams ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {

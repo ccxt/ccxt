@@ -2418,7 +2418,7 @@ func (this *Exchange) LoadOrderBookAsync(client ClientInterface, messageHash any
 	symbolKey, _ := symbol.(string)
 	if stored, exists := this.Orderbooks[symbolKey]; exists {
 		for tries < maxRetries.(int) {
-			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
+			fetched := <-this.FetchRestOrderBookSafeAsync(symbolKey, limit, params)
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}

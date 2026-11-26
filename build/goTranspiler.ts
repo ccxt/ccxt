@@ -5611,6 +5611,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable 
     [ [0,2,3], 'transfer' ],
     [ [0], 'selectNetworkKeyFromNetworks' ],
     [ [1], 'featuresMapper' ],
+    [ [0], 'fetch2 fetchRestOrderBookSafe isLeveragedCurrency' ],
 ]);
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {

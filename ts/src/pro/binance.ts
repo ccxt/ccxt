@@ -1015,7 +1015,7 @@ export default class binance extends binanceRest {
     }
 
     async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
-        const symbol = this.safeString (subscription, 'symbol', '');
+        const symbol: string = this.safeString (subscription, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
