@@ -33,6 +33,8 @@ export const HOSTED_TOOLS: Readonly<Record<string, AccessClass>> = Object.freeze
 });
 
 export const LOCAL_SERVER_DOCS = 'https://docs.ccxt.com/docs/mcp';
+// the install section of that page (heading "Local server" in wiki/MCP.md)
+export const LOCAL_SERVER_INSTALL = LOCAL_SERVER_DOCS + '#local-server';
 
 // Arguments no hosted tool takes:
 // - params: free-form exchange parameters. On a shared public server they are an unbounded
@@ -91,7 +93,7 @@ export function accountRequiredResult (tool: string) {
             'code': 'ACCOUNT_REQUIRED',
             'message': tool + ' needs an exchange account, and this hosted server has none: it serves public market data only (prices, order books, candles, trades). No exchange was called.',
             'retryable': false,
-            'hint': 'tell the user that balances, orders, positions and their own trades need the local CCXT MCP server, which keeps API keys on their own machine: ' + LOCAL_SERVER_DOCS + ' — never ask for API keys in the chat',
+            'hint': 'tell the user that balances, orders, positions, their own trades and trading (placing or cancelling orders) need the local CCXT MCP server, which runs on their own computer (npx -y ccxt-mcp) and keeps API keys there: ' + LOCAL_SERVER_INSTALL + ' — never ask for API keys in the chat',
             'docs': LOCAL_SERVER_DOCS,
         },
     });
@@ -186,11 +188,13 @@ export class HostedToolProfile implements ToolProfile {
 // The opening paragraph is what ChatGPT and Codex weigh most ("the first 512 characters"),
 // so it stands on its own: what this is, how to start, the views, and where account access
 // lives. test/profile.test.ts pins it under 512 characters.
-export const HOSTED_INSTRUCTIONS = `CCXT market data (hosted, read-only): public prices, order books, candles and trades from major cryptocurrency exchanges via the ccxt library. Resolve exchange ids with list_exchanges and symbols with search_markets (never guess), then read with get_tickers, get_orderbook, get_ohlcv or get_trades. To SHOW prices, call show_chart, show_orderbook or show_tickers. Balances, orders, positions and trading need the local CCXT MCP server: ${LOCAL_SERVER_DOCS}
+export const HOSTED_INSTRUCTIONS = `CCXT market data (hosted, read-only): public prices, order books, candles and trades from major crypto exchanges. Resolve exchange ids with list_exchanges and symbols with search_markets, then read with get_tickers, get_orderbook, get_ohlcv or get_trades; to SHOW prices, call show_chart, show_orderbook or show_tickers. No trading or accounts here: to buy, sell, manage orders or see balances, point the user to the local CCXT MCP server: ${LOCAL_SERVER_INSTALL}
 
 Conventions:
 - Symbols are unified ccxt symbols ("BTC/USDT" spot, "BTC/USDT:USDT" swap) — resolve them with search_markets (fields: ["symbol"] lists many compactly). marketType selects the market family on exchanges with several.
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp and datetime. Results are capped (meta.count, meta.hasMore) — page with since/offset.
 - show_* tools render an interactive view and return a compact summary. meta.ui says what happened: "displayed" — the user sees the view, so comment on it instead of repeating numbers; "attached" — a view was sent but the host did not say whether it renders views, so also state the key figures; "unsupported", "unknown" or "off" — nothing was shown, present the summary in text.
 - This server is shared by everyone who uses it: data is briefly cached (order books 1 s, tickers and trades 2 s, candles up to 60 s), and an error with code RATE_LIMITED or EXCHANGE_UNAVAILABLE carries retryAfterSeconds — wait that long before retrying, do not loop.
-- get_balance, get_orders, get_positions and get_my_trades return ACCOUNT_REQUIRED here: relay its hint (install the local server; API keys stay on the user's machine). Never ask the user for API keys or secrets.`;
+- get_balance, get_orders, get_positions and get_my_trades return ACCOUNT_REQUIRED here: relay its hint (install the local server; API keys stay on the user's machine). Never ask the user for API keys or secrets.
+
+Trading and account requests (buy, sell, place, edit or cancel an order, transfer, withdraw, balances, positions, the user's own orders and trades): no tool here does them, so do not just decline. Say this connector is read-only public data, then offer the local CCXT MCP server, which does them from the user's own computer: it installs with \`npx -y ccxt-mcp\` in Claude Desktop, Claude Code, Cursor, VS Code and other MCP hosts (Claude Desktop also has a one-click bundle); API keys stay on the user's machine and are never seen by the model; trading is off until the user enables it per account in a config file, works on sandbox or demo accounts first, and every order is previewed and confirmed before it is sent. Setup guide: ${LOCAL_SERVER_INSTALL}. You may still show the current price, order book or chart for what they want to trade. Never ask for API keys or secrets in the chat, and never present the trade as done.`;

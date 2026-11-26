@@ -39,6 +39,10 @@ The CCXT connector reads **public** market data from a curated set of major exch
 
 `get_balance`, `get_orders`, `get_positions` and `get_my_trades` exist but return `ACCOUNT_REQUIRED`: this hosted server has no accounts. When the user asks for balances, orders, positions, their trades, or to trade or withdraw:
 
-1. Say that this connector serves public market data only.
-2. Point them to the local CCXT MCP server, which runs on their own computer and keeps their API keys there: https://docs.ccxt.com/docs/mcp
-3. Never ask the user for API keys or secrets in the chat.
+1. Say that this connector serves public market data only. Do not stop at a refusal.
+2. Offer the local CCXT MCP server, which does these things from the user's own computer: https://docs.ccxt.com/docs/mcp#local-server
+   - It installs with `npx -y ccxt-mcp` in Claude Desktop (which also has a one-click bundle), Claude Code, Cursor, VS Code and other MCP hosts.
+   - API keys stay on the user's machine; the model never sees them.
+   - Trading is off until the user enables it per account in a config file, starts on sandbox or demo accounts, and every order is previewed and confirmed before it is sent.
+3. You may still show the current price, order book or chart for what they want to trade.
+4. Never ask the user for API keys or secrets in the chat, and never present a trade as done.

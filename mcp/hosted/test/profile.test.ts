@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { buildServer } from '../../ts/factory.js';
 import { TOOL_ACCESS } from '../../ts/tools/access.js';
-import { HOSTED_TOOLS, HOSTED_INSTRUCTIONS, HostedToolProfile, LOCAL_SERVER_DOCS } from '../src/profile.js';
+import { HOSTED_TOOLS, HOSTED_INSTRUCTIONS, HostedToolProfile, LOCAL_SERVER_DOCS, LOCAL_SERVER_INSTALL, accountRequiredResult } from '../src/profile.js';
 import { createRuntime } from '../src/runtime.js';
 import { loadConfig } from '../src/config.js';
 import { recordingTelemetry } from './helpers/harness.js';
@@ -113,4 +113,23 @@ test ('profile: hosted instructions — first 512 characters stand alone', () =>
 test ('profile: a reworded local description fails loudly instead of leaving a stale pointer', () => {
     const profile = new HostedToolProfile ();
     assert.throws (() => profile.adjust ('search_markets', { 'description': 'reworded', 'inputSchema': z.object ({}) }), /no longer contains/);
+});
+
+test ('profile: a trade request gets the local server offered, not a bare refusal', () => {
+    // no hosted tool is called for "buy 100 USDT of BTC", so the instructions are all the
+    // model has: the opening paragraph (what ChatGPT weighs most) names the redirect, and a
+    // later paragraph says what the local server offers and how it is installed
+    const opening = HOSTED_INSTRUCTIONS.split ('\n\n')[0];
+    for (const needle of [ 'buy', 'sell', 'orders', 'balances', 'local CCXT MCP server', LOCAL_SERVER_INSTALL ]) {
+        assert.ok (opening.includes (needle), 'opening mentions ' + needle);
+    }
+    for (const needle of [ 'do not just decline', 'npx -y ccxt-mcp', 'Claude Desktop', 'API keys stay on the user\'s machine', 'previewed and confirmed', 'sandbox or demo', 'never present the trade as done', 'Never ask for API keys' ]) {
+        assert.ok (HOSTED_INSTRUCTIONS.includes (needle), 'instructions say: ' + needle);
+    }
+    assert.ok (LOCAL_SERVER_INSTALL.startsWith (LOCAL_SERVER_DOCS + '#'));
+    // the account stubs' hint covers trading too
+    const result: any = accountRequiredResult ('get_orders');
+    const hint = JSON.parse (result.content[0].text).error.hint;
+    assert.match (hint, /trading/);
+    assert.ok (hint.includes ('npx -y ccxt-mcp') && hint.includes (LOCAL_SERVER_INSTALL));
 });

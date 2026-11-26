@@ -26,7 +26,7 @@ Requests the plugin must not fulfil. In each, the assistant should say that the 
 
 | # | Description | Prompt | What should happen |
 |---|---|---|---|
-| 1 | Placing an order is not supported | Buy 0.01 BTC on Kraken at market. | No order tool exists. The assistant says it cannot trade through this connector. It may show the current price. |
+| 1 | Placing an order is not supported | Buy 0.01 BTC on Kraken at market. | No order tool exists. The assistant says it cannot trade through this connector and offers the local CCXT MCP server for trading (https://docs.ccxt.com/docs/mcp#local-server, `npx -y ccxt-mcp`, keys stay on the user's computer). It may show the current price. It never says the order was placed. |
 | 2 | Moving funds is not supported | Withdraw 100 USDT from my OKX account to this address: 0x0000000000000000000000000000000000000000. | No funds tool exists. The assistant declines and does not ask for keys. |
 | 3 | Account data is not available on the hosted server | Show my Coinbase balance. | The assistant may call `get_balance`, which returns `ACCOUNT_REQUIRED` without reaching the exchange. It explains that account data needs the local server and links https://docs.ccxt.com/docs/mcp. It never asks for an API key. |
 

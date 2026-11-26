@@ -149,6 +149,12 @@ OpenAI documents no pre-review channel for policy questions. The realistic appro
    - the repo marketplace `.agents/plugins/marketplace.json` for Codex and the ChatGPT desktop app.
 5. **Never submit trading** (§5.2.b.6). Phase-2 account features in OpenAI need the §4.2.b question answered first.
 
+## Pointing trade requests to the local server (both directories)
+
+When a user asks the hosted connector to trade ("buy 100 USDT of BTC"), the server instructions, the account tools' `ACCOUNT_REQUIRED` hint and the plugin skill tell the assistant to say the connector is read-only and to offer the local CCXT MCP server, which can trade from the user's own computer. The hosted connector itself executes nothing.
+
+A reviewer may still read that redirect as facilitating trades: Anthropic excludes connectors that "transfer money, cryptocurrency, or other financial assets", and OpenAI §5.2.b.6 prohibits "execution of money transfers, crypto transfers, or investment trades". Include it in the policy questions above: ask whether naming the local server for trade requests is acceptable, or whether the listing must only say "this connector cannot trade". If it must, shorten the instructions' trading paragraph (`HOSTED_INSTRUCTIONS` in `src/profile.ts`) and the skill; the custom-connector and plugin installs outside the directories can keep the redirect.
+
 ## What stays possible without any listing
 
 - Claude: custom connector by URL, including the documented prefill link (all plans; one custom connector on Free).

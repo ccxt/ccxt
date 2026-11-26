@@ -135,7 +135,7 @@ else
     fail "nginx config invalid with this release: previous nginx files restored; live stays on ${CUR_PORT:-none}"
 fi
 rm -rf "$BACKUP"
-grep -rqs 'snippets/ccxt-mcp-locations.conf' /etc/nginx/sites-enabled/ || echo "::warning::no enabled nginx site includes snippets/ccxt-mcp-locations.conf: /mcp is not public (README, Deploy)"
+grep -Rqs 'snippets/ccxt-mcp-locations.conf' /etc/nginx/sites-enabled/ || echo "::warning::no enabled nginx site includes snippets/ccxt-mcp-locations.conf: /mcp is not public (README, Deploy)"
 
 # ---- stop the old build ----------------------------------------------------------------------
 # give nginx's old workers a moment to hand their last requests over, then SIGTERM: the app
