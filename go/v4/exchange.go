@@ -1436,13 +1436,15 @@ func (this *BaseExchange) GetCurrency(currencyId string) Currency {
 	if !ok {
 		return NewCurrency(nil)
 	}
-	return NewCurrency(currency)
+	row, _ := currency.(map[string]any)
+	return NewCurrency(row)
 }
 
 func (this *BaseExchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
 	for _, currency := range this.Currencies {
-		currencies = append(currencies, NewCurrency(currency))
+		row, _ := currency.(map[string]any)
+		currencies = append(currencies, NewCurrency(row))
 	}
 	return currencies
 }
