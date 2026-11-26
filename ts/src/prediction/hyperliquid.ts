@@ -1156,7 +1156,7 @@ export default class hyperliquid extends Exchange {
     }
 
     parseOutcomeInputSideHint (outcomeInput: string): Str {
-        if ((outcomeInput === undefined) || (outcomeInput === '')) {
+        if (outcomeInput === '') {
             return undefined;
         }
         const colonIndex = outcomeInput.indexOf (':');
