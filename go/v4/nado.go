@@ -2419,9 +2419,9 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		}
 		var tradingStatus *string = this.SafeString(market, "trading_status")
 		var active bool = (tradingStatus == nil || *tradingStatus != "not_tradable")
-		var priceIncrement any = this.ParseX18(this.SafeString(market, "price_increment_x18"))
-		var amountIncrement any = this.ParseX18(this.SafeString(market, "size_increment"))
-		var minCost any = this.ParseX18(this.SafeString(market, "min_size"))
+		var priceIncrement *float64 = this.ParseX18(this.SafeString(market, "price_increment_x18"))
+		var amountIncrement *float64 = this.ParseX18(this.SafeString(market, "size_increment"))
+		var minCost *float64 = this.ParseX18(this.SafeString(market, "min_size"))
 		var marketEntry map[string]any = map[string]any{
 			"id":             id,
 			"lowercaseId":    nil,
@@ -3628,7 +3628,7 @@ func (this *Nado) ParseTransaction(transaction map[string]any, optionalArgs ...a
 	var postSpotBalance, _ = postSpot["balance"].(map[string]any)
 	var preAmount *string = this.SafeString(preSpotBalance, "amount", "0")
 	var postAmount *string = this.SafeString(postSpotBalance, "amount", "0")
-	var amount any = this.ParseX18(Precise.StringAbs(Precise.StringSub(postAmount, preAmount)))
+	var amount *float64 = this.ParseX18(Precise.StringAbs(Precise.StringSub(postAmount, preAmount)))
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "submission_idx"),

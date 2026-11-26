@@ -3287,7 +3287,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	var requestType []any = []any{}
-	var requestParams any = paramsMarketType
+	var requestParams map[string]any = paramsMarketType
 	if marketType != nil && *marketType == "spot" {
 		isMargin, paramsIsMargin := this.HandleOptionBoolAndParams(paramsMarketType, "cancelAllOrders", "isMargin", false)
 		requestParams = paramsIsMargin

@@ -1636,9 +1636,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, s
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var typeValue *string = this.SafeString(params, "orderType", typeVar)
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeValue != nil && *typeValue == "market"), (typeValue != nil && *typeValue == "post"), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeValue != nil && *typeValue == "market"), (typeValue != nil && *typeValue == "post"), params)
 	if postOnly {
 		typeValueStr := "post"
 		typeValue = &typeValueStr

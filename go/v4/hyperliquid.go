@@ -6511,7 +6511,8 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 		var record any = records[i]
 		if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultDeposit" {
 			var delta map[string]any = SafeMapTyped(record, "delta")
-			if IsEqual(this.SafeString(delta, "vault", ""), "0x"+*vaultAddress) {
+			var deltaVault string = *this.SafeString(delta, "vault", "")
+			if deltaVault == "0x"+*vaultAddress {
 				deposits = append(deposits, record)
 			}
 		}
@@ -6606,7 +6607,8 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 		var record any = records[i]
 		if this.SafeString(record, "type") != nil && *this.SafeString(record, "type") == "vaultWithdraw" {
 			var delta map[string]any = SafeMapTyped(record, "delta")
-			if IsEqual(this.SafeString(delta, "vault", ""), "0x"+*vaultAddress) {
+			var deltaVault string = *this.SafeString(delta, "vault", "")
+			if deltaVault == "0x"+*vaultAddress {
 				withdrawals = append(withdrawals, record)
 			}
 		}
@@ -7088,16 +7090,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		requestBody = &jsonText
 	}
-	var literal533415 map[string]any = map[string]any{
+	var literal533615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal533415["body"] = *requestBody
+		literal533615["body"] = *requestBody
 	}
-	return literal533415
+	return literal533615
 }
 func (this *Hyperliquid) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

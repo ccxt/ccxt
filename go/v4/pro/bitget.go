@@ -750,9 +750,9 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	}
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe)
-	var channel any = ""
+	var channel string = ""
 	var market map[string]any = this.Market(symbol)
-	var messageHash any = ""
+	var messageHash string = ""
 	utaValue, _ := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
 	uta := &utaValue
 	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
@@ -777,18 +777,11 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		args["interval"] = interval
 		messageHash = "kline" + symbol
 	} else {
-		if interval != nil {
-			channel = "candle" + *interval
-		} else {
-			channel = nil
-		}
+		var intervalValue string = *this.SafeString(timeframes, timeframe, "")
+		channel = "candle" + intervalValue
 		args["channel"] = channel
 		args["instId"] = market["id"]
-		if interval != nil {
-			messageHash = "candles:" + *interval
-		} else {
-			messageHash = nil
-		}
+		messageHash = "candles:" + intervalValue
 	}
 
 	r1 := <-this.UnWatchChannelAsync(symbol, channel, messageHash, "watchOHLCV", paramsRequest)
@@ -1040,12 +1033,12 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) UnWatchChannelAsync(symbol string, channel any, messageHashTopic any, methodName string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitget) UnWatchChannelAsync(symbol string, channel string, messageHashTopic string, methodName string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchChannelBody(ch, symbol, channel, messageHashTopic, methodName, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol string, channel any, messageHashTopic any, methodName string, optionalArgs ...any) any {
+func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol string, channel string, messageHashTopic string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1059,7 +1052,7 @@ func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol st
 	}
 	var market map[string]any = this.Market(symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), marketSymbol))
+	var messageHash string = "unsubscribe:" + messageHashTopic + ":" + marketSymbol
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, methodName, "uta", false)
 	privateChannel, paramsPrivateChannel := this.HandleOptionBoolAndParams(paramsUta, methodName, "privateChannel", false)
 	instType, paramsInstType := this.GetInstType(methodName, market, uta, paramsPrivateChannel)
@@ -1075,7 +1068,7 @@ func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if uta {
 		args["topic"] = channel
 		args["symbol"] = market["id"]
-		if ccxt.IsEqual(channel, "kline") {
+		if channel == "kline" {
 			args["interval"] = this.SafeString(paramsInstType, "interval", "1m")
 		}
 	} else {
@@ -2665,7 +2658,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	var literal220531 map[string]any = map[string]any{
+	var literal220631 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2689,18 +2682,18 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"trades":             nil,
 	}
 	if totalAmount != nil {
-		literal220531["amount"] = *totalAmount
+		literal220631["amount"] = *totalAmount
 	}
 	if cost != nil {
-		literal220531["cost"] = *cost
+		literal220631["cost"] = *cost
 	}
 	if filledAmount != nil {
-		literal220531["filled"] = *filledAmount
+		literal220631["filled"] = *filledAmount
 	}
 	if remaining != nil {
-		literal220531["remaining"] = *remaining
+		literal220631["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal220531, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal220631, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3275,12 +3268,12 @@ func (this *Bitget) watchPublicBody(ch chan ccxt.AsyncResult[any], uta any, mess
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Bitget) UnWatchPublicAsync(uta any, messageHash any, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitget) UnWatchPublicAsync(uta any, messageHash string, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchPublicBody(ch, uta, messageHash, args, optionalArgs...)
 	return ch
 }
-func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], uta any, messageHash any, args map[string]any, optionalArgs ...any) any {
+func (this *Bitget) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], uta any, messageHash string, args map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

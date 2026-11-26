@@ -4606,10 +4606,9 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var duration int64 = this.ParseTimeframe(eachItemDuration) * 1000
 	var now int64 = this.Milliseconds()
 	var month int64 = (30 * 24) * 60 * 60 * 1000
-	var defaultSince int64 = now - month
 	var sinceResolved int64
 	if since == nil {
-		sinceResolved = defaultSince
+		sinceResolved = (now - month)
 	} else {
 		sinceResolved = *since
 	}
@@ -4771,11 +4770,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes345219 []any = r1.Value
-		if retRes345219 == nil {
+		var retRes345119 []any = r1.Value
+		if retRes345119 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes345219)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes345119)}
 		}
 		return nil
 	}

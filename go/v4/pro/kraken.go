@@ -139,9 +139,7 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 		orderParams["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
 	}
 	var isMarket bool = (typeVar == "market")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarket, false, params)
 	if postOnly {
 		orderParams["post_only"] = true
 	}

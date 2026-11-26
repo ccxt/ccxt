@@ -1593,8 +1593,8 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 func (this *Dydx) HashMessage(message any) string {
 	return this.HashString(message, keccak, "hex")
 }
-func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+func (this *Dydx) SignHash(hash any, privateKey string) map[string]any {
+	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r string = *this.SafeString(signature, "r", "")
 	var s string = *this.SafeString(signature, "s", "")
 	return map[string]any{
@@ -1628,7 +1628,7 @@ func (this *Dydx) SignOnboardingAction() any {
 	var signature map[string]any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
-func (this *Dydx) SignDydxTx(privateKey *string, message any, memo *string, chainId *string, account any, authenticators any, optionalArgs ...any) any {
+func (this *Dydx) SignDydxTx(privateKey string, message any, memo *string, chainId *string, account any, authenticators any, optionalArgs ...any) any {
 	var fee map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = fee
 	encodedTx, signDoc := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
@@ -2030,8 +2030,9 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var orderId *string = SafeStringPtr(orderRequestResSlot0)
 	orderRequest := orderRequestResSlot1
 	var chainName *string = this.SafeString(this.Options, "chainName")
+	var privateKey string = *this.SafeString(credentials, "privateKey", "")
 	argStr := ""
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), orderRequest, &argStr, chainName, account, nil)
+	var signedTx any = this.SignDydxTx(privateKey, orderRequest, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2188,8 +2189,9 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		"value":   cancelPayload,
 	}
 	var chainName *string = this.SafeString(this.Options, "chainName")
+	var privateKey string = *this.SafeString(credentials, "privateKey", "")
 	argStr := ""
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr, chainName, account, nil)
+	var signedTx any = this.SignDydxTx(privateKey, signingPayload, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2296,8 +2298,9 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		"value":   cancelPayload,
 	}
 	var chainName *string = this.SafeString(this.Options, "chainName")
+	var privateKey string = *this.SafeString(credentials, "privateKey", "")
 	argStr := ""
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr, chainName, account, nil)
+	var signedTx any = this.SignDydxTx(privateKey, signingPayload, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2685,8 +2688,9 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var txFee map[string]any = r2.Value
 	var chainName *string = this.SafeString(this.Options, "chainName")
+	var privateKey string = *this.SafeString(credentials, "privateKey", "")
 	argStr2 := ""
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr2, chainName, account, nil, txFee)
+	var signedTx any = this.SignDydxTx(privateKey, signingPayload, &argStr2, chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2940,7 +2944,8 @@ func (this *Dydx) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	}
 	var txFee map[string]any = r2.Value
 	var chainName *string = this.SafeString(this.Options, "chainName")
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)
+	var privateKey string = *this.SafeString(credentials, "privateKey", "")
+	var signedTx any = this.SignDydxTx(privateKey, signingPayload, tag, chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}

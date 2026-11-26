@@ -120,22 +120,14 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash strin
 	_ = params
 	var marketType *string = nil
 	var subType *string = nil
-	var url any = nil
+	var url *string = nil
 	var query map[string]any = nil
 	marketType, query = this.HandleMarketTypeAndParams(methodName, market, params)
 	subType, query = this.HandleSubTypeAndParams(methodName, market, query, "linear")
 	if marketType != nil && *marketType == "swap" {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], subType); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], subType)
 	} else {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], marketType); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], marketType)
 	}
 	var id string = this.Uuid()
 	var request map[string]any = map[string]any{

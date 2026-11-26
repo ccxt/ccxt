@@ -3554,9 +3554,7 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if isMarketBuy {
 		paramsWithoutCost = this.OmitDict(paramsMarginMode, "cost")
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
 	if postOnly {
 		timeInForceStr := "GTX"
 		timeInForce = &timeInForceStr
@@ -3616,9 +3614,7 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 		"origQty": this.AmountToPrecision(symbol, amount),
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), params)
 	if postOnly {
 		timeInForceStr := "GTX"
 		timeInForce = &timeInForceStr

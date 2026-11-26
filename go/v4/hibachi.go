@@ -2657,7 +2657,11 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsCapitalHistory []any = this.SafeListSlice(responseCapitalHistory, "transactions", []any{})
+	var rowsCapitalHistory []any
+	rowsCapitalHistory, _ = responseCapitalHistory["transactions"].([]any)
+	if rowsCapitalHistory == nil {
+		rowsCapitalHistory = []any{}
+	}
 	var responseTradingHistory map[string]any = promises[1]
 	//
 	// {
@@ -2685,7 +2689,11 @@ func (this *Hibachi) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//     ]
 	// }
 	//
-	var rowsTradingHistory []any = this.SafeListSlice(responseTradingHistory, "tradingHistory", []any{})
+	var rowsTradingHistory []any
+	rowsTradingHistory, _ = responseTradingHistory["tradingHistory"].([]any)
+	if rowsTradingHistory == nil {
+		rowsTradingHistory = []any{}
+	}
 	var rows []any = this.ArrayConcat(rowsCapitalHistory, rowsTradingHistory)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}

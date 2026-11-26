@@ -1197,20 +1197,16 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
-	var fetchFunctions []any = []any{this.FetchPositionsAsync()}
 
-	r := <-ccxt.PromiseAll(fetchFunctions)
+	r := <-this.FetchPositionsAsync()
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = r.Value
+	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache ccxt.WsArrayCache = this.Positions
-	for i := 0; i < len(promises); i++ {
-		var positions []any = ccxt.ArrayTyped(promises[i])
-		for ii := 0; ii < len(positions); ii++ {
-			cache.Append(positions[ii])
-		}
+	for i := 0; i < len(positions); i++ {
+		cache.Append(positions[i])
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.GetFutures()[messageHash]; ok {
@@ -1249,11 +1245,11 @@ func (this *Apex) HandlePositions(client ccxt.ClientInterface, lists []any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
-		listsDict87649, _ := lists[i].(map[string]any)
-		if listsDict87649 == nil {
-			listsDict87649 = map[string]any{}
+		listsDict87049, _ := lists[i].(map[string]any)
+		if listsDict87049 == nil {
+			listsDict87049 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(listsDict87649))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(listsDict87049))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later

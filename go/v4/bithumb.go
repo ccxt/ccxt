@@ -2134,9 +2134,7 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	} else {
 		paramsTimeInForce = this.OmitDict(params, "timeInForce")
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsTimeInForce)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), false, paramsTimeInForce)
 	var isPostOnly bool = postOnly || (timeInForce == "PO")
 	var paramsOrder map[string]any = paramsPostOnly
 	if isPostOnly {

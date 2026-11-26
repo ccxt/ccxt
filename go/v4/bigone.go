@@ -640,7 +640,8 @@ func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 	if *this.SafeBool(rawCurrency, "is_fiat", false) {
 		typeVar = "fiat"
 	} else if chainLength == 0 {
-		if this.IsLeveragedCurrency(id) {
+		var leveragedId string = *this.SafeString(rawCurrency, "symbol", "")
+		if this.IsLeveragedCurrency(leveragedId) {
 			typeVar = "leveraged"
 		} else {
 			typeVar = "other"
@@ -836,7 +837,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
-		var literal75151 map[string]any = map[string]any{
+		var literal75251 map[string]any = map[string]any{
 			"id":             marketId,
 			"symbol":         nil,
 			"base":           base,
@@ -885,9 +886,9 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			"info": contractMarkets[i],
 		}
 		if base != nil && quote != nil && settle != nil {
-			literal75151["symbol"] = *base + "/" + *quote + ":" + *settle
+			literal75251["symbol"] = *base + "/" + *quote + ":" + *settle
 		}
-		result = append(result, this.SafeMarketStructure(literal75151))
+		result = append(result, this.SafeMarketStructure(literal75251))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -1849,7 +1850,7 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		amount = this.SafeString(order, "amount")
 		filled = this.SafeString(order, "filled_amount")
 	}
-	var literal154331 map[string]any = map[string]any{
+	var literal154431 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1873,15 +1874,15 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"trades":             nil,
 	}
 	if amount != nil {
-		literal154331["amount"] = *amount
+		literal154431["amount"] = *amount
 	}
 	if cost != nil {
-		literal154331["cost"] = *cost
+		literal154431["cost"] = *cost
 	}
 	if filled != nil {
-		literal154331["filled"] = *filled
+		literal154431["filled"] = *filled
 	}
-	return this.SafeOrder(literal154331, market)
+	return this.SafeOrder(literal154431, market)
 }
 
 /**
@@ -1976,9 +1977,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
 	var postOnly bool
 	var query map[string]any = nil
-	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
-	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1].(map[string]any)
+	postOnly, query = this.HandlePostOnly((uppercaseType == "MARKET"), (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
@@ -2479,11 +2478,11 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes195415 []any = OrdersToList(r.Value)
-	if retRes195415 == nil {
+	var retRes195515 []any = OrdersToList(r.Value)
+	if retRes195515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195515)}
 	}
 	return nil
 }
@@ -2523,11 +2522,11 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes197215 []any = OrdersToList(r.Value)
-	if retRes197215 == nil {
+	var retRes197315 []any = OrdersToList(r.Value)
+	if retRes197315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197315)}
 	}
 	return nil
 }

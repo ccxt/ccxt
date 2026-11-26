@@ -1042,20 +1042,24 @@ func (this *Interactivebrokers) HandleOHLCV(client ccxt.ClientInterface, message
 	}
 	var data, _ = message["data"].([]any)
 	var bars []any = []any{}
-	var lastHistoryTimestamp any = nil
+	var lastHistoryTimestamp *int64 = nil
 	for i := 0; i < len(data); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i], market))
-		var timestamp any = ccxt.GetValue(parsed, 0)
-		if timestamp == nil {
+		if this.SafeInteger(parsed, 0) == nil {
 			continue
 		}
-		if ccxt.IsLessThan(timestamp, 100000000000) {
-			timestamp = ccxt.Multiply(timestamp, 1000) // seconds
+		var timestamp int64 = *this.SafeInteger(parsed, 0, 0)
+		if timestamp < 100000000000 {
+			timestamp = timestamp * 1000 // seconds
 			ccxt.AddElementToObject(parsed, 0, timestamp)
 		}
 		bars = append(bars, parsed)
-		if (lastHistoryTimestamp == nil) || (ccxt.IsGreaterThan(timestamp, lastHistoryTimestamp)) {
-			lastHistoryTimestamp = timestamp
+		if lastHistoryTimestamp == nil {
+			lastHistoryTimestampValue := timestamp
+			lastHistoryTimestamp = &lastHistoryTimestampValue
+		} else if lastHistoryTimestamp == nil || timestamp > *lastHistoryTimestamp {
+			lastHistoryTimestampValue2 := timestamp
+			lastHistoryTimestamp = &lastHistoryTimestampValue2
 		}
 	}
 	// the live candles built from smd before the history arrived are kept only when they are newer than the history
@@ -1644,9 +1648,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes103815 := r1.Value
+	retRes104015 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes103815.(type) {
+	switch resolvedBox := retRes104015.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1852,9 +1856,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes116615 := r1.Value
+	retRes116815 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes116615.(type) {
+	switch resolvedBox := retRes116815.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

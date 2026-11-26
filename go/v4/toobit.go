@@ -1747,7 +1747,7 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//
 	var rows []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ticker any = GetValue(response, i)
+		var ticker any = response[i]
 		var marketId *string = this.SafeString(ticker, "s")
 		if (marketId != nil) && (this.Markets_by_id != nil) {
 			if _, ok := this.Markets_by_id[*marketId]; ok {
@@ -2318,9 +2318,7 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsCost)
-	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
+	isPostOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), false, paramsCost)
 	if isPostOnly {
 		request["type"] = "LIMIT_MAKER"
 	} else {
@@ -2373,9 +2371,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["type"] = "LIMIT" // weird, but exchange works this way
 		request["priceType"] = "MARKET"
 	}
-	var isPostOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
-	var isPostOnly bool = isPostOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = isPostOnlyparamsPostOnlyVariable[1].(map[string]any)
+	isPostOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), false, paramsReduceOnly)
 	if isPostOnly {
 		request["timeInForce"] = "LIMIT_MAKER"
 	}

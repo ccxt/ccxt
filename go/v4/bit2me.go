@@ -1396,9 +1396,7 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	}
 	var query map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLimitPrice", "cost", "clientOrderId"})
 	var postOnly bool = false
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, false, query)
-	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1].(map[string]any)
+	postOnly, query = this.HandlePostOnly(isMarketOrder, false, query)
 	var timeInForce *string = this.SafeStringUpper(query, "timeInForce")
 	query = this.OmitDict(query, "timeInForce")
 	var request map[string]any = map[string]any{

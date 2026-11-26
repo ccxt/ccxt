@@ -1274,7 +1274,7 @@ func (this *Onetrading) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-ch
 func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1297,11 +1297,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
-	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
+	var timeframeId, _ = timeframes[timeframe].(map[string]any)
 	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv."+symbolValue+".", timeframe))
+	var messageHash string = "ohlcv." + symbolValue + "." + timeframe
 	var subscriptionHash string = "CANDLESTICKS"
 	var client ccxt.ClientInterface = nil
 	if url != nil {
@@ -1325,9 +1325,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		}
 	}
 	var marketTimeframes map[string]any = this.SafeDictMap(subscription, marketId, map[string]any{})
-	if timeframe != nil {
-		ccxt.AddElementToObject(marketTimeframes, timeframe, true)
-	}
+	marketTimeframes[timeframe] = true
 	subscription[marketId] = marketTimeframes
 	var properties []any = []any{}
 	var marketIds []string = nil

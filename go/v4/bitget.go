@@ -6362,10 +6362,10 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		}
 		response = r3.Value
 	}
-	var symbolsResolved any = symbols
+	var symbolsResolved []string = symbols
 	if isStock && (symbols == nil) {
 		// for returning only tokenized stock symbols
-		symbolsResolved = []any{}
+		symbolsResolved = []string{}
 		var allSymbols []string = this.Symbols
 		for i := 0; i < len(allSymbols); i++ {
 			var symbol string = allSymbols[i]
@@ -6374,7 +6374,7 @@ func (this *Bitget) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 			if isStockMarket != nil && *isStockMarket {
 				var marketSymbol *string = this.SafeString(entry, "symbol")
 				if marketSymbol != nil {
-					AppendToArray(&symbolsResolved, marketSymbol)
+					symbolsResolved = append(symbolsResolved, *marketSymbol)
 				}
 			}
 		}
@@ -8619,7 +8619,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 	}
 	var market map[string]any = this.Market(symbol)
 	var productType *string = nil
-	var paramsProductType any = nil
+	var paramsProductType map[string]any = nil
 	productType, paramsProductType = this.HandleProductTypeAndParams(market, params)
 	if productType != nil && *productType == "SPOT" {
 		var marginMode *string = nil
@@ -8638,12 +8638,12 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 	var clientOrderId *string = this.SafeString2(paramsProductType, "clientOid", "clientOrderId")
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
-		paramsProductType = this.Omit(paramsProductType, "clientOrderId")
+		paramsProductType = this.OmitDict(paramsProductType, "clientOrderId")
 	}
 	var stopLossTriggerPrice *float64 = this.SafeNumber(paramsProductType, "stopLossPrice")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber(paramsProductType, "takeProfitPrice")
-	var stopLoss map[string]any = SafeMapTyped(paramsProductType, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(paramsProductType, "takeProfit")
+	var stopLoss, _ = paramsProductType["stopLoss"].(map[string]any)
+	var takeProfit, _ = paramsProductType["takeProfit"].(map[string]any)
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var isStopLossTrigger bool = (stopLossTriggerPrice != nil)
@@ -8671,7 +8671,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 				request["tpOrderType"] = this.SafeString(paramsProductType, "tpOrderType", "market")
 			}
 		}
-		paramsProductType = this.Omit(paramsProductType, []any{"stopLossPrice", "takeProfitPrice"})
+		paramsProductType = this.OmitDict(paramsProductType, []any{"stopLossPrice", "takeProfitPrice"})
 	} else {
 		if hasStopLoss {
 			var slTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
@@ -8702,9 +8702,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 		request["orderType"] = typeVar
 		var exchangeSpecificTifParam *string = this.SafeString(paramsProductType, "timeInForce")
 		var postOnly bool
-		var postOnlyparamsProductTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsProductType)
-		postOnly = postOnlyparamsProductTypeVariable[0].(bool)
-		paramsProductType = postOnlyparamsProductTypeVariable[1]
+		postOnly, paramsProductType = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsProductType)
 		var timeInForce *string = nil
 		timeInForce, paramsProductType = this.HandleOptionStringAndParams(paramsProductType, "createOrder", "timeInForce")
 		if timeInForce != nil {
@@ -8743,7 +8741,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side 
 			request["posSide"] = posSide
 		}
 	}
-	paramsProductType = this.Omit(paramsProductType, []any{"stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"})
+	paramsProductType = this.OmitDict(paramsProductType, []any{"stopLoss", "takeProfit", "postOnly", "reduceOnly", "hedged"})
 	return this.Extend(request, paramsProductType)
 }
 func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
@@ -8760,7 +8758,7 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var market map[string]any = this.Market(symbol)
 	var marketType *string = nil
 	var marginMode *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarketType = this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	var request map[string]any = map[string]any{
@@ -8783,8 +8781,8 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var triggerPrice *float64 = this.SafeNumber2(paramsMarketType, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *float64 = this.SafeNumber(paramsMarketType, "stopLossPrice")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber(paramsMarketType, "takeProfitPrice")
-	var stopLoss map[string]any = SafeMapTyped(paramsMarketType, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(paramsMarketType, "takeProfit")
+	var stopLoss, _ = paramsMarketType["stopLoss"].(map[string]any)
+	var takeProfit, _ = paramsMarketType["takeProfit"].(map[string]any)
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
@@ -8813,9 +8811,7 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	var clientOrderId *string = this.SafeString2(paramsMarketType, "clientOid", "clientOrderId")
 	var exchangeSpecificTifParam *string = this.SafeString2(paramsMarketType, "force", "timeInForce")
 	var postOnly bool
-	var postOnlyparamsMarketTypeVariable []any = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsMarketType)
-	postOnly = postOnlyparamsMarketTypeVariable[0].(bool)
-	paramsMarketType = postOnlyparamsMarketTypeVariable[1]
+	postOnly, paramsMarketType = this.HandlePostOnly(isMarketOrder, (exchangeSpecificTifParam != nil && *exchangeSpecificTifParam == "post_only"), paramsMarketType)
 	var timeInForce *string = nil
 	timeInForce, paramsMarketType = this.HandleOptionStringAndParams(paramsMarketType, "createOrder", "timeInForce")
 	if timeInForce != nil {
@@ -8831,7 +8827,7 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	} else if timeInForce != nil && *timeInForce == "IOC" {
 		request["force"] = "IOC"
 	}
-	paramsMarketType = this.Omit(paramsMarketType, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"})
+	paramsMarketType = this.OmitDict(paramsMarketType, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"})
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 		request["marginCoin"] = market["settleId"]
 		request["size"] = this.AmountToPrecision(symbol, amount)
@@ -8969,7 +8965,7 @@ func (this *Bitget) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		if isMarketOrder && (side != nil && *side == "buy") {
 			planType = "total"
 			var cost *float64 = this.SafeNumber(paramsMarketType, "cost")
-			paramsMarketType = this.Omit(paramsMarketType, "cost")
+			paramsMarketType = this.OmitDict(paramsMarketType, "cost")
 			if cost != nil {
 				quantity = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {

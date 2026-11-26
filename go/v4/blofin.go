@@ -1943,9 +1943,7 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 		request[key] = this.PriceToPrecision(symbol, price)
 	}
 	var postOnly bool = false
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar != nil && *typeVar == "post_only"), query)
-	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1].(map[string]any)
+	postOnly, query = this.HandlePostOnly(isMarketOrder, (typeVar != nil && *typeVar == "post_only"), query)
 	if postOnly {
 		request["type"] = "post_only"
 	}

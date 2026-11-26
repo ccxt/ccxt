@@ -2315,7 +2315,11 @@ func (this *Coinbaseinternational) HandleMessage(client ccxt.ClientInterface, me
 			this.HandleAuthenticationMessage(client, message)
 			return
 		}
-		client.Resolve(this.SafeValue(message, "result", message), requestId)
+		if _, ok := message["result"]; ok {
+			client.Resolve(this.SafeValue(message, "result"), requestId)
+		} else {
+			client.Resolve(message, requestId)
+		}
 	}
 }
 func (this *Coinbaseinternational) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) {

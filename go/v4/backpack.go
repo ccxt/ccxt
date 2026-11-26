@@ -3724,9 +3724,7 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		request["clientId"] = clientOrderId
 		omitKeys = append(omitKeys, "clientOrderId")
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, this.Omit(query, omitKeys))
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar != nil && *typeVar == "market"), false, this.Omit(query, omitKeys))
 	if postOnly {
 		if paramsPostOnly != nil {
 			paramsPostOnly["postOnly"] = true

@@ -2224,15 +2224,11 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	var market map[string]any = this.Market(symbol)
 	messageHashStr := "unsubscribe:ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
-	var url any = nil
+	var url *string = nil
 	var channel string
 	if *this.SafeBool(market, "spot", false) {
 		channel = "spot@public.aggre.bookTicker.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "spot"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "spot")
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
@@ -2240,11 +2236,7 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "swap"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "swap")
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
@@ -2405,23 +2397,15 @@ func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "unsubscribe:candles:" + *this.SafeString(market, "symbol", "") + ":" + timeframe
-	var url any = nil
+	var url *string = nil
 	if *this.SafeBool(market, "spot", false) {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "spot"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "spot")
 		var spotTimeframeId string = *this.SafeString(timeframes, timeframe, "")
 		var channel string = "spot@public.kline.v3.api.pb@" + *this.SafeString(market, "id", "") + "@" + spotTimeframeId
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "swap"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "swap")
 		var channel string = "unsub.kline"
 		var requestParams map[string]any = map[string]any{
 			"symbol":   market["id"],
@@ -2463,13 +2447,9 @@ func (this *Mexc) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "unsubscribe:orderbook:" + *this.SafeString(market, "symbol", "")
-	var url any = nil
+	var url *string = nil
 	if *this.SafeBool(market, "spot", false) {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "spot"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "spot")
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
 		var channel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
 		if paramsFrequency != nil {
@@ -2477,11 +2457,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, paramsFrequency)
 	} else {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "swap"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "swap")
 		var channel string = "unsub.depth"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -2522,22 +2498,14 @@ func (this *Mexc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "unsubscribe:trades:" + *this.SafeString(market, "symbol", "")
-	var url any = nil
+	var url *string = nil
 	if *this.SafeBool(market, "spot", false) {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "spot"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "spot")
 		var channel string = "spot@public.aggre.deals.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {
-		if derefPtr := this.SafeString(this.UrlsApi["ws"], "swap"); derefPtr != nil {
-			url = *derefPtr
-		} else {
-			url = nil
-		}
+		url = this.SafeString(this.UrlsApi["ws"], "swap")
 		var channel string = "unsub.deal"
 		var requestParams map[string]any = map[string]any{
 			"symbol": market["id"],

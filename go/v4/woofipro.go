@@ -1097,9 +1097,11 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var tokenResponse map[string]any = tokenResponsechainResponseVariable[0]
 	var chainResponse map[string]any = tokenResponsechainResponseVariable[1]
 	var tokenData, _ = tokenResponse["data"].(map[string]any)
-	var tokenRows []any = SafeListTyped(tokenData, "rows")
+	var tokenRows []any
+	tokenRows, _ = tokenData["rows"].([]any)
 	var chainData, _ = chainResponse["data"].(map[string]any)
-	var chainRows []any = SafeListTyped(chainData, "rows")
+	var chainRows []any
+	chainRows, _ = chainData["rows"].([]any)
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; i < len(tokenRows); i++ {
 		var token any = tokenRows[i]

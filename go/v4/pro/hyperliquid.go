@@ -1971,21 +1971,21 @@ func (this *Hyperliquid) HandleBalance(client ccxt.ClientInterface, message map[
 	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
 		entry["info"] = info
 	}
-	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
-		if timestamp != nil {
-			entry["timestamp"] = *timestamp
-		} else {
-			entry["timestamp"] = nil
-		}
+	var accountEntry map[string]any
+	accountEntry, _ = this.Balance[account].(map[string]any)
+	if accountEntry == nil {
+		accountEntry = map[string]any{}
 	}
-	if entry, ok := this.Balance[account].(map[string]any); ok && (entry != nil) {
-		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-			entry["datetime"] = *ptrValue
-		} else {
-			entry["datetime"] = nil
-		}
+	if timestamp != nil {
+		accountEntry["timestamp"] = *timestamp
+	} else {
+		accountEntry["timestamp"] = nil
 	}
-	var accountEntry, _ = this.Balance[account].(map[string]any)
+	if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+		accountEntry["datetime"] = *ptrValue
+	} else {
+		accountEntry["datetime"] = nil
+	}
 	this.Balance[account] = this.SafeBalance(accountEntry)
 	if topic != nil {
 		var messageHash string = *topic + "::balance"

@@ -3405,10 +3405,10 @@ func (this *Pacifica) AddPaginationCursorToResult(response map[string]any) []any
 	var dataLength int = len(data)
 	if hasMore != nil && *hasMore {
 		if (paginationCursor != nil) && (dataLength > 0) {
-			AddElementToObject(data, 0, this.Extend(data[0], map[string]any{
+			data[0] = this.Extend(data[0], map[string]any{
 				"next_cursor": paginationCursor,
 				"has_more":    hasMore,
-			}))
+			})
 		}
 	}
 	return data

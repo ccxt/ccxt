@@ -24,7 +24,7 @@ func (this *Interactivebrokers) Describe() map[string]any {
 		"name":      "Interactive Brokers",
 		"countries": []any{"US"},
 		"version":   "v1",
-		"rateLimit": 100 * 1.2,
+		"rateLimit": 120,
 		"pro":       true,
 		"has": map[string]any{
 			"CORS":                           nil,
@@ -2024,8 +2024,7 @@ func (this *Interactivebrokers) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	var results []any = r.Value
 	var markets []any = this.ArraysConcat(results)
 
-	// toArray is the identity on a list, it types the result as a list for the statically typed ports
-	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.IbkrDisambiguateContractSymbols(markets)))}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.IbkrDisambiguateContractSymbols(markets))}
 	return nil
 }
 
@@ -3495,9 +3494,17 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	if isContract {
 		settleId = quoteId
 		settle = quote
-		symbol = Add(Add(symbol, ":"), settle)
+		if base != nil && quote != nil && settle != nil {
+			symbol = *base + "." + microNanoPrefix + *listingExchange + "/" + *quote + ":" + *settle
+		} else {
+			symbol = nil
+		}
 		if isFuture {
-			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+			if base != nil && quote != nil && settle != nil {
+				symbol = *base + "." + microNanoPrefix + *listingExchange + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry)
+			} else {
+				symbol = nil
+			}
 		}
 	}
 	var marketType string = "spot"
@@ -3506,7 +3513,7 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	var literal256841 map[string]any = map[string]any{
+	var literal256741 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"quote":          quote,
@@ -3554,16 +3561,16 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if isContract {
-		literal256841["linear"] = true
+		literal256741["linear"] = true
 	} else {
-		literal256841["linear"] = nil
+		literal256741["linear"] = nil
 	}
 	if isContract {
-		literal256841["inverse"] = false
+		literal256741["inverse"] = false
 	} else {
-		literal256841["inverse"] = nil
+		literal256741["inverse"] = nil
 	}
-	return this.SafeMarketStructure(literal256841)
+	return this.SafeMarketStructure(literal256741)
 }
 
 /**
@@ -4602,16 +4609,12 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var result any = nil
-	if r3.Value != nil {
-		result = r3.Value
-	}
+	var result map[string]any = r3.Value
 
 	//
 	//     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
 	//
-	resultMap333732, _ := result.(map[string]any)
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(resultMap333732, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
 }
 func (this *Interactivebrokers) CreateTestOrderAsync(symbol string, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -4914,12 +4917,8 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var result any = nil
-	if r3.Value != nil {
-		result = r3.Value
-	}
-	resultMap353739, _ := result.(map[string]any)
-	var order map[string]any = OrderToMap(this.ParseOrder(resultMap353739, market))
+	var result map[string]any = r3.Value
+	var order map[string]any = OrderToMap(this.ParseOrder(result, market))
 	order["type"] = typeVar
 	order["side"] = side
 	order["amount"] = *amount
@@ -6132,11 +6131,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict432449, _ := positions[i].(map[string]any)
-		if positionsDict432449 == nil {
-			positionsDict432449 = map[string]any{}
+		positionsDict432349, _ := positions[i].(map[string]any)
+		if positionsDict432349 == nil {
+			positionsDict432349 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432449, market))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432349, market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}

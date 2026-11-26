@@ -2294,11 +2294,11 @@ func (this *Bittrade) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 	var feeCost *string = this.SafeString2(order, "filled-fees", "field-fees")            // typo in their API, filled fees
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var feeCurrency any = nil
+		var feeCurrency *string = nil
 		if side != nil && *side == "sell" {
-			feeCurrency = marketResolved["quote"]
+			feeCurrency = this.SafeString(marketResolved, "quote")
 		} else {
-			feeCurrency = marketResolved["base"]
+			feeCurrency = this.SafeString(marketResolved, "base")
 		}
 		fee = map[string]any{
 			"cost":     feeCost,

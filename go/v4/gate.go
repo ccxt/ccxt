@@ -3079,7 +3079,8 @@ func (this *Gate) ParseCurrency(rawCurrency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	// check leveraged tokens (e.g. BTC3S, ETH5L)
 	var typeVar string = "crypto"
-	if this.IsLeveragedCurrency(currencyId) {
+	var leveragedId string = *this.SafeString(rawCurrency, "currency", "")
+	if this.IsLeveragedCurrency(leveragedId) {
 		typeVar = "leveraged"
 	}
 	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "chains")
@@ -3535,14 +3536,10 @@ func (this *Gate) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], c
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var chainsIndexedByIdRaw any = nil
-	if !StructAbsent(r1.Value) {
-		chainsIndexedByIdRaw = StructBox(r1.Value, DepositAddressMapToMap)
-	}
-	var chainsIndexedById any = chainsIndexedByIdRaw
-	var selectedNetworkIdOrCode any = this.SelectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true)
+	var chainsIndexedByIdRaw map[string]any = StructResultMap(r1.Value, DepositAddressMapToMap)
+	var selectedNetworkIdOrCode any = this.SelectNetworkKeyFromNetworks(code, networkCode, chainsIndexedByIdRaw, true)
 
-	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(chainsIndexedById, selectedNetworkIdOrCode))}
+	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(chainsIndexedByIdRaw, selectedNetworkIdOrCode))}
 	return nil
 }
 func (this *Gate) ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress {
@@ -6583,9 +6580,7 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var exchangeSpecificTimeInForce *string = this.SafeStringLowerN(params, []any{"timeInForce", "tif", "time_in_force"})
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (exchangeSpecificTimeInForce != nil && *exchangeSpecificTimeInForce == "poc"), params)
 	var timeInForce *string = this.HandleTimeInForce(paramsPostOnly)
 	if postOnly {
 		timeInForceValue := "poc"
@@ -7790,14 +7785,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status *string, optionalArgs ...a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var triggerPtr *bool = nil
-	triggerPtr, paramsTrigger := this.HandleParamBool2(params, "trigger", "stop")
-	trigger := func() any {
-		if triggerPtr != nil {
-			return *triggerPtr
-		}
-		return nil
-	}()
+	trigger, paramsTrigger := this.HandleParamBool2(params, "trigger", "stop")
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsTrigger)
 	var spot bool = (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")
 	var request map[string]any = map[string]any{}
@@ -7807,7 +7795,7 @@ func (this *Gate) PrepareOrdersByStatusRequest(status *string, optionalArgs ...a
 	} else {
 		request, query = this.PrepareRequest(market, typeVar, paramsMarketType)
 	}
-	if spot && (trigger == true) {
+	if spot && (trigger != nil && *trigger == true) {
 		request = this.OmitDict(request, "account")
 	}
 	var requestStatus *string = status
@@ -8359,7 +8347,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	if market == nil {
 		defaultSettle = "usdt"
 	} else {
-		defaultSettle = market["settle"]
+		if derefPtr := this.SafeString(market, "settle"); derefPtr != nil {
+			defaultSettle = *derefPtr
+		} else {
+			defaultSettle = nil
+		}
 	}
 	var settle *string = this.SafeStringLower(params, "settle", defaultSettle)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("cancelOrders", market, params)

@@ -2576,9 +2576,7 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"tradingAccountId": tradingAccountId,
 	}
 	var isMarketOrder bool = ((typeVar == "market") || (typeVar == "MARKET"))
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, (typeVar == "POST_ONLY"), params)
 	var orderType string = typeVar
 	if postOnly {
 		orderType = "POST_ONLY"

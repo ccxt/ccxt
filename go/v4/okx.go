@@ -4838,9 +4838,7 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side string, 
 		request["tdMode"] = marginMode
 	}
 	var isMarketOrder bool = (typeVar == "market")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeVar == "post_only"), paramsReduceOnly)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, (typeVar == "post_only"), paramsReduceOnly)
 	var orderParams any = this.Omit(paramsPostOnly, []any{"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"})
 	var ioc bool = (timeInForce == "IOC") || (typeVar == "ioc")
 	var fok bool = (timeInForce == "FOK") || (typeVar == "fok")

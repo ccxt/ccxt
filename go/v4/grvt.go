@@ -905,7 +905,8 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 	// }
 	//
 	var currentBuilders map[string]any = results[0]
-	var approvedBuilder []any = SafeListTyped(currentBuilders, "results")
+	var approvedBuilder []any
+	approvedBuilder, _ = currentBuilders["results"].([]any)
 	var length int = len(approvedBuilder)
 	var found bool = false
 	var builderId *string = this.SafeString(this.Options, "builder")
@@ -2469,13 +2470,13 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ToArray(this.SafeList(this.FilterTransfersByType(transfers, "internal", false), 1, []any{})))}
 	return nil
 }
-func (this *Grvt) FilterTransfersByType(transfers any, transferType string, optionalArgs ...any) []any {
+func (this *Grvt) FilterTransfersByType(transfers []any, transferType string, optionalArgs ...any) []any {
 	var onlyMainAccount bool = GetArgBool(optionalArgs, 0, true)
 	_ = onlyMainAccount
 	var matchedResults []any = []any{}
 	var nonMatchedResults []any = []any{}
-	for i := 0; i < GetArrayLength(transfers); i++ {
-		var transfer any = GetValue(transfers, i)
+	for i := 0; i < len(transfers); i++ {
+		var transfer any = transfers[i]
 		var fromAccount string = *this.SafeString(transfer, "fromAccount", "")
 		var toAccount string = *this.SafeString(transfer, "toAccount", "")
 		if ((onlyMainAccount == true) && (fromAccount == "0") && (toAccount == "0")) || (!(onlyMainAccount == true) && ((fromAccount != "0") || (toAccount != "0"))) {

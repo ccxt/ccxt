@@ -3766,7 +3766,7 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		var first map[string]any = this.Extend(orders[0], map[string]any{
 			"next": paginationCursor,
 		})
-		AddElementToObject(orders, 0, first)
+		orders[0] = first
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -4796,12 +4796,12 @@ func (this *Paradex) ParseTransaction(transaction map[string]any, optionalArgs .
 		"fee":         nil,
 	})
 }
-func (this *Paradex) FilterTransactionsByKind(transactions any, kind string) any {
+func (this *Paradex) FilterTransactionsByKind(transactions []any, kind string) any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(transactions); i++ {
-		var info map[string]any = SafeMapTyped(GetValue(transactions, i), "info")
+	for i := 0; i < len(transactions); i++ {
+		var info map[string]any = SafeMapTyped(transactions[i], "info")
 		if this.SafeString(info, "kind") != nil && *this.SafeString(info, "kind") == kind {
-			result = append(result, GetValue(transactions, i))
+			result = append(result, transactions[i])
 		}
 	}
 	return result
@@ -4914,7 +4914,7 @@ func (this *Paradex) SetMarginModeAsync(marginMode string, optionalArgs ...any) 
 func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -4936,8 +4936,9 @@ func (this *Paradex) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	var leverage any = leverageOption
 	if leverage == nil {
 		// the endpoint always sets the leverage too, keep the current one instead of resetting it
+		var leverageSymbol string = market.Symbol
 
-		r2 := <-this.FetchLeverageAsync(StringArg(symbol))
+		r2 := <-this.FetchLeverageAsync(leverageSymbol)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -5024,14 +5025,14 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 	var configs []any
 	configs, _ = response["configs"].([]any)
 
-	var configsDict348635 map[string]any
+	var configsDict348735 map[string]any
 	if len(configs) > 0 {
-		configsDict348635, _ = configs[0].(map[string]any)
+		configsDict348735, _ = configs[0].(map[string]any)
 	}
-	if configsDict348635 == nil {
-		configsDict348635 = map[string]any{}
+	if configsDict348735 == nil {
+		configsDict348735 = map[string]any{}
 	}
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(configsDict348635, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(configsDict348735, market)}
 	return nil
 }
 func (this *Paradex) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
@@ -5479,11 +5480,11 @@ func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 			var market map[string]any = this.SafeMarket(marketId)
 			if market["option"] == true {
 				var optionSymbol string = *this.SafeString(market, "symbol", "")
-				dataDict380061, _ := data[i].(map[string]any)
-				if dataDict380061 == nil {
-					dataDict380061 = map[string]any{}
+				dataDict380161, _ := data[i].(map[string]any)
+				if dataDict380161 == nil {
+					dataDict380161 = map[string]any{}
 				}
-				result[optionSymbol] = OptionToMap(this.ParseOption(dataDict380061, nil, market))
+				result[optionSymbol] = OptionToMap(this.ParseOption(dataDict380161, nil, market))
 			}
 		}
 	}
@@ -5601,11 +5602,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388519 []any = r2.Value
-		if retRes388519 == nil {
+		var retRes388619 []any = r2.Value
+		if retRes388619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
 		}
 		return nil
 	}

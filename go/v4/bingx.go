@@ -4359,9 +4359,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		request[exchangeClientOrderId] = clientOrderId
 	}
 	var timeInForce *string = this.SafeStringUpper(paramsMarketType, "timeInForce")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), paramsMarketType)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), paramsMarketType)
 	if (postOnly) || (timeInForce != nil && *timeInForce == "PostOnly") {
 		request["timeInForce"] = "PostOnly"
 	} else if timeInForce != nil && *timeInForce == "IOC" {

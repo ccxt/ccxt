@@ -767,8 +767,8 @@ func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet *string, proxyUr
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy"))
 	}
 }
-func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
-	address := GetArg(optionalArgs, 0, nil)
+func (this *BaseExchange) CheckAddress(optionalArgs ...any) *string {
+	var address *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = address
 	code := GetArg(optionalArgs, 1, nil)
 	_ = code
@@ -780,8 +780,8 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	// check the address is not the same letter like 'aaaaa' nor too short nor has a space
 	var uniqChars any = (this.Unique(this.StringToCharsArray(address)))
 	var length int = GetArrayLength(uniqChars) // py transpiler trick
-	if (length == 1) || (GetLength(address) < this.MinFundingAddressLength) || (GetIndexOf(address, " ") > -1) {
-		panic(InvalidAddress(this.Id + " address is invalid or has less than " + strconv.Itoa(this.MinFundingAddressLength) + " characters: \"" + ToString(address) + "\""))
+	if (length == 1) || (len(*address) < this.MinFundingAddressLength) || (address != nil && strings.Index(*address, " ") > -1) {
+		panic(InvalidAddress(this.Id + " address is invalid or has less than " + strconv.Itoa(this.MinFundingAddressLength) + " characters: \"" + *address + "\""))
 	}
 	if code != nil {
 		var tagRequiredCurrencies any = this.SafeList(this.Options, "withdrawTagRequiredCurrencies", []any{})
@@ -2069,7 +2069,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 	 * @returns {object} returns feature value
 	 */
 	// if exchange does not yet have features manually implemented
-	methodName := GetArg(optionalArgs, 0, nil)
+	var methodName *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = methodName
 	var paramName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = paramName
@@ -2085,7 +2085,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 	if _, ok := this.Features[marketType]; !ok {
 		return defaultValue // unsupported marketType, check "exchange.features" for details
 	}
-	var methodsContainer any = this.SafeDict(this.Features, marketType)
+	var methodsContainer, _ = this.Features[marketType].(map[string]any)
 	// if marketType dict undefined
 	if methodsContainer == nil {
 		return defaultValue
@@ -2095,10 +2095,14 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 			return defaultValue // subType is required for non-spot markets
 		}
 	} else {
-		if !(InOp(methodsContainer, subType)) {
+		var has2 bool
+		if subType != nil {
+			_, has2 = methodsContainer[*subType]
+		}
+		if !has2 {
 			return defaultValue // unsupported subType, check "exchange.features" for details
 		}
-		methodsContainer = this.SafeDict(methodsContainer, subType)
+		methodsContainer, _ = methodsContainer[*subType].(map[string]any)
 		// if subType dict undefined
 		if methodsContainer == nil {
 			return defaultValue
@@ -2111,7 +2115,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 		}
 		return methodsContainer
 	}
-	if !(InOp(methodsContainer, methodName)) {
+	if _, ok := methodsContainer[*methodName]; !ok {
 		return defaultValue // unsupported method, check "exchange.features" for details');
 	}
 	// if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
@@ -2119,29 +2123,29 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 		if defaultValue != nil {
 			return defaultValue
 		}
-		return GetValue(methodsContainer, methodName)
+		return methodsContainer[*methodName]
 	}
-	var methodDict any = this.SafeDict(methodsContainer, methodName)
+	var methodDict, _ = methodsContainer[*methodName].(map[string]any)
 	if methodDict == nil {
 		return defaultValue
 	}
 	var splited []string = strings.Split(*paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
 	var parentKey *string = &splited[0]
 	var subKey *string = this.SafeString(splited, 1)
-	if !(InOp(methodDict, parentKey)) {
+	if _, ok := methodDict[*parentKey]; !ok {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
 	}
-	var dictionary map[string]any = SafeMapTyped(methodDict, parentKey)
+	var dictionary, _ = methodDict[*parentKey].(map[string]any)
 	if dictionary == nil {
 		// if the value is not dictionary but a scalar value (or undefined), return as is
-		return GetValue(methodDict, parentKey)
+		return methodDict[*parentKey]
 	} else {
 		// return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
 		if subKey == nil {
-			return GetValue(methodDict, parentKey)
+			return methodDict[*parentKey]
 		}
 		// throw an exception for unsupported subKey
-		if !(InOp(GetValue(methodDict, parentKey), subKey)) {
+		if !(InOp(methodDict[*parentKey], subKey)) {
 			return defaultValue // unsupported subKey, check "exchange.features" for details
 		}
 		return this.SafeValue(dictionary, subKey)
@@ -4080,7 +4084,7 @@ func (this *BaseExchange) HandleNetworkCodeAndParams(params any) (*string, map[s
 	// if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
 	return networkCodeInParams, MapTyped(paramsOmitted)
 }
-func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, networkCode *string, indexedNetworkEntries any, optionalArgs ...any) any {
+func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode string, networkCode *string, indexedNetworkEntries any, optionalArgs ...any) any {
 	// this method is used against raw & unparse network entries, which are just indexed by network id
 	var isIndexedByUnifiedNetworkCode bool = GetArgBool(optionalArgs, 0, false)
 	_ = isIndexedByUnifiedNetworkCode
@@ -4089,7 +4093,7 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 	var responseNetworksLength int = len(availableNetworkIds)
 	if networkCode != nil {
 		if responseNetworksLength == 0 {
-			panic(NotSupported(Add(this.Id+" - "+*networkCode+" network did not return any result for ", currencyCode)))
+			panic(NotSupported(this.Id + " - " + *networkCode + " network did not return any result for " + currencyCode))
 		} else {
 			// if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
 			var networkIdOrCode *string
@@ -4099,17 +4103,17 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 				networkIdOrCode = this.NetworkCodeToId(networkCode, currencyCode)
 			}
 			if networkIdOrCode == nil {
-				panic(NotSupported(Add(this.Id+" - "+*networkCode+" network was not found for ", currencyCode)))
+				panic(NotSupported(this.Id + " - " + *networkCode + " network was not found for " + currencyCode))
 			}
 			if InOp(indexedNetworkEntries, networkIdOrCode) {
 				chosenNetworkId = networkIdOrCode
 			} else {
-				panic(NotSupported(Add(Add(Add(this.Id+" - "+*networkIdOrCode+" network was not found for ", currencyCode), ", use one of "), strings.Join(availableNetworkIds, ", "))))
+				panic(NotSupported(this.Id + " - " + *networkIdOrCode + " network was not found for " + currencyCode + ", use one of " + strings.Join(availableNetworkIds, ", ")))
 			}
 		}
 	} else {
 		if responseNetworksLength == 0 {
-			panic(NotSupported(Add(this.Id+" - no networks were returned for ", currencyCode)))
+			panic(NotSupported(this.Id + " - no networks were returned for " + currencyCode))
 		} else {
 			// if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
 			var defaultNetworkCode *string = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), currencyCode, this.SafeString(this.Options, "defaultNetwork"))
@@ -4864,15 +4868,15 @@ func (this *BaseExchange) Symbol(symbol any) string {
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleParamString(params any, paramName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *BaseExchange) HandleParamString(params map[string]any, paramName any, optionalArgs ...any) (*string, map[string]any) {
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString(params, paramName, defaultValue)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if value != nil {
-		paramsOmitted = this.Omit(params, paramName)
+		paramsOmitted = this.OmitDict(params, paramName)
 	}
-	return value, MapTyped(paramsOmitted)
+	return value, paramsOmitted
 }
 
 /* eslint-disable no-unused-vars */
@@ -5246,8 +5250,8 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	for i := 0; int64(i) < oldest; i++ {
 		var trade map[string]any = SafeMapTyped(trades, i)
 		var ts *int64 = this.SafeInteger(trade, "timestamp")
-		var price any = trade["price"]
-		if (ts == nil) || (IsEqual(price, nil)) {
+		var price *float64 = this.SafeNumber(trade, "price")
+		if (ts == nil) || (price == nil) {
 			continue
 		}
 		if *ts < since {
@@ -5262,10 +5266,10 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		}
 		var ohlcv_length int = len(ohlcvs)
 		var candle int64 = int64(ohlcv_length) - 1
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(this.Id + " buildOHLCVC() requires a price argument"))
 		}
-		if (skipZeroPrices != nil && *skipZeroPrices) && !(IsGreaterThan(price, 0)) && !(IsLessThan(price, 0)) {
+		if (skipZeroPrices != nil && *skipZeroPrices) && !(price != nil && *price > 0) && !(!(*price >= 0)) {
 			continue
 		}
 		var isNewCandle bool = (candle == -1)
@@ -7332,7 +7336,7 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder bool, exchangeSpecificParam a
 		return false
 	}
 }
-func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPostOnlyOption bool, optionalArgs ...any) []any {
+func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPostOnlyOption bool, optionalArgs ...any) (bool, map[string]any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7361,10 +7365,10 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder bool, exchangeSpecificPos
 				keysToOmit = []any{"postOnly"}
 			}
 			var paramsOmitted map[string]any = this.OmitDict(params, keysToOmit)
-			return []any{true, paramsOmitted}
+			return true, paramsOmitted
 		}
 	}
-	return []any{false, params}
+	return false, params
 }
 func (this *BaseExchange) FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice] {
 	ch := make(chan AsyncResult[map[string]LastPrice], 1)

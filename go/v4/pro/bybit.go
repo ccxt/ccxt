@@ -2406,27 +2406,31 @@ func (this *Bybit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
-	var fetchFunctions []any = []any{this.FetchPositionsAsync(nil, map[string]any{
+
+	r := <-this.FetchPositionsAsync(nil, map[string]any{
 		"type":    "swap",
 		"subType": "linear",
-	}), this.FetchPositionsAsync(nil, map[string]any{
-		"type":    "swap",
-		"subType": "inverse",
-	})}
-
-	r := <-ccxt.PromiseAll(fetchFunctions)
+	})
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var promises []any = r.Value
+	var linearPositions []any = ccxt.PositionsToList(r.Value)
+
+	r1 := <-this.FetchPositionsAsync(nil, map[string]any{
+		"type":    "swap",
+		"subType": "inverse",
+	})
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var inversePositions []any = ccxt.PositionsToList(r1.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	var cache ccxt.WsArrayCache = this.Positions
-	for i := 0; i < len(promises); i++ {
-		var positions []any = ccxt.ArrayTyped(promises[i])
-		for ii := 0; ii < len(positions); ii++ {
-			var position any = positions[ii]
-			cache.Append(position)
-		}
+	for i := 0; i < len(linearPositions); i++ {
+		cache.Append(linearPositions[i])
+	}
+	for i := 0; i < len(inversePositions); i++ {
+		cache.Append(inversePositions[i])
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.GetFutures()[messageHash]; ok {
@@ -3023,11 +3027,11 @@ func (this *Bybit) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
-		rawOrdersDict211844, _ := rawOrders[i].(map[string]any)
-		if rawOrdersDict211844 == nil {
-			rawOrdersDict211844 = map[string]any{}
+		rawOrdersDict211444, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict211444 == nil {
+			rawOrdersDict211444 = map[string]any{}
 		}
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211844))
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211444))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol == nil {
 			continue
@@ -3320,11 +3324,11 @@ func (this *Bybit) HandleBalance(client ccxt.ClientInterface, message map[string
 		}
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		rawBalancesDict236633, _ := rawBalances[i].(map[string]any)
-		if rawBalancesDict236633 == nil {
-			rawBalancesDict236633 = map[string]any{}
+		rawBalancesDict236233, _ := rawBalances[i].(map[string]any)
+		if rawBalancesDict236233 == nil {
+			rawBalancesDict236233 = map[string]any{}
 		}
-		this.ParseWsBalance(rawBalancesDict236633, account)
+		this.ParseWsBalance(rawBalancesDict236233, account)
 	}
 	if account != nil {
 		if this.SafeDictMap(this.Balance, account) == nil {

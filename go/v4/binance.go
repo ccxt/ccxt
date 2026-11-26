@@ -13476,9 +13476,9 @@ func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		}
 		var fromId string = strings.ToUpper(this.ConvertTypeToAccount(fromAccount))
 		var toId string = strings.ToUpper(this.ConvertTypeToAccount(toAccount))
-		var isolatedSymbol any = nil
+		var isolatedSymbol *string = nil
 		if market != nil {
-			isolatedSymbol = market["id"]
+			isolatedSymbol = this.SafeString(market, "id")
 		}
 		if fromId == "ISOLATED" {
 			if symbol == nil {
@@ -13496,10 +13496,12 @@ func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		_, has2 := accountsById[toId]
 		var toIsolated bool = !has2
 		if fromIsolated && (market == nil) {
-			isolatedSymbol = fromId // allow user provide symbol as the from/to account
+			isolatedSymbolStr := fromId
+			isolatedSymbol = &isolatedSymbolStr // allow user provide symbol as the from/to account
 		}
 		if toIsolated && (market == nil) {
-			isolatedSymbol = toId
+			isolatedSymbolStr2 := toId
+			isolatedSymbol = &isolatedSymbolStr2
 		}
 		if fromIsolated || toIsolated {
 			var fromFuture bool = (fromId == "UMFUTURE") || (fromId == "CMFUTURE")

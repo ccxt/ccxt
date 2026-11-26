@@ -628,7 +628,7 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 		rawOrders, _ = message["data"].([]any)
 		if rawOrders == nil {
 			rawOrders = []any{}
-		}
+		} // snapshot is a list of orders
 	}
 	var numRawOrders int = len(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawOrders > 0 {
@@ -788,7 +788,7 @@ func (this *Bullish) HandleMyTrades(client ccxt.ClientInterface, message map[str
 		rawTrades, _ = message["data"].([]any)
 		if rawTrades == nil {
 			rawTrades = []any{}
-		}
+		} // snapshot is a list of trades
 	}
 	var numRawTrades int = len(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawTrades > 0 {

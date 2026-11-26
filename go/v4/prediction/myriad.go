@@ -2893,7 +2893,7 @@ func (this *Myriad) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	var decimals *int64 = this.SafeInteger(params, "decimals", this.SafeInteger(chainConfig, "collateralDecimals", 18))
 	var owner string = this.WalletAddressFromKeys()
 	// ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-	callDataStr := "0x70a08231" + this.PadHexAddress(owner)
+	callDataStr := "0x70a08231" + this.PadHexAddress(&owner)
 	var callData *string = &callDataStr
 	var callParams []any = []any{map[string]any{
 		"to":   token,

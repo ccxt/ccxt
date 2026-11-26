@@ -2230,14 +2230,22 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	}
 	var futureData []any = SafeListTyped(expiringFutures, "products")
 	for i := 0; i < len(futureData); i++ {
-		var futureMarket map[string]any = this.ParseContractMarket(futureData[i])
+		futureDataDict161759, _ := futureData[i].(map[string]any)
+		if futureDataDict161759 == nil {
+			futureDataDict161759 = map[string]any{}
+		}
+		var futureMarket map[string]any = this.ParseContractMarket(futureDataDict161759)
 		if futureMarket != nil {
 			result = append(result, futureMarket)
 		}
 	}
 	var perpetualData []any = SafeListTyped(perpetualFutures, "products")
 	for i := 0; i < len(perpetualData); i++ {
-		var perpetualMarket map[string]any = this.ParseContractMarket(perpetualData[i])
+		perpetualDataDict162462, _ := perpetualData[i].(map[string]any)
+		if perpetualDataDict162462 == nil {
+			perpetualDataDict162462 = map[string]any{}
+		}
+		var perpetualMarket map[string]any = this.ParseContractMarket(perpetualDataDict162462)
 		if perpetualMarket != nil {
 			result = append(result, perpetualMarket)
 		}
@@ -2371,7 +2379,7 @@ func (this *Coinbase) ParseSpotMarket(market map[string]any, feeTier map[string]
 		"info":    market,
 	})
 }
-func (this *Coinbase) ParseContractMarket(market any, optionalArgs ...any) map[string]any {
+func (this *Coinbase) ParseContractMarket(market map[string]any, optionalArgs ...any) map[string]any {
 	// expiring
 	//
 	//        {
@@ -2495,7 +2503,7 @@ func (this *Coinbase) ParseContractMarket(market any, optionalArgs ...any) map[s
 	var feeTier map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = feeTier
 	var id *string = this.SafeString(market, "product_id")
-	var futureProductDetails map[string]any = SafeMapTyped(market, "future_product_details")
+	var futureProductDetails, _ = market["future_product_details"].(map[string]any)
 	var contractExpiryType *string = this.SafeString(futureProductDetails, "contract_expiry_type")
 	var contractSize *float64 = this.SafeNumber(futureProductDetails, "contract_size")
 	var contractExpire *string = this.SafeString(futureProductDetails, "contract_expiry")
@@ -2649,8 +2657,16 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 		//        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
 		//    }
 		//
-		var fiatData []any = this.SafeListSlice(fiatResponse, "data", []any{})
-		var cryptoData []any = this.SafeListSlice(cryptoResponse, "data", []any{})
+		var fiatData []any
+		fiatData, _ = fiatResponse["data"].([]any)
+		if fiatData == nil {
+			fiatData = []any{}
+		}
+		var cryptoData []any
+		cryptoData, _ = cryptoResponse["data"].([]any)
+		if cryptoData == nil {
+			cryptoData = []any{}
+		}
 
 		r1 := <-this.V2PublicGetExchangeRates(params)
 		if r1.Err != nil {
@@ -2721,8 +2737,16 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//          ...
 	//
 	var ratesResponse map[string]any = promisesResult[2]
-	var fiatData []any = this.SafeListSlice(fiatResponse, "data", []any{})
-	var cryptoData []any = this.SafeListSlice(cryptoResponse, "data", []any{})
+	var fiatData []any
+	fiatData, _ = fiatResponse["data"].([]any)
+	if fiatData == nil {
+		fiatData = []any{}
+	}
+	var cryptoData []any
+	cryptoData, _ = cryptoResponse["data"].([]any)
+	if cryptoData == nil {
+		cryptoData = []any{}
+	}
 	var ratesData, _ = ratesResponse["data"].(map[string]any)
 	var rates, _ = ratesData["rates"].(map[string]any)
 	var ratesIds []string = nil

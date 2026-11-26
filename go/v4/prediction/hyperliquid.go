@@ -2931,16 +2931,16 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params map[strin
 	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
 func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) *string {
-	address := ccxt.GetArg(optionalArgs, 0, nil)
+	var address *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = address
 	if address == nil {
 		return nil
 	}
-	var normalized any = address
-	if ccxt.StartsWith(normalized, "0x") || ccxt.StartsWith(normalized, "0X") {
-		normalized = ccxt.Slice(normalized, 2, nil)
+	if strings.HasPrefix(*address, "0x") || strings.HasPrefix(*address, "0X") {
+		retStrVal := strings.ToLower((*address)[2:])
+		return &retStrVal
 	}
-	retStrVal := ccxt.ToLower(normalized)
+	retStrVal := strings.ToLower(*address)
 	return &retStrVal
 }
 func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
@@ -2970,16 +2970,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var literal226715 map[string]any = map[string]any{
+	var literal226615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal226715["body"] = *bodyValue
+		literal226615["body"] = *bodyValue
 	}
-	return literal226715
+	return literal226615
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

@@ -3183,9 +3183,7 @@ func (this *Mexc) CreateSpotOrderRequest(market map[string]any, typeVar *string,
 			panic(BadRequest(this.Id + " createOrder() does not support marginMode " + *marginMode + " for spot-margin trading"))
 		}
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "LIMIT_MAKER"), paramsWithoutClientOrderId)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "LIMIT_MAKER"), paramsWithoutClientOrderId)
 	if postOnly {
 		request["type"] = "LIMIT_MAKER"
 	}
@@ -3356,9 +3354,7 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	if (typeVar != "limit") && (typeVar != "market") && (!this.InArray(typeVar, []any{1, 2, 3, 4, 5, 6})) {
 		panic(InvalidOrder(this.Id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price"))
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), IsEqual(typeVar, 2), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), IsEqual(typeVar, 2), params)
 	var orderType int64 = 0 // typed seed, every branch below assigns it
 	if postOnly {
 		orderType = 2
@@ -5293,17 +5289,18 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
 	if (marginMode != nil) || (isMargin != nil && *isMargin) || (marketType != nil && *marketType == "margin") {
-		var parsedSymbols any = nil
+		var parsedSymbols *string = nil
 		var symbol *string = this.SafeString(paramsOmitted2, "symbol")
 		if symbol == nil {
 			var symbols []any = SafeListTyped(paramsOmitted2, "symbols")
 			if symbols != nil {
 				var symbolIds []string = this.MarketIdsStrings(symbols)
-				parsedSymbols = strings.Join(symbolIds, ",")
+				parsedSymbolsStr := strings.Join(symbolIds, ",")
+				parsedSymbols = &parsedSymbolsStr
 			}
 		} else {
 			var market map[string]any = this.Market(symbol)
-			parsedSymbols = market["id"]
+			parsedSymbols = this.SafeString(market, "id")
 		}
 		this.CheckRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols")
 		marketTypeStr := "margin"

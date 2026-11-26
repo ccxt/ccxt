@@ -3335,14 +3335,14 @@ func (this *Bitstamp) ParseTransaction(transaction map[string]any, optionalArgs 
 	var currencyId *string = this.GetCurrencyIdFromTransaction(transaction)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var feeCost *string = this.SafeString(transaction, "fee")
-	var feeCurrency any = nil
+	var feeCurrency *string = nil
 	var amount *string = nil
 	var transactionAmount *string = this.SafeString(transaction, "amount")
 	if transactionAmount != nil {
 		amount = transactionAmount
 	} else if currency != nil {
 		amount = this.SafeString(transaction, currency["id"])
-		feeCurrency = currency["code"]
+		feeCurrency = this.SafeString(currency, "code")
 	} else if (code != nil) && (currencyId != nil) {
 		amount = this.SafeString(transaction, currencyId)
 		feeCurrency = code

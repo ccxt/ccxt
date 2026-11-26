@@ -682,13 +682,13 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
 			var market map[string]any = this.Market(symbol)
-			marketIds = append(marketIds, market["id"])
+			marketIds = append(marketIds, *this.SafeString(market, "id", ""))
 		}
-		request["symbols"] = Join(marketIds, ",")
+		request["symbols"] = strings.Join(marketIds, ",")
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {

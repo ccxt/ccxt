@@ -2403,9 +2403,7 @@ func (this *Predictfun) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"strategy":      strategy,
 	}
 	var postOnly *bool = this.SafeBool(paramsTaker, "isPostOnly", false)
-	var postOnlyOptionparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, (postOnly != nil && *postOnly == true), paramsTaker)
-	var postOnlyOption bool = postOnlyOptionparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyOptionparamsPostOnlyVariable[1].(map[string]any)
+	postOnlyOption, paramsPostOnly := this.HandlePostOnly(isMarket, (postOnly != nil && *postOnly == true), paramsTaker)
 	if postOnlyOption {
 		data["isPostOnly"] = postOnlyOption
 	}

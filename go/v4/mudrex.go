@@ -673,11 +673,17 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var dataDict, _ = response["data"].(map[string]any)
 		var items []any = []any{}
 		if dataDict != nil {
-			items = ArrayTyped(this.SafeList(dataDict, "items", []any{}))
+			items, _ = dataDict["items"].([]any)
+			if items == nil {
+				items = []any{}
+			}
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
 			var itemsLength int = len(items)
 			if itemsLength == 0 {
-				items = ArrayTyped(this.SafeList(dataDict, "results", []any{}))
+				items, _ = dataDict["results"].([]any)
+				if items == nil {
+					items = []any{}
+				}
 				itemsLength = len(items)
 			}
 			if _, ok := dataDict["symbol"]; (itemsLength == 0) && ok {

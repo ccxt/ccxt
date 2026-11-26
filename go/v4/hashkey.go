@@ -3319,9 +3319,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar string, side
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var isMarketOrder bool = (typeValue == "MARKET")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (typeValue == "LIMIT_MAKER"), paramsCost)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, (typeValue == "LIMIT_MAKER"), paramsCost)
 	if postOnly && (typeValue == "LIMIT") {
 		request["type"] = "LIMIT_MAKER"
 	}
@@ -3380,9 +3378,7 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar string, side
 	}
 	request["side"] = strings.ToUpper(side) + suffix
 	timeInForceParam, paramsTimeInForce := this.HandleParamString(paramsReduceOnly, "timeInForce")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, (timeInForceParam != nil && *timeInForceParam == "LIMIT_MAKER"), paramsTimeInForce)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, (timeInForceParam != nil && *timeInForceParam == "LIMIT_MAKER"), paramsTimeInForce)
 	var timeInForce *string = timeInForceParam
 	if postOnly {
 		timeInForceStr := "LIMIT_MAKER"

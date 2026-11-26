@@ -2571,9 +2571,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	var isLimitOrder bool = (typeValue == "LIMIT")
 	var postOnly bool = false
 	// exchange-specific postOnly is the same as the unified one
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, false, query)
-	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
+	postOnly, query = this.HandlePostOnly(isMarketOrder, false, query) // this will remove PO from params.timeInForce if present
 	if postOnly {
 		request["postOnly"] = true
 	}
@@ -2832,9 +2830,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	var isLimitOrder bool = (typeValue == "LIMIT")
 	var postOnly bool = false
 	// exchange-specific postOnly is the same as the unified one
-	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, false, query)
-	postOnly = postOnlyqueryVariable[0].(bool)
-	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
+	postOnly, query = this.HandlePostOnly(isMarketOrder, false, query) // this will remove PO from params.timeInForce if present
 	if postOnly {
 		request["postOnly"] = true
 	}

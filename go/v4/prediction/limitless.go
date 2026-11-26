@@ -2751,9 +2751,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var takerAmount any = nil
 	var isMarket bool = (typeVar == "market")
 	var postOnly any = false
-	var postOnlyparamsValueVariable []any = this.HandlePostOnly(isMarket, false, paramsValue)
-	postOnly = postOnlyparamsValueVariable[0]
-	paramsValue = postOnlyparamsValueVariable[1].(map[string]any)
+	postOnly, paramsValue = this.HandlePostOnly(isMarket, false, paramsValue)
 	var timeInForce *string = this.SafeString(paramsValue, "timeInForce")
 	paramsValue = this.OmitDict(paramsValue, "timeInForce")
 	if timeInForce == nil {

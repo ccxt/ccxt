@@ -1267,15 +1267,14 @@ func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message ma
 	//     }
 	//
 	var topic string = *this.SafeString(message, "topic", "")
-	var data any = this.SafeValue(message, "data")
-	var dataIsArray bool = ccxt.IsArray(data)
-	if dataIsArray {
+	var dataRows, _ = message["data"].([]any)
+	if dataRows != nil {
 		// algoexecutionreport
 		var dataList, _ = message["data"].([]any)
 		var dataListLength int = len(dataList)
 		for i := 0; i < dataListLength; i++ {
 			var order any = dataList[i]
-			var tradeIdStr *string = this.SafeString(data, "tradeId")
+			var tradeIdStr *string = this.SafeString(dataRows, "tradeId")
 			var tradeId *string
 			if tradeIdStr == nil {
 				tradeId = nil
@@ -1289,7 +1288,12 @@ func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message ma
 		}
 	} else {
 		// executionreport
-		var tradeIdStr *string = this.SafeString(data, "tradeId")
+		var dataDict map[string]any
+		dataDict, _ = message["data"].(map[string]any)
+		if dataDict == nil {
+			dataDict = map[string]any{}
+		}
+		var tradeIdStr *string = this.SafeString(dataDict, "tradeId")
 		var tradeId *string
 		if tradeIdStr == nil {
 			tradeId = nil
@@ -1297,12 +1301,7 @@ func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message ma
 			tradeId = this.OmitZero(tradeIdStr)
 		}
 		if tradeId != nil {
-			this.HandleMyTrade(client, data)
-		}
-		var dataDict map[string]any
-		dataDict, _ = message["data"].(map[string]any)
-		if dataDict == nil {
-			dataDict = map[string]any{}
+			this.HandleMyTrade(client, dataDict)
 		}
 		this.HandleOrder(client, dataDict, topic)
 	}

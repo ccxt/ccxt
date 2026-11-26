@@ -2967,9 +2967,7 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 		request["timeinforce"] = timeInForce
 	}
 	var isMarket bool = (typeVar != nil && *typeVar == "market")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted2)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarket, false, paramsOmitted2)
 	if postOnly {
 		var extendedPostFlags string = "post"
 		if flags != nil {
@@ -3048,9 +3046,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	var isMarket bool = (typeVar == "market")
 	var postOnly bool
-	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarket, false, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0].(bool)
-	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
+	postOnly, paramsOmitted = this.HandlePostOnly(isMarket, false, paramsOmitted)
 	if postOnly {
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}

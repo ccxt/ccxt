@@ -353,7 +353,7 @@ func (this *PredictionExchange) fetchEventBody(ch chan AsyncResult[PredictionEve
 	_ = params
 	panic(NotSupported(this.Id + " fetchEvent() is not supported yet"))
 }
-func (this *PredictionExchange) SetEvents(events any) map[string]any {
+func (this *PredictionExchange) SetEvents(events []any) map[string]any {
 	// merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
 	// index by the unified `event` handle too (that's the identifier every outcome's `event`
 	// field carries), so getEvent (handle) resolves without each exchange hand-writing it
@@ -363,7 +363,7 @@ func (this *PredictionExchange) SetEvents(events any) map[string]any {
 	if this.Events_by_slug == nil {
 		this.Events_by_slug = map[string]any{}
 	}
-	for i := 0; i < GetArrayLength(events); i++ {
+	for i := 0; i < len(events); i++ {
 		var event any = this.SafeDict(events, i)
 		var id *string = this.SafeString(event, "id")
 		var slug *string = this.SafeString(event, "slug")
@@ -2164,7 +2164,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	// by the market's `symbol` key, but prediction structures carry an `outcome` handle
 	// instead — and an outcome object rebuilt from cached markets may still hold a legacy
 	// `symbol` key, which would silently drop every parsed row
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2202,7 +2202,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
  */
 func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs ...any) []any {
 	// prediction-market analogue of the base parseOrders — see parsePredictionTrades
-	outcomeObj := GetArg(optionalArgs, 0, nil)
+	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2313,8 +2313,8 @@ func (this *PredictionExchange) PadHexToEven(hex any) any {
 	}
 	return hex
 }
-func (this *PredictionExchange) PadHexAddress(address any) string {
-	if IsEqual(address, nil) {
+func (this *PredictionExchange) PadHexAddress(address *string) string {
+	if address == nil {
 		return ""
 	}
 	// left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)

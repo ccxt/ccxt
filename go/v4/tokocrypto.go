@@ -2192,9 +2192,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	var isMarketOrder bool = (requestedType == "MARKET")
 	// GTX is the venue spelling of post only, on top of the two unified spellings
 	var isPostOnlyTimeInForce bool = (requestedTimeInForce != nil && *requestedTimeInForce == "GTX")
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params)
 	// only supported for spot/margin api
 	var typeResolved string = typeVar
 	if postOnly {

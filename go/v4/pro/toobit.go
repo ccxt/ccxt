@@ -314,7 +314,11 @@ func (this *Toobit) HandleTrades(client ccxt.ClientInterface, message map[string
 		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var parsedTrades []any = this.ArrayConcat(this.ParseWsTrades(data, market), []any{})
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(parsedTrades[i])
@@ -505,7 +509,7 @@ func (this *Toobit) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 			}
 		}
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
@@ -674,7 +678,7 @@ func (this *Toobit) HandleTickers(client ccxt.ClientInterface, message map[strin
 	//        "shared": false
 	//    }
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	if data == nil {
 		return
 	}
@@ -825,7 +829,7 @@ func (this *Toobit) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	if market.Symbol != "" {
 		symbol = &market.Symbol
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var entry, _ = data[i].(map[string]any)
 		var messageHash string = "orderBook::" + *symbol + "::" + "diffDepth"
@@ -837,7 +841,11 @@ func (this *Toobit) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		}
 		var orderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var timestamp *int64 = this.SafeInteger(entry, "t")
-		var bids []any = this.SafeListSlice(entry, "b", []any{})
+		var bids []any
+		bids, _ = entry["b"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		var asks []any = this.SafeListSlice(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
@@ -1016,7 +1024,7 @@ func (this *Toobit) HandleBalance(client ccxt.ClientInterface, message map[strin
 	// ]
 	//
 	var channel *string = this.SafeString(message, "e")
-	var data []any = ccxt.SafeListTyped(message, "B")
+	var data, _ = message["B"].([]any)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var typeVar string = "spot"
 	if channel != nil && *channel == "outboundContractAccountInfo" {

@@ -1188,11 +1188,11 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "marketId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var feeCurrencyCode any = nil
+	var feeCurrencyCode *string = nil
 	if marketResolved["quote"] == "AUD" {
-		feeCurrencyCode = marketResolved["quote"]
+		feeCurrencyCode = this.SafeString(marketResolved, "quote")
 	} else {
-		feeCurrencyCode = marketResolved["base"]
+		feeCurrencyCode = this.SafeString(marketResolved, "base")
 	}
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "Bid" {

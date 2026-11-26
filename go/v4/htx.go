@@ -7171,9 +7171,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan AsyncResult[map[string]any],
 			panic(NotSupported(this.Id + " createOrder() does not support " + *typeStr + " orders"))
 		}
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), paramsMarginMode)
 	if postOnly {
 		orderType = "limit-maker"
 	}
@@ -7280,9 +7278,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 		"contract_code": market["id"],
 		"volume":        this.AmountToPrecision(symbol, amount),
 	}
-	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "post_only"), params)
-	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
-	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar != nil && *typeVar == "market"), (typeVar != nil && *typeVar == "post_only"), params)
 	var orderType *string = typeVar
 	if postOnly {
 		orderTypeStr := "post_only"
@@ -8867,11 +8863,8 @@ func (this *Htx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var indexedAddresses any = nil
-	if !StructAbsent(r1.Value) {
-		indexedAddresses = StructBox(r1.Value, DepositAddressMapToMap)
-	}
-	var selectedNetworkCode any = this.SelectNetworkKeyFromNetworks(currency["code"], networkCode, indexedAddresses, true)
+	var indexedAddresses map[string]any = StructResultMap(r1.Value, DepositAddressMapToMap)
+	var selectedNetworkCode any = this.SelectNetworkKeyFromNetworks(*this.SafeString(currency, "code", ""), networkCode, indexedAddresses, true)
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(indexedAddresses, selectedNetworkCode))}
 	return nil

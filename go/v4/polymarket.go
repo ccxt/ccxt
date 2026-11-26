@@ -1777,9 +1777,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar *strin
 	var isPostOnlyTimeInForce bool = (timeInForce != nil && *timeInForce == "PO")
 	var postOnly any = false
 	var paramsOmitted map[string]any = params
-	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, paramsOmitted)
-	postOnly = postOnlyparamsOmittedVariable[0]
-	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
+	postOnly, paramsOmitted = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, paramsOmitted)
 	if isMarketOrder {
 		if (timeInForce != nil && *timeInForce == "GTC") || (timeInForce != nil && *timeInForce == "PO") {
 			panic(NotSupported(this.Id + " createOrder() does not support the " + *timeInForce + " timeInForce on market orders"))

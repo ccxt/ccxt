@@ -5112,14 +5112,12 @@ func (this *Binance) HandleBalance(client ccxt.ClientInterface, message map[stri
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
 	var balance map[string]any
 	balance, _ = this.Balance[accountType].(map[string]any)
 	if balance == nil {
 		balance = map[string]any{}
 	}
+	balance["info"] = message
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
 	var balanceMessage map[string]any
