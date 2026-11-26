@@ -617,10 +617,11 @@ export default class bitget extends bitgetRest {
             args['interval'] = interval;
             messageHash = 'kline' + symbol;
         } else {
-            channel = 'candle' + interval;
+            const intervalValue: string = this.safeString (timeframes, timeframe, '');
+            channel = 'candle' + intervalValue;
             args['channel'] = channel;
             args['instId'] = market['id'];
-            messageHash = 'candles:' + interval;
+            messageHash = 'candles:' + intervalValue;
         }
         return await this.unWatchChannel (symbol, channel, messageHash, 'watchOHLCV', paramsRequest);
     }

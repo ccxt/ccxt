@@ -1131,9 +1131,7 @@ export default class onetrading extends onetradingRest {
             }
         }
         const marketTimeframes: Dict = this.safeDict (subscription, marketId, {});
-        if (timeframe !== undefined) {
-            marketTimeframes[timeframe] = true;
-        }
+        marketTimeframes[timeframe] = true;
         subscription[marketId] = marketTimeframes;
         const properties: List = [];
         const marketIds = Object.keys (subscription);
