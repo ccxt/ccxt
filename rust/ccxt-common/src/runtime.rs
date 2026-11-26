@@ -880,14 +880,6 @@ pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
 
-/// `string_replace(s, old, new)` — string replacement.
-pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
-    match (s, old, new_val) {
-        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
-        _ => s.clone(),
-    }
-}
-
 /// `split(s, delim)` — string split returning Value::Array of Value::Str.
 pub fn split(s: &Value, delim: &Value) -> Value {
     match (s, delim) {
@@ -1394,9 +1386,12 @@ pub fn jwt(request: impl Into<Value>, secret: impl Into<Value>, algorithm: Value
     format!("{token}.{sig_url}")
 }
 
-/// `replace_str(s, old, new)` — string replacement, alias for string_replace.
+/// `replace_str(s, old, new)` — string replacement (first occurrence, as TS String.replace).
 pub fn replace_str(s: &Value, old: &Value, new_val: &Value) -> Value {
-    string_replace(s, old, new_val)
+    match (s, old, new_val) {
+        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
+        _ => s.clone(),
+    }
 }
 
 /// `replace_all_str(s, old, new)` — replace every occurrence (TS String.replaceAll).

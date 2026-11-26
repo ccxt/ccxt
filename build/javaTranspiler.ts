@@ -2839,18 +2839,6 @@ class NewTranspiler {
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()')
         content = content.replace(/(\s+public java\.util\.Map<String, Object> describe\(\))/g, `${constructor}$1`)
-        // `for (var i = <ident>; Helpers.isLessThan(i, end); i++)` — when the loop
-        // initializer is a bare identifier (an Object-typed local, e.g. a running
-        // index reassigned from this.sum(...)), Java's `var` infers Object and
-        // `i++` fails ("bad operand type Object"). Declare such loop vars as a
-        // primitive `long` (coerced via Helpers.parseInt). Loops whose init is a
-        // numeric literal (`var i = 0`) are left untouched — `var` infers int and
-        // `i++` works. The boxed `long` still satisfies Helpers.isLessThan/GetValue
-        // via autoboxing.
-        content = content.replace(
-            /for \(var (\w+) = ([A-Za-z_]\w*); (Helpers\.isLessThan(?:OrEqual)?)\(\1,/g,
-            'for (long $1 = Helpers.toInt64($2); $3($1,'
-        );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
         // Remove unreachable "return null;" after throw statements / a throwing plain else
@@ -4006,7 +3994,7 @@ class NewTranspiler {
             content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
             // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
             content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-            // Null-safe Array.isArray (see Helpers.isArrayJs).
+            // Null-safe Array.isArray (see Helpers.isArray).
 
             if (correctedTestName === 'TestInit') {
                 content = this.regexAll(content, [
@@ -4142,7 +4130,7 @@ class NewTranspiler {
             [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
-        // Null-safe Array.isArray (see Helpers.isArrayJs).
+        // Null-safe Array.isArray (see Helpers.isArray).
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
         const file = [
@@ -4360,7 +4348,7 @@ class NewTranspiler {
                 }
                 contentIndentend = rebuilt;
             }
-            // Null-safe Array.isArray (see Helpers.isArrayJs).
+            // Null-safe Array.isArray (see Helpers.isArray).
             if (!isWs) {
                 // late-bind awaited unified-method calls: the exchange param is BaseExchange
                 // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
@@ -8320,10 +8308,6 @@ function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n:
         if (args.length !== 1) { return undefined; }
         return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Number ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> throw new ClassCastException("ccxt: expected a number, got " + ${v}.getClass().getName()); }))`;
     }
-    if (name === 'toInt64') {
-        if (args.length !== 1) { return undefined; }
-        return `((long) (switch ((Object) (${x})) { case null -> Long.parseLong("null"); case Long ${v} -> ${v}.longValue(); case Integer ${v} -> ${v}.longValue(); case Double ${v} -> ${v}.longValue(); case Float ${v} -> ${v}.longValue(); case java.math.BigDecimal ${v} -> ${v}.longValue(); case String ${v} -> Long.parseLong(${v}); case Object ${v} -> Long.parseLong(String.valueOf(${v})); }))`;
-    }
     if (name === 'isTrue') {
         // Native only on a proven boolean/Boolean operand, else the helper call stays
         return args.length === 1 ? nativeIsTrue(x, ctx) : undefined;
@@ -8365,8 +8349,8 @@ function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n:
 }
 
 export function nativeJavaCoreArgHelpers (content: string): string {
-    const re = /Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|toInt64|add)\($/;
-    if (!/Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|toInt64|add)\(/.test(content)) { return content; }
+    const re = /Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|add)\($/;
+    if (!/Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|add)\(/.test(content)) { return content; }
     const intConsts = new Set([ 'TICK_SIZE', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS' ]);
     for (const c of [ ...intConsts ]) { if (new RegExp(`\\b(?:int|long|Object|var|Long|Integer)\\s+${c}\\b`).test(content)) { intConsts.delete(c); } }
     const fields = new Set<string>(); const methods = new Set<string>();

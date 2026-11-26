@@ -186,26 +186,14 @@ public class Helpers {
     }
 
     /**
-     * Null-safe Array.isArray equivalent. ast-transpiler emits
-     * `(X instanceof List) || (X.getClass().isArray())` for `Array.isArray(X)`,
-     * which NPEs when X is null (e.g. test.sharedMethods entryKeyVal coming
-     * from safeValue() that returned undefined). JS Array.isArray(null) is
-     * false; mirror that here. Used as a post-transpile regex target so all
-     * 150+ call sites become null-safe in one place.
+     * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
+     * emits `Helpers.isArray(x)`. Null-safe like JS
+     * Array.isArray: false for null.
      */
-    public static boolean isArrayJs(Object a) {
+    public static boolean isArray(Object a) {
         if (a == null) return false;
         if (a instanceof List<?>) return true;
         return a.getClass().isArray();
-    }
-
-    /**
-     * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
-     * emits `Helpers.isArray(x)`. Same behaviour as {@link #isArrayJs} —
-     * exposed under the contract name the transpiler emits.
-     */
-    public static boolean isArray(Object a) {
-        return isArrayJs(a);
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -750,13 +738,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
         if (o instanceof String) return Long.parseLong((String) o);
         return Long.parseLong(String.valueOf(o));
-    }
-
-    // Public primitive coercion used by the Java transpiler to make `for`-loop
-    // indices that start from an Object-typed local (e.g. a running offset
-    // reassigned from this.sum(...)) usable with `++`. Returns a primitive long.
-    public static long toInt64(Object o) {
-        return toLong(o);
     }
 
     private static int toInt(Object o) {
