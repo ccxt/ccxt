@@ -116,22 +116,6 @@ public partial class BaseTest
     public static int postFixIncrement(ref int a) => Exchange.postFixIncrement(ref a);
     public static Int64 postFixIncrement(ref Int64 a) => Exchange.postFixIncrement(ref a);
     public static double postFixIncrement(ref double a) => Exchange.postFixIncrement(ref a);
-    public static double postFixDecrement(ref double a) => Exchange.postFixDecrement(ref a);
-    // the (ref object) prefix twins mirror Exchange.TranspileHelpers.cs: `-x` / `+x` on a
-    // local that cannot be typed (string?, Int64?, List/IDictionary, ...) print
-    // prefixUnaryNeg (ref x) / prefixUnaryPlus (ref x) with the local still `object`
-    public static object prefixUnaryNeg(ref object a) => Exchange.prefixUnaryNeg(ref a);
-    public static int prefixUnaryNeg(ref int a) => Exchange.prefixUnaryNeg(ref a);
-    public static Int64 prefixUnaryNeg(ref Int64 a) => Exchange.prefixUnaryNeg(ref a);
-    public static double prefixUnaryNeg(ref double a) => Exchange.prefixUnaryNeg(ref a);
-    public static object prefixUnaryPlus(ref object a) => Exchange.prefixUnaryPlus(ref a);
-    public static int prefixUnaryPlus(ref int a) => Exchange.prefixUnaryPlus(ref a);
-    public static Int64 prefixUnaryPlus(ref Int64 a) => Exchange.prefixUnaryPlus(ref a);
-    public static double prefixUnaryPlus(ref double a) => Exchange.prefixUnaryPlus(ref a);
-    // typed ref twins for `x--` counters, mirroring Exchange.TranspileHelpers.cs
-    public static object postFixDecrement(ref object a) => Exchange.postFixDecrement(ref a);
-    public static int postFixDecrement(ref int a) => Exchange.postFixDecrement(ref a);
-    public static Int64 postFixDecrement(ref Int64 a) => Exchange.postFixDecrement(ref a);
     public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
     public static object add(object a, object b) => Exchange.add(a, b);
     // the two string overloads of the base `add` family, so generated test locals that name
@@ -163,7 +147,6 @@ public partial class BaseTest
     public static double divide(Int64 a, Int64 b) => Exchange.divide(a, b);
     public static double divide(double a, double b) => Exchange.divide(a, b);
     public static double? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
-    public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     // typed twin mirroring Exchange.TranspileHelpers.cs (S58): `isTrue` is the identity on a bool
@@ -186,7 +169,6 @@ public partial class BaseTest
     public static string secp256k1() => "secp256k1";
     public static object parseFloat(object a) => Exchange.parseFloat(a);
     public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
-    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null) => await Exchange.callDynamicallyAsync(obj, methodName, args);
 
     public bool equals(object a, object b)
     {

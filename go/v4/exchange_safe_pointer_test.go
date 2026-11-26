@@ -140,9 +140,6 @@ func TestSafePointerIsNotTruthy(t *testing.T) {
 	if ToString(absent) != ToString(nil) {
 		t.Errorf("ToString(absent)=%q != ToString(nil)=%q", ToString(absent), ToString(nil))
 	}
-	if Ternary(IsTrue(absent), "yes", "no") != "no" {
-		t.Errorf("Ternary took the truthy branch for an absent pointer")
-	}
 
 	present := this.SafeString(map[string]any{"k": "10"}, "k")
 	if present == nil {

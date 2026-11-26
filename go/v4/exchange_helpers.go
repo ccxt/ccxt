@@ -831,90 +831,6 @@ func ToFloat64(v any) float64 {
 	return result
 }
 
-func Increment(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return v + 1
-	case int64:
-		return v + 1
-	case float64:
-		return v + 1.0
-	case string:
-		return v + "1"
-	default:
-		return nil
-	}
-}
-
-// Decrement decreases the numeric value by 1.
-func Decrement(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return v - 1
-	case int64:
-		return v - 1
-	case float64:
-		return v - 1.0
-	default:
-		return nil
-	}
-}
-
-// Negate negates the numeric value.
-func Negate(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return -v
-	case int64:
-		return -v
-	case float64:
-		return -v
-	default:
-		return nil
-	}
-}
-
-// UnaryPlus returns the numeric value unchanged.
-func UnaryPlus(a any) any {
-	a = derefScalar(a)
-	switch v := a.(type) {
-	case int:
-		return +v
-	case int64:
-		return +v
-	case float64:
-		return +v
-	default:
-		return nil
-	}
-}
-
-// PlusEqual adds the value of `value` to `a`, handling some basic types.
-func PlusEqual(a, value any) any {
-	a = derefScalar(a)
-	value = derefScalar(value)
-	aVal := reflect.ValueOf(a)
-	valueVal := reflect.ValueOf(value)
-
-	if aVal.Kind() != valueVal.Kind() {
-		return nil // type mismatch
-	}
-
-	switch aVal.Kind() {
-	case reflect.Int, reflect.Int64:
-		return aVal.Int() + valueVal.Int()
-	case reflect.Float64:
-		return aVal.Float() + valueVal.Float()
-	case reflect.String:
-		return aVal.String() + valueVal.String()
-	default:
-		return nil
-	}
-}
-
 // func AppendToArray(slicePtr *any, element any) {
 // 	array := (*slicePtr).([]any)
 // 	*slicePtr = append(array, element)
@@ -1394,36 +1310,6 @@ func ToUpper(v any) string {
 // 	}
 // }
 
-// MathFloor returns the largest integer less than or equal to the given number
-func MathFloor(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Floor(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Floor(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Floor(float64(num))
-	}
-	return 0
-}
-
-// MathRound returns the nearest integer, rounding half away from zero
-func MathRound(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Round(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Round(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Round(float64(num))
-	}
-	return 0
-}
-
 // StartsWith checks if the string starts with the specified prefix
 func StartsWith(v any, prefix any) bool {
 	v = derefScalar(v)
@@ -1444,17 +1330,6 @@ func EndsWith(v any, suffix any) bool {
 		return strings.HasSuffix(str, suffixStr)
 	}
 	return false
-}
-
-// IndexOf returns the index of the first occurrence of a substring
-func IndexOf(v any, substr any) int {
-	v = derefScalar(v)
-	substr = derefScalar(substr)
-	if str, ok := v.(string); ok {
-		substrStr := ToString(substr)
-		return strings.Index(str, substrStr)
-	}
-	return -1
 }
 
 // Trim removes leading and trailing whitespace from a string
@@ -1739,36 +1614,6 @@ func IsArray(v any) bool {
 		return false
 		// kind := reflect.TypeOf(v).Kind()
 		// return kind == reflect.Slice || kind == reflect.Array
-	}
-}
-
-func Shift(slice any) (any, any) {
-	slice = derefScalar(slice)
-	sliceVal, ok := castToSlice(slice)
-	if !ok || len(sliceVal) == 0 {
-		return slice, nil
-	}
-	return sliceVal[1:], sliceVal[0]
-}
-
-// Reverse reverses the elements of a slice in place
-func Reverse(slice any) {
-	// a typed-nil container reads like untyped nil (same panic / nil path)
-	sliceVal, ok := castToSlice(derefScalar(slice))
-	if !ok {
-		panic("provided value is not a slice")
-	}
-
-	// Reverse the elements in place
-	for i, j := 0, len(sliceVal)-1; i < j; i, j = i+1, j-1 {
-		sliceVal[i], sliceVal[j] = sliceVal[j], sliceVal[i]
-	}
-
-	// Copy the reversed values back into the original slice
-	// Since Go is a pass-by-value language, we need to reflect to modify the original slice in place
-	v := reflect.ValueOf(slice)
-	for i := 0; i < v.Len(); i++ {
-		v.Index(i).Set(reflect.ValueOf(sliceVal[i]))
 	}
 }
 
@@ -2333,15 +2178,6 @@ func GetArgBoolPtr(args []any, index int, def *bool) *bool {
 	return def
 }
 
-func Ternary(cond bool, whenTrue any, whenFalse any) any {
-	// forward the selected branch as a plain value, so a pointer-carried operand
-	// does not leak past the ternary into ToString/Split/comparison sites
-	if cond {
-		return derefScalar(whenTrue)
-	}
-	return derefScalar(whenFalse)
-}
-
 func IsInstance(value any, typ any) bool {
 	// Get the reflect.Type of the value and the type
 
@@ -2613,10 +2449,6 @@ func ParseInt(number any) int64 {
 	return math.MinInt64 // Default value if conversion is not possible
 }
 
-func MathMin(a, b any) any {
-	return mathMin(a, b)
-}
-
 func mathMin(a, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)
@@ -2640,12 +2472,8 @@ func mathMin(a, b any) any {
 
 }
 
-func MathPow(base any, exp any) float64 {
-	base64 := ToFloat64(base)
-	exp64 := ToFloat64(exp)
-	return math.Pow(base64, exp64)
-}
-
+// mathMax returns the maximum of two values of the same type.
+// It supports int, float64, and string types.
 func MathAbs(v any) float64 {
 	v = derefScalar(v)
 	switch n := v.(type) {
@@ -2670,12 +2498,6 @@ func MathAbs(v any) float64 {
 	}
 }
 
-func MathMax(a, b any) any {
-	return mathMax(a, b)
-}
-
-// mathMax returns the maximum of two values of the same type.
-// It supports int, float64, and string types.
 func mathMax(a, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)
@@ -2863,17 +2685,6 @@ func JsonStringify(obj any) string {
 	// Serialize the object to JSON
 	jsonData, _ := json.Marshal(obj)
 	return string(jsonData)
-}
-
-func ToFixed(number any, decimals any) float64 {
-	// Assert that the number is a float64 or convert it
-	num := ToFloat64(number)
-
-	// Assert that the decimals is an int or convert it
-	dec := ParseInt(decimals)
-	// Calculate the rounding multiplier
-	multiplier := math.Pow(10, float64(dec))
-	return math.Round(num*multiplier) / multiplier
 }
 
 func Remove(dict any, key any) {

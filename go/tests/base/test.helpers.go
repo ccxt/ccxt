@@ -188,26 +188,6 @@ func ToFloat64(v interface{}) float64 {
 	return ccxt.ToFloat64(v)
 }
 
-func Increment(a interface{}) interface{} {
-	return ccxt.Increment(a)
-}
-
-func Decrement(a interface{}) interface{} {
-	return ccxt.Decrement(a)
-}
-
-func Negate(a interface{}) interface{} {
-	return ccxt.Negate(a)
-}
-
-func UnaryPlus(a interface{}) interface{} {
-	return ccxt.UnaryPlus(a)
-}
-
-func PlusEqual(a, value interface{}) interface{} {
-	return ccxt.PlusEqual(a, value)
-}
-
 func AppendToArray(slicePtr *interface{}, element interface{}) {
 	ccxt.AppendToArray(slicePtr, element)
 }
@@ -260,24 +240,12 @@ func IsInt(v interface{}) bool {
 	return ccxt.IsInt(v)
 }
 
-func MathFloor(v interface{}) float64 {
-	return ccxt.MathFloor(v)
-}
-
-func MathRound(v interface{}) float64 {
-	return ccxt.MathRound(v)
-}
-
 func StartsWith(v interface{}, prefix interface{}) bool {
 	return ccxt.StartsWith(v, prefix)
 }
 
 func EndsWith(v interface{}, suffix interface{}) bool {
 	return ccxt.EndsWith(v, suffix)
-}
-
-func IndexOf(v interface{}, substr interface{}) int {
-	return ccxt.IndexOf(v, substr)
 }
 
 func Trim(v interface{}) string {
@@ -318,14 +286,6 @@ func JsonParse(jsonStr2 interface{}) interface{} {
 
 func IsArray(v interface{}) bool {
 	return ccxt.IsArray(v)
-}
-
-func Shift(slice interface{}) (interface{}, interface{}) {
-	return ccxt.Shift(slice)
-}
-
-func Reverse(slice interface{}) {
-	ccxt.Reverse(slice)
 }
 
 func Replace(input interface{}, old interface{}, new interface{}) string {
@@ -420,10 +380,6 @@ func GetArgBoolPtr(args []any, index int, def *bool) *bool {
 	return ccxt.GetArgBoolPtr(args, index, def)
 }
 
-func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
-	return ccxt.Ternary(cond, whenTrue, whenFalse)
-}
-
 func IsInstance(value interface{}, typ interface{}) bool {
 	return ccxt.IsInstance(value, typ)
 }
@@ -442,14 +398,6 @@ func PromiseAllTyped[T any, R ccxt.TypedOutcome[T]](tasks ...<-chan R) <-chan cc
 
 func ParseInt(number interface{}) int64 {
 	return ccxt.ParseInt(number)
-}
-
-func mathMin(a, b interface{}) interface{} {
-	return ccxt.MathMin(a, b)
-}
-
-func mathMax(a, b interface{}) interface{} {
-	return ccxt.MathMax(a, b)
 }
 
 func mathAbs(a interface{}) interface{} {

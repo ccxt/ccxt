@@ -125,13 +125,6 @@ pub fn is_equal(a: &Value, b: &Value) -> bool {
     }
 }
 
-pub fn is_greater_than(a: &Value, b: &Value) -> bool {
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => x > y,
-        _ => match (a, b) { (Value::Str(x), Value::Str(y)) => x > y, _ => false },
-    }
-}
-
 /// The dict / list a map holds under `key`, read by reference: the shared container for a dict / list
 /// value, an empty one for a missing key or any other value (what `.get(k).cloned().unwrap_or_default().into_dict()` answers).
 pub trait KeyDictRead {
@@ -157,8 +150,6 @@ impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
 
 pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
 
-pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
-pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
 
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
@@ -555,18 +546,6 @@ pub fn json_stringify(v: impl JsonOperand) -> Value {
     Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default().into())
 }
 
-// ── math ────────────────────────────────────────────────────────────────────
-
-pub fn math_floor(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.floor()), None => Value::Null }
-}
-pub fn math_round(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.round()), None => Value::Null }
-}
-pub fn math_ceil(v: &Value) -> Value {
-    match as_f64(v) { Some(x) => Value::Float(x.ceil()), None => Value::Null }
-}
-
 // ── misc ────────────────────────────────────────────────────────────────────
 
 pub fn println_val(v: &Value) {
@@ -707,9 +686,6 @@ pub mod Math {
     pub fn pow(a: &Value, b: &Value) -> Value {
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.powf(y)), _ => Value::Null }
     }
-    pub fn floor(v: &Value) -> Value { super::math_floor(v) }
-    pub fn round(v: &Value) -> Value { super::math_round(v) }
-    pub fn ceil(v: &Value)  -> Value { super::math_ceil(v) }
     pub fn log(v: &Value) -> Value {
         match as_f64(v) { Some(x) => Value::Float(x.ln()), None => Value::Null }
     }
@@ -1311,19 +1287,6 @@ pub fn date_now() -> Value {
         .map(|d| d.as_millis() as i64)
         .unwrap_or(0);
     Value::Int(ms)
-}
-
-/// `to_fixed(x, digits)` — JS `Number.prototype.toFixed`: format a number
-/// with a fixed number of decimal places, returned as a string.
-pub fn to_fixed(x: &Value, digits: &Value) -> Value {
-    let d = match as_i64(digits) { Some(v) => v.max(0) as usize, None => 0 };
-    let n = match x {
-        Value::Int(i) => *i as f64,
-        Value::Float(f) => *f,
-        Value::Str(s) => s.trim().parse::<f64>().unwrap_or(0.0),
-        _ => 0.0,
-    };
-    Value::Str(format!("{:.*}", d, n).into())
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────

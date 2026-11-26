@@ -78,139 +78,6 @@ public partial class BaseExchange
         return a;
     }
 
-    public static int postFixDecrement(ref int a)
-    {
-        a = a - 1;
-        return a;
-    }
-
-    public static Int64 postFixDecrement(ref Int64 a)
-    {
-        a = a - 1;
-        return a;
-    }
-
-    public static double postFixDecrement(ref double a)
-    {
-        a = a - 1;
-        return a;
-    }
-
-    public static object postFixDecrement(ref object a)
-    {
-
-        if (a is Int64)
-        {
-            a = (Int64)a - 1;
-        }
-        else if (a is int)
-        {
-            a = (int)a - 1;
-        }
-        else if (a is double)
-        {
-            a = (double)a - 1;
-        }
-        else
-        {
-            return null;
-        }
-        return a;
-
-    }
-
-    public static object prefixUnaryNeg(ref object a)
-    {
-        if (a.GetType() == typeof(Int64))
-        {
-            a = -(Int64)a;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = -(int)a;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = -(double)a;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            return null;
-        }
-        else
-        {
-            return null;
-        }
-        return a;
-    }
-
-    // Typed counterparts for prefix `-x` on locals the transpiler declares as `int` /
-    // `Int64` / `double`: `a = -a` is the same unchecked negation the object overload
-    // applies to the box (wrapping at the value type's minimum), and the return value is
-    // the same boxed numeric value it returns.
-    public static int prefixUnaryNeg(ref int a)
-    {
-        a = -a;
-        return a;
-    }
-
-    public static Int64 prefixUnaryNeg(ref Int64 a)
-    {
-        a = -a;
-        return a;
-    }
-
-    public static double prefixUnaryNeg(ref double a)
-    {
-        a = -a;
-        return a;
-    }
-
-    public static object prefixUnaryPlus(ref object a)
-    {
-        if (a.GetType() == typeof(Int64))
-        {
-            a = +(Int64)a;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = +(int)a;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = +(double)a;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            return null;
-        }
-        else
-        {
-            return null;
-        }
-        return a;
-    }
-
-    // Same typed counterparts for prefix `+x`: `a = +a` is the identity the object
-    // overload applies to the box, with the same return value.
-    public static int prefixUnaryPlus(ref int a)
-    {
-        a = +a;
-        return a;
-    }
-
-    public static Int64 prefixUnaryPlus(ref Int64 a)
-    {
-        a = +a;
-        return a;
-    }
-
-    public static double prefixUnaryPlus(ref double a)
-    {
-        a = +a;
-        return a;
-    }
-
     public object parseJson(object json)
     {
         return JsonHelper.Deserialize((string)json);
@@ -1186,18 +1053,6 @@ public partial class BaseExchange
         return (List<object>)FromDictList((object)values);
     }
 
-    public static string toStringOrNull(object value)
-    {
-        if (value == null)
-        {
-            return null;
-        }
-        else
-        {
-            return (string)value;
-        }
-    }
-
     public void throwDynamicException(object exception, object message)
     {
         throw NewException((Type)exception, (string)message);
@@ -1406,14 +1261,6 @@ public partial class BaseExchange
         // Task<Dictionary<string, object>> would fail. Normalize here so the
         // reflective path stays shape-agnostic, exactly like PromiseAll.
         return AsTaskOfObject(res) ?? res;
-    }
-
-    public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
-    {
-        args ??= new object[] { };
-        var mi = ResolveMethod(obj.GetType(), (string)methodName);
-        var res = mi.Invoke(obj, coerceArgs(mi, args));
-        return await AsTaskOfObject(res);
     }
 
     // S58 identity twin: a Dictionary<string, object> is not an IList, so the object overload

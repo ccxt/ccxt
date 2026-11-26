@@ -42,9 +42,6 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if ex.Omit(v, "k") != nil || ex.Clone(v) != nil || ex.ArrayConcat(v, []any{1}) != nil {
 			t.Errorf("%s: Omit/Clone/ArrayConcat differ from absent", name)
 		}
-		if rest, first := Shift(v); rest != nil || first != nil {
-			t.Errorf("%s: Shift = %#v, %#v", name, rest, first)
-		}
 		AddElementToObject(v, "k", 1) // must not panic
 		got, _ := json.Marshal(map[string]any{"fee": v})
 		if string(got) != `{"fee":null}` {
@@ -99,7 +96,6 @@ func TestTypedNilContainerSinksMatchUntyped(t *testing.T) {
 		"SortBy":          func(v any) any { return ex.SortBy(v, "a") },
 		"SortBy2":         func(v any) any { return ex.SortBy2(v, "a", "b") },
 		"GroupBy":         func(v any) any { return ex.GroupBy(v, "a") },
-		"Reverse":         func(v any) any { Reverse(v); return "ok" },
 		"ArraySlice":      func(v any) any { return ex.ArraySlice(v, 0) },
 		"Rawencode":       func(v any) any { return ex.Rawencode(v) },
 		"Urlencode":       func(v any) any { return ex.Urlencode(v) },
