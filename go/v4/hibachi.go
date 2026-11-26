@@ -1135,7 +1135,7 @@ func (this *Hibachi) CreateOrderRequest(nonce int64, symbol *string, typeVar *st
 		"signature":      signature,
 		"maxFeesPercent": this.NumberToString(feeRate),
 	}
-	var postOnly bool = this.IsPostOnly((strings.ToUpper(*typeVar) == "MARKET"), nil, params)
+	var postOnly bool = this.IsPostOnly((strings.ToUpper(*typeVar) == "MARKET"), false, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")

@@ -4021,7 +4021,7 @@ func (this *Nado) CreateOrderAppendix(isTriggerOrder bool, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
-	var postOnly bool = this.IsPostOnly(false, nil, params)
+	var postOnly bool = this.IsPostOnly(false, false, params)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var orderType int = 0
 	if timeInForce != nil && *timeInForce == "IOC" {

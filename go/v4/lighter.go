@@ -1175,7 +1175,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 	var isConditional bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
 	var isMarketOrder bool = (orderType == "MARKET")
 	var timeInForce string = *this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
-	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, false, paramsOrderExpiry)
 	var paramsOmitted map[string]any = this.OmitDict(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
 	var orderTypeNum int
 	var timeInForceNum any = nil

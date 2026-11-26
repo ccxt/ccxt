@@ -3816,7 +3816,7 @@ func (this *Aster) CreateOrderRequest(symbol *string, typeVar *string, side *str
 			uppercaseType = "TAKE_PROFIT"
 		}
 	}
-	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	if postOnly {
 		request["timeInForce"] = "GTX"
 	}

@@ -2881,7 +2881,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"reduce_only":    isReduceOnly,
 	}
 	var timeInForce *string = this.SafeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME")
-	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOmitted3)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, false, paramsOmitted3)
 	if postOnly {
 		orderRequest["post_only"] = true
 	}
@@ -4493,10 +4493,12 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	}
 	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
 	var signature map[string]any = Ecdsa(this.HashString(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, nil)
+	var rHex string = *this.SafeString(signature, "r", "")
+	var sHex string = *this.SafeString(signature, "s", "")
 	var signatureEntry map[string]any = map[string]any{
 		"signer":     nil,
-		"r":          this.FormatSignatureRS(signature["r"]),
-		"s":          this.FormatSignatureRS(signature["s"]),
+		"r":          this.FormatSignatureRS(rHex),
+		"s":          this.FormatSignatureRS(sHex),
 		"v":          this.Sum(27, signature["v"]),
 		"expiration": requestSignature["expiration"],
 		"nonce":      requestSignature["nonce"],
@@ -4510,8 +4512,8 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	request["signature"] = signatureEntry
 	return request
 }
-func (this *Grvt) FormatSignatureRS(value any) string {
-	var padded string = PadStart(value, 64, "0")
+func (this *Grvt) FormatSignatureRS(value string) string {
+	var padded string = (strings.Repeat("0", max(64-len(value), 0)) + value)[max(len(value)-64, 0):]
 	if strings.HasPrefix(padded, "0x") {
 		return padded
 	} else {
@@ -4521,9 +4523,9 @@ func (this *Grvt) FormatSignatureRS(value any) string {
 func (this *Grvt) DefaultSignature() map[string]any {
 	var expirationSeconds int64 = *this.SafeInteger(this.Options, "expirationSeconds", 30)
 	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000*expirationSeconds)*1000
-	var ternaryStr331024 string = "325"
+	var ternaryStr331224 string = "325"
 	if this.IsSandboxModeEnabled {
-		ternaryStr331024 = "326"
+		ternaryStr331224 = "326"
 	}
 	return map[string]any{
 		"signer":     "",
@@ -4532,7 +4534,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		"v":          0,
 		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
-		"chain_id":   ternaryStr331024,
+		"chain_id":   ternaryStr331224,
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {

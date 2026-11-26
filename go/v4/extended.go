@@ -3789,7 +3789,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	}
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var priceString *string = this.PriceToPrecision(symbol, price)
-	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
+	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), false, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if timeInForce == nil {

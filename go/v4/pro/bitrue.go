@@ -1143,13 +1143,8 @@ func (this *Bitrue) ParseWsTicker(tick map[string]any, market any, optionalArgs 
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
 	var quoteVolume any = this.ConvertFromRawQuantity(symbol, rawAmount)
 	var close *float64 = this.SafeNumber(tick, "close")
-	var rose *float64 = this.SafeNumber(tick, "rose")
-	var percentage any
-	if rose == nil {
-		percentage = nil
-	} else {
-		percentage = (*rose * 100)
-	}
+	var rose *string = this.SafeString(tick, "rose")
+	var percentage *string = ccxt.Precise.StringMul(rose, "100")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"info":          tick,
 		"symbol":        symbol,

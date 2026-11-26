@@ -7328,7 +7328,7 @@ func (this *BaseExchange) IsTriggerOrder(params map[string]any) (*bool, map[stri
 	// for backwards compatibility
 	return this.HandleTriggerAndParams(params)
 }
-func (this *BaseExchange) IsPostOnly(isMarketOrder bool, exchangeSpecificParam any, optionalArgs ...any) bool {
+func (this *BaseExchange) IsPostOnly(isMarketOrder bool, exchangeSpecificParam bool, optionalArgs ...any) bool {
 	/**
 	 * @ignore
 	 * @method
@@ -7344,7 +7344,7 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder bool, exchangeSpecificParam a
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var timeInForcePostOnly bool = (timeInForce != nil && *timeInForce == "PO")
-	var postOnly bool = (this.SafeBool2(params, "postOnly", "post_only", false) != nil && *this.SafeBool2(params, "postOnly", "post_only", false)) || timeInForcePostOnly || EvalTruthy(exchangeSpecificParam)
+	var postOnly bool = (this.SafeBool2(params, "postOnly", "post_only", false) != nil && *this.SafeBool2(params, "postOnly", "post_only", false)) || timeInForcePostOnly || exchangeSpecificParam
 	if postOnly {
 		if ioc || fok {
 			panic(InvalidOrder(this.Id + " postOnly orders cannot have timeInForce equal to " + *timeInForce))

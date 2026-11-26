@@ -1816,7 +1816,7 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var meta, _ = params["meta"].(map[string]any)
 	var exchangeSpecificParam *bool = this.SafeBool(meta, "post_only", false)
 	var isMarketOrder bool = (typeVar == "market")
-	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
 	if !isMarketOrder {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}

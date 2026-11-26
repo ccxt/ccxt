@@ -2446,7 +2446,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if *this.SafeBool(market, "swap", false) {
 		var isMarket bool = (uppercaseType == "MARKET")
 		var timeInForce *string = this.SafeStringLower(params, "timeInForce")
-		var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+		var postOnly bool = this.IsPostOnly(isMarket, false, params)
 		if postOnly {
 			request["type"] = "POST_ONLY"
 		} else if timeInForce != nil && *timeInForce == "fok" {

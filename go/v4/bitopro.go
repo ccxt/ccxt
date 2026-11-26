@@ -1476,7 +1476,7 @@ func (this *Bitopro) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	} else {
 		paramsOmitted = params
 	}
-	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, paramsOmitted)
+	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), false, paramsOmitted)
 	if postOnly {
 		request["timeInForce"] = "POST_ONLY"
 	}

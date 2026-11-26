@@ -2839,7 +2839,7 @@ func (this *Paradex) CreateOrderRequest(symbol *string, typeVar *string, side *s
 	var isStopLossOrder bool = (stopLossPrice != nil)
 	var isStopOrder bool = (triggerPrice != nil) || isTakeProfitOrder || isStopLossOrder
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, false, params)
 	var instruction string = "GTC"
 	if timeInForce != nil {
 		instruction = *this.EncodeTimeInForce(*timeInForce)

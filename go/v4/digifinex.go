@@ -6371,7 +6371,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var urlencoded string = ""
 	if signed && (pathPart == "/swap/v2") && (method == "POST") {
-		urlencoded = JsonStringify(params)
+		urlencoded = this.Json(params)
 	} else {
 		urlencoded = this.Urlencode(this.Keysort(query))
 	}

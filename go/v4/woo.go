@@ -1960,7 +1960,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	var isConditional bool = isTrailing || (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (this.SafeListSlice(paramsMarginMode, "childOrders", nil) != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(paramsMarginMode, "timeInForce")
-	var postOnly bool = this.IsPostOnly(isMarket, nil, paramsMarginMode)
+	var postOnly bool = this.IsPostOnly(isMarket, false, paramsMarginMode)
 	var clientOrderIdKey string = "clientOrderId"
 	if isConditional {
 		clientOrderIdKey = "clientAlgoOrderId"

@@ -2637,7 +2637,7 @@ func (this *Derive) NonceString() string {
 	var randomPart int64 = this.RandNumber(6) // guards against collisions of different instances with the same wallet
 	var milliseconds *string = this.NumberToString(rawNonce)
 	var suffix *string = this.NumberToString(randomPart)
-	var padded string = PadStart(suffix, 6, "0")
+	var padded string = (strings.Repeat("0", max(6-len(*suffix), 0)) + *suffix)[max(len(*suffix)-6, 0):]
 	return *milliseconds + padded
 }
 func (this *Derive) HashMessage(message any) string {

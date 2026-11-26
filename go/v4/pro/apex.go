@@ -1299,7 +1299,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url string
 		// auth sign
 		var message map[string]any = map[string]any{
 			"op": "login",
-			"args": []any{ccxt.JsonStringify(map[string]any{
+			"args": []any{this.Json(map[string]any{
 				"type":        "login",
 				"topics":      []any{"ws_zk_accounts_v3"},
 				"httpMethod":  http_method,

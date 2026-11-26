@@ -1993,7 +1993,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, false, params)
 	if timeInForce == nil {
 		timeInForceStr := "GOOD_TIL_CANCEL"
 		timeInForce = &timeInForceStr

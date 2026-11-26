@@ -3412,7 +3412,7 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType *string
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
-	var isPostOnly bool = this.IsPostOnly((typeVar == "market"), nil, params)
+	var isPostOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
 	var resolvedMarketType *string = this.SafeString(market, "type")
 	var request map[string]any = map[string]any{
 		"type":     typeVar,

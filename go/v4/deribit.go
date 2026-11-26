@@ -2860,7 +2860,7 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var isLimitOrder bool = (typeVar == "limit") || isStopLimit || isTakeLimit
 	var isMarketOrder bool = (typeVar == "market") || isStopMarket || isTakeMarket
 	var exchangeSpecificPostOnly *bool = this.SafeBool(params, "post_only")
-	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, (exchangeSpecificPostOnly != nil && *exchangeSpecificPostOnly == true), params)
 	if isLimitOrder {
 		request["type"] = "limit"
 		request["price"] = this.PriceToPrecision(symbol, price)

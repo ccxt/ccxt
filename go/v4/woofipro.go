@@ -2599,7 +2599,7 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (paramsChildOrders != nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
-	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, false, params)
 	var orderQtyKey string
 	if isConditional {
 		orderQtyKey = "quantity"
@@ -2939,7 +2939,7 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		var orderType string = strings.ToUpper(typeVar)
 		var timeInForce *string = this.SafeStringLower(paramsOmitted, "timeInForce")
 		var isMarket bool = (orderType == "MARKET")
-		var postOnly bool = this.IsPostOnly(isMarket, nil, paramsOmitted)
+		var postOnly bool = this.IsPostOnly(isMarket, false, paramsOmitted)
 		if postOnly {
 			request["order_type"] = "POST_ONLY"
 		} else if timeInForce != nil && *timeInForce == "fok" {

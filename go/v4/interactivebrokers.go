@@ -5885,11 +5885,8 @@ func (this *Interactivebrokers) ParseTransactionDate(date *string) *int64 {
 	if month == nil {
 		return nil
 	}
-	var dayPart *string = nil
-	if 2 >= 0 && 2 < len(parts) {
-		dayPart = &parts[2]
-	}
-	var day string = PadStart(dayPart, 2, "0")
+	var dayPart string = *this.SafeString(parts, 2, "")
+	var day string = (strings.Repeat("0", max(2-len(dayPart), 0)) + dayPart)[max(len(dayPart)-2, 0):]
 	var offset string = *this.SafeString(offsets, parts[4], "+00:00")
 	return this.Parse8601(parts[5] + "-" + *month + "-" + day + "T" + parts[3] + offset)
 }
