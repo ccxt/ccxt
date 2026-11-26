@@ -6705,6 +6705,8 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                         // the two-argument extend overload is declared Map<String, Object> (varargs one is Object)
                         const ext = head === 'this.extend(' ? splitTopLevelArgs (arg.slice (call[0].length, -1)) : [];
                         if (ext.length === 2 && ext.every ((a) => (a.match (/</g) ?? []).length === (a.match (/>/g) ?? []).length)) native = true;
+                        // a literal null default binds the safeDict(.., Map<String, Object>) overload, which returns a Map
+                        if (head === 'this.safeDict(' && /^\s*null\s*$/.test (splitTopLevelArgs (arg.slice (call[0].length, -1))[2] ?? '')) native = true;
                         if (head === 'this.omit(') {
                             // the omit(Map<String, Object>, ..) overloads return a Map
                             const first = /^this\.omit\(([A-Za-z_]\w*), /.exec (arg);
@@ -6768,6 +6770,8 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
     const want = 'return this.f(m, Helpers.toMapArg(o), s, n, l, this.omit(q, "y"), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), this.currency((String) (s)), Woo.this.extend(q, m), Helpers.toMapArg(this.extend(q, m, o)));';
     if (!out.includes(want)) problems.push('declared-type core args must drop their identity wrapper (only those)');
     if (!out.includes('return this.g(Helpers.toMapArg(m));')) problems.push('a lambda-shadowed name must keep the wrapper');
+    const sd = nativeJavaCoreArgIdentities ('    public Object c(Object p, Object d)\n    {\n        return this.h(Helpers.toMapArg(this.safeDict(p, "k", null)), Helpers.toMapArg(this.safeDict(p, "k", d)));\n    }');
+    if (!sd.includes ('return this.h(this.safeDict(p, "k", null), Helpers.toMapArg(this.safeDict(p, "k", d)));')) problems.push('only a null-default safeDict drops its toMapArg wrapper');
     return problems;
 }
 
