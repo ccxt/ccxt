@@ -1889,7 +1889,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol str
 		if limit != nil {
 			// optimization if limit is provided
 			var timeframeInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
-			startTime = this.Sum(until, ((timeframeInMilliseconds * *limit) * int64(-1)))
+			startTime = this.Sum(until, (timeframeInMilliseconds**limit)*-1)
 			if IsLessThan(startTime, 0) {
 				startTime = 0
 			}

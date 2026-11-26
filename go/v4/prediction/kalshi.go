@@ -3152,11 +3152,8 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var seriesTickers any = nil
-		if r2.Value != nil {
-			seriesTickers = ccxt.StringSliceToList(r2.Value)
-		}
-		var seriesTickersLength int = ccxt.GetArrayLength(seriesTickers)
+		var seriesTickers []string = r2.Value
+		var seriesTickersLength int = len(seriesTickers)
 		if seriesTickersLength == 0 {
 			this.RequireEventQuery(paramsOmitted)
 		}
@@ -3436,18 +3433,18 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers any, status *string, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers []string, status *string, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchSeriesEventsBody(ch, seriesTickers, status, limit, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers any, status *string, limit *int64, optionalArgs ...any) any {
+func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers []string, status *string, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	var rawEvents []any = []any{}
-	var seriesTickersLength int = ccxt.GetArrayLength(seriesTickers)
+	var seriesTickersLength int = len(seriesTickers)
 	var pageLimit int64 = this.ParseToInt(this.SafeInteger(this.Options, "defaultFetchEventsLimit", 200))
 	var maxPages int64 = *this.SafeInteger(this.Options, "maxEventPagesPerSeries", 20)
 	var hasLimit bool = (limit != nil)

@@ -5537,21 +5537,21 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if !(*this.SafeBool(market, "linear", false)) {
 
 		r1 := <-this.V1GetMdTicker24hr(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 
 		r2 := <-this.V2GetMdV2Ticker24hr(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 	//
 	//     {

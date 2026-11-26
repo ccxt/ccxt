@@ -370,8 +370,16 @@ func (this *Alpaca) HandleOrderBook(client ccxt.ClientInterface, message map[str
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = this.SafeListSlice(message, "a", []any{})
-		var bids []any = this.SafeListSlice(message, "b", []any{})
+		var asks []any
+		asks, _ = message["a"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = message["b"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)

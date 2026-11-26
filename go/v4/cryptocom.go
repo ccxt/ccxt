@@ -830,7 +830,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 		ch <- AsyncResult[map[string]any]{Value: map[string]any{}}
 		return nil
 	}
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 
 	{
 		func(this *Cryptocom) (ret_ any) {
@@ -861,7 +861,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			response = r.Raw
+			response = r.Value
 			return nil
 		}(this)
 		if chSent {
@@ -911,7 +911,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//        }
 	//    }
 	//
-	var resultData map[string]any = SafeMapTyped(response, "result")
+	var resultData, _ = response["result"].(map[string]any)
 	var currencyMap map[string]any
 	currencyMap, _ = resultData["currency_map"].(map[string]any)
 	if currencyMap == nil {

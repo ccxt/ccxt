@@ -1024,10 +1024,10 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var responseForSwap map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-		var swapTicker map[string]any = SafeMapTyped(responseForSwap, market["symbol"])
+		var responseForSwap map[string]Ticker = r1.Value
+		var swapTicker Ticker = responseForSwap[marketSymbol]
 
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(swapTicker)}
+		ch <- AsyncResult[Ticker]{Value: swapTicker}
 		return nil
 	}
 	var request map[string]any = map[string]any{

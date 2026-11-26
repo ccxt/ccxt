@@ -590,17 +590,15 @@ func (this *Bullish) HandleTicker(client ccxt.ClientInterface, message map[strin
 	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	if updateType == "update" {
-		var ticker any = ccxt.TickerToMap(this.Tickers[*symbol])
+		var ticker any = ccxt.TickerToMap(this.Tickers[symbol])
 		parsed = ccxt.TickerToMap(this.ParseTicker(this.Extend(this.SafeDict(ticker, "info", map[string]any{}), data), market))
 	}
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
-	}
-	var messageHash string = "ticker::" + *symbol
-	client.Resolve(ccxt.TickerToMap(this.Tickers[*symbol]), messageHash)
+	this.Tickers[symbol] = ccxt.TickerFromMap(parsed)
+	var messageHash string = "ticker::" + symbol
+	client.Resolve(ccxt.TickerToMap(this.Tickers[symbol]), messageHash)
 }
 
 /**
@@ -1357,7 +1355,7 @@ func (this *Bullish) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncR
 func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1375,10 +1373,10 @@ func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var subscribeHash string = "positions"
 	var messageHash string = subscribeHash
 	var hasSymbols bool = (symbols != nil) && !this.IsEmpty(symbols)
-	var symbolsNormalized any = symbols
+	var symbolsNormalized []string = symbols
 	if hasSymbols {
 		symbolsNormalized = this.MarketSymbols(symbols)
-		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
+		messageHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
 	var request map[string]any = map[string]any{
 		"topic": "derivativesPositionsV2",

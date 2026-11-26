@@ -4456,8 +4456,8 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome.(string)]
 	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
-	var rawBids []any = ccxt.SafeListTyped(event, "bids")
-	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
+	var rawBids, _ = event["bids"].([]any)
+	var rawAsks, _ = event["asks"].([]any)
 	var bids []any = []any{}
 	for i := 0; i < len(rawBids); i++ {
 		var b, _ = rawBids[i].(map[string]any)
@@ -4483,7 +4483,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 }
 func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event map[string]any) {
 	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
-	var changes []any = ccxt.SafeListTyped(event, "price_changes")
+	var changes, _ = event["price_changes"].([]any)
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < len(changes); i++ {
 		var change, _ = changes[i].(map[string]any)

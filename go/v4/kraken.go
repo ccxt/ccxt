@@ -4406,12 +4406,16 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 }
 func (this *Kraken) AddPaginationCursorToResult(result map[string]any) any {
 	var cursor *string = this.SafeString(result, "next_cursor")
-	var data any = this.SafeList(result, "withdrawals", []any{})
-	var dataLength int = GetArrayLength(data)
+	var data []any
+	data, _ = result["withdrawals"].([]any)
+	if data == nil {
+		data = []any{}
+	}
+	var dataLength int = len(data)
 	if (cursor != nil) && (dataLength > 0) {
-		var last map[string]any = this.Extend(map[string]any{}, GetValue(data, dataLength-1))
+		var last map[string]any = this.Extend(map[string]any{}, data[dataLength-1])
 		last["next_cursor"] = cursor
-		AddElementToObject(data, dataLength-1, last)
+		data[dataLength-1] = last
 	}
 	return data
 }

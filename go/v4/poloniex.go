@@ -3080,21 +3080,21 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "stop"})
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if isTrigger != nil && *isTrigger == true {
 
 		r2 := <-this.PrivateDeleteSmartordersId(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	} else {
 
 		r3 := <-this.PrivateDeleteOrdersId(this.Extend(request, paramsOmitted))
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw
+		response = r3.Value
 	}
 
 	//
@@ -4049,22 +4049,12 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		panic(BadSymbol(this.Id + " fetchDepositAddress(): can not recognize " + code + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })"))
 	}
 	var currency map[string]any = this.Currency(code)
-	var networkCode any = nil
-	var query map[string]any = nil
-	var networkCodePtr *string = nil
-	networkCodePtr, query = this.HandleNetworkCodeAndParams(params)
-	if networkCodePtr != nil {
-		networkCode = *networkCodePtr
-	}
-	if networkCode == nil {
+	networkCodeRaw, query := this.HandleNetworkCodeAndParams(params)
+	if networkCodeRaw == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
 	var exchangeNetworkId *string = nil
-	if derefPtr := this.NetworkIdToCode(networkCode, code); derefPtr != nil {
-		networkCode = *derefPtr
-	} else {
-		networkCode = nil
-	}
+	var networkCode *string = this.NetworkIdToCode(networkCodeRaw, code)
 	var networkEntry any
 	if networkCode == nil {
 		networkEntry = nil

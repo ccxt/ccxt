@@ -838,7 +838,7 @@ func (this *Coinbaseinternational) fetchMarketsBody(ch chan AsyncResult[[]Market
 	return nil
 }
 func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
-	var instrumentName *string = this.SafeString(market, "instrument_name")
+	var instrumentName string = *this.SafeString(market, "instrument_name", "")
 	var lowercaseId *string = this.SafeStringLower(market, "instrument_name")
 	var baseId *string = this.SafeString(market, "base_currency")
 	var quoteId *string = this.SafeString(market, "counter_currency")
@@ -862,7 +862,7 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 	} else if isOption {
 		typeVar = "option"
 	}
-	var symbol any = instrumentName
+	var symbol string = instrumentName
 	if !isComboMarket && (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 		if !isSpot && (settle != nil) {
@@ -907,15 +907,15 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 	var optionType *string = this.SafeString(market, "option_type")
 	if !isComboMarket && (isOption || isFuture) {
 		var expiryString string = this.Yymmdd(expiry, "")
-		symbol = Add(Add(symbol, "-"), expiryString)
+		symbol = symbol + "-" + expiryString
 	}
 	if !isComboMarket && isOption {
 		var optionTypeLetter string = "P"
 		if optionType != nil && *optionType == "call" {
 			optionTypeLetter = "C"
 		}
-		var strikeString *string = this.NumberToString(strike)
-		symbol = Add(Add(Add(Add(symbol, "-"), strikeString), "-"), optionTypeLetter)
+		var strikeString string = *this.SafeString(market, "strike", "")
+		symbol = symbol + "-" + strikeString + "-" + optionTypeLetter
 	}
 	var marketStructure map[string]any = map[string]any{
 		"id":             instrumentName,
@@ -1205,7 +1205,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		if limitResolved == nil {
 			limitResolved = 100
 		}
-		request["start_timestamp"] = this.Sum(now, ((this.ParseToInt(limitResolved) * duration) * int64(-1000)))
+		request["start_timestamp"] = now + (this.ParseToInt(limitResolved)*duration)*-1000
 		request["end_timestamp"] = now
 	} else {
 		var sinceResolved int64 = max(*since-1, 0)

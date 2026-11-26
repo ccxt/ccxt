@@ -1675,8 +1675,8 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
-	var response any = nil
-	var data any = []any{}
+	var response map[string]any = nil
+	var data []any = []any{}
 	if *this.SafeBool(market, "swap", false) {
 		var timeframesFuture, _ = timeframes["future"].(map[string]any)
 		var request map[string]any = map[string]any{
@@ -1688,20 +1688,19 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		if *this.SafeBool(market, "linear", false) {
 
-			r1 := <-this.FapiV1PublicGetKlines(this.Extend(request, params))
-			if r1.Err != nil {
-				panic(r1.Err)
+			dataRecv := <-this.FapiV1PublicGetKlines(this.Extend(request, params))
+			if dataRecv.Err != nil {
+				panic(dataRecv.Err)
 			}
-			response = r1.Raw
+			data = dataRecv.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 
-			r2 := <-this.DapiV1PublicGetKlines(this.Extend(request, params))
-			if r2.Err != nil {
-				panic(r2.Err)
+			dataRecv := <-this.DapiV1PublicGetKlines(this.Extend(request, params))
+			if dataRecv.Err != nil {
+				panic(dataRecv.Err)
 			}
-			response = r2.Raw
+			data = dataRecv.Value
 		}
-		data = response
 	} else if *this.SafeBool(market, "spot", false) {
 		var timeframesSpot, _ = timeframes["spot"].(map[string]any)
 		var request map[string]any = map[string]any{
@@ -1722,12 +1721,15 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			paramsOmitted = params
 		}
 
-		r3 := <-this.SpotV1PublicGetMarketKline(this.Extend(request, paramsOmitted))
-		if r3.Err != nil {
-			panic(r3.Err)
+		r1 := <-this.SpotV1PublicGetMarketKline(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response = r3.Raw
-		data = this.SafeList(response, "data", []any{})
+		response = r1.Value
+		data, _ = response["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	} else {
 		panic(NotSupported(this.Id + " fetchOHLCV only support spot & swap markets"))
 	}
@@ -3750,7 +3752,7 @@ func (this *Bitrue) ParseTransfer(transfer map[string]any, optionalArgs ...any) 
 		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
-	var literal305815 map[string]any = map[string]any{
+	var literal305715 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -3762,12 +3764,12 @@ func (this *Bitrue) ParseTransfer(transfer map[string]any, optionalArgs ...any) 
 		"status":      "ok",
 	}
 	if fromAccount != nil {
-		literal305815["fromAccount"] = *fromAccount
+		literal305715["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal305815["toAccount"] = *toAccount
+		literal305715["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal305815)
+	return TransferEntryFromMap(literal305715)
 }
 
 /**

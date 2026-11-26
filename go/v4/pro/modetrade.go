@@ -722,22 +722,18 @@ func (this *Modetrade) HandleTrade(client ccxt.ClientInterface, message map[stri
 	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
-	if !(symbol != nil && this.Trades[*symbol] != nil) {
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[*symbol]
+	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	trades.Append(trade)
-	if symbol != nil {
-		this.Trades[*symbol] = trades
-	}
+	this.Trades[symbol] = trades
 	client.Resolve(trades, topic)
 }
 func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

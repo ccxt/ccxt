@@ -3994,9 +3994,9 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved any
+	var symbolResolved *string
 	if market != nil {
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 	} else {
 		symbolResolved = nil
 	}

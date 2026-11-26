@@ -4255,7 +4255,14 @@ func (this *Interactivebrokers) fetchAccountsBody(ch chan AsyncResult[[]Account]
 		panic(r.Err)
 	}
 	var portfolioAccounts []any = r.Value
-	var accountIds []string = ObjectKeys(this.IndexBy(portfolioAccounts, "accountId"))
+	var accountsById map[string]any = this.IndexBy(portfolioAccounts, "accountId")
+	var accountIds []string = nil
+	if accountsById != nil {
+		accountIds = make([]string, 0, len(accountsById))
+		for objectKey := range accountsById {
+			accountIds = append(accountIds, objectKey)
+		}
+	}
 	var length int = len(accountIds)
 	if length == 0 {
 		panic(ExchangeError("No tradingaccount IDs found for the user"))
@@ -5614,7 +5621,7 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		sideStr2 := "sell"
 		side = &sideStr2
 	}
-	var literal394631 map[string]any = map[string]any{
+	var literal394731 map[string]any = map[string]any{
 		"id":                  this.SafeString2(order, "order_id", "orderId"),
 		"clientOrderId":       this.SafeString2(order, "order_ref", "cOID"),
 		"timestamp":           timestamp,
@@ -5640,9 +5647,9 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		"info":                order,
 	}
 	if side != nil {
-		literal394631["side"] = *side
+		literal394731["side"] = *side
 	}
-	return this.SafeOrder(literal394631, resolved)
+	return this.SafeOrder(literal394731, resolved)
 }
 
 /**
@@ -5966,7 +5973,7 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 			"currency": resolved["quote"],
 		}
 	}
-	var literal421631 map[string]any = map[string]any{
+	var literal421731 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "execution_id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -5982,9 +5989,9 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 		"fee":          fee,
 	}
 	if side != nil {
-		literal421631["side"] = *side
+		literal421731["side"] = *side
 	}
-	return this.SafeTrade(literal421631, resolved)
+	return this.SafeTrade(literal421731, resolved)
 }
 
 /**
@@ -6139,11 +6146,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict432349, _ := positions[i].(map[string]any)
-		if positionsDict432349 == nil {
-			positionsDict432349 = map[string]any{}
+		positionsDict432449, _ := positions[i].(map[string]any)
+		if positionsDict432449 == nil {
+			positionsDict432449 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432349, market))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432449, market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}
@@ -6167,7 +6174,7 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		sideStr2 := "short"
 		side = &sideStr2
 	}
-	var literal434234 map[string]any = map[string]any{
+	var literal434334 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      resolved["symbol"],
@@ -6198,9 +6205,9 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		"lastUpdateTimestamp":         nil,
 	}
 	if side != nil {
-		literal434234["side"] = *side
+		literal434334["side"] = *side
 	}
-	return this.SafePosition(literal434234)
+	return this.SafePosition(literal434334)
 }
 func (this *Interactivebrokers) IbkrEncrypt(value string) string {
 	// RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string

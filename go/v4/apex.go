@@ -1833,7 +1833,7 @@ func (this *Apex) ParseOrderType(typeVar *string) *string {
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
-	marketId := GetArg(optionalArgs, 0, nil)
+	var marketId *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketId
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
@@ -1843,14 +1843,14 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketType
 	var marketResolved any = market
 	if (market == nil) && (marketId != nil) {
-		if (this.Markets != nil) && (InOp(this.Markets, marketId)) {
-			marketResolved = GetValue(this.Markets, marketId)
-		} else if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
-			marketResolved = this.SafeDict(GetValue(this.Markets_by_id, marketId), 0)
+		if _, ok := this.Markets[*marketId]; ok {
+			marketResolved = this.Markets[*marketId]
+		} else if _, ok := this.Markets_by_id[*marketId]; ok {
+			marketResolved = this.SafeDict(this.Markets_by_id[*marketId], 0)
 		} else {
-			var newMarketId any = this.AddHyphenBeforeUsdt(marketId)
-			if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, newMarketId)) {
-				var markets []any = ArrayTyped(GetValue(this.Markets_by_id, newMarketId))
+			var newMarketId string = this.AddHyphenBeforeUsdt(*marketId)
+			if _, ok := this.Markets_by_id[newMarketId]; (this.Markets_by_id != nil) && ok {
+				var markets []any = ArrayTyped(this.Markets_by_id[newMarketId])
 				var numMarkets int = len(markets)
 				for i := 0; i < numMarkets; i++ {
 					if (i == 0) && (IsEqual(this.SafeString(markets[i], "id2"), marketId)) {
@@ -1869,12 +1869,12 @@ func (this *Apex) GenerateRandomClientIdOmni(_accountId *string) string {
 	}
 	return "apexomni-" + strconv.FormatInt(this.RandNumber(12), 10) + suffix
 }
-func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {
-	var uppercaseSymbol string = ToUpper(symbol)
+func (this *Apex) AddHyphenBeforeUsdt(symbol string) string {
+	var uppercaseSymbol string = strings.ToUpper(symbol)
 	var index int = strings.Index(uppercaseSymbol, "USDT")
 	var symbolChar *string = this.SafeString(symbol, index-1)
 	if (index > 0) && (symbolChar == nil || *symbolChar != "-") {
-		return Slice(symbol, 0, index) + "-" + Slice(symbol, index, nil)
+		return symbol[0:min(index+len(symbol)*min(max(-index, 0), 1), len(symbol))] + "-" + symbol[max(index+len(symbol)*min(max(-index, 0), 1), 0):]
 	}
 	return symbol
 }

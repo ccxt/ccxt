@@ -1258,9 +1258,9 @@ func (this *Hyperliquid) HandleMyLiquidations(client ccxt.ClientInterface, messa
 	var cache ccxt.WsArrayCache = this.MyLiquidations
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < newLiquidationsLength; i++ {
-		var liquidation any = newLiquidations[i]
-		cache.Append(liquidation)
-		ccxt.AddElementToObject(symbols, ccxt.GetValue(liquidation, "symbol"), true)
+		cache.Append(newLiquidations[i])
+		var liquidationSymbol string = *this.SafeString(newLiquidations[i], "symbol", "")
+		symbols[liquidationSymbol] = true
 	}
 	var keys []string = nil
 	if symbols != nil {

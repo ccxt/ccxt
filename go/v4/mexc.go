@@ -2186,7 +2186,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = nil
 	var timestamp *int64 = nil
 	var orderId *string = nil
-	var symbol any = nil
+	var symbol *string = nil
 	var fee map[string]any = nil
 	var side *string = nil
 	var takerOrMaker *string = nil
@@ -2211,7 +2211,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		//
 		timestamp = this.SafeInteger(trade, "t")
 		marketResolved = this.SafeMarket(nil, market)
-		symbol = marketResolved["symbol"]
+		symbol = this.SafeString(marketResolved, "symbol")
 		priceString = this.SafeString(trade, "p")
 		amountString = this.SafeString(trade, "v")
 		side = this.ParseOrderSide(this.SafeString(trade, "T"))
@@ -2270,7 +2270,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		//
 		var marketId *string = this.SafeString(trade, "symbol")
 		marketResolved = this.SafeMarket(marketId, market)
-		symbol = marketResolved["symbol"]
+		symbol = this.SafeString(marketResolved, "symbol")
 		id = this.SafeString2(trade, "id", "a")
 		priceString = this.SafeString2(trade, "price", "p")
 		orderId = this.SafeString(trade, "orderId")
@@ -2345,7 +2345,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       symbol,
+		"symbol":       nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
@@ -2360,6 +2360,9 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if orderId != nil {
 		literal182631["order"] = *orderId
+	}
+	if symbol != nil {
+		literal182631["symbol"] = *symbol
 	}
 	if priceString != nil {
 		literal182631["price"] = *priceString
@@ -4626,21 +4629,21 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		// the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
 		var method string = *this.SafeString(this.Options, "cancelAllOrders", "contractPrivatePostOrderCancelAll")
 		method = *this.SafeString(paramsMarketType, "method", method)
-		var swapResponse any = map[string]any{}
+		var swapResponse map[string]any = map[string]any{}
 		if method == "contractPrivatePostOrderCancelAll" {
 
 			r2 := <-this.ContractPrivatePostOrderCancelAll(this.Extend(request, paramsMarketType))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			swapResponse = r2.Raw
+			swapResponse = r2.Value
 		} else if method == "contractPrivatePostPlanorderCancelAll" {
 
 			r3 := <-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, paramsMarketType))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			swapResponse = r3.Raw
+			swapResponse = r3.Value
 		}
 		//
 		//     {
@@ -5189,11 +5192,20 @@ func (this *Mexc) CustomParseBalance(response map[string]any, marketType string)
 	var isSwapType bool = (marketType == "swap")
 	var wallet []any = nil
 	if isMarginType {
-		wallet = this.SafeListSlice(response, "assets", []any{})
+		wallet, _ = response["assets"].([]any)
+		if wallet == nil {
+			wallet = []any{}
+		}
 	} else if isSwapType {
-		wallet = this.SafeListSlice(response, "data", []any{})
+		wallet, _ = response["data"].([]any)
+		if wallet == nil {
+			wallet = []any{}
+		}
 	} else {
-		wallet = this.SafeListSlice(response, "balances", []any{})
+		wallet, _ = response["balances"].([]any)
+		if wallet == nil {
+			wallet = []any{}
+		}
 	}
 	var result map[string]any = map[string]any{
 		"info": response,
