@@ -546,6 +546,9 @@ create a trade order
 | params.slippage | <code>string</code> | No | the slippage for market order |
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingTriggerPrice | <code>float</code> | No | *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted |
 
 
 ```javascript
