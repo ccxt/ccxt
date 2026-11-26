@@ -143,7 +143,6 @@ func unaryShims() []unaryShim {
 		{"EvalTruthy", func(v any) any { return EvalTruthy(v) }},
 		{"Trim", func(v any) any { return Trim(v) }},
 		{"MathFloor", func(v any) any { return MathFloor(v) }},
-		{"MathCeil", func(v any) any { return MathCeil(v) }},
 		{"MathRound", func(v any) any { return MathRound(v) }},
 		{"MathAbs", func(v any) any { return MathAbs(v) }},
 		{"Negate", func(v any) any { return Negate(v) }},

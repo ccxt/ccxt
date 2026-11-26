@@ -264,10 +264,6 @@ func MathFloor(v interface{}) float64 {
 	return ccxt.MathFloor(v)
 }
 
-func MathCeil(v interface{}) float64 {
-	return ccxt.MathCeil(v)
-}
-
 func MathRound(v interface{}) float64 {
 	return ccxt.MathRound(v)
 }

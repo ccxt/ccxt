@@ -1409,21 +1409,6 @@ func MathFloor(v any) float64 {
 	return 0
 }
 
-// MathCeil returns the smallest integer greater than or equal to the given number
-func MathCeil(v any) float64 {
-	v = derefScalar(v)
-	if num, ok := v.(float64); ok {
-		return math.Ceil(num)
-	}
-	if num, ok := v.(int); ok {
-		return math.Ceil(float64(num))
-	}
-	if num, ok := v.(int64); ok {
-		return math.Ceil(float64(num))
-	}
-	return 0
-}
-
 // MathRound returns the nearest integer, rounding half away from zero
 func MathRound(v any) float64 {
 	v = derefScalar(v)
