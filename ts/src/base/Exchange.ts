@@ -3704,12 +3704,11 @@ export class BaseExchange {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
-                if ((key in array[0])) {
-                    const first = this.safeFloat (array[0], key);
-                    const last = this.safeFloat (array[arrayLength - 1], key);
-                    if (first !== undefined && last !== undefined) {
-                        ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                // a missing key reads as undefined, so no presence test is needed
+                const first = this.safeFloat (array[0], key);
+                const last = this.safeFloat (array[arrayLength - 1], key);
+                if (first !== undefined && last !== undefined) {
+                    ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if (fromStart) {
                     if (ascending) {
