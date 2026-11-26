@@ -3645,8 +3645,8 @@ export default class htx extends Exchange {
         //         "ts": 1770293281344
         //     }
         //
-        const finalResponse = response;
-        let result: Dict = { 'info': finalResponse };
+        let result: Dict = { 'info': response };
+        const dataRows: Dict[] = this.safeList (response, 'data', []);
         const data = this.safeValue (response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details: Dict[] = this.safeList (data, 'details', []);
@@ -3664,8 +3664,8 @@ export default class htx extends Exchange {
             result = this.safeBalance (result);
         } else if (spot || margin) {
             if (isolated) {
-                for (let i = 0; i < data.length; i++) {
-                    const entry = this.safeDict (data, i);
+                for (let i = 0; i < dataRows.length; i++) {
+                    const entry = this.safeDict (dataRows, i);
                     const balances: Dict[] = this.safeList (entry, 'list', []);
                     const subResult: Dict = {};
                     for (let j = 0; j < balances.length; j++) {
@@ -3696,8 +3696,8 @@ export default class htx extends Exchange {
                 result = this.safeBalance (result);
             }
         } else if (inverse) {
-            for (let i = 0; i < data.length; i++) {
-                const balance = this.safeDict (data, i);
+            for (let i = 0; i < dataRows.length; i++) {
+                const balance = this.safeDict (dataRows, i);
                 const currencyId = this.safeString (balance, 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
