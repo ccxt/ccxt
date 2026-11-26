@@ -1109,7 +1109,9 @@ class gate(ccxt.async_support.gate):
             parts = subscription.split('_')
             timeframeId = self.safe_string(parts, 0)
             timeframe = self.find_timeframe(timeframeId)
-            prefix = timeframe + '_'
+            prefix = ''
+            if timeframe is not None:
+                prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)

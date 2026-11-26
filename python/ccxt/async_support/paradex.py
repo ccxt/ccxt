@@ -3727,7 +3727,7 @@ class paradex(Exchange, ImplicitAPI):
             # end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             paginationCalls, paramsCalls = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10)
             until = self.safe_integer(paramsCalls, 'until')
-            pageSpan = self.parse_to_int(paginationCalls * 5000 * rowSpacing)
+            pageSpan = self.parse_to_int(paginationCalls * 25000000)  # 5000 rows per page * 5000ms rowSpacing
             sinceEnd = self.sum(since, pageSpan)
             endAt = self.milliseconds()
             if sinceEnd < endAt:

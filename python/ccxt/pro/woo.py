@@ -271,7 +271,9 @@ class woo(ccxt.async_support.woo):
         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def fetch_order_book_snapshot(self, client: Client, message: dict, subscription: dict):
-        symbol = self.safe_string(subscription, 'symbol')
+        symbol = self.safe_string(subscription, 'symbol', '')
+        if symbol == '':
+            return
         messageHash = self.safe_string(message, 'topic')
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -294,8 +296,7 @@ class woo(ccxt.async_support.woo):
                     continue
                 else:
                     self.handle_order_book_message(client, messageItem, orderbook)
-            if symbol is not None:
-                self.orderbooks[symbol] = orderbook
+            self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         except Exception as e:
             if messageHash is not None:

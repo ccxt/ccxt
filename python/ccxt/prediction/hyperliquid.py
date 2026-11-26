@@ -1038,7 +1038,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return self.safe_dict(outcomesList, 0, {})
 
     def parse_outcome_input_side_hint(self, outcomeInput: str) -> Str:
-        if (outcomeInput is None) or (outcomeInput == ''):
+        if outcomeInput == '':
             return None
         colonIndex = outcomeInput.find(':')
         if colonIndex > -1 and colonIndex < len(outcomeInput) - 1:

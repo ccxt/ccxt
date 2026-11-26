@@ -8722,7 +8722,7 @@ class Exchange(BaseExchange):
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
-    def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
+    def fetch_rest_order_book_safe(self, symbol: str, limit: Int = None, params: dict = {}):
         fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
