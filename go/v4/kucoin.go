@@ -6975,7 +6975,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
-	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
+	var tradeType *string = this.HandleTradeType(this.SafeBool(market, "contract", false), marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 
 	r2 := <-this.UtaPrivatePostAccountModeOrderCancel(this.Extend(request, paramsOmitted))
@@ -8570,7 +8570,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
-	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
+	var tradeType *string = this.HandleTradeType(this.SafeBool(market, "contract", false), marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
 
 	r1 := <-this.UtaPrivateGetAccountModeOrderDetail(this.Extend(request, paramsOmitted))
@@ -9669,12 +9669,12 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		paramsOmitted = paramsRequest
 	}
 	var request map[string]any = map[string]any{}
-	var isContract any = false
+	var isContract bool = false
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
-		isContract = market["contract"]
+		isContract = *this.SafeBool(market, "contract", false)
 	} else if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter for uta spot or margin trades"))
 	} else {

@@ -2596,11 +2596,11 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	if defaultRecvWindow != nil {
 		extendedParams["recvWindow"] = defaultRecvWindow
 	}
-	var querystring string = this.UrlencodeNested(extendedParams)
-	querystring = strings.ReplaceAll(querystring, "%5B", "[")
-	querystring = strings.ReplaceAll(querystring, "%5D", "]")
-	var signature string = this.Hmac(this.Encode(querystring), this.Encode(this.Secret), ccxt.Sha256)
-	querystring = querystring + "&signature=" + signature
+	var rawQuery string = this.UrlencodeNested(extendedParams)
+	var bracketedQuery string = strings.ReplaceAll(rawQuery, "%5B", "[")
+	var cleanQuery string = strings.ReplaceAll(bracketedQuery, "%5D", "]")
+	var signature string = this.Hmac(this.Encode(cleanQuery), this.Encode(this.Secret), ccxt.Sha256)
+	var querystring string = cleanQuery + "&signature=" + signature
 	var headersValue map[string]any = map[string]any{
 		"X-MBX-APIKEY": this.ApiKey,
 	}

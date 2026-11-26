@@ -5266,7 +5266,7 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var amountString string = this.DecimalToPrecision(this.NumberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES)
 	// the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
 	var one string = "1"
-	var scale string = PadEnd(one, *decimals+1, "0")
+	var scale string = (one + strings.Repeat("0", max(int(*decimals+1)-len(one), 0)))[:int(*decimals+1)]
 	var amountScaled *string = Precise.StringMul(amountString, scale)
 	var nonce string = this.NonceString()
 	var signatureExpiry *int64 = this.SafeInteger(paramsOmitted, "signature_expiry_sec", this.Seconds()+7776000)

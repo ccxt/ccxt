@@ -2724,12 +2724,13 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 	var hashesOrder []any = []any{}
 	var seenHashes map[string]any = map[string]any{}
 	for i := 0; i < outcomesLength; i++ {
+		var outcomeItem string = outcomesList[i]
 
-		r := <-this.LoadOutcomeAsync(outcomesList[i])
+		r := <-this.LoadOutcomeAsync(outcomeItem)
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var outcomeObj map[string]any = this.Outcome(outcomesList[i])
+		var outcomeObj map[string]any = this.Outcome(outcomeItem)
 		var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash", "")
 		if this.SafeBool(seenHashes, marketHash) == nil {
 			if marketHash != nil {
