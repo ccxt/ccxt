@@ -1446,7 +1446,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 this.handleAuthenticationMessage (client, message);
                 return;
             }
-            client.resolve (this.safeValue (message, 'result', message), requestId);
+            if ('result' in message) {
+                client.resolve (this.safeValue (message, 'result'), requestId);
+            } else {
+                client.resolve (message, requestId);
+            }
         }
     }
 
