@@ -206,6 +206,7 @@ class hyperliquid extends Exchange {
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient delegatable balance for priority order' => '\\ccxt\\InsufficientFunds', // priorityFee is paid in HYPE from the undelegated staking balance
                     'TWAP order value too small. Min is $1200, which is $10 per minute.' => '\\ccxt\\InvalidOrder',
                     'TWAP was never placed, already canceled, or filled.' => '\\ccxt\\OrderNotFound',
                     'Too many cumulative requests sent' => '\\ccxt\\RateLimitExceeded', // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
@@ -333,6 +334,7 @@ class hyperliquid extends Exchange {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // todo, in two orders
+                        'trailing' => true,
                     ),
                 ),
                 'swap' => array(
@@ -2156,6 +2158,7 @@ class hyperliquid extends Exchange {
          * create a trade $order
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
          *
          * @param {string} $symbol unified $symbol of the market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -2171,15 +2174,99 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->slippage] the slippage for market $order
          * @param {string} [$params->vaultAddress] the vault address for $order
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {int} [$params->priorityFee] the $order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC $orders (market $orders included) or post-only $orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+         * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
+         * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
+         * @param {float} [$params->trailingTriggerPrice] *swap only* the mark $price at which a trailing $order starts tracking, tracking starts immediately if omitted
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $isTrailing = $this->safe_string_2($params, 'trailingPercent', 'trailingAmount') !== null;
+        if ($isTrailing) {
+            $this->initialize_client();
+            $trailingMarket = $this->market($symbol);
+            $trailingRequest = $this->create_trailing_stop_request($symbol, $side, $amount, $params);
+            $trailingResponse = $this->privatePostExchange($trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            $trailingResponseObj = $this->safe_dict($trailingResponse, 'response', array());
+            $trailingData = $this->safe_dict($trailingResponseObj, 'data', array());
+            return $this->parse_order($this->extend($trailingData, array( 'status' => 'open' )), $trailingMarket);
+        }
         list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
         $orders = $this->create_orders(array( $order ), $globalParams);
         $created = $this->safe_dict($orders, 0);
         return $created;
+    }
+
+    public function create_trailing_stop_request(string $symbol, string $side, float $amount, $params = array()): array {
+        /**
+         * @ignore
+         * builds the signed $request of a native trailing stop order, which executes as a $market order once the mark price retraces from its best level, used by createOrder when $trailingPercent or $trailingAmount is set
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+         *
+         * @param {string} $symbol unified $symbol of the swap $market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->trailingPercent] the percent to trail away from the best mark price
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the best mark price
+         * @param {float} [$params->trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+         * @param {string} [$params->vaultAddress] the vault address for order
+         * @return {array} the $request to be sent to the exchange endpoint
+         */
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' createOrder() supports trailing orders for swap markets only');
+        }
+        $trailingPercent = $this->safe_string($params, 'trailingPercent');
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice');
+        $retracement = array();
+        if ($trailingPercent !== null) {
+            $retracement['pct'] = $trailingPercent . '%';
+        } else {
+            $retracement['px'] = $this->price_to_precision($symbol, $trailingAmount);
+        }
+        list($vaultAddressOption, $paramsVault) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
+        $nonce = $this->incrementing_nonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        $action = array(
+            'type' => 'trailingStop',
+            'asset' => $this->parse_to_int($market['baseId']),
+            'isBuy' => (strtoupper($side) === 'BUY'),
+            'sz' => $this->amount_to_precision($symbol, $amount),
+            'reduceOnly' => $this->safe_bool($paramsVault, 'reduceOnly', false),
+            'retracement' => $retracement,
+            'activationPx' => null,
+        );
+        if ($trailingTriggerPrice !== null) {
+            $action['activationPx'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+        }
+        $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $signature,
+        );
+        if ($vaultAddress !== null) {
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        return $request;
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
@@ -2261,9 +2348,11 @@ class hyperliquid extends Exchange {
          * create a list of trade $orders
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->priorityFee] the $order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole $request, only when every $order is IOC (market $orders included) or every $order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -2412,10 +2501,11 @@ class hyperliquid extends Exchange {
                 }
             }
         }
-        $params2 = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
+        $params2 = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'priorityFee' ));
         $nonce = $this->incrementing_nonce();
         $orderReq = array();
         $grouping = 'na';
+        $priorityFee = $this->safe_integer($params, 'priorityFee');
         for ($i = 0; $i < $ordersLength; $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
@@ -2426,6 +2516,13 @@ class hyperliquid extends Exchange {
             $amount = $this->safe_string($rawOrder, 'amount');
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderPriorityFee = $this->safe_integer($orderParams, 'priorityFee');
+            if ($orderPriorityFee !== null) {
+                if (($priorityFee !== null) && ($priorityFee !== $orderPriorityFee)) {
+                    throw new BadRequest($this->id . ' createOrders() all orders must use the same priorityFee, it is applied to the whole request');
+                }
+                $priorityFee = $orderPriorityFee;
+            }
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
             $orderParams = $this->extend($orderParams, array( 'slippage' => $slippage ));
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
@@ -2479,10 +2576,35 @@ class hyperliquid extends Exchange {
         }
         list($vaultAddressOption) = $this->handle_option_string_and_params($params2, 'createOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddressOption);
+        $groupingValue = $grouping;
+        if ($priorityFee !== null) {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if ($grouping !== 'na') {
+                throw new NotSupported($this->id . ' createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders');
+            }
+            $allIoc = true;
+            $allPostOnly = true;
+            for ($i = 0; $i < count($orderReq); $i++) {
+                $builtOrder = $this->safe_dict($orderReq, $i, array());
+                $builtOrderType = $this->safe_dict($builtOrder, 't', array());
+                $builtOrderLimit = $this->safe_dict($builtOrderType, 'limit', array());
+                $builtOrderTif = $this->safe_string($builtOrderLimit, 'tif');
+                if ($builtOrderTif !== 'Ioc') {
+                    $allIoc = false;
+                }
+                if (($builtOrderTif !== 'Alo') || $this->safe_bool($builtOrder, 'r', false)) {
+                    $allPostOnly = false;
+                }
+            }
+            if (!$allIoc && !$allPostOnly) {
+                throw new InvalidOrder($this->id . ' createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only');
+            }
+            $groupingValue = array( 'p' => $priorityFee );
+        }
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
-            'grouping' => $grouping,
+            'grouping' => $groupingValue,
         );
         if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
             $builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
@@ -3562,12 +3684,17 @@ class hyperliquid extends Exchange {
         if ($isTrigger) {
             $triggerPx = $this->safe_number($entry, 'triggerPx');
         }
+        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        $isTrailing = (mb_strpos($orderTypeRaw, 'trailing') !== false);
+        if ($isTrailing && Precise::string_eq($this->safe_string($entry, 'triggerPx', '0'), '0')) {
+            $triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
         $stopLossPrice = null;
         $takeProfitPrice = null;
-        if ($triggerPx !== null) {
+        if (($triggerPx !== null) && !$isTrailing) {
             if (mb_strpos($orderTypeRaw, 'stop') !== false) {
                 $stopLossPrice = $triggerPx;
             } elseif (mb_strpos($orderTypeRaw, 'take profit') !== false) {
@@ -3629,6 +3756,7 @@ class hyperliquid extends Exchange {
         $statuses = array(
             'stop limit' => 'limit',
             'stop market' => 'market',
+            'trailing stop market' => 'market',
         );
         return $this->safe_string($statuses, $status, $status);
     }
