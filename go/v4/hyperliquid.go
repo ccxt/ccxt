@@ -213,6 +213,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 				"Insufficient spot balance asset":                                    InsufficientFunds,
 				"Insufficient balance for withdrawal":                                InsufficientFunds,
 				"Insufficient balance for token transfer":                            InsufficientFunds,
+				"Insufficient delegatable balance for priority order":                InsufficientFunds,
 				"TWAP order value too small. Min is $1200, which is $10 per minute.": InvalidOrder,
 				"TWAP was never placed, already canceled, or filled.":                OrderNotFound,
 				"Too many cumulative requests sent":                                  RateLimitExceeded,
@@ -2764,6 +2765,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
  * @name hyperliquid#createOrder
  * @description create a trade order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2778,6 +2780,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
  * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
@@ -3019,8 +3022,10 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol 
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -3210,10 +3215,11 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 			}
 		}
 	}
-	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
+	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "priorityFee"})
 	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
 	var grouping string = "na"
+	var priorityFee *int64 = this.SafeInteger(params, "priorityFee")
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -3224,6 +3230,13 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		var amount *string = this.SafeString(rawOrder, "amount")
 		var price *string = this.SafeString(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderPriorityFee *int64 = this.SafeInteger(orderParams, "priorityFee")
+		if orderPriorityFee != nil {
+			if (priorityFee != nil) && (priorityFee != orderPriorityFee && (priorityFee == nil || orderPriorityFee == nil || *priorityFee != *orderPriorityFee)) {
+				panic(BadRequest(this.Id + " createOrders() all orders must use the same priorityFee, it is applied to the whole request"))
+			}
+			priorityFee = orderPriorityFee
+		}
 		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
 		AddElementToObject(orderParams, "slippage", slippage)
 		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
@@ -3282,10 +3295,37 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		vaultAddress = *vaultAddressPtr
 	}
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var groupingValue any = grouping
+	if priorityFee != nil {
+		// the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+		if grouping != "na" {
+			panic(NotSupported(this.Id + " createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders"))
+		}
+		var allIoc bool = true
+		var allPostOnly bool = true
+		for i := 0; i < len(orderReq); i++ {
+			var builtOrder map[string]any = SafeMapTyped(orderReq, i)
+			var builtOrderType map[string]any = SafeMapTyped(builtOrder, "t")
+			var builtOrderLimit map[string]any = SafeMapTyped(builtOrderType, "limit")
+			var builtOrderTif *string = this.SafeString(builtOrderLimit, "tif")
+			if builtOrderTif == nil || *builtOrderTif != "Ioc" {
+				allIoc = false
+			}
+			if (builtOrderTif == nil || *builtOrderTif != "Alo") || (*this.SafeBool(builtOrder, "r", false)) {
+				allPostOnly = false
+			}
+		}
+		if !allIoc && !allPostOnly {
+			panic(InvalidOrder(this.Id + " createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only"))
+		}
+		groupingValue = map[string]any{
+			"p": priorityFee,
+		}
+	}
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
 		"orders":   orderReq,
-		"grouping": grouping,
+		"grouping": groupingValue,
 	}
 	if *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
@@ -7524,6 +7564,7 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @name hyperliquid#createOrder
  * @description create a trade order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -7538,6 +7579,7 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
  * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
  * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
@@ -7593,8 +7635,10 @@ func (this *Hyperliquid) CreateTwapOrder(symbol string, side string, amount floa
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
