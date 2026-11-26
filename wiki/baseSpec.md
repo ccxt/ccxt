@@ -7808,20 +7808,20 @@ watches the mark price for all markets
 <a name="unWatchMyTrades" id="unwatchmytrades"></a>
 
 ## unWatchMyTrades
-unWatches information on multiple trades made by the user
+unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>any</code> - status of the unwatch request
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | not used by bullish unWatchMyTrades |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.unifiedMargin | <code>boolean</code> | No | use unified margin account |
-| params.executionFast | <code>boolean</code> | No | use fast execution |
+| params.tradingAccountId | <code>string</code> | No | the trading account id the subscription was opened with |
 
 **Supported exchanges:**
+[bullish](/exchanges/bullish.md#unwatchmytrades)
 [bybit](/exchanges/bybit.md#unwatchmytrades)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchmytrades)
 [derive](/exchanges/derive.md#unwatchmytrades)
@@ -7926,6 +7926,7 @@ unsubscribe from the orderbook channel
 [bingx](/exchanges/bingx.md#unwatchorderbook)
 [bitget](/exchanges/bitget.md#unwatchorderbook)
 [bitvavo](/exchanges/bitvavo.md#unwatchorderbook)
+[bullish](/exchanges/bullish.md#unwatchorderbook)
 [bybit](/exchanges/bybit.md#unwatchorderbook)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchorderbook)
 [cryptocom](/exchanges/cryptocom.md#unwatchorderbook)
@@ -7993,6 +7994,7 @@ unWatches information on multiple orders made by the user
 
 **Supported exchanges:**
 [backpack](/exchanges/backpack.md#unwatchorders)
+[bullish](/exchanges/bullish.md#unwatchorders)
 [bybit](/exchanges/bybit.md#unwatchorders)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchorders)
 [derive](/exchanges/derive.md#unwatchorders)
@@ -8020,6 +8022,7 @@ unWatches from the stream channel
 
 **Supported exchanges:**
 [backpack](/exchanges/backpack.md#unwatchpositions)
+[bullish](/exchanges/bullish.md#unwatchpositions)
 [bybit](/exchanges/bybit.md#unwatchpositions)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchpositions)
 [hyperliquid](/exchanges/hyperliquid.md#unwatchpositions)
@@ -8121,6 +8124,7 @@ unsubscribe from the trades channel
 [bitget](/exchanges/bitget.md#unwatchtrades)
 [bitvavo](/exchanges/bitvavo.md#unwatchtrades)
 [blofin](/exchanges/blofin.md#unwatchtrades)
+[bullish](/exchanges/bullish.md#unwatchtrades)
 [bybit](/exchanges/bybit.md#unwatchtrades)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchtrades)
 [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
