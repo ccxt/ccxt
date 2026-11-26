@@ -1039,7 +1039,7 @@ export default class polymarket extends polymarketRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleAck (client: Client, message: any) {
+    handleAck (client: Client, message: Dict) {
         //
         // subscribe or unsubscribe acknowledgement
         //
@@ -1051,8 +1051,8 @@ export default class polymarket extends polymarketRest {
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         const id = this.safeString (message, 'id');
-        const data = this.safeValue (message, 'data');
-        if (!Array.isArray (data)) {
+        if (!Array.isArray (message['data'])) {
+            const data = this.safeDict (message, 'data', {});
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id !== undefined) {
@@ -1097,8 +1097,10 @@ export default class polymarket extends polymarketRest {
         const subMessageHashes = this.safeList (pending, 'subMessageHashes', []);
         const action = this.safeString (pending, 'method');
         let errorMessage: Str = undefined;
-        for (let i = 0; i < data.length; i++) {
-            const entry = this.safeDict (data, i, {});
+        const rows = this.safeList (message, 'data', []);
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const entry = this.safeDict (rows, i, {});
             const status = this.safeString (entry, 'status');
             if (status === 'err') {
                 errorMessage = this.safeString (entry, 'error');
