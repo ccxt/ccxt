@@ -167,6 +167,95 @@ function cleanExceptionList (list: unknown, appRoot: string): unknown {
 }
 
 // Returns the event to send, or null to drop it.
+// ---- dimensions for dashboards ----------------------------------------------------------
+
+// Which host family made the call. ChatGPT and Codex both say openai-mcp; Claude.ai and
+// Claude Code both send the Claude-User agent, so the declared client name decides when
+// there is one. The 2025-era stateless requests carry no client name (it is sent once, in
+// initialize), so the User-Agent is the fallback there
+export function clientFamily (clientName: unknown, userAgent: unknown): string {
+    const name = (typeof clientName === 'string') ? clientName.toLowerCase () : '';
+    const agent = (typeof userAgent === 'string') ? userAgent.toLowerCase () : '';
+    if (isInternalTest (userAgent) || name.startsWith ('ccxt-')) {
+        return 'internal';
+    }
+    if (name.includes ('codex') || agent.includes ('(codex)')) {
+        return 'codex';
+    }
+    if (name.startsWith ('openai-mcp') || agent.startsWith ('openai-mcp')) {
+        return 'chatgpt';
+    }
+    if (name === 'claude-code' || agent.startsWith ('claude-code')) {
+        return 'claude_code';
+    }
+    if (name === 'claude-ai' || name.startsWith ('anthropic/claude') || agent.startsWith ('claude-user')) {
+        return 'claude';
+    }
+    if (name.includes ('cursor') || agent.includes ('cursor')) {
+        return 'cursor';
+    }
+    if (name.includes ('visual studio code') || name.includes ('vscode')) {
+        return 'vscode';
+    }
+    if (name.includes ('gemini') || agent.includes ('gemini')) {
+        return 'gemini';
+    }
+    return (name.length > 0 || agent.length > 0) ? 'other' : 'unknown';
+}
+
+// this repository's smoke checks send a User-Agent starting with this
+export const INTERNAL_TEST_AGENT = 'ccxt-mcp-smoke';
+
+export function isInternalTest (userAgent: unknown): boolean {
+    return typeof userAgent === 'string' && userAgent.toLowerCase ().startsWith (INTERNAL_TEST_AGENT);
+}
+
+// one coarse class per error code, so an error rate can leave out the expected answers
+// (an account stub, a mistyped symbol) and show what needs attention
+const ERROR_CLASSES: Record<string, string> = {
+    'ACCOUNT_REQUIRED': 'account_required',
+    'VALIDATION': 'invalid_input',
+    'BAD_SYMBOL': 'invalid_input',
+    'BAD_TIMEFRAME': 'invalid_input',
+    'BAD_REQUEST': 'invalid_input',
+    'UNKNOWN_EXCHANGE': 'invalid_input',
+    'NOT_SUPPORTED': 'invalid_input',
+    'RATE_LIMITED': 'rate_limited',
+    'OVERLOADED': 'rate_limited',
+    'TOO_MANY_LISTENS': 'rate_limited',
+    'EXCHANGE_UNAVAILABLE': 'upstream',
+    'EXCHANGE_ERROR': 'upstream',
+    'EXCHANGE_WARMING': 'upstream',
+    'TIMEOUT': 'upstream',
+    'LIVE_UNAVAILABLE': 'upstream',
+};
+
+export function errorClass (code: string | undefined): string {
+    if (code === undefined) {
+        return 'unknown';
+    }
+    return Object.prototype.hasOwnProperty.call (ERROR_CLASSES, code) ? ERROR_CLASSES[code] : 'server';
+}
+
+// what a show_* view did, as the tool reported it (structuredContent.ui or meta.ui):
+// displayed, attached, unsupported, unknown or off
+function uiStatusOf (response: any): string | undefined {
+    const structured = response?.structuredContent?.ui;
+    if (typeof structured === 'string') {
+        return structured.slice (0, 32);
+    }
+    const first = Array.isArray (response?.content) ? response.content[0] : undefined;
+    if (typeof first?.text === 'string') {
+        try {
+            const meta = JSON.parse (first.text)?.meta?.ui;
+            return (typeof meta === 'string') ? meta.slice (0, 32) : undefined;
+        } catch (e) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
 export function prepareEvent (event: CaptureEvent, context: EventContext): CaptureEvent | null {
     const props = event.properties;
     const isException = event.event === '$exception';
@@ -176,6 +265,10 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
     if (code !== undefined) {
         props['error_code'] = code;
     }
+    if (isError) {
+        props['error_class'] = errorClass (code);
+    }
+    props['client_family'] = clientFamily (props['$mcp_client_name'], props['$mcp_client_user_agent']);
     // expected failures stay visible on $mcp_tool_call (is_error, error_code) but are not
     // faults, so they do not open Error Tracking issues
     if (isException && code !== undefined && context.expectedErrorCodes.has (code)) {
@@ -207,6 +300,13 @@ export function prepareEvent (event: CaptureEvent, context: EventContext): Captu
     }
     if (context.cache !== undefined) {
         props['cache'] = context.cache;
+    }
+    const tool = toolNameOf (props);
+    if (tool !== undefined && tool.startsWith ('show_') && !isError) {
+        const ui = uiStatusOf (props['$mcp_response']);
+        if (ui !== undefined) {
+            props['ui_status'] = ui;
+        }
     }
     if ('$mcp_response' in props) {
         // market data is public but large, and phase-2 account data must never be sent:

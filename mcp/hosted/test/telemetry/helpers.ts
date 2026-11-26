@@ -204,6 +204,7 @@ export async function startTestMcp (telemetry: Telemetry): Promise<TestMcp> {
             'userAgent': request.headers.get ('user-agent') ?? undefined,
             'authState': 'anonymous',
             ip,
+            'groupSessions': request.headers.get ('x-test-group-sessions') === '1',
         };
         const started = Date.now ();
         const response = await telemetry.runWithRequest (info, () => handler.fetch (request));

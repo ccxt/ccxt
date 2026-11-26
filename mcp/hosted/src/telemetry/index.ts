@@ -19,6 +19,7 @@ import { prepareEvent, LIVE_TOOL_NAME, type CaptureEvent } from './analytics.js'
 import { levelEnabled, sanitizeLogAttributes, type LogValue } from './logs.js';
 import { createTransport, type TransportObservation } from './transport.js';
 import { truncateString } from './redact.js';
+import { clientFamily, isInternalTest } from './analytics.js';
 
 export { telemetryConfigFromEnv, resolveTelemetryConfig, DEFAULT_EXPECTED_ERROR_CODES, DEFAULT_HOST } from './config.js';
 export type { TelemetryConfig, AnalyticsOptions, LogLevel } from './config.js';
@@ -31,6 +32,9 @@ export interface RequestInfo {
     userAgent?: string;
     authState: 'anonymous' | 'authenticated';
     ip?: string;
+    // the caller is one client (a ChatGPT user's openai/subject, or its own address), not an
+    // address every user of a host shares: its requests can share an analytics session
+    groupSessions?: boolean;
 }
 
 export interface RequestSummary {
@@ -79,6 +83,7 @@ export interface Telemetry {
 
 interface RequestState {
     info: RequestInfo;
+    sessionKey?: string; // what the analytics session id is derived from
     distinctId?: string;
     sessionId?: string;
     cache?: 'hit' | 'miss' | 'coalesced';
@@ -88,6 +93,13 @@ interface RequestState {
 // a request's identity outlives its async scope by a little: requestDone is often called
 // after the handler returned. Bounded so a caller that never calls requestDone cannot grow it.
 const MAX_TRACKED_REQUESTS = 10000;
+// Analytics sessions on a stateless server. Requests from one client with gaps under
+// SESSION_IDLE_MS share a session (so PostHog's sessions, users and "tools used together"
+// mean something); a longer gap starts a new one. Only for clients that are one caller
+// (RequestInfo.groupSessions): everyone behind a host's shared address would otherwise
+// merge into one session. The key is the daily client hash, never the raw address.
+export const SESSION_IDLE_MS = 30 * 60 * 1000;
+const MAX_TRACKED_SESSIONS = 20000;
 
 const FLAGS_CHECK_DISTINCT_ID = 'ccxt-mcp-hosted-token-check';
 
@@ -303,7 +315,7 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
             // same one-session-per-request result, and lets log lines carry the exact
             // distinct id and session id of their events (requestDone often runs before the
             // SDK has built them). With conversation ids on, the SDK's own grouping wins.
-            'sessionId': config.analytics.conversationId ? undefined : () => storage.getStore ()?.info.requestId ?? null,
+            'sessionId': config.analytics.conversationId ? undefined : () => { const state = storage.getStore (); return state?.sessionKey ?? state?.info.requestId ?? null; },
             // phase 1 is anonymous: no person profiles. Phase 2 returns the signed-in
             // user's opaque internal id here (never an email or an exchange key).
             'identify': async () => null,
@@ -317,6 +329,10 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
                     'auth_state': state?.info.authState ?? 'anonymous',
                     'deployment': config.deployment,
                     'sample_rate': config.sampleRate,
+                    'session_scope': (state?.info.groupSessions === true) ? 'client' : 'request',
+                    // this repository's own smoke checks (scripts/smoke.mjs, deploy/remote-deploy.sh)
+                    // say so in their User-Agent, so dashboards can leave them out
+                    'internal_test': isInternalTest (state?.info.userAgent),
                 };
             },
             'beforeSend': (event: any) => {
@@ -347,13 +363,37 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
         } as any);
     };
 
+    // client session key -> { the session's own key, when the client was last seen }
+    const sessions = new Map<string, { key: string, lastSeen: number }> ();
+    const sessionKeyFor = (info: RequestInfo): string => {
+        if (info.groupSessions !== true) {
+            return info.requestId;
+        }
+        const at = now ();
+        const client = info.clientHash + '|' + clientFamily (undefined, info.userAgent);
+        const current = sessions.get (client);
+        const session = (current !== undefined && at - current.lastSeen < SESSION_IDLE_MS) ? current : { 'key': client + '|' + String (at), 'lastSeen': at };
+        session.lastSeen = at;
+        // most recently used last, so the first key is the one to evict
+        sessions.delete (client);
+        sessions.set (client, session);
+        if (sessions.size > MAX_TRACKED_SESSIONS) {
+            const oldest = sessions.keys ().next ().value;
+            if (oldest !== undefined) {
+                sessions.delete (oldest);
+            }
+        }
+        return session.key;
+    };
+
     const runWithRequest = <T> (info: RequestInfo, fn: () => Promise<T>): Promise<T> => {
         const filled: RequestInfo = (info.clientHash && info.clientHash.length > 0) ? info : { ...info, 'clientHash': hashClient (info.clientKey) };
         const state: RequestState = { 'info': filled };
         if (enabled && !config.analytics.conversationId) {
             // the same derivation the SDK applies to the sessionId callback above; while
             // identify () returns null the distinct id is the session id
-            state.sessionId = deriveSessionIdFromMCPSession (filled.requestId);
+            state.sessionKey = sessionKeyFor (filled);
+            state.sessionId = deriveSessionIdFromMCPSession (state.sessionKey);
             state.distinctId = state.sessionId;
         }
         recent.set (filled.requestId, state);
@@ -390,6 +430,9 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
             'protocol_era': summary.protocolEra,
             // the client's self-declared name, not the User-Agent header: logs carry no header values
             'client_name': (summary.clientName === undefined) ? undefined : truncateString (summary.clientName, 128),
+            // a category derived from the name or User-Agent, not the header value itself
+            'client_family': clientFamily (summary.clientName, state?.info.userAgent),
+            'internal_test': isInternalTest (state?.info.userAgent) || undefined,
             'limited_by': summary.limitedBy,
         };
         const fallback: RequestState = state ?? { 'info': { 'requestId': summary.requestId, 'clientKey': '', 'clientHash': '', 'authState': 'anonymous' } };

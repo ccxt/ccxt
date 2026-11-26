@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { isSecretKey, looksLikeSecret, scrub, capJson, sanitizeParameters, relativizePath, stripPathsInText, REDACTED } from '../../src/telemetry/redact.js';
-import { sampledIn, errorCodeOf, exchangeOf, prepareEvent, type EventContext } from '../../src/telemetry/analytics.js';
+import { sampledIn, errorCodeOf, exchangeOf, prepareEvent, clientFamily, errorClass, isInternalTest, type EventContext } from '../../src/telemetry/analytics.js';
 import { sanitizeLogAttributes, levelEnabled } from '../../src/telemetry/logs.js';
 import { telemetryConfigFromEnv, DEFAULT_EXPECTED_ERROR_CODES } from '../../src/telemetry/config.js';
 import { endpointKind } from '../../src/telemetry/transport.js';
@@ -164,4 +164,52 @@ test ('endpointKind: classifies the PostHog paths status () watches', () => {
     assert.equal (endpointKind ('https://eu.i.posthog.com/i/v1/logs?token=x'), 'logs');
     assert.equal (endpointKind ('https://eu.i.posthog.com/flags?v=2'), 'flags');
     assert.equal (endpointKind ('not a url'), 'other');
+});
+
+test ('dimensions: client family from the declared name, else the User-Agent', () => {
+    const cases: [ unknown, unknown, string ][] = [
+        [ 'openai-mcp', 'openai-mcp/1.0.0', 'chatgpt' ],
+        [ undefined, 'openai-mcp/1.0.0', 'chatgpt' ],
+        [ 'openai-mcp (Codex)', 'openai-mcp/1.0.0 (Codex)', 'codex' ],
+        [ undefined, 'openai-mcp/1.0.0 (Codex)', 'codex' ],
+        [ 'claude-code', 'Claude-User', 'claude_code' ],
+        [ 'claude-ai', 'Claude-User', 'claude' ],
+        [ 'Anthropic/ClaudeAI', 'Claude-User', 'claude' ],
+        [ undefined, 'Claude-User', 'claude' ],
+        [ 'cursor-vscode', 'node', 'cursor' ],
+        [ 'Visual Studio Code', 'node', 'vscode' ],
+        [ 'ccxt-hosted-smoke', 'node', 'internal' ],
+        [ undefined, 'ccxt-mcp-smoke/deploy', 'internal' ],
+        [ undefined, 'curl/8.5.0', 'other' ],
+        [ undefined, undefined, 'unknown' ],
+    ];
+    for (const [ name, agent, expected ] of cases) {
+        assert.equal (clientFamily (name, agent), expected, JSON.stringify ([ name, agent ]));
+    }
+    assert.equal (isInternalTest ('CCXT-MCP-SMOKE/x'), true);
+    assert.equal (isInternalTest ('node'), false);
+    assert.equal (isInternalTest (undefined), false);
+});
+
+test ('dimensions: error class, and the view status of a show_* result', () => {
+    assert.equal (errorClass ('ACCOUNT_REQUIRED'), 'account_required');
+    for (const code of [ 'BAD_SYMBOL', 'BAD_TIMEFRAME', 'BAD_REQUEST', 'VALIDATION', 'UNKNOWN_EXCHANGE', 'NOT_SUPPORTED' ]) {
+        assert.equal (errorClass (code), 'invalid_input', code);
+    }
+    assert.equal (errorClass ('RATE_LIMITED'), 'rate_limited');
+    for (const code of [ 'EXCHANGE_UNAVAILABLE', 'EXCHANGE_ERROR', 'EXCHANGE_WARMING', 'TIMEOUT', 'LIVE_UNAVAILABLE' ]) {
+        assert.equal (errorClass (code), 'upstream', code);
+    }
+    assert.equal (errorClass ('INTERNAL_ERROR'), 'server');
+    assert.equal (errorClass ('constructor'), 'server', 'own keys only');
+    assert.equal (errorClass (undefined), 'unknown');
+    const show = (response: any, name = 'show_chart') => (prepareEvent ({ 'event': '$mcp_tool_call', 'distinct_id': 'd', 'properties': { '$mcp_tool_name': name, '$mcp_is_error': false, '$mcp_response': response } }, context ()) as any).properties;
+    assert.equal (show ({ 'structuredContent': { 'ui': 'displayed', 'candles': [] }, 'content': [] }).ui_status, 'displayed');
+    assert.equal (show ({ 'content': [ { 'type': 'text', 'text': JSON.stringify ({ 'ok': true, 'meta': { 'ui': 'attached' } }) } ] }).ui_status, 'attached');
+    assert.equal (show ({ 'content': [ { 'type': 'text', 'text': 'not json' } ] }).ui_status, undefined);
+    assert.equal (show ({ 'structuredContent': { 'ui': 'displayed' } }, 'get_tickers').ui_status, undefined, 'only views');
+    const failed: any = prepareEvent ({ 'event': '$mcp_tool_call', 'distinct_id': 'd', 'properties': { '$mcp_tool_name': 'get_balance', '$mcp_is_error': true, '$mcp_response': { 'content': [ { 'type': 'text', 'text': '{"ok":false,"error":{"code":"ACCOUNT_REQUIRED"}}' } ] } } }, context ());
+    assert.equal (failed.properties.error_class, 'account_required');
+    const ok: any = prepareEvent ({ 'event': '$mcp_tool_call', 'distinct_id': 'd', 'properties': { '$mcp_is_error': false } }, context ());
+    assert.equal (ok.properties.error_class, undefined, 'no class on a success');
 });

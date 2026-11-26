@@ -139,7 +139,7 @@ jobs:
         run: |
           body='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"deploy-check","version":"1"}}}'
           for _ in 1 2 3 4 5; do
-            out=$(curl -sS --max-time 20 -X POST "$PUBLIC_URL" -H 'Content-Type: application/json' \
+            out=$(curl -sS --max-time 20 -A 'ccxt-mcp-smoke/deploy-check' -X POST "$PUBLIC_URL" -H 'Content-Type: application/json' \
               -H 'Accept: application/json, text/event-stream' -d "$body" || true)
             if echo "$out" | grep -q "\"version\":\"${BUILD_ID}\""; then
               echo "public endpoint serves ${BUILD_ID}"

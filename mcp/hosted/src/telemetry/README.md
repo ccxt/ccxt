@@ -20,7 +20,10 @@ The local stdio server (`ccxt-mcp` on npm) collects nothing. Nothing in this dir
 Phase 1 is anonymous.
 
 - **No person profiles.** Every event is sent with `process_person_profile: false`.
-- **One session per HTTP request.** The stateless server has no protocol session. Each request's `$session_id` and `distinct_id` are derived from its `request_id` (`ses_<hash>`), so they identify the request, not a person.
+- **Sessions without protocol sessions.** The stateless server has no protocol session, so it groups requests itself:
+  - A client that is one caller (a ChatGPT user's anonymised `openai/subject`, or a client calling from its own address, such as Claude Code) gets one session for its calls until a gap of 30 minutes (`SESSION_IDLE_MS`). The session id is derived from the daily `client_hash`, the client family and the session's start time, never from the raw address.
+  - Requests from an address every user of a host shares (Claude.ai, ChatGPT without `openai/subject`) stay one session per request, named after `request_id`: grouping them would merge many people.
+  - `session_scope` (`client` or `request`) says which applied. `distinct_id` equals `$session_id` (`ses_<hash>`): it identifies a session, not a person.
 - **`client_hash`** groups requests from one client within one UTC day, for abuse and uniqueness analysis.
   - It is 16 hex characters of HMAC-SHA256 with a server secret (`CLIENT_HASH_SECRET`). The HMAC input is the UTC date and the client key.
   - The client key is the ChatGPT subject id when ChatGPT sends one, otherwise the client IP address from the trusted proxy header.
@@ -54,6 +57,11 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 | `$mcp_client_name`, `$mcp_client_version` | The client's self-declared name, e.g. `claude-ai`. Present on 2026-07-28 requests and on `initialize`. 2025-era stateless tool calls do not carry it. |
 | `$mcp_client_user_agent` | The client's HTTP `User-Agent`. |
 | `$mcp_session_source`, `$mcp_duration_ms`, `$mcp_source`, `$mcp_interface`, `$lib`, `$lib_version`, `$is_server`, `$geoip_disable` | SDK bookkeeping. GeoIP is disabled. |
+| `client_family` | Every tool call: `chatgpt`, `codex`, `claude`, `claude_code`, `cursor`, `vscode`, `gemini`, `internal`, `other` or `unknown`, from the declared client name, else the User-Agent (2025-era stateless requests carry no client name). |
+| `session_scope` | `client` or `request`: whether this call's session groups a client's calls (above). |
+| `internal_test` | `true` for this repository's own smoke checks (User-Agent `ccxt-mcp-smoke/...`), so dashboards can leave them out. |
+| `error_class` | Failed calls only: `account_required` (the account stubs), `invalid_input`, `rate_limited`, `upstream` or `server`. Error rates that matter: `server` and `upstream`. |
+| `ui_status` | Successful `show_*` calls: `displayed`, `attached`, `unsupported`, `unknown` or `off`, as the tool reported it. |
 | `$mcp_parameters` | The JSON-RPC request, after the cleanup below. |
 
 ### Extra properties on `$mcp_tool_call`
@@ -118,7 +126,7 @@ The hosted server also rejects unknown arguments, so a credential sent as an arg
 `POSTHOG_SAMPLE_RATE` (0 to 1, default 1) keeps that fraction of **successful** events.
 
 - Errors and their `$exception` events are always kept.
-- The decision hashes the session id. Today that id is one per request, so a request's events are kept or dropped together, and the same id always gets the same answer.
+- The decision hashes the session id, so a session's events are kept or dropped together, and the same id always gets the same answer.
 - **`live_update`** (the views' refresh poll, every few seconds per open view) uses `LIVE_TELEMETRY_SAMPLE_RATE` (default `0.01`) for its successes instead. Its errors are always kept. `sample_rate` on each event is the success rate in force, also on errors, which were not sampled: to scale counts back up, weight each event by `1 / effective_sample_rate` (1 for errors). Both rates must be numbers from 0 to 1; anything else (`1%`, `0,05`, `5`) fails at start-up.
 
 ## Logs
@@ -143,7 +151,7 @@ Each log record is one JSON line on standard output. When a token is set, the sa
 |---|---|
 | `request_id`, `client_hash`, `auth_state` | On every record written inside a request. |
 | `posthogDistinctId`, `sessionId` | The same values as that request's events, so PostHog links a log line to its events. |
-| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name`. `limited_by` (`client`, `host`, `busy`, `draining`) when this server's own budget answered before the tools ran. For `live_update` the line is at `debug` when the poll succeeded or was refused by this server's own budget (`limited_by` set): the polls are summarised by the hub's stats line instead. Any other failure of a poll — an exchange throttling this server (`RATE_LIMITED` from upstream), a full queue, an outage — stays at `warn`. |
+| One wide line per request (`msg: "request"`) | `http_status`, `duration_ms`, `mcp_method`, `tool_name`, `exchange`, `ok`, `error_code`, `cache`, `protocol_era`, `client_name`, `client_family` (as on the events), `internal_test` (only when true). `limited_by` (`client`, `host`, `busy`, `draining`) when this server's own budget answered before the tools ran. For `live_update` the line is at `debug` when the poll succeeded or was refused by this server's own budget (`limited_by` set): the polls are summarised by the hub's stats line instead. Any other failure of a poll — an exchange throttling this server (`RATE_LIMITED` from upstream), a full queue, an outage — stays at `warn`. |
 | `live hub stats` (every `LIVE_STATS_INTERVAL_MS` while views are live) | `streams`, `streams_by_exchange`, `abandoned`, `instances`, `polls_stream`, `polls_cache`, `polls_rest`, `polls_failed`, `polls_failed_by_code`, `refused`, `refused_by_reason`, `fallbacks`, `opened`, `closed_idle`, `recycled`, `unrenewed`, `stream_errors`, `disabled_exchanges`: totals since the process started (a rate needs the difference between two lines), plus `polls_stream_delta`, `polls_cache_delta`, `polls_rest_delta`, `polls_failed_delta` and `refused_delta` since the previous line. Counts only: no symbol, no client. |
 | Other lines | Server life-cycle events (listening, draining, circuit breaker), and errors as `name: message` of at most 300 characters (never a stack). |
 

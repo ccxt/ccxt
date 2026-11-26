@@ -98,7 +98,7 @@ const SUCCESS_TOOL_CALL_PROPERTIES = [
     '$mcp_interface', '$mcp_is_error', '$mcp_parameters', '$mcp_protocol_version', '$mcp_resource_name',
     '$mcp_server_name', '$mcp_server_version', '$mcp_session_source', '$mcp_source', '$mcp_tool_description',
     '$mcp_tool_name',
-    'auth_state', 'cache', 'client_hash', 'deployment', 'effective_sample_rate', 'exchange', 'request_id', 'response_bytes', 'sample_rate',
+    'auth_state', 'cache', 'client_family', 'client_hash', 'deployment', 'effective_sample_rate', 'exchange', 'internal_test', 'request_id', 'response_bytes', 'sample_rate', 'session_scope',
 ].sort ();
 
 test ('events: exact events and properties for success, expected and unexpected errors', async () => {
@@ -474,4 +474,65 @@ test ('client hash: stable within a day, different across days and keys, never t
     assert.equal (seen!.clientHash, telemetry.hashClient (CLIENT_IP));
     assert.equal (telemetry.currentRequest (), undefined);
     await telemetry.shutdown (100);
+});
+
+test ('sessions: one client\'s calls share a session until a 30-minute gap; shared addresses stay per request', async () => {
+    let clock = Date.UTC (2026, 10, 26, 12, 0, 0);
+    const h = await harness ({ 'now': () => clock });
+    try {
+        const mcp = await startTestMcp (h.telemetry);
+        let current = 'connect';
+        let group = '1';
+        let agent = 'openai-mcp/1.0.0';
+        const client = await connectClient (mcp.url, 'auto', () => ({ 'x-test-request-id': current, 'x-forwarded-for': CLIENT_IP, 'user-agent': agent, 'x-test-group-sessions': group }));
+        const call = async (id: string) => {
+            current = id;
+            await client.callTool ({ 'name': 'get_tickers', 'arguments': { 'exchange': 'kraken', 'symbols': [ 'BTC/USD' ] } });
+        };
+        await call ('s1-a');
+        clock += 10 * 60 * 1000;
+        await call ('s1-b');
+        clock += 29 * 60 * 1000; // 29 min after the last call: still the same session
+        await call ('s1-c');
+        clock += 31 * 60 * 1000; // a longer gap starts a new one
+        await call ('s2-a');
+        agent = 'ccxt-mcp-smoke/test'; // another client family from the same address: its own session
+        await call ('s3-a');
+        group = '0'; // an address every user of a host shares: one session per request
+        agent = 'Claude-User';
+        await call ('shared-a');
+        await call ('shared-b');
+        await client.close ();
+        await mcp.close ();
+        await h.telemetry.shutdown (3000);
+        const session = (id: string) => h.sink.events ().find ((event) => event.event === '$mcp_tool_call' && event.properties.request_id === id);
+        const s = (id: string) => session (id)?.session_id;
+        assert.ok (s ('s1-a') !== undefined);
+        assert.equal (s ('s1-b'), s ('s1-a'));
+        assert.equal (s ('s1-c'), s ('s1-a'));
+        assert.notEqual (s ('s2-a'), s ('s1-a'));
+        assert.notEqual (s ('s3-a'), s ('s2-a'));
+        assert.notEqual (s ('shared-a'), s ('shared-b'));
+        assert.equal (s ('shared-a'), deriveSessionIdFromMCPSession ('shared-a'), 'per-request sessions are named after the request id, as before');
+        for (const id of [ 's1-a', 's1-b', 's2-a', 'shared-a' ]) {
+            const event = session (id)!;
+            assert.equal (event.distinct_id, event.session_id, id + ': anonymous, the distinct id is the session id');
+        }
+        assert.equal (session ('s1-a')!.properties.session_scope, 'client');
+        assert.equal (session ('shared-a')!.properties.session_scope, 'request');
+        assert.equal (session ('s1-a')!.properties.client_family, 'chatgpt');
+        assert.equal (session ('s3-a')!.properties.internal_test, true);
+        assert.equal (session ('s3-a')!.properties.client_family, 'internal');
+        assert.equal (session ('s1-a')!.properties.internal_test, false);
+        assert.equal (session ('shared-a')!.properties.client_family, 'claude', 'an unrecognised client name falls back to the User-Agent');
+        // the raw address never reaches a session id or a property
+        assert.ok (!JSON.stringify (h.sink.events ()).includes (CLIENT_IP));
+        // log lines carry the same session ids as their events
+        const logged = h.sink.logRecords ().filter ((entry) => entry.attributes.requestId === 's1-b' || entry.attributes.request_id === 's1-b');
+        for (const entry of logged) {
+            assert.equal (entry.attributes.sessionId, s ('s1-b'));
+        }
+    } finally {
+        await h.stop ();
+    }
 });

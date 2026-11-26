@@ -89,7 +89,7 @@ discard_new () {
 
 # ---- smoke test on the new port -----------------------------------------------------------
 mcp () { # json-rpc body -> response text
-    curl -sS --max-time 30 -X POST "http://127.0.0.1:$NEW_PORT/mcp" \
+    curl -sS --max-time 30 -A 'ccxt-mcp-smoke/deploy' -X POST "http://127.0.0.1:$NEW_PORT/mcp" \
         -H "Host: $PUBLIC_HOST" -H 'Content-Type: application/json' \
         -H 'Accept: application/json, text/event-stream' -H 'MCP-Protocol-Version: 2025-11-25' -d "$1"
 }

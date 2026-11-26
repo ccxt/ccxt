@@ -94,7 +94,8 @@ try {
     for (const mode of [ 'legacy', 'auto' ]) {
         console.log ('client mode ' + mode);
         const client = new Client ({ 'name': 'ccxt-hosted-smoke', 'version': '1.0.0' }, { 'versionNegotiation': { mode }, 'capabilities': UI });
-        await client.connect (new StreamableHTTPClientTransport (new URL (url)));
+        // the User-Agent marks these calls as internal_test in analytics (src/telemetry/analytics.ts)
+        await client.connect (new StreamableHTTPClientTransport (new URL (url), { 'requestInit': { 'headers': { 'user-agent': 'ccxt-mcp-smoke/scripts' } } }));
         console.log ('  negotiated ' + client.getNegotiatedProtocolVersion ());
         const { tools } = await client.listTools ();
         check (JSON.stringify (tools.map ((tool) => tool.name).sort ()) === JSON.stringify (EXPECTED), 'tools/list is the ' + EXPECTED.length + ' hosted tools');
