@@ -4,7 +4,7 @@ import independentreserveRest from '../independentreserve.js';
 import { NotSupported, ChecksumError, ExchangeError } from '../base/errors.js';
 import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Dict , Market, Num } from '../base/types.js';
+import type { Int, OrderBook, Trade, Dict , Market, Num, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -233,8 +233,8 @@ export default class independentreserve extends independentreserveRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        const checksum: boolean = this.handleOption ('watchOrderBook', 'checksum', true);
-        if ((checksum) && (receivedSnapshot)) {
+        const checksum: Bool = this.handleOption ('watchOrderBook', 'checksum', true);
+        if ((checksum === true) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;

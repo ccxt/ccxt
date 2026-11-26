@@ -43,7 +43,7 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
     // core to dispatch to, so unsupported venues throw here.
     public CompletableFuture<Object> redeem(String outcome, Map<String, Object> params) {
         return supplyAsync(() -> {
-            throw new NotSupported(Helpers.add(this.id, " redeem() is not supported yet"));
+            throw new NotSupported(this.id + " redeem() is not supported yet");
         });
     }
 
