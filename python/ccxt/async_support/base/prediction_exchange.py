@@ -1367,8 +1367,8 @@ class PredictionExchange(BaseExchange):
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)
 
-    def pad_hex_to_even(self, hex: Str):
-        if hex is None:
+    def pad_hex_to_even(self, hex: str):
+        if hex == '':
             return ''
         # prepend a nibble so the hex has an even number of characters (whole bytes)
         hexLength = len(hex)
@@ -1383,9 +1383,7 @@ class PredictionExchange(BaseExchange):
         stripped = self.remove0x_prefix(address)
         return '000000000000000000000000' + stripped
 
-    def rlp_encode_bytes(self, hex: Str):
-        if hex is None:
-            return ''
+    def rlp_encode_bytes(self, hex: str):
         # RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         byteLength = self.parse_to_int(len(hex) / 2)
         if byteLength is None:

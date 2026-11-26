@@ -2110,8 +2110,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.pad_hex_to_even(self.safe_string(signature, 'r'))
-        sHex = self.pad_hex_to_even(self.safe_string(signature, 's'))
+        rHex = self.pad_hex_to_even(self.safe_string(signature, 'r', ''))
+        sHex = self.pad_hex_to_even(self.safe_string(signature, 's', ''))
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
         for i in range(0, len(fields)):

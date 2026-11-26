@@ -687,18 +687,14 @@ class myriad(PredictionExchange, ImplicitAPI):
         payload = '02' + self.rlp_encode_list(fields)
         hashHex = self.hash(self.base16_to_binary(payload), 'keccak', 'hex')
         signature = self.ecdsa(hashHex, self.remove0x_prefix(privateKey), 'secp256k1', None)
-        rHex = self.safe_string(signature, 'r')
-        sHex = self.safe_string(signature, 's')
-        if rHex is None:
+        rHexRaw = self.safe_string(signature, 'r', '')
+        if rHexRaw == '':
             raise ExchangeError(self.id + ' signEvmTransaction() missing rHex')
-        rHexLength = len(rHex)
-        if (rHexLength % 2) != 0:
-            rHex = '0' + rHex
-        if sHex is None:
+        sHexRaw = self.safe_string(signature, 's', '')
+        if sHexRaw == '':
             raise ExchangeError(self.id + ' signEvmTransaction() missing sHex')
-        sHexLength = len(sHex)
-        if (sHexLength % 2) != 0:
-            sHex = '0' + sHex
+        rHex = self.pad_hex_to_even(rHexRaw)
+        sHex = self.pad_hex_to_even(sHexRaw)
         yParity = self.safe_integer(signature, 'v')
         signedFields = []
         for i in range(0, len(fields)):
