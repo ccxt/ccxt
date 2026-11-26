@@ -192,6 +192,7 @@ func TestOrderBookSideConcurrentStoreAndLimit(t *testing.T) {
 								case <-done:
 									return
 								default:
+									_ = rs.side.Len()
 									if problem := unsortedRows(rs.side.GetDataCopy(), bids, rs.strict); problem != "" {
 										t.Errorf("%s: published copy %s", name, problem)
 										return

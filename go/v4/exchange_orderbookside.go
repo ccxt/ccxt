@@ -1098,7 +1098,7 @@ func (obs *CountedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
 func (obs *CountedOrderBookSide) Len() int {
-	return obs.Length
+	return obs.OrderBookSide.Len()
 }
 func (obs *CountedOrderBookSide) SetDepth(depth int) {
 	obs.OrderBookSide.SetDepth(depth)
