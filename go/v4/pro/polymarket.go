@@ -1548,7 +1548,7 @@ func (this *Polymarket) HandlePortfolio(client ccxt.ClientInterface, message map
 	this.Balance, _ = this.SafeBalance(result).(map[string]any)
 	client.Resolve(this.Balance, "balance")
 }
-func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message any) {
+func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// subscribe or unsubscribe acknowledgement
 	//
@@ -1560,8 +1560,12 @@ func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message any) {
 	//     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
 	//
 	var id *string = this.SafeString(message, "id")
-	var data any = this.SafeValue(message, "data")
-	if !ccxt.IsArray(data) {
+	if !ccxt.IsArray(message["data"]) {
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		// post replies carry a data object - the auth op is matched back
 		// through its pending entry, anything else counts like a pong
 		if id != nil {
@@ -1606,8 +1610,10 @@ func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message any) {
 	var subMessageHashes []any = ccxt.SafeListTyped(pending, "subMessageHashes")
 	var action *string = this.SafeString(pending, "method")
 	var errorMessage *string = nil
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+	var rows, _ = message["data"].([]any)
+	var rowsLength int = len(rows)
+	for i := 0; i < rowsLength; i++ {
+		var entry, _ = rows[i].(map[string]any)
 		var status *string = this.SafeString(entry, "status")
 		if status != nil && *status == "err" {
 			errorMessage = this.SafeString(entry, "error")

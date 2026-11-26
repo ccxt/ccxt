@@ -883,21 +883,25 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) Trade {
 			takerOrMaker = &takerOrMakerStr2
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal73031 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"order":        orderId,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"type":         typeVar,
 		"side":         side,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if takerOrMaker != nil {
+		literal73031["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal73031, marketResolved)
 }
 
 /**

@@ -446,21 +446,25 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 			takerOrMaker = &takerOrMakerStr2
 		}
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal34531 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"order":        orderId,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"type":         typeVar,
 		"side":         side,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved))
+	}
+	if takerOrMaker != nil {
+		literal34531["takerOrMaker"] = *takerOrMaker
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal34531, marketResolved))
 }
 
 /**

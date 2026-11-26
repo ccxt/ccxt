@@ -677,7 +677,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"amount":       amount,
 		"cost":         cost,
 		"order":        nil,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"type":         nil,
 		"fee":          fee,
 		"info":         trade,
@@ -687,6 +687,9 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if orderId != nil {
 		literal58031["order"] = *orderId
+	}
+	if takerOrMaker != nil {
+		literal58031["takerOrMaker"] = *takerOrMaker
 	}
 	if orderType != nil {
 		literal58031["type"] = *orderType
@@ -894,7 +897,7 @@ func (this *Hibachi) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		timestamp = this.SafeIntegerProduct(order, "creationTime", 1000)
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "closedAt")
-	return this.SafeOrder(map[string]any{
+	var literal74331 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       nil,
@@ -906,7 +909,7 @@ func (this *Hibachi) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"symbol":              marketResolved["symbol"],
 		"type":                typeVar,
 		"timeInForce":         timeInForce,
-		"side":                side,
+		"side":                nil,
 		"price":               price,
 		"average":             this.SafeString(order, "avgFillPrice"),
 		"amount":              amount,
@@ -918,7 +921,11 @@ func (this *Hibachi) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"reduceOnly":          reduceOnly,
 		"postOnly":            postOnly,
 		"triggerPrice":        this.SafeNumber(order, "triggerPrice"),
-	}, marketResolved)
+	}
+	if side != nil {
+		literal74331["side"] = *side
+	}
+	return this.SafeOrder(literal74331, marketResolved)
 }
 
 /**

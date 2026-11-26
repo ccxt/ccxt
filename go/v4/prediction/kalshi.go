@@ -2699,7 +2699,7 @@ func (this *Kalshi) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		remaining = (*amount - *filled)
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_time"))
-	return this.SafePredictionOrder(map[string]any{
+	var literal193841 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"info":               order,
@@ -2714,7 +2714,7 @@ func (this *Kalshi) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		"type":               this.SafeStringLower(order, "type", "limit"),
 		"timeInForce":        "GTC",
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"stopPrice":          nil,
 		"triggerPrice":       nil,
@@ -2725,7 +2725,11 @@ func (this *Kalshi) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		"remaining":          remaining,
 		"fee":                nil,
 		"trades":             []any{},
-	}, mkt)
+	}
+	if side != nil {
+		literal193841["side"] = *side
+	}
+	return this.SafePredictionOrder(literal193841, mkt)
 }
 
 /**

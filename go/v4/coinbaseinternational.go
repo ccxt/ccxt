@@ -2405,7 +2405,7 @@ func (this *Coinbaseinternational) ParsePosition(position map[string]any, option
 		notional = this.SafeString(position, "size_currency")
 	}
 	var contractsString *string = Precise.StringDiv(amount, this.SafeString(marketResolved, "contractSize"))
-	return this.SafePosition(map[string]any{
+	var literal183834 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      marketResolved["symbol"],
@@ -2414,7 +2414,7 @@ func (this *Coinbaseinternational) ParsePosition(position map[string]any, option
 		"notional":                    this.ParseNumber(Precise.StringAbs(notional)),
 		"collateral":                  nil,
 		"unrealizedPnl":               this.SafeNumber(position, "floating_profit_loss"),
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(contractsString)),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"timestamp":                   nil,
@@ -2429,7 +2429,11 @@ func (this *Coinbaseinternational) ParsePosition(position map[string]any, option
 		"marginRatio":                 nil,
 		"marginMode":                  nil,
 		"percentage":                  nil,
-	})
+	}
+	if side != nil {
+		literal183834["side"] = *side
+	}
+	return this.SafePosition(literal183834)
 }
 
 /**

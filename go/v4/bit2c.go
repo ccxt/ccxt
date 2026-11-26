@@ -1090,7 +1090,7 @@ func (this *Bit2c) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"status":             status,
+		"status":             nil,
 		"symbol":             symbol,
 		"type":               typeVar,
 		"timeInForce":        nil,
@@ -1106,6 +1106,9 @@ func (this *Bit2c) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
+	}
+	if status != nil {
+		literal78831["status"] = *status
 	}
 	if amount != nil {
 		literal78831["amount"] = *amount

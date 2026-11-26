@@ -2527,7 +2527,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 			entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount))
 		}
 	}
-	return ccxt.PositionToMap(this.SafePosition(map[string]any{
+	var literal151734 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      marketResolved["symbol"],
@@ -2535,7 +2535,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		"datetime":                    this.Iso8601(timestamp),
 		"isolated":                    this.SafeBool(position, "isolated"),
 		"hedged":                      false,
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   contracts,
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"entryPrice":                  entryPrice,
@@ -2552,7 +2552,11 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		"marginMode":                  nil,
 		"marginRatio":                 nil,
 		"percentage":                  nil,
-	}))
+	}
+	if side != nil {
+		literal151734["side"] = *side
+	}
+	return ccxt.PositionToMap(this.SafePosition(literal151734))
 }
 func (this *Nado) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")

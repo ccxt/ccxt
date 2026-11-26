@@ -1578,12 +1578,12 @@ func (this *Onetrading) WatchManyAsync(messageHash string, request map[string]an
 func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash string, request map[string]any, subscriptionHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, []any{})
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var marketIds []string = []string{}
-	var numSymbols int = ccxt.GetArrayLength(symbols)
+	var numSymbols int = len(symbols)
 	if numSymbols == 0 {
 		var marketsById map[string]any = this.Markets_by_id
 		if marketsById == nil {

@@ -1859,7 +1859,7 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"lastTradeTimestamp": this.Parse8601(this.SafeString(order, "updated_at")),
 		"symbol":             symbol,
 		"type":               typeVar,
-		"timeInForce":        timeInForce,
+		"timeInForce":        nil,
 		"postOnly":           this.SafeBool(order, "post_only"),
 		"side":               side,
 		"price":              price,
@@ -1872,6 +1872,9 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"status":             this.ParseOrderStatus(this.SafeString(order, "state")),
 		"fee":                nil,
 		"trades":             nil,
+	}
+	if timeInForce != nil {
+		literal154431["timeInForce"] = *timeInForce
 	}
 	if amount != nil {
 		literal154431["amount"] = *amount

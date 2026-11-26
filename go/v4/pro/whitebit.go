@@ -718,7 +718,7 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		takerOrMakerStr2 := "taker"
 		takerOrMaker = &takerOrMakerStr2
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal54231 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -726,13 +726,20 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		"symbol":       marketResolved["symbol"],
 		"order":        orderId,
 		"type":         nil,
-		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"side":         nil,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
 		"fee":          fee,
-	}, marketResolved))
+	}
+	if side != nil {
+		literal54231["side"] = *side
+	}
+	if takerOrMaker != nil {
+		literal54231["takerOrMaker"] = *takerOrMaker
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal54231, marketResolved))
 }
 
 /**

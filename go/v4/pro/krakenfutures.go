@@ -665,7 +665,7 @@ func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) ma
 		sideStr2 := "short"
 		side = &sideStr2
 	}
-	return ccxt.PositionToMap(this.SafePosition(map[string]any{
+	var literal40634 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeSymbol(marketId),
@@ -678,7 +678,7 @@ func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) ma
 		"contracts":                   this.ParseNumber(ccxt.Precise.StringAbs(balanceString)),
 		"contractSize":                nil,
 		"markPrice":                   this.SafeNumber(position, "mark_price"),
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      hedged,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -689,7 +689,11 @@ func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) ma
 		"initialMarginPercentage":     nil,
 		"leverage":                    nil,
 		"marginRatio":                 nil,
-	}))
+	}
+	if side != nil {
+		literal40634["side"] = *side
+	}
+	return ccxt.PositionToMap(this.SafePosition(literal40634))
 }
 
 /**

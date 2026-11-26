@@ -8981,7 +8981,7 @@ func (this *Kucoin) ParseSpotOrder(order map[string]any, optionalArgs ...any) ma
 		statusStr6 := "rejected"
 		status = &statusStr6
 	}
-	return OrderToMap(this.SafeOrder(map[string]any{
+	var literal661131 map[string]any = map[string]any{
 		"info":          order,
 		"id":            this.SafeStringN(order, []any{"id", "orderId", "newOrderId", "cancelledOrderId"}),
 		"clientOrderId": this.SafeString(order, "clientOid"),
@@ -9002,11 +9002,15 @@ func (this *Kucoin) ParseSpotOrder(order map[string]any, optionalArgs ...any) ma
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 			"cost":     this.SafeNumber(order, "fee"),
 		},
-		"status":             status,
+		"status":             nil,
 		"lastTradeTimestamp": nil,
 		"average":            this.SafeString(order, "avgDealPrice"),
 		"trades":             nil,
-	}, market))
+	}
+	if status != nil {
+		literal661131["status"] = *status
+	}
+	return OrderToMap(this.SafeOrder(literal661131, market))
 }
 func (this *Kucoin) ParseUtaOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//

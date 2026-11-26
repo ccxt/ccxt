@@ -502,21 +502,28 @@ func (this *Bitrue) HandleOrderBook(client ccxt.ClientInterface, message map[str
 	if tick == nil {
 		tick = map[string]any{}
 	}
-	var parseable any = tick
-	if isFutures {
-		var rawAsks []any = this.SafeListSlice(tick, "asks", []any{})
-		var rawBuys []any = this.SafeListSlice(tick, "buys", []any{})
-		parseable = map[string]any{
-			"asks": this.ParseContractBidsAsks(rawAsks, *symbol),
-			"buys": this.ParseContractBidsAsks(rawBuys, *symbol),
-		}
-	}
 	if !(this.Orderbooks[*symbol] != nil) {
 		this.Orderbooks[*symbol] = this.OrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var snapshot map[string]any = this.ParseOrderBook(parseable, symbol, timestamp, "buys", "asks")
-	orderbook.Reset(snapshot)
+	if isFutures {
+		var rawAsks []any
+		rawAsks, _ = tick["asks"].([]any)
+		if rawAsks == nil {
+			rawAsks = []any{}
+		}
+		var rawBuys []any
+		rawBuys, _ = tick["buys"].([]any)
+		if rawBuys == nil {
+			rawBuys = []any{}
+		}
+		orderbook.Reset(this.ParseOrderBook(map[string]any{
+			"asks": this.ParseContractBidsAsks(rawAsks, *symbol),
+			"buys": this.ParseContractBidsAsks(rawBuys, *symbol),
+		}, symbol, timestamp, "buys", "asks"))
+	} else {
+		orderbook.Reset(this.ParseOrderBook(tick, symbol, timestamp, "buys", "asks"))
+	}
 	var messageHash string = "orderbook:" + *symbol
 	client.Resolve(orderbook, messageHash)
 }

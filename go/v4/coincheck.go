@@ -810,7 +810,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"type":         nil,
 		"side":         nil,
 		"order":        nil,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        priceString,
 		"amount":       nil,
 		"cost":         nil,
@@ -821,6 +821,9 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if orderId != nil {
 		literal59031["order"] = *orderId
+	}
+	if takerOrMaker != nil {
+		literal59031["takerOrMaker"] = *takerOrMaker
 	}
 	if amountString != nil {
 		literal59031["amount"] = *amountString

@@ -4498,7 +4498,7 @@ func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any
 	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
 	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
 	var liquidationPrice *float64 = this.SafeNumber(position, "estLiquidationPrice")
-	return this.SafePosition(map[string]any{
+	var literal329434 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          id,
 		"symbol":                      symbol,
@@ -4506,7 +4506,7 @@ func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any
 		"datetime":                    this.Iso8601(this.Parse8601(this.SafeString(position, "timestamp"))),
 		"lastUpdateTimestamp":         nil,
 		"hedged":                      hedged,
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   this.SafeNumber(position, "netExposureQuantity"),
 		"contractSize":                nil,
 		"entryPrice":                  entryPrice,
@@ -4527,7 +4527,11 @@ func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any
 		"percentage":                  nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if side != nil {
+		literal329434["side"] = *side
+	}
+	return this.SafePosition(literal329434)
 }
 
 /**

@@ -1254,7 +1254,7 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "price")
 	var orderId *string = this.SafeString(trade, "oid")
 	var id *string = this.SafeString(trade, "tid")
-	return this.SafeTrade(map[string]any{
+	var literal101031 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1263,12 +1263,16 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        orderId,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	}, market)
+	}
+	if takerOrMaker != nil {
+		literal101031["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal101031, market)
 }
 
 /**

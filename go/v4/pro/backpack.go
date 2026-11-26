@@ -1545,7 +1545,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		"order":        nil,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         nil,
@@ -1556,6 +1556,9 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	}
 	if orderId != nil {
 		literal103031["order"] = *orderId
+	}
+	if takerOrMaker != nil {
+		literal103031["takerOrMaker"] = *takerOrMaker
 	}
 	return ccxt.TradeToMap(this.SafeTrade(literal103031, marketResolved))
 }
@@ -2625,7 +2628,7 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
 	var maintenanceMarginPercentage *float64 = this.SafeNumber(position, "m")
 	var initialMarginPercentage *float64 = this.SafeNumber(position, "f")
-	return ccxt.PositionToMap(this.SafePosition(map[string]any{
+	var literal175234 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          id,
 		"symbol":                      symbol,
@@ -2639,7 +2642,7 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 		"contracts":                   contracts,
 		"contractSize":                nil,
 		"markPrice":                   markPrice,
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      hedged,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -2650,7 +2653,11 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 		"initialMarginPercentage":     initialMarginPercentage,
 		"leverage":                    nil,
 		"marginRatio":                 nil,
-	}))
+	}
+	if side != nil {
+		literal175234["side"] = *side
+	}
+	return ccxt.PositionToMap(this.SafePosition(literal175234))
 }
 func (this *Backpack) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {

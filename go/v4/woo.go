@@ -3585,7 +3585,11 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
 	var subData, _ = subAccountResponse["data"].(map[string]any)
-	var subRows []any = this.SafeListSlice(subData, "rows", []any{})
+	var subRows []any
+	subRows, _ = subData["rows"].([]any)
+	if subRows == nil {
+		subRows = []any{}
+	}
 	var rows []any = this.ArrayConcat(mainRows, subRows)
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(rows, params))}

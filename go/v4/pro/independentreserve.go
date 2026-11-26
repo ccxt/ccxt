@@ -313,7 +313,7 @@ func (this *Independentreserve) HandleOrderBook(client ccxt.ClientInterface, mes
 		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
-	var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+	var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {
 		var storedAsks ccxt.IOrderBookSide = orderbook.GetAsks()
 		var storedBids ccxt.IOrderBookSide = orderbook.GetBids()

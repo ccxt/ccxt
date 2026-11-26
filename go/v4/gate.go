@@ -4044,10 +4044,10 @@ func (this *Gate) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseFundingHistories(response, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Gate) ParseFundingHistories(response any, symbol any, since *int64, limit *int64) []any {
+func (this *Gate) ParseFundingHistories(response []any, symbol any, since *int64, limit *int64) []any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var entry map[string]any = SafeMapTyped(response, i)
+	for i := 0; i < len(response); i++ {
+		var entry, _ = response[i].(map[string]any)
 		var funding any = this.ParseFundingHistory(entry)
 		result = append(result, funding)
 	}
@@ -8975,7 +8975,7 @@ func (this *Gate) ParsePosition(position map[string]any, optionalArgs ...any) Po
 	if timestamp != nil && *timestamp == 0 {
 		timestamp = nil
 	}
-	return this.SafePosition(map[string]any{
+	var literal648734 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeString(marketResolved, "symbol"),
@@ -8999,12 +8999,16 @@ func (this *Gate) ParsePosition(position map[string]any, optionalArgs ...any) Po
 		"lastPrice":                   nil,
 		"positionMargin":              this.ParseNumber(marginBalance),
 		"collateral":                  this.ParseNumber(collateral),
-		"marginMode":                  marginMode,
+		"marginMode":                  nil,
 		"side":                        side,
 		"percentage":                  nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if marginMode != nil {
+		literal648734["marginMode"] = *marginMode
+	}
+	return this.SafePosition(literal648734)
 }
 
 /**
@@ -11323,18 +11327,22 @@ func (this *Gate) ParseLiquidation(liquidation any, optionalArgs ...any) map[str
 			}
 		}
 	}
-	return this.SafeLiquidation(map[string]any{
+	var literal824637 map[string]any = map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),
 		"contracts":    this.ParseNumber(contractsString),
 		"contractSize": this.ParseNumber(contractSizeString),
 		"price":        this.ParseNumber(priceString),
-		"side":         side,
+		"side":         nil,
 		"baseValue":    this.ParseNumber(baseValueString),
 		"quoteValue":   this.ParseNumber(Precise.StringAbs(quoteValueString)),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-	})
+	}
+	if side != nil {
+		literal824637["side"] = *side
+	}
+	return this.SafeLiquidation(literal824637)
 }
 
 /**
@@ -11481,7 +11489,7 @@ func (this *Gate) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan 
 func (this *Gate) closePositionBody(ch chan AsyncResult[Order], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	side := GetArg(optionalArgs, 0, nil)
+	var side *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = side
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -11490,14 +11498,14 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 	}
 	var paramsExtended map[string]any = this.Extend(request, params)
 	// side is not used but needs to be present, otherwise crashes in php
-	var sideResolved any
+	var sideResolved string
 	if side == nil {
 		sideResolved = ""
 	} else {
-		sideResolved = side
+		sideResolved = *side
 	}
 
-	r := <-this.CreateOrderAsync(symbol, "market", StringArg(sideResolved), 0, nil, paramsExtended)
+	r := <-this.CreateOrderAsync(symbol, "market", sideResolved, 0, nil, paramsExtended)
 	if r.Err != nil {
 		panic(r.Err)
 	}

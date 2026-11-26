@@ -2104,7 +2104,7 @@ func (this *Blofin) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"lastUpdateTimestamp": lastUpdateTimestamp,
 		"symbol":              symbol,
 		"type":                typeVar,
-		"timeInForce":         timeInForce,
+		"timeInForce":         nil,
 		"postOnly":            postOnly,
 		"side":                side,
 		"price":               price,
@@ -2120,6 +2120,9 @@ func (this *Blofin) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"fee":                 fee,
 		"trades":              nil,
 		"reduceOnly":          reduceOnly,
+	}
+	if timeInForce != nil {
+		literal157331["timeInForce"] = *timeInForce
 	}
 	if cost != nil {
 		literal157331["cost"] = *cost

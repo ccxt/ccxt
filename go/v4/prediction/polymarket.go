@@ -4420,14 +4420,15 @@ func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[s
 }
 func (this *Polymarket) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	for i := 0; i < len(message); i++ {
-		var event any = ccxt.GetValue(message, i)
-		if (event == nil) || (!ccxt.IsObject(event)) {
-			continue
+		// a non-object element reads as {}, which carries no event_type and is ignored
+		messageDict304145, _ := message[i].(map[string]any)
+		if messageDict304145 == nil {
+			messageDict304145 = map[string]any{}
 		}
-		this.HandleMessageEvent(client, event)
+		this.HandleMessageEvent(client, messageDict304145)
 	}
 }
-func (this *Polymarket) HandleMessageEvent(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleMessageEvent(client ccxt.ClientInterface, event map[string]any) {
 	var eventType *string = this.SafeString(event, "event_type")
 	if eventType != nil && *eventType == "book" {
 		this.HandleOrderBookSnapshot(client, event)
@@ -4441,7 +4442,7 @@ func (this *Polymarket) HandleMessageEvent(client ccxt.ClientInterface, event an
 		this.HandleMyTrade(client, event)
 	}
 }
-func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, event map[string]any) {
 	var tokenId *string = this.SafeString(event, "asset_id")
 	var outcome any = this.TokenIdToSymbol(tokenId)
 	if outcome == nil {
@@ -4480,7 +4481,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 	client.Resolve(orderbook, ccxt.Add("orderbook::", outcome))
 	client.Resolve(orderbook, ccxt.Add("ticker::", outcome))
 }
-func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event map[string]any) {
 	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
@@ -4522,7 +4523,7 @@ func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event 
 		client.Resolve(orderbook, "ticker::"+outcome)
 	}
 }
-func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event map[string]any) {
 	var tokenId *string = this.SafeString(event, "asset_id")
 	var outcome any = this.TokenIdToSymbol(tokenId)
 	if outcome == nil {
@@ -4944,7 +4945,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.A
 	ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r.Value)}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event map[string]any) {
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
@@ -4958,7 +4959,7 @@ func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event any) {
 		client.Resolve(stored, "orders::"+*outcome)
 	}
 }
-func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event any) {
+func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event map[string]any) {
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)

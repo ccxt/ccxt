@@ -1406,21 +1406,28 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"rate":     this.SafeString(trade, "tradeFeeRate"),
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal110131 map[string]any = map[string]any{
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
 		"id":           id,
 		"order":        order,
-		"type":         typeVar,
-		"takerOrMaker": takerOrMaker,
+		"type":         nil,
+		"takerOrMaker": nil,
 		"side":         side,
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
 		"info":         trade,
-	}, market)
+	}
+	if typeVar != nil {
+		literal110131["type"] = *typeVar
+	}
+	if takerOrMaker != nil {
+		literal110131["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal110131, market)
 }
 
 /**
@@ -2434,7 +2441,7 @@ func (this *Lbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"status":             this.ParseOrderStatus(rawStatus),
 		"symbol":             marketResolved["symbol"],
 		"type":               typeVar,
-		"timeInForce":        timeInForce,
+		"timeInForce":        nil,
 		"postOnly":           postOnly,
 		"side":               side,
 		"price":              price,
@@ -2447,6 +2454,9 @@ func (this *Lbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"fee":                nil,
 		"info":               order,
 		"average":            nil,
+	}
+	if timeInForce != nil {
+		literal187731["timeInForce"] = *timeInForce
 	}
 	if amountString != nil {
 		literal187731["amount"] = *amountString

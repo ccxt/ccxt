@@ -1166,7 +1166,7 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			"expiry":         expiry,
 			"expiryDatetime": this.Iso8601(expiry),
 			"strike":         this.ParseNumber(strike),
-			"optionType":     optionType,
+			"optionType":     nil,
 			"precision": map[string]any{
 				"amount": amountPrecision,
 				"price":  this.SafeNumber(market, "tick_size"),
@@ -1191,6 +1191,9 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			},
 			"created": this.Parse8601(this.SafeString(market, "launch_time")),
 			"info":    market,
+		}
+		if optionType != nil {
+			marketStructure["optionType"] = *optionType
 		}
 		if !spot {
 			marketStructure["linear"] = linear
@@ -2318,7 +2321,7 @@ func (this *Delta) ParsePosition(position map[string]any, optionalArgs ...any) P
 			side = &sideStr2
 		}
 	}
-	return this.SafePosition(map[string]any{
+	var literal188034 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      symbol,
@@ -2331,7 +2334,7 @@ func (this *Delta) ParsePosition(position map[string]any, optionalArgs ...any) P
 		"contracts":                   this.ParseNumber(sizeString),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"markPrice":                   nil,
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -2345,7 +2348,11 @@ func (this *Delta) ParsePosition(position map[string]any, optionalArgs ...any) P
 		"marginRatio":                 nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if side != nil {
+		literal188034["side"] = *side
+	}
+	return this.SafePosition(literal188034)
 }
 func (this *Delta) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

@@ -7208,7 +7208,7 @@ func (this *Binance) ParseWsOptionsPosition(position map[string]any, optionalArg
 			side = &sideStr2
 		}
 	}
-	return ccxt.PositionToMap(this.SafePosition(map[string]any{
+	var literal544834 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      this.SafeSymbol(marketId, market, nil, "option"),
@@ -7221,7 +7221,7 @@ func (this *Binance) ParseWsOptionsPosition(position map[string]any, optionalArg
 		"contracts":                   this.ParseNumber(contractsAbs),
 		"contractSize":                nil,
 		"markPrice":                   nil,
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      false,
 		"timestamp":                   nil,
 		"datetime":                    nil,
@@ -7232,7 +7232,11 @@ func (this *Binance) ParseWsOptionsPosition(position map[string]any, optionalArg
 		"initialMarginPercentage":     nil,
 		"leverage":                    nil,
 		"marginRatio":                 nil,
-	}))
+	}
+	if side != nil {
+		literal544834["side"] = *side
+	}
+	return ccxt.PositionToMap(this.SafePosition(literal544834))
 }
 
 /**

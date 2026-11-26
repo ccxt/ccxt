@@ -3834,7 +3834,7 @@ func (this *Whitebit) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 		timeInForceStr2 := "PO"
 		timeInForce = &timeInForceStr2
 	}
-	return this.SafeOrder(map[string]any{
+	var literal269531 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 orderId,
 		"symbol":             symbol,
@@ -3842,7 +3842,7 @@ func (this *Whitebit) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": lastTradeTimestamp,
-		"timeInForce":        timeInForce,
+		"timeInForce":        nil,
 		"postOnly":           postOnly,
 		"status":             this.ParseOrderStatus(this.SafeString(order, "status")),
 		"side":               side,
@@ -3856,7 +3856,11 @@ func (this *Whitebit) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 		"cost":               cost,
 		"fee":                fee,
 		"trades":             nil,
-	}, marketResolved)
+	}
+	if timeInForce != nil {
+		literal269531["timeInForce"] = *timeInForce
+	}
+	return this.SafeOrder(literal269531, marketResolved)
 }
 func (this *Whitebit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

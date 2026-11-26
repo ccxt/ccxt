@@ -4921,15 +4921,15 @@ func (this *BaseExchange) HandleParamBool(params any, paramName any, optionalArg
 	}
 	return value, MapTyped(paramsOmitted)
 }
-func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName2 any, optionalArgs ...any) (*bool, map[string]any) {
+func (this *BaseExchange) HandleParamBool2(params map[string]any, paramName1 any, paramName2 any, optionalArgs ...any) (*bool, map[string]any) {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *bool = this.SafeBool2(params, paramName1, paramName2, defaultValue)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if value != nil {
-		paramsOmitted = this.Omit(params, []any{paramName1, paramName2})
+		paramsOmitted = this.OmitDict(params, []any{paramName1, paramName2})
 	}
-	return value, MapTyped(paramsOmitted)
+	return value, paramsOmitted
 }
 func (this *BaseExchange) ResolvePath(path any, params any) any {
 	return []any{this.ImplodeParams(path, params), this.Omit(params, this.ExtractParams(path))}
@@ -5292,23 +5292,25 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			if candle >= 0 && candle < int64(len(ohlcvs)) {
 				prevCandle = ohlcvs[candle]
 			}
-			var prevHigh any = this.SafeValue(prevCandle, i_high)
-			var prevLow any = this.SafeValue(prevCandle, i_low)
+			var prevHigh *float64 = this.SafeNumber(prevCandle, 2)
+			var prevLow *float64 = this.SafeNumber(prevCandle, 3)
 			if candle >= 0 && candle < int64(len(ohlcvs)) {
-				ohlcvs[candle][i_high] = mathMax(func() any {
-					if prevHigh == nil {
-						return price
-					}
-					return prevHigh
-				}(), price)
+				var branchValue *float64
+				if prevHigh == nil {
+					branchValue = price
+				} else {
+					branchValue = prevHigh
+				}
+				ohlcvs[candle][i_high] = mathMax(branchValue, price)
 			}
 			if candle >= 0 && candle < int64(len(ohlcvs)) {
-				ohlcvs[candle][i_low] = mathMin(func() any {
-					if prevLow == nil {
-						return price
-					}
-					return prevLow
-				}(), price)
+				var branchValue2 *float64
+				if prevLow == nil {
+					branchValue2 = price
+				} else {
+					branchValue2 = prevLow
+				}
+				ohlcvs[candle][i_low] = mathMin(branchValue2, price)
 			}
 			AddElementToObject(GetValue(ohlcvs, candle), i_close, price)
 			if candle >= 0 && candle < int64(len(ohlcvs)) {
@@ -7720,11 +7722,11 @@ func (this *BaseExchange) CheckRequiredArgument(methodName string, argument any,
 	 * @param {string[]} options a list of options that the argument can be
 	 * @returns {undefined}
 	 */
-	options := GetArg(optionalArgs, 0, []any{})
+	var options []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = options
-	var optionsLength int = GetArrayLength(options)
+	var optionsLength int = len(options)
 	if (IsEqual(argument, nil)) || ((optionsLength > 0) && (!(this.InArray(argument, options)))) {
-		var messageOptions string = Join(options, ", ")
+		var messageOptions string = strings.Join(options, ", ")
 		var message string = this.Id + " " + methodName + "() requires a " + argumentName + " argument"
 		if messageOptions != "" {
 			message += ", one of " + "(" + messageOptions + ")"
@@ -8280,9 +8282,9 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPaginatedCallDeterministic() requires a since argument when until is set"))
 		}
-		var requiredCalls float64 = math.Ceil(float64((*until - *since)) / float64(step))
-		if requiredCalls > float64(maxCallsLimit) {
-			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + strconv.FormatInt(maxCallsLimit, 10) + " required calls is " + ToString(requiredCalls)))
+		var requiredCalls int64 = this.ParseToInt(math.Ceil(float64((*until - *since)) / float64(step)))
+		if requiredCalls > maxCallsLimit {
+			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + strconv.FormatInt(maxCallsLimit, 10) + " required calls is " + strconv.FormatInt(requiredCalls, 10)))
 		}
 	}
 	for i := 0; int64(i) < maxCallsLimit; i++ {
@@ -11290,7 +11292,7 @@ func (this *Exchange) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if (IsEqual(this.Options["createMarketBuyOrderRequiresPrice"], true)) || ((this.Has["createMarketBuyOrderWithCost"] != nil) && (this.Has["createMarketBuyOrderWithCost"] != false)) {
+	if (this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || ((this.Has["createMarketBuyOrderWithCost"] != nil) && (this.Has["createMarketBuyOrderWithCost"] != false)) {
 
 		r := <-this.DerivedExchange.(ICreateOrder).CreateOrderAsync(symbol, "market", "buy", cost, 1, params)
 		if r.Err != nil {
@@ -11320,7 +11322,7 @@ func (this *Exchange) createMarketSellOrderWithCostBody(ch chan AsyncResult[Orde
 	 */
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if (IsEqual(this.Options["createMarketSellOrderRequiresPrice"], true)) || ((this.Has["createMarketSellOrderWithCost"] != nil) && (this.Has["createMarketSellOrderWithCost"] != false)) {
+	if (this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false) != nil && *this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || ((this.Has["createMarketSellOrderWithCost"] != nil) && (this.Has["createMarketSellOrderWithCost"] != false)) {
 
 		r := <-this.DerivedExchange.(ICreateOrder).CreateOrderAsync(symbol, "market", "sell", cost, 1, params)
 		if r.Err != nil {

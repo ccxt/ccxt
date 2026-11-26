@@ -1677,7 +1677,7 @@ func (this *Bitbns) ParseTransaction(transaction map[string]any, optionalArgs ..
 			"cost":     feeCost,
 		}
 	}
-	return TransactionFromMap(map[string]any{
+	var literal122515 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"txid":        nil,
@@ -1693,12 +1693,16 @@ func (this *Bitbns) ParseTransaction(transaction map[string]any, optionalArgs ..
 		"type":        typeVar,
 		"amount":      amount,
 		"currency":    code,
-		"status":      status,
+		"status":      nil,
 		"updated":     nil,
 		"comment":     nil,
 		"internal":    nil,
 		"fee":         fee,
-	})
+	}
+	if status != nil {
+		literal122515["status"] = *status
+	}
+	return TransactionFromMap(literal122515)
 }
 
 /**

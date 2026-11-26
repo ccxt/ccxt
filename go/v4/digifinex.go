@@ -3146,7 +3146,7 @@ func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 			}
 		}
 	}
-	return this.SafeOrder(map[string]any{
+	var literal237531 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "order_id", "data"),
 		"clientOrderId":      nil,
@@ -3155,7 +3155,7 @@ func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 		"lastTradeTimestamp": lastTradeTimestamp,
 		"symbol":             symbol,
 		"type":               typeVar,
-		"timeInForce":        timeInForce,
+		"timeInForce":        nil,
 		"postOnly":           nil,
 		"side":               side,
 		"price":              this.SafeNumber(order, "price"),
@@ -3171,7 +3171,11 @@ func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 			"cost": this.SafeNumber(order, "fee"),
 		},
 		"trades": nil,
-	}, marketResolved)
+	}
+	if timeInForce != nil {
+		literal237531["timeInForce"] = *timeInForce
+	}
+	return this.SafeOrder(literal237531, marketResolved)
 }
 
 /**
@@ -4331,17 +4335,24 @@ func (this *Digifinex) ParseTransfer(transfer map[string]any, optionalArgs ...an
 		toAccount = &toAccountStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
-	return TransferEntryFromMap(map[string]any{
+	var literal325015 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "transfer_id"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    this.SafeCurrencyCode(this.SafeString(data, "currency"), currency),
 		"amount":      this.SafeNumber2(data, "amount", "transfer_amount"),
-		"fromAccount": fromAccount,
-		"toAccount":   toAccount,
+		"fromAccount": nil,
+		"toAccount":   nil,
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "code")),
-	})
+	}
+	if fromAccount != nil {
+		literal325015["fromAccount"] = *fromAccount
+	}
+	if toAccount != nil {
+		literal325015["toAccount"] = *toAccount
+	}
+	return TransferEntryFromMap(literal325015)
 }
 
 /**

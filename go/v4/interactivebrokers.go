@@ -4040,7 +4040,7 @@ func (this *Interactivebrokers) IbkrParseValue(value *string) any {
 		result = result[1:]
 	}
 	if strings.HasSuffix(result, "%") {
-		result = Slice(result, 0, len(result)-1)
+		result = result[:len(result)-1]
 	}
 	var multiplier *string = nil
 	if strings.HasSuffix(result, "K") {
@@ -4617,12 +4617,12 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
 }
-func (this *Interactivebrokers) CreateTestOrderAsync(symbol string, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Interactivebrokers) CreateTestOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.createTestOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], symbol string, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4688,13 +4688,13 @@ func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the order ticket
  */
-func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var market map[string]any = this.Market(symbol)
-	var isMarket bool = (IsEqual(typeVar, "market"))
+	var isMarket bool = (typeVar == "market")
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var trailingAmount *string = this.SafeString(params, "trailingAmount")
 	var trailingPercent *string = this.SafeString(params, "trailingPercent")
@@ -4702,7 +4702,7 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar any, s
 	var assetClass *string = this.SafeString(market["info"], "assetClass")
 	var request map[string]any = map[string]any{
 		"conid": this.ParseToInt(market["id"]),
-		"side":  ToUpper(side),
+		"side":  strings.ToUpper(side),
 	}
 	// a market order with params['cost'] is sent by cost (cashQty) without a quantity
 	var cost *string = this.SafeString2(params, "cost", "cashQty")
@@ -4743,7 +4743,7 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar any, s
 		orderType = "MKT"
 		if isMarketByCost {
 			request["cashQty"] = this.ParseNumber(this.PriceToPrecision(symbol, cost))
-		} else if IsEqual(side, "buy") {
+		} else if side == "buy" {
 			panic(InvalidOrder(this.Id + " createOrder() requires params[\"cost\"] for market buy orders"))
 		}
 	} else {
@@ -5614,7 +5614,7 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		sideStr2 := "sell"
 		side = &sideStr2
 	}
-	return this.SafeOrder(map[string]any{
+	var literal394631 map[string]any = map[string]any{
 		"id":                  this.SafeString2(order, "order_id", "orderId"),
 		"clientOrderId":       this.SafeString2(order, "order_ref", "cOID"),
 		"timestamp":           timestamp,
@@ -5626,7 +5626,7 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		"timeInForce":         this.ParseOrderTimeInForce(this.SafeString2(order, "timeInForce", "tif")),
 		"postOnly":            nil,
 		"reduceOnly":          nil,
-		"side":                side,
+		"side":                nil,
 		"price":               this.OmitZero(this.SafeString2(order, "price", "limit_price")),
 		"triggerPrice":        this.SafeString(order, "auxPrice"),
 		"amount":              this.SafeString2(order, "totalSize", "total_size"),
@@ -5638,7 +5638,11 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		"fee":                 nil,
 		"trades":              nil,
 		"info":                order,
-	}, resolved)
+	}
+	if side != nil {
+		literal394631["side"] = *side
+	}
+	return this.SafeOrder(literal394631, resolved)
 }
 
 /**
@@ -5962,7 +5966,7 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 			"currency": resolved["quote"],
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal421631 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "execution_id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -5970,13 +5974,17 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 		"symbol":       resolved["symbol"],
 		"order":        this.SafeString(trade, "order_id"),
 		"type":         nil,
-		"side":         side,
+		"side":         nil,
 		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "size"),
 		"cost":         nil,
 		"fee":          fee,
-	}, resolved)
+	}
+	if side != nil {
+		literal421631["side"] = *side
+	}
+	return this.SafeTrade(literal421631, resolved)
 }
 
 /**
@@ -6159,7 +6167,7 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		sideStr2 := "short"
 		side = &sideStr2
 	}
-	return this.SafePosition(map[string]any{
+	var literal434234 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      resolved["symbol"],
@@ -6167,7 +6175,7 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		"datetime":                    this.Iso8601(timestamp),
 		"isolated":                    nil,
 		"hedged":                      nil,
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(contracts)),
 		"contractSize":                this.SafeNumber(resolved, "contractSize"),
 		"entryPrice":                  this.SafeNumber2(position, "avgPrice", "avgCost"),
@@ -6188,7 +6196,11 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
 		"lastUpdateTimestamp":         nil,
-	})
+	}
+	if side != nil {
+		literal434234["side"] = *side
+	}
+	return this.SafePosition(literal434234)
 }
 func (this *Interactivebrokers) IbkrEncrypt(value string) string {
 	// RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string

@@ -2121,10 +2121,13 @@ func (this *Hitbtc) HandleMessage(client ccxt.ClientInterface, message map[strin
 		if _, ok := message["id"]; (result == true) && !ok {
 			this.HandleAuthenticate(client, message)
 		}
-		if ccxt.IsArray(result) {
+		var rows, _ = message["result"].([]any)
+		if rows != nil {
 			// to do improve this, not very reliable right now
-			var first map[string]any = ccxt.SafeMapTyped(result, 0)
-			var rows, _ = message["result"].([]any)
+			var first map[string]any
+			if 0 < len(rows) {
+				first, _ = rows[0].(map[string]any)
+			}
 			var arrayLength int = len(rows)
 			if _, ok := first["client_order_id"]; (arrayLength == 0) || ok {
 				this.HandleOrderRequest(client, message)

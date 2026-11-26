@@ -1255,10 +1255,10 @@ func (this *Mudrex) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"datetime":            this.Iso8601(ts),
 		"lastTradeTimestamp":  nil,
 		"symbol":              sym,
-		"type":                typ,
+		"type":                nil,
 		"timeInForce":         nil,
 		"postOnly":            nil,
-		"side":                side,
+		"side":                nil,
 		"price":               orderPrice,
 		"triggerPrice":        nil,
 		"stopLossPrice":       nil,
@@ -1274,6 +1274,12 @@ func (this *Mudrex) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"fees":                []any{},
 		"lastUpdateTimestamp": this.Parse8601(this.SafeString(order, "updated_at")),
 		"reduceOnly":          this.SafeBool(order, "reduce_only"),
+	}
+	if typ != nil {
+		literal86031["type"] = *typ
+	}
+	if side != nil {
+		literal86031["side"] = *side
 	}
 	if triggerPrice != nil {
 		literal86031["triggerPrice"] = *triggerPrice
@@ -2148,7 +2154,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": this.SafeString(trade, "trade_currency"),
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal140531 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    ts,
 		"datetime":     this.Iso8601(ts),
@@ -2156,13 +2162,20 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"id":           this.SafeString(trade, "id"),
 		"order":        nil,
 		"type":         this.SafeStringLower(trade, "trigger_type"),
-		"side":         tradeSide,
-		"takerOrMaker": takerOrMaker,
+		"side":         nil,
+		"takerOrMaker": nil,
 		"price":        nil,
 		"amount":       nil,
 		"cost":         this.SafeString(trade, "transaction_amount"),
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if tradeSide != nil {
+		literal140531["side"] = *tradeSide
+	}
+	if takerOrMaker != nil {
+		literal140531["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal140531, marketResolved)
 }
 
 /**

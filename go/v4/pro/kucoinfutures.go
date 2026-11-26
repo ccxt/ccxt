@@ -114,7 +114,7 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 		"amount":   amountToPrecision,
 	}
 	var toAccountString *string = this.ParseTransferType(toAccount)
-	var response any = nil
+	var response map[string]any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
@@ -134,7 +134,11 @@ func (this *Kucoinfutures) transferBody(ch chan ccxt.AsyncResult[ccxt.TransferEn
 	} else {
 		panic(ccxt.BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.TransferEntry]{Value: ccxt.TransferEntryFromMap(this.Extend(ccxt.TransferEntryToMap(this.ParseTransfer(data, currency)), map[string]any{
 		"amount":      this.ParseNumber(amountToPrecision),

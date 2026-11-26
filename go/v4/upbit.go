@@ -1284,7 +1284,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"cost":     feeCost,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal97731 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"order":        nil,
@@ -1292,13 +1292,17 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
 		"type":         nil,
-		"side":         side,
+		"side":         nil,
 		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal97731["side"] = *side
+	}
+	return this.SafeTrade(literal97731, marketResolved)
 }
 
 /**

@@ -1354,7 +1354,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 			"currency": feeCurrency,
 		}
 	}
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
+	var literal103531 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "uuid", "order_id"),
 		"clientOrderId":      nil,
@@ -1362,7 +1362,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": this.SafeInteger(order, "trade_timestamp"),
 		"symbol":             symbol,
-		"type":               typeVar,
+		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
 		"side":               side,
@@ -1374,10 +1374,17 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		"average":            nil,
 		"filled":             filled,
 		"remaining":          remaining,
-		"status":             status,
+		"status":             nil,
 		"fee":                fee,
 		"trades":             nil,
-	}, market))
+	}
+	if typeVar != nil {
+		literal103531["type"] = *typeVar
+	}
+	if status != nil {
+		literal103531["status"] = *status
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal103531, market))
 }
 func (this *Bithumb) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	var content string = strings.ToLower(message)

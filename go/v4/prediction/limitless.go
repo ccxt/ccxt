@@ -2436,7 +2436,7 @@ func (this *Limitless) ParsePredictionOrder(order map[string]any, optionalArgs .
 			"currency": feeCurrency,
 		}
 	}
-	return this.SafePredictionOrder(map[string]any{
+	var literal192441 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"info":               order,
@@ -2448,7 +2448,7 @@ func (this *Limitless) ParsePredictionOrder(order map[string]any, optionalArgs .
 		"outcomeId":          this.SafeString(mkt, "outcomeId"),
 		"label":              this.SafeString(mkt, "label"),
 		"market":             this.SafeString(mkt, "market"),
-		"type":               typeVar,
+		"type":               nil,
 		"timeInForce":        this.ParseOrderTimeInForce(timeInForce),
 		"postOnly":           nil,
 		"side":               side,
@@ -2462,7 +2462,11 @@ func (this *Limitless) ParsePredictionOrder(order map[string]any, optionalArgs .
 		"remaining":          this.ApplyScale(remaining),
 		"fee":                fee,
 		"trades":             []any{},
-	})
+	}
+	if typeVar != nil {
+		literal192441["type"] = *typeVar
+	}
+	return this.SafePredictionOrder(literal192441)
 }
 
 /**
@@ -3395,7 +3399,7 @@ func (this *Limitless) ParsePredictionTrade(trade map[string]any, optionalArgs .
 			costStr = ccxt.Precise.StringMul(priceStr, amountStr)
 		}
 		var feedOutcome *string = this.SafeOutcomeSymbol(nil, market)
-		return this.SafePredictionTrade(map[string]any{
+		var literal260445 map[string]any = map[string]any{
 			"id":           this.SafeString(trade, "txHash"),
 			"info":         trade,
 			"timestamp":    ts,
@@ -3406,13 +3410,17 @@ func (this *Limitless) ParsePredictionTrade(trade map[string]any, optionalArgs .
 			"market":       this.SafeString(market, "market"),
 			"order":        nil,
 			"type":         nil,
-			"side":         feedSide,
+			"side":         nil,
 			"takerOrMaker": "taker",
 			"price":        this.ParseNumber(priceStr),
 			"amount":       this.ParseNumber(amountStr),
 			"cost":         this.ParseNumber(costStr),
 			"fee":          nil,
-		})
+		}
+		if feedSide != nil {
+			literal260445["side"] = *feedSide
+		}
+		return this.SafePredictionTrade(literal260445)
 	}
 	//
 	//     {
@@ -3488,7 +3496,7 @@ func (this *Limitless) ParsePredictionTrade(trade map[string]any, optionalArgs .
 	labelStr := label
 	var outcome any = this.GetOutcomeBySlugAndLabel(slug, &labelStr, market)
 	var tradeOutcome *string = this.SafeString(outcome, "outcome")
-	return this.SafePredictionTrade(map[string]any{
+	var literal269241 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -3498,14 +3506,21 @@ func (this *Limitless) ParsePredictionTrade(trade map[string]any, optionalArgs .
 		"label":        this.SafeString(outcome, "label"),
 		"market":       this.SafeString(outcome, "market"),
 		"order":        nil,
-		"type":         typeVar,
+		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       amount,
 		"cost":         cost,
 		"fee":          nil,
-	})
+	}
+	if typeVar != nil {
+		literal269241["type"] = *typeVar
+	}
+	if takerOrMaker != nil {
+		literal269241["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafePredictionTrade(literal269241)
 }
 func (this *Limitless) GetOutcomeBySlugAndLabel(slug *string, label *string, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -3646,10 +3661,13 @@ func (this *Limitless) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var result []any = []any{}
 	var labels []string = []string{"yes", "no"}
 	for i := 0; i < len(clob); i++ {
-		var entry, _ = clob[i].(map[string]any)
 		for j := 0; j < len(labels); j++ {
 			var label *string = this.SafeString(labels, j)
-			var position any = this.GetPositionFromClobEntry(label, entry)
+			clobDict283171, _ := clob[i].(map[string]any)
+			if clobDict283171 == nil {
+				clobDict283171 = map[string]any{}
+			}
+			var position any = this.GetPositionFromClobEntry(label, clobDict283171)
 			if !ccxt.IsEqual(position, nil) {
 				result = append(result, position)
 			}
@@ -3659,25 +3677,20 @@ func (this *Limitless) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(result)}
 	return nil
 }
-func (this *Limitless) GetPositionFromClobEntry(label *string, optionalArgs ...any) any {
-	entry := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = entry
-	if entry == nil {
-		return nil
-	}
-	var tokensBalance map[string]any = ccxt.SafeMapTyped(entry, "tokensBalance")
+func (this *Limitless) GetPositionFromClobEntry(label *string, entry map[string]any) any {
+	var tokensBalance, _ = entry["tokensBalance"].(map[string]any)
 	var contracts *string = this.OmitZero(this.SafeString(tokensBalance, label))
 	if contracts == nil {
 		return nil
 	}
-	var positions map[string]any = ccxt.SafeMapTyped(entry, "positions")
+	var positions, _ = entry["positions"].(map[string]any)
 	var position map[string]any = this.SafeDictMap(positions, label, map[string]any{})
-	var rawMarket map[string]any = ccxt.SafeMapTyped(entry, "market")
+	var rawMarket, _ = entry["market"].(map[string]any)
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeObj any = this.GetOutcomeBySlugAndLabel(slug, label)
 	var parsed map[string]any = this.ParsePredictionPosition(position, outcomeObj)
 	parsed["contracts"] = this.ParseNumber(this.ApplyScale(contracts))
-	var latestTrade map[string]any = ccxt.SafeMapTyped(entry, "latestTrade")
+	var latestTrade, _ = entry["latestTrade"].(map[string]any)
 	var key string = "latestYesPrice"
 	if label != nil && *label == "no" {
 		key = "latestNoPrice"
@@ -3882,11 +3895,11 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var eventKeysLength int = len(eventKeys)
 	for i := 0; i < eventKeysLength; i++ {
-		eventGroupsDict302140, _ := eventGroups[eventKeys[i]].(map[string]any)
-		if eventGroupsDict302140 == nil {
-			eventGroupsDict302140 = map[string]any{}
+		eventGroupsDict301740, _ := eventGroups[eventKeys[i]].(map[string]any)
+		if eventGroupsDict301740 == nil {
+			eventGroupsDict301740 = map[string]any{}
 		}
-		var ev map[string]any = this.ParseEvent(eventGroupsDict302140)
+		var ev map[string]any = this.ParseEvent(eventGroupsDict301740)
 		result = append(result, ev)
 	}
 	// setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache

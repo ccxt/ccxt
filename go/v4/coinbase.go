@@ -7056,7 +7056,7 @@ func (this *Coinbase) ParsePosition(position map[string]any, optionalArgs ...any
 		sideStr2 := "short"
 		side = &sideStr2
 	}
-	return this.SafePosition(map[string]any{
+	var literal509534 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "product_id"),
 		"symbol":                      this.SafeSymbol(marketId, marketResolved),
@@ -7071,7 +7071,7 @@ func (this *Coinbase) ParsePosition(position map[string]any, optionalArgs ...any
 		"contractSize":                marketResolved["contractSize"],
 		"markPrice":                   this.SafeNumber(position, "current_price"),
 		"lastPrice":                   nil,
-		"side":                        side,
+		"side":                        nil,
 		"hedged":                      nil,
 		"timestamp":                   nil,
 		"datetime":                    nil,
@@ -7085,7 +7085,11 @@ func (this *Coinbase) ParsePosition(position map[string]any, optionalArgs ...any
 		"marginRatio":                 nil,
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
-	})
+	}
+	if side != nil {
+		literal509534["side"] = *side
+	}
+	return this.SafePosition(literal509534)
 }
 
 /**

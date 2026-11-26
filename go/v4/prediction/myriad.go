@@ -1917,9 +1917,10 @@ func (this *Myriad) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		var networkId *string = this.SafeString2(order, "networkId", "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
 		var marketId *string = this.SafeString(inner, "marketId")
 		var outcomeId *string = this.SafeString(inner, "outcomeId")
-		var composite any = nil
+		var composite *string = nil
 		if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
-			composite = *networkId + ":" + *marketId + "/" + *outcomeId
+			compositeStr := *networkId + ":" + *marketId + "/" + *outcomeId
+			composite = &compositeStr
 		}
 		outcomeObj = this.SafeOutcome(composite, market)
 		outcome = this.SafeString(outcomeObj, "outcome")
@@ -1971,9 +1972,10 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString(trade, "networkId")
 	var marketId *string = this.SafeString(trade, "marketId")
 	var rawOutcomeId *string = this.SafeString(trade, "outcomeId")
-	var composite any = nil
+	var composite *string = nil
 	if (networkId != nil) && (marketId != nil) && (rawOutcomeId != nil) {
-		composite = *networkId + ":" + *marketId + "/" + *rawOutcomeId
+		compositeStr := *networkId + ":" + *marketId + "/" + *rawOutcomeId
+		composite = &compositeStr
 	}
 	var outcomeObj map[string]any = this.SafeOutcome(composite, market)
 	var marketSlug *string = this.SafeString(trade, "marketSlug", marketId)
@@ -4392,11 +4394,16 @@ func (this *Myriad) RequestId(url *string) int64 {
 	if existing == nil {
 		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
-	var options any = this.Options["requestId"]
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	if url != nil {
-		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+		options[*url] = newValue
+		this.Options["requestId"] = options
 	}
 	return newValue
 }
@@ -5267,9 +5274,9 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data map[string]any
 	var tif *string = this.SafeStringUpper(data, "timeInForce")
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(data, "updatedAt", "createdAt"))
-	var ternaryStr372320 string = "limit"
+	var ternaryStr372420 string = "limit"
 	if isMarketTif {
-		ternaryStr372320 = "market"
+		ternaryStr372420 = "market"
 	}
 	var parsed map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(data, "orderHash"),
@@ -5281,7 +5288,7 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data map[string]any
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"type":          ternaryStr372320,
+		"type":          ternaryStr372420,
 		"timeInForce":   tif,
 		"side":          this.SafeStringLower(data, "side"),
 		"price":         price,
@@ -5583,16 +5590,16 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) map[string]any {
 		headersKey[headerKey] = this.ApiKey
 		headersValue = this.Extend(headersValue, headersKey)
 	}
-	var literal392615 map[string]any = map[string]any{
+	var literal392715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal392615["body"] = *bodyValue
+		literal392715["body"] = *bodyValue
 	}
-	return literal392615
+	return literal392715
 }
 
 func NewMyriad(userConfig map[string]any) *Myriad {

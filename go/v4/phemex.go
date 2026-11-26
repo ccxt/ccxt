@@ -2550,7 +2550,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        nil,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         costString,
@@ -2564,6 +2564,9 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if typeVar != nil {
 		literal202931["type"] = *typeVar
+	}
+	if takerOrMaker != nil {
+		literal202931["takerOrMaker"] = *takerOrMaker
 	}
 	return this.SafeTrade(literal202931, marketResolved)
 }
@@ -6463,17 +6466,24 @@ func (this *Phemex) ParseTransfer(transfer map[string]any, optionalArgs ...any) 
 		toId = &toIdStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
-	return TransferEntryFromMap(map[string]any{
+	var literal506415 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    code,
 		"amount":      this.ParseNumber(amountTransfered),
-		"fromAccount": fromId,
-		"toAccount":   toId,
+		"fromAccount": nil,
+		"toAccount":   nil,
 		"status":      this.ParseTransferStatus(status),
-	})
+	}
+	if fromId != nil {
+		literal506415["fromAccount"] = *fromId
+	}
+	if toId != nil {
+		literal506415["toAccount"] = *toId
+	}
+	return TransferEntryFromMap(literal506415)
 }
 func (this *Phemex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

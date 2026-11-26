@@ -1027,8 +1027,8 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"timestamp":          timestamp,
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
-		"type":               orderType,
-		"timeInForce":        timeInForce,
+		"type":               nil,
+		"timeInForce":        nil,
 		"postOnly":           nil,
 		"side":               side,
 		"price":              price,
@@ -1039,12 +1039,21 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"average":            nil,
 		"filled":             filled,
 		"remaining":          nil,
-		"status":             status,
+		"status":             nil,
 		"fee":                nil,
 		"trades":             nil,
 	}
+	if orderType != nil {
+		literal75231["type"] = *orderType
+	}
+	if timeInForce != nil {
+		literal75231["timeInForce"] = *timeInForce
+	}
 	if remaining != nil {
 		literal75231["remaining"] = *remaining
+	}
+	if status != nil {
+		literal75231["status"] = *status
 	}
 	return ccxt.OrderToMap(this.SafeOrder(literal75231, marketResolved))
 }

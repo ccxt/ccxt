@@ -1277,7 +1277,7 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           marketType,
+		"type":           nil,
 		"spot":           spot,
 		"margin":         margin,
 		"swap":           swap,
@@ -1293,7 +1293,7 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		"taker":          this.SafeNumber(market, "taker_fee_rate"),
 		"maker":          this.SafeNumber(market, "maker_fee_rate"),
 		"strike":         strike,
-		"optionType":     optionType,
+		"optionType":     nil,
 		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "amount_step"),
 			"price":  this.SafeNumber(market, "tick_size"),
@@ -1321,6 +1321,12 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 	}
 	if settle != nil {
 		literal87341["settle"] = *settle
+	}
+	if marketType != nil {
+		literal87341["type"] = *marketType
+	}
+	if optionType != nil {
+		literal87341["optionType"] = *optionType
 	}
 	return this.SafeMarketStructure(literal87341)
 }
@@ -4806,12 +4812,7 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	}
 	var fromId int64 = this.ParseToInt(fromAccount)
 	// the destination is optional on the subaccount-creation path, an undefined must not reach the int conversion
-	var toId int64 = this.ParseToInt(func() any {
-		if false {
-			return 0
-		}
-		return toAccount
-	}())
+	var toId int64 = this.ParseToInt(toAccount)
 	var amountString *string = this.NumberToString(amount)
 	var maxFeeUsd *string = this.SafeString(params, "max_fee_usd", "0")
 	var newSubaccountManager *int64 = this.SafeInteger(params, "new_subaccount_manager", 0)

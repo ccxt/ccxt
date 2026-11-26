@@ -2902,7 +2902,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 				created = this.Parse8601(createdDate)
 			}
 		}
-		result = append(result, map[string]any{
+		var literal185725 map[string]any = map[string]any{
 			"id":             id,
 			"lowercaseId":    lowercaseId,
 			"symbol":         symbol,
@@ -2912,7 +2912,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 			"baseId":         baseId,
 			"quoteId":        quoteId,
 			"settleId":       settleId,
-			"type":           marketType,
+			"type":           nil,
 			"spot":           spot,
 			"margin":         (spot && hasLeverage),
 			"swap":           swap,
@@ -2955,7 +2955,11 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan AsyncResult[[]MarketIn
 			},
 			"created": created,
 			"info":    market,
-		})
+		}
+		if marketType != nil {
+			literal185725["type"] = *marketType
+		}
+		result = append(result, literal185725)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -5197,10 +5201,11 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	//         "ts": 1770293281344
 	//     }
 	//
-	var finalResponse map[string]any = response
 	var result map[string]any = map[string]any{
-		"info": finalResponse,
+		"info": response,
 	}
+	var dataRows []any
+	dataRows, _ = response["data"].([]any)
 	var data any = this.SafeValue(response, "data")
 	if isMultiAssetMode || (linear && (swap || future)) {
 		var details []any = SafeListTyped(data, "details")
@@ -5218,8 +5223,8 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		this.SafeBalance(result)
 	} else if spot || margin {
 		if isolated {
-			for i := 0; i < GetArrayLength(data); i++ {
-				var entry map[string]any = SafeMapTyped(data, i)
+			for i := 0; i < len(dataRows); i++ {
+				var entry, _ = dataRows[i].(map[string]any)
 				var balances []any = SafeListTyped(entry, "list")
 				var subResult map[string]any = map[string]any{}
 				for j := 0; j < len(balances); j++ {
@@ -5256,8 +5261,8 @@ func (this *Htx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 			this.SafeBalance(result)
 		}
 	} else if inverse {
-		for i := 0; i < GetArrayLength(data); i++ {
-			var balance map[string]any = SafeMapTyped(data, i)
+		for i := 0; i < len(dataRows); i++ {
+			var balance, _ = dataRows[i].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "symbol")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -9407,7 +9412,7 @@ func (this *Htx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		statusStr3 := "failed"
 		status = &statusStr3
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal690415 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
@@ -9416,8 +9421,12 @@ func (this *Htx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status":      status,
-	})
+		"status":      nil,
+	}
+	if status != nil {
+		literal690415["status"] = *status
+	}
+	return TransferEntryFromMap(literal690415)
 }
 
 /**

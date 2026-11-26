@@ -4724,17 +4724,24 @@ func (this *Paradex) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 		toAccountStr2 := "external"
 		toAccount = &toAccountStr2
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal328515 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"currency":    code,
 		"amount":      this.SafeNumber(transfer, "amount"),
-		"fromAccount": fromAccount,
-		"toAccount":   toAccount,
+		"fromAccount": nil,
+		"toAccount":   nil,
 		"status":      this.ParseTransactionStatus(this.SafeString(transfer, "status")),
-	})
+	}
+	if fromAccount != nil {
+		literal328515["fromAccount"] = *fromAccount
+	}
+	if toAccount != nil {
+		literal328515["toAccount"] = *toAccount
+	}
+	return TransferEntryFromMap(literal328515)
 }
 func (this *Paradex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//

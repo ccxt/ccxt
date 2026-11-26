@@ -2749,18 +2749,22 @@ func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs .
 		sideStr2 := "buy"
 		side = &sideStr2
 	}
-	return this.SafeLiquidation(map[string]any{
+	var literal190437 map[string]any = map[string]any{
 		"info":         liquidation,
 		"symbol":       marketResolved["symbol"],
 		"contracts":    this.SafeNumber2(liquidation, "size", "v"),
 		"contractSize": this.SafeNumber(marketResolved, "contractSize"),
 		"price":        this.SafeNumber2(liquidation, "price", "p"),
-		"side":         side,
+		"side":         nil,
 		"baseValue":    nil,
 		"quoteValue":   nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-	})
+	}
+	if side != nil {
+		literal190437["side"] = *side
+	}
+	return this.SafeLiquidation(literal190437)
 }
 
 /**

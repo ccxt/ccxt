@@ -4169,7 +4169,7 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       nil,
-		"type":           typeVar,
+		"type":           nil,
 		"spot":           spot,
 		"margin":         spot && isMarginTradingAllowed,
 		"marginModes":    marginModes,
@@ -4215,6 +4215,9 @@ func (this *Bitget) ParseMarket(market any) map[string]any {
 	}
 	if settleId != nil {
 		literal244341["settleId"] = *settleId
+	}
+	if typeVar != nil {
+		literal244341["type"] = *typeVar
 	}
 	if expiryDatetime != nil {
 		literal244341["expiryDatetime"] = *expiryDatetime
@@ -4498,7 +4501,7 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           typeVar,
+		"type":           nil,
 		"spot":           spot,
 		"margin":         spot && isMarginTradingAllowed,
 		"marginModes":    marginModes,
@@ -4541,6 +4544,9 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 		},
 		"created": this.SafeInteger(market, "launchTime"),
 		"info":    market,
+	}
+	if typeVar != nil {
+		literal272015["type"] = *typeVar
 	}
 	if expiryDatetime != nil {
 		literal272015["expiryDatetime"] = *expiryDatetime
@@ -7829,7 +7835,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
 }
-func (this *Bitget) ParseUtaBalance(balance any, optionalArgs ...any) map[string]any {
+func (this *Bitget) ParseUtaBalance(balance []any, optionalArgs ...any) map[string]any {
 	var response map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = response
 	var info any
@@ -7864,8 +7870,8 @@ func (this *Bitget) ParseUtaBalance(balance any, optionalArgs ...any) map[string
 	//         "balance": "0.01"
 	//     }
 	//
-	for i := 0; i < GetArrayLength(balance); i++ {
-		var entry map[string]any = SafeMapTyped(balance, i)
+	for i := 0; i < len(balance); i++ {
+		var entry, _ = balance[i].(map[string]any)
 		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -10487,19 +10493,25 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	var paginate bool = false
 	paginate, paramsMarginMode = this.HandleOptionBoolAndParams(paramsMarginMode, "fetchOpenOrders", "paginate", false)
 	if paginate {
-		var cursorReceived any = nil
-		var cursorSent any = nil
+		var cursorReceived *string = nil
+		var cursorSent *string = nil
 		if uta == true {
-			cursorReceived = "cursor"
-			cursorSent = "cursor"
+			cursorReceivedStr := "cursor"
+			cursorReceived = &cursorReceivedStr
+			cursorSentStr := "cursor"
+			cursorSent = &cursorSentStr
 		} else if typeVar != nil && *typeVar == "spot" {
 			if marginMode != nil {
-				cursorReceived = "minId"
-				cursorSent = "idLessThan"
+				cursorReceivedStr2 := "minId"
+				cursorReceived = &cursorReceivedStr2
+				cursorSentStr2 := "idLessThan"
+				cursorSent = &cursorSentStr2
 			}
 		} else {
-			cursorReceived = "endId"
-			cursorSent = "idLessThan"
+			cursorReceivedStr3 := "endId"
+			cursorReceived = &cursorReceivedStr3
+			cursorSentStr3 := "idLessThan"
+			cursorSent = &cursorSentStr3
 		}
 
 		r1 := <-this.FetchPaginatedCallCursorAsync("fetchOpenOrders", symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent)
@@ -11116,13 +11128,15 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	var paginate bool = false
 	paginate, paramsUTA = this.HandleOptionBoolAndParams(paramsUTA, "fetchCanceledAndClosedOrders", "paginate", false)
 	if paginate {
-		var cursorReceived any = nil
+		var cursorReceived *string = nil
 		if marketType != nil && *marketType == "spot" {
 			if marginMode != nil {
-				cursorReceived = "minId"
+				cursorReceivedStr := "minId"
+				cursorReceived = &cursorReceivedStr
 			}
 		} else {
-			cursorReceived = "endId"
+			cursorReceivedStr2 := "endId"
+			cursorReceived = &cursorReceivedStr2
 		}
 
 		r2 := <-this.FetchPaginatedCallCursorAsync("fetchCanceledAndClosedOrders", symbol, since, limit, paramsUTA, cursorReceived, "idLessThan")
@@ -11709,9 +11723,10 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 			}
 			return nil
 		}
-		var cursorReceived any = nil
+		var cursorReceived *string = nil
 		if marketType == nil || *marketType != "spot" {
-			cursorReceived = "endId"
+			cursorReceivedStr := "endId"
+			cursorReceived = &cursorReceivedStr
 		}
 		paramsOmitted = this.Extend(paramsOmitted, map[string]any{
 			"type": marketType,
@@ -12233,19 +12248,25 @@ func (this *Bitget) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	paginate, paramsUTA = this.HandleOptionBoolAndParams(paramsUTA, "fetchMyTrades", "paginate", false)
 	marginMode, paramsUTA = this.HandleMarginModeAndParams("fetchMyTrades", paramsUTA)
 	if paginate {
-		var cursorReceived any = nil
-		var cursorSent any = nil
+		var cursorReceived *string = nil
+		var cursorSent *string = nil
 		if uta == true {
-			cursorReceived = "cursor"
-			cursorSent = "cursor"
+			cursorReceivedStr := "cursor"
+			cursorReceived = &cursorReceivedStr
+			cursorSentStr := "cursor"
+			cursorSent = &cursorSentStr
 		} else if *this.SafeBool(market, "spot", false) {
 			if marginMode != nil {
-				cursorReceived = "minId"
-				cursorSent = "idLessThan"
+				cursorReceivedStr2 := "minId"
+				cursorReceived = &cursorReceivedStr2
+				cursorSentStr2 := "idLessThan"
+				cursorSent = &cursorSentStr2
 			}
 		} else {
-			cursorReceived = "endId"
-			cursorSent = "idLessThan"
+			cursorReceivedStr3 := "endId"
+			cursorReceived = &cursorReceivedStr3
+			cursorSentStr3 := "idLessThan"
+			cursorSent = &cursorSentStr3
 		}
 
 		r1 := <-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsUTA, cursorReceived, cursorSent)

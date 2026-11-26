@@ -839,7 +839,7 @@ func (this *Independentreserve) ParseOrder(order map[string]any, optionalArgs ..
 		"type":               orderType,
 		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "TimeInForce")),
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              this.SafeString(order, "Price"),
 		"triggerPrice":       nil,
 		"cost":               this.SafeString(order, "Value"),
@@ -857,6 +857,9 @@ func (this *Independentreserve) ParseOrder(order map[string]any, optionalArgs ..
 	}
 	if symbol != nil {
 		literal63831["symbol"] = *symbol
+	}
+	if side != nil {
+		literal63831["side"] = *side
 	}
 	return this.SafeOrder(literal63831, market)
 }
@@ -1272,8 +1275,9 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
-		var fee map[string]any = SafeMapTyped(fees, market["base"])
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		var baseCode string = market.BaseCurrency
+		var fee, _ = fees[baseCode].(map[string]any)
 		result[symbol] = map[string]any{
 			"info":       this.SafeDict(fee, "info"),
 			"symbol":     symbol,

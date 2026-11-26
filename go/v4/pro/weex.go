@@ -834,7 +834,7 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"order":        nil,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "p"),
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         this.SafeString(trade, "v"),
@@ -842,6 +842,9 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	}
 	if symbol != nil {
 		literal56631["symbol"] = *symbol
+	}
+	if takerOrMaker != nil {
+		literal56631["takerOrMaker"] = *takerOrMaker
 	}
 	return ccxt.TradeToMap(this.SafeTrade(literal56631, market))
 }

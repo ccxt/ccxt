@@ -977,7 +977,7 @@ func (this *Luno) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		}
 	}
 	var id *string = this.SafeString(order, "order_id")
-	return this.SafeOrder(map[string]any{
+	var literal83231 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
 		"datetime":           this.Iso8601(timestamp),
@@ -988,7 +988,7 @@ func (this *Luno) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       nil,
 		"amount":             amount,
@@ -999,7 +999,11 @@ func (this *Luno) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"fee":                fee,
 		"info":               order,
 		"average":            nil,
-	}, marketResolved)
+	}
+	if side != nil {
+		literal83231["side"] = *side
+	}
+	return this.SafeOrder(literal83231, marketResolved)
 }
 
 /**
@@ -1449,7 +1453,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	return this.SafeTrade(map[string]any{
+	var literal110731 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -1458,7 +1462,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        orderId,
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString2(trade, "volume", "base"),
 		"cost":         this.SafeString(trade, "counter"),
@@ -1466,7 +1470,11 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"cost":     feeCost,
 			"currency": feeCurrency,
 		},
-	}, market)
+	}
+	if takerOrMaker != nil {
+		literal110731["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal110731, market)
 }
 
 /**

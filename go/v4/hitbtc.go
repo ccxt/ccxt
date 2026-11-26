@@ -1291,12 +1291,12 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	})}
 	return nil
 }
-func (this *Hitbtc) ParseBalanceList(response any) map[string]any {
+func (this *Hitbtc) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
-		var entry map[string]any = SafeMapTyped(response, i)
+	for i := 0; i < len(response); i++ {
+		var entry, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

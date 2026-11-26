@@ -1163,7 +1163,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		} else {
 			isInverse = nil
 		}
-		result = append(result, map[string]any{
+		var literal82425 map[string]any = map[string]any{
 			"id":             this.SafeString(market, "symbol"),
 			"symbol":         symbol,
 			"base":           base,
@@ -1172,7 +1172,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			"baseId":         baseId,
 			"quoteId":        quoteId,
 			"settleId":       settleId,
-			"type":           typeVar,
+			"type":           nil,
 			"spot":           spot,
 			"margin":         ((marginBuyEnabled != nil && *marginBuyEnabled) || (marginSellEnabled != nil && *marginSellEnabled)),
 			"swap":           swap,
@@ -1211,7 +1211,11 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			},
 			"created": nil,
 			"info":    market,
-		})
+		}
+		if typeVar != nil {
+			literal82425["type"] = *typeVar
+		}
+		result = append(result, literal82425)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}

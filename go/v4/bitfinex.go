@@ -2187,12 +2187,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved any
-	if false {
-		limitResolved = 10000
-	} else {
-		limitResolved = min(limit, 10000)
-	}
+	var limitResolved any = min(limit, 10000)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),

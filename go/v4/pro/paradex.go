@@ -617,7 +617,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Paradex) HandleAuthenticationMessage(client ccxt.ClientInterface, message any) {
+func (this *Paradex) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -631,7 +631,7 @@ func (this *Paradex) HandleAuthenticationMessage(client ccxt.ClientInterface, me
 		future.Resolve(true)
 	}
 }
-func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message any) {
+func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// auth
 	//
@@ -653,7 +653,7 @@ func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message any
 	var requestId *string = this.SafeString(message, "id")
 	var authSubscription map[string]any = client.SubscriptionDict("authenticated")
 	var authRequestId *string = this.SafeString(authSubscription, "id")
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	var isAuth bool = ((requestId != nil) && (requestId == authRequestId || (requestId != nil && authRequestId != nil && *requestId == *authRequestId))) || (this.SafeString(result, "node_id") != nil)
 	if isAuth {
 		this.HandleAuthenticationMessage(client, message)
@@ -3031,7 +3031,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"interval":                 interval,
 	}
 }
-func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) any {
+func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) map[string]any {
 	//
 	// Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
 	// header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -3039,19 +3039,19 @@ func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) a
 	// the shape of the matching JSON subscription message, so the JSON handlers parse both.
 	// Requests, subscribe acks and errors stay JSON text frames.
 	//
-	// Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-	// ids this decoder does not know (the schema says to skip them), and malformed frames.
+	// Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+	// template ids this decoder does not know (the schema says to skip them), and malformed frames.
 	//
 	var frameHex string = this.BinaryToBase16(message)
 	var frameLength int64 = this.ParseToInt(float64(len(frameHex)) / 2)
 	if frameLength < 8 {
-		return nil
+		return map[string]any{}
 	}
 	var blockLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, 0, 2))
 	var templateId int64 = this.ParseToInt(this.SbeReadUint(frameHex, 2, 2))
 	var schemaId int64 = this.ParseToInt(this.SbeReadUint(frameHex, 4, 2))
 	if (schemaId != 1) || (frameLength < (blockLength + 8)) {
-		return nil
+		return map[string]any{}
 	}
 	var channel *string = nil
 	var data map[string]any = nil
@@ -3104,7 +3104,7 @@ func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) a
 		channel = &channelStr9
 	}
 	if data == nil {
-		return nil
+		return map[string]any{}
 	}
 	return map[string]any{
 		"sbe": true,
@@ -3669,7 +3669,7 @@ func (this *Paradex) ParseSbeAccount(frameHex string, blockLength int64, frameLe
 	}
 	return account
 }
-func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any) bool {
+func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3684,7 +3684,7 @@ func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any
 	//         "usOut": 1718179125962495
 	//     }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error == nil {
 		return true
 	}
@@ -3748,16 +3748,15 @@ func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any
 	return false
 }
 func (this *Paradex) HandleBinaryMessage(client ccxt.ClientInterface, message any) {
-	var parsedMessage any = this.ParseSbeMessage(client, message)
-	if parsedMessage == nil {
-		return
+	var parsedMessage map[string]any = this.ParseSbeMessage(client, message)
+	if _, ok := parsedMessage["params"]; ok {
+		this.HandleStreamMessage(client, parsedMessage)
 	}
-	this.HandleStreamMessage(client, parsedMessage)
 }
 func (this *Paradex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleStreamMessage(client, message)
 }
-func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message any) {
+func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
@@ -3789,12 +3788,12 @@ func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message an
 	//         }
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	if result != nil {
 		this.HandleRequestReply(client, message)
 		return
 	}
-	var data map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data, _ = message["params"].(map[string]any)
 	if data != nil {
 		var channel *string = this.SafeString(data, "channel")
 		var parts []string = strings.Split(*channel, ".")

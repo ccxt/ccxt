@@ -3356,7 +3356,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 			parsedCost = absoluteCost
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal245531 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3365,12 +3365,16 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"order":        this.SafeString(trade, "digest"),
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": takerOrMaker,
+		"takerOrMaker": nil,
 		"price":        price,
 		"amount":       parsedAmount,
 		"cost":         parsedCost,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if takerOrMaker != nil {
+		literal245531["takerOrMaker"] = *takerOrMaker
+	}
+	return this.SafeTrade(literal245531, marketResolved)
 }
 func (this *Nado) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
@@ -3704,7 +3708,7 @@ func (this *Nado) ParsePosition(position map[string]any, optionalArgs ...any) Po
 			notional = this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000"))
 		}
 	}
-	return this.SafePosition(map[string]any{
+	var literal279334 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      marketResolved["symbol"],
@@ -3712,7 +3716,7 @@ func (this *Nado) ParsePosition(position map[string]any, optionalArgs ...any) Po
 		"datetime":                    nil,
 		"isolated":                    nil,
 		"hedged":                      false,
-		"side":                        side,
+		"side":                        nil,
 		"contracts":                   contracts,
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"entryPrice":                  entryPrice,
@@ -3729,7 +3733,11 @@ func (this *Nado) ParsePosition(position map[string]any, optionalArgs ...any) Po
 		"marginMode":                  nil,
 		"marginRatio":                 nil,
 		"percentage":                  nil,
-	})
+	}
+	if side != nil {
+		literal279334["side"] = *side
+	}
+	return this.SafePosition(literal279334)
 }
 func (this *Nado) IsArchiveOrderClosed(order any) bool {
 	var amount *string = this.SafeString(order, "amount")

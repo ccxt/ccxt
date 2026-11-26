@@ -134,7 +134,7 @@ func (this *Coinbaseexchange) SubscribeMultipleAsync(name string, optionalArgs .
 func (this *Coinbaseexchange) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, []any{})
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = symbols
 	var messageHashStart *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = messageHashStart

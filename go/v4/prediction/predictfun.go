@@ -856,7 +856,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 				topicStatusStr2 := "OPEN"
 				topicStatus = &topicStatusStr2
 			}
-			result = append(result, map[string]any{
+			var literal72929 map[string]any = map[string]any{
 				"id":             orphanSlug,
 				"slug":           orphanSlug,
 				"title":          this.SafeString(first, "title"),
@@ -866,10 +866,14 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 				"isNegRisk":      this.SafeBool(first, "isNegRisk"),
 				"isYieldBearing": this.SafeBool(first, "isYieldBearing"),
 				"isVisible":      this.SafeBool(first, "isVisible"),
-				"status":         topicStatus,
+				"status":         nil,
 				"createdAt":      this.SafeString(first, "createdAt"),
 				"markets":        markets,
-			})
+			}
+			if topicStatus != nil {
+				literal72929["status"] = *topicStatus
+			}
+			result = append(result, literal72929)
 		}
 	}
 
@@ -1969,7 +1973,7 @@ func (this *Predictfun) ParsePredictionTrade(trade map[string]any, optionalArgs 
 		"label":        this.SafeString(outcomeObj, "label"),
 		"market":       this.SafeString(outcomeObj, "market"),
 		"type":         this.SafeString(party, "type"),
-		"side":         side,
+		"side":         nil,
 		"takerOrMaker": this.SafeString(party, "takerOrMaker"),
 		"price":        this.ParseNumber(priceStr),
 		"amount":       this.ParseNumber(amountStr),
@@ -1979,6 +1983,9 @@ func (this *Predictfun) ParsePredictionTrade(trade map[string]any, optionalArgs 
 	}
 	if order != nil {
 		literal170041["order"] = *order
+	}
+	if side != nil {
+		literal170041["side"] = *side
 	}
 	return this.SafePredictionTrade(literal170041)
 }
@@ -4674,17 +4681,17 @@ func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
 		remaining = ccxt.Precise.StringSub(amount, filled)
 	}
 	var timestamp *int64 = this.SafeInteger(event, "timestamp")
-	return this.SafePredictionOrder(map[string]any{
+	var literal374041 map[string]any = map[string]any{
 		"id":                  this.SafeString2(event, "orderHash", "orderId"),
 		"clientOrderId":       nil,
 		"timestamp":           timestamp,
 		"datetime":            this.Iso8601(timestamp),
 		"lastTradeTimestamp":  nil,
 		"lastUpdateTimestamp": timestamp,
-		"status":              status,
+		"status":              nil,
 		"type":                this.SafeStringLower(details, "strategyType"),
 		"timeInForce":         nil,
-		"side":                side,
+		"side":                nil,
 		"price":               this.SafeNumber(details, "price"),
 		"average":             nil,
 		"amount":              this.ParseNumber(amount),
@@ -4701,7 +4708,14 @@ func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
 		"market":              this.SafeString(outcomeObj, "market"),
 		"event":               this.SafeString(outcomeObj, "event"),
 		"info":                event,
-	})
+	}
+	if status != nil {
+		literal374041["status"] = *status
+	}
+	if side != nil {
+		literal374041["side"] = *side
+	}
+	return this.SafePredictionOrder(literal374041)
 }
 
 /**

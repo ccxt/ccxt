@@ -2618,7 +2618,7 @@ func (this *Krakenfutures) ParseOrderType(orderType *string) *string {
 	return this.SafeString(typesMap, orderType, orderType)
 }
 func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method string, optionalArgs ...any) {
-	omit := GetArg(optionalArgs, 0, []any{})
+	var omit []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = omit
 	var errors map[string]any = map[string]any{
 		"invalidOrderType":           InvalidOrder,

@@ -14537,17 +14537,17 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
  * @param {float} params.recvWindow
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
  */
-func (this *Binance) FuturesTransferAsync(code string, amount any, typeVar any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Binance) FuturesTransferAsync(code string, amount any, typeVar int64, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.futuresTransferBody(ch, code, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Binance) futuresTransferBody(ch chan AsyncResult[TransferEntry], code string, amount any, typeVar any, optionalArgs ...any) any {
+func (this *Binance) futuresTransferBody(ch chan AsyncResult[TransferEntry], code string, amount any, typeVar int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if (IsLessThan(typeVar, 1)) || (IsGreaterThan(typeVar, 4)) {
+	if (typeVar < 1) || (typeVar > 4) {
 		panic(ArgumentsRequired(this.Id + " type must be between 1 and 4"))
 	}
 	if this.Markets == nil {

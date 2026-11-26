@@ -2836,7 +2836,7 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"type":               typeVar,
 		"timeInForce":        timeInForce,
 		"postOnly":           postOnly,
-		"side":               side,
+		"side":               nil,
 		"price":              price,
 		"triggerPrice":       nil,
 		"amount":             amount,
@@ -2850,6 +2850,9 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 	}
 	if symbol != nil {
 		literal229331["symbol"] = *symbol
+	}
+	if side != nil {
+		literal229331["side"] = *side
 	}
 	return this.SafeOrder(literal229331, marketResolved)
 }

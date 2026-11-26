@@ -2796,7 +2796,7 @@ func (this *Hashkey) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 		statusStr := "ok"
 		status = &statusStr
 	}
-	return TransferEntryFromMap(map[string]any{
+	var literal229515 map[string]any = map[string]any{
 		"id":          this.SafeString(transfer, "orderId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -2804,9 +2804,13 @@ func (this *Hashkey) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 		"amount":      nil,
 		"fromAccount": nil,
 		"toAccount":   nil,
-		"status":      status,
+		"status":      nil,
 		"info":        transfer,
-	})
+	}
+	if status != nil {
+		literal229515["status"] = *status
+	}
+	return TransferEntryFromMap(literal229515)
 }
 
 /**

@@ -907,7 +907,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan AsyncResult[[]MarketInterfac
 		var cell3 string = *this.SafeString(cells, 3, "")
 		var pricePrecisionString string = strings.Replace(cell3, "<td>", "", 1)
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
-		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, marketId[startingIndex+int64(len(marketId))*min(max(-startingIndex, 0), 1):min(idLength+len(marketId)*min(max(-idLength, 0), 1), len(marketId))])
+		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, marketId[startingIndex+int64(len(marketId))*min(max(-startingIndex, 0), 1):min(idLength, len(marketId))])
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, strings.Replace(marketId, *quoteId, "", 1))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)

@@ -3051,11 +3051,16 @@ func (this *Sxbet) RequestId(url *string) int64 {
 	if existing == nil {
 		this.Options["requestId"] = this.CreateSafeDictionary()
 	}
-	var options any = this.Options["requestId"]
+	var options map[string]any
+	options, _ = this.Options["requestId"].(map[string]any)
+	if options == nil {
+		options = map[string]any{}
+	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	if url != nil {
-		ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+		options[*url] = newValue
+		this.Options["requestId"] = options
 	}
 	return newValue
 }
@@ -3486,7 +3491,7 @@ func (this *Sxbet) HandleOrderBook(client ccxt.ClientInterface, rows []any) {
 	//
 	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var refreshed []any = this.ApplySxbetWsSnapshot(ccxt.DerefScalar(rows[i]))
+		var refreshed []any = this.ApplySxbetWsSnapshot(rows[i])
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
 			var sym string = *this.SafeString(refreshed, j, "")
@@ -3726,7 +3731,7 @@ func (this *Sxbet) HandleTrades(client ccxt.ClientInterface, rows []any) {
 	//
 	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var rawRow any = ccxt.DerefScalar(rows[i])
+		var rawRow any = rows[i]
 		var row any = this.SafeDict(rawRow, "trade", rawRow)
 		var trade any = this.ParseSxbetV3PublicTrade(row)
 		var sym *string = this.SafeString(trade, "outcome")
@@ -3804,7 +3809,7 @@ func (this *Sxbet) HandleMyTrade(client ccxt.ClientInterface, rows []any) {
 	//
 	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var rawRow any = ccxt.DerefScalar(rows[i])
+		var rawRow any = rows[i]
 		var row any = this.SafeDict(rawRow, "fill", rawRow)
 		var trade any = this.ParseSxbetV3Fill(row)
 		var sym *string = this.SafeString(trade, "outcome")
@@ -3880,7 +3885,7 @@ func (this *Sxbet) HandleOrder(client ccxt.ClientInterface, rows []any) {
 	//
 	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var rawRow any = ccxt.DerefScalar(rows[i])
+		var rawRow any = rows[i]
 		var row any = this.SafeDict(rawRow, "order", rawRow)
 		var order map[string]any = this.ParsePredictionOrder(this.Extend(map[string]any{}, row))
 		if this.Orders == nil {

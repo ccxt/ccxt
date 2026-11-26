@@ -209,10 +209,8 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 		"event":   "subscribe",
 		"channel": []any{name},
 	}
-	var marketIds any = []any{}
-	if this.IsEmpty(symbols) {
-		ccxt.AppendToArray(&marketIds, "all")
-	} else {
+	var marketIds any = []any{"all"}
+	if !this.IsEmpty(symbols) {
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribe() symbols is required"))
 		}
@@ -1578,9 +1576,9 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 						previousOrder["trades"] = []any{}
 					}
 				}
-				retRes104820 := previousOrder["trades"]
-				ccxt.AppendToArray(&retRes104820, trade)
-				ccxt.AddElementToObject(previousOrder, "trades", retRes104820)
+				retRes104620 := previousOrder["trades"]
+				ccxt.AppendToArray(&retRes104620, trade)
+				ccxt.AddElementToObject(previousOrder, "trades", retRes104620)
 				if previousOrder != nil {
 					if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
 						previousOrder["lastTradeTimestamp"] = *ptrValue
@@ -1779,11 +1777,11 @@ func (this *Poloniex) HandleTicker(client ccxt.ClientInterface, message map[stri
 	for i := 0; i < len(data); i++ {
 		var marketId *string = this.SafeString(data[i], "symbol")
 		if marketId != nil {
-			dataDict120749, _ := data[i].(map[string]any)
-			if dataDict120749 == nil {
-				dataDict120749 = map[string]any{}
+			dataDict120549, _ := data[i].(map[string]any)
+			if dataDict120549 == nil {
+				dataDict120549 = map[string]any{}
 			}
-			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict120749))
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict120549))
 			var symbol *string = this.SafeString(ticker, "symbol")
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
