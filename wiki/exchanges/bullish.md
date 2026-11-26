@@ -37,12 +37,17 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [signIn](#signin)
 * [watchTrades](#watchtrades)
+* [unWatchTrades](#unwatchtrades)
 * [watchTicker](#watchticker)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
 * [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
 * [watchBalance](#watchbalance)
 * [watchPositions](#watchpositions)
+* [unWatchPositions](#unwatchpositions)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -813,6 +818,27 @@ bullish.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unsubscribes from the trades channel
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unsubscribe from |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bullish.unWatchTrades (symbol, params?)
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
@@ -856,6 +882,27 @@ bullish.watchOrderBook (symbol, limit?, params?)
 ```
 
 
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unsubscribes from the orderbook channel
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unsubscribe from |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bullish.unWatchOrderBook (symbol, params?)
+```
+
+
 <a name="watchOrders" id="watchorders"></a>
 
 ### watchOrders{docsify-ignore}
@@ -880,6 +927,28 @@ bullish.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | not used by bullish unWatchOrders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tradingAccountId | <code>string</code> | No | the trading account id the subscription was opened with |
+
+
+```javascript
+bullish.unWatchOrders (symbol?, params?)
+```
+
+
 <a name="watchMyTrades" id="watchmytrades"></a>
 
 ### watchMyTrades{docsify-ignore}
@@ -901,6 +970,28 @@ watches information on multiple trades made by the user
 
 ```javascript
 bullish.watchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | not used by bullish unWatchMyTrades |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tradingAccountId | <code>string</code> | No | the trading account id the subscription was opened with |
+
+
+```javascript
+bullish.unWatchMyTrades (symbol?, params?)
 ```
 
 
@@ -945,5 +1036,27 @@ watch all open positions
 
 ```javascript
 bullish.watchPositions (symbols?, since?, limit?, params)
+```
+
+
+<a name="unWatchPositions" id="unwatchpositions"></a>
+
+### unWatchPositions{docsify-ignore}
+unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+
+**Kind**: instance method of [<code>bullish</code>](#bullish)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | not used by bullish unWatchPositions |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tradingAccountId | <code>string</code> | No | the trading account id the subscription was opened with |
+
+
+```javascript
+bullish.unWatchPositions (symbols?, params?)
 ```
 
