@@ -611,11 +611,7 @@ class apex(ccxt.async_support.apex):
         if self.markets is None:
             await self.load_markets()
         messageHash = ''
-        symbolsNormalized2 = None
-        if self.is_empty(symbols):
-            symbolsNormalized2 = symbols
-        else:
-            symbolsNormalized2 = self.market_symbols(symbols)
+        symbolsNormalized2 = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             messageHash = '::' + ','.join((symbolsNormalized2))
         url = self.get_ws_private_url()

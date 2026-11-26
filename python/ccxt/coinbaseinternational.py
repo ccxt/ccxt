@@ -573,7 +573,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         return self.parse_markets(instruments)
 
     def parse_market(self, market: dict) -> Market:
-        instrumentName = self.safe_string(market, 'instrument_name')
+        instrumentName = self.safe_string(market, 'instrument_name', '')
         lowercaseId = self.safe_string_lower(market, 'instrument_name')
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'counter_currency')
@@ -619,7 +619,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             optionTypeLetter = 'P'
             if optionType == 'call':
                 optionTypeLetter = 'C'
-            strikeString = self.number_to_string(strike)
+            strikeString = self.safe_string(market, 'strike', '')
             symbol = symbol + '-' + strikeString + '-' + optionTypeLetter
         marketStructure = {
             'id': instrumentName,

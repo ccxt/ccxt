@@ -391,7 +391,7 @@ class bullish(ccxt.async_support.bullish):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         parsed = self.parse_ticker(data, market)
         if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})

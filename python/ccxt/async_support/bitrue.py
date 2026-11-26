@@ -1451,10 +1451,9 @@ class bitrue(Exchange, ImplicitAPI):
             if limit is not None:
                 request['limit'] = limit
             if self.safe_bool(market, 'linear', False):
-                response = await self.fapiV1PublicGetKlines(self.extend(request, params))
+                data = await self.fapiV1PublicGetKlines(self.extend(request, params))
             elif self.safe_bool(market, 'inverse', False):
-                response = await self.dapiV1PublicGetKlines(self.extend(request, params))
-            data = response
+                data = await self.dapiV1PublicGetKlines(self.extend(request, params))
         elif self.safe_bool(market, 'spot', False):
             timeframesSpot = self.safe_dict(timeframes, 'spot', {})
             request = {

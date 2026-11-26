@@ -2366,11 +2366,12 @@ class paradex(ccxt.async_support.paradex):
             self.handle_stream_message(client, parsedMessage)
 
     def handle_message(self, client: Client, message: dict):
+        # error replies are JSON text frames only, the binary frames never carry one
+        if self.handle_error_message(client, message) is not True:
+            return
         self.handle_stream_message(client, message)
 
     def handle_stream_message(self, client: Client, message: dict):
-        if self.handle_error_message(client, message) is not True:
-            return
         #
         # auth response
         #

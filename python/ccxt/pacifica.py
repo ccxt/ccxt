@@ -3517,7 +3517,7 @@ class pacifica(Exchange, ImplicitAPI):
             sortedKeys = self.sort(keys)
             for i in range(0, len(sortedKeys)):
                 key = self.safe_string(sortedKeys, i, '')
-                result[key] = self.sort_json_keys(value[key])
+                result[key] = self.sort_json_keys(valueCopy[key])
             return result
         elif isinstance(value, list):
             sortedList = []

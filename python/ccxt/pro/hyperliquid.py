@@ -744,9 +744,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         cache = self.myLiquidations
         symbols = {}
         for i in range(0, newLiquidationsLength):
-            liquidation = newLiquidations[i]
-            cache.append(liquidation)
-            symbols[(liquidation['symbol'])] = True
+            cache.append(newLiquidations[i])
+            liquidationSymbol = self.safe_string(newLiquidations[i], 'symbol', '')
+            symbols[liquidationSymbol] = True
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]

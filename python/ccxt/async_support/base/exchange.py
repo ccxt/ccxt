@@ -1435,7 +1435,7 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', 10)
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', 3)
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
+        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_bool_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
         paginationDirection, paramsPaginationDirection = self.handle_option_string_and_params(paramsRemoveRepeated, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
         result = []

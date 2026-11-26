@@ -2913,14 +2913,12 @@ class poloniex(Exchange, ImplicitAPI):
         if not (code in self.currencies):
             raise BadSymbol(self.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", {"network": "TRC20"})')
         currency = self.currency(code)
-        networkCode = None
-        query = None
-        networkCode, query = self.handle_network_code_and_params(params)
-        if networkCode is None:
+        networkCodeRaw, query = self.handle_network_code_and_params(params)
+        if networkCodeRaw is None:
             # we need to know the network to find out the currency-junction
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires a network parameter for ' + code + '.')
         exchangeNetworkId = None
-        networkCode = self.network_id_to_code(networkCode, code)
+        networkCode = self.network_id_to_code(networkCodeRaw, code)
         networkEntry = None if (networkCode is None) else self.safe_dict(currency['networks'], networkCode)
         if networkEntry is not None:
             exchangeNetworkId = self.safe_string(networkEntry, 'id')

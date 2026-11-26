@@ -22,7 +22,7 @@ class binance(ccxt.async_support.binance):
     def describe(self) -> dict:
         return self.deep_extend(super(binance, self).describe(), self.describe_data())
 
-    def describe_data(self):
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,

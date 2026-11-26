@@ -2700,7 +2700,7 @@ class toobit(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             results.append(self.extend(self.parse_transaction_with_type(self.safe_dict(response, i, {}), currency, transactType), paramsUntil))
         sorted = self.sort_by(results, 'timestamp')
-        currencyCode = currency['code'] if (currency is not None) else None
+        currencyCode = self.safe_string(currency, 'code') if (currency is not None) else None
         return self.filter_by_currency_since_limit(sorted, currencyCode, since, limit)
 
     def parse_transaction_with_type(self, transaction: dict, currency: Currency = None, transactType: Str = None) -> Transaction:
