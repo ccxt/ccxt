@@ -4492,8 +4492,7 @@ export default class bybit extends Exchange {
                 if (cost !== undefined) {
                     orderCost = cost;
                 } else {
-                    const quoteAmount = Precise.stringMul (amountString, priceString);
-                    orderCost = quoteAmount;
+                    orderCost = Precise.stringMul (amountString, priceString);
                 }
                 request['qty'] = this.getCost (symbolValue, orderCost);
             } else {
