@@ -42,14 +42,19 @@ export function readTsIndexSource (file) {
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
 // from the same typescript package ast-transpiler resolves, plus its TS6-named helpers.
 const generatorRequire = createRequire (createRequire (import.meta.url).resolve ('ast-transpiler'));
-const tsAst = generatorRequire ('typescript/unstable/ast');
-const tsIs = generatorRequire ('typescript/unstable/ast/is');
-const tsSync = generatorRequire ('typescript/unstable/sync');
+const tsAst = generatorRequire ('typescript/ast');
+const tsIs = generatorRequire ('typescript/ast/is');
+const tsSync = generatorRequire ('typescript/sync');
 let tsApi;
 export const ts = {
     ...tsAst, ...tsIs, ...tsSync, ...astTranspilerUtils,
     // standalone parse (no program) over the generator's API process
-    createSourceFile: (fileName, text) => (tsApi ??= new tsSync.API ({ cwd: process.cwd () })).createSourceFile (fileName, text),
+    createSourceFile: (fileName, text) => {
+        const res = (tsApi ??= new tsSync.API ({ cwd: process.cwd () })).createSourceFile (fileName, text);
+        const sf = res?.sourceFile ?? res;
+        res?.dispose?. ();
+        return sf;
+    },
 };
 // ===== positional core-argument type tables =====
 // The tables the ccxt-side typeCoreArgs text pass reads, kept in this module so the pooled
