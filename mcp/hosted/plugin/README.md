@@ -19,6 +19,13 @@ The server is **read-only and public**. It does not place orders, move funds or 
 - **Claude (web, desktop, mobile):** add `https://docs.ccxt.com/mcp` as a custom connector.
 - **ChatGPT, Codex and other hosts:** see [Hosted server (no install)](https://docs.ccxt.com/docs/mcp#hosted-server-no-install) in the docs.
 
+### Skip the approval prompts
+
+Every tool here is read-only, but Claude decides when to ask, from your settings:
+
+- **Claude (web, desktop, mobile):** Customize > Connectors > CCXT > **Tool permissions** > **Always allow**.
+- **Claude Code:** add `"mcp__plugin_ccxt_ccxt__*"` to `permissions.allow` in `~/.claude/settings.json`, or run `/permissions`. A plugin cannot pre-approve its own tools.
+
 ## What is in this folder
 
 | File | Read by |

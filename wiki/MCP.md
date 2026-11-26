@@ -57,6 +57,7 @@ The hosted server's [privacy policy](/docs/mcp-privacy) and [terms of service](/
 - Custom connectors work on the Free, Pro, Max, Ultra, Team and Enterprise plans. The Free plan allows one custom connector.
 - **Team and Enterprise:** an Owner adds the connector for the organization under [Organization settings > Connectors](https://claude.ai/admin-settings/connectors): **Add**, then **Custom**, then **Web** if asked. Members then find it in their connectors, labelled as custom. Owners can also use the [admin version of the prefilled link](https://claude.ai/admin-settings/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp).
 - Turn the connector on or off for a conversation from the **+** button in the chat, under **Connectors**.
+- **Stop the approval prompts:** every tool on this server is read-only (it marks them `readOnlyHint: true`), but whether Claude asks before a call is your setting, not the server's. Open [Customize > Connectors](https://claude.ai/customize/connectors/yours), select **CCXT**, and under **Tool permissions** set the group to **Always allow**. You can also pick **Always allow** in the first approval prompt of a chat. An organization's connector restrictions, where an Owner has set them, still apply.
 - Claude shows custom connectors as unverified services. CCXT is not listed in the Claude directory yet.
 
 Sources: [Add a connector that isn't in the directory](https://claude.com/docs/connectors/custom/add-unlisted), [install links](https://claude.com/docs/connectors/building/directory-vs-custom).
@@ -79,6 +80,14 @@ Or install the plugin, which adds the server plus a skill that teaches Claude ho
 /plugin marketplace add ccxt/ccxt
 /plugin install ccxt@ccxt
 ```
+
+Claude Code asks before each MCP tool call until you allow the server. A plugin cannot pre-approve its own tools, so add the rule yourself, in `~/.claude/settings.json` (all projects) or a project's `.claude/settings.json`, or with `/permissions`:
+
+```json
+{ "permissions": { "allow": [ "mcp__ccxt__*", "mcp__plugin_ccxt_ccxt__*" ] } }
+```
+
+The first rule covers `claude mcp add ... ccxt` (use your server name if you chose another), the second the `ccxt@ccxt` plugin. Every hosted tool is read-only, so this allows no writes.
 
 The same marketplace also has the local server's plugin, `ccxt-mcp@ccxt`. Claude Code is a terminal: it shows the text summaries, not the interactive views.
 
