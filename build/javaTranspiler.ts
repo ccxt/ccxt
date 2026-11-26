@@ -6497,6 +6497,15 @@ export function nonNullCompareOperand (text: string, member: string, fields: Set
         const o = nonNullCompareOperand (cast[2], member, fields, content, depth + 1);
         return o === undefined ? undefined : prim (cast[1] === 'double' ? 'double' : 'long');
     }
+    // requireNonNullElse(<declared numeric>, <literal of the same kind>) is that kind, never null
+    const rnn = inner.match (/^java\.util\.Objects\.requireNonNullElse\(/);
+    if (rnn !== null && promiseAllClose (inner, rnn[0].length - 1) === inner.length - 1) {
+        const split = orderedCompareSplitArgs (inner, rnn[0].length);
+        if (split === undefined || split.args.length !== 2) return undefined;
+        const v = orderedCompareOperand (split.args[0], member, fields);
+        const d = orderedCompareOperand (split.args[1], member, fields);
+        return v !== undefined && d !== undefined && d.literal === true && v.kind === d.kind ? prim (v.kind) : undefined;
+    }
     const bin = nonNullCompareSplitTop (inner);
     if (bin !== undefined) {
         const l = nonNullCompareOperand (bin.left, member, fields, content, depth + 1);
@@ -6563,6 +6572,8 @@ function javaNonNullCompareSelfTest (): string[] {
         [ 'cast product', '        long k = 3;\n        boolean b = Helpers.isGreaterThan(since, (((long) k) * 2L));', '(since != null && since > (((long) k) * 2L))' ],
         [ 'size', '        java.util.List<Object> q = null;\n        boolean b = Helpers.isGreaterThanOrEqual(q.size(), 3);', '((q.size()) >= 3)' ],
         [ 'math max long', '        Long a = 5L;\n        Object c = Helpers.mathMax((a + 1L), this.milliseconds());', 'Object c = Math.max((a + 1L), (this.milliseconds()));' ],
+        [ 'defaulted long', '        Long a = 5L;\n        boolean b = Helpers.isLessThan(a, java.util.Objects.requireNonNullElse(since, 0L));', '(a == null || a < (java.util.Objects.requireNonNullElse(since, 0L)))' ],
+        [ 'defaulted object', '        Long a = 5L;\n        boolean b = Helpers.isLessThan(a, java.util.Objects.requireNonNullElse(x, 0L));', undefined ],
         // negatives: Object operand, call with nullable box, Object-returning sum, int-valued mathMax side, double mathMax
         [ 'object', '        boolean b = Helpers.isGreaterThan(x, 0);', undefined ],
         [ 'sum', '        boolean b = Helpers.isGreaterThan(this.sum(x, 1), 1);', undefined ],
