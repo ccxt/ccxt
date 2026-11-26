@@ -2126,7 +2126,7 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
-    public function parse_sbe_message(Client $client, mixed $message): mixed {
+    public function parse_sbe_message(Client $client, mixed $message): array {
         //
         // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -2134,19 +2134,19 @@ class paradex extends \ccxt\async\paradex {
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         $frameHex = bin2hex($message);
         $frameLength = $this->parse_to_int(strlen($frameHex) / 2);
         if ($frameLength < 8) {
-            return null;
+            return array();
         }
         $blockLength = $this->parse_to_int($this->sbe_read_uint($frameHex, 0, 2));
         $templateId = $this->parse_to_int($this->sbe_read_uint($frameHex, 2, 2));
         $schemaId = $this->parse_to_int($this->sbe_read_uint($frameHex, 4, 2));
         if (($schemaId !== 1) || ($frameLength < $this->sum($blockLength, 8))) {
-            return null;
+            return array();
         }
         $channel = null;
         $data = null;
@@ -2190,7 +2190,7 @@ class paradex extends \ccxt\async\paradex {
             $channel = 'account';
         }
         if ($data === null) {
-            return null;
+            return array();
         }
         return array(
             'sbe' => true,
@@ -2779,10 +2779,9 @@ class paradex extends \ccxt\async\paradex {
 
     public function handle_binary_message(Client $client, mixed $message) {
         $parsedMessage = $this->parse_sbe_message($client, $message);
-        if ($parsedMessage === null) {
-            return;
+        if (is_array($parsedMessage) && array_key_exists('params' ?? '', $parsedMessage)) {
+            $this->handle_stream_message($client, $parsedMessage);
         }
-        $this->handle_stream_message($client, $parsedMessage);
     }
 
     public function handle_message(Client $client, array $message) {

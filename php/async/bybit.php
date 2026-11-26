@@ -10,6 +10,7 @@ use ccxt\async\abstract\bybit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
@@ -1633,6 +1634,9 @@ class bybit extends Exchange {
         }
         $strike = $this->safe_string($optionParts, 2, '');
         $optionType = $this->safe_string($optionParts, 3, '');
+        if ($expiry === null) {
+            throw new BadSymbol($this->id . ' createExpiredOptionMarket() missing expiry');
+        }
         $datetime = $this->convert_expire_date($expiry);
         $amountPrecision = null;
         $pricePrecision = null;
@@ -1648,6 +1652,9 @@ class bybit extends Exchange {
             $pricePrecision = $this->parse_number('0.01');
         }
         $convertedExpireDate = $this->convert_expire_date_to_market_id_date($expiry);
+        if ($convertedExpireDate === null) {
+            throw new BadSymbol($this->id . ' createExpiredOptionMarket() invalid expiry');
+        }
         return array(
             'id' => $baseName . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
             'symbol' => $baseName . '/' . $quote . ':' . $quote . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -4568,8 +4575,7 @@ class bybit extends Exchange {
                 if ($cost !== null) {
                     $orderCost = $cost;
                 } else {
-                    $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $orderCost = $quoteAmount;
+                    $orderCost = Precise::string_mul($amountString, $priceString);
                 }
                 $request['qty'] = $this->get_cost($symbolValue, $orderCost);
             } else {

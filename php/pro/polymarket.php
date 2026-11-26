@@ -1110,7 +1110,7 @@ class polymarket extends \ccxt\async\polymarket {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_ack(Client $client, mixed $message) {
+    public function handle_ack(Client $client, array $message) {
         //
         // subscribe or unsubscribe acknowledgement
         //
@@ -1122,8 +1122,8 @@ class polymarket extends \ccxt\async\polymarket {
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         $id = $this->safe_string($message, 'id');
-        $data = $this->safe_value($message, 'data');
-        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
+        if ((gettype($message['data']) !== 'array' || array_keys($message['data']) !== array_keys(array_keys($message['data'])))) {
+            $data = $this->safe_dict($message, 'data', array());
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if ($id !== null) {
@@ -1168,8 +1168,10 @@ class polymarket extends \ccxt\async\polymarket {
         $subMessageHashes = $this->safe_list($pending, 'subMessageHashes', array());
         $action = $this->safe_string($pending, 'method');
         $errorMessage = null;
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $this->safe_dict($data, $i, array());
+        $rows = $this->safe_list($message, 'data', array());
+        $rowsLength = count($rows);
+        for ($i = 0; $i < $rowsLength; $i++) {
+            $entry = $this->safe_dict($rows, $i, array());
             $status = $this->safe_string($entry, 'status');
             if ($status === 'err') {
                 $errorMessage = $this->safe_string($entry, 'error');

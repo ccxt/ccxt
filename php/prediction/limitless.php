@@ -2878,10 +2878,9 @@ class limitless extends Exchange {
         $result = array();
         $labels = array( 'yes', 'no' );
         for ($i = 0; $i < count($clob); $i++) {
-            $entry = $this->safe_dict($clob, $i);
             for ($j = 0; $j < count($labels); $j++) {
                 $label = $this->safe_string($labels, $j);
-                $position = $this->get_position_from_clob_entry($label, $entry);
+                $position = $this->get_position_from_clob_entry($label, $this->safe_dict($clob, $i, array()));
                 if ($position !== null) {
                     $result[] = $position;
                 }
@@ -2890,10 +2889,7 @@ class limitless extends Exchange {
         return $result;
     }
 
-    public function get_position_from_clob_entry(?string $label, ?array $entry = null) {
-        if ($entry === null) {
-            return null;
-        }
+    public function get_position_from_clob_entry(?string $label, array $entry) {
         $tokensBalance = $this->safe_dict($entry, 'tokensBalance');
         $contracts = $this->omit_zero($this->safe_string($tokensBalance, $label));
         if ($contracts === null) {

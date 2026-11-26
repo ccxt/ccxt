@@ -3266,11 +3266,12 @@ class myriad extends Exchange {
         if ($existing === null) {
             $this->options['requestId'] = $this->create_safe_dictionary();
         }
-        $options = $this->options['requestId'];
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         if ($url !== null) {
-            $this->options['requestId'][$url] = $newValue;
+            $options[$url] = $newValue;
+            $this->options['requestId'] = $options;
         }
         return $newValue;
     }

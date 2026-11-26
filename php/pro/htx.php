@@ -179,7 +179,8 @@ class htx extends \ccxt\async\htx {
             throw new BadRequest($this->id . ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
         $messageHash = $this->implode_params($topic, array( 'marketId' => $market['id'] ));
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket);
         return Async\await($this->subscribe_public($url, $symbolValue, $messageHash, null, $params));
     }
 
@@ -290,7 +291,8 @@ class htx extends \ccxt\async\htx {
         $symbolValue = $this->safe_string($market, 'symbol');
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.trade.detail';
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket);
         $trades = Async\await($this->subscribe_public($url, $symbolValue, $messageHash, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -398,7 +400,8 @@ class htx extends \ccxt\async\htx {
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'market.' . $marketId . '.kline.' . $interval;
-        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket);
         $ohlcv = Async\await($this->subscribe_public($url, $symbolValue, $messageHash, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -522,7 +525,8 @@ class htx extends \ccxt\async\htx {
         } else {
             $messageHash = 'market.' . $marketId . '.depth.size_' . (string) $limitResolved . '.high_freq';
         }
-        $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket, false, true);
         $method = array($this, 'handle_order_book_subscription');
         $paramsExtended = $params;
         if (!$this->safe_bool($market, 'spot', false)) {
@@ -675,7 +679,8 @@ class htx extends \ccxt\async\htx {
         $params = $this->safe_dict($subscription, 'params');
         $attempts = $this->safe_integer($subscription, 'numAttempts', 0);
         $market = $this->market($symbol);
-        $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket, false, true);
         $requestId = $this->request_id();
         $request = array(
             'req' => $messageHash,
@@ -3028,7 +3033,8 @@ class htx extends \ccxt\async\htx {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' unsubscribePublic() market is required');
         }
-        $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, $isFeed);
+        $isLinearMarket = ($market['linear'] === true);
+        $url = $this->get_url_by_market_type($market['type'], $isLinearMarket, false, $isFeed);
         $subscription = array(
             'unsubscribe' => true,
             'id' => (string) $requestId,

@@ -930,7 +930,8 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
-            $fee = $this->safe_dict($fees, $market['base'], array());
+            $baseCode = $this->safe_string($market, 'base', '');
+            $fee = $this->safe_dict($fees, $baseCode, array());
             $result[$symbol] = array(
                 'info' => $this->safe_dict($fee, 'info'),
                 'symbol' => $symbol,

@@ -245,7 +245,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-        if (($checksum) && ($receivedSnapshot)) {
+        if (($checksum === true) && ($receivedSnapshot)) {
             $storedAsks = $orderbook['asks'];
             $storedBids = $orderbook['bids'];
             $asksLength = count($storedAsks);

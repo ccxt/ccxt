@@ -3148,11 +3148,8 @@ class polymarket extends Exchange {
 
     public function handle_list_message(Client $client, array $message) {
         for ($i = 0; $i < count($message); $i++) {
-            $event = $message[$i];
-            if (($event === null) || ($event === null) || (gettype($event) !== 'array')) {
-                continue;
-            }
-            $this->handle_message_event($client, $event);
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            $this->handle_message_event($client, $this->safe_dict($message, $i, array()));
         }
     }
 

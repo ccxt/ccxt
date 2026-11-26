@@ -1614,10 +1614,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             if (($result === true) && !(is_array($message) && array_key_exists('id' ?? '', $message))) {
                 $this->handle_authenticate($client, $message);
             }
-            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+            $rows = $this->safe_list($message, 'result');
+            if ($rows !== null) {
                 // to do improve this, not very reliable right now
-                $first = $this->safe_dict($result, 0, array());
-                $rows = $this->safe_list($message, 'result', array());
+                $first = $this->safe_dict($rows, 0, array());
                 $arrayLength = count($rows);
                 if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);

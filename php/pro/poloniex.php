@@ -182,10 +182,8 @@ class poloniex extends \ccxt\async\poloniex {
                 $name,
             ),
         );
-        $marketIds = array();
-        if ($this->is_empty($symbols)) {
-            $marketIds[] = 'all';
-        } else {
+        $marketIds = array( 'all' );
+        if (!$this->is_empty($symbols)) {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' subscribe() symbols is required');
             }

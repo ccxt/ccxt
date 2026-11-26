@@ -428,21 +428,20 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_dict($message, 'tick', array());
-        $parseable = $tick;
-        if ($isFutures) {
-            $rawAsks = $this->safe_list($tick, 'asks', array());
-            $rawBuys = $this->safe_list($tick, 'buys', array());
-            $parseable = array(
-                'asks' => $this->parse_contract_bids_asks($rawAsks, $symbol),
-                'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
-            );
-        }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        $snapshot = $this->parse_order_book($parseable, $symbol, $timestamp, 'buys', 'asks');
-        $orderbook->reset($snapshot);
+        if ($isFutures) {
+            $rawAsks = $this->safe_list($tick, 'asks', array());
+            $rawBuys = $this->safe_list($tick, 'buys', array());
+            $orderbook->reset($this->parse_order_book(array(
+                'asks' => $this->parse_contract_bids_asks($rawAsks, $symbol),
+                'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
+            ), $symbol, $timestamp, 'buys', 'asks'));
+        } else {
+            $orderbook->reset($this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks'));
+        }
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }

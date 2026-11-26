@@ -3734,8 +3734,8 @@ class htx extends Exchange {
         //         "ts": 1770293281344
         //     }
         //
-        $finalResponse = $response;
-        $result = array( 'info' => $finalResponse );
+        $result = array( 'info' => $response );
+        $dataRows = $this->safe_list($response, 'data', array());
         $data = $this->safe_value($response, 'data');
         if ($isMultiAssetMode || ($linear && ($swap || $future))) {
             $details = $this->safe_list($data, 'details', array());
@@ -3753,8 +3753,8 @@ class htx extends Exchange {
             $result = $this->safe_balance($result);
         } elseif ($spot || $margin) {
             if ($isolated) {
-                for ($i = 0; $i < count($data); $i++) {
-                    $entry = $this->safe_dict($data, $i);
+                for ($i = 0; $i < count($dataRows); $i++) {
+                    $entry = $this->safe_dict($dataRows, $i);
                     $balances = $this->safe_list($entry, 'list', array());
                     $subResult = array();
                     for ($j = 0; $j < count($balances); $j++) {
@@ -3785,8 +3785,8 @@ class htx extends Exchange {
                 $result = $this->safe_balance($result);
             }
         } elseif ($inverse) {
-            for ($i = 0; $i < count($data); $i++) {
-                $balance = $this->safe_dict($data, $i);
+            for ($i = 0; $i < count($dataRows); $i++) {
+                $balance = $this->safe_dict($dataRows, $i);
                 $currencyId = $this->safe_string($balance, 'symbol');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();

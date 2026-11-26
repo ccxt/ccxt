@@ -7242,8 +7242,8 @@ class BaseExchange {
             } else {
                 // still processing the same timeframe -> update opening trade
                 $prevCandle = $this->safe_list($ohlcvs, $candle);
-                $prevHigh = $this->safe_value($prevCandle, $i_high);
-                $prevLow = $this->safe_value($prevCandle, $i_low);
+                $prevHigh = $this->safe_number($prevCandle, 2);
+                $prevLow = $this->safe_number($prevCandle, 3);
                 $ohlcvs[$candle][$i_high] = max(($prevHigh === null) ? $price : $prevHigh, $price);
                 $ohlcvs[$candle][$i_low] = min(($prevLow === null) ? $price : $prevLow, $price);
                 $ohlcvs[$candle][$i_close] = $price;
@@ -9163,7 +9163,7 @@ class BaseExchange {
             if ($since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
-            $requiredCalls = (int) ceil(($until - $since) / $step);
+            $requiredCalls = $this->parse_to_int((int) ceil(($until - $since) / $step));
             if ($requiredCalls > $maxCallsLimit) {
                 throw new BadRequest($this->id . ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' . (string) $maxCallsLimit . ' required calls is ' . (string) $requiredCalls);
             }
@@ -10601,7 +10601,7 @@ class Exchange extends BaseExchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        if (($this->options['createMarketBuyOrderRequiresPrice'] === true) || ($this->has['createMarketBuyOrderWithCost'] !== null && $this->has['createMarketBuyOrderWithCost'] !== false)) {
+        if ($this->safe_bool($this->options, 'createMarketBuyOrderRequiresPrice', false) || ($this->has['createMarketBuyOrderWithCost'] !== null && $this->has['createMarketBuyOrderWithCost'] !== false)) {
             return $this->create_order($symbol, 'market', 'buy', $cost, 1, $params);
         }
         throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
@@ -10615,7 +10615,7 @@ class Exchange extends BaseExchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        if (($this->options['createMarketSellOrderRequiresPrice'] === true) || ($this->has['createMarketSellOrderWithCost'] !== null && $this->has['createMarketSellOrderWithCost'] !== false)) {
+        if ($this->safe_bool($this->options, 'createMarketSellOrderRequiresPrice', false) || ($this->has['createMarketSellOrderWithCost'] !== null && $this->has['createMarketSellOrderWithCost'] !== false)) {
             return $this->create_order($symbol, 'market', 'sell', $cost, 1, $params);
         }
         throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');

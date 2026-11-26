@@ -1015,8 +1015,9 @@ class kraken extends Exchange {
     public function parse_trading_fee(array $fee, array $market): array {
         $makerFees = $this->safe_dict($fee, 'fees_maker', array());
         $takerFees = $this->safe_dict($fee, 'fees', array());
-        $symbolMakerFee = $this->safe_dict($makerFees, $market['id'], array());
-        $symbolTakerFee = $this->safe_dict($takerFees, $market['id'], array());
+        $marketId = $this->safe_string($market, 'id', '');
+        $symbolMakerFee = $this->safe_dict($makerFees, $marketId, array());
+        $symbolTakerFee = $this->safe_dict($takerFees, $marketId, array());
         return array(
             'info' => $fee,
             'symbol' => $market['symbol'],
