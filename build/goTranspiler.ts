@@ -5623,6 +5623,7 @@ const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = { 'setSandboxMode
 const GO_PREDICTION_STRUCT_FIELDS: [string, string][] = [ [ 'BaseExchange', '' ], [ 'Outcomes', 'map[string]any' ], [ 'Outcomes_by_id', 'map[string]any' ], [ 'Events', 'map[string]any' ], [ 'Events_by_slug', 'map[string]any' ], [ 'ReloadingEvents', 'bool' ], [ 'EventsLoading', 'any' ] ];
 const GO_PREDICTION_MAP_FIELDS: string[] = GO_PREDICTION_STRUCT_FIELDS.filter ((f) => f[1] === 'map[string]any').map ((f) => f[0]);
 const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = { 'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ], 'createAuthToken': [ 0 ] };
+GO_UNIFIED_INT64_PARAMS['futuresTransfer'] = [ 2 ];
 const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = goGroupedTable ([
     [ [1], 'createLimitBuyOrder createLimitBuyOrderWs createLimitSellOrder createLimitSellOrderWs createMarketBuyOrder createMarketBuyOrderWs'
         + ' createMarketSellOrder createMarketSellOrderWs createMarketBuyOrderWithCost createMarketSellOrderWithCost withdraw withdrawWs'
