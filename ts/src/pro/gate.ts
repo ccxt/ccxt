@@ -1217,7 +1217,10 @@ export default class gate extends gateRest {
             const parts = subscription.split ('_');
             const timeframeId = this.safeString (parts, 0);
             const timeframe = this.findTimeframe (timeframeId);
-            const prefix = timeframe + '_';
+            let prefix: string = '';
+            if (timeframe !== undefined) {
+                prefix = timeframe + '_';
+            }
             const marketId = subscription.replace (prefix, '');
             const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             let parsed = this.parseOHLCV (ohlcv);
