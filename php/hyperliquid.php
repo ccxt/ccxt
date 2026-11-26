@@ -206,6 +206,7 @@ class hyperliquid extends Exchange {
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
+                    'Insufficient delegatable balance for priority order' => '\\ccxt\\InsufficientFunds', // priorityFee is paid in HYPE from the undelegated staking balance
                     'TWAP order value too small. Min is $1200, which is $10 per minute.' => '\\ccxt\\InvalidOrder',
                     'TWAP was never placed, already canceled, or filled.' => '\\ccxt\\OrderNotFound',
                     'Too many cumulative requests sent' => '\\ccxt\\RateLimitExceeded', // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
@@ -2148,6 +2149,7 @@ class hyperliquid extends Exchange {
          * create a trade $order
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
          *
          * @param {string} $symbol unified $symbol of the market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -2163,6 +2165,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->slippage] the slippage for market $order
          * @param {string} [$params->vaultAddress] the vault address for $order
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {int} [$params->priorityFee] the $order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC $orders (market $orders included) or post-only $orders that are not reduce-only, paid in HYPE from the undelegated staking balance
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
          * @param {float} [$params->trailingTriggerPrice] *swap only* the mark $price at which a trailing $order starts tracking, tracking starts immediately if omitted
@@ -2336,9 +2339,11 @@ class hyperliquid extends Exchange {
          * create a list of trade $orders
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->priorityFee] the $order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole $request, only when every $order is IOC (market $orders included) or every $order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -2487,10 +2492,11 @@ class hyperliquid extends Exchange {
                 }
             }
         }
-        $params2 = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
+        $params2 = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'priorityFee' ));
         $nonce = $this->incrementing_nonce();
         $orderReq = array();
         $grouping = 'na';
+        $priorityFee = $this->safe_integer($params, 'priorityFee');
         for ($i = 0; $i < $ordersLength; $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
@@ -2501,6 +2507,13 @@ class hyperliquid extends Exchange {
             $amount = $this->safe_string($rawOrder, 'amount');
             $price = $this->safe_string($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $orderPriorityFee = $this->safe_integer($orderParams, 'priorityFee');
+            if ($orderPriorityFee !== null) {
+                if (($priorityFee !== null) && ($priorityFee !== $orderPriorityFee)) {
+                    throw new BadRequest($this->id . ' createOrders() all orders must use the same priorityFee, it is applied to the whole request');
+                }
+                $priorityFee = $orderPriorityFee;
+            }
             $slippage = $this->safe_string($orderParams, 'slippage', $defaultSlippage);
             $orderParams['slippage'] = $slippage;
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
@@ -2555,10 +2568,35 @@ class hyperliquid extends Exchange {
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params($params2, 'createOrder', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
+        $groupingValue = $grouping;
+        if ($priorityFee !== null) {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if ($grouping !== 'na') {
+                throw new NotSupported($this->id . ' createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders');
+            }
+            $allIoc = true;
+            $allPostOnly = true;
+            for ($i = 0; $i < count($orderReq); $i++) {
+                $builtOrder = $this->safe_dict($orderReq, $i, array());
+                $builtOrderType = $this->safe_dict($builtOrder, 't', array());
+                $builtOrderLimit = $this->safe_dict($builtOrderType, 'limit', array());
+                $builtOrderTif = $this->safe_string($builtOrderLimit, 'tif');
+                if ($builtOrderTif !== 'Ioc') {
+                    $allIoc = false;
+                }
+                if (($builtOrderTif !== 'Alo') || $this->safe_bool($builtOrder, 'r', false)) {
+                    $allPostOnly = false;
+                }
+            }
+            if (!$allIoc && !$allPostOnly) {
+                throw new InvalidOrder($this->id . ' createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only');
+            }
+            $groupingValue = array( 'p' => $priorityFee );
+        }
         $orderAction = array(
             'type' => 'order',
             'orders' => $orderReq,
-            'grouping' => $grouping,
+            'grouping' => $groupingValue,
         );
         if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
             $builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
