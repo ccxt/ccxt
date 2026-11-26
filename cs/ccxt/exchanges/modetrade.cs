@@ -2290,10 +2290,10 @@ public partial class modetrade : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        bool stopLoss = (this.safeValue(parameters, "stopLoss")) != null;
+        bool takeProfit = (this.safeValue(parameters, "takeProfit")) != null;
         List<object> childOrders = this.safeList(parameters, "childOrders");
-        bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
+        bool isConditional = (triggerPrice != null) || stopLoss || takeProfit || ((childOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {

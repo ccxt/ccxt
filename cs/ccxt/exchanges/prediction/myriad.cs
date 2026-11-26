@@ -3571,12 +3571,13 @@ public partial class myriad : PredictionExchange
         {
             this.options["requestId"] = this.createSafeDictionary();
         }
-        object options = (this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null);
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         if ((url != null))
         {
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+            options[(string)url] = newValue;
+            this.options["requestId"] = options;
         }
         return newValue;
     }

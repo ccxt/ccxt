@@ -445,7 +445,7 @@ public partial class paradex : ccxt.paradex
         return await (future as Exchange.Future);
     }
 
-    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    public virtual void handleAuthenticationMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -462,7 +462,7 @@ public partial class paradex : ccxt.paradex
         }
     }
 
-    public virtual void handleRequestReply(WebSocketClient client, object message)
+    public virtual void handleRequestReply(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // auth
@@ -2242,7 +2242,7 @@ public partial class paradex : ccxt.paradex
         };
     }
 
-    public virtual object parseSbeMessage(WebSocketClient client, object message)
+    public virtual Dictionary<string, object> parseSbeMessage(WebSocketClient client, object message)
     {
         //
         // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
@@ -2251,21 +2251,21 @@ public partial class paradex : ccxt.paradex
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         string frameHex = this.binaryToBase16(message);
         Int64? frameLength = this.parseToInt(((double)frameHex.Length / 2));
         if (((frameLength == null || frameLength < 8)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
         if (((schemaId != 1)) || (((frameLength == null || frameLength < this.sum(blockLength, 8)))))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         string? channel = null;
         object data = null;
@@ -2324,7 +2324,7 @@ public partial class paradex : ccxt.paradex
         }
         if ((data == null))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         return new Dictionary<string, object>() {
             { "sbe", true },
@@ -3042,12 +3042,11 @@ public partial class paradex : ccxt.paradex
 
     public override void handleBinaryMessage(WebSocketClient client, object message)
     {
-        object parsedMessage = this.parseSbeMessage(client, message);
-        if ((parsedMessage == null))
+        Dictionary<string, object> parsedMessage = this.parseSbeMessage(client, message);
+        if (parsedMessage.ContainsKey("params"))
         {
-            return;
+            this.handleStreamMessage(client, parsedMessage);
         }
-        this.handleStreamMessage(client, parsedMessage);
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
@@ -3055,7 +3054,7 @@ public partial class paradex : ccxt.paradex
         this.handleStreamMessage(client, message);
     }
 
-    public virtual void handleStreamMessage(WebSocketClient client, object message)
+    public virtual void handleStreamMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         if ((this.handleErrorMessage(client,((IDictionary<string, object>)message)) != true))
         {

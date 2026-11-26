@@ -1379,8 +1379,8 @@ public partial class polymarket : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount"});
-        object attached = this.safeValueN(parameters, new List<object>() {"stopLoss", "takeProfit"});
-        if (((triggerPrice != null)) || ((attached != null)))
+        bool attached = (this.safeValueN(parameters, new List<object>() {"stopLoss", "takeProfit"})) != null;
+        if (((triggerPrice != null)) || (attached))
         {
             throw new NotSupported ((this.id + " createOrder() does not support trigger or attached stop orders yet")) ;
         }

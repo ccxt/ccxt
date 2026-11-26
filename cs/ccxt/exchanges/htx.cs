@@ -4697,10 +4697,10 @@ public partial class htx : Exchange
         //         "ts": 1770293281344
         //     }
         //
-        Dictionary<string, object> finalResponse = response;
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", finalResponse },
+            { "info", response },
         };
+        List<object> dataRows = this.safeList(response, "data", new List<object>() {});
         object data = this.safeValue(response, "data");
         if ((isMultiAssetMode == true) || (linear && (swap || future)))
         {
@@ -4723,9 +4723,9 @@ public partial class htx : Exchange
         {
             if (isolated)
             {
-                for (int i = 0; i < getArrayLength(data); i++)
+                for (int i = 0; i < dataRows.Count; i++)
                 {
-                    IDictionary<string, object> entry = this.safeDict(data, i);
+                    IDictionary<string, object> entry = this.safeDict(dataRows, i);
                     List<object> balances = this.safeList(entry, "list", new List<object>() {});
                     Dictionary<string, object> subResult = new Dictionary<string, object>() {};
                     for (int j = 0; j < balances.Count; j++)
@@ -4763,9 +4763,9 @@ public partial class htx : Exchange
             }
         } else if (inverse)
         {
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < dataRows.Count; i++)
             {
-                IDictionary<string, object> balance = this.safeDict(data, i);
+                IDictionary<string, object> balance = this.safeDict(dataRows, i);
                 string? currencyId = this.safeString(balance, "symbol");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();

@@ -440,23 +440,23 @@ public partial class bitrue : ccxt.bitrue
         }
         Int64? timestamp = this.safeInteger(message, "ts");
         IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
-        IDictionary<string, object> parseable = tick;
-        if (isFutures)
-        {
-            List<object> rawAsks = this.safeList(tick, "asks", new List<object>() {});
-            List<object> rawBuys = this.safeList(tick, "buys", new List<object>() {});
-            parseable = new Dictionary<string, object>() {
-                { "asks", this.parseContractBidsAsks(rawAsks, symbol) },
-                { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
-            };
-        }
         if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        ccxt.OrderBook snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
-        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
+        if (isFutures)
+        {
+            List<object> rawAsks = this.safeList(tick, "asks", new List<object>() {});
+            List<object> rawBuys = this.safeList(tick, "buys", new List<object>() {});
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(new Dictionary<string, object>() {
+                { "asks", this.parseContractBidsAsks(rawAsks, symbol) },
+                { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
+            }, symbol, timestamp, "buys", "asks")));
+        } else
+        {
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(tick, symbol, timestamp, "buys", "asks")));
+        }
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }

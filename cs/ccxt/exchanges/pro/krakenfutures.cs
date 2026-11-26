@@ -135,7 +135,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         IList<object> symbolsValue = symbols;
         for (int i = 0; i < (symbolsValue?.Count ?? 0); i++)
         {
-            object symbol = (symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null);
+            object symbol = symbolsValue[i];
             marketIds.Add(this.marketId(symbol));
         }
         int length = (symbolsValue?.Count ?? 0);

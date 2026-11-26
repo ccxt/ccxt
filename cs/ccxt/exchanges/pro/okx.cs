@@ -125,12 +125,12 @@ public partial class okx : ccxt.okx
         {
             await this.loadMarkets();
         }
-        object symbolsRequested = symbols;
+        IList<object> symbolsRequested = symbols;
         if ((symbols == null))
         {
             symbolsRequested = this.symbols;
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbolsRequested));
+        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
         string? url = this.getUrl(channel, access);
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};

@@ -3496,9 +3496,9 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
-        object token = this.token;
+        bool token = (this.token) != null;
         Int64? tokenExpires = this.safeInteger(this.options, "tokenExpires");
-        if (((token == null)) || ((tokenExpires == null)) || (((tokenExpires == null || now > tokenExpires))))
+        if ((!token) || ((tokenExpires == null)) || (((tokenExpires == null || now > tokenExpires))))
         {
             return ((string?)((object)(await this.signIn())));
         } else

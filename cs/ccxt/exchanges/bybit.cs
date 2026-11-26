@@ -2491,6 +2491,10 @@ public partial class bybit : Exchange
         }
         string? strike = this.safeString(optionParts, 2, "");
         string? optionType = this.safeString(optionParts, 3, "");
+        if ((expiry == null))
+        {
+            throw new BadSymbol ((this.id + " createExpiredOptionMarket() missing expiry")) ;
+        }
         string? datetime = this.convertExpireDate(expiry);
         double? amountPrecision = null;
         double? pricePrecision = null;
@@ -2509,6 +2513,10 @@ public partial class bybit : Exchange
             pricePrecision = this.parseNumber("0.01");
         }
         string? convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
+        if ((convertedExpireDate == null))
+        {
+            throw new BadSymbol ((this.id + " createExpiredOptionMarket() invalid expiry")) ;
+        }
         return new Dictionary<string, object>() {
             { "id", ((((((baseName + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType) },
             { "symbol", ((((((((((baseName + "/") + quote) + ":") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType) },
@@ -5640,8 +5648,7 @@ public partial class bybit : Exchange
                     orderCost = cost;
                 } else
                 {
-                    string? quoteAmount = Precise.stringMul(amountString, priceString);
-                    orderCost = quoteAmount;
+                    orderCost = Precise.stringMul(amountString, priceString);
                 }
                 request["qty"] = this.getCost(symbolValue, orderCost);
             } else

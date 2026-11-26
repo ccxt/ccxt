@@ -2000,7 +2000,7 @@ public partial class bitstamp : Exchange
 
     public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
-        object finalResponse = response; // java req
+        IList<object> finalResponse = response; // java req
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", finalResponse },
             { "timestamp", null },

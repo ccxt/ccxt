@@ -1147,7 +1147,7 @@ public partial class polymarket : ccxt.polymarket
         client.resolve(this.balance, "balance");
     }
 
-    public virtual void handleAck(WebSocketClient client, object message)
+    public virtual void handleAck(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // subscribe or unsubscribe acknowledgement
@@ -1160,9 +1160,9 @@ public partial class polymarket : ccxt.polymarket
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         string? id = this.safeString(message, "id");
-        object data = this.safeValue(message, "data");
-        if (!((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (!(((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr48502 && ((hxArr48502 is IList<object>) || (hxArr48502 is not null && hxArr48502.GetType().IsGenericType && hxArr48502.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if ((id != null))
@@ -1216,9 +1216,11 @@ public partial class polymarket : ccxt.polymarket
         List<object> subMessageHashes = this.safeList(pending, "subMessageHashes", new List<object>() {});
         string? action = this.safeString(pending, "method");
         string? errorMessage = null;
-        for (int i = 0; i < getArrayLength(data); i++)
+        List<object> rows = this.safeList(message, "data", new List<object>() {});
+        int rowsLength = rows.Count;
+        for (int i = 0; i < rowsLength; i++)
         {
-            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> entry = this.safeDict(rows, i, new Dictionary<string, object>() {});
             string? status = this.safeString(entry, "status");
             if (status == "err")
             {

@@ -168,7 +168,8 @@ public partial class htx : ccxt.htx
         string? messageHash = this.implodeParams(topic, new Dictionary<string, object>() {
             { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
-        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        bool isLinearMarket = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), isLinearMarket);
         return ccxt.BaseExchange.ToTicker(await this.subscribePublic<object>(url, symbolValue, messageHash, null, parameters));
     }
 
@@ -283,7 +284,8 @@ public partial class htx : ccxt.htx
         string? symbolValue = this.safeString(market, "symbol");
         string? marketId = this.safeString(market, "id", "");
         string messageHash = (("market." + marketId) + ".trade.detail");
-        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        bool isLinearMarket = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), isLinearMarket);
         ccxt.pro.ArrayCache trades = await this.subscribePublic<ccxt.pro.ArrayCache>(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -398,7 +400,8 @@ public partial class htx : ccxt.htx
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string? marketId = this.safeString(market, "id", "");
         string messageHash = ((("market." + marketId) + ".kline.") + interval);
-        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
+        bool isLinearMarket = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), isLinearMarket);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribePublic<ccxt.pro.ArrayCacheByTimestamp>(url, symbolValue, messageHash, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -531,7 +534,8 @@ public partial class htx : ccxt.htx
         {
             messageHash = (((("market." + marketId) + ".depth.size_") + ((object)limitResolved).ToString()) + ".high_freq");
         }
-        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
+        bool isLinearMarket = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), isLinearMarket, false, true);
         object method = this.handleOrderBookSubscription;
         IDictionary<string, object> paramsExtended = parameters;
         if (!(this.safeBool(market, "spot", false) == true))
@@ -701,7 +705,8 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> parameters = this.safeDict(subscription, "params");
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
-        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
+        bool isLinearMarket = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true));
+        string? url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), isLinearMarket, false, true);
         Int64 requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
@@ -3203,7 +3208,7 @@ public partial class htx : ccxt.htx
         }, marketResolved);
     }
 
-    public virtual string? getUrlByMarketType(object type, object isLinear = null, bool? isPrivate = null, bool? isFeed = null, bool? isV5 = null)
+    public virtual string? getUrlByMarketType(object type, bool? isLinear = null, bool? isPrivate = null, bool? isFeed = null, bool? isV5 = null)
     {
         isLinear ??= true;
         isPrivate ??= false;
@@ -3239,7 +3244,7 @@ public partial class htx : ccxt.htx
         {
             IDictionary<string, object> typeUrls = this.safeDict(typeUrlsByApi, type, new Dictionary<string, object>() {});
             IDictionary<string, object> subTypeUrl = null;
-            if (isTrue(isLinear))
+            if (isLinear == true)
             {
                 subTypeUrl = this.safeDict(typeUrls, "linear", new Dictionary<string, object>() {});
             } else
@@ -3248,7 +3253,7 @@ public partial class htx : ccxt.htx
             }
             if (isPrivate == true)
             {
-                if (isV5 == true && isTrue(isLinear))
+                if (isV5 == true && isLinear == true)
                 {
                     url = this.safeString2(subTypeUrl, "privateV5", "private");
                 } else
@@ -3298,7 +3303,8 @@ public partial class htx : ccxt.htx
         {
             throw new ArgumentsRequired ((this.id + " unsubscribePublic() market is required")) ;
         }
-        string? url = this.getUrlByMarketType((market != null && market.ContainsKey("type") ? market["type"] : null), (market != null && market.ContainsKey("linear") ? market["linear"] : null), false, isFeed);
+        bool isLinearMarket = (((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true));
+        string? url = this.getUrlByMarketType((market != null && market.ContainsKey("type") ? market["type"] : null), isLinearMarket, false, isFeed);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
             { "id", requestId.ToString() },

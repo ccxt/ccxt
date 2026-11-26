@@ -920,7 +920,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((((this.options != null && this.options.ContainsKey("createMarketBuyOrderRequiresPrice") ? this.options["createMarketBuyOrderRequiresPrice"] : null) is true)) || (!((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) == null) && (((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) as bool?) != false)))
+        if ((this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false) == true) || (!((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) == null) && (((this.has.ContainsKey("createMarketBuyOrderWithCost") ? this.has["createMarketBuyOrderWithCost"] : null) as bool?) != false)))
         {
             return await this.CreateOrder(symbol, "market", "buy", cost, 1d, parameters);
         }
@@ -939,7 +939,7 @@ public partial class Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if ((((this.options != null && this.options.ContainsKey("createMarketSellOrderRequiresPrice") ? this.options["createMarketSellOrderRequiresPrice"] : null) is true)) || (!((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) == null) && (((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) as bool?) != false)))
+        if ((this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false) == true) || (!((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) == null) && (((this.has.ContainsKey("createMarketSellOrderWithCost") ? this.has["createMarketSellOrderWithCost"] : null) as bool?) != false)))
         {
             return await this.CreateOrder(symbol, "market", "sell", cost, 1d, parameters);
         }

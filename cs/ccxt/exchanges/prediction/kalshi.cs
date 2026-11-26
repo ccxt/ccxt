@@ -1639,10 +1639,10 @@ public partial class kalshi : PredictionExchange
                 side = (rawSide == "yes") ? "buy" : "sell";
             }
         }
-        object cost = null;
+        double? cost = null;
         if (((price != null)) && ((amount != null)))
         {
-            cost = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(price, amount);
+            cost = (price * amount);
         }
         return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1767,10 +1767,10 @@ public partial class kalshi : PredictionExchange
         }
         double? price = this.safeNumber(fill, dollarsKey, centsPrice);
         double? amount = this.safeNumber2(fill, "count_fp", "count");
-        object cost = null;
+        double? cost = null;
         if (((price != null)) && ((amount != null)))
         {
-            cost = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(price, amount);
+            cost = (price * amount);
         }
         bool? isTaker = this.safeBool(fill, "is_taker", true);
         string takerOrMaker = "maker";

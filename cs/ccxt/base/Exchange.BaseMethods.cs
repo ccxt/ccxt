@@ -789,9 +789,9 @@ public partial class BaseExchange
     public virtual List<object> checkWsProxySettings()
     {
         List<object> usedProxies = new List<object>() {};
-        object wsProxy = null;
-        object wssProxy = null;
-        object wsSocksProxy = null;
+        string? wsProxy = null;
+        string? wssProxy = null;
+        string? wsSocksProxy = null;
         // ws proxy
         bool isWsProxyDefined = this.valueIsDefined(this.wsProxy);
         bool is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
@@ -4974,8 +4974,8 @@ public partial class BaseExchange
             {
                 // still processing the same timeframe -> update opening trade
                 List<object> prevCandle = this.safeList(ohlcvs, candle);
-                object prevHigh = this.safeValue(prevCandle, i_high);
-                object prevLow = this.safeValue(prevCandle, i_low);
+                double? prevHigh = this.safeNumber(prevCandle, 2);
+                double? prevLow = this.safeNumber(prevCandle, 3);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(((prevHigh == null)) ? price : prevHigh, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(((prevLow == null)) ? price : prevLow, price);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
@@ -7496,8 +7496,8 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            double requiredCalls = Math.Ceiling(Convert.ToDouble(((double?)((until - since)) / step)));
-            if (((maxCallsLimit == null || requiredCalls > maxCallsLimit)))
+            Int64? requiredCalls = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)((until - since)) / step))));
+            if ((requiredCalls != null && (maxCallsLimit == null || requiredCalls > maxCallsLimit)))
             {
                 throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsLimit).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
             }
@@ -7529,7 +7529,7 @@ public partial class BaseExchange
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    public async virtual Task<IList<object>> fetchPaginatedCallCursor(string method, object symbol = null, object since = null, object limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallCursor(string method, object symbol = null, Int64? since = null, object limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7632,7 +7632,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
                 }
-                if ((lastTimestamp != null) && isLessThan(lastTimestamp, since))
+                if ((lastTimestamp != null) && lastTimestamp.Value < since.Value)
                 {
                     shouldBreak = true;
                     break;

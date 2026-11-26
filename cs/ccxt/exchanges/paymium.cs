@@ -791,8 +791,8 @@ public partial class paymium : Exchange
         {
             return ((bool?)((object)(null)));
         }
-        object errors = this.safeValue(response, "errors");
-        if ((errors != null))
+        bool errors = (this.safeValue(response, "errors")) != null;
+        if (errors)
         {
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }

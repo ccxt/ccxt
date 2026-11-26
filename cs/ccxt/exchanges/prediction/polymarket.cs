@@ -2242,10 +2242,10 @@ public partial class polymarket : PredictionExchange
         double? size = this.safeNumber(position, "size");
         double? entryPrice = this.safeNumber(position, "avgPrice");
         double? curPrice = this.safeNumber(position, "currentPrice");
-        object notional = null;
+        double? notional = null;
         if (((size != null)) && ((curPrice != null)))
         {
-            notional = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(size, curPrice);
+            notional = (size * curPrice);
         }
         return this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", this.safeString(position, "id") },
@@ -3374,7 +3374,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152326 && ((hxArr152326 is IList<object>) || (hxArr152326 is not null && hxArr152326.GetType().IsGenericType && hxArr152326.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152332 && ((hxArr152332 is IList<object>) || (hxArr152332 is not null && hxArr152332.GetType().IsGenericType && hxArr152332.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3702,12 +3702,8 @@ public partial class polymarket : PredictionExchange
     {
         for (int i = 0; i < (message?.Count ?? 0); i++)
         {
-            object eventVar = (message != null && i < message.Count ? message[i] : null);
-            if (((eventVar == null)) || ((eventVar == null)) || (!(eventVar is IDictionary<string, object>)))
-            {
-                continue;
-            }
-            this.handleMessageEvent(client, eventVar);
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            this.handleMessageEvent(client, this.safeDict(message, i, new Dictionary<string, object>() {}));
         }
     }
 

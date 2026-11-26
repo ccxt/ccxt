@@ -246,7 +246,7 @@ public partial class binance : ccxt.binance
                 this.options["numSubscriptionsByStream"] = this.createSafeDictionary();
             }
             Int64? subscriptionsByStream = this.safeInteger((this.options != null && this.options.ContainsKey("numSubscriptionsByStream") ? this.options["numSubscriptionsByStream"] : null), stream, 0);
-            object newNumSubscriptions = add(subscriptionsByStream, numSubscriptions);
+            object newNumSubscriptions = (subscriptionsByStream.GetValueOrDefault() + numSubscriptions.GetValueOrDefault());
             Int64? subscriptionLimitByStream = this.safeInteger((this.options != null && this.options.ContainsKey("subscriptionLimitByStream") ? this.options["subscriptionLimitByStream"] : null), type, 200);
             if (isGreaterThan(newNumSubscriptions, subscriptionLimitByStream))
             {
@@ -2841,8 +2841,8 @@ public partial class binance : ccxt.binance
                     // subscribe per underlying, not per contract
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                    object underlying = ((baseIdLower + "") + quoteIdLower);
-                    if (!((underlying is string inOpKey4 && seenUnderlyings.ContainsKey(inOpKey4))))
+                    string underlying = ((baseIdLower + "") + quoteIdLower);
+                    if (!(seenUnderlyings.ContainsKey(underlying)))
                     {
                         seenUnderlyings[(string)underlying] = true;
                         subscriptionArgs.Add((underlying + "@optionMarkPrice"));
@@ -2856,8 +2856,8 @@ public partial class binance : ccxt.binance
                     string? expiryDate = this.safeString(parts, 1, "");
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                    object underlying = ((baseIdLower + "") + quoteIdLower);
-                    string? subscriptionArg = ((string)(((underlying + "@optionTicker@") + expiryDate)));
+                    string underlying = ((baseIdLower + "") + quoteIdLower);
+                    string subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
                     if (!(((subscriptionArg != null) && (seenUnderlyings?.ContainsKey(subscriptionArg) == true))))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;

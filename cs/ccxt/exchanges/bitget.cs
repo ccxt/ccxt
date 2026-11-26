@@ -4030,7 +4030,7 @@ public partial class bitget : Exchange
             var precise = new Precise(priceEndStep);
             if ((pricePlaces != null))
             {
-                precise.decimals = mathMax(precise.decimals, pricePlaces);
+                precise.decimals = Math.Max(precise.decimals, pricePlaces.Value);
             }
             precise.reduce();
             string priceString = ((object)precise).ToString();
@@ -4038,7 +4038,7 @@ public partial class bitget : Exchange
             var preciseAmount = new Precise(sizeMultiplier);
             if ((volumePlaces != null))
             {
-                preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
+                preciseAmount.decimals = Math.Max(preciseAmount.decimals, volumePlaces.Value);
             }
             preciseAmount.reduce();
             string amountString = ((object)preciseAmount).ToString();

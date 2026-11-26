@@ -1103,8 +1103,9 @@ public partial class kraken : Exchange
     {
         IDictionary<string, object> makerFees = this.safeDict(fee, "fees_maker", new Dictionary<string, object>() {});
         IDictionary<string, object> takerFees = this.safeDict(fee, "fees", new Dictionary<string, object>() {});
-        IDictionary<string, object> symbolMakerFee = this.safeDict(makerFees, (market != null && market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
-        IDictionary<string, object> symbolTakerFee = this.safeDict(takerFees, (market != null && market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
+        string? marketId = this.safeString(market, "id", "");
+        IDictionary<string, object> symbolMakerFee = this.safeDict(makerFees, marketId, new Dictionary<string, object>() {});
+        IDictionary<string, object> symbolTakerFee = this.safeDict(takerFees, marketId, new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) },

@@ -1691,11 +1691,11 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72312))
+            List<object> rows = this.safeList(message, "result");
+            if ((rows != null))
             {
                 // to do improve this, not very reliable right now
-                IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                List<object> rows = this.safeList(message, "result", new List<object>() {});
+                IDictionary<string, object> first = this.safeDict(rows, 0, new Dictionary<string, object>() {});
                 int arrayLength = rows.Count;
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {

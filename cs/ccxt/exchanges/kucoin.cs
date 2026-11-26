@@ -5063,8 +5063,8 @@ public partial class kucoin : Exchange
         {
             request["postOnly"] = true;
         }
-        object hidden = this.safeValue(paramsOmitted, "hidden");
-        if ((postOnly == true) && ((hidden != null)))
+        bool hidden = (this.safeValue(paramsOmitted, "hidden")) != null;
+        if ((postOnly == true) && (hidden))
         {
             throw new BadRequest ((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }

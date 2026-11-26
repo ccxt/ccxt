@@ -3213,11 +3213,10 @@ public partial class limitless : PredictionExchange
         List<object> labels = new List<object>() {"yes", "no"};
         for (int i = 0; i < clob.Count; i++)
         {
-            IDictionary<string, object> entry = this.safeDict(clob, i);
             for (int j = 0; j < (labels?.Count ?? 0); j++)
             {
                 string? label = this.safeString(labels, j);
-                Dictionary<string, object> position = this.getPositionFromClobEntry(label, entry);
+                Dictionary<string, object> position = this.getPositionFromClobEntry(label, this.safeDict(clob, i, new Dictionary<string, object>() {}));
                 if ((position != null))
                 {
                     result.Add(position);
@@ -3227,12 +3226,8 @@ public partial class limitless : PredictionExchange
         return ccxt.BaseExchange.ToPredictionPositionList(result);
     }
 
-    public virtual Dictionary<string, object> getPositionFromClobEntry(string? label, IDictionary<string, object>? entry = null)
+    public virtual Dictionary<string, object> getPositionFromClobEntry(string? label, IDictionary<string, object> entry)
     {
-        if ((entry == null))
-        {
-            return ((Dictionary<string, object>)((object)(null)));
-        }
         IDictionary<string, object> tokensBalance = this.safeDict(entry, "tokensBalance");
         string? contracts = ((string)this.omitZero(this.safeString(tokensBalance, label)));
         if ((contracts == null))

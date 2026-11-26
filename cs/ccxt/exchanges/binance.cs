@@ -4705,8 +4705,8 @@ public partial class binance : Exchange
             return new Dictionary<string, object>() {};
         }
         // sandbox/testnet does not support sapi endpoints
-        object apiBackup = this.safeValue(this.urls, "apiBackup");
-        if ((apiBackup != null))
+        bool apiBackup = (this.safeValue(this.urls, "apiBackup")) != null;
+        if (apiBackup)
         {
             return new Dictionary<string, object>() {};
         }
