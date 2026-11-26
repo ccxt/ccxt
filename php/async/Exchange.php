@@ -5879,7 +5879,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->handle_trigger_and_params($params);
     }
 
-    public function is_post_only(bool $isMarketOrder, ?bool $exchangeSpecificParam, $params = array()) {
+    public function is_post_only(bool $isMarketOrder, bool $exchangeSpecificParam, $params = array()) {
         /**
          * @ignore
          * @param {string} type Order type

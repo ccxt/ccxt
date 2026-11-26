@@ -853,7 +853,7 @@ class lighter extends Exchange {
         $isConditional = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
         $isMarketOrder = ($orderType === 'MARKET');
         $timeInForce = $this->safe_string_lower($paramsOrderExpiry, 'timeInForce', 'gtt');
-        $postOnly = $this->is_post_only($isMarketOrder, null, $paramsOrderExpiry);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $paramsOrderExpiry);
         $paramsOmitted = $this->omit($paramsOrderExpiry, array( 'stopLoss', 'takeProfit', 'timeInForce' ));
         $orderTypeNum = null;
         $timeInForceNum = null;

@@ -906,7 +906,7 @@ class hibachi extends Exchange {
             'signature' => $signature,
             'maxFeesPercent' => $this->number_to_string($feeRate),
         );
-        $postOnly = $this->is_post_only(strtoupper($type) === 'MARKET', null, $params);
+        $postOnly = $this->is_post_only(strtoupper($type) === 'MARKET', false, $params);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');

@@ -2078,7 +2078,7 @@ class bitrue extends Exchange {
         if ($this->safe_bool($market, 'swap', false)) {
             $isMarket = $uppercaseType === 'MARKET';
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarket, null, $params);
+            $postOnly = $this->is_post_only($isMarket, false, $params);
             if ($postOnly) {
                 $request['type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {

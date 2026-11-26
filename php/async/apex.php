@@ -1588,7 +1588,7 @@ class apex extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for market orders');
         }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         if ($timeInForce === null) {
             $timeInForce = 'GOOD_TIL_CANCEL';
         }

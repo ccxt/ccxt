@@ -3053,7 +3053,7 @@ class nado extends Exchange {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $postOnly = $this->is_post_only(false, null, $params);
+        $postOnly = $this->is_post_only(false, false, $params);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         $orderType = 0;
         if ($timeInForce === 'IOC') {

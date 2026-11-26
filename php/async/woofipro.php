@@ -1929,7 +1929,7 @@ class woofipro extends Exchange {
         $isConditional = $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($paramsChildOrders !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         $orderQtyKey = $isConditional ? 'quantity' : 'order_quantity';
         $priceKey = $isConditional ? 'price' : 'order_price';
         $typeKey = $isConditional ? 'type' : 'order_type';
@@ -2194,7 +2194,7 @@ class woofipro extends Exchange {
             $orderType = strtoupper($type);
             $timeInForce = $this->safe_string_lower($paramsOmitted, 'timeInForce');
             $isMarket = $orderType === 'MARKET';
-            $postOnly = $this->is_post_only($isMarket, null, $paramsOmitted);
+            $postOnly = $this->is_post_only($isMarket, false, $paramsOmitted);
             if ($postOnly) {
                 $request['order_type'] = 'POST_ONLY';
             } elseif ($timeInForce === 'fok') {

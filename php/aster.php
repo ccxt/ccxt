@@ -2803,7 +2803,7 @@ class aster extends Exchange {
                 $uppercaseType = 'TAKE_PROFIT';
             }
         }
-        $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         if ($postOnly) {
             $request['timeInForce'] = 'GTX';
         }

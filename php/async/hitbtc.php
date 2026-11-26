@@ -2574,7 +2574,7 @@ class hitbtc extends Exchange {
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
-        $isPostOnly = $this->is_post_only($type === 'market', null, $params);
+        $isPostOnly = $this->is_post_only($type === 'market', false, $params);
         $resolvedMarketType = $this->safe_string($market, 'type');
         $request = array(
             'type' => $type,

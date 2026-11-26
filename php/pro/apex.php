@@ -972,7 +972,7 @@ class apex extends \ccxt\async\apex {
             // auth sign
             $message = array(
                 'op' => 'login',
-                'args' => array( json_encode(array(
+                'args' => array( $this->json(array(
                     'type' => 'login',
                     'topics' => array( 'ws_zk_accounts_v3' ),
                     'httpMethod' => $http_method,

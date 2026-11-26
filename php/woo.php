@@ -1409,7 +1409,7 @@ class woo extends Exchange {
         $isConditional = $isTrailing || $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_list($paramsMarginMode, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($paramsMarginMode, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $paramsMarginMode);
+        $postOnly = $this->is_post_only($isMarket, false, $paramsMarginMode);
         $clientOrderIdKey = 'clientOrderId';
         if ($isConditional) {
             $clientOrderIdKey = 'clientAlgoOrderId';

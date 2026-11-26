@@ -1405,7 +1405,7 @@ class dydx extends Exchange {
         $isConditional = $triggerPrice !== null || $stopLossPrice !== null || $takeProfitPrice !== null;
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_upper($paramsSubAccountId, 'timeInForce', 'GTT');
-        $postOnly = $this->is_post_only($isMarket, null, $paramsSubAccountId);
+        $postOnly = $this->is_post_only($isMarket, false, $paramsSubAccountId);
         $amountStr = $this->amount_to_precision($symbol, $amount);
         $priceStr = $this->price_to_precision($symbol, $price);
         $marketInfo = $this->safe_dict($market, 'info', array());
@@ -2001,13 +2001,20 @@ class dydx extends Exchange {
             $gasPrice = $this->safe_string($feeDenom, 'CHAINTOKEN_GAS_PRICE');
             $denom = $this->safe_string($feeDenom, 'CHAINTOKEN_DENOM');
         }
-        $gasLimit = (int) ceil($this->parse_to_numeric(Precise::string_mul($gasUsed, $defaultFeeMultiplier)));
+        $gasLimitNum = $this->parse_number(Precise::string_mul($gasUsed, $defaultFeeMultiplier));
+        if ($gasLimitNum === null) {
+            throw new ExchangeError($this->id . ' estimateTxFee() missing gasLimit');
+        }
+        $gasLimit = (int) ceil($gasLimitNum);
         $feeAmount = Precise::string_mul($this->number_to_string($gasLimit), $gasPrice);
         if ($feeAmount === null) {
             throw new ExchangeError($this->id . ' estimateTxFee() missing feeAmount');
         }
         if (mb_strpos($feeAmount, '.') !== false) {
-            $feeAmount = $this->number_to_string((int) ceil($this->parse_to_numeric($feeAmount)));
+            $feeAmountNum = $this->parse_number($feeAmount);
+            if ($feeAmountNum !== null) {
+                $feeAmount = $this->number_to_string((int) ceil($feeAmountNum));
+            }
         }
         $feeObj = array(
             'amount' => $feeAmount,

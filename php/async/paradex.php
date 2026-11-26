@@ -2131,7 +2131,7 @@ class paradex extends Exchange {
         $isStopLossOrder = ($stopLossPrice !== null);
         $isStopOrder = ($triggerPrice !== null) || $isTakeProfitOrder || $isStopLossOrder;
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->is_post_only($isMarket, null, $params);
+        $postOnly = $this->is_post_only($isMarket, false, $params);
         $instruction = 'GTC';
         if ($timeInForce !== null) {
             $instruction = $this->encode_time_in_force($timeInForce);

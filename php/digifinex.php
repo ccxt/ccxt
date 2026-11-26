@@ -4701,7 +4701,7 @@ class digifinex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = '';
         if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {
-            $urlencoded = json_encode($params);
+            $urlencoded = $this->json($params);
         } else {
             $urlencoded = $this->urlencode($this->keysort($query));
         }

@@ -1238,7 +1238,7 @@ class bitopro extends Exchange {
             }
         }
         $paramsOmitted = ($orderType === 'STOP_LIMIT') ? $this->omit($params, array( 'triggerPrice', 'stopPrice' )) : $params;
-        $postOnly = $this->is_post_only($orderType === 'MARKET', null, $paramsOmitted);
+        $postOnly = $this->is_post_only($orderType === 'MARKET', false, $paramsOmitted);
         if ($postOnly) {
             $request['timeInForce'] = 'POST_ONLY';
         }

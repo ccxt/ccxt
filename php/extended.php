@@ -2646,7 +2646,7 @@ class extended extends Exchange {
         }
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
-        $postOnly = $this->is_post_only($uppercaseType === 'MARKET', null, $params);
+        $postOnly = $this->is_post_only($uppercaseType === 'MARKET', false, $params);
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only', false);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($timeInForce === null) {

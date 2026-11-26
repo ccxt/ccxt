@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -936,8 +937,8 @@ class bitrue extends \ccxt\async\bitrue {
         $baseVolume = $this->convert_from_raw_quantity($symbol, $rawVol);
         $quoteVolume = $this->convert_from_raw_quantity($symbol, $rawAmount);
         $close = $this->safe_number($tick, 'close');
-        $rose = $this->safe_number($tick, 'rose');
-        $percentage = ($rose === null) ? null : $rose * 100;
+        $rose = $this->safe_string($tick, 'rose');
+        $percentage = Precise::string_mul($rose, '100');
         return $this->safe_ticker(array(
             'info' => $tick,
             'symbol' => $symbol,

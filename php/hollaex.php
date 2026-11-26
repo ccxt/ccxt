@@ -1358,7 +1358,7 @@ class hollaex extends Exchange {
         $meta = $this->safe_dict($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_bool($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
-        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === true, $params);
         if (!$isMarketOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }

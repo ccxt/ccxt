@@ -2151,7 +2151,7 @@ class grvt extends Exchange {
             // 'state': null,
         );
         $timeInForce = $this->safe_string_upper($paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
-        $postOnly = $this->is_post_only($isMarketOrder, null, $paramsOmitted3);
+        $postOnly = $this->is_post_only($isMarketOrder, false, $paramsOmitted3);
         if ($postOnly) {
             $orderRequest['post_only'] = true;
         }
@@ -3399,10 +3399,12 @@ class grvt extends Exchange {
         $secretOrPrivkey = $usesPrivKey ? $this->privateKey : $this->secret;
         $privateKeyWithoutZero = $this->remove0x_prefix($secretOrPrivkey);
         $signature = $this->ecdsa($this->hash($ethEncodedMessage, 'keccak', 'hex'), $privateKeyWithoutZero, 'secp256k1', null);
+        $rHex = $this->safe_string($signature, 'r', '');
+        $sHex = $this->safe_string($signature, 's', '');
         $signatureEntry = array(
             'signer' => null,
-            'r' => $this->format_signature_rs($signature['r']),
-            's' => $this->format_signature_rs($signature['s']),
+            'r' => $this->format_signature_rs($rHex),
+            's' => $this->format_signature_rs($sHex),
             'v' => $this->sum(27, $signature['v']),
             'expiration' => $requestSignature['expiration'],
             'nonce' => $requestSignature['nonce'],

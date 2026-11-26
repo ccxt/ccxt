@@ -4304,7 +4304,7 @@ class interactivebrokers extends Exchange {
         if ($month === null) {
             return null;
         }
-        $dayPart = $parts[2];
+        $dayPart = $this->safe_string($parts, 2, '');
         $day = str_pad($dayPart, 2, '0', STR_PAD_LEFT);
         $offset = $this->safe_string($offsets, $parts[4], '+00:00');
         return $this->parse8601($parts[5] . '-' . $month . '-' . $day . 'T' . $parts[3] . $offset);
