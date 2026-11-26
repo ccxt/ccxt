@@ -1997,7 +1997,7 @@ export default class polymarket extends Exchange {
         const response = await this.clobPrivatePostOrder (this.safeDict (built, 'body'));
         // request echo first so the response's real orderID/status/success win on overlap
         const enriched = this.extend (this.safeDict (built, 'request'), response);
-        const order = this.parsePredictionOrder (enriched, this.safeDict (built, 'outcome') as any);
+        const order = this.parsePredictionOrder (enriched, this.safeDict (built, 'outcome') as Market);
         order['info'] = response;   // keep info the raw exchange response, not the request echo
         return order;
     }
@@ -2047,7 +2047,7 @@ export default class polymarket extends Exchange {
                 // request echo first so the response's real orderID/status win on overlap
                 const rawItem = response[i];
                 const enriched = this.extend (this.safeDict (requests, i), rawItem);
-                const parsedItem = this.parsePredictionOrder (enriched, this.safeDict (outcomes, i) as any);
+                const parsedItem = this.parsePredictionOrder (enriched, this.safeDict (outcomes, i) as Market);
                 parsedItem['info'] = rawItem;   // keep info the raw exchange response
                 result.push (parsedItem);
             }
