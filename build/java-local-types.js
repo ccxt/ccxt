@@ -181,7 +181,7 @@ export function javaRepoAstBundle () {
 }
 // ===== tables =====
 // every name whose every generated return expression is already a Java String
-export const JAVA_STRING_RETURN_METHODS = new Set ([ 'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'outcomeSearchQuery', 'priceToPrecision', 'walletAddressOrUndefined', 'createAuthToken', 'signEvmTransaction', ]);
+export const JAVA_STRING_RETURN_METHODS = new Set ([ 'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'outcomeSearchQuery', 'priceToPrecision', 'walletAddressOrUndefined', 'createAuthToken', 'signEvmTransaction', 'padHexToEven', 'rlpEncodeBytes', 'hexToRlpBytes', ]);
 // Same retyped signature as JAVA_STRING_RETURN_METHODS, but some return sites are an Object row field (`market['symbol']`, `currency['code']`) or a guarded null, so they carry `(S...
 export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
     'getExtendedCurrencyCodeById', 'marketId', 'safeCurrencyCode', 'safeSymbol',
@@ -5659,7 +5659,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'transfer': [0, 2, 3], 'transferBetweenMainAndSubAccount': [0], 'transferBetweenSubAccounts': [0], 'transferClassic': [0], 'transferIn': [0], 'transferOut': [0], 'transferUta': [0],
     'unWatchFundingRate': [0], 'unWatchMarkPrice': [0], 'unWatchOHLCV': [0], 'unWatchOrderBook': [0], 'unWatchTicker': [0], 'unWatchTrades': [0], 'updateSpotCurrencyCode': [0], 'verifyGiftCode': [0],
     'watchFundingRate': [0], 'watchLiquidations': [0], 'watchMarkPrice': [0], 'watchMyLiquidations': [0], 'watchOHLCV': [0], 'watchOrderBook': [0], 'watchTicker': [0], 'watchTrades': [0], 'withdraw': [0, 2],
-    'withdrawRequest': [0], 'withdrawWs': [0], 'handleMarginModeAndParams': [0], 'signEvmTransaction': [1], 'createSubAccount': [0], 'isLeveragedCurrency': [0],
+    'withdrawRequest': [0], 'withdrawWs': [0], 'handleMarginModeAndParams': [0], 'signEvmTransaction': [1], 'createSubAccount': [0], 'isLeveragedCurrency': [0], 'padHexToEven': [0], 'rlpEncodeBytes': [0],
 };
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the ast printer declares them `String` (JAVA_NATIVE_PARAMETER_TYPES), like the posit...
 let _javaOrderStringPositions;

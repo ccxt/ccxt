@@ -5611,7 +5611,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable 
     [ [0,2,3], 'transfer' ],
     [ [0], 'selectNetworkKeyFromNetworks' ],
     [ [1], 'featuresMapper' ],
-    [ [0], 'fetch2 fetchRestOrderBookSafe isLeveragedCurrency' ],
+    [ [0], 'fetch2 fetchRestOrderBookSafe isLeveragedCurrency padHexToEven rlpEncodeBytes' ],
 ]);
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {
@@ -10983,7 +10983,7 @@ ${constStatements.join('\n')}
             // `shims` ends with the single trailing newline gofmt wants at EOF (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
             const file = this.baseFileNilCompares (fileHeader + '\n' + structDef + methods + shims);
             // this is the one generated .go write that does not go through
-            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ], 'SlugToMarketSymbol': [ 'return marketPart', 'return eventPart + "_" + marketPart' ], 'SlugToOutcomeSymbol': [ 'return this.SlugToMarketSymbol(eventSlug, marketSlug) + ":" + label' ], 'RlpEncodeList': [ 'return this.IntToBase16(192+byteLength) + concatenated', 'return this.IntToBase16(247+lengthOfLength) + lengthHex + concatenated' ], 'IntToRlpHex': [ 'return ""', 'return hex' ] };
+            const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'PadHexToEven': [ 'return ""', 'return "0" + hex', 'return hex' ], 'HexToRlpBytes': [ 'return ""', 'return this.PadHexToEven(h[i:])', 'return ""' ], 'RlpEncodeBytes': [ 'return "80"', 'return hex', 'return this.IntToBase16(128+byteLength) + hex', 'return this.IntToBase16(183+lengthOfLength) + lengthHex + hex' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ], 'SlugToMarketSymbol': [ 'return marketPart', 'return eventPart + "_" + marketPart' ], 'SlugToOutcomeSymbol': [ 'return this.SlugToMarketSymbol(eventSlug, marketSlug) + ":" + label' ], 'RlpEncodeList': [ 'return this.IntToBase16(192+byteLength) + concatenated', 'return this.IntToBase16(247+lengthOfLength) + lengthHex + concatenated' ], 'IntToRlpHex': [ 'return ""', 'return hex' ] };
             fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goRetypeStringReturns (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (guardMultiSendCores (normalizeGoFileHeader (file))))))))), 'PredictionExchange', stringReturns))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
@@ -13467,7 +13467,7 @@ function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
 // ===== native `+` for Add chains over proven Go strings =====
 // Add(a, b) -> a + b only when every leaf is a non-nil Go string (literal, never-redeclared `string` local/param,
 // ToString(..), string fields, base method returning `string`); any other leaf keeps Add.
-function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'IntToBase16', 'Remove0xPrefix', 'PadHexAddress', 'ShortenSlug', 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2', 'OrderbookChecksumMessage' ]); }
+function goAddStringMethods (): Set<string> { return new Set ([ 'HashString', 'IntToBase16', 'Remove0xPrefix', 'PadHexAddress', 'PadHexToEven', 'HexToRlpBytes', 'RlpEncodeBytes', 'ShortenSlug', 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2', 'OrderbookChecksumMessage' ]); }
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
 function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey', 'Login', 'Twofa' ]); }
 

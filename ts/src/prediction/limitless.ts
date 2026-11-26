@@ -2276,8 +2276,8 @@ export default class limitless extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        const rHex: string = this.padHexToEven (this.safeString (signature, 'r'));
-        const sHex: string = this.padHexToEven (this.safeString (signature, 's'));
+        const rHex: string = this.padHexToEven (this.safeString (signature, 'r', ''));
+        const sHex: string = this.padHexToEven (this.safeString (signature, 's', ''));
         const yParity = this.safeInteger (signature, 'v');
         const signedFields: string[] = [];
         for (let i = 0; i < fields.length; i++) {
