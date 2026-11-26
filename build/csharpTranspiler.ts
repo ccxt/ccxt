@@ -8703,6 +8703,8 @@ function guardedArithmetic (text: string, typeOfName, guardedName: (name: string
                 // the object overload: double left converts any right; Int64 left casts the right to Int64
                 const pair = (base[0] === 'double') || ((base[1] !== 'double') && !((base[0] === 'int') && (base[1] === 'int')));
                 if (nullable && proven && pair) native = '(' + L + ' - ' + R + ')';
+                // a non-null this.sum operand (the Int64 sum twin) the operand-type pass could not type: the subtract twin's body
+                else if (!nullable && pair) native = '(' + L + ' - ' + R + ')';
             } else if ((m[1] === 'multiply') && (kinds[0] === 'int') && (kinds[1] === 'int') && !typed[0].literal && !typed[1].literal) {
                 native = '((Int64)' + L + ' * ' + R + ')'; // the multiply(Int64, Int64) twin's body
             } else if ((arithmeticOperandType (inner[0], typeOfName, new Map ()) === undefined) || (arithmeticOperandType (inner[1], typeOfName, new Map ()) === undefined)) {
@@ -8847,6 +8849,8 @@ export function counterAndGuardedMathSelfTest (): string[] {
     check ('guard write inside block keeps helper', '        Int64? p = parseInt(s);\n        if ((p != null))\n        {\n            p = null;\n            object q = subtract(p, 1);\n        }', 'subtract(p, 1)');
     check ('Int64? - double keeps helper', '        Int64? a = parseInt(s);\n        double b = 1.5;\n        if ((a != null))\n        {\n            object q = subtract(a, b);\n        }', 'subtract(a, b)');
     check ('int * int -> Int64 twin body', '        int a = 60;\n        int b = 300;\n        object d = multiply(a, b);', 'object d = ((Int64)a * b);');
+    check ('this.sum operand -> subtract twin', '        Int64? a = this.safeInteger(o, "a", 1);\n        Int64? d = this.safeInteger(o, "d");\n        object w = subtract(this.sum(a, d), this.milliseconds());', 'object w = (this.sum(a, d) - this.milliseconds());');
+    check ('this.sum minus object keeps helper', '        Int64? a = this.safeInteger(o, "a");\n        object b = 1;\n        object w = subtract(this.sum(a, a), b);', 'subtract(this.sum(a, a), b)');
     check ('this.sum operand -> divide twin', '        int n = 3;\n        Int64? c = this.safeInteger(o, "c", 100);\n        Int64? k = this.parseToInt(divide(this.sum(n, (c - 1)), c));', 'this.parseToInt(((double?)this.sum(n, (c - 1)) / c))');
     check ('double? multiply keeps helper', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        if ((a != null) && (b != null))\n        {\n            object c = multiply(a, b);\n        }', 'multiply(a, b)');
     return problems;
