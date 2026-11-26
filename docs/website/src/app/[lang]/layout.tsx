@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { Provider } from '@/components/provider';
+import { CampaignPopup } from '@/components/campaign-popup';
 import { SiteFooter } from '@/components/site-footer';
 import { i18n } from '@/lib/i18n';
 
@@ -22,6 +23,7 @@ export default async function LangLayout({ params, children }: LayoutProps<'/[la
         <Provider lang={lang}>
           {children}
           <SiteFooter lang={lang} />
+          <CampaignPopup />
         </Provider>
       </body>
     </html>
