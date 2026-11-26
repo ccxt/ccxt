@@ -29,19 +29,37 @@ const bannerHeight = 540;
 
 const storageKey = `ccxt-campaign-dismissed:${id}`;
 
-export function CampaignPopup() {
-  // Hidden on the server and on first paint: the dismissed flag lives in
-  // localStorage, so rendering it eagerly would flash for returning visitors.
+// shown to visitors on the Korean docs (/ko) or with a Seoul browser timezone
+const targetLang = 'ko';
+const targetTimeZone: string | undefined = 'Asia/Seoul';
+
+function isTargetAudience(lang: string): boolean {
+  if (targetTimeZone === undefined) return true;
+  if (lang === targetLang) return true;
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone === targetTimeZone;
+  } catch {
+    return false;
+  }
+}
+
+export function CampaignPopup({ lang }: { lang: string }) {
+  // Hidden on the server and on first paint: the timezone and the dismissed flag
+  // are only known in the browser, so rendering eagerly would flash for everyone else.
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!isTargetAudience(lang)) {
+      setOpen(false);
+      return;
+    }
     try {
       if (localStorage.getItem(storageKey) === '1') return;
     } catch {
       // storage blocked (private mode) — still show, it just won't be remembered
     }
     setOpen(true);
-  }, []);
+  }, [lang]);
 
   if (!open) return null;
 

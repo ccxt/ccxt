@@ -23,7 +23,7 @@ export default async function LangLayout({ params, children }: LayoutProps<'/[la
         <Provider lang={lang}>
           {children}
           <SiteFooter lang={lang} />
-          <CampaignPopup />
+          <CampaignPopup lang={lang} />
         </Provider>
       </body>
     </html>
