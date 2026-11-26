@@ -1343,8 +1343,7 @@ export default class interactivebrokers extends Exchange {
         }
         const results = await Promise.all (promises);
         const markets = this.arraysConcat (results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return this.toArray (this.ibkrDisambiguateContractSymbols (markets));
+        return this.ibkrDisambiguateContractSymbols (markets);
     }
 
     /**
