@@ -386,69 +386,81 @@ export default class coinmate extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const result: List = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'firstCurrency');
-            const quoteId = this.safeString (market, 'secondCurrency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            if ((base === undefined) || (quote === undefined)) {
-                continue;
-            }
-            const symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lotDecimals'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minAmount'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        return this.parseMarkets (data);
+    }
+
+    override parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "name":"BTC_EUR",
+        //         "firstCurrency":"BTC",
+        //         "secondCurrency":"EUR",
+        //         "priceDecimals":2,
+        //         "lotDecimals":8,
+        //         "minAmount":0.0002,
+        //         "tradesWebSocketChannelId":"trades-BTC_EUR",
+        //         "orderBookWebSocketChannelId":"order_book-BTC_EUR",
+        //         "tradeStatisticsWebSocketChannelId":"statistics-BTC_EUR"
+        //     }
+        //
+        const id = this.safeString (market, 'name');
+        const baseId = this.safeString (market, 'firstCurrency');
+        const quoteId = this.safeString (market, 'secondCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return {} as Market;
         }
-        return result;
+        const symbol = base + '/' + quote;
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lotDecimals'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minAmount'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
     }
 
     override parseBalance (response: Dict): Balances {
