@@ -1,23 +1,8 @@
-// Struct return types for the C# row builders (parseTicker / safeTicker / ...).
-//
-// Post-print text pass over every generated C# file (run from csharpTupleReturns, the funnel
-// every C# write goes through). For each struct in CSHARP_STRUCT_RETURN_TYPES it
-//   1. retypes EVERY declaration of the listed names (overrides are invariant: CS0508);
-//   2. makes their returns the struct: a call of a same-struct name / a retyped local is an
-//      identity, anything else is built with the struct constructor (`new ccxt.T(expr)`);
-//   3. rewrites the call sites: the `ToT(call)` funnel becomes the call, a local initialised by
-//      the call becomes a struct local when every use is provable (literal field read/write,
-//      identity), every other use is boxed back with `FromT(x)`; any other call position is
-//      boxed at the call (`FromT(call)`), so untyped helpers never see a boxed struct.
-// Anything the pass cannot prove keeps the map (fail closed).
+// Struct return types for the C# row builders (parseTicker / safeTicker / ...). Post-print text pass over every generated C# file (run from csharpTupleReturns, the funnel every C#...
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-// struct -> { names, kind }. kind 'one': the method returns one row (T);
-// kind 'map': it returns symbol -> row (Dictionary<string, T>), `row` names the row struct;
-// kind 'list': it returns rows (List<T>, declared IList<object>), built with ToTList / boxed with FromTList.
-// names are all-or-nothing (overrides are invariant)
+// struct -> { names, kind }. kind 'one': the method returns one row (T); kind 'map': it returns symbol -> row (Dictionary<string, T>), `row` names the row struct; kind 'list': it ...
 export const CSHARP_STRUCT_RETURN_TYPES = {
     'Ticker': { 'kind': 'one', 'names': [ 'parseTicker', 'parseWSTicker', 'parseWsTicker', 'safeTicker' ] },
     'Tickers': { 'kind': 'map', 'row': 'Ticker', 'names': [ 'parseTickers' ] },
@@ -28,7 +13,6 @@ export const CSHARP_STRUCT_RETURN_TYPES = {
     'Order': { 'kind': 'one', 'names': [ 'parseOrder', 'parseWsOrder', 'safeOrder' ] },
     'Orders': { 'kind': 'list', 'row': 'Order', 'names': [ 'parseOrders' ] },
 };
-
 const TYPES_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'base', 'Exchange.Types.cs');
 let structFieldsCache;
 // field name -> C# type, read from the struct declaration the compiler sees
@@ -36,40 +20,22 @@ function structFields (name) {
     if (structFieldsCache === undefined) {
         structFieldsCache = {};
         let text = '';
-        try {
-            text = fs.readFileSync (TYPES_FILE, 'utf8');
-        } catch (e) {
-            text = '';
-        }
+        try { text = fs.readFileSync (TYPES_FILE, 'utf8'); } catch (e) { text = ''; }
         const re = /\npublic struct (\w+)\s*\n\{\n([\s\S]*?)\n\}(?=\n)/g;
         let m;
         while ((m = re.exec (text)) !== null) {
             const fields = {};
-            for (const line of m[2].split ('\n')) {
-                const f = /^    public ([\w<>?,. ]+?) (@?\w+);$/.exec (line);
-                if (f !== null && !f[1].startsWith ('static')) {
-                    fields[f[2]] = f[1];
-                }
-            }
+            for (const line of m[2].split ('\n')) { const f = /^    public ([\w<>?,. ]+?) (@?\w+);$/.exec (line); if (f !== null && !f[1].startsWith ('static')) { fields[f[2]] = f[1]; } }
             structFieldsCache[m[1]] = fields;
         }
     }
     return structFieldsCache[name] || {};
 }
-
 // scalar field write conversion (same Safe* the struct constructor applies to the key)
-const FIELD_CONVERTERS = {
-    'string?': 'StructString', 'Int64?': 'StructInt64', 'double?': 'StructDouble',
-};
-
+const FIELD_CONVERTERS = { 'string?': 'StructString', 'Int64?': 'StructInt64', 'double?': 'StructDouble', };
 const NAME_TO_STRUCT = new Map ();
-for (const [ struct, spec ] of Object.entries (CSHARP_STRUCT_RETURN_TYPES)) {
-    for (const name of spec.names) {
-        NAME_TO_STRUCT.set (name, struct);
-    }
-}
+for (const [ struct, spec ] of Object.entries (CSHARP_STRUCT_RETURN_TYPES)) { for (const name of spec.names) { NAME_TO_STRUCT.set (name, struct); } }
 const NAMES_RE = new RegExp ('\\b(?:' + [ ...NAME_TO_STRUCT.keys () ].sort ((a, b) => b.length - a.length).join ('|') + ')\\(');
-
 function structTypeName (struct) {
     const spec = CSHARP_STRUCT_RETURN_TYPES[struct];
     if (spec.kind === 'list') return 'List<ccxt.' + spec.row + '>';
@@ -80,55 +46,24 @@ function boxFunction (struct) {
     if (spec.kind === 'list') return 'ccxt.BaseExchange.From' + spec.row + 'List';
     return 'ccxt.BaseExchange.' + ((spec.kind === 'map') ? 'From' + spec.row + 'Map' : 'From' + struct);
 }
-
 // the untyped declaration the pass rewrites, and the typed-core funnel it drops at call sites
-function untypedDeclType (struct) {
-    return (CSHARP_STRUCT_RETURN_TYPES[struct].kind === 'list') ? 'IList<object>' : 'Dictionary<string, object>';
-}
-function funnelFunction (struct) {
-    const spec = CSHARP_STRUCT_RETURN_TYPES[struct];
-    return 'ccxt.BaseExchange.To' + ((spec.kind === 'list') ? spec.row + 'List' : struct) + '(';
-}
-
+function untypedDeclType (struct) { return (CSHARP_STRUCT_RETURN_TYPES[struct].kind === 'list') ? 'IList<object>' : 'Dictionary<string, object>'; }
+function funnelFunction (struct) { const spec = CSHARP_STRUCT_RETURN_TYPES[struct]; return 'ccxt.BaseExchange.To' + ((spec.kind === 'list') ? spec.row + 'List' : struct) + '('; }
 // code mask: true for chars outside string/char literals and comments
 function codeMask (s) {
     const mask = new Uint8Array (s.length);
     let i = 0;
     while (i < s.length) {
         const c = s[i];
-        if (c === '/' && s[i + 1] === '/') {
-            while (i < s.length && s[i] !== '\n') i++;
-            continue;
-        }
-        if (c === '/' && s[i + 1] === '*') {
-            const end = s.indexOf ('*/', i + 2);
-            i = (end < 0) ? s.length : end + 2;
-            continue;
-        }
-        if (c === '@' && s[i + 1] === '"') {
-            i += 2;
-            while (i < s.length) {
-                if (s[i] === '"' && s[i + 1] === '"') { i += 2; continue; }
-                if (s[i] === '"') { i++; break; }
-                i++;
-            }
-            continue;
-        }
-        if (c === '"' || c === '\'') {
-            i++;
-            while (i < s.length && s[i] !== c && s[i] !== '\n') {
-                if (s[i] === '\\') i++;
-                i++;
-            }
-            i++;
-            continue;
-        }
+        if (c === '/' && s[i + 1] === '/') { while (i < s.length && s[i] !== '\n') i++; continue; }
+        if (c === '/' && s[i + 1] === '*') { const end = s.indexOf ('*/', i + 2); i = (end < 0) ? s.length : end + 2; continue; }
+        if (c === '@' && s[i + 1] === '"') { i += 2; while (i < s.length) { if (s[i] === '"' && s[i + 1] === '"') { i += 2; continue; } if (s[i] === '"') { i++; break; } i++; } continue; }
+        if (c === '"' || c === '\'') { i++; while (i < s.length && s[i] !== c && s[i] !== '\n') { if (s[i] === '\\') i++; i++; } i++; continue; }
         mask[i] = 1;
         i++;
     }
     return mask;
 }
-
 function matchClose (s, mask, open) {
     const pairs = { '(': ')', '[': ']', '{': '}' };
     const want = pairs[s[open]];
@@ -136,34 +71,21 @@ function matchClose (s, mask, open) {
     for (let i = open; i < s.length; i++) {
         if (!mask[i]) continue;
         const c = s[i];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth === 0) {
-                return (c === want) ? i : -1;
-            }
-        }
+        if (c === '(' || c === '[' || c === '{') depth++; else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return (c === want) ? i : -1; } }
     }
     return -1;
 }
-
 // end (index of `;`) of the statement containing pos, at bracket depth 0 relative to pos
 function statementEnd (s, mask, pos) {
     let depth = 0;
     for (let i = pos; i < s.length; i++) {
         if (!mask[i]) continue;
         const c = s[i];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth < 0) return -1;
-        } else if (c === ';' && depth === 0) return i;
+        if (c === '(' || c === '[' || c === '{') depth++; else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; } else if (c === ';' && depth === 0) return i;
     }
     return -1;
 }
-
 class StructFail extends Error {}
-
 // methods: [{ header start, name, returnType, bodyOpen, bodyClose }]
 const METHOD_RE = /^([ \t]*)((?:(?:public|private|protected|internal|static|virtual|override|async|new|sealed)\s+)+)([\w<>?,. ()]+?) (\w+)\(/gm;
 function findMethods (s, mask) {
@@ -185,20 +107,15 @@ function findMethods (s, mask) {
     }
     return methods;
 }
-
 const CALL_RE = /(?<![\w.])(this|base|exchange)\.(\w+)\(/g;
 const IDENT = (name) => new RegExp ('(?<![\\w.@])' + name + '(?!\\w)', 'g');
-
 function stripCastWrap (s, a, b) {
     // `((T)((object)(E)))` -> E span (identity boundary casts the collection-returns hook adds)
     const text = s.slice (a, b);
     const m = /^\(\((?:I?Dictionary<string, object>)\)\(\(object\)\(/.exec (text);
-    if (m !== null && text.endsWith (')))')) {
-        return [ a + m[0].length, b - 3 ];
-    }
+    if (m !== null && text.endsWith (')))')) { return [ a + m[0].length, b - 3 ]; }
     return [ a, b ];
 }
-
 function processMethod (s, mask, method, edits) {
     const ownStruct = NAME_TO_STRUCT.get (method.name);
     const body0 = method.bodyOpen + 1;
@@ -219,32 +136,22 @@ function processMethod (s, mask, method, edits) {
         const before = s.slice (Math.max (body0, call.a - 200), call.a);
         const after = s.slice (call.b, call.b + 3);
         // already rewritten (a second pass over the same text): leave it
-        if (before.endsWith (boxFunction (call.struct) + '(') || new RegExp ('(^|\\n)[ \\t]*' + structTypeName (call.struct).replace (/[.<>]/g, '\\$&') + ' \\w+ = $').test (before)) {
-            continue;
-        }
+        if (before.endsWith (boxFunction (call.struct) + '(') || new RegExp ('(^|\\n)[ \\t]*' + structTypeName (call.struct).replace (/[.<>]/g, '\\$&') + ' \\w+ = $').test (before)) { continue; }
         // funnel `ccxt.BaseExchange.ToT(call)` -> call
         const funnel = funnelFunction (call.struct);
         if (before.endsWith (funnel) && after.startsWith (')')) {
-            if (spec.kind !== 'map') {
-                edits.push ([ call.a - funnel.length, call.a, '' ], [ call.b, call.b + 1, '' ]);
-            } // map: the typed ToTickers(Dictionary<string, Ticker>) overload binds
+            if (spec.kind !== 'map') { edits.push ([ call.a - funnel.length, call.a, '' ], [ call.b, call.b + 1, '' ]); } // map: the typed ToTickers(Dictionary<string, Ticker>) overload binds
             continue;
         }
         // `return call;` in a same-struct method: identity
-        if (/\breturn\s+$/.test (before) && after.startsWith (';') && ownStruct === call.struct) {
-            continue;
-        }
+        if (/\breturn\s+$/.test (before) && after.startsWith (';') && ownStruct === call.struct) { continue; }
         // `Dictionary<string, object> X = call;` candidate struct local (row kind only)
         const decl = /(^|\n)([ \t]*)(I?Dictionary<string, object>) (\w+) = $/.exec (before);
         if (decl !== null && after.startsWith (';') && spec.kind === 'one') {
             const typeStart = call.a - decl[0].length + decl[1].length + decl[2].length;
             // scope: the enclosing block of the declaration
             let depth = 0; let scopeEnd = body1;
-            for (let i = call.b; i < body1; i++) {
-                if (!mask[i]) continue;
-                if (s[i] === '{') depth++;
-                else if (s[i] === '}') { if (depth === 0) { scopeEnd = i; break; } depth--; }
-            }
+            for (let i = call.b; i < body1; i++) { if (!mask[i]) continue; if (s[i] === '{') depth++; else if (s[i] === '}') { if (depth === 0) { scopeEnd = i; break; } depth--; } }
             if (!locals.has (decl[4])) {
                 locals.set (decl[4], { 'struct': call.struct, 'typeSpan': [ typeStart, typeStart + decl[3].length ], 'call': call, 'declEnd': call.b + 1, 'scopeEnd': scopeEnd, 'reassigns': [] });
                 continue;
@@ -268,9 +175,7 @@ function processMethod (s, mask, method, edits) {
         const plan = planLocal (s, mask, name, local, ownStruct);
         if (plan === undefined) {
             // fail closed: the local stays a map, its initialiser (and reassignments) boxed
-            for (const call of [ local.call, ...local.reassigns.map ((r) => r.call) ]) {
-                edits.push ([ call.a, call.a, boxFunction (local.struct) + '(' ], [ call.b, call.b, ')' ]);
-            }
+            for (const call of [ local.call, ...local.reassigns.map ((r) => r.call) ]) { edits.push ([ call.a, call.a, boxFunction (local.struct) + '(' ], [ call.b, call.b, ')' ]); }
             continue;
         }
         edits.push ([ local.typeSpan[0], local.typeSpan[1], structTypeName (local.struct) ]);
@@ -291,15 +196,9 @@ function processMethod (s, mask, method, edits) {
             if (end < 0) throw new StructFail ('return without end in ' + method.name);
             const expr = s.slice (a, end);
             const callM = /^(?:this|base)\.(\w+)\(/.exec (expr);
-            if (callM !== null && NAME_TO_STRUCT.get (callM[1]) === ownStruct && matchClose (s, mask, a + callM[0].length - 1) === end - 1) {
-                continue;
-            }
-            if (/^\w+$/.test (expr) && typed.has (expr) && locals.get (expr).struct === ownStruct) {
-                continue;
-            }
-            if (expr === 'null') {
-                throw new StructFail ('return null in ' + method.name);
-            }
+            if (callM !== null && NAME_TO_STRUCT.get (callM[1]) === ownStruct && matchClose (s, mask, a + callM[0].length - 1) === end - 1) { continue; }
+            if (/^\w+$/.test (expr) && typed.has (expr) && locals.get (expr).struct === ownStruct) { continue; }
+            if (expr === 'null') { throw new StructFail ('return null in ' + method.name); }
             const [ ea, eb ] = stripCastWrap (s, a, end);
             const spec = CSHARP_STRUCT_RETURN_TYPES[ownStruct];
             if (ea !== a) edits.push ([ a, ea, '' ], [ eb, end, '' ]);
@@ -313,45 +212,28 @@ function processMethod (s, mask, method, edits) {
         }
     }
     // every other call position: box at the call
-    for (const call of calls) {
-        if (!call.pending) continue;
-        edits.push ([ call.a, call.a, boxFunction (call.struct) + '(' ], [ call.b, call.b, ')' ]);
-    }
+    for (const call of calls) { if (!call.pending) continue; edits.push ([ call.a, call.a, boxFunction (call.struct) + '(' ], [ call.b, call.b, ')' ]); }
 }
-
 function mapFieldOf (struct) {
     // wrapper struct: the Dictionary<string, Row> field
     const fields = structFields (struct);
-    for (const [ f, t ] of Object.entries (fields)) {
-        if (t.startsWith ('Dictionary<string, ') && t !== 'Dictionary<string, object>') return f;
-    }
+    for (const [ f, t ] of Object.entries (fields)) { if (t.startsWith ('Dictionary<string, ') && t !== 'Dictionary<string, object>') return f; }
     throw new StructFail ('no row map on ' + struct);
 }
-
 function insideNestedFunction (s, mask, body0, pos) {
     // a `=>` lambda or delegate between the method body start and pos at a shallower brace
     const text = s.slice (body0, pos);
     return /=>\s*\{[^}]*$/.test (text) || /delegate\s*\(/.test (text.slice (-400)) || insideOpenLambdaBlock (s, mask, body0, pos);
 }
-
 // brace-aware twin — a `=> {` block still open at pos (its body may hold nested `{ }`)
 function insideOpenLambdaBlock (s, mask, body0, pos) {
     const stack = [];
-    for (let i = body0; i < pos; i++) {
-        if (!mask[i]) continue;
-        if (s[i] === '{') stack.push (/=>\s*$/.test (s.slice (Math.max (body0, i - 8), i)));
-        else if (s[i] === '}') stack.pop ();
-    }
+    for (let i = body0; i < pos; i++) { if (!mask[i]) continue; if (s[i] === '{') stack.push (/=>\s*$/.test (s.slice (Math.max (body0, i - 8), i))); else if (s[i] === '}') stack.pop (); }
     return stack.includes (true);
 }
-
 // untyped read of a field: nested structs go back through their From* funnel (map rows)
 const NESTED_FIELD_FUNNELS = { 'Fee?': 'FromFee', 'List<Fee>?': 'FromFeeList' };
-function fieldRead (name, field, type) {
-    const f = NESTED_FIELD_FUNNELS[type];
-    return (f === undefined) ? '((object)' + name + '.' + field + ')' : 'ccxt.BaseExchange.' + f + '((object)' + name + '.' + field + ')';
-}
-
+function fieldRead (name, field, type) { const f = NESTED_FIELD_FUNNELS[type]; return (f === undefined) ? '((object)' + name + '.' + field + ')' : 'ccxt.BaseExchange.' + f + '((object)' + name + '.' + field + ')'; }
 // every occurrence of the local in its scope -> list of edits, or undefined (fail closed)
 function planLocal (s, mask, name, local, ownStruct) {
     const struct = local.struct;
@@ -403,32 +285,19 @@ function planLocal (s, mask, name, local, ownStruct) {
         }
         // funnel identity `ccxt.BaseExchange.ToT(X)`
         const funnel = 'ccxt.BaseExchange.To' + struct + '(';
-        if (head.endsWith (funnel) && s[p + name.length] === ')') {
-            edits.push ([ p - funnel.length, p, '' ], [ p + name.length, p + name.length + 1, '' ]);
-            continue;
-        }
+        if (head.endsWith (funnel) && s[p + name.length] === ')') { edits.push ([ p - funnel.length, p, '' ], [ p + name.length, p + name.length + 1, '' ]); continue; }
         // `return X;` in a same-struct method: identity
-        if (/\breturn\s+$/.test (head) && s[p + name.length] === ';' && ownStruct === struct) {
-            continue;
-        }
+        if (/\breturn\s+$/.test (head) && s[p + name.length] === ';' && ownStruct === struct) { continue; }
         // any other write / by-ref use: fail closed
-        if (/^\w+\s*(=[^=]|\+=|-=|\[)/.test (tail) || /\b(ref|out)\s+$/.test (head)) {
-            return undefined;
-        }
+        if (/^\w+\s*(=[^=]|\+=|-=|\[)/.test (tail) || /\b(ref|out)\s+$/.test (head)) { return undefined; }
         // `this.safeString|safeInteger|safeNumber(X, "k")` on a field of that exact type: the field
         if ((t = new RegExp ('^' + name + ', "(\\w+)"\\)').exec (tail)) !== null) {
             const h = /this\.(safeString|safeInteger|safeNumber)\($/.exec (head);
             const want = { 'safeString': 'string?', 'safeInteger': 'Int64?', 'safeNumber': 'double?' };
-            if (h !== null && fields[t[1]] === want[h[1]]) {
-                edits.push ([ p - h[0].length, p + t[0].length, name + '.' + t[1] ]);
-                consumed.push ([ p, p + t[0].length ]);
-                continue;
-            }
+            if (h !== null && fields[t[1]] === want[h[1]]) { edits.push ([ p - h[0].length, p + t[0].length, name + '.' + t[1] ]); consumed.push ([ p, p + t[0].length ]); continue; }
         }
         // literal key reads through a helper: the key must be a struct field (else it moved to info)
-        if ((t = new RegExp ('^' + name + ', "(\\w+)"').exec (tail)) !== null && !(t[1] in fields)) {
-            return undefined;
-        }
+        if ((t = new RegExp ('^' + name + ', "(\\w+)"').exec (tail)) !== null && !(t[1] in fields)) { return undefined; }
         if (new RegExp ('^' + name + '\\.').test (tail) && !new RegExp ('^' + name + '\\.ContainsKey\\(').test (tail)) {
             return undefined; // member use of the map
         }
@@ -444,46 +313,29 @@ function planLocal (s, mask, name, local, ownStruct) {
     local.typed = true;
     return edits;
 }
-
 function applyEdits (s, edits) {
     edits.sort ((x, y) => (x[0] - y[0]) || (x[1] - y[1]));
     let out = '';
     let pos = 0;
-    for (const [ a, b, text ] of edits) {
-        if (a < pos) throw new StructFail ('overlapping edits at ' + a);
-        out += s.slice (pos, a) + text;
-        pos = b;
-    }
+    for (const [ a, b, text ] of edits) { if (a < pos) throw new StructFail ('overlapping edits at ' + a); out += s.slice (pos, a) + text; pos = b; }
     return out + s.slice (pos);
 }
-
 export function csharpStructReturns (content, file = '') {
-    if (typeof content !== 'string' || !NAMES_RE.test (content)) {
-        return content;
-    }
+    if (typeof content !== 'string' || !NAMES_RE.test (content)) { return content; }
     const mask = codeMask (content);
     const methods = findMethods (content, mask);
     // idempotent: a file already rewritten (a second write of the same content) is left alone
-    if (methods.some ((mth) => NAME_TO_STRUCT.has (mth.name) && mth.returnType === structTypeName (NAME_TO_STRUCT.get (mth.name)))) {
-        return content;
-    }
+    if (methods.some ((mth) => NAME_TO_STRUCT.has (mth.name) && mth.returnType === structTypeName (NAME_TO_STRUCT.get (mth.name)))) { return content; }
     const edits = [];
     try {
         for (const method of methods) {
             const struct = NAME_TO_STRUCT.get (method.name);
             if (struct !== undefined) {
-                if (method.returnType !== untypedDeclType (struct)) {
-                    throw new StructFail (method.name + ' declares ' + method.returnType);
-                }
+                if (method.returnType !== untypedDeclType (struct)) { throw new StructFail (method.name + ' declares ' + method.returnType); }
                 edits.push ([ method.typeStart, method.typeStart + method.returnType.length, structTypeName (struct) ]);
             }
             processMethod (content, mask, method, edits);
         }
-    } catch (e) {
-        if (e instanceof StructFail) {
-            throw new Error ('csharpStructReturns: ' + file + ': ' + e.message);
-        }
-        throw e;
-    }
+    } catch (e) { if (e instanceof StructFail) { throw new Error ('csharpStructReturns: ' + file + ': ' + e.message); } throw e; }
     return applyEdits (content, edits);
 }
