@@ -2190,7 +2190,24 @@ export default class hyperliquid extends Exchange {
         }
         const isTrailing = this.safeString2 (params, 'trailingPercent', 'trailingAmount') !== undefined;
         if (isTrailing) {
-            return await this.createTrailingStopOrder (symbol, side, amount, params);
+            await this.initializeClient ();
+            const trailingMarket = this.market (symbol);
+            const trailingRequest = this.createTrailingStopRequest (symbol, side, amount, params);
+            const trailingResponse = await this.privatePostExchange (trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            const trailingResponseObj = this.safeDict (trailingResponse, 'response', {});
+            const trailingData = this.safeDict (trailingResponseObj, 'data', {});
+            return this.parseOrder (this.extend (trailingData, { 'status': 'open' }), trailingMarket);
         }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as OrderRequest ], globalParams);
@@ -2201,8 +2218,8 @@ export default class hyperliquid extends Exchange {
     /**
      * @method
      * @ignore
-     * @name hyperliquid#createTrailingStopOrder
-     * @description create a native trailing stop order, which executes as a market order once the mark price retraces from its best level, called by createOrder when trailingPercent or trailingAmount is set
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
      * @param {string} symbol unified symbol of the swap market to create an order in
      * @param {string} side 'buy' or 'sell'
@@ -2213,13 +2230,9 @@ export default class hyperliquid extends Exchange {
      * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @param {string} [params.vaultAddress] the vault address for order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @returns {object} the request to be sent to the exchange endpoint
      */
-    async createTrailingStopOrder (symbol: string, side: OrderSide, amount: number, params: Dict = {}): Promise<Order> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        await this.initializeClient ();
+    createTrailingStopRequest (symbol: string, side: OrderSide, amount: number, params: Dict = {}): Dict {
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new NotSupported (this.id + ' createOrder() supports trailing orders for swap markets only');
@@ -2258,21 +2271,7 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (request);
-        //
-        //     {
-        //         "status": "ok",
-        //         "response": {
-        //             "type": "trailingStop",
-        //             "data": {
-        //                 "oid": 77738308
-        //             }
-        //         }
-        //     }
-        //
-        const responseObj = this.safeDict (response, 'response', {});
-        const data = this.safeDict (responseObj, 'data', {});
-        return this.parseOrder (this.extend (data, { 'status': 'open' }), market);
+        return request;
     }
 
     /**
