@@ -19,10 +19,15 @@ class bullish(ccxt.async_support.bullish):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchOrderBook': True,
+                'unWatchOrderBook': True,
                 'watchOrders': True,
+                'unWatchOrders': True,
                 'watchTrades': True,
+                'unWatchTrades': True,
                 'watchPositions': True,
+                'unWatchPositions': True,
                 'watchMyTrades': True,
+                'unWatchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': False,
             },
@@ -97,6 +102,63 @@ class bullish(ccxt.async_support.bullish):
             raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
         return await self.watch(wsUrl + url, messageHash, self.deep_extend(message, params), messageHash)
 
+    async def unsubscribe_public(self, url: str, topic: str, messageHash: str, symbol: str, request={}, params={}) -> object:
+        """
+ @ignore
+        sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
+        :param str url: path of the public websocket endpoint the subscription was opened on
+        :param str topic: unified cache topic: trades, orderbook
+        :param str messageHash: message hash the subscription was opened with
+        :param str symbol: unified symbol of the market to unsubscribe from
+        :param dict request: exchange-specific topic and symbol of the subscription
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' unsubscribePublic() has no public websocket url')
+        requestId = str(self.request_id())
+        message = {
+            'jsonrpc': '2.0',
+            'type': 'command',
+            'method': 'unsubscribe',
+            'params': request,
+            'id': requestId,
+        }
+        unsubHash = 'unsubscribe::' + messageHash
+        symbols = [symbol]
+        # the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        subscription = {
+            'unsubscribe': True,
+            'id': requestId,
+            'topic': topic,
+            'symbols': symbols,
+            'subMessageHash': messageHash,
+            'messageHash': unsubHash,
+        }
+        return await self.watch(wsUrl + url, unsubHash, self.deep_extend(message, params), requestId, subscription)
+
+    def handle_un_subscription(self, client: Client, subscription: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": "2",
+        #         "result": {
+        #             "responseCode": "200",
+        #             "responseCodeName": "OK",
+        #             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+        #         }
+        #     }
+        #
+        subHash = self.safe_string(subscription, 'subMessageHash')
+        unsubHash = self.safe_string(subscription, 'messageHash')
+        subHashIsPrefix = self.safe_bool(subscription, 'subHashIsPrefix', False)
+        self.clean_unsubscription(client, subHash, unsubHash, subHashIsPrefix)
+        self.clean_cache(subscription)
+        requestId = self.safe_string(subscription, 'id', '')
+        if requestId in client.subscriptions:
+            del client.subscriptions[requestId]
+
     async def watch_private(self, messageHash: str, subscribeHash: str, request={}, params={}) -> object:
         url = self.urls['api']['ws']['private']
         token = await self.handleToken()
@@ -114,6 +176,52 @@ class bullish(ccxt.async_support.bullish):
         }
         result = await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash)
         return result
+
+    async def unsubscribe_private(self, topic: str, subscribeHash: str, request={}, params={}) -> object:
+        """
+ @ignore
+        sends an unsubscribe command for one private topic and registers the pending unsubscription under the request id
+        :param str topic: unified cache topic: orders, myTrades, positions
+        :param str subscribeHash: hash the subscription was opened with, per-symbol message hashes start with it
+        :param dict request: exchange-specific topic of the subscription
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tradingAccountId]: the trading account id the subscription was opened with
+        :returns any: status of the unwatch request
+        """
+        url = self.urls['api']['ws']['private']
+        token = await self.handleToken()
+        cookies = {
+            'JWT_COOKIE': token,
+        }
+        self.options['ws']['cookies'] = cookies
+        tradingAccountId = self.safe_string(params, 'tradingAccountId')
+        paramsOmitted = params
+        requestParams = request
+        if tradingAccountId is not None:
+            accountRequest = {
+                'tradingAccountId': tradingAccountId,
+            }
+            paramsOmitted = self.omit(params, 'tradingAccountId')
+            requestParams = self.extend(request, accountRequest)
+        requestId = str(self.request_id())
+        message = {
+            'jsonrpc': '2.0',
+            'type': 'command',
+            'method': 'unsubscribe',
+            'params': requestParams,
+            'id': requestId,
+        }
+        unsubHash = 'unsubscribe::' + subscribeHash
+        # the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        subscription = {
+            'unsubscribe': True,
+            'id': requestId,
+            'topic': topic,
+            'subMessageHash': subscribeHash,
+            'subHashIsPrefix': True,
+            'messageHash': unsubHash,
+        }
+        return await self.watch(url, unsubHash, self.deep_extend(message, paramsOmitted), requestId, subscription)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -141,6 +249,29 @@ class bullish(ccxt.async_support.bullish):
         if self.newUpdates:
             limitResolved = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribes from the trades channel
+
+        https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+
+        :param str symbol: unified symbol of the market to unsubscribe from
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'trades::' + marketSymbol
+        url = '/trading-api/v1/market-data/trades'
+        request = {
+            'topic': 'anonymousTrades',
+            'symbol': marketId,
+        }
+        return await self.unsubscribe_public(url, 'trades', messageHash, marketSymbol, request, params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -288,6 +419,29 @@ class bullish(ccxt.async_support.bullish):
         orderbook = await self.watch_public(url, messageHash, request, params)
         return orderbook.limit()
 
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
+        """
+        unsubscribes from the orderbook channel
+
+        https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+
+        :param str symbol: unified symbol of the market to unsubscribe from
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        messageHash = 'orderbook::' + marketSymbol
+        url = '/trading-api/v1/market-data/orderbook'
+        request = {
+            'topic': 'l2Orderbook',
+            'symbol': marketId,
+        }
+        return await self.unsubscribe_public(url, 'orderbook', messageHash, marketSymbol, request, params)
+
     def handle_order_book(self, client: Client, message: dict):
         #
         #     {
@@ -380,6 +534,24 @@ class bullish(ccxt.async_support.bullish):
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
+
+    async def un_watch_orders(self, symbol: Str = None, params: dict = {}) -> object:
+        """
+        unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+
+        https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+
+        :param str [symbol]: not used by bullish unWatchOrders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tradingAccountId]: the trading account id the subscription was opened with
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        request = {
+            'topic': 'orders',
+        }
+        return await self.unsubscribe_private('orders', 'orders', request, params)
 
     def handle_orders(self, client: Client, message: dict):
         # snapshot
@@ -487,6 +659,24 @@ class bullish(ccxt.async_support.bullish):
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_my_trades(self, symbol: Str = None, params: dict = {}) -> object:
+        """
+        unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+
+        https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+
+        :param str [symbol]: not used by bullish unWatchMyTrades
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tradingAccountId]: the trading account id the subscription was opened with
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        request = {
+            'topic': 'trades',
+        }
+        return await self.unsubscribe_private('myTrades', 'myTrades', request, params)
 
     def handle_my_trades(self, client: Client, message: dict):
         #
@@ -679,6 +869,24 @@ class bullish(ccxt.async_support.bullish):
             return positions
         return self.filter_by_symbols_since_limit(positions, symbolsNormalized, since, limit, True)
 
+    async def un_watch_positions(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+
+        https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+
+        :param str[] [symbols]: not used by bullish unWatchPositions
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tradingAccountId]: the trading account id the subscription was opened with
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        request = {
+            'topic': 'derivativesPositionsV2',
+        }
+        return await self.unsubscribe_private('positions', 'positions', request, params)
+
     def handle_positions(self, client: Client, message: dict):
         # exchange does not return messages for sandbox mode
         # current method is implemented blindly
@@ -732,13 +940,53 @@ class bullish(ccxt.async_support.bullish):
         except Exception as e:
             client.reject(e)
 
+    def handle_un_subscription_error(self, client: Client, message: dict):
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "id": "1",
+        #         "error": {
+        #             "code": "-32602",
+        #             "errorCode": "29013",
+        #             "errorCodeName": "'abcde' is not a valid topic"
+        #         }
+        #     }
+        #
+        messageId = self.safe_string(message, 'id')
+        if (messageId is None) or not (messageId in client.subscriptions):
+            return
+        subscription = self.safe_dict(client.subscriptions, messageId)
+        if (subscription is None) or not self.safe_bool(subscription, 'unsubscribe', False):
+            return
+        # the subscription stays active, only the pending unsubscription is dropped and rejected
+        del client.subscriptions[messageId]
+        unsubHash = self.safe_string(subscription, 'messageHash')
+        errorResponse = self.safe_dict(message, 'error', {})
+        feedback = self.id + ' ' + self.json(errorResponse)
+        try:
+            errorCode = self.safe_string(errorResponse, 'errorCode')
+            errorCodeName = self.safe_string(errorResponse, 'errorCodeName')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorCodeName, feedback)
+            raise ExchangeError(feedback)
+        except Exception as e:
+            client.reject(e, unsubHash)
+
     def handle_message(self, client: Client, message: dict):
         dataType = self.safe_string(message, 'dataType')
         result = self.safe_dict(message, 'result')
+        errorResponse = self.safe_dict(message, 'error')
         if result is not None:
             response = self.safe_string(result, 'message')
             if response == 'Keep alive pong':
                 self.handle_pong(client, message)
+            messageId = self.safe_string(message, 'id')
+            if (messageId is not None) and (messageId in client.subscriptions):
+                subscription = self.safe_dict(client.subscriptions, messageId)
+                if (subscription is not None) and self.safe_bool(subscription, 'unsubscribe', False):
+                    self.handle_un_subscription(client, subscription)
+        elif errorResponse is not None:
+            self.handle_un_subscription_error(client, message)
         elif dataType is not None:
             if dataType == 'V1TAAnonymousTradeUpdate':
                 self.handle_trades(client, message)
