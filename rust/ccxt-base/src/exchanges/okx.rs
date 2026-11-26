@@ -6158,10 +6158,10 @@ impl Okx {
         request.insert("sz".into(), Value::from(limitResolved)); // max 400
         let mut response: Option<crate::value::Dict> = None;
         if rpi {
-            let __ws_arg_12 = self.extend(&request, &[&paramsMethod]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.public_get_market_books_rpi(&[&__ws_arg_12]).await;
         }  else if isFullBook || largeLimit {
-            let __ws_arg_13 = self.extend(&request, &[&paramsMethod]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.public_get_market_books_full(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMethod]);
@@ -6482,7 +6482,7 @@ impl Okx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).option {
-            let __ws_arg_19 = self.extend(&request, &[&paramsPaginate]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsPaginate]);
             response = self.public_get_public_option_trades(&[&__ws_arg_19]).await;
         }  else {
             if (limit.is_some()) {
@@ -6492,7 +6492,7 @@ impl Okx {
             let method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
             let paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
             if (method.as_deref() == Some("publicGetMarketTrades")) {
-                let __ws_arg_20 = self.extend(&request, &[&paramsMethod]);
+                let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsMethod]);
                 response = self.call_method_o("public_get_market_trades", &[&__ws_arg_20]).await;
             }  else if (method.as_deref() == Some("publicGetMarketHistoryTrades")) {
                 let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsMethod]);
@@ -6640,10 +6640,10 @@ impl Okx {
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
             if isHistoryCandles {
-                let __ws_arg_22 = self.extend(&request, &[&paramsType]);
+                let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsType]);
                 response = self.public_get_market_history_mark_price_candles(&[&__ws_arg_22]).await;
             }  else {
-                let __ws_arg_23 = self.extend(&request, &[&paramsType]);
+                let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsType]);
                 response = self.public_get_market_mark_price_candles(&[&__ws_arg_23]).await;
             }
         }  else if (priceType.as_deref() == Some("index")) {
@@ -6653,10 +6653,10 @@ impl Okx {
             })]).as_map().cloned().unwrap_or_default();
             request.insert("instId".into(), marketInfo.get("instFamily").cloned().unwrap_or(Value::Null)); // okx index candles require instFamily instead of instId
             if isHistoryCandles {
-                let __ws_arg_24 = self.extend(&request, &[&paramsType]);
+                let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsType]);
                 response = self.public_get_market_history_index_candles(&[&__ws_arg_24]).await;
             }  else {
-                let __ws_arg_25 = self.extend(&request, &[&paramsType]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsType]);
                 response = self.public_get_market_index_candles(&[&__ws_arg_25]).await;
             }
         }  else {
@@ -6665,7 +6665,7 @@ impl Okx {
                     limitResolved = self.parse_to_int(Value::Int(300));
                     request.insert("limit".into(), Value::Int(300)); // reassign to 300, but this whole logic needs to be simplified...
                 }
-                let __ws_arg_26 = self.extend(&request, &[&paramsType]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsType]);
                 response = self.public_get_market_history_candles(&[&__ws_arg_26]).await;
             }  else {
                 let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsType]);
@@ -6978,7 +6978,7 @@ impl Okx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("funding")) {
-            let __ws_arg_30 = self.extend(&request, &[&query]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_asset_balances(&[&__ws_arg_30]).await;
         }  else {
             let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
@@ -8281,7 +8281,7 @@ impl Okx {
         let query: crate::value::Dict = self.omit_t(params, &["method", "clOrdId", "clientOrderId", "stop", "trigger", "trailing"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrderAlgo")) {
-            let __ws_arg_38 = self.extend(&request, &[&query]);
+            let __ws_arg_38 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_order_algo(&[&__ws_arg_38]).await;
         }  else {
             let __ws_arg_39 = self.extend(Value::Map(request), &[&query]);
@@ -8460,7 +8460,7 @@ impl Okx {
         let query: crate::value::Dict = self.omit_t(&paramsPaginate, &["method", "stop", "trigger", "trailing"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
-            let __ws_arg_40 = self.extend(&request, &[&query]);
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_orders_algo_pending(&[&__ws_arg_40]).await;
         }  else {
             let __ws_arg_41 = self.extend(Value::Map(request), &[&query]);
@@ -8652,7 +8652,7 @@ impl Okx {
         let send: crate::value::Dict = self.omit_t(&query, &["method", "stop", "trigger", "trailing"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
-            let __ws_arg_42 = self.extend(&request, &[&send]);
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&send]);
             response = self.private_get_trade_orders_algo_history(&[&__ws_arg_42]).await;
         }  else {
             let __ws_arg_43 = self.extend(Value::Map(request), &[&send]);
@@ -8850,10 +8850,10 @@ impl Okx {
         let send: crate::value::Dict = self.omit_t(&query, &["method", "stop", "trigger", "trailing"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
-            let __ws_arg_44 = self.extend(&request, &[&send]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&send]);
             response = self.private_get_trade_orders_algo_history(&[&__ws_arg_44]).await;
         }  else if (method.as_deref() == Some("privateGetTradeOrdersHistoryArchive")) {
-            let __ws_arg_45 = self.extend(&request, &[&send]);
+            let __ws_arg_45 = self.extend(Value::Map(request), &[&send]);
             response = self.private_get_trade_orders_history_archive(&[&__ws_arg_45]).await;
         }  else {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&send]);
@@ -10018,7 +10018,7 @@ impl Okx {
         let method: Option<String> = self.safe_string_k_opt(&fetchPositionsOptions, "method", &[&Value::Str("privateGetAccountPositions".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetAccountPositionsHistory")) {
-            let __ws_arg_60 = self.extend(&request, &[&params]);
+            let __ws_arg_60 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_account_positions_history(&[&__ws_arg_60]).await;
         }  else {
             let __ws_arg_61 = self.extend(Value::Map(request), &[&params]);
@@ -11719,7 +11719,7 @@ impl Okx {
             return Value::Arr(self.filter_by_symbol_since_limit(self.sort_by(Value::from(instrumentInterests), Value::Str("timestamp".into()), &[]), (self.safe_string_k(&market, "symbol", &[])).as_str(), since, limit, &[]));
         }
         if (type_var.as_deref() == Some("option")) {
-            let __ws_arg_82 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.public_get_rubik_stat_option_open_interest_volume(&[&__ws_arg_82]).await;
         }  else {
             if (since.is_some()) {
@@ -12210,7 +12210,7 @@ impl Okx {
             m
         });
         if (method.as_deref() == Some("privateGetAccountBills")) {
-            let __ws_arg_86 = self.extend(&request, &[&query]);
+            let __ws_arg_86 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_account_bills(&[&__ws_arg_86]).await.unwrap_or_default();
         }  else {
             let __ws_arg_87 = self.extend(Value::Map(request), &[&query]);
@@ -13261,7 +13261,7 @@ impl Okx {
         let oneWeekAgo: i64 = (now - 604800000);
         let threeMonthsAgo: i64 = (now - 7776000000);
         if (since.is_none()) || (since > Some(oneWeekAgo)) {
-            let __ws_arg_101 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_account_bills(&[&__ws_arg_101]).await;
         }  else if since > Some(threeMonthsAgo) {
             let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsOmitted]);

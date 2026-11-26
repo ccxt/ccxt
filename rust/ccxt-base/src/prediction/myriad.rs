@@ -4278,11 +4278,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (!existing) {
             { let __be_tmp = self.create_safe_dictionary(&[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
-        let options: Value = self.options.get("requestId").cloned().unwrap_or(Value::Null);
+        let mut options: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "requestId", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]).as_map().cloned().unwrap_or_default();
         let previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let newValue: i64 = (previousValue + 1);
         if (url.is_some()) {
-            { let __rda = &mut self.options; if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("requestId".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue)); } }
+            options.insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue));
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::Map(options)); }
         }
         return newValue;
 }

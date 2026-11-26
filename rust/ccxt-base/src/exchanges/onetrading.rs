@@ -2005,7 +2005,7 @@ impl Onetrading {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privateDeleteAccountOrdersOrderId") {
-            let __ws_arg_4 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_account_orders_order_id(&[&__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);

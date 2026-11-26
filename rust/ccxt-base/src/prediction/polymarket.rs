@@ -4596,16 +4596,16 @@ if _try_result.is_err() {
 }
 
     pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
-        let message: &[Value] = &message;
         {
                         let mut i: i64 = 0;
             let mut __for_first_47: bool = true;
-            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (message.len() as i64) } {
-            let event: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (event == Value::Null) || (event == Value::Null) || (!matches!(&event, Value::Dict(_))) {
-                continue;
-            }
-            self.handle_message_event(client.clone(), event);
+            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (Value::from(&message).len() as i64) } {
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            let __ws_arg_35 = self.safe_dict(Value::from(&message), Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+            self.handle_message_event(client.clone(), __ws_arg_35);
         }
         }
 }
@@ -5066,8 +5066,8 @@ if _try_result.is_err() {
         });
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("wsUser")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let subscribeHash: String = "user".to_string();
-        let __ws_arg_35 = self.extend(Value::Map(subscribeMsg), &[params]);
-        return self.watch(url.as_deref(), messageHash, __ws_arg_35, subscribeHash.as_str(), Value::Null).await;
+        let __ws_arg_36 = self.extend(Value::Map(subscribeMsg), &[params]);
+        return self.watch(url.as_deref(), messageHash, __ws_arg_36, subscribeHash.as_str(), Value::Null).await;
 
     Value::Null
 }
@@ -5077,11 +5077,11 @@ if _try_result.is_err() {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
-        let __ws_arg_36 = self.extend(Value::Map({
+        let __ws_arg_37 = self.extend(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         }), &[event]);
-        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_36).as_ref(), None).unwrap_or_default();
+        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_37).as_ref(), None).unwrap_or_default();
         self.orders.append(Value::from(&parsed));
         client.resolve(Value::from(&self.orders), "orders");
         let outcome: Option<String> = self.safe_string_k_opt(&parsed, "outcome", &[]);
@@ -5095,11 +5095,11 @@ if _try_result.is_err() {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
-        let __ws_arg_37 = self.extend(Value::Map({
+        let __ws_arg_38 = self.extend(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         }), &[event]);
-        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_37).as_ref(), None).unwrap_or_default();
+        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_38).as_ref(), None).unwrap_or_default();
         self.myTrades.append(Value::from(&parsed));
         client.resolve(Value::from(&self.myTrades), "myTrades");
         let outcome: Option<String> = self.safe_string_k_opt(&parsed, "outcome", &[]);

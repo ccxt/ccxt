@@ -1338,7 +1338,7 @@ impl Cryptomus {
             }  else {
                 request.insert("quantity".into(), Value::from(amountToString.as_deref()));
             }
-            let __ws_arg_4 = self.extend(&request, &[&paramsMarket]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsMarket]);
             response = self.private_post_v2_user_api_exchange_orders_market(&[&__ws_arg_4]).await;
         }  else if (type_var.as_str() == Some("limit")) {
             if (price.is_none()) {

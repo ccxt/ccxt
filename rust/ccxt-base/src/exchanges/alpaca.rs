@@ -1691,7 +1691,7 @@ impl Alpaca {
             if (limit.is_some()) {
                 request.insert("limit".into(), Value::from(limit));
             }
-            let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_trades(&[&__ws_arg_1]).await.unwrap_or_default();
             //
             //    {

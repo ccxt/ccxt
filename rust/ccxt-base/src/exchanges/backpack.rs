@@ -3435,7 +3435,7 @@ impl Backpack {
         let mut response: Option<crate::value::List> = None;
         let offset: Option<i64> = self.safe_integer_k(&query, "offset", &[]).as_i64();
         if (offset.is_some()) {
-            let __ws_arg_10 = self.extend(&request, &[&query]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&query]);
             response = self.public_get_api_v1_trades_history(&[&__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
@@ -4515,7 +4515,7 @@ impl Backpack {
         }
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if rfq {
-            let __ws_arg_25 = self.extend(&query, &[&request]);
+            let __ws_arg_25 = self.extend(&query, &[Value::Map(request)]);
             response = self.private_get_wapi_v1_history_rfq(&[&__ws_arg_25]).await.unwrap_or_default();
         }  else {
             let __ws_arg_26 = self.extend(&query, &[Value::Map(request)]);

@@ -1314,7 +1314,7 @@ impl Bitbns {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
-            let __ws_arg_1 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v2_post_orders(&[&__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);

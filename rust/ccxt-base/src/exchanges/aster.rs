@@ -3154,7 +3154,7 @@ impl Aster {
             request.insert("limit".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(500), Value::Int(1000)]), Value::from(limit)));
         }
         if (market).swap {
-            let __ws_arg_10 = self.extend(&request, &[&params]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_public_get_v3_depth(&[&__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
@@ -3217,7 +3217,7 @@ impl Aster {
         });
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_12 = self.extend(&request, &[&params]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_public_get_v3_ticker24hr(&[&__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
@@ -3765,7 +3765,7 @@ impl Aster {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_22 = self.extend(&request, &[&params]);
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_private_get_v3_commission_rate(&[&__ws_arg_22]).await;
         }  else {
             let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
@@ -3846,7 +3846,7 @@ impl Aster {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.fapi_private_get_v3_order(&[&__ws_arg_24]).await;
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3896,7 +3896,7 @@ impl Aster {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.sapi_private_get_v3_open_order(&[&__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4019,7 +4019,7 @@ impl Aster {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(marketType.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-            let __ws_arg_30 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.fapi_private_get_v3_open_orders(&[&__ws_arg_30]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsSubType]);
@@ -4345,7 +4345,7 @@ impl Aster {
         });
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_33 = self.extend(&request, &[&params]);
+            let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_private_delete_v3_all_open_orders(&[&__ws_arg_33]).await;
         }  else {
             let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
@@ -4399,7 +4399,7 @@ impl Aster {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["origClientOrderId", "clientOrderId"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
-            let __ws_arg_35 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.fapi_private_delete_v3_order(&[&__ws_arg_35]).await;
         }  else {
             let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4463,7 +4463,7 @@ impl Aster {
         }
         let mut response: Option<crate::value::List> = None;
         if (market).swap {
-            let __ws_arg_37 = self.extend(&request, &[&params]);
+            let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_private_delete_v3_batch_orders(&[&__ws_arg_37]).await;
         }  else {
             let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);

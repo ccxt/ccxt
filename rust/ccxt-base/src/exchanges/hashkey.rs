@@ -1328,7 +1328,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
                 bodySigned = self.json(self.safe_list_k(params, "orders", &[])).as_str().map(str::to_owned);
                 signature = Some(self.hmac(self.encode(self.custom_urlencode(&[&Value::Map(additionalParams.clone())]).map(Value::from).unwrap_or(Value::Null)), self.encode(&self.secret), "sha256", &[]));
-                let __ws_arg_45 = self.extend(&additionalParams, &[Value::Map({
+                let __ws_arg_45 = self.extend(Value::Map(additionalParams), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::from(signature.as_deref()));
     m
@@ -2909,7 +2909,7 @@ impl Hashkey {
             if (accountId.is_some()) {
                 request.insert("accountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_3 = self.extend(&request, &[&paramsAccountId]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsAccountId]);
             response = self.private_get_api_v1_account_trades(&[&__ws_arg_3]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             if (symbol == Value::Null) {
@@ -2918,7 +2918,7 @@ impl Hashkey {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             if (accountId.is_some()) {
                 request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_4 = self.extend(&request, &[&paramsAccountId]);
+                let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsAccountId]);
                 response = self.private_get_api_v1_futures_sub_account_user_trades(&[&__ws_arg_4]).await;
             }  else {
                 let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsAccountId]);
@@ -4055,7 +4055,7 @@ impl Hashkey {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_18 = self.extend(&request, &[&params]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_api_v1_spot_batch_orders(&[&__ws_arg_18]).await;
         }  else if (market).swap {
             let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
@@ -4129,7 +4129,7 @@ impl Hashkey {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_20 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_order(&[&__ws_arg_20]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let isTriggerparamsTriggerVariable = self.handle_option_bool_and_params2(&paramsMarketType, Value::from(methodName.as_str()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
@@ -4196,7 +4196,7 @@ impl Hashkey {
         }
         let mut response: Value = Value::Null;
         if (market).spot {
-            let __ws_arg_23 = self.extend(&request, &[&params]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
             response = self.private_delete_api_v1_spot_open_orders(&[&__ws_arg_23]).await;
         }  else if (market).swap {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
@@ -4255,7 +4255,7 @@ impl Hashkey {
         let marketTypeOption: Option<String> = marketTypeOptionVariable.0.as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
         if (marketTypeOption.as_deref() == Some("spot")) {
-            response = self.private_delete_api_v1_spot_cancel_order_by_ids(&[&Value::Map(request.clone())]).await;
+            response = self.private_delete_api_v1_spot_cancel_order_by_ids(&[&Value::Map(request)]).await;
         }  else if (marketTypeOption.as_deref() == Some("swap")) {
             response = self.private_delete_api_v1_futures_cancel_order_by_ids(&[&Value::Map(request)]).await;
         }  else {
@@ -4323,7 +4323,7 @@ impl Hashkey {
             if (clientOrderId.is_some()) {
                 request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_25 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_order(&[&__ws_arg_25]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let isTriggerparamsTriggerVariable = self.handle_option_bool_and_params2(&paramsMarketType, Value::from(methodName.as_str()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]);
@@ -4447,7 +4447,7 @@ impl Hashkey {
         let paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.1;
         if (accountId.is_some()) {
             request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_28 = self.extend(&request, &[&paramsAccountId]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsAccountId]);
             response = self.private_get_api_v1_spot_sub_account_open_orders(&[&__ws_arg_28]).await;
         }  else {
             if (symbol.is_some()) {
@@ -4517,7 +4517,7 @@ impl Hashkey {
         let paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.1;
         if (accountId.is_some()) {
             request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_30 = self.extend(&request, &[&paramsAccountId]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsAccountId]);
             response = self.private_get_api_v1_futures_sub_account_open_orders(&[&__ws_arg_30]).await;
         }  else {
             let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsAccountId]);
@@ -4601,7 +4601,7 @@ impl Hashkey {
             if (accountId.is_some()) {
                 request.insert("accountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_32 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_trade_orders(&[&__ws_arg_32]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             if (symbol == Value::Null) {
@@ -4618,7 +4618,7 @@ impl Hashkey {
             }
             if (accountId.is_some()) {
                 request.insert("subAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_33 = self.extend(&request, &[&paramsTrigger]);
+                let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsTrigger]);
                 response = self.private_get_api_v1_futures_sub_account_history_orders(&[&__ws_arg_33]).await;
             }  else {
                 let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsTrigger]);

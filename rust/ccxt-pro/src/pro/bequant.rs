@@ -81,7 +81,7 @@ impl Bequant {
     pub fn describe(&self) -> crate::value::Dict {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::bequant::Bequant::new(None);
-        let restDescribe: Value = Value::Dict(restInstance.describe());
+        let restDescribe: crate::value::Dict = restInstance.describe();
         let parentWsDescribe: Value = self.parent.describe_data();
         let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
         return self.deep_extend_t(extended, &[Value::Map({

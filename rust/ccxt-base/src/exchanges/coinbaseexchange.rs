@@ -2101,7 +2101,7 @@ impl Coinbaseexchange {
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTickerMethod", &[&Value::Str("publicGetProductsIdTicker".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("publicGetProductsIdStats")) {
-            let __ws_arg_7 = self.extend(&request, &[&params]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_products_id_stats(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
@@ -2419,7 +2419,7 @@ impl Coinbaseexchange {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_none()) {
             request.insert("id".into(), id);
-            let __ws_arg_12 = self.extend(&request, &[&params]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
             response = self.call_method_o("private_get_orders_id", &[&__ws_arg_12]).await;
         }  else {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2718,7 +2718,7 @@ impl Coinbaseexchange {
         }
         let mut response: Value = Value::Null;
         if (clientOrderId.is_none()) {
-            let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders_id(&[&__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2825,10 +2825,10 @@ impl Coinbaseexchange {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (paramsWithdrawTag.contains_key("payment_method_id")) {
-            let __ws_arg_22 = self.extend(&request, &[&paramsWithdrawTag]);
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawals_payment_method(&[&__ws_arg_22]).await;
         }  else if (paramsWithdrawTag.contains_key("coinbase_account_id")) {
-            let __ws_arg_23 = self.extend(&request, &[&paramsWithdrawTag]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawals_coinbase_account(&[&__ws_arg_23]).await;
         }  else {
             request.insert("crypto_address".into(), address);
@@ -2984,7 +2984,7 @@ impl Coinbaseexchange {
         }
         let mut response: Value = Value::Null;
         if (id.is_none()) {
-            let __ws_arg_26 = self.extend(&request, &[&params]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
             let transfers: crate::value::List = self.private_get_transfers(&[&__ws_arg_26]).await.unwrap_or_default();
             //
             //    [

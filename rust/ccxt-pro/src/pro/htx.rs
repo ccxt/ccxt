@@ -384,7 +384,8 @@ impl Htx {
         m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
+        let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
         return self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
@@ -515,7 +516,8 @@ impl Htx {
         let symbolValue: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
+        let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -648,7 +650,8 @@ impl Htx {
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
+        let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
         let mut ohlcv: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -790,7 +793,8 @@ impl Htx {
         }  else {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".depth.size_").into()), Value::from(format!("{}", Value::from(limitResolved)))).into()), ".high_freq");
         }
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default(), &Value::Bool(false), &Value::Bool(true)]);
+        let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket), &Value::Bool(false), &Value::Bool(true)]);
         let mut method: Value = Value::Str("handle_order_book_subscription".into());
         let mut paramsExtended: Value = params.clone();
         if !(market).spot {
@@ -961,7 +965,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let params: indexmap::IndexMap<String, Value> = self.safe_dict_k(&subscription, "params", &[]).as_map().cloned().unwrap_or_default();
         let attempts: i64 = self.safe_integer_k(&subscription, "numAttempts", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default(), &Value::Bool(false), &Value::Bool(true)]);
+        let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket), &Value::Bool(false), &Value::Bool(true)]);
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3537,7 +3542,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (market.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unsubscribePublic() market is required")));
         }
-        let url: Option<String> = self.get_url_by_market_type(crate::value::KeyRead::key_read(&market, "type"), &[&crate::value::KeyRead::key_read(&market, "linear"), &Value::Bool(false), &Value::Bool(isFeed)]);
+        let isLinearMarket: bool = crate::value::KeyRead::key_read(&market, "linear").as_bool() == Some(true);
+        let url: Option<String> = self.get_url_by_market_type(crate::value::KeyRead::key_read(&market, "type"), &[&Value::Bool(isLinearMarket), &Value::Bool(false), &Value::Bool(isFeed)]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));

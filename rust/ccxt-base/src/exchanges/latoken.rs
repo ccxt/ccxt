@@ -2011,7 +2011,7 @@ impl Latoken {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
-            let __ws_arg_5 = self.extend(&request, &[&params]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_auth_trade_pair_currency_quote(&[&__ws_arg_5]).await.unwrap_or_default();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
@@ -2099,7 +2099,7 @@ impl Latoken {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_stop_order_pair_currency_quote_active(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2157,15 +2157,15 @@ impl Latoken {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
-                let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order_pair_currency_quote(&[&__ws_arg_9]).await;
             }  else {
-                let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_auth_order_pair_currency_quote(&[&__ws_arg_10]).await;
             }
         }  else {
             if (isTrigger == Some(true)) {
-                let __ws_arg_11 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_auth_stop_order(&[&__ws_arg_11]).await;
             }  else {
                 let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2213,7 +2213,7 @@ impl Latoken {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stop", "trigger"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (isTrigger == Some(true)) {
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_auth_stop_order_get_order_id(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2280,7 +2280,7 @@ impl Latoken {
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
-            let __ws_arg_15 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_stop_order_place(&[&__ws_arg_15]).await;
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2327,7 +2327,7 @@ impl Latoken {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stop", "trigger"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (isTrigger == Some(true)) {
-            let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_auth_stop_order_cancel(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2376,15 +2376,15 @@ impl Latoken {
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
-                let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[&__ws_arg_19]).await;
             }  else {
-                let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_auth_order_cancel_all_currency_quote(&[&__ws_arg_20]).await;
             }
         }  else {
             if (isTrigger == Some(true)) {
-                let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_auth_stop_order_cancel_all(&[&__ws_arg_21]).await;
             }  else {
                 let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2596,10 +2596,10 @@ impl Latoken {
         });
         let mut response: Option<crate::value::Dict> = None;
         if toAccount.as_str().unwrap_or("").contains("@") {
-            let __ws_arg_24 = self.extend(&request, &[&params]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_auth_transfer_email(&[&__ws_arg_24]).await;
         }  else if (Value::Int(toAccount.len() as i64).as_f64() == Some(36.0)) {
-            let __ws_arg_25 = self.extend(&request, &[&params]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_auth_transfer_id(&[&__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);

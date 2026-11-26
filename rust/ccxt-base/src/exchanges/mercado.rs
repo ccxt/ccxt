@@ -1083,10 +1083,10 @@ impl Mercado {
         let to: Option<i64> = self.safe_integer_k(&params, "to", &[]).as_i64();
         let mut response: Option<crate::value::List> = None;
         if (since.is_some()) && (to.is_some()) {
-            let __ws_arg_2 = self.extend(&request, &[&params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_coin_trades_from_to(&[&__ws_arg_2]).await;
         }  else if (since.is_some()) {
-            let __ws_arg_3 = self.extend(&request, &[&params]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_coin_trades_from(&[&__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
@@ -1162,10 +1162,10 @@ impl Mercado {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), Value::from(price))));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
             if (side.as_str() == Some("buy")) {
-                let __ws_arg_5 = self.extend(&request, &[&params]);
+                let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_post_place_buy_order(&[&__ws_arg_5]).await;
             }  else {
-                let __ws_arg_6 = self.extend(&request, &[&params]);
+                let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_post_place_sell_order(&[&__ws_arg_6]).await;
             }
         }  else {
@@ -1176,7 +1176,7 @@ impl Mercado {
                 let amountString: Option<String> = self.number_to_string(amount);
                 let priceString: Option<String> = self.number_to_string(price);
                 request.insert("cost".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
-                let __ws_arg_7 = self.extend(&request, &[&params]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_post_place_market_buy_order(&[&__ws_arg_7]).await;
             }  else {
                 request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));

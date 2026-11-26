@@ -1653,7 +1653,7 @@ impl Bithumb {
         let paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.1;
         if (generation == Some(2)) {
             request.insert("isDetails".into(), Value::Bool(true));
-            let __ws_arg_0 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsGeneration]);
             let response: crate::value::List = self.public_get_v1_market_all(&[&__ws_arg_0]).await.unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -2007,7 +2007,7 @@ impl Bithumb {
         let mut timestamp: Option<i64> = None;
         if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_3 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsGeneration]);
             let response: crate::value::List = self.public_get_v1_orderbook(&[&__ws_arg_3]).await.unwrap_or_default();
             //
             //     [
@@ -2389,7 +2389,7 @@ impl Bithumb {
         });
         if (generation == Some(2)) {
             request.insert("markets".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_8 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsGeneration]);
             let response: crate::value::List = self.public_get_v1_ticker(&[&__ws_arg_8]).await.unwrap_or_default();
             //
             //     [
@@ -2538,13 +2538,13 @@ impl Bithumb {
                 request.insert("to".into(), self.ymdhms(Value::from((if let Some(__m0) = to { Some((__m0 + 32400000)) } else { None })), &[Value::Str(" ".into())]));
             }
             if (timeframe.as_str() == Some("1d")) {
-                let __ws_arg_11 = self.extend(&request, &[&requestParams]);
+                let __ws_arg_11 = self.extend(Value::Map(request), &[&requestParams]);
                 response = self.call_method(Value::Str("public_get_v1_candles_days".into()), &[&__ws_arg_11]).await;
             }  else if (timeframe.as_str() == Some("1w")) {
-                let __ws_arg_12 = self.extend(&request, &[&requestParams]);
+                let __ws_arg_12 = self.extend(Value::Map(request), &[&requestParams]);
                 response = self.call_method(Value::Str("public_get_v1_candles_weeks".into()), &[&__ws_arg_12]).await;
             }  else if (timeframe.as_str() == Some("1M")) {
-                let __ws_arg_13 = self.extend(&request, &[&requestParams]);
+                let __ws_arg_13 = self.extend(Value::Map(request), &[&requestParams]);
                 response = self.call_method(Value::Str("public_get_v1_candles_months".into()), &[&__ws_arg_13]).await;
             }  else {
                 let timeframeInteger: Option<i64> = self.safe_integer(&self.timeframes, &timeframe, &[]).as_i64();
@@ -2552,7 +2552,7 @@ impl Bithumb {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() unsupported timeframe ").into()), timeframe)));
                 }
                 request.insert("unit".into(), Value::from(timeframeInteger));
-                let __ws_arg_14 = self.extend(&request, &[&requestParams]);
+                let __ws_arg_14 = self.extend(Value::Map(request), &[&requestParams]);
                 response = self.call_method(Value::Str("public_get_v1_candles_minutes_unit".into()), &[&__ws_arg_14]).await;
             }
             //
@@ -2665,7 +2665,7 @@ impl Bithumb {
         let mut data: Value = Value::from(vec![]);
         if (generation == Some(2)) {
             request.insert("market".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_16 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsGeneration]);
             let response: Value = self.call_method(Value::Str("public_get_v1_trades_ticks".into()), &[&__ws_arg_16]).await;
             //
             //     [
@@ -2935,7 +2935,7 @@ impl Bithumb {
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
             request = std::sync::Arc::unwrap_or_clone(self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), price, &[&Value::from(&paramsGeneration)]));
-            response = self.private_post_v2_orders(&[&Value::Map(request.clone())]).await;
+            response = self.private_post_v2_orders(&[&Value::Map(request)]).await;
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
             request.insert("payment_currency".into(), Value::from((market).quote.clone()));
@@ -2949,10 +2949,10 @@ impl Bithumb {
                     typeRequest = Some("ask".to_string());
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_19 = self.extend(&request, &[&paramsGeneration]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsGeneration]);
                 response = self.private_post_trade_place(&[&__ws_arg_19]).await;
             }  else if (side.as_str() == Some("buy")) {
-                let __ws_arg_20 = self.extend(&request, &[&paramsGeneration]);
+                let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsGeneration]);
                 response = self.private_post_trade_market_buy(&[&__ws_arg_20]).await;
             }  else {
                 let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsGeneration]);
@@ -3126,7 +3126,7 @@ impl Bithumb {
                     request.insert("market".into(), self.get_gen2_market_id(market.as_ref()).map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
-                let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_v1_twap(&[&__ws_arg_25]).await;
                 //
                 //     {
@@ -3165,7 +3165,7 @@ impl Bithumb {
                 }  else {
                     request.insert("uuid".into(), id.clone());
                 }
-                let __ws_arg_26 = self.extend(&request, &[&paramsClientOrderId]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsClientOrderId]);
                 response = self.private_get_v1_order(&[&__ws_arg_26]).await;
                 //
                 //     {
@@ -3391,7 +3391,7 @@ impl Bithumb {
         }
         let mut data: Value = Value::Null;
         if twap {
-            let __ws_arg_30 = self.extend(&request, &[&paramsRequest]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsRequest]);
             let response: crate::value::Dict = self.private_get_v1_twap(&[&__ws_arg_30]).await.unwrap_or_default();
             //
             //     {
@@ -3579,10 +3579,10 @@ impl Bithumb {
         }
         if (generation == Some(2)) {
             if twap {
-                let __ws_arg_32 = self.extend(&request, &[&paramsRequest]);
+                let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsRequest]);
                 response = self.private_delete_v1_twap(&[&__ws_arg_32]).await;
             }  else {
-                let __ws_arg_33 = self.extend(&request, &[&paramsRequest]);
+                let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsRequest]);
                 response = self.private_delete_v2_order(&[&__ws_arg_33]).await;
             }
         }  else {
@@ -3805,7 +3805,7 @@ impl Bithumb {
                 if (receiverType.is_some()) {
                     request.insert("receiver_type".into(), Value::from(receiverType.as_deref()));
                 }
-                let __ws_arg_41 = self.extend(&request, &[&paramsReceiverType]);
+                let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsReceiverType]);
                 response = self.private_post_v1_withdraws_coin(&[&__ws_arg_41]).await;
             }
         }  else {
@@ -3992,7 +3992,7 @@ impl Bithumb {
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.as_str()));
-            let __ws_arg_44 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_get_v1_withdraws_krw(&[&__ws_arg_44]).await;
         }  else {
             if (code != Value::Null) {
@@ -4104,7 +4104,7 @@ impl Bithumb {
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.as_str()));
-            let __ws_arg_47 = self.extend(&request, &[&paramsGeneration]);
+            let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsGeneration]);
             response = self.private_get_v1_deposits_krw(&[&__ws_arg_47]).await;
         }  else {
             if (code != Value::Null) {

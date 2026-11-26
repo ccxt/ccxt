@@ -1525,7 +1525,7 @@ impl Lighter {
         });
         if (type_var.as_deref() == Some("spot")) {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_assets/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
-            let __ws_arg_15 = self.extend(&request, &[&paramsAccountIndex]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
             return self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_15]).await;
         }  else {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("user_stats/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));

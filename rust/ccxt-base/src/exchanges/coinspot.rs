@@ -1484,7 +1484,7 @@ impl Coinspot {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (sideUpper == "BUY") {
-            let __ws_arg_3 = self.extend(&request, &[&params]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_my_buy(&[&__ws_arg_3]).await;
         }  else if (sideUpper == "SELL") {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
@@ -1533,7 +1533,7 @@ impl Coinspot {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (side.as_deref() == Some("buy")) {
-            let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_my_buy_cancel(&[&__ws_arg_5]).await;
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);

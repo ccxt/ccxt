@@ -4065,7 +4065,7 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_15 = self.extend(&request, &[&paramsUsePrivate]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
             response = self.call_method_o("v3_private_get_brokerage_products", &[&__ws_arg_15]).await;
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
@@ -4221,7 +4221,7 @@ if _try_result.is_err() {
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if usePrivate {
-            let __ws_arg_17 = self.extend(&request, &[&paramsUsePrivate]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
             response = self.v3_private_get_brokerage_products_product_id_ticker(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
@@ -4402,7 +4402,7 @@ if _try_result.is_err() {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchBalance", &[&Value::Str("v3PrivateGetBrokerageAccounts".into())]);
         if (marketType.as_deref() == Some("future")) || (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_19 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.v3_private_get_brokerage_cfm_balance_summary(&[&__ws_arg_19]).await;
         }  else if isV3 || (method.as_deref() == Some("v3PrivateGetBrokerageAccounts")) {
             request.insert("limit".into(), Value::Int(250));
@@ -4901,7 +4901,7 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if preview {
             request = self.omit(Value::Map(std::mem::take(&mut request)), Value::Str("client_order_id".into()), &[]).as_map().cloned().unwrap_or_default();
-            let __ws_arg_26 = self.extend(&request, &[self.omit(&paramsOmitted, &["preview", "test"], &[])]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["preview", "test"], &[])]);
             response = self.v3_private_post_brokerage_orders_preview(&[&__ws_arg_26]).await;
         }  else {
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5146,7 +5146,7 @@ if _try_result.is_err() {
         let preview: bool = self.safe_bool2_opt(&params, Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::Dict> = None;
         if preview {
-            let __ws_arg_29 = self.extend(&request, &[self.omit(params, &["preview", "test"], &[])]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[self.omit(params, &["preview", "test"], &[])]);
             response = self.v3_private_post_brokerage_orders_edit_preview(&[&__ws_arg_29]).await;
         }  else {
             let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
@@ -5625,7 +5625,7 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_37 = self.extend(&request, &[&paramsUsePrivate]);
+            let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
             response = self.v3_private_get_brokerage_products_product_id_candles(&[&__ws_arg_37]).await;
         }  else {
             let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
@@ -5703,7 +5703,7 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_39 = self.extend(&request, &[&paramsUsePrivate]);
+            let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
             response = self.v3_private_get_brokerage_products_product_id_ticker(&[&__ws_arg_39]).await;
         }  else {
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
@@ -5868,7 +5868,7 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_43 = self.extend(&request, &[&paramsUsePrivate]);
+            let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
             response = self.v3_private_get_brokerage_product_book(&[&__ws_arg_43]).await;
         }  else {
             let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsUsePrivate]);

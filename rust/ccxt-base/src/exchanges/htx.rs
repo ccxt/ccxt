@@ -5682,14 +5682,14 @@ impl Htx {
         if !isSpot {
             if (subTypeStr.as_deref() == Some("linear")) {
                 request.insert("business_type".into(), Value::Str("all".into())); // override default to fetch all linear markets
-                let __ws_arg_2 = self.extend(&request, &[&params]);
+                let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_linear_swap_api_v1_swap_contract_info(&[&__ws_arg_2]).await;
             }  else if (subTypeStr.as_deref() == Some("inverse")) {
                 if (typeStr.as_deref() == Some("future")) {
-                    let __ws_arg_3 = self.extend(&request, &[&params]);
+                    let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
                     response = self.contract_public_get_api_v1_contract_contract_info(&[&__ws_arg_3]).await;
                 }  else if (typeStr.as_deref() == Some("swap")) {
-                    let __ws_arg_4 = self.extend(&request, &[&params]);
+                    let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
                     response = self.contract_public_get_swap_api_v1_swap_contract_info(&[&__ws_arg_4]).await;
                 }
             }
@@ -6119,16 +6119,16 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_6 = self.extend(&request, &[&params]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_linear_swap_ex_market_detail_merged(&[&__ws_arg_6]).await;
         }  else if ((market).inverse == Some(true)) {
             if (market).future {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_7 = self.extend(&request, &[&params]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_market_detail_merged(&[&__ws_arg_7]).await;
             }  else if (market).swap {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_8 = self.extend(&request, &[&params]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_swap_ex_market_detail_merged(&[&__ws_arg_8]).await;
             }
         }  else {
@@ -6248,14 +6248,14 @@ impl Htx {
                 }  else {
                     request.insert("business_type".into(), Value::Str("all".into()));
                 }
-                let __ws_arg_10 = self.extend(&request, &[&paramsSubType]);
+                let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsSubType]);
                 response = self.contract_public_get_linear_swap_ex_market_detail_batch_merged(&[&__ws_arg_10]).await;
             }  else if inverse {
                 if future {
-                    let __ws_arg_11 = self.extend(&request, &[&paramsSubType]);
+                    let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsSubType]);
                     response = self.contract_public_get_market_detail_batch_merged(&[&__ws_arg_11]).await;
                 }  else if swap {
-                    let __ws_arg_12 = self.extend(&request, &[&paramsSubType]);
+                    let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSubType]);
                     response = self.contract_public_get_swap_ex_market_detail_batch_merged(&[&__ws_arg_12]).await;
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers() you have to set params[\"type\"] to either \"swap\" or \"future\" for inverse contracts")));
@@ -6409,16 +6409,16 @@ impl Htx {
         let mut response: Value = Value::Null;
         if ((market).linear == Some(true)) {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_14 = self.extend(&request, &[&params]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_linear_swap_ex_market_depth(&[&__ws_arg_14]).await;
         }  else if ((market).inverse == Some(true)) {
             if (market).future {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_15 = self.extend(&request, &[&params]);
+                let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_market_depth(&[&__ws_arg_15]).await;
             }  else if (market).swap {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_16 = self.extend(&request, &[&params]);
+                let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_swap_ex_market_depth(&[&__ws_arg_16]).await;
             }
         }  else {
@@ -6798,20 +6798,20 @@ impl Htx {
         if (market).future {
             if ((market).inverse == Some(true)) {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_23 = self.extend(&request, &[&params]);
+                let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_market_history_trade(&[&__ws_arg_23]).await;
             }  else if ((market).linear == Some(true)) {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
-                let __ws_arg_24 = self.extend(&request, &[&params]);
+                let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_linear_swap_ex_market_history_trade(&[&__ws_arg_24]).await;
             }
         }  else if (market).swap {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             if ((market).inverse == Some(true)) {
-                let __ws_arg_25 = self.extend(&request, &[&params]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_swap_ex_market_history_trade(&[&__ws_arg_25]).await;
             }  else if ((market).linear == Some(true)) {
-                let __ws_arg_26 = self.extend(&request, &[&params]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
                 response = self.contract_public_get_linear_swap_ex_market_history_trade(&[&__ws_arg_26]).await;
             }
         }  else {
@@ -6952,29 +6952,29 @@ impl Htx {
             if ((market).inverse == Some(true)) {
                 request.insert("symbol".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_28 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_mark_price_kline(&[&__ws_arg_28]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
-                    let __ws_arg_29 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_index(&[&__ws_arg_29]).await;
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else {
-                    let __ws_arg_30 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_market_history_kline(&[&__ws_arg_30]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 request.insert("contract_code".into(), Value::from((market).id.as_deref()));
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_31 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[&__ws_arg_31]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_32 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[&__ws_arg_32]).await;
                 }  else {
-                    let __ws_arg_33 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_linear_swap_ex_market_history_kline(&[&__ws_arg_33]).await;
                 }
             }
@@ -6982,28 +6982,28 @@ impl Htx {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             if ((market).inverse == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_34 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_swap_mark_price_kline(&[&__ws_arg_34]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_35 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_swap_premium_index_kline(&[&__ws_arg_35]).await;
                 }  else {
-                    let __ws_arg_36 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_swap_ex_market_history_kline(&[&__ws_arg_36]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_37 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[&__ws_arg_37]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), marketType).into()), " has no api endpoint for ").into()), priceType.as_deref().unwrap_or("null")).into()), " kline data")));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_38 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[&__ws_arg_38]).await;
                 }  else {
-                    let __ws_arg_39 = self.extend(&request, &[&paramsUntil]);
+                    let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsUntil]);
                     response = self.contract_public_get_linear_swap_ex_market_history_kline(&[&__ws_arg_39]).await;
                 }
             }
@@ -7016,7 +7016,7 @@ impl Htx {
                 if (limit.is_some()) {
                     request.insert("size".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(2000))); // max 2000
                 }
-                let __ws_arg_40 = self.extend(&request, &[&paramsHistorical]);
+                let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsHistorical]);
                 response = self.spot_public_get_market_history_kline(&[&__ws_arg_40]).await;
             }  else {
                 // "from & to" only available for the this endpoint
@@ -7318,27 +7318,27 @@ impl Htx {
         let margin: bool = ((type_var.as_deref() == Some("margin")) || (spot && (cross || isolated)));
         let mut response: Option<crate::value::Dict> = None;
         if isMultiAssetMode || (linear && (swap || future)) {
-            let __ws_arg_42 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.contract_private_get_v5_account_balance(&[&__ws_arg_42]).await;
         }  else if spot || margin {
             if margin {
                 if isolated {
-                    let __ws_arg_43 = self.extend(&request, &[&paramsMarginMode]);
+                    let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsMarginMode]);
                     response = self.spot_private_get_v1_margin_accounts_balance(&[&__ws_arg_43]).await;
                 }  else {
-                    let __ws_arg_44 = self.extend(&request, &[&paramsMarginMode]);
+                    let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsMarginMode]);
                     response = self.spot_private_get_v1_cross_margin_accounts_balance(&[&__ws_arg_44]).await;
                 }
             }  else {
                 self.load_accounts(&[]).await;
                 let accountId: Option<String> = self.fetch_account_id_by_type("spot", None, None, &[&Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
                 request.insert("account-id".into(), accountId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_45 = self.extend(&request, &[&paramsMarginMode]);
+                let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsMarginMode]);
                 response = self.spot_private_get_v1_account_accounts_account_id_balance(&[&__ws_arg_45]).await;
             }
         }  else if inverse {
             if future {
-                let __ws_arg_46 = self.extend(&request, &[&paramsMarginMode]);
+                let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsMarginMode]);
                 response = self.contract_private_post_api_v1_contract_account_info(&[&__ws_arg_46]).await;
             }  else {
                 let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsMarginMode]);
@@ -7486,13 +7486,13 @@ impl Htx {
         //         "ts": 1770293281344
         //     }
         //
-        let finalResponse: Value = response.clone().map_or(Value::Null, Value::Dict);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), finalResponse);
+                m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
             m
         });
-        let data: Value = self.safe_value_k(&response, "data", &[]);
+        let dataRows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         if isMultiAssetMode || (linear && (swap || future)) {
             let details: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "details"));
             {
@@ -7516,8 +7516,8 @@ impl Htx {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_12: bool = true;
-                    while { if !__for_first_12 { i += 1; } __for_first_12 = false; (i as f64) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                    while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (dataRows.len() as i64) } {
+                    let entry: crate::value::Dict = dataRows.get(i as usize).cloned().unwrap_or_default();
                     let balances: crate::value::List = self.safe_list_k_t(&entry, "list");
                     let mut subResult: indexmap::IndexMap<String, Value> = ({
                         let m = indexmap::IndexMap::new();
@@ -7567,8 +7567,8 @@ impl Htx {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_14: bool = true;
-                while { if !__for_first_14 { i += 1; } __for_first_14 = false; (i as f64) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (dataRows.len() as i64) } {
+                let balance: crate::value::Dict = dataRows.get(i as usize).cloned().unwrap_or_default();
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "symbol", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut account: crate::value::Dict = self.account();
@@ -7638,11 +7638,11 @@ impl Htx {
                 // will be filled below in extend ()
                 // they expect clientOrderId instead of client-order-id
                 // request['clientOrderId'] = clientOrderId;
-                let __ws_arg_48 = self.extend(&request, &[&paramsMarketType]);
+                let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 response = self.spot_private_get_v1_order_orders_get_client_order(&[&__ws_arg_48]).await;
             }  else {
                 request.insert("order-id".into(), id);
-                let __ws_arg_49 = self.extend(&request, &[&paramsMarketType]);
+                let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 response = self.spot_private_get_v1_order_orders_order_id(&[&__ws_arg_49]).await;
             }
         }  else {
@@ -7681,7 +7681,7 @@ impl Htx {
                     }  else if takeProfit {
                         request.insert("type".into(), Value::Str("tp".into()));
                     }
-                    let __ws_arg_50 = self.extend(&request, &[&paramsClientOrderId]);
+                    let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsClientOrderId]);
                     response = self.contract_private_get_v5_algo_order(&[&__ws_arg_50]).await;
                 }  else {
                     if (symbol == Value::Null) {
@@ -7692,13 +7692,13 @@ impl Htx {
                     let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
                     let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
                     request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
-                    let __ws_arg_51 = self.extend(&request, &[&paramsMarginMode]);
+                    let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsMarginMode]);
                     response = self.contract_private_get_v5_trade_order(&[&__ws_arg_51]).await;
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (marketType.as_deref() == Some("future")) {
                     request.insert("symbol".into(), self.safe_string_k(&market, "settleId", &[]));
-                    let __ws_arg_52 = self.extend(&request, &[&paramsClientOrderId]);
+                    let __ws_arg_52 = self.extend(Value::Map(request), &[&paramsClientOrderId]);
                     response = self.contract_private_post_api_v1_contract_order_info(&[&__ws_arg_52]).await;
                 }  else if (marketType.as_deref() == Some("swap")) {
                     request.insert("contract_code".into(), self.safe_string_k(&market, "id", &[]));
@@ -8348,7 +8348,7 @@ impl Htx {
                 request.insert("size".into(), Value::from(limit));
             }
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("account-id".into()), &[]);
-            let __ws_arg_69 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_69 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_private_get_v1_order_open_orders(&[&__ws_arg_69]).await;
         }  else {
             if (symbol != Value::Null) {
@@ -8381,37 +8381,37 @@ impl Htx {
                     }  else if takeProfit {
                         request.insert("type".into(), Value::Str("tp".into()));
                     }
-                    let __ws_arg_70 = self.extend(&request, &[&paramsOmitted]);
+                    let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsOmitted]);
                     response = self.contract_private_get_v5_algo_order_opens(&[&__ws_arg_70]).await;
                 }  else {
-                    let __ws_arg_71 = self.extend(&request, &[&paramsOmitted]);
+                    let __ws_arg_71 = self.extend(Value::Map(request), &[&paramsOmitted]);
                     response = self.contract_private_get_v5_trade_order_opens(&[&__ws_arg_71]).await;
                 }
             }  else if (subType.as_deref() == Some("inverse")) {
                 if (marketType.as_deref() == Some("swap")) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_72 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_72 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_openorders(&[&__ws_arg_72]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_73 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_openorders(&[&__ws_arg_73]).await;
                     }  else if trailing {
-                        let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_74 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_track_openorders(&[&__ws_arg_74]).await;
                     }  else {
-                        let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_openorders(&[&__ws_arg_75]).await;
                     }
                 }  else if (marketType.as_deref() == Some("future")) {
                     request.insert("symbol".into(), self.safe_string_k(&market, "settleId", &[Value::Str("usdt".into())]));
                     if (trigger == Some(true)) {
-                        let __ws_arg_76 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_trigger_openorders(&[&__ws_arg_76]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_77 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_tpsl_openorders(&[&__ws_arg_77]).await;
                     }  else if trailing {
-                        let __ws_arg_78 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_track_openorders(&[&__ws_arg_78]).await;
                     }  else {
                         let __ws_arg_79 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -9480,7 +9480,7 @@ impl Htx {
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 request.insert("orders_data".into(), Value::Arr(ordersRequests));
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-                    response = self.contract_private_post_swap_api_v1_swap_batchorder(&[&Value::Map(request.clone())]).await;
+                    response = self.contract_private_post_swap_api_v1_swap_batchorder(&[&Value::Map(request)]).await;
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     response = self.contract_private_post_api_v1_contract_batchorder(&[&Value::Map(request)]).await;
                 }
@@ -9624,12 +9624,12 @@ impl Htx {
             let clientOrderId: Option<String> = self.safe_string2_opt(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
             if (clientOrderId.is_none()) {
                 request.insert("order-id".into(), id.clone());
-                let __ws_arg_82 = self.extend(&request, &[&query]);
+                let __ws_arg_82 = self.extend(Value::Map(request), &[&query]);
                 response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[&__ws_arg_82]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 query = self.omit_t(Value::Dict(query), &["client-order-id", "clientOrderId"], &[]);
-                let __ws_arg_83 = self.extend(&request, &[&query]);
+                let __ws_arg_83 = self.extend(Value::Map(request), &[&query]);
                 response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[&__ws_arg_83]).await;
             }
         }  else {
@@ -9667,33 +9667,33 @@ impl Htx {
                     let requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
                     response = self.contract_private_post_v5_algo_cancel_orders(&[&requestBody]).await;
                 }  else {
-                    let __ws_arg_84 = self.extend(&request, &[&query]);
+                    let __ws_arg_84 = self.extend(Value::Map(request), &[&query]);
                     response = self.contract_private_post_v5_trade_cancel_order(&[&__ws_arg_84]).await;
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_85 = self.extend(&request, &[&query]);
+                        let __ws_arg_85 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[&__ws_arg_85]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
-                        let __ws_arg_86 = self.extend(&request, &[&query]);
+                        let __ws_arg_86 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[&__ws_arg_86]).await;
                     }  else if trailing {
-                        let __ws_arg_87 = self.extend(&request, &[&query]);
+                        let __ws_arg_87 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[&__ws_arg_87]).await;
                     }  else {
-                        let __ws_arg_88 = self.extend(&request, &[&query]);
+                        let __ws_arg_88 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[&__ws_arg_88]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_89 = self.extend(&request, &[&query]);
+                        let __ws_arg_89 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[&__ws_arg_89]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
-                        let __ws_arg_90 = self.extend(&request, &[&query]);
+                        let __ws_arg_90 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[&__ws_arg_90]).await;
                     }  else if trailing {
-                        let __ws_arg_91 = self.extend(&request, &[&query]);
+                        let __ws_arg_91 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_track_cancel(&[&__ws_arg_91]).await;
                     }  else {
                         let __ws_arg_92 = self.extend(Value::Map(request), &[&query]);
@@ -9835,7 +9835,7 @@ impl Htx {
                 request.insert("client-order-ids".into(), clientOrderIds);
                 query = self.omit_t(Value::Dict(query), &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
             }
-            let __ws_arg_94 = self.extend(&request, &[&query]);
+            let __ws_arg_94 = self.extend(Value::Map(request), &[&query]);
             response = self.spot_private_post_v1_order_orders_batchcancel(&[&__ws_arg_94]).await;
         }  else {
             if (symbol == Value::Null) {
@@ -9866,26 +9866,26 @@ impl Htx {
                         request.insert("client_order_id".into(), clientOrderIds);
                     }
                 }
-                let __ws_arg_95 = self.extend(&request, &[&query]);
+                let __ws_arg_95 = self.extend(Value::Map(request), &[&query]);
                 response = self.contract_private_post_v5_trade_cancel_batch_orders(&[&__ws_arg_95]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_96 = self.extend(&request, &[&query]);
+                        let __ws_arg_96 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[&__ws_arg_96]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_97 = self.extend(&request, &[&query]);
+                        let __ws_arg_97 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[&__ws_arg_97]).await;
                     }  else {
-                        let __ws_arg_98 = self.extend(&request, &[&query]);
+                        let __ws_arg_98 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[&__ws_arg_98]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_99 = self.extend(&request, &[&query]);
+                        let __ws_arg_99 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[&__ws_arg_99]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_100 = self.extend(&request, &[&query]);
+                        let __ws_arg_100 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[&__ws_arg_100]).await;
                     }  else {
                         let __ws_arg_101 = self.extend(Value::Map(request), &[&query]);
@@ -10129,7 +10129,7 @@ impl Htx {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
-            let __ws_arg_102 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.spot_private_post_v1_order_orders_batch_cancel_open_orders(&[&__ws_arg_102]).await;
             //
             //     {
@@ -10160,32 +10160,32 @@ impl Htx {
             let trailing: bool = self.safe_bool_k_opt(&paramsMarketType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger"], &[]);
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                let __ws_arg_103 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_103 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.contract_private_post_v5_trade_cancel_all_orders(&[&__ws_arg_103]).await;
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_104 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_104 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancelall(&[&__ws_arg_104]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_105 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_105 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancelall(&[&__ws_arg_105]).await;
                     }  else if trailing {
-                        let __ws_arg_106 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_106 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_track_cancelall(&[&__ws_arg_106]).await;
                     }  else {
-                        let __ws_arg_107 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_107 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_swap_api_v1_swap_cancelall(&[&__ws_arg_107]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_108 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_108 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancelall(&[&__ws_arg_108]).await;
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_109 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_109 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancelall(&[&__ws_arg_109]).await;
                     }  else if trailing {
-                        let __ws_arg_110 = self.extend(&request, &[&paramsOmitted]);
+                        let __ws_arg_110 = self.extend(Value::Map(request), &[&paramsOmitted]);
                         response = self.contract_private_post_api_v1_contract_track_cancelall(&[&__ws_arg_110]).await;
                     }  else {
                         let __ws_arg_111 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -10722,21 +10722,21 @@ impl Htx {
             let mut type_var: Option<String> = Some(format!("{}{}", Value::Str(format!("{}{}", fromAccountIdStr, "-to-").into()), toAccountIdStr));
             type_var = self.safe_string_k_opt(&paramsSubType, "type", &[&type_var]);
             request.insert("type".into(), type_var.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_118 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_118 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.spot_private_post_v1_futures_transfer(&[&__ws_arg_118]).await;
         }  else if fromSpot && toCross {
-            let __ws_arg_119 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_119 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_post_cross_margin_transfer_in(&[&__ws_arg_119]).await;
         }  else if fromCross && toSpot {
-            let __ws_arg_120 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_120 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_post_cross_margin_transfer_out(&[&__ws_arg_120]).await;
         }  else if fromSpot && toIsolated {
             request.insert("symbol".into(), toAccountId);
-            let __ws_arg_121 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_121 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_post_dw_transfer_in_margin(&[&__ws_arg_121]).await;
         }  else if fromIsolated && toSpot {
             request.insert("symbol".into(), fromAccountId);
-            let __ws_arg_122 = self.extend(&request, &[&paramsSubType]);
+            let __ws_arg_122 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_post_dw_transfer_out_margin(&[&__ws_arg_122]).await;
         }  else {
             let mut query: crate::value::Dict = std::sync::Arc::clone(&paramsSubType);
@@ -11021,7 +11021,7 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse == Some(true)) {
-            let __ws_arg_125 = self.extend(&request, &[&paramsPaginate]);
+            let __ws_arg_125 = self.extend(Value::Map(request), &[&paramsPaginate]);
             response = self.contract_public_get_swap_api_v1_swap_historical_funding_rate(&[&__ws_arg_125]).await;
         }  else if ((market).linear == Some(true)) {
             let (__until0, __until1) = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsPaginate, &[]);
@@ -11131,7 +11131,7 @@ impl Htx {
         });
         let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse == Some(true)) {
-            let __ws_arg_127 = self.extend(&request, &[&params]);
+            let __ws_arg_127 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_swap_api_v1_swap_funding_rate(&[&__ws_arg_127]).await;
         }  else if ((market).linear == Some(true)) {
             let __ws_arg_128 = self.extend(Value::Map(request), &[&params]);
@@ -11276,7 +11276,7 @@ impl Htx {
                 market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
-            let __ws_arg_130 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_130 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.private_get_margin_loan_orders(&[&__ws_arg_130]).await;
         }  else {
             if (code != Value::Null) {
@@ -11513,11 +11513,11 @@ impl Htx {
             let marginModeVariable = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[&params, &Value::Str("cross".into())]);
             let marginMode: Option<String> = marginModeVariable.0.as_str().map(str::to_owned);
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_135 = self.extend(&request, &[&query]);
+            let __ws_arg_135 = self.extend(Value::Map(request), &[&query]);
             response = self.contract_private_post_v5_position_lever(&[&__ws_arg_135]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
-                let __ws_arg_136 = self.extend(&request, &[&query]);
+                let __ws_arg_136 = self.extend(Value::Map(request), &[&query]);
                 response = self.contract_private_post_api_v1_contract_switch_lever_rate(&[&__ws_arg_136]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_137 = self.extend(Value::Map(request), &[&query]);
@@ -11663,11 +11663,11 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            let __ws_arg_139 = self.extend(&request, &[&query]);
+            let __ws_arg_139 = self.extend(Value::Map(request), &[&query]);
             response = self.contract_private_get_v5_trade_position_opens(&[&__ws_arg_139]).await;
         }  else {
             if (marketType.as_deref() == Some("future")) {
-                let __ws_arg_140 = self.extend(&request, &[&query]);
+                let __ws_arg_140 = self.extend(Value::Map(request), &[&query]);
                 response = self.contract_private_post_api_v1_contract_account_position_info(&[&__ws_arg_140]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
                 let __ws_arg_141 = self.extend(Value::Map(request), &[&query]);
@@ -11948,14 +11948,14 @@ impl Htx {
             request.insert("contract_type".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "contract_type", &[]));
             request.insert("symbol".into(), Value::from((market).base_id.as_deref())); // currency code on coin-m futures
             // coin-m futures
-            let __ws_arg_144 = self.extend(&request, &[&params]);
+            let __ws_arg_144 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_api_v1_contract_his_open_interest(&[&__ws_arg_144]).await;
         }  else if ((market).linear == Some(true)) {
             request.insert("contract_type".into(), Value::Str("swap".into()));
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
             // USDT-M
-            let __ws_arg_145 = self.extend(&request, &[&params]);
+            let __ws_arg_145 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_linear_swap_api_v1_swap_his_open_interest(&[&__ws_arg_145]).await;
         }  else {
             request.insert("contract_code".into(), Value::from((market).id.as_deref()));
@@ -12075,7 +12075,7 @@ impl Htx {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("future")) {
-            let __ws_arg_147 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_147 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.contract_public_get_api_v1_contract_open_interest(&[&__ws_arg_147]).await;
         }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_148 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -12128,11 +12128,11 @@ impl Htx {
             request.insert("contract_type".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "contract_type", &[]));
             request.insert("symbol".into(), Value::from((market).base_id.as_deref()));
             // COIN-M futures
-            let __ws_arg_149 = self.extend(&request, &[&params]);
+            let __ws_arg_149 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_api_v1_contract_open_interest(&[&__ws_arg_149]).await;
         }  else if ((market).linear == Some(true)) {
             // USDT-M swaps
-            let __ws_arg_150 = self.extend(&request, &[&params]);
+            let __ws_arg_150 = self.extend(Value::Map(request), &[&params]);
             response = self.contract_public_get_v5_market_open_interest(&[&__ws_arg_150]).await;
         }  else {
             // COIN-M swaps
@@ -12961,7 +12961,7 @@ impl Htx {
             let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
             let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_164 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_164 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.contract_private_post_v5_trade_position(&[&__ws_arg_164]).await;
         }  else {
             self.check_required_argument(Value::Str("closePosition".into()), &side, Value::Str("side".into()), &[]);
@@ -12973,7 +12973,7 @@ impl Htx {
             request.insert("direction".into(), side);
             let paramsVolume: crate::value::Dict = self.omit_t(&paramsOmitted, &["volume", "amount"], &[]);
             if (market).swap {
-                let __ws_arg_165 = self.extend(&request, &[&paramsVolume]);
+                let __ws_arg_165 = self.extend(Value::Map(request), &[&paramsVolume]);
                 response = self.contract_private_post_swap_api_v1_swap_lightning_close_position(&[&__ws_arg_165]).await;
             }  else {
                 let __ws_arg_166 = self.extend(Value::Map(request), &[&paramsVolume]);

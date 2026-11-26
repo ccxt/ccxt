@@ -2100,11 +2100,11 @@ impl Hitbtc {
             if ((match &(result) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && !(__pro_message.contains_key("id")) {
                 self.handle_authenticate(&client.as_value(), message);
             }
-            if (matches!(&result, Value::Arr(_))) {
+            let rows: Option<crate::value::List> = (match __pro_message.get("result").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
+            if (rows.is_some()) {
                 // to do improve this, not very reliable right now
-                let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
-                let rows: crate::value::List = __pro_message.key_list("result");
-                let arrayLength: i64 = rows.len() as i64;
+                let first: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(0));
+                let arrayLength: i64 = rows.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
                     self.handle_order_request(&client.as_value(), message);
                 }

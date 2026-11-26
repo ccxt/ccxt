@@ -1953,10 +1953,10 @@ impl Deepcoin {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (price.as_deref() == Some("mark")) {
-            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_deepcoin_market_mark_price_candles(&[&__ws_arg_9]).await;
         }  else if (price.as_deref() == Some("index")) {
-            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_deepcoin_market_index_candles(&[&__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3263,7 +3263,7 @@ impl Deepcoin {
             //         ]
             //     }
             //
-            let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_deepcoin_trade_trigger_orders_history(&[&__ws_arg_25]).await;
         }  else {
             //
@@ -3481,7 +3481,7 @@ impl Deepcoin {
             //         ]
             //     }
             //
-            let __ws_arg_27 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_deepcoin_trade_trigger_orders_pending(&[&__ws_arg_27]).await;
         }  else {
             request.insert("index".into(), Value::from(index));
@@ -3581,7 +3581,7 @@ impl Deepcoin {
         let trigger: bool = self.safe_bool_k_opt(&params, "trigger", &[Value::Bool(false)]).unwrap_or(false);
         if trigger {
             let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("trigger".into()), &[]);
-            let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_cancel_trigger_order(&[&__ws_arg_29]).await;
         }  else {
             let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
@@ -3713,7 +3713,7 @@ impl Deepcoin {
                 request.insert("tpTriggerPx".into(), (if (symbolResolved.as_deref() != Some("")) { Value::from(self.price_to_precision(symbolResolved.as_deref(), takeProfitPrice)) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
             let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stopLossPrice", "takeProfitPrice"], &[]);
-            let __ws_arg_33 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_replace_order_sltp(&[&__ws_arg_33]).await;
         }  else {
             if (price.is_some()) {
@@ -4366,7 +4366,7 @@ impl Deepcoin {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (positionId.is_none()) && (positionIds.is_none()) {
-            let __ws_arg_44 = self.extend(&request, &[&params]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_deepcoin_trade_batch_close_position(&[&__ws_arg_44]).await;
         }  else {
             if (positionId.is_some()) {

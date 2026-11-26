@@ -2711,7 +2711,7 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
             request.insert("instrument_id".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_0 = self.extend(&request, &[&query]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);
             response = self.public_swap_get_public_depth(&[&__ws_arg_0]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -2812,7 +2812,7 @@ impl Digifinex {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
-            let __ws_arg_2 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.public_swap_get_public_tickers(&[&__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -2923,7 +2923,7 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             request.insert("instrument_id".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_5 = self.extend(&request, &[&params]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
             response = self.public_swap_get_public_ticker(&[&__ws_arg_5]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -3103,7 +3103,7 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             request.insert("instrument_id".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_8 = self.extend(&request, &[&params]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
             response = self.public_swap_get_public_trades(&[&__ws_arg_8]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -3198,7 +3198,7 @@ impl Digifinex {
             if (limit != Value::Null) {
                 request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
             }
-            let __ws_arg_10 = self.extend(&request, &[&params]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
             response = self.public_swap_get_public_candles(&[&__ws_arg_10]).await;
         }  else {
             let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
@@ -3688,10 +3688,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_12 = self.extend(&request, &[&query]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_post_margin_order_cancel(&[&__ws_arg_12]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_13 = self.extend(&request, &[&query]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_post_spot_order_cancel(&[&__ws_arg_13]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&query]);
@@ -4058,10 +4058,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_17 = self.extend(&request, &[&query]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_order_current(&[&__ws_arg_17]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_18 = self.extend(&request, &[&query]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_spot_order_current(&[&__ws_arg_18]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
@@ -4191,10 +4191,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_20 = self.extend(&request, &[&query]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_order_history(&[&__ws_arg_20]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_21 = self.extend(&request, &[&query]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_spot_order_history(&[&__ws_arg_21]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&query]);
@@ -4311,10 +4311,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_23 = self.extend(&request, &[&query]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_order(&[&__ws_arg_23]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_24 = self.extend(&request, &[&query]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_spot_order(&[&__ws_arg_24]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
@@ -4449,10 +4449,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_27 = self.extend(&request, &[&query]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_mytrades(&[&__ws_arg_27]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_28 = self.extend(&request, &[&query]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_spot_mytrades(&[&__ws_arg_28]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_29 = self.extend(Value::Map(request), &[&query]);
@@ -4587,10 +4587,10 @@ impl Digifinex {
         let mut response: Option<crate::value::Dict> = None;
         let isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
-            let __ws_arg_30 = self.extend(&request, &[&query]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_financelog(&[&__ws_arg_30]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_31 = self.extend(&request, &[&query]);
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_spot_financelog(&[&__ws_arg_31]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_32 = self.extend(Value::Map(request), &[&query]);
@@ -4718,7 +4718,7 @@ impl Digifinex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (type_var == Some("deposit")) {
-            let __ws_arg_34 = self.extend(&request, &[&params]);
+            let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
             response = self.private_spot_get_deposit_history(&[&__ws_arg_34]).await;
         }  else {
             let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
@@ -4888,7 +4888,7 @@ impl Digifinex {
             //         }
             //     }
             //
-            let __ws_arg_36 = self.extend(&request, &[&params]);
+            let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
             response = self.private_swap_post_account_transfer(&[&__ws_arg_36]).await;
         }  else {
             request.insert("currency_mark".into(), currencyId.map(Value::from).unwrap_or(Value::Null));
@@ -5462,7 +5462,7 @@ impl Digifinex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
-            let __ws_arg_44 = self.extend(&request, &[&query]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_positions(&[&__ws_arg_44]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_45 = self.extend(Value::Map(request), &[&query]);
@@ -5590,7 +5590,7 @@ impl Digifinex {
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
-            let __ws_arg_46 = self.extend(&request, &[&query]);
+            let __ws_arg_46 = self.extend(Value::Map(request), &[&query]);
             response = self.private_spot_get_margin_positions(&[&__ws_arg_46]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_47 = self.extend(Value::Map(request), &[&query]);
@@ -6090,8 +6090,8 @@ impl Digifinex {
                     if (networkCode.is_some()) {
                         add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &Value::from(networkCode.as_deref()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
-        m.insert("deposit".to_string(), Value::Map(depositResult.clone()));
+        m.insert("withdraw".to_string(), Value::Map(withdrawResult));
+        m.insert("deposit".to_string(), Value::Map(depositResult));
     m
 }));
                     }

@@ -3224,7 +3224,7 @@ impl Bybit {
                 m
             })).as_map().cloned().unwrap_or_default();
             if (code.is_some()) {
-                accountBalance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone()));
+                accountBalance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map(accountBalance)); }
         }  else {

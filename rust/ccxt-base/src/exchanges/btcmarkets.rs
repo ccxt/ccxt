@@ -1092,10 +1092,10 @@ impl Btcmarkets {
         }
         let mut response: Option<crate::value::List> = None;
         if (method == "privateGetTransfers") {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_transfers(&[&__ws_arg_0]).await;
         }  else if (method == "privateGetDeposits") {
-            let __ws_arg_1 = self.extend(&request, &[&params]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_deposits(&[&__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[params]);

@@ -1954,10 +1954,10 @@ impl Coinsph {
         let method: Option<String> = self.safe_string_k_opt(&options, "method", &[&defaultMethod]);
         let mut tickers: Value = Value::from(vec![]);
         if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             tickers = self.public_get_openapi_quote_v1_ticker_price(&[&__ws_arg_0]).await;
         }  else if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
-            let __ws_arg_1 = self.extend(&request, &[&params]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
             tickers = self.call_method(Value::Str("public_get_openapi_quote_v1_ticker_book_ticker".into()), &[&__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
@@ -2004,10 +2004,10 @@ impl Coinsph {
             m
         });
         if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
-            let __ws_arg_3 = self.extend(&request, &[&params]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             ticker = self.public_get_openapi_quote_v1_ticker_price(&[&__ws_arg_3]).await;
         }  else if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerBookTicker")) {
-            let __ws_arg_4 = self.extend(&request, &[&params]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
             ticker = self.call_method(Value::Str("public_get_openapi_quote_v1_ticker_book_ticker".into()), &[&__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
@@ -2412,7 +2412,7 @@ impl Coinsph {
         let paramsRequest: crate::value::Dict = self.omit_t(paramsQuote, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if testOrder {
-            let __ws_arg_12 = self.extend(&request, &[&paramsRequest]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.private_post_openapi_v1_order_test(&[&__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsRequest]);

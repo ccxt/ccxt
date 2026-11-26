@@ -2424,8 +2424,9 @@ impl Kraken {
     pub fn parse_trading_fee(&self, fee: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let makerFees: crate::value::Dict = self.safe_dict_k_t(&fee, "fees_maker");
         let takerFees: crate::value::Dict = self.safe_dict_k_t(&fee, "fees");
-        let symbolMakerFee: crate::value::Dict = self.safe_dict_t(&makerFees, crate::value::KeyRead::key_read(&market, "id"));
-        let symbolTakerFee: crate::value::Dict = self.safe_dict_t(&takerFees, crate::value::KeyRead::key_read(&market, "id"));
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let symbolMakerFee: crate::value::Dict = (if let Some(Value::Dict(__m)) = makerFees.get(marketId.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
+        let symbolTakerFee: crate::value::Dict = (if let Some(Value::Dict(__m)) = takerFees.get(marketId.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(fee));

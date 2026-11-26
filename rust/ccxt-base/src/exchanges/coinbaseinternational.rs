@@ -3675,7 +3675,7 @@ impl Coinbaseinternational {
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
         if (side.as_str() == Some("buy")) {
-            let __ws_arg_12 = self.extend(&request, &[&paramsOrder]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOrder]);
             response = self.private_get_buy(&[&__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOrder]);
@@ -4280,7 +4280,7 @@ impl Coinbaseinternational {
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
                 request.shift_remove("include_old");
             }
-            let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_get_user_trades_by_instrument_and_time(&[&__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);

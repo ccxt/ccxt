@@ -941,7 +941,7 @@ impl Mudrex {
         request.insert("end_time".into(), Value::from(endTime));
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
-            let __ws_arg_0 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.market_get_price_mark_kline(&[&__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -1214,7 +1214,7 @@ impl Mudrex {
             if (requested.is_some()) {
                 request.insert("currency".into(), Value::from(requested.as_deref()));
             }
-            let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_wallet_funds(&[&__ws_arg_5]).await;
         }  else {
             if (requested.is_some()) {
@@ -2197,7 +2197,7 @@ impl Mudrex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if useInr {
-            let __ws_arg_27 = self.extend(&body, &[&params]);
+            let __ws_arg_27 = self.extend(Value::Map(body), &[&params]);
             response = self.private_post_futures_transfers_inr(&[&__ws_arg_27]).await;
         }  else {
             let __ws_arg_28 = self.extend(Value::Map(body), &[&params]);

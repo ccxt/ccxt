@@ -2454,7 +2454,7 @@ impl Bittrade {
         let method: Option<String> = self.safe_string_k_opt(self.options.get("fetchOrdersByStates").cloned().unwrap_or(Value::Null), "method", &[&Value::Str("privateGetOrderOrders".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("private_get_order_history")) || (method.as_deref() == Some("privateGetOrderHistory")) {
-            let __ws_arg_9 = self.extend(&request, &[&params]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
             response = self.call_method_o("private_get_order_history", &[&__ws_arg_9]).await;
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[params]);

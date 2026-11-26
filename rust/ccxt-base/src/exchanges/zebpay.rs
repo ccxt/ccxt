@@ -1365,7 +1365,7 @@ impl Zebpay {
             m
         });
         if (market).spot {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             response = self.private_spot_get_v2_ex_tradefee(&[&__ws_arg_0]).await;
             //
             // {
@@ -1521,7 +1521,7 @@ impl Zebpay {
             //         ],
             //       }
             // }
-            let __ws_arg_2 = self.extend(&request, &[&params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             response = self.public_spot_get_v2_market_orderbook(&[&__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
@@ -1564,7 +1564,7 @@ impl Zebpay {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_4 = self.extend(&request, &[&params]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
             response = self.public_spot_get_v2_market_ticker(&[&__ws_arg_4]).await;
         }  else {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
@@ -1686,7 +1686,7 @@ impl Zebpay {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")));
             }
             let paramsSpot: crate::value::Dict = self.omit_t(&paramsOmitted, Value::Str("priceType".into()), &[]);
-            let __ws_arg_6 = self.extend(&request, &[&paramsSpot]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsSpot]);
             response = self.public_spot_get_v2_market_klines(&[&__ws_arg_6]).await;
         }  else {
             request.insert("timeframe".into(), timeframe.clone());
@@ -1778,7 +1778,7 @@ impl Zebpay {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_8 = self.extend(&request, &[&params]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
             response = self.public_spot_get_v2_market_trades(&[&__ws_arg_8]).await;
         }  else {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
@@ -2016,7 +2016,7 @@ impl Zebpay {
                 if hasSL {
                     request.insert("stopLossPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
-                let __ws_arg_11 = self.extend(&request, &[&query]);
+                let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
                 response = self.private_swap_post_v1_trade_order_add_tpsl(&[&__ws_arg_11]).await;
             }  else {
                 request.insert("type".into(), Value::from(upperCaseType));
@@ -2104,7 +2104,7 @@ impl Zebpay {
         });
         if (market).spot {
             request.insert("orderId".into(), id);
-            let __ws_arg_13 = self.extend(&request, &[&params]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
             response = self.private_spot_delete_v2_ex_order(&[&__ws_arg_13]).await;
         }  else {
             let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
@@ -2208,7 +2208,7 @@ impl Zebpay {
             if (limit.is_some()) {
                 request.insert("pageSize".into(), Value::from(limit));
             }
-            let __ws_arg_15 = self.extend(&request, &[&params]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
             response = self.private_spot_get_v2_ex_orders(&[&__ws_arg_15]).await;
             let responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             orders = self.safe_list_k_t(&responseData, "items");
@@ -2262,7 +2262,7 @@ impl Zebpay {
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
             request.insert("orderId".into(), id);
-            let __ws_arg_17 = self.extend(&request, &[&params]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
             response = self.private_spot_get_v2_ex_order(&[&__ws_arg_17]).await;
         }  else {
             request.insert("id".into(), id);

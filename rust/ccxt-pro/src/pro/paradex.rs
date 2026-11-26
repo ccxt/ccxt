@@ -74,7 +74,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_sbe_fill" => self.parse_sbe_fill(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_funding_data" => self.parse_sbe_funding_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_market_summary" => self.parse_sbe_market_summary(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)),
-                "parse_sbe_message" => self.parse_sbe_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_sbe_message" => crate::Value::Dict(self.parse_sbe_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_sbe_order" => self.parse_sbe_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_order_book" => self.parse_sbe_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sbe_position" => self.parse_sbe_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -2802,7 +2802,7 @@ if _try_result.is_err() {
     Default::default()
 }
 
-    pub fn parse_sbe_message(&self, client: &Value, mut message: Value) -> Value {
+    pub fn parse_sbe_message(&self, client: &Value, mut message: Value) -> crate::value::Dict {
         //
         // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -2810,19 +2810,25 @@ if _try_result.is_err() {
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         let mut frameHex: String = self.binary_to_base16(message, &[]);
         let frameLength: Option<i64> = self.parse_to_int(Value::Float(((((frameHex.chars().count() as i64)) as f64) / 2.0)));
         if (frameLength.is_some() && frameLength < Some(8)) {
-            return Value::Null;
+            return std::sync::Arc::new({
+    let m = indexmap::IndexMap::new();
+    m
+});
         }
         let blockLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(0), Value::Int(2)));
         let templateId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(2), Value::Int(2)));
         let schemaId: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex.as_str(), Value::Int(4), Value::Int(2)));
         if (schemaId != Some(1)) || (matches!((frameLength, ((if let Some(__m0) = blockLength { Some((__m0 + 8)) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64))) {
-            return Value::Null;
+            return std::sync::Arc::new({
+    let m = indexmap::IndexMap::new();
+    m
+});
         }
         let mut channel: Option<String> = None;
         let mut data: Value = Value::Null;
@@ -2866,9 +2872,12 @@ if _try_result.is_err() {
             channel = Some("account".to_string());
         }
         if (data == Value::Null) {
-            return Value::Null;
+            return std::sync::Arc::new({
+    let m = indexmap::IndexMap::new();
+    m
+});
         }
-        return Value::Map({
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("sbe".to_string(), Value::Bool(true));
         m.insert("params".to_string(), Value::Map({
@@ -2879,8 +2888,6 @@ if _try_result.is_err() {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub fn sbe_read_uint(&self, frameHex: &str, mut offset: Value, mut length: Value) -> Value {
@@ -3637,11 +3644,10 @@ if _try_result.is_err() {
 }
 
     pub fn handle_binary_message(&mut self, mut client: Value, mut message: Value) {
-        let parsedMessage: Value = self.parse_sbe_message(&client, message);
-        if (parsedMessage == Value::Null) {
-            return;
+        let parsedMessage: crate::value::Dict = self.parse_sbe_message(&client, message);
+        if (parsedMessage.contains_key("params")) {
+            self.handle_stream_message(client, &parsedMessage);
         }
-        self.handle_stream_message(client, parsedMessage);
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {

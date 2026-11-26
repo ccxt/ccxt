@@ -1441,7 +1441,7 @@ impl Coinone {
             market = Some(match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("quote_currency".into(), crate::value::KeyRead::key_read(&&market, "quote"));
             request.insert("target_currency".into(), crate::value::KeyRead::key_read(&&market, "base"));
-            let __ws_arg_1 = self.extend(&request, &[&params]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
             response = self.v2_public_get_ticker_new_quote_currency_target_currency(&[&__ws_arg_1]).await;
         }  else {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);

@@ -3587,9 +3587,8 @@ impl Mexc {
         }
         let spotMarketPromise: crate::value::List = self.fetch_spot_markets(&[Value::from(&params)]).await;
         let swapMarketPromise: crate::value::List = self.fetch_swap_markets(&[Value::Dict(params)]).await;
-        let spotMarketswapMarketVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Arr(spotMarketPromise), Value::Arr(swapMarketPromise)])).await.to_vec();
-        let spotMarket: crate::value::List = spotMarketswapMarketVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
-        let swapMarket: crate::value::List = spotMarketswapMarketVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
+        let spotMarket: crate::value::List = spotMarketPromise;
+        let swapMarket: crate::value::List = swapMarketPromise;
         return self.array_concat(&spotMarket, &swapMarket);
         Value::Null
         }).await?))
@@ -3931,7 +3930,7 @@ impl Mexc {
             request.insert("limit".into(), Value::from(limit));
         }
         if (market).spot {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             let response: crate::value::Dict = self.spot_public_get_depth(&[&__ws_arg_0]).await.unwrap_or_default();
             //
             //     {
@@ -4051,13 +4050,13 @@ impl Mexc {
             method = self.safe_string_k_opt(&params, "method", &[&method]); // AggTrades, HistoricalTrades, Trades
             let paramsOmitted: crate::value::Dict = self.omit_t(params, &["method"], &[]);
             if (method.as_deref() == Some("spotPublicGetAggTrades")) {
-                let __ws_arg_2 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 trades = self.spot_public_get_agg_trades(&[&__ws_arg_2]).await.unwrap_or_default();
             }  else if (method.as_deref() == Some("spotPublicGetHistoricalTrades")) {
-                let __ws_arg_3 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 trades = self.spot_public_get_historical_trades(&[&__ws_arg_3]).await.unwrap_or_default();
             }  else if (method.as_deref() == Some("spotPublicGetTrades")) {
-                let __ws_arg_4 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 trades = self.spot_public_get_trades(&[&__ws_arg_4]).await.unwrap_or_default();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades() not support this method")));
@@ -4170,7 +4169,7 @@ impl Mexc {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
-            let __ws_arg_6 = self.extend(&request, &[&paramsUntil]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsUntil]);
             let response: crate::value::List = self.spot_public_get_klines(&[&__ws_arg_6]).await.unwrap_or_default();
             //
             //     [
@@ -4206,10 +4205,10 @@ impl Mexc {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsUntil, Value::Str("price".into()), &[]);
             let mut swapResponse: Option<crate::value::Dict> = None;
             if (priceType.as_deref() == Some("default")) {
-                let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 swapResponse = self.contract_public_get_kline_symbol(&[&__ws_arg_7]).await;
             }  else if (priceType.as_deref() == Some("index")) {
-                let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 swapResponse = self.contract_public_get_kline_index_price_symbol(&[&__ws_arg_8]).await;
             }  else if (priceType.as_deref() == Some("mark")) {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4284,7 +4283,7 @@ impl Mexc {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_10 = self.extend(&request, &[&query]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&query]);
             tickers = self.spot_public_get_ticker24hr(&[&__ws_arg_10]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
@@ -4369,7 +4368,7 @@ impl Mexc {
             m
         });
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_12 = self.extend(&request, &[&query]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&query]);
             ticker = self.spot_public_get_ticker24hr(&[&__ws_arg_12]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
@@ -4860,7 +4859,7 @@ impl Mexc {
                 planOrderType = Some(5); // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
             request.insert("orderType".into(), self.safe_integer_k(&paramsOmitted, "orderType", &[Value::from(planOrderType)]));
-            let __ws_arg_17 = self.extend(&request, &[&paramsTriggerDirection]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsTriggerDirection]);
             response = self.contract_private_post_planorder_place(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5009,10 +5008,10 @@ impl Mexc {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
-                let __ws_arg_19 = self.extend(&request, &[&query]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
                 data = self.spot_private_get_margin_order(&[&__ws_arg_19]).await.unwrap_or_default();
             }  else {
-                let __ws_arg_20 = self.extend(&request, &[&query]);
+                let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
                 data = self.spot_private_get_order(&[&__ws_arg_20]).await.unwrap_or_default();
             }
         }  else if (market).swap {
@@ -5125,10 +5124,10 @@ impl Mexc {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrders() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
-                let __ws_arg_23 = self.extend(&request, &[&queryInner]);
+                let __ws_arg_23 = self.extend(Value::Map(request), &[&queryInner]);
                 spotResponse = self.spot_private_get_margin_all_orders(&[&__ws_arg_23]).await;
             }  else {
-                let __ws_arg_24 = self.extend(&request, &[&queryInner]);
+                let __ws_arg_24 = self.extend(Value::Map(request), &[&queryInner]);
                 spotResponse = self.spot_private_get_all_orders(&[&__ws_arg_24]).await;
             }
             return Value::Arr(self.parse_orders(&spotResponse, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -5165,7 +5164,7 @@ impl Mexc {
             let mut ordersOfRegular: Value = Value::from(vec![]);
             let mut ordersOfTrigger: Value = Value::from(vec![]);
             if (method.as_deref() == Some("contractPrivateGetOrderListHistoryOrders")) {
-                let __ws_arg_25 = self.extend(&request, &[&query]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
                 let response: crate::value::Dict = self.contract_private_get_order_list_history_orders(&[&__ws_arg_25]).await.unwrap_or_default();
                 //
                 //     {
@@ -5362,10 +5361,10 @@ impl Mexc {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOpenOrders() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
-                let __ws_arg_28 = self.extend(&request, &[&query]);
+                let __ws_arg_28 = self.extend(Value::Map(request), &[&query]);
                 response = self.spot_private_get_margin_open_orders(&[&__ws_arg_28]).await;
             }  else {
-                let __ws_arg_29 = self.extend(&request, &[&query]);
+                let __ws_arg_29 = self.extend(Value::Map(request), &[&query]);
                 response = self.spot_private_get_open_orders(&[&__ws_arg_29]).await;
             }
             return Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -5378,7 +5377,7 @@ impl Mexc {
             let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
             if (trigger == Some(true)) {
                 request.insert("states".into(), Value::Int(1)); // untriggered
-                let __ws_arg_30 = self.extend(&request, &[&swapParams]);
+                let __ws_arg_30 = self.extend(Value::Map(request), &[&swapParams]);
                 let triggerResponse: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[&__ws_arg_30]).await.unwrap_or_default();
                 data = self.safe_list_k_t(&triggerResponse, "data");
             }  else {
@@ -5541,7 +5540,7 @@ impl Mexc {
                 if (marginMode.as_deref() != Some("isolated")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrder() does not support marginMode ").into()), marginMode.map(Value::from).unwrap_or(Value::Null)).into()), " for spot-margin trading")));
                 }
-                let __ws_arg_33 = self.extend(&requestInner, &[&query]);
+                let __ws_arg_33 = self.extend(Value::Map(requestInner), &[&query]);
                 let marginRows: crate::value::List = self.spot_private_delete_margin_order(&[&__ws_arg_33]).await.unwrap_or_default();
                 return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&marginRows, Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -5711,7 +5710,7 @@ impl Mexc {
                 return Value::from(vec![]);
             }
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
-            let __ws_arg_36 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let response: crate::value::List = self.spot_private_delete_open_orders(&[&__ws_arg_36]).await.unwrap_or_default();
             return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         }  else {
@@ -5727,7 +5726,7 @@ impl Mexc {
                 m
             });
             if (method.as_deref() == Some("contractPrivatePostOrderCancelAll")) {
-                let __ws_arg_37 = self.extend(&request, &[&paramsMarketType]);
+                let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsMarketType]);
                 swapResponse = self.contract_private_post_order_cancel_all(&[&__ws_arg_37]).await.unwrap_or_default();
             }  else if (method.as_deref() == Some("contractPrivatePostPlanorderCancelAll")) {
                 let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -6150,10 +6149,10 @@ impl Mexc {
             marketType = Some("margin".to_string());
             request.insert("symbols".into(), parsedSymbols.map(Value::from).unwrap_or(Value::Null));
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsOmitted2, &["symbol", "symbols"], &[]);
-            let __ws_arg_40 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_private_get_margin_isolated_account(&[&__ws_arg_40]).await;
         }  else if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_41 = self.extend(&request, &[&paramsOmitted2]);
+            let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted2]);
             response = self.call_method_o("spot_private_get_account", &[&__ws_arg_41]).await;
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted2]);
@@ -6220,7 +6219,7 @@ impl Mexc {
                 request.insert("endTime".into(), Value::from(until));
             }
             let paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsMarketType, Value::Str("until".into()), &[]) } else { paramsMarketType.clone() });
-            let __ws_arg_43 = self.extend(&request, &[&paramsUntil]);
+            let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsUntil]);
             trades = self.spot_private_get_my_trades(&[&__ws_arg_43]).await.unwrap_or_default();
         }  else {
             if (since.is_some()) {
@@ -6313,7 +6312,7 @@ impl Mexc {
             }
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             request.insert("orderId".into(), id);
-            let __ws_arg_45 = self.extend(&request, &[&query]);
+            let __ws_arg_45 = self.extend(Value::Map(request), &[&query]);
             trades = self.spot_private_get_my_trades(&[&__ws_arg_45]).await.unwrap_or_default();
         }  else {
             request.insert("order_id".into(), id);
@@ -7382,7 +7381,7 @@ impl Mexc {
                 }
                 request.insert("size".into(), limit.clone());
             }
-            let __ws_arg_58 = self.extend(&request, &[&paramsToAccountType]);
+            let __ws_arg_58 = self.extend(Value::Map(request), &[&paramsToAccountType]);
             let response: crate::value::Dict = self.spot_private_get_capital_transfer(&[&__ws_arg_58]).await.unwrap_or_default();
             return Value::Arr(self.parse_transfers(self.safe_list_k(&response, "rows", &[Value::from(vec![])]), currency.as_ref(), &[Value::from(since), limit]));
         }  else if (marketType.as_deref() == Some("swap")) {

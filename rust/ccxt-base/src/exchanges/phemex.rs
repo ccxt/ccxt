@@ -3363,11 +3363,11 @@ impl Phemex {
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         let isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         if ((market).linear == Some(true)) && isStableSettled {
-            let __ws_arg_1 = self.extend(&request, &[&params]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
             response = self.v2_get_md_v2_orderbook(&[&__ws_arg_1]).await;
         }  else {
             if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) <= ((30i64) as f64)) {
-                let __ws_arg_2 = self.extend(&request, &[&params]);
+                let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
                 response = self.v1_get_md_orderbook(&[&__ws_arg_2]).await;
             }  else {
                 let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
@@ -3553,10 +3553,10 @@ impl Phemex {
                     request.insert("from".into(), sinceSeconds.clone());
                     request.insert("to".into(), Value::from(untilSeconds));
                 }
-                let __ws_arg_4 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.public_get_md_v2_kline_list(&[&__ws_arg_4]).await;
             }  else {
-                let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.public_get_md_v2_kline_last(&[&__ws_arg_5]).await;
             }
         }  else {
@@ -3619,10 +3619,10 @@ impl Phemex {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if ((market).inverse == Some(true)) || (Value::from((market).settle.as_deref()).as_str() == Some("USD")) {
-                let __ws_arg_7 = self.extend(&request, &[&params]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
                 response = self.v1_get_md_ticker24hr(&[&__ws_arg_7]).await;
             }  else {
-                let __ws_arg_8 = self.extend(&request, &[&params]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
                 response = self.v2_get_md_v2_ticker24hr(&[&__ws_arg_8]).await;
             }
         }  else {
@@ -3764,7 +3764,7 @@ impl Phemex {
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         let isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         if ((market).linear == Some(true)) && isStableSettled {
-            let __ws_arg_10 = self.extend(&request, &[&params]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
             response = self.v2_get_md_v2_trade(&[&__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
@@ -3969,10 +3969,10 @@ impl Phemex {
                 let mut currency: crate::types::Currency = self.currency(coin.as_deref());
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
                 if (crate::value::KeyRead::key_read(&&currency, "id").as_str() == Some("USDT")) {
-                    let __ws_arg_12 = self.extend(&request, &[&paramsSettle]);
+                    let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSettle]);
                     response = self.private_get_g_accounts_account_positions(&[&__ws_arg_12]).await;
                 }  else {
-                    let __ws_arg_13 = self.extend(&request, &[&paramsSettle]);
+                    let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsSettle]);
                     response = self.private_get_accounts_account_positions(&[&__ws_arg_13]).await;
                 }
             }  else {
@@ -3980,7 +3980,7 @@ impl Phemex {
                 if (currency.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() requires a code parameter or a currency or settle parameter for ").into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), " type")));
                 }
-                let __ws_arg_14 = self.extend(&request, &[&paramsSettle]);
+                let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsSettle]);
                 response = self.private_get_spot_wallets(&[&__ws_arg_14]).await;
             }
         }  else {
@@ -4723,10 +4723,10 @@ impl Phemex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if isStableSettled {
-            let __ws_arg_16 = self.extend(&request, &[&orderParams]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&orderParams]);
             response = self.private_post_g_orders(&[&__ws_arg_16]).await;
         }  else if (market).contract {
-            let __ws_arg_17 = self.extend(&request, &[&orderParams]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&orderParams]);
             response = self.private_post_orders(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[orderParams]);
@@ -4897,10 +4897,10 @@ impl Phemex {
             if (posSide.is_none()) {
                 request.insert("posSide".into(), Value::Str("Merged".into()));
             }
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted3]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted3]);
             response = self.private_put_g_orders_replace(&[&__ws_arg_20]).await;
         }  else if (market).swap {
-            let __ws_arg_21 = self.extend(&request, &[&paramsOmitted3]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted3]);
             response = self.private_put_orders_replace(&[&__ws_arg_21]).await;
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted3]);
@@ -4962,10 +4962,10 @@ impl Phemex {
             if (posSide.is_none()) {
                 request.insert("posSide".into(), Value::Str("Merged".into()));
             }
-            let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_g_orders_cancel(&[&__ws_arg_24]).await;
         }  else if (market).swap {
-            let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders_cancel(&[&__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5021,10 +5021,10 @@ impl Phemex {
         let mut response: Option<crate::value::Dict> = None;
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
-            let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_g_orders_all(&[&__ws_arg_28]).await;
         }  else if (market).swap {
-            let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_orders_all(&[&__ws_arg_29]).await;
         }  else {
             let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5080,10 +5080,10 @@ impl Phemex {
         let mut response: Option<crate::value::Dict> = None;
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
-            let __ws_arg_31 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_api_data_g_futures_orders_by_order_id(&[&__ws_arg_31]).await;
         }  else if (market).spot {
-            let __ws_arg_32 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_api_data_spots_orders_by_order_id(&[&__ws_arg_32]).await;
         }  else {
             let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5174,10 +5174,10 @@ impl Phemex {
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
             request.insert("currency".into(), marketSettle.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_35 = self.extend(&request, &[&params]);
+            let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_exchange_order_v2_order_list(&[&__ws_arg_35]).await;
         }  else if (market).swap {
-            let __ws_arg_36 = self.extend(&request, &[&params]);
+            let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_exchange_order_list(&[&__ws_arg_36]).await;
         }  else {
             let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
@@ -5310,10 +5310,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) || (self.safe_string_k(&market, "settle", &[]).as_str() == Some("USDT")) {
             request.insert("currency".into(), self.safe_string_k(&params, "settle", &[Value::Str("USDT".into())]));
-            let __ws_arg_41 = self.extend(&request, &[&params]);
+            let __ws_arg_41 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_exchange_order_v2_order_list(&[&__ws_arg_41]).await;
         }  else if (market.is_some()) && matches!((self.safe_bool_k(&market, "swap", &[Value::Bool(false)])), Value::Bool(true)) {
-            let __ws_arg_42 = self.extend(&request, &[&params]);
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_exchange_order_list(&[&__ws_arg_42]).await;
         }  else {
             let __ws_arg_43 = self.extend(Value::Map(request), &[&params]);
@@ -5425,11 +5425,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut response: Option<crate::value::Dict> = None;
         if isUSDTSettled {
-            let __ws_arg_44 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_exchange_order_v2_trading_list(&[&__ws_arg_44]).await;
         }  else if (type_var.as_deref() == Some("swap")) {
             request.insert("tradeType".into(), Value::Str("Trade".into()));
-            let __ws_arg_45 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_exchange_order_trade(&[&__ws_arg_45]).await;
         }  else {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -5825,10 +5825,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
             let paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
             if (method.as_deref() == Some("privateGetGAccountsAccountPositions")) {
-                let __ws_arg_48 = self.extend(&request, &[&paramsMethod]);
+                let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsMethod]);
                 response = self.private_get_g_accounts_account_positions(&[&__ws_arg_48]).await;
             }  else {
-                let __ws_arg_49 = self.extend(&request, &[&paramsMethod]);
+                let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsMethod]);
                 response = self.private_get_g_accounts_positions(&[&__ws_arg_49]).await;
             }
         }  else {
@@ -6042,7 +6042,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         let isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         if isStableSettled {
-            let __ws_arg_52 = self.extend(&request, &[&params]);
+            let __ws_arg_52 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_api_data_g_futures_funding_fees(&[&__ws_arg_52]).await;
         }  else {
             let __ws_arg_53 = self.extend(Value::Map(request), &[&params]);
@@ -6152,7 +6152,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if !((market).linear == Some(true)) {
-            let __ws_arg_54 = self.extend(&request, &[&params]);
+            let __ws_arg_54 = self.extend(Value::Map(request), &[&params]);
             response = self.v1_get_md_ticker24hr(&[&__ws_arg_54]).await.unwrap_or_default();
         }  else {
             let __ws_arg_55 = self.extend(Value::Map(request), &[&params]);
@@ -6514,7 +6514,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("longLeverageRr".into(), Value::from(longVar));
                 request.insert("shortLeverageRr".into(), Value::from(shortVar));
             }
-            let __ws_arg_62 = self.extend(&request, &[&params]);
+            let __ws_arg_62 = self.extend(Value::Map(request), &[&params]);
             response = self.call_method_o("private_put_g_positions_leverage", &[&__ws_arg_62]).await;
         }  else {
             request.insert("leverage".into(), leverage);
@@ -7243,10 +7243,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
             let paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
             if (method.as_deref() == Some("privateGetGAccountsAccountPositions")) {
-                let __ws_arg_74 = self.extend(&request, &[&paramsMethod]);
+                let __ws_arg_74 = self.extend(Value::Map(request), &[&paramsMethod]);
                 response = self.private_get_g_accounts_account_positions(&[&__ws_arg_74]).await;
             }  else {
-                let __ws_arg_75 = self.extend(&request, &[&paramsMethod]);
+                let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsMethod]);
                 response = self.private_get_g_accounts_positions(&[&__ws_arg_75]).await;
             }
         }  else {

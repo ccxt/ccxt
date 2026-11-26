@@ -1581,7 +1581,8 @@ impl Independentreserve {
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (symbols.len() as i64) } {
             let symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let fee: crate::value::Dict = self.safe_dict_t(&fees, Value::from((market).base.clone()));
+            let baseCode: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let fee: crate::value::Dict = (if let Some(Value::Dict(__m)) = fees.get(baseCode.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), self.safe_dict_k(&fee, "info", &[]));
@@ -1639,7 +1640,7 @@ impl Independentreserve {
         request.insert("volume".into(), Value::from(amount));
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), Value::from(price));
-            let __ws_arg_7 = self.extend(&request, &[&params]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_place_limit_order(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);

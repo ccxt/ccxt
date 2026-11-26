@@ -3091,7 +3091,7 @@ impl Poloniex {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["trigger", "stop"], &[]);
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() != Some("spot")) {
-            let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let raw: crate::value::Dict = self.swap_private_get_v3_trade_order_opens(&[&__ws_arg_8]).await.unwrap_or_default();
             //
             //    {
@@ -3134,7 +3134,7 @@ impl Poloniex {
             //
             response = self.safe_list_k_t(&raw, "data");
         }  else if (isTrigger == Some(true)) {
-            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_smartorders(&[&__ws_arg_9]).await.unwrap_or_default();
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3691,7 +3691,7 @@ impl Poloniex {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_smartorders_id(&[&__ws_arg_20]).await.unwrap_or_default();
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3845,7 +3845,7 @@ impl Poloniex {
         let isTrigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["trigger", "stop"], &[]);
         if (isTrigger == Some(true)) {
-            let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_smartorders(&[&__ws_arg_26]).await.unwrap_or_default();
         }  else {
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3905,7 +3905,7 @@ impl Poloniex {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.call_method(Value::Str("private_get_smartorders_id".into()), &[&__ws_arg_28]).await;
             response = self.safe_value(&response, Value::Int(0), &[]);
         }  else {

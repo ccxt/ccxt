@@ -3162,7 +3162,7 @@ impl Btse {
             //         }
             //     ]
             //
-            let __ws_arg_12 = self.extend(&request, &[&query]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&query]);
             response = self.private_post_spot_api_v4_trade_orders(&[&__ws_arg_12]).await;
         }  else {
             if isConditionalOrder {
@@ -3386,7 +3386,7 @@ impl Btse {
             //         "timeInForce": "GTC"
             //     }
             //
-            let __ws_arg_14 = self.extend(&request, &[&query]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&query]);
             response = self.private_post_futures_api_v3_trade_orders(&[&__ws_arg_14]).await;
         }  else {
             if isConditionalOrder {
@@ -3516,7 +3516,7 @@ impl Btse {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_16 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_spot_api_v4_trade_order(&[&__ws_arg_16]).await;
         }  else {
             // the futures endpoint doubles as the single order lookup when an
@@ -3607,7 +3607,7 @@ impl Btse {
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_19 = self.extend(&request, &[&query]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
             response = self.private_put_spot_api_v4_trade_orders(&[&__ws_arg_19]).await;
         }  else {
             // the futures amend requires an explicit amendType discriminator
@@ -3679,7 +3679,7 @@ impl Btse {
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_spot_api_v4_trade_orders(&[&__ws_arg_21]).await;
         }  else {
             //
@@ -3750,7 +3750,7 @@ impl Btse {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
-            let __ws_arg_23 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.call_method(Value::Str("private_delete_spot_api_v4_trade_orders_all".into()), &[&__ws_arg_23]).await;
         }  else {
             if (symbol == Value::Null) {
@@ -3802,7 +3802,7 @@ impl Btse {
         let paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.1;
         if (marketTypeOption.as_deref() == Some("spot")) {
             request.insert("timeout".into(), timeout);
-            let __ws_arg_25 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_post_spot_api_v4_trade_orders_cancel_all_after(&[&__ws_arg_25]).await;
         }  else {
             // the futures param is named timeoutMs and is required, zero disarms
@@ -3859,7 +3859,7 @@ impl Btse {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
-            let __ws_arg_27 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_spot_api_v4_trade_orders(&[&__ws_arg_27]).await.unwrap_or_default();
         }  else {
             if (symbol != Value::Null) {
@@ -4402,7 +4402,7 @@ impl Btse {
         });
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot {
-            let __ws_arg_31 = self.extend(&request, &[&params]);
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_spot_api_v4_trade_fees(&[&__ws_arg_31]).await.unwrap_or_default();
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures

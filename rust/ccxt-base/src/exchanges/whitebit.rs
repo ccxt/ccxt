@@ -2625,8 +2625,8 @@ impl Whitebit {
 })]).as_map().cloned().unwrap_or_default();
                         feeEntryNetworks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
-        m.insert("deposit".to_string(), Value::Map(depositResult.clone()));
+        m.insert("withdraw".to_string(), Value::Map(withdrawResult));
+        m.insert("deposit".to_string(), Value::Map(depositResult));
     m
 }));
                         feeEntry.insert("networks".into(), Value::Map(feeEntryNetworks));
@@ -3878,15 +3878,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if isLimitOrder {
                 // stop limit order
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
-                let __ws_arg_8 = self.extend(&request, &[&orderParams]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&orderParams]);
                 response = self.v4_private_post_order_stop_limit(&[&__ws_arg_8]).await;
             }  else {
                 // stop market order
                 if useCollateralEndpoint {
-                    let __ws_arg_9 = self.extend(&request, &[&orderParams]);
+                    let __ws_arg_9 = self.extend(Value::Map(request), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_trigger_market(&[&__ws_arg_9]).await;
                 }  else {
-                    let __ws_arg_10 = self.extend(&request, &[&orderParams]);
+                    let __ws_arg_10 = self.extend(Value::Map(request), &[&orderParams]);
                     response = self.v4_private_post_order_stop_market(&[&__ws_arg_10]).await;
                 }
             }
@@ -3895,20 +3895,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // limit order
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
                 if useCollateralEndpoint {
-                    let __ws_arg_11 = self.extend(&request, &[&orderParams]);
+                    let __ws_arg_11 = self.extend(Value::Map(request), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_limit(&[&__ws_arg_11]).await;
                 }  else {
-                    let __ws_arg_12 = self.extend(&request, &[&orderParams]);
+                    let __ws_arg_12 = self.extend(Value::Map(request), &[&orderParams]);
                     response = self.v4_private_post_order_new(&[&__ws_arg_12]).await;
                 }
             }  else {
                 // market order
                 if useCollateralEndpoint {
-                    let __ws_arg_13 = self.extend(&request, &[&orderParams]);
+                    let __ws_arg_13 = self.extend(Value::Map(request), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_market(&[&__ws_arg_13]).await;
                 }  else {
                     if (cost.is_some()) {
-                        let __ws_arg_14 = self.extend(&request, &[&orderParams]);
+                        let __ws_arg_14 = self.extend(Value::Map(request), &[&orderParams]);
                         response = self.v4_private_post_order_market(&[&__ws_arg_14]).await;
                     }  else {
                         let __ws_arg_15 = self.extend(Value::Map(request), &[&orderParams]);
@@ -4646,7 +4646,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (uniqueId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")));
             }
-            let __ws_arg_25 = self.extend(&request, &[&params]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
             response = self.v4_private_post_main_account_fiat_deposit_url(&[&__ws_arg_25]).await;
         }  else {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);

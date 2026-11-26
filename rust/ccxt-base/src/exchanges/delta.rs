@@ -3615,7 +3615,7 @@ impl Delta {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_client_order_id_client_oid(&[&__ws_arg_9]).await;
         }  else {
             request.insert("order_id".into(), id);
@@ -3728,7 +3728,7 @@ impl Delta {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privateGetOrders") {
-            let __ws_arg_11 = self.extend(&request, &[&params]);
+            let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
             response = self.call_method_o("private_get_orders", &[&__ws_arg_11]).await;
         }  else if (method == "privateGetOrdersHistory") {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);

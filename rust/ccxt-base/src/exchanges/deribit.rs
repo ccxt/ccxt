@@ -3752,7 +3752,7 @@ impl Deribit {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (Value::from(self.capitalize(side)).as_str() == Some("Buy")) {
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_buy(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3954,7 +3954,7 @@ impl Deribit {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
-            let __ws_arg_22 = self.extend(&request, &[&params]);
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_cancel_all(&[&__ws_arg_22]).await;
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4006,7 +4006,7 @@ impl Deribit {
             let code: Option<String> = self.code_from_options(Some("fetchOpenOrders"), &[&Value::from(&params)]);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_24 = self.extend(&request, &[&params]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_get_open_orders_by_currency(&[&__ws_arg_24]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4060,7 +4060,7 @@ impl Deribit {
             let code: Option<String> = self.code_from_options(Some("fetchClosedOrders"), &[&Value::from(&params)]);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_26 = self.extend(&request, &[&params]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_get_order_history_by_currency(&[&__ws_arg_26]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4188,18 +4188,18 @@ impl Deribit {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             if (since.is_none()) {
-                let __ws_arg_29 = self.extend(&request, &[&params]);
+                let __ws_arg_29 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_get_get_user_trades_by_currency(&[&__ws_arg_29]).await;
             }  else {
                 request.insert("start_timestamp".into(), Value::from(since));
-                let __ws_arg_30 = self.extend(&request, &[&params]);
+                let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_get_get_user_trades_by_currency_and_time(&[&__ws_arg_30]).await;
             }
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             if (since.is_none()) {
-                let __ws_arg_31 = self.extend(&request, &[&params]);
+                let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_get_get_user_trades_by_instrument(&[&__ws_arg_31]).await;
             }  else {
                 request.insert("start_timestamp".into(), Value::from(since));
@@ -4708,7 +4708,7 @@ impl Deribit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetSubmitTransferToUser")) {
-            let __ws_arg_39 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_submit_transfer_to_user(&[&__ws_arg_39]).await;
         }  else {
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);

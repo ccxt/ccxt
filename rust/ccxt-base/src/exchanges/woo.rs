@@ -1159,12 +1159,12 @@ impl crate::exchange::DerivedExchange for Woo {
             let publicUrl: String = format!("{}{}", Value::Str(format!("{}{}", urlPrefix, "public/").into()), pathWithParams);
             url = publicUrl.clone();
             if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, "?").into()), self.urlencode(Value::Map(paramsSorted), &[]));
             }
         }  else if (access.as_deref() == Some("pub")) {
             url = format!("{}{}", urlPrefix, pathWithParams);
             if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), self.urlencode(Value::Map(paramsSorted), &[]));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -3474,7 +3474,7 @@ impl Woo {
         let paramsRequest: crate::value::Dict = self.omit_t(&paramsCost, &["clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
-            let __ws_arg_3 = self.extend(&request, &[&paramsRequest]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.v3_private_post_trade_algo_order(&[&__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsRequest]);
@@ -3590,7 +3590,7 @@ impl Woo {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v3_private_put_trade_algo_order(&[&__ws_arg_6]).await;
         }  else {
             if isByClientOrder {
@@ -3673,7 +3673,7 @@ impl Woo {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_8 = self.extend(&request, &[&paramsOmitted2]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted2]);
             response = self.v3_private_delete_trade_algo_order(&[&__ws_arg_8]).await;
         }  else {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
@@ -3855,7 +3855,7 @@ impl Woo {
             }  else {
                 request.insert("algoOrderId".into(), id);
             }
-            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v3_private_get_trade_algo_order(&[&__ws_arg_12]).await;
         }  else {
             if (clientOrderId.is_some()) {
@@ -3931,7 +3931,7 @@ impl Woo {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            let __ws_arg_14 = self.extend(&request, &[&paramsOmitted2]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted2]);
             response = self.v3_private_get_trade_algo_orders(&[&__ws_arg_14]).await;
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted2]);
@@ -5734,7 +5734,7 @@ impl Woo {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (symbol == Value::Null) || matches!((self.safe_bool_k(&market, "spot", &[Value::Bool(false)])), Value::Bool(true)) {
-            let __ws_arg_40 = self.extend(&request, &[&params]);
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
             return self.v3_private_post_spot_margin_leverage(&[&__ws_arg_40]).await;
         }  else if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));

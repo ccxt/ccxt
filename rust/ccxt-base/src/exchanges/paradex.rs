@@ -3947,7 +3947,7 @@ impl Paradex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_13 = self.extend(&request, &[&params]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
             response = self.private_delete_orders_by_client_id_client_id(&[&__ws_arg_13]).await;
         }  else {
             request.insert("order_id".into(), id);
@@ -4138,7 +4138,7 @@ impl Paradex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_by_client_id_client_id(&[&__ws_arg_17]).await;
         }  else {
             request.insert("order_id".into(), id);

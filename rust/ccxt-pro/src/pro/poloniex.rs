@@ -352,10 +352,8 @@ impl Poloniex {
                 m.insert("channel".to_string(), Value::from(vec![Value::from(name)]));
             m
         });
-        let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
-        if self.is_empty(&symbols).as_bool() == Some(true) {
-            std::sync::Arc::make_mut(&mut marketIds).push(Value::Str("all".into()));
-        }  else {
+        let mut marketIds: crate::value::List = std::sync::Arc::new(vec![Value::Str("all".into())]);
+        if !(self.is_empty(&symbols).as_bool() == Some(true)) {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " subscribe() symbols is required")));
             }

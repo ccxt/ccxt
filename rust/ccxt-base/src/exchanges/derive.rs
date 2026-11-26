@@ -3081,7 +3081,7 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("index")) {
             request.insert("currency".into(), Value::from((market).base_id.as_deref()));
-            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_post_get_index_chart_data(&[&__ws_arg_9]).await;
         }  else {
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
@@ -3450,7 +3450,7 @@ impl Derive {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if test {
-            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_order_debug(&[&__ws_arg_12]).await;
         }  else {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3753,12 +3753,12 @@ impl Derive {
         if isByClientOrder {
             request.insert("label".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             let paramsLabel: crate::value::Dict = self.omit_t(&paramsOmitted, &["clientOrderId", "label"], &[]);
-            let __ws_arg_15 = self.extend(&request, &[&paramsLabel]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsLabel]);
             response = self.private_post_cancel_by_label(&[&__ws_arg_15]).await;
         }  else {
             request.insert("order_id".into(), id);
             if isTrigger {
-                let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_cancel_trigger_order(&[&__ws_arg_16]).await;
             }  else {
                 let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3862,7 +3862,7 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if (market.is_some()) {
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_19 = self.extend(&request, &[&paramsDeriveSubaccountId]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
             response = self.private_post_cancel_by_instrument(&[&__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
@@ -4099,7 +4099,7 @@ impl Derive {
         }
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
-            let __ws_arg_23 = self.extend(&request, &[&paramsDeriveSubaccountId]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
             response = self.private_post_get_trigger_orders(&[&__ws_arg_23]).await;
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);

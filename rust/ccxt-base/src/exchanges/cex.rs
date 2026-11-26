@@ -2514,7 +2514,7 @@ impl Cex {
         });
         let mut response: Option<crate::value::Dict> = None;
         if fromMain {
-            let __ws_arg_11 = self.extend(&request, &[&params]);
+            let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_do_deposit_funds_from_wallet(&[&__ws_arg_11]).await;
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);

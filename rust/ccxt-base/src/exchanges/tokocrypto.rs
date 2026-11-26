@@ -1932,7 +1932,7 @@ impl Tokocrypto {
         }
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_open_v1_market_depth(&[&__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
@@ -2054,7 +2054,7 @@ impl Tokocrypto {
             // https://github.com/ccxt/ccxt/issues/6400
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
             request.insert("endTime".into(), self.sum(&[Value::from(since), Value::Int(3600000)]));
-            let __ws_arg_3 = self.extend(&request, &[&params]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             response = self.binance_get_agg_trades(&[&__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
@@ -2338,7 +2338,7 @@ impl Tokocrypto {
         //
         let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let response: crate::value::Dict = self.public_get_open_v1_market_klines(&[&__ws_arg_7]).await.unwrap_or_default();
             let dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
             if (dataList.is_some()) {

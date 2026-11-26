@@ -974,7 +974,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
-                "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
+                "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
@@ -3888,13 +3888,15 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (clob.len() as i64) } {
-            let entry: Option<crate::value::Dict> = (match clob.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_27: bool = true;
                 while { if !__for_first_27 { j += 1; } __for_first_27 = false; j < (labels.len() as i64) } {
                 let label: Option<String> = self.safe_string_opt(&labels, Value::Int(j), &[]);
-                let position: Value = self.get_position_from_clob_entry(label.as_deref(), &[&entry.clone().map_or(Value::Null, Value::Dict)]);
+                let position: Value = self.get_position_from_clob_entry(label.as_deref(), self.safe_dict(&clob, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]));
                 if (position != Value::Null) {
                     result.push(position);
                 }
@@ -3907,11 +3909,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn get_position_from_clob_entry(&self, label: Option<&str>, optional_args: &[&Value]) -> Value {
-        let entry = get_arg(optional_args, 0, Value::Null);
-        if (entry == Value::Null) {
-            return Value::Null;
-        }
+    pub fn get_position_from_clob_entry(&self, label: Option<&str>, mut entry: Value) -> Value {
         let tokensBalance: crate::value::Dict = self.safe_dict_k_t(&entry, "tokensBalance");
         let contracts: Option<String> = self.omit_zero(self.safe_string(&tokensBalance, Value::from(label), &[]));
         if (contracts.is_none()) {
@@ -4150,7 +4148,7 @@ if _try_result.is_err() {
             let mut response: Option<crate::value::Dict> = None;
             if (categoryId != Value::Null) {
                 request.insert("categoryId".into(), categoryId.clone());
-                let __ws_arg_32 = self.extend(&request, &[&rest]);
+                let __ws_arg_32 = self.extend(Value::Map(request), &[&rest]);
                 response = self.limitless_public_get_markets_active_category_id(&[&__ws_arg_32]).await;
             }  else {
                 let __ws_arg_33 = self.extend(Value::Map(request), &[&rest]);

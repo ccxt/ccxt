@@ -1527,7 +1527,7 @@ impl Luno {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= ((100i64) as f64) {
-            let __ws_arg_2 = self.extend(&request, &[&params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_orderbook_top(&[&__ws_arg_2]).await;
         }  else {
             let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
@@ -2045,7 +2045,7 @@ impl Luno {
             }  else {
                 request.insert("base_volume".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
             }
-            let __ws_arg_11 = self.extend(&request, &[&params]);
+            let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_marketorder(&[&__ws_arg_11]).await;
         }  else {
             request.insert("volume".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));

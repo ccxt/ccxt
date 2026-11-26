@@ -2797,14 +2797,14 @@ impl Hitbtc {
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         if (marginMode.is_some()) {
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_history_trade(&[&__ws_arg_6]).await.unwrap_or_default();
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_history_trade(&[&__ws_arg_7]).await.unwrap_or_default();
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_history_trade(&[&__ws_arg_8]).await.unwrap_or_default();
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3107,7 +3107,7 @@ impl Hitbtc {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (Some((market).market_type.as_str()) == Some("spot")) {
-            let __ws_arg_13 = self.extend(&request, &[&params]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_spot_fee_symbol(&[&__ws_arg_13]).await;
         }  else if (Some((market).market_type.as_str()) == Some("swap")) {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
@@ -3347,14 +3347,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_history_order(&[&__ws_arg_20]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_history_order(&[&__ws_arg_21]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_history_order(&[&__ws_arg_22]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3427,14 +3427,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_history_order(&[&__ws_arg_24]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_history_order(&[&__ws_arg_25]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_history_order(&[&__ws_arg_26]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3502,14 +3502,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marginMode.is_some()) {
-            let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_history_trade(&[&__ws_arg_28]).await.unwrap_or_default();
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_history_trade(&[&__ws_arg_29]).await.unwrap_or_default();
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_30 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_history_trade(&[&__ws_arg_30]).await.unwrap_or_default();
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3572,14 +3572,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_32 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_order(&[&__ws_arg_32]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_33 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_order(&[&__ws_arg_33]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_34 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_order(&[&__ws_arg_34]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3640,14 +3640,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_36 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_order_client_order_id(&[&__ws_arg_36]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_spot_order_client_order_id(&[&__ws_arg_37]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_38 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_order_client_order_id(&[&__ws_arg_38]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3706,14 +3706,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_40 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_margin_order(&[&__ws_arg_40]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_41 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_spot_order(&[&__ws_arg_41]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_42 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_futures_order(&[&__ws_arg_42]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3774,14 +3774,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_44 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_margin_order_client_order_id(&[&__ws_arg_44]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_45 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_spot_order_client_order_id(&[&__ws_arg_45]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_46 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_futures_order_client_order_id(&[&__ws_arg_46]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3837,14 +3837,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_48 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_patch_margin_order_client_order_id(&[&__ws_arg_48]).await;
         }  else {
             if (marketType.as_deref() == Some("spot")) {
-                let __ws_arg_49 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_patch_spot_order_client_order_id(&[&__ws_arg_49]).await;
             }  else if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_50 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_patch_futures_order_client_order_id(&[&__ws_arg_50]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4459,11 +4459,11 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marginMode.is_some()) {
-            let __ws_arg_62 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_62 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_account(&[&__ws_arg_62]).await.unwrap_or_default();
         }  else {
             if (marketTypeRaw.as_deref() == Some("swap")) {
-                let __ws_arg_63 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_account(&[&__ws_arg_63]).await.unwrap_or_default();
             }  else if (marketTypeRaw.as_deref() == Some("margin")) {
                 let __ws_arg_64 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4562,11 +4562,11 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_65 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_65 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_65]).await;
         }  else {
             if (marketType.as_deref() == Some("swap")) {
-                let __ws_arg_66 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_66 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_account_isolated_symbol(&[&__ws_arg_66]).await;
             }  else if (marketType.as_deref() == Some("margin")) {
                 let __ws_arg_67 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4755,7 +4755,7 @@ impl Hitbtc {
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_71 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_71 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.call_method_o("private_put_futures_account_isolated_symbol", &[&__ws_arg_71]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marketType.as_deref() == Some("spot")) || (marginMode.as_deref() == Some("isolated")) {
             let __ws_arg_72 = self.extend(Value::Map(request), &[&paramsMarginMode]);
@@ -4886,14 +4886,14 @@ impl Hitbtc {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
-            let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_73 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_73]).await;
         }  else {
             if (Some((market).market_type.as_str()) == Some("spot")) {
-                let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_74 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_account_isolated_symbol(&[&__ws_arg_74]).await;
             }  else if (Some((market).market_type.as_str()) == Some("swap")) {
-                let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_futures_account_isolated_symbol(&[&__ws_arg_75]).await;
             }  else if (Some((market).market_type.as_str()) == Some("margin")) {
                 let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsOmitted]);

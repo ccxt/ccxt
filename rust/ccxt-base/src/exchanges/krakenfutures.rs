@@ -2876,7 +2876,7 @@ impl Krakenfutures {
             if (limit.is_some()) {
                 request.insert("count".into(), Value::from(limit));
             }
-            let (__until0, __until1) = self.handle_until_option(Value::Str("before".into()), Value::Map(request.clone()), &paramsMethod, &[]);
+            let (__until0, __until1) = self.handle_until_option(Value::Str("before".into()), Value::Map(request), &paramsMethod, &[]);
             let requestUntil: crate::value::Dict = __until0;
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
@@ -3709,7 +3709,7 @@ impl Krakenfutures {
         let mut response: Option<crate::value::Dict> = None;
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["trigger", "stop"], &[]);
         if isTrigger {
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.history_get_triggers(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
@@ -3793,7 +3793,7 @@ impl Krakenfutures {
         let isTrigger: bool = self.safe_bool2_opt(&params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["trigger", "stop"], &[]);
         if isTrigger {
-            let __ws_arg_15 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.history_get_triggers(&[&__ws_arg_15]).await;
         }  else {
             let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
@@ -4812,7 +4812,7 @@ impl Krakenfutures {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " transfer cannot transfer from ").into()), fromAccount).into()), " to ").into()), toAccount)));
             }
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_21 = self.extend(&request, &[&params]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_withdrawal(&[&__ws_arg_21]).await;
         }  else {
             request.insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.as_str().unwrap_or_default()));

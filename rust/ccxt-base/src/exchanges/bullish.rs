@@ -2229,7 +2229,7 @@ impl Bullish {
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         let mut response: Option<crate::value::List> = None;
         if (clientOrderId.is_some()) {
-            let __ws_arg_2 = self.extend(&request, &[&params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_v1_trades_client_order_id_client_order_id(&[&__ws_arg_2]).await;
         }  else {
             let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -2642,7 +2642,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //         }
             //     ]
             //
-            let __ws_arg_8 = self.extend(&request, &[&paramsMethod]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsMethod]);
             response = self.private_get_v2_orders(&[&__ws_arg_8]).await.unwrap_or_default();
         }  else if (methodResolved.as_deref() == Some("privateGetV2HistoryOrders")) {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsMethod]);
@@ -3528,7 +3528,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (code.is_some()) {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_23 = self.extend(&request, &[&params]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
             let response: crate::value::Dict = self.private_get_v1_accounts_asset_symbol(&[&__ws_arg_23]).await.unwrap_or_default();
             return self.parse_balance_for_single_currency(&response, code.as_deref());
         }  else {

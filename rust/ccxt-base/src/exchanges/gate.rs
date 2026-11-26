@@ -5246,9 +5246,8 @@ if _try_result.is_err() {
 }));
         let marginPromise: crate::value::List = self.public_margin_get_currency_pairs(&[&params]).await.unwrap_or_default();
         let spotMarketsPromise: crate::value::List = self.public_spot_get_currency_pairs(&[&params]).await.unwrap_or_default();
-        let marginResponsespotMarketsResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Arr(marginPromise), Value::Arr(spotMarketsPromise)])).await.to_vec();
-        let marginResponse: Value = marginResponsespotMarketsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
-        let spotMarketsResponse: crate::value::List = marginResponsespotMarketsResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
+        let marginResponse: Value = Value::Arr(marginPromise);
+        let spotMarketsResponse: crate::value::List = spotMarketsPromise;
         let marginMarkets: crate::value::Dict = self.index_by(marginResponse, Value::Str("id".into()));
         //
         //  Spot
@@ -9969,7 +9968,7 @@ if _try_result.is_err() {
         let mut response: Value = Value::Null;
         if isUnifiedAccount {
             request.insert("type".into(), Value::Str("repay".into()));
-            let __ws_arg_87 = self.extend(&request, &[&paramsUnifiedAccount]);
+            let __ws_arg_87 = self.extend(Value::Map(request), &[&paramsUnifiedAccount]);
             response = self.private_unified_post_loans(&[&__ws_arg_87]).await;
         }  else {
             // deprecated and not present in the exchange's docs but still works
@@ -10064,7 +10063,7 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if isUnifiedAccount {
             request.insert("type".into(), Value::Str("borrow".into()));
-            let __ws_arg_90 = self.extend(&request, &[&paramsUnifiedAccount]);
+            let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsUnifiedAccount]);
             response = self.call_method_o("private_unified_post_loans", &[&__ws_arg_90]).await;
         }  else {
             // deprecated and not present in the exchange's docs
@@ -10947,10 +10946,10 @@ if _try_result.is_err() {
             request.insert("underlying".into(), self.safe_string(&optionParts, Value::Int(0), &[]));
         }
         if (market).swap {
-            let __ws_arg_108 = self.extend(&request, &[&params]);
+            let __ws_arg_108 = self.extend(Value::Map(request), &[&params]);
             response = self.private_futures_get_settle_liquidates(&[&__ws_arg_108]).await;
         }  else if (market).future {
-            let __ws_arg_109 = self.extend(&request, &[&params]);
+            let __ws_arg_109 = self.extend(Value::Map(request), &[&params]);
             response = self.private_delivery_get_settle_liquidates(&[&__ws_arg_109]).await;
         }  else if (market).option {
             let __ws_arg_110 = self.extend(Value::Map(request), &[&params]);
@@ -11103,10 +11102,10 @@ if _try_result.is_err() {
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("currency_pair".into(), self.safe_string_k(&market, "id", &[]));
             if isUnified {
-                let __ws_arg_112 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.public_margin_get_uni_currency_pairs_currency_pair(&[&__ws_arg_112]).await;
             }  else {
-                let __ws_arg_113 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_113 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.public_margin_get_currency_pairs_currency_pair(&[&__ws_arg_113]).await; // deprecated
             }
         }  else if isUnified {

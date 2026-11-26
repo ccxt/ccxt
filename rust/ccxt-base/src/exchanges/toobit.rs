@@ -2516,11 +2516,11 @@ impl Toobit {
         let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (endpoint.as_deref() == Some("index")) {
             request.insert("symbol".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "indexToken", &[])); // index klines take the index id instead of the market id
-            let __ws_arg_2 = self.extend(&request, &[&paramsPrice]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsPrice]);
             let indexResponse: crate::value::Dict = self.common_get_quote_v1_index_klines(&[&__ws_arg_2]).await.unwrap_or_default();
             candles = self.safe_list_k_t(&indexResponse, "data");
         }  else if (endpoint.as_deref() == Some("mark")) {
-            let __ws_arg_3 = self.extend(&request, &[&paramsPrice]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsPrice]);
             let markResponse: crate::value::Dict = self.common_get_quote_v1_mark_price_klines(&[&__ws_arg_3]).await.unwrap_or_default();
             candles = self.safe_list_k_t(&markResponse, "data");
         }  else {
@@ -2578,7 +2578,7 @@ impl Toobit {
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("spot")) {
-            let __ws_arg_5 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.common_get_quote_v1_ticker24hr(&[&__ws_arg_5]).await.unwrap_or_default();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -3172,7 +3172,7 @@ impl Toobit {
             m
         });
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_14 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_order(&[&__ws_arg_14]).await.unwrap_or_default();
         }  else {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -3233,7 +3233,7 @@ impl Toobit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_17 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.call_method_o("private_delete_api_v1_spot_open_orders", &[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -3291,7 +3291,7 @@ impl Toobit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_19 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.call_method_o("private_delete_api_v1_spot_cancel_order_by_ids", &[&__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsMarketType]);
@@ -3340,7 +3340,7 @@ impl Toobit {
             m
         });
         if (market).spot {
-            let __ws_arg_21 = self.extend(&request, &[&params]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_api_v1_spot_order(&[&__ws_arg_21]).await.unwrap_or_default();
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
@@ -3400,7 +3400,7 @@ impl Toobit {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_24 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_open_orders(&[&__ws_arg_24]).await.unwrap_or_default();
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsMarketType]);

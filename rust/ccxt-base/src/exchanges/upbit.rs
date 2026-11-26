@@ -2109,7 +2109,7 @@ impl Upbit {
         if (timeframeValue.as_deref() == Some("minutes")) {
             let numMinutes: f64 = f64::round((((timeframePeriod as f64) / 60.0)));
             request.insert("unit".into(), Value::from(numMinutes));
-            let __ws_arg_7 = self.extend(&request, &[&params]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_candles_timeframe_unit(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
@@ -2298,7 +2298,7 @@ impl Upbit {
         let mut response: Option<crate::value::Dict> = None;
         let paramsRequest: crate::value::Dict = self.omit_t(&paramsOrdType, &["timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"], &[]);
         if test {
-            let __ws_arg_9 = self.extend(&request, &[&paramsRequest]);
+            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsRequest]);
             response = self.private_post_orders_test(&[&__ws_arg_9]).await;
         }  else {
             let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
@@ -3063,7 +3063,7 @@ impl Upbit {
             if (tagResolved.is_some()) {
                 request.insert("secondary_address".into(), tagResolved.map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_withdraws_coin(&[&__ws_arg_23]).await;
         }  else {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsTag]);

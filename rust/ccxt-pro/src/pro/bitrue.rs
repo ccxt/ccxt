@@ -639,23 +639,22 @@ impl Bitrue {
         }
         let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let tick: crate::value::Dict = message.key_dict("tick");
-        let mut parseable: Value = Value::from(&tick);
-        if isFutures {
-            let rawAsks: crate::value::List = self.safe_list_k_t(&tick, "asks");
-            let rawBuys: crate::value::List = self.safe_list_k_t(&tick, "buys");
-            parseable = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("asks".to_string(), Value::Arr(self.parse_contract_bids_asks(&rawAsks, symbol.as_deref().unwrap_or_default())));
-                    m.insert("buys".to_string(), Value::Arr(self.parse_contract_bids_asks(&rawBuys, symbol.as_deref().unwrap_or_default())));
-                m
-            });
-        }
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let snapshot: crate::value::Dict = self.parse_order_book(parseable, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())]);
-        orderbook.reset(Value::Dict(snapshot));
+        if isFutures {
+            let rawAsks: crate::value::List = self.safe_list_k_t(&tick, "asks");
+            let rawBuys: crate::value::List = self.safe_list_k_t(&tick, "buys");
+            orderbook.reset(Value::Dict(self.parse_order_book(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("asks".to_string(), Value::Arr(self.parse_contract_bids_asks(&rawAsks, symbol.as_deref().unwrap_or_default())));
+                    m.insert("buys".to_string(), Value::Arr(self.parse_contract_bids_asks(&rawBuys, symbol.as_deref().unwrap_or_default())));
+                m
+            }), Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())])));
+        }  else {
+            orderbook.reset(Value::Dict(self.parse_order_book(&tick, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())])));
+        }
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }

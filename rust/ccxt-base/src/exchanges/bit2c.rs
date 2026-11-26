@@ -1110,7 +1110,7 @@ impl Bit2c {
         }
         let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (method.as_deref() == Some("publicGetExchangesPairTrades")) || (method.as_deref() == Some("public_get_exchanges_pair_trades")) {
-            let __ws_arg_2 = self.extend(&request, &[&params]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             let response: Value = self.call_method(Value::Str("public_get_exchanges_pair_trades".into()), &[&__ws_arg_2]).await;
             //
             //     [
@@ -1245,10 +1245,10 @@ impl Bit2c {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
-                let __ws_arg_4 = self.extend(&request, &[&params]);
+                let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_post_order_add_order_market_price_buy(&[&__ws_arg_4]).await;
             }  else {
-                let __ws_arg_5 = self.extend(&request, &[&params]);
+                let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
                 response = self.private_post_order_add_order_market_price_sell(&[&__ws_arg_5]).await;
             }
         }  else {

@@ -2513,7 +2513,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_16 = self.extend(&request, &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_post_v3_delete_client_order_id(&[&__ws_arg_16]).await;
         }  else {
             request.insert("id".into(), id);
@@ -2558,7 +2558,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_18 = self.extend(&request, &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_get_v3_order_by_client_order_id(&[&__ws_arg_18]).await;
         }  else {
             request.insert("id".into(), id);

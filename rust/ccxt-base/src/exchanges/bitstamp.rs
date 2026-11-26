@@ -2834,7 +2834,7 @@ impl Bitstamp {
 
     pub fn construct_currency_object(&self, id: Option<&str>, code: Option<&str>, name: Option<&str>, precision: Option<i64>, mut minCost: Value, originalPayload: &crate::value::Dict) -> crate::value::Dict {
         let mut currencyType: String = "crypto".to_string();
-        let description: Value = Value::Dict(self.describe());
+        let description: crate::value::Dict = self.describe();
         let fees: crate::value::Dict = self.safe_dict_k_t(&description, "fees");
         let fundingFees: crate::value::Dict = self.safe_dict_k_t(&fees, "funding");
         let withdrawFee: Option<f64> = self.safe_number_k(&fundingFees, "withdraw", &[]).as_f64();
@@ -3650,24 +3650,24 @@ impl Bitstamp {
         let capitalizedSide: String = self.capitalize(side);
         if (type_var.as_str() == Some("market")) {
             if (capitalizedSide == "Buy") {
-                let __ws_arg_5 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_buy_market_pair(&[&__ws_arg_5]).await;
             }  else {
-                let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_sell_market_pair(&[&__ws_arg_6]).await;
             }
         }  else if (type_var.as_str() == Some("instant")) {
             if (capitalizedSide == "Buy") {
-                let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_buy_instant_pair(&[&__ws_arg_7]).await;
             }  else {
-                let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_sell_instant_pair(&[&__ws_arg_8]).await;
             }
         }  else {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             if (capitalizedSide == "Buy") {
-                let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_buy_pair(&[&__ws_arg_9]).await;
             }  else {
                 let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3803,7 +3803,7 @@ impl Bitstamp {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("pair".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_13 = self.extend(&request, &[&params]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_cancel_all_orders_pair(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
@@ -3956,7 +3956,7 @@ impl Bitstamp {
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            let __ws_arg_17 = self.extend(&request, &[&params]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
             response = self.call_method(Value::Str("private_post_user_transactions_pair".into()), &[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
@@ -4405,7 +4405,7 @@ impl Bitstamp {
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
             let __ws_arg_24 = self.get_currency_name(code.as_str().unwrap_or_default());
-            let __ws_arg_25 = self.extend(&request, &[&paramsWithdrawTag]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.request(Value::Str(format!("{}{}", __ws_arg_24.map(Value::from).unwrap_or(Value::Null), Value::Str("_withdrawal/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), __ws_arg_25]).await;
         }  else {
             currency = Some(self.currency(code.as_str()));
@@ -4460,7 +4460,7 @@ impl Bitstamp {
         let mut response: Option<crate::value::Dict> = None;
         if (fromAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), toAccount.clone());
-            let __ws_arg_28 = self.extend(&request, &[&params]);
+            let __ws_arg_28 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_transfer_from_main(&[&__ws_arg_28]).await;
         }  else if (toAccount.as_str() == Some("main")) {
             request.insert("subAccount".into(), fromAccount.clone());

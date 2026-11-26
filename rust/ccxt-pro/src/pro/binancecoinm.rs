@@ -81,7 +81,7 @@ impl Binancecoinm {
     pub fn describe(&self) -> crate::value::Dict {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::binancecoinm::Binancecoinm::new(None);
-        let restDescribe: Value = Value::Dict(restInstance.describe());
+        let restDescribe: crate::value::Dict = restInstance.describe();
         let parentWsDescribe: Value = self.parent.describe_data();
         let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
         return self.deep_extend_t(extended, &[Value::Map({

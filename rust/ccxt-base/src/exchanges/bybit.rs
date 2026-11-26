@@ -2110,6 +2110,9 @@ impl crate::exchange::DerivedExchange for Bybit {
         }
         let strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let optionType: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (expiry.is_none()) {
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " createExpiredOptionMarket() missing expiry")));
+        }
         let datetime: Option<String> = self.convert_expire_date(expiry.as_deref()).as_str().map(str::to_owned);
         let mut amountPrecision: Option<f64> = None;
         let mut pricePrecision: Option<f64> = None;
@@ -2125,6 +2128,9 @@ impl crate::exchange::DerivedExchange for Bybit {
             pricePrecision = Some(0.01_f64);
         }
         let convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.as_deref()).as_str().map(str::to_owned);
+        if (convertedExpireDate.is_none()) {
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " createExpiredOptionMarket() invalid expiry")));
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, "-").into()), convertedExpireDate.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
@@ -6233,19 +6239,19 @@ impl Bybit {
             self.load_time_difference(&[]).await;
         }
         let mut promisesUnresolved: Vec<Value> = Vec::new();
-        let mut types: Value = Value::Null;
+        let mut types: Option<crate::value::List> = None;
         let defaultTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into()), Value::Str("option".into())]);
         let fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "fetchMarkets");
         if (fetchMarketsOptions.is_some()) {
-            types = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultTypes.clone()]);
+            types = self.safe_list_k_or_o(&fetchMarketsOptions, "types", &defaultTypes);
         }  else {
             // for backward-compatibility
-            types = self.safe_list_k(&self.options, "fetchMarkets", &[defaultTypes]);
+            types = self.safe_list_k_or_o(&self.options, "fetchMarkets", defaultTypes);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (types.len() as i64) } {
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (types.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let marketType: Option<String> = self.safe_string_opt(&types, Value::Int(i), &[]);
             if (marketType.as_deref() == Some("spot")) {
                 promisesUnresolved.push(Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await));
@@ -6308,7 +6314,7 @@ impl Bybit {
         let usePrivateInstrumentsInfo: Option<bool> = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("usePrivateInstrumentsInfo".into()), &[Value::Bool(false)]).as_bool();
         let mut response: Option<crate::value::Dict> = None;
         if (usePrivateInstrumentsInfo == Some(true)) {
-            let __ws_arg_0 = self.extend(&request, &[&params]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
             response = self.private_get_v5_market_instruments_info(&[&__ws_arg_0]).await;
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -7719,13 +7725,13 @@ impl Bybit {
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if isSpot && (marginMode.is_some()) {
-            let __ws_arg_17 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.private_get_v5_spot_cross_margin_trade_account(&[&__ws_arg_17]).await;
         }  else if isFunding {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
             request.insert("accountType".into(), Value::Str("FUND".into()));
-            let __ws_arg_18 = self.extend(&request, &[&paramsMarginMode]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[&__ws_arg_18]).await;
         }  else {
             request.insert("accountType".into(), unifiedType.map(Value::from).unwrap_or(Value::Null));
@@ -8111,8 +8117,7 @@ impl Bybit {
                 if (cost.is_some()) {
                     orderCost = cost.clone();
                 }  else {
-                    let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                    orderCost = quoteAmount.into_opt_string();
+                    orderCost = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                 }
                 request.insert("qty".into(), self.get_cost(Some(symbolValue.as_str()), orderCost.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
             }  else {
@@ -10283,10 +10288,10 @@ impl Bybit {
         if enableUnified {
             let unifiedMarginStatus: i64 = self.safe_integer_k(&self.options, "unifiedMarginStatus", &[Value::Int(5)]).as_i64().unwrap_or(5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType.as_deref() == Some("inverse")) && (unifiedMarginStatus < 5) {
-                let __ws_arg_43 = self.extend(&request, &[&paramsSubType]);
+                let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsSubType]);
                 response = self.private_get_v5_account_contract_transaction_log(&[&__ws_arg_43]).await;
             }  else {
-                let __ws_arg_44 = self.extend(&request, &[&paramsSubType]);
+                let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsSubType]);
                 response = self.private_get_v5_account_transaction_log(&[&__ws_arg_44]).await;
             }
         }  else {

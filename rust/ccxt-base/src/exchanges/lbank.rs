@@ -2142,7 +2142,7 @@ impl Lbank {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             request.insert("productGroup".into(), Value::Str("SwapU".into()));
-            let __ws_arg_2 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[&__ws_arg_2]).await;
         }  else {
             request.insert("symbol".into(), Value::Str("all".into()));
@@ -2239,7 +2239,7 @@ impl Lbank {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             request.insert("depth".into(), Value::from(limitResolved));
-            let __ws_arg_4 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[&__ws_arg_4]).await;
         }  else {
             request.insert("size".into(), Value::from(limitResolved));
@@ -2350,7 +2350,7 @@ impl Lbank {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("method".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPublicGetSupplementTrades")) {
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_public_get_supplement_trades(&[&__ws_arg_6]).await;
         }  else {
             let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2834,7 +2834,7 @@ impl Lbank {
         let paramsOmitted: crate::value::Dict = self.omit_t(paramsRequest, Value::Str("method".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_private_post_create_order(&[&__ws_arg_13]).await;
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);

@@ -867,7 +867,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         if (access.as_deref() == Some("public")) {
             url.push_str(&pathWithParams);
             if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -915,7 +915,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             });
             auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                requestBody = json_stringify(&Value::Map(requestParams.clone())).as_str().map(str::to_owned);
+                requestBody = json_stringify(&Value::Map(requestParams)).as_str().map(str::to_owned);
                 auth.push_str(requestBody.as_deref().unwrap_or("null"));
                 authHeaders.insert("content-type".into(), Value::Str("application/json".into()));
             }  else {
@@ -3643,7 +3643,7 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         self.check_required_argument(Value::Str("editOrder".into()), &side, Value::Str("side".into()), &[]);
         if isConditional {
-            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_put_algo_order(&[&__ws_arg_10]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -3742,18 +3742,18 @@ impl Woofipro {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
-                let __ws_arg_12 = self.extend(&request, &[&paramsOmitted2]);
+                let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted2]);
                 response = self.v1_private_delete_algo_client_order(&[&__ws_arg_12]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_delete_algo_order(&[&__ws_arg_13]).await;
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
-                let __ws_arg_14 = self.extend(&request, &[&paramsOmitted3]);
+                let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted3]);
                 response = self.v1_private_delete_client_order(&[&__ws_arg_14]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
@@ -3837,7 +3837,7 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderIds.is_some()) {
             request.insert("client_order_ids".into(), Value::Str(clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
-            let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_delete_client_batch_order(&[&__ws_arg_18]).await;
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -3890,7 +3890,7 @@ impl Woofipro {
         }
         let mut response: Value = Value::Null;
         if (trigger == Some(true)) {
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_delete_algo_orders(&[&__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3950,17 +3950,17 @@ impl Woofipro {
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_22]).await;
             }  else {
                 request.insert("oid".into(), id);
-                let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_algo_order_oid(&[&__ws_arg_23]).await;
             }
         }  else {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_client_order_client_order_id(&[&__ws_arg_24]).await;
             }  else {
                 request.insert("oid".into(), id);

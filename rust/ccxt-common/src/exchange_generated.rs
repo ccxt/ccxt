@@ -5960,8 +5960,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 // still processing the same timeframe -> update opening trade
                 let prevCandle: crate::value::List = self.safe_list_t(&ohlcvs, &candle);
-                let prevHigh: Value = self.safe_value(&prevCandle, &i_high, &[]);
-                let prevLow: Value = self.safe_value(&prevCandle, &i_low, &[]);
+                let prevHigh: Value = self.safe_number(&prevCandle, Value::Int(2), &[]);
+                let prevLow: Value = self.safe_number(&prevCandle, Value::Int(3), &[]);
                 if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[2] = Value::from(crate::runtime::Math::max(&(if (prevHigh == Value::Null) { price.clone() } else { prevHigh }), &price)); } }
                 if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[3] = Value::from(crate::runtime::Math::min(&(if (prevLow == Value::Null) { price.clone() } else { prevLow }), &price)); } }
                 if let (Value::Arr(__a), Value::Int(__c)) = (&mut ohlcvs, &candle) { if let Some(Value::Arr(__r)) = std::sync::Arc::make_mut(__a).get_mut(*__c as usize) { std::sync::Arc::make_mut(__r)[4] = Value::from(price); } }
@@ -9379,10 +9379,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (since.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")));
             }
-            let requiredCalls: Value = ((match (((Value::from((if let (Some(__l), Some(__r)) = (until, since) { Some(__l - __r) } else { None })))).as_f64(), (Value::from(step)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-            if matches!(maxCallsLimit, Some(__p) if requiredCalls.as_f64().unwrap_or(f64::NAN) > (__p as f64)) {
+            let requiredCalls: Option<i64> = self.parse_to_int(((match (((Value::from((if let (Some(__l), Some(__r)) = (until, since) { Some(__l - __r) } else { None })))).as_f64(), (Value::from(step)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+            if (requiredCalls.is_some() && maxCallsLimit.is_some() && requiredCalls > maxCallsLimit) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id,
-                    " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ").into()), Value::from(format!("{}", Value::from(maxCallsLimit)))).into()), " required calls is ").into()), Value::Str(format!("{}", requiredCalls).into()))));
+                    " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ").into()), Value::from(format!("{}", Value::from(maxCallsLimit)))).into()), " required calls is ").into()), Value::from(format!("{}", Value::from(requiredCalls))))));
             }
         }
         {
@@ -12404,8 +12404,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((match &(self.options.get("createMarketBuyOrderRequiresPrice").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) || ((self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
+        if matches!(self.safe_bool_k(&self.options, "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || ((self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketBuyOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketBuyOrderWithCost() is not supported yet")));
@@ -12434,8 +12433,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((match &(self.options.get("createMarketSellOrderRequiresPrice").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 1.0) })) || ((self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
+        if matches!(self.safe_bool_k(&self.options, "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || ((self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createMarketSellOrderWithCost").cloned().unwrap_or(Value::Null).as_bool() != Some(false))) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createMarketSellOrderWithCost() is not supported yet")));

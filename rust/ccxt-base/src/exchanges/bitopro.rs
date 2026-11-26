@@ -1895,7 +1895,7 @@ impl Bitopro {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("pair".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_7 = self.extend(&request, &[&params]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
             response = self.private_delete_orders_pair(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);

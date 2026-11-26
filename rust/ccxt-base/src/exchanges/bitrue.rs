@@ -2296,19 +2296,19 @@ impl Bitrue {
     m
 }));
         let mut promisesRaw: Vec<Value> = Vec::new();
-        let mut types: Value = Value::Null;
+        let mut types: Option<crate::value::List> = None;
         let defaultTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
         let fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "fetchMarkets");
         if (fetchMarketsOptions.is_some()) {
-            types = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultTypes.clone()]);
+            types = self.safe_list_k_or_o(&fetchMarketsOptions, "types", &defaultTypes);
         }  else {
             // for backward-compatibility
-            types = self.safe_list_k(&self.options, "fetchMarkets", &[defaultTypes]);
+            types = self.safe_list_k_or_o(&self.options, "fetchMarkets", defaultTypes);
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.len() as i64) } {
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let marketType: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (marketType == "spot") {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[&params]).await);
@@ -2817,7 +2817,7 @@ impl Bitrue {
             if (market).swap {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTickers does not support swap markets, please use fetchTicker instead")));
             }  else if (market).spot {
-                let __ws_arg_13 = self.extend(&request, &[&params]);
+                let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
                 response = self.call_method(Value::Str("spot_v1_public_get_ticker24hr".into()), &[&__ws_arg_13]).await;
                 data = self.to_array_t(response);
             }  else {
@@ -3105,10 +3105,10 @@ impl Bitrue {
             request.insert("leverage".into(), self.parse_to_numeric(Value::from(leverage)));
             let paramsSwap: crate::value::Dict = self.omit_t(&paramsNoCost, &["leverage", "reduceOnly", "reduce_only", "timeInForce"], &[]);
             if ((market).linear == Some(true)) {
-                let __ws_arg_16 = self.extend(&request, &[&paramsSwap]);
+                let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsSwap]);
                 response = self.fapi_v2_private_post_order(&[&__ws_arg_16]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_17 = self.extend(&request, &[&paramsSwap]);
+                let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSwap]);
                 response = self.dapi_v2_private_post_order(&[&__ws_arg_17]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
@@ -3194,10 +3194,10 @@ impl Bitrue {
         if (market).swap {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
-                let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.fapi_v2_private_get_order(&[&__ws_arg_20]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.dapi_v2_private_get_order(&[&__ws_arg_21]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
@@ -3306,10 +3306,10 @@ impl Bitrue {
         if (market).swap {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
-                let __ws_arg_25 = self.extend(&request, &[&params]);
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
                 response = self.fapi_v2_private_get_open_orders(&[&__ws_arg_25]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_26 = self.extend(&request, &[&params]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
                 response = self.dapi_v2_private_get_open_orders(&[&__ws_arg_26]).await;
             }
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
@@ -3377,10 +3377,10 @@ impl Bitrue {
         if (market).swap {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
-                let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.fapi_v2_private_post_cancel(&[&__ws_arg_28]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_29 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.dapi_v2_private_post_cancel(&[&__ws_arg_29]).await;
             }
             data = self.safe_dict_k_t(&response, "data");
@@ -3433,7 +3433,7 @@ impl Bitrue {
                 m
             });
             if ((market).linear == Some(true)) {
-                let __ws_arg_32 = self.extend(&request, &[&params]);
+                let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
                 response = self.fapi_v2_private_post_all_open_orders(&[&__ws_arg_32]).await;
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
@@ -3494,10 +3494,10 @@ impl Bitrue {
         if (market).swap {
             request.insert("contractName".into(), Value::from((market).id.as_deref()));
             if ((market).linear == Some(true)) {
-                let __ws_arg_34 = self.extend(&request, &[&params]);
+                let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
                 response = self.fapi_v2_private_get_my_trades(&[&__ws_arg_34]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_35 = self.extend(&request, &[&params]);
+                let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
                 response = self.dapi_v2_private_get_my_trades(&[&__ws_arg_35]).await;
             }
             data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
@@ -3965,7 +3965,7 @@ impl Bitrue {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setLeverage only support swap markets")));
         }
         if ((market).linear == Some(true)) {
-            let __ws_arg_42 = self.extend(&request, &[&params]);
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&params]);
             response = self.fapi_v2_private_post_level_edit(&[&__ws_arg_42]).await;
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_43 = self.extend(Value::Map(request), &[&params]);
@@ -4018,7 +4018,7 @@ impl Bitrue {
         //     }
         //
         if ((market).linear == Some(true)) {
-            let __ws_arg_44 = self.extend(&request, &[&params]);
+            let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
             let response: crate::value::Dict = self.fapi_v2_private_post_position_margin(&[&__ws_arg_44]).await.unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         }  else if ((market).inverse == Some(true)) {

@@ -3545,7 +3545,7 @@ impl Modetrade {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
-            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_put_algo_order(&[&__ws_arg_10]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -3646,17 +3646,17 @@ impl Modetrade {
         if trigger {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
-                let __ws_arg_12 = self.extend(&request, &[&paramsClientOrder]);
+                let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsClientOrder]);
                 response = self.v1_private_delete_algo_client_order(&[&__ws_arg_12]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_delete_algo_order(&[&__ws_arg_13]).await;
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
-                let __ws_arg_14 = self.extend(&request, &[&paramsClientOrder]);
+                let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsClientOrder]);
                 response = self.v1_private_delete_client_order(&[&__ws_arg_14]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
@@ -3736,7 +3736,7 @@ impl Modetrade {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderIds.is_some()) {
             request.insert("client_order_ids".into(), Value::Str(clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
-            let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_delete_client_batch_order(&[&__ws_arg_18]).await;
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -3789,7 +3789,7 @@ impl Modetrade {
         }
         let mut response: Value = Value::Null;
         if (trigger == Some(true)) {
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.v1_private_delete_algo_orders(&[&__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3849,17 +3849,17 @@ impl Modetrade {
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_22]).await;
             }  else {
                 request.insert("oid".into(), id);
-                let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_algo_order_oid(&[&__ws_arg_23]).await;
             }
         }  else {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.v1_private_get_client_order_client_order_id(&[&__ws_arg_24]).await;
             }  else {
                 request.insert("oid".into(), id);

@@ -2277,7 +2277,7 @@ impl Bit2me {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (fromId.as_deref() == Some("wallet")) && (toId.as_deref() == Some("trading")) {
-            let __ws_arg_17 = self.extend(&request, &[&params]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_v1_trading_wallet_deposit(&[&__ws_arg_17]).await;
         }  else if (fromId.as_deref() == Some("trading")) && (toId.as_deref() == Some("wallet")) {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);

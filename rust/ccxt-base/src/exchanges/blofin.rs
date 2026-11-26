@@ -2963,7 +2963,7 @@ impl Blofin {
         if (accountType.is_some()) && (accountType.as_deref() != Some("swap")) {
             let parsedAccountType: Option<String> = self.safe_string_opt(self.options.get("accountsByType").cloned().unwrap_or(Value::Null), &accountType, &[&accountType]);
             request.insert("accountType".into(), parsedAccountType.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_7 = self.extend(&request, &[&paramsAccountType]);
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsAccountType]);
             response = self.private_get_asset_balances(&[&__ws_arg_7]).await;
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsAccountType]);
@@ -3447,7 +3447,7 @@ impl Blofin {
                     request.insert("newTpOrderPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), tpLimitPrice.map(Value::from).unwrap_or(Value::Null))));
                 }
             }
-            let __ws_arg_15 = self.extend(&request, &[&query]);
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&query]);
             let tpslResponse: crate::value::Dict = self.private_post_trade_amend_tpsl(&[&__ws_arg_15]).await.unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict_k(&tpslResponse, "data", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3463,7 +3463,7 @@ impl Blofin {
             }  else if (price.is_some()) {
                 request.insert("newOrderPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
-            let __ws_arg_16 = self.extend(&request, &[&query]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&query]);
             let algoResponse: crate::value::Dict = self.private_post_trade_amend_algo(&[&__ws_arg_16]).await.unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict_k(&algoResponse, "data", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3533,7 +3533,7 @@ impl Blofin {
         let query: crate::value::Dict = self.omit_t(params, &["clientOrderId", "tpsl", "TPSL"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isTpsl {
-            let __ws_arg_18 = self.extend(&request, &[&query]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_order_tpsl_detail(&[&__ws_arg_18]).await;
         }  else {
             let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
@@ -3602,11 +3602,11 @@ impl Blofin {
         let query: crate::value::Dict = self.omit_t(&paramsMethod, &["method", "stop", "trigger", "tpsl", "TPSL"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isTpSl || (method.as_deref() == Some("privateGetTradeOrdersTpslPending")) {
-            let __ws_arg_20 = self.extend(&request, &[&query]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_orders_tpsl_pending(&[&__ws_arg_20]).await;
         }  else if isTrigger || (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             request.insert("orderType".into(), Value::Str("trigger".into()));
-            let __ws_arg_21 = self.extend(&request, &[&query]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_orders_algo_pending(&[&__ws_arg_21]).await;
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(request), &[&query]);
@@ -5061,7 +5061,7 @@ impl Blofin {
         let query: crate::value::Dict = self.omit_t(&paramsMethod, &["method", "stop", "trigger", "tpsl", "TPSL"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger || (method.as_deref() == Some("privateGetTradeOrdersTpslHistory")) {
-            let __ws_arg_41 = self.extend(&request, &[&query]);
+            let __ws_arg_41 = self.extend(Value::Map(request), &[&query]);
             response = self.private_get_trade_orders_tpsl_history(&[&__ws_arg_41]).await;
         }  else {
             let __ws_arg_42 = self.extend(Value::Map(request), &[&query]);

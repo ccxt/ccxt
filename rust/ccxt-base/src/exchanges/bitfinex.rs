@@ -3558,7 +3558,7 @@ impl Bitfinex {
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::List> = None;
         if (symbol == Value::Null) {
-            let __ws_arg_12 = self.extend(&request, &[&params]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_auth_r_orders(&[&__ws_arg_12]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3833,7 +3833,7 @@ impl Bitfinex {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_17 = self.extend(&request, &[&params]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_auth_r_trades_symbol_hist(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
@@ -4314,7 +4314,7 @@ impl Bitfinex {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_21 = self.extend(&request, &[&params]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
             let currencyMovements: crate::value::List = self.private_post_auth_r_movements_currency_hist(&[&__ws_arg_21]).await.unwrap_or_default();
             response = self.to_array(&currencyMovements);
         }  else {
@@ -5547,7 +5547,7 @@ impl Bitfinex {
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::List> = None;
         if (symbol == Value::Null) {
-            let __ws_arg_33 = self.extend(&request, &[&params]);
+            let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
             response = self.private_post_auth_r_orders(&[&__ws_arg_33]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

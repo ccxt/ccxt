@@ -81,7 +81,7 @@ impl Gateeu {
     pub fn describe(&self) -> crate::value::Dict {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::gateeu::Gateeu::new(None);
-        let restDescribe: Value = Value::Dict(restInstance.describe());
+        let restDescribe: crate::value::Dict = restInstance.describe();
         let parentWsDescribe: Value = self.parent.describe_data();
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'

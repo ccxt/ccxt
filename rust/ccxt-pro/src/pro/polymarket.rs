@@ -96,7 +96,7 @@ impl Polymarket {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_ack" => { self.handle_ack(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ack" => { self.handle_ack(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1510,7 +1510,7 @@ impl Polymarket {
         client.resolve(Value::Dict(self.balance.clone()), "balance");
 }
 
-    pub fn handle_ack(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_ack(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         //
         // subscribe or unsubscribe acknowledgement
@@ -1522,9 +1522,9 @@ impl Polymarket {
         //
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
-        let id: Option<String> = self.safe_string_k_opt(&message, "id", &[]);
-        let data: Value = self.safe_value_k(&message, "data", &[]);
-        if !(matches!(&data, Value::Arr(_))) {
+        let id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        if !(matches!(&message.get("data").cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+            let data: crate::value::Dict = message.key_dict("data");
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
@@ -1553,8 +1553,8 @@ impl Polymarket {
                     }
                 }
             }
-            let __ws_arg_1 = self.milliseconds();
-            crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(message, "ts", &[Value::Int(__ws_arg_1)]));
+            crate::set_value(&mut client, &Value::Str("lastPong".into()), (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+                Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(self.milliseconds()) } }, _ => Value::Int(self.milliseconds()) }));
             return;
         }
         if (id.is_none()) {
@@ -1570,11 +1570,13 @@ impl Polymarket {
         let subMessageHashes: crate::value::List = self.safe_list_k_t(&pending, "subMessageHashes");
         let action: Option<String> = self.safe_string_k_opt(&pending, "method", &[]);
         let mut errorMessage: Option<String> = None;
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let rowsLength: i64 = rows.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < rowsLength } {
+            let entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let status: Option<String> = self.safe_string_k_opt(&entry, "status", &[]);
             if (status.as_deref() == Some("err")) {
                 errorMessage = self.safe_string_k_opt(&entry, "error", &[]);
@@ -1635,8 +1637,8 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (messageHashes.len() as i64) } {
-                let __ws_arg_2 = self.safe_string(&subMessageHashes, Value::Int(i), &[]);
-                self.clean_unsubscription(&client, __ws_arg_2, messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
+                let __ws_arg_1 = self.safe_string(&subMessageHashes, Value::Int(i), &[]);
+                self.clean_unsubscription(&client, __ws_arg_1, messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             }
             }
         }
@@ -1646,7 +1648,7 @@ impl Polymarket {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let ch: Option<String> = (match __pro_message.get("ch") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (ch.is_none()) {
-            self.handle_ack(client.as_value(), Value::from(message));
+            self.handle_ack(client.as_value(), message);
             return;
         }
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = ch.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });

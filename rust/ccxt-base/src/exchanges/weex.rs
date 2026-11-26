@@ -2728,7 +2728,7 @@ impl Weex {
             //         }
             //     ]
             //
-            let __ws_arg_0 = self.extend(&request, &[&paramsMarketType]);
+            let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.public_get_api_v3_market_ticker24hr(&[&__ws_arg_0]).await;
         }  else {
             //
@@ -2978,7 +2978,7 @@ impl Weex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {
-            let __ws_arg_3 = self.extend(&request, &[&params]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_api_v3_market_depth(&[&__ws_arg_3]).await;
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
@@ -3200,17 +3200,17 @@ impl Weex {
             }
             request.insert("startTime".into(), Value::from(startTime));
             request.insert("endTime".into(), Value::from(endTime));
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.contract_get_capi_v3_market_history_klines(&[&__ws_arg_6]).await;
         }  else {
             if (limitResolved.is_some()) {
                 request.insert("limit".into(), Value::from(limitResolved));
             }
             if (priceType.as_deref() == Some("MARK")) {
-                let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.contract_get_capi_v3_market_mark_price_klines(&[&__ws_arg_7]).await;
             }  else if (priceType.as_deref() == Some("INDEX")) {
-                let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
+                let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.contract_get_capi_v3_market_index_price_klines(&[&__ws_arg_8]).await;
             }  else {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3259,7 +3259,7 @@ impl Weex {
         }
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
-            let __ws_arg_10 = self.extend(&request, &[&params]);
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
             response = self.public_get_api_v3_market_trades(&[&__ws_arg_10]).await;
         }  else {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
@@ -4029,10 +4029,10 @@ impl Weex {
             //         "status": "CANCELED"
             //     }
             //
-            let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_api_v3_order(&[&__ws_arg_16]).await;
         }  else if trigger {
-            let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.contract_private_delete_capi_v3_algo_order(&[&__ws_arg_17]).await;
         }  else {
             let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4094,10 +4094,10 @@ impl Weex {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument for spot markets")));
             }
-            let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_api_v3_open_orders(&[&__ws_arg_19]).await;
         }  else if trigger {
-            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.contract_private_delete_capi_v3_algo_open_orders(&[&__ws_arg_20]).await;
         }  else {
             let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4172,7 +4172,7 @@ impl Weex {
         }
         let mut response: Option<crate::value::Dict> = None;
         if isSpot {
-            let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_api_v3_order_batch(&[&__ws_arg_22]).await;
         }  else {
             let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4261,7 +4261,7 @@ impl Weex {
             //         "isWorking": true
             //     }
             //
-            let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_api_v3_order(&[&__ws_arg_24]).await;
         }  else {
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4353,7 +4353,7 @@ impl Weex {
             //         }
             //     ]
             //
-            let __ws_arg_26 = self.extend(&request, &[&paramsPaginate]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsPaginate]);
             response = self.private_get_api_v3_open_orders(&[&__ws_arg_26]).await;
         }  else {
             if (since.is_some()) {
@@ -4942,7 +4942,7 @@ impl Weex {
             if (limit.is_some()) {
                 request.insert("limit".into(), Value::from(limit));
             }
-            let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]);
+            let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]);
             let requestUntil: crate::value::Dict = __until0;
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
@@ -4956,7 +4956,7 @@ impl Weex {
             if (limit.is_some()) {
                 request.insert("pageSize".into(), Value::from(limit));
             }
-            let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]);
+            let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]);
             let requestUntil: crate::value::Dict = __until0;
             let paramsUntil: crate::value::Dict = __until1;
             let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
