@@ -2417,7 +2417,7 @@ export default class sxbet extends Exchange {
         return refreshed;
     }
 
-    handleOrderBook (client: Client, rows: any[]) {
+    handleOrderBook (client: Client, rows: Dict[]) {
         //
         //     {
         //         "marketHash": "0x...",
@@ -2586,7 +2586,7 @@ export default class sxbet extends Exchange {
         });
     }
 
-    handleTrades (client: Client, rows: any[]) {
+    handleTrades (client: Client, rows: Dict[]) {
         //
         //     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         //                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
@@ -2594,7 +2594,7 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade (row);
             const sym = this.safeString (trade, 'outcome');
@@ -2642,13 +2642,13 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
-    handleMyTrade (client: Client, rows: any[]) {
+    handleMyTrade (client: Client, rows: Dict[]) {
         //
         //     FillV3 rows - identical to GET /fills-v3
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill (row);
             const sym = this.safeString (trade, 'outcome');
@@ -2693,13 +2693,13 @@ export default class sxbet extends Exchange {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
-    handleOrder (client: Client, rows: any[]) {
+    handleOrder (client: Client, rows: Dict[]) {
         //
         //     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const rawRow = rows[i];
+            const rawRow: any = rows[i];
             const row = this.safeDict (rawRow, 'order', rawRow);
             const order = this.parsePredictionOrder (this.extend ({}, row));
             if (this.orders === undefined) {
