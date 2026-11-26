@@ -329,6 +329,7 @@ public partial class hyperliquid : Exchange
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
+                        { "trailing", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -2376,6 +2377,9 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
@@ -2385,12 +2389,102 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
+        bool isTrailing = (this.safeString2(parameters, "trailingPercent", "trailingAmount") != null);
+        if (isTrailing)
+        {
+            await this.initializeClient();
+            Dictionary<string, object> trailingMarket = this.market(symbol);
+            object trailingRequest = this.createTrailingStopRequest(symbol, side, amount, parameters);
+            Dictionary<string, object> trailingResponse = await this.privatePostExchange(trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            IDictionary<string, object> trailingResponseObj = this.safeDict(trailingResponse, "response", new Dictionary<string, object>() {});
+            IDictionary<string, object> trailingData = this.safeDict(trailingResponseObj, "data", new Dictionary<string, object>() {});
+            return this.parseOrder(this.extend(trailingData, new Dictionary<string, object>() {                 { "status", "open" },             }), trailingMarket);
+        }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = orderglobalParamsVariable[0];
         IDictionary<string, object> globalParams = ((IDictionary<string, object>)orderglobalParamsVariable[1]);
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
         IDictionary<string, object> created = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(created);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} the request to be sent to the exchange endpoint
+     */
+    public virtual object createTrailingStopRequest(object symbol, object side, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> market = this.market(symbol);
+        if (!(((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        {
+            throw new NotSupported ((this.id + " createOrder() supports trailing orders for swap markets only")) ;
+        }
+        string? trailingPercent = this.safeString(parameters, "trailingPercent");
+        string? trailingAmount = this.safeString(parameters, "trailingAmount");
+        string? trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice");
+        Dictionary<string, object> retracement = new Dictionary<string, object>() {};
+        if ((trailingPercent != null))
+        {
+            retracement["pct"] = (trailingPercent + "%");
+        } else
+        {
+            retracement["px"] = this.priceToPrecision(symbol, trailingAmount);
+        }
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
+        string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
+        IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Int64? nonce = this.incrementingNonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "type", "trailingStop" },
+            { "asset", this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null)) },
+            { "isBuy", ((((string)side).ToUpper() == "BUY")) },
+            { "sz", this.amountToPrecision(symbol, amount) },
+            { "reduceOnly", this.safeBool(paramsVault, "reduceOnly", false) },
+            { "retracement", retracement },
+            { "activationPx", null },
+        };
+        if ((trailingTriggerPrice != null))
+        {
+            action["activationPx"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+        }
+        Dictionary<string, object> signature = this.signL1Action(action, nonce, vaultAddress);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        if ((vaultAddress != null))
+        {
+            request["vaultAddress"] = vaultAddress;
+        }
+        return request;
     }
 
     /**
@@ -3983,12 +4077,18 @@ public partial class hyperliquid : Exchange
         }
         bool? isTrigger = this.safeBool(entry, "isTrigger", false);
         double? triggerPx = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
+        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        bool isTrailing = (orderTypeRaw.IndexOf("trailing", StringComparison.Ordinal) >= 0);
+        if (isTrailing && Precise.stringEq(this.safeString(entry, "triggerPx", "0"), "0"))
+        {
+            triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
         double? stopLossPrice = null;
         double? takeProfitPrice = null;
-        if ((triggerPx != null))
+        if (((triggerPx != null)) && !isTrailing)
         {
             if (orderTypeRaw.IndexOf("stop", StringComparison.Ordinal) >= 0)
             {
@@ -4058,6 +4158,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "stop limit", "limit" },
             { "stop market", "market" },
+            { "trailing stop market", "market" },
         };
         return this.safeString(statuses, status, status);
     }

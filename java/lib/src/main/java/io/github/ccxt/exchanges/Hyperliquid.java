@@ -372,6 +372,7 @@ public class Hyperliquid extends HyperliquidApi
                         put( "stopLossPrice", true );
                         put( "takeProfitPrice", true );
                         put( "attachedStopLossTakeProfit", null );
+                        put( "trailing", true );
                     }} );
                 }} );
                 put( "swap", new HashMap<String, Object>() {{
@@ -1487,7 +1488,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 Object market = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                 Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
                 String symbol = this.safeString(ticker, "symbol");
                 result.put((String)symbol, ticker);
             }
@@ -1512,7 +1513,7 @@ public class Hyperliquid extends HyperliquidApi
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), parameters)).join();
+            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), parameters)).join();
             Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -2512,6 +2513,9 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2523,6 +2527,30 @@ public class Hyperliquid extends HyperliquidApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
+            Boolean isTrailing = !java.util.Objects.equals(this.safeString2(parameters, "trailingPercent", "trailingAmount"), null);
+            if (Boolean.TRUE.equals(isTrailing))
+            {
+                (this.initializeClient()).join();
+                Map<String, Object> trailingMarket = this.market(symbol);
+                Map<String, Object> trailingRequest = (Map<String, Object>) this.createTrailingStopRequest((String) (symbol), (String) (side), amount, parameters);
+                Map<String, Object> trailingResponse = (this.privatePostExchange(trailingRequest)).join();
+                //
+                //     {
+                //         "status": "ok",
+                //         "response": {
+                //             "type": "trailingStop",
+                //             "data": {
+                //                 "oid": 77738308
+                //             }
+                //         }
+                //     }
+                //
+                Map<String, Object> trailingResponseObj = this.safeDict(trailingResponse, "response", new HashMap<String, Object>() {{}});
+                Map<String, Object> trailingData = this.safeDict(trailingResponseObj, "data", new HashMap<String, Object>() {{}});
+                return this.parseOrder(this.extend(trailingData, new HashMap<String, Object>() {{
+                    put( "status", "open" );
+                }}), trailingMarket);
+            }
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs((String) (null), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
@@ -2531,6 +2559,73 @@ public class Hyperliquid extends HyperliquidApi
             return created;
         }).thenApply(Order::new);
 
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} the request to be sent to the exchange endpoint
+     */
+    public Map<String, Object> createTrailingStopRequest(String symbol, String side, Object amount, Map<String, Object> parameters)
+    {
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(market.get("swap")))
+        {
+            throw new NotSupported((this.id + " createOrder() supports trailing orders for swap markets only")) ;
+        }
+        String trailingPercent = this.safeString(parameters, "trailingPercent");
+        String trailingAmount = this.safeString(parameters, "trailingAmount");
+        String trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice");
+        Map<String, Object> retracement = new HashMap<String, Object>() {{}};
+        if (!java.util.Objects.equals(trailingPercent, null))
+        {
+            retracement.put("pct", (trailingPercent + "%"));
+        } else
+        {
+            retracement.put("px", this.priceToPrecision(symbol, trailingAmount));
+        }
+        Pair<String, Map<String, Object>> vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "vaultAddress", (String) null);
+        String vaultAddressOption = vaultAddressOptionparamsVaultVariable.first();
+        Map<String, Object> paramsVault = vaultAddressOptionparamsVaultVariable.second();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Long nonce = this.incrementingNonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        Map<String, Object> action = new HashMap<String, Object>() {{
+            put( "type", "trailingStop" );
+            put( "asset", Hyperliquid.this.parseToInt(market.get("baseId")) );
+            put( "isBuy", (java.util.Objects.equals(((String)side).toUpperCase(), "BUY")) );
+            put( "sz", Hyperliquid.this.amountToPrecision(symbol, amount) );
+            put( "reduceOnly", Hyperliquid.this.safeBool(paramsVault, "reduceOnly", false) );
+            put( "retracement", retracement );
+            put( "activationPx", null );
+        }};
+        if (!java.util.Objects.equals(trailingTriggerPrice, null))
+        {
+            action.put("activationPx", this.priceToPrecision(symbol, trailingTriggerPrice));
+        }
+        Map<String, Object> signature = this.signL1Action(action, nonce, vaultAddress, (Long) null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "action", action );
+            put( "nonce", nonce );
+            put( "signature", signature );
+        }};
+        if (!java.util.Objects.equals(vaultAddress, null))
+        {
+            request.put("vaultAddress", vaultAddress);
+        }
+        return request;
     }
 
     /**
@@ -4189,12 +4284,18 @@ public class Hyperliquid extends HyperliquidApi
         }
         Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", (Object) null) : null;
+        String orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        Boolean isTrailing = (((String)orderTypeRaw).indexOf("trailing") >= 0);
+        if (Boolean.TRUE.equals(isTrailing) && Precise.stringEq(this.safeString(entry, "triggerPx", "0"), "0"))
+        {
+            triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        String orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
         Double stopLossPrice = null;
         Double takeProfitPrice = null;
-        if (!java.util.Objects.equals(triggerPx, null))
+        if ((!java.util.Objects.equals(triggerPx, null)) && !Boolean.TRUE.equals(isTrailing))
         {
             if (((String)orderTypeRaw).indexOf("stop") >= 0)
             {
@@ -4264,6 +4365,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "stop limit", "limit" );
             put( "stop market", "market" );
+            put( "trailing stop market", "market" );
         }};
         return this.safeString(statuses, status, status);
     }

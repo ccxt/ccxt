@@ -217,6 +217,23 @@ type TwapCancelMessage struct {
 	T    int    `json:"t" msgpack:"t"`
 }
 
+// TrailingStop message
+
+type TrailingStopRetracement struct {
+	Pct *string `json:"pct" msgpack:"pct,omitempty"`
+	Px  *string `json:"px" msgpack:"px,omitempty"`
+}
+
+type TrailingStopMessage struct {
+	Type         string                  `json:"type" msgpack:"type"`
+	Asset        int                     `json:"asset" msgpack:"asset"`
+	IsBuy        bool                    `json:"isBuy" msgpack:"isBuy"`
+	Sz           string                  `json:"sz" msgpack:"sz"`
+	ReduceOnly   bool                    `json:"reduceOnly" msgpack:"reduceOnly"`
+	Retracement  TrailingStopRetracement `json:"retracement" msgpack:"retracement"`
+	ActivationPx *string                 `json:"activationPx" msgpack:"activationPx"` // nil is hashed as msgpack nil, not omitted
+}
+
 // ScheduleCancel message
 
 type ScheduleCancelMessage struct {
@@ -671,6 +688,15 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		return msgpackEncode(msg)
 	case "twapCancel":
 		var msg TwapCancelMessage
+
+		err := decodeHyperliquidMessage(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		return msgpackEncode(msg)
+	case "trailingStop":
+		var msg TrailingStopMessage
 
 		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {

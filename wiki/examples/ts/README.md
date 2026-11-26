@@ -186,6 +186,8 @@
 
 - [Hyperliquid Load Hip3 Dexes](./examples/ts/hyperliquid-load-hip3-dexes.md)
 
+- [Hyperliquid Trailing Order](./examples/ts/hyperliquid-trailing-order.md)
+
 - [Ibkr Trade Bonds](./examples/ts/ibkr-trade-bonds.md)
 
 - [Ibkr Trade Crypto](./examples/ts/ibkr-trade-crypto.md)
