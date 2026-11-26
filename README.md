@@ -24,7 +24,7 @@ Current feature list:
 - ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
-[![Bithumb](https://github.com/user-attachments/assets/2ae0c437-f6fb-4ba5-a5b2-50c23b49b185)](https://feed.bithumb.com/notice/1653746)
+[![Bithumb](https://github.com/user-attachments/assets/c1440b76-27c7-4578-a7f8-a05868fe7479)](https://feed.bithumb.com/notice/1653746)
 
 ## CCXT Terminal
 
