@@ -242,7 +242,7 @@ export default class p2b extends p2bRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
+     * @param {string} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
@@ -252,14 +252,14 @@ export default class p2b extends p2bRest {
         const market = this.market (symbol);
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
-        const interval = this.safeString (params, 'interval', '0.001');
+        const [ interval, paramsOmitted ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'interval', '0');
         const limitResolved = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
             limitResolved,
             interval,
         ];
-        const orderbook: WsOrderBook = await this.subscribe (name, messageHash, request, params);
+        const orderbook: WsOrderBook = await this.subscribe (name, messageHash, request, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -471,6 +471,10 @@ export default class p2b extends p2bRest {
                 bookside.store (price, amount);
             }
         }
+        // depth frames carry no time of their own, so the local clock approximates it
+        const timestamp = this.milliseconds ();
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['symbol'] = symbol;
         client.resolve (orderbook, messageHash);
     }
