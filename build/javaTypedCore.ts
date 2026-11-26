@@ -380,11 +380,14 @@ export function supplyBodyReturnsType(lines: string[], from: number, to: number,
             declTypes.set(d[2], set);
         }
     }
-    const sameType = (t: string) => t === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>') || (want === 'List<Object>' && t === 'ArrayList<Object>');
+    const sameType = (t: string) => t.replace(/,(?=\S)/g, ', ') === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>') || (want === 'List<Object>' && t === 'ArrayList<Object>');
     let returns = 0;
-    for (const raw of inner) {
+    for (let n = 0; n < inner.length; n++) {
         // a trailing `// comment` after the statement (no quote in it, so it is not inside a string)
-        const l = raw.replace(/;\s*\/\/[^"']*$/, ';');
+        let l = inner[n].replace(/;\s*\/\/[^"']*$/, ';');
+        // a return whose anonymous-map argument spans lines (`.. {{` .. `}});`): read it as one expression
+        const tail = /^\s*return\b.*\{\{\s*$/.test(l) && !/^\s*return new /.test(l) ? inner.findIndex((x, k) => k > n && x.startsWith(supplyIndent + '    }}') && /\);\s*$/.test(x)) : -1;
+        if (tail !== -1 && inner.slice(n + 1, tail).every(x => /^\s*put\( .*\);$/.test(x))) l = [ l, ...inner.slice(n + 1, tail + 1).map(x => x.trim()) ].join(' ');
         if (/^\s*return\b/.test(l) && !/;\s*$/.test(l)) {
             // `return new HashMap<String, Object>() {{` .. `}};`: an anonymous HashMap is a Map<String, Object>
             if (want === 'Map<String, Object>' && /^\s*return new (?:java\.util\.)?HashMap<String, Object>\(\) \{\{\s*$/.test(l) && l.startsWith(supplyIndent + '    ')) {
@@ -417,6 +420,10 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     if (call !== undefined && TYPED_BASE_READERS[call] === want) return true;
     if (call !== undefined && TYPED_BASE_TWO_ARG_READERS[call] === want && topLevelArgCount(e) === 2) return true;
     if (want === 'Map<String, Object>' && /^new (?:java\.util\.)?HashMap<String, Object>\(\)(?: \{\{\}\})?$/.test(e)) return true;
+    if (want === 'List<Object>' && /^new (?:java\.util\.)?ArrayList<Object>\(/.test(e) && wholeParens(e.slice(e.indexOf('(')))) return true;
+    // BaseExchange.java `Map safeDict(Object, Object, Map)` / raw `List safeList(Object, Object, List<Object>)`: a typed default picks them
+    if (want === 'Map<String, Object>' && call === 'safeDict' && /, new (?:java\.util\.)?HashMap<String, Object>\(\)(?: \{\{\}\})?\)$/.test(e)) return true;
+    if (want === 'List<Object>' && call === 'safeList' && /, new (?:java\.util\.)?ArrayList<Object>\((?:Arrays\.asList\(\))?\)\)$/.test(e)) return true;
     // BaseExchange.java `List<Object> arraySlice(Object, Object[, Object])` (ral-87j7)
     if (want === 'List<Object>' && call === 'arraySlice') return true;
     if (want === 'String') {
@@ -430,7 +437,7 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     // an inherited BaseExchange.java method declared `want` (filterBy*SinceLimit: List<Object>)
     if (call !== undefined && !ctx.declared.has(call) && baseExchangeDeclaredReturns().get(call) === want) return true;
     // a TypedMap view (`Order parseOrder(..)`) is a Map<String, Object>
-    const view = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec(call === undefined ? '' : ctx.declared.get(call) ?? '');
+    const view = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec(call === undefined ? '' : ctx.declared.get(call) ?? baseExchangeDeclaredReturns().get(call) ?? '');
     if (want === 'Map<String, Object>' && view !== null && javaIsTypedMapDto(view[1])) return true;
     // `(this.m(..)).join()` of a CompletableFuture<want>: a generated api wrapper, a typed core
     // (retyped in this same pass, on every tier) or an on-disk typed declaration
@@ -638,6 +645,15 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         [ 'inherited filterBySymbolSinceLimit is List', 'List<Object>', [ 'return this.filterBySymbolSinceLimit(parameters, null, null, null, false);' ], false ],
         [ 'inherited Object reader keeps cast', 'List<Object>', [ 'return this.filterBySymbol(parameters, null);' ], true ],
         [ 'Long core is no reference cast', 'Long', [ 'Object r = this.safeValue(parameters, "k");', 'return r;' ], true ],
+        // typed Core proofs: a Map default selects the typed safeDict / safeList overload, a multi-line map argument
+        [ 'safeDict with a map default', 'Map<String, Object>', [ 'return this.safeDict(parameters, "k", new HashMap<String, Object>() {{}});' ], false ],
+        [ 'safeDict with a null default keeps cast', 'Map<String, Object>', [ 'Object r = this.safeDict(parameters, "k", null);', 'if (r == null)', '{', '    return (this.fetchX(parameters)).join();', '}', 'return r;' ], true ],
+        [ 'safeList with a list default', 'List<Object>', [ 'return this.safeList(parameters, "k", new ArrayList<Object>(Arrays.asList()));' ], false ],
+        [ 'safeList with no typed default keeps cast', 'List<Object>', [ 'return this.safeList(parameters, "k", null);' ], true ],
+        [ 'fresh list literal', 'List<Object>', [ 'return new ArrayList<Object>(Arrays.asList());' ], false ],
+        [ 'unspaced Map local', 'Map<String, Object>', [ 'Map<String,Object> r = this.extend(parameters, parameters);', 'return r;' ], false ],
+        [ 'two-argument extend with a multi-line map', 'Map<String, Object>', [ 'return this.extend(parameters, new HashMap<String, Object>() {{', '    put( "a", 1 );', '}});' ], false ],
+        [ 'varargs extend with a multi-line map keeps cast', 'Map<String, Object>', [ 'return this.extend(parameters, parameters, new HashMap<String, Object>() {{', '    put( "a", 1 );', '}});' ], true ],
     ];
     for (const [ label, type, body, cast ] of rows) {
         const out = typeCoreReturns(core(type, body), new Map([ [ 'm', info(type) ] ]));
