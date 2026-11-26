@@ -16,6 +16,24 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage of a swap market",
+                "method": "fetchLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "activeAssetData",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL"
+                }
+            }
+        ],
         "fetchMyLiquidations": [
             {
                 "description": "fetchMyLiquidations skips non-liquidation fills",

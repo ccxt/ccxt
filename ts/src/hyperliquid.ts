@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Leverage, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ export default class hyperliquid extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
                 'fetchMarginMode': undefined,
@@ -4178,6 +4178,65 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverage
+     * @description fetch the set leverage and margin mode for a swap market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' fetchLeverage() supports swap markets only');
+        }
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchLeverage', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchLeverage', params), 1, {});
+        const request: Dict = {
+            'type': 'activeAssetData',
+            'user': userAddress,
+            'coin': this.safeString (market, 'baseName'),
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        //         "coin": "SOL",
+        //         "leverage": {
+        //             "type": "cross", // or "isolated", which also carries "rawUsd"
+        //             "value": 20
+        //         },
+        //         "maxTradeSzs": [ "13.63", "13.63" ],
+        //         "availableToTrade": [ "48.103059", "48.103059" ],
+        //         "markPx": "70.58"
+        //     }
+        //
+        return this.parseLeverage (response as Dict, market);
+    }
+
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const leverageInfo = this.safeDict (leverage, 'leverage', {});
+        const leverageValue = this.safeInteger (leverageInfo, 'value');
+        const coin = this.safeString (leverage, 'coin');
+        let marketId: Str = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId (coin);
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverageInfo, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     /**

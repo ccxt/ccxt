@@ -2860,6 +2860,110 @@
                 }
             }
         ],
+        "fetchLeverage": [
+            {
+                "description": "cross leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL",
+                    "leverage": {
+                        "type": "cross",
+                        "value": 20
+                    },
+                    "maxTradeSzs": [
+                        "13.63",
+                        "13.63"
+                    ],
+                    "availableToTrade": [
+                        "48.103059",
+                        "48.103059"
+                    ],
+                    "markPx": "70.58"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "coin": "SOL",
+                        "leverage": {
+                            "type": "cross",
+                            "value": 20
+                        },
+                        "maxTradeSzs": [
+                            "13.63",
+                            "13.63"
+                        ],
+                        "availableToTrade": [
+                            "48.103059",
+                            "48.103059"
+                        ],
+                        "markPx": "70.58"
+                    },
+                    "symbol": "SOL/USDC:USDC",
+                    "marginMode": "cross",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            },
+            {
+                "description": "isolated leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL",
+                    "leverage": {
+                        "type": "isolated",
+                        "value": 5,
+                        "rawUsd": "0.0"
+                    },
+                    "maxTradeSzs": [
+                        "3.4",
+                        "3.4"
+                    ],
+                    "availableToTrade": [
+                        "48.103059",
+                        "48.103059"
+                    ],
+                    "markPx": "70.58"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "coin": "SOL",
+                        "leverage": {
+                            "type": "isolated",
+                            "value": 5,
+                            "rawUsd": "0.0"
+                        },
+                        "maxTradeSzs": [
+                            "3.4",
+                            "3.4"
+                        ],
+                        "availableToTrade": [
+                            "48.103059",
+                            "48.103059"
+                        ],
+                        "markPx": "70.58"
+                    },
+                    "symbol": "SOL/USDC:USDC",
+                    "marginMode": "isolated",
+                    "longLeverage": 5,
+                    "shortLeverage": 5
+                }
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetchTradingFee",
