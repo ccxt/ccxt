@@ -546,11 +546,11 @@ export default class revolutx extends Exchange {
         }
         const request: Dict = {};
         if (symbols !== undefined) {
-            const marketIds: Str[] = [];
+            const marketIds: string[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
-                marketIds.push (market['id']);
+                marketIds.push (this.safeString (market, 'id', ''));
             }
             request['symbols'] = marketIds.join (',');
         }
