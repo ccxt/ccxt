@@ -6844,7 +6844,8 @@ function conditionalArmType (csharp, node, context) {
         return undefined;
     }
     return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm)
-        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined) ?? dictParameterArmType (csharp, arm);
+        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined) ?? dictParameterArmType (csharp, arm)
+        ?? venueListParameterArmType (csharp, arm);
 }
 
 // a parameter arm the emitted signature prints `IDictionary<string, object>` (the parse* `market`
@@ -21459,6 +21460,30 @@ function coreParameterCopyReadType (csharp, scope, identifier) {
     }
     const type = coreArgParamType (csharp, identifier);
     return (type === undefined || type === 'object') ? undefined : type;
+}
+
+export const VENUE_LIST_ARGS = {
+    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
+    // every caller passes a List<object> local or list literal and no body rebinds the parameter
+    'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
+    'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
+    'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
+    // callers pass IList<object> symbols / List<object> hash locals or literals; no body rebinds them
+    'pro:deribit': { 'watchMultipleWrapper': [ 2 ] },
+    'pro:backpack': { 'watchPublic': [ 1 ], 'watchPrivate': [ 1 ], 'handleUnsubscriptions': [ 1 ] },
+};
+
+// a pro venue parameter that typeVenueListArgs prints `IList<object>` after printing, read unwritten
+function venueListParameterArmType (csharp, arm) {
+    const reference = resolveReference (csharp, arm);
+    const owner = reference?.parent;
+    if (reference?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.name?.kind !== ts.SyntaxKind.Identifier
+            || csharpParameterIsWritten (csharp, owner, reference)) {
+        return undefined;
+    }
+    const venue = /(?:^|\/)pro\/(\w+)(?:\.nooverloads\.\d+)?\.ts$/.exec ((owner.getSourceFile ()?.fileName ?? '').replace (/\\/g, '/'))?.[1];
+    const positions = (venue === undefined) ? undefined : VENUE_LIST_ARGS['pro:' + venue]?.[owner.name.text];
+    return (Array.isArray (positions) && positions.includes (owner.parameters.indexOf (reference))) ? 'IList<object>' : undefined;
 }
 
 // a read of an unwritten parameter whose printed signature is a list (`IList<object>` / `IList<object>?`)

@@ -3,6 +3,7 @@ import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS } from './csharp-local-types.js'
+import { VENUE_LIST_ARGS } from './csharp-local-types.js'
 import { MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
@@ -1683,16 +1684,6 @@ VENUE_NUMERIC_ARG_NAMES.push ('side');
 
 // Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue
 // class declares the method once and no file calls it by that venue's binding.
-const VENUE_LIST_ARGS: Record<string, Record<string, number[]>> = {
-    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
-    // every caller passes a List<object> local or list literal and no body rebinds the parameter
-    'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
-    'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
-    'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
-    // callers pass IList<object> symbols / List<object> hash locals or literals; no body rebinds them
-    'pro:deribit': { 'watchMultipleWrapper': [ 2 ] },
-    'pro:backpack': { 'watchPublic': [ 1 ], 'watchPrivate': [ 1 ], 'handleUnsubscriptions': [ 1 ] },
-};
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
