@@ -274,7 +274,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
             status = self.parse_order_status(self.safe_string_k(order, "state", &[]).as_str());
         }
         let marketId: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer_k(order, "created-at", &[]).as_i64();
         let clientOrderId: Option<String> = self.safe_string_k_opt(order, "client-order-id", &[]);
         let amount: Option<String> = self.safe_string_k_opt(order, "amount", &[]);
@@ -286,9 +286,9 @@ impl crate::exchange::DerivedExchange for Bittrade {
         if (feeCost.is_some()) {
             let mut feeCurrency: Option<String> = None;
             if (side.as_deref() == Some("sell")) {
-                feeCurrency = marketResolved.raw.at("quote").as_str().map(str::to_owned);
+                feeCurrency = self.safe_string_k_opt(&marketResolved, "quote", &[]);
             }  else {
-                feeCurrency = marketResolved.raw.at("base").as_str().map(str::to_owned);
+                feeCurrency = self.safe_string_k_opt(&marketResolved, "base", &[]);
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();

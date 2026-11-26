@@ -387,7 +387,7 @@ impl Whitebit {
         let marketId: Option<String> = self.safe_string_opt(&params, Value::Int(2), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let data: Option<crate::value::Dict> = self.safe_dict_o(&params, Value::Int(1));
+        let data: Option<crate::value::Dict> = (match params.get(1) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let timestamp: Option<i64> = self.safe_timestamp_k(&data, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             let ob: crate::pro::order_book::Book = self.order_book(&[]);
@@ -1136,7 +1136,7 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
-            let balanceDict: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let balanceDict: crate::value::Dict = (if let Some(Value::Dict(__m)) = data.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             { let __be_tmp = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1451,7 +1451,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let result: Option<String> = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (result.as_deref() == Some("pong")) {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         let id: Option<i64> = (match __pro_message.get("id") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
@@ -1495,7 +1495,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (subId.is_some()) && ((Value::from(subId).as_f64() == id.as_f64())) {
                     let method: bool = self.safe_value_k(&subscription, "method", &[]) != Value::Null;
                     if (method) {
-                        Value::Dict(self.handle_authenticate(client, message));
+                        self.handle_authenticate(client, message);
                         return;
                     }
                 }

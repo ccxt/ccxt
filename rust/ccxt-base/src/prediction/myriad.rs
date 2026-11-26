@@ -460,7 +460,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_raw_market_by_id" => self.fetch_raw_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_market_by_id" => crate::Value::Dict(self.fetch_raw_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_markets_by_search" => crate::Value::Arr(self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_markets_list" => crate::Value::Arr(self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_question_by_id" => crate::Value::Dict(self.fetch_raw_question_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
@@ -1097,7 +1097,7 @@ impl Myriad {
             self.index_event_outcomes(Value::from(&orderBookEvent));
             return Value::Dict(orderBookEvent);
         }
-        let response: crate::value::Dict = self.fetch_raw_market_by_id(id.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await.into_dict();
+        let response: crate::value::Dict = self.fetch_raw_market_by_id(id.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
         let market: crate::value::Dict = self.parse_myriad_market(&response, None);
         let event: crate::value::Dict = self.parse_market_to_event(&response, &market);
         self.index_event_outcomes(Value::from(&event));
@@ -1115,7 +1115,7 @@ impl Myriad {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the raw myriad market object
  */
-    pub async fn fetch_raw_market_by_id(&mut self, id: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_market_by_id(&mut self, id: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1134,9 +1134,7 @@ impl Myriad {
             request.insert("id".into(), Value::from(id));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        return self.myriad_public_get_markets_id(&[&__ws_arg_3]).await;
-
-    Value::Null
+        return self.call_method_t("myriad_public_get_markets_id", &[&__ws_arg_3]).await;
 }
 
 /*
@@ -2208,7 +2206,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_12: bool = true;
                 while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < responsesLength } {
-                let current: crate::value::Dict = self.safe_dict_t(&orderResponses, Value::Int(i));
+                let current: crate::value::Dict = (if let Some(__l) = &orderResponses { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
                 let currentId: Option<String> = self.safe_string_n_opt(&current, Value::from(vec![Value::Str("orderHash".into()), Value::Str("hash".into()), Value::Str("id".into())]), &[]);
                 if (currentId.is_some()) && (currentId == id.map(str::to_owned)) {
                     return Value::Dict(current);
@@ -3131,9 +3129,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return crate::precise::Precise::stringDiv(&decimalString.map(Value::from).unwrap_or(Value::Null), &Value::from(scale)).as_str().map(str::to_owned);
 }
 
-    pub fn parse_trade_tx(&self, txHash: Option<&str>, quote: impl Into<crate::Value>, market: impl Into<crate::Value>, side: &str) -> Value {
+    pub fn parse_trade_tx(&self, txHash: Option<&str>, quote: impl Into<crate::Value>, mut market: Value, side: &str) -> Value {
         let mut quote: Value = quote.into();
-        let market: Value = market.into();
         let __quote_empty = indexmap::IndexMap::new();
         let quote = quote.as_map().unwrap_or(&__quote_empty);
         return Value::Dict(self.safe_prediction_order(Value::Map({
@@ -4026,7 +4023,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (rows.len() as i64) } {
-            let mut row: Option<crate::value::Dict> = self.safe_dict_o(&rows, Value::Int(i));
+            let mut row: Option<crate::value::Dict> = (match rows.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let action: Option<String> = self.safe_string_k_opt(&row, "action", &[]);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
@@ -4097,7 +4094,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             rawQuestions = self.safe_list_t(&responses, Value::Int(1));
         }  else if (eventId.is_some()) {
             if eventId.as_deref().unwrap_or_default().contains(":") {
-                let rawMarket: crate::value::Dict = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await.into_dict();
+                let rawMarket: crate::value::Dict = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await;
                 rawMarkets = std::sync::Arc::new(vec![Value::Dict(rawMarket)]);
             }  else {
                 let rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await;

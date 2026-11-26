@@ -107,7 +107,7 @@ impl Modetrade {
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1306,9 +1306,8 @@ impl Modetrade {
         //     }
         //
         let topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
-        let data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
-        let dataIsArray: bool = matches!(&data, Value::Arr(_));
-        if dataIsArray {
+        let dataRows: Option<crate::value::List> = self.safe_list_k_o(&message, "data");
+        if (dataRows.is_some()) {
             // algoexecutionreport
             let dataList: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
             let dataListLength: i64 = dataList.len() as i64;
@@ -1317,7 +1316,7 @@ impl Modetrade {
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < dataListLength } {
                 let order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or_default();
-                let tradeIdStr: Option<String> = self.safe_string_k_opt(&data, "tradeId", &[]);
+                let tradeIdStr: Option<String> = self.safe_string_k_opt(&dataRows, "tradeId", &[]);
                 let tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client, &order);
@@ -1327,12 +1326,12 @@ impl Modetrade {
             }
         }  else {
             // executionreport
-            let tradeIdStr: Option<String> = self.safe_string_k_opt(&data, "tradeId", &[]);
+            let dataDict: crate::value::Dict = message.key_dict("data");
+            let tradeIdStr: Option<String> = self.safe_string_k_opt(&dataDict, "tradeId", &[]);
             let tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
             if (tradeId.is_some()) {
-                self.handle_my_trade(client, data);
+                self.handle_my_trade(client, &dataDict);
             }
-            let dataDict: crate::value::Dict = message.key_dict("data");
             self.handle_order(client, &dataDict, topic.as_str());
         }
 }
@@ -1367,8 +1366,7 @@ impl Modetrade {
         }
 }
 
-    pub fn handle_my_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: impl Into<crate::Value>) {
-        let message: Value = message.into();
+    pub fn handle_my_trade(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1401,7 +1399,7 @@ impl Modetrade {
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-        let trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market));
+        let trade: crate::value::Dict = self.parse_ws_trade(Value::Dict(std::sync::Arc::clone(message)), Some(&market));
         if (self.myTrades.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));

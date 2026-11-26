@@ -2305,7 +2305,7 @@ impl Gemini {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[&params]).await.into_dict();
         let tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[&params]).await.into_dict();
-        let tickerA: Value = Value::Dict(tickerPromiseA);
+        let tickerA: crate::value::Dict = tickerPromiseA;
         let tickerB: crate::value::Dict = tickerPromiseB;
         return self.deep_extend(tickerA, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

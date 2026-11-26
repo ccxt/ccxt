@@ -2069,7 +2069,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.dispatch_ws_handler(&method, &[&client, &Value::from(message)]);
             }
         }  else {
-            Value::Dict(self.handle_subscription_status(&client, message));
+            self.handle_subscription_status(&client, message);
         }
 }
 

@@ -1068,7 +1068,7 @@ impl Revolutx {
                 while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbols.len() as i64) } {
                 let symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(Value::from((market).id.as_deref()));
+                marketIds.push(Value::from((market).id.as_deref().unwrap_or("")));
             }
             }
             request.insert("symbols".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));

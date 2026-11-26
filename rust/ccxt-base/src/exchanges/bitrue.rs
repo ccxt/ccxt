@@ -3034,10 +3034,7 @@ impl Bitrue {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3063,7 +3060,7 @@ impl Bitrue {
         if (market).swap {
             let isMarket: bool = uppercaseType == "MARKET";
             let timeInForce: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[]);
-            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&params]);
+            let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&params)]);
             if postOnly {
                 request.insert("type".into(), Value::Str("POST_ONLY".into()));
             }  else if (timeInForce.as_deref() == Some("fok")) {
@@ -3122,11 +3119,11 @@ impl Bitrue {
             if !self.in_array(&uppercaseType, Value::Arr(validOrderTypes)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), type_var).into()), " is not a valid order type in market ").into()), symbol)));
             }
-            let clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
+            let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
             if (clientOrderId.is_some()) {
                 request.insert("newClientOrderId".into(), Value::from(clientOrderId.as_deref()));
             }
-            let paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["newClientOrderId", "clientOrderId"], &[]) } else { params }).into_dict();
+            let paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit_t(&params, &["newClientOrderId", "clientOrderId"], &[]) } else { params });
             let triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsNoClientOrderId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             if (triggerPrice.is_some()) {
                 request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice)));
@@ -3205,7 +3202,7 @@ impl Bitrue {
             }
             data = self.safe_dict_k_t(&response, "data");
         }  else if (market).spot {
-            request.insert("orderId".into(), id.clone()); // spot market id is mandatory
+            request.insert("orderId".into(), id); // spot market id is mandatory
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_private_get_order(&[&__ws_arg_22]).await;

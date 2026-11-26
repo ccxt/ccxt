@@ -2957,10 +2957,7 @@ impl Hashkey {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let methodName: String = "fetchOHLCV".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3307,10 +3304,7 @@ impl Hashkey {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let methodName: String = "fetchDeposits".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3368,10 +3362,7 @@ impl Hashkey {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let methodName: String = "fetchWithdrawals".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3624,10 +3615,7 @@ impl Hashkey {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let methodName: String = "fetchLedger".to_string();
         if (since.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() requires a since argument")));
@@ -4130,7 +4118,7 @@ impl Hashkey {
         });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_none()) {
-            request.insert("orderId".into(), id.clone());
+            request.insert("orderId".into(), id);
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -4712,7 +4700,7 @@ impl Hashkey {
     pub fn parse_order_time_in_force_value(&self, type_var: Option<&str>, timeInForce: Option<&str>) -> Option<String> {
         let isMakerTimeInForce: bool = (timeInForce == Some("LIMIT_MAKER")) || (timeInForce == Some("MAKER"));
         if (type_var != Some("LIMIT_MAKER")) && isMakerTimeInForce {
-            return Value::Str("PO".into()).as_str().map(str::to_owned);
+            return Some("PO".to_string());
         }
         return timeInForce.map(str::to_owned);
 }

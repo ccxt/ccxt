@@ -838,9 +838,9 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
         Box::pin(async move {
             match method {
                 "add_pagination_cursor_to_result" => crate::Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "approve_builder_code" => self.approve_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "approve_builder_code" => crate::Value::Dict(self.approve_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "batch_orders_request" => crate::Value::Dict(self.batch_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "bind_agent_wallet" => self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "bind_agent_wallet" => crate::Value::Dict(self.bind_agent_wallet(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_request" => crate::Value::Dict(self.cancel_all_orders_request(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
@@ -848,7 +848,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "cancel_order_request" => crate::Value::Dict(self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..])),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_request" => crate::Value::Dict(self.cancel_orders_request(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
-                "create_api_key" => self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await,
+                "create_api_key" => crate::Value::Dict(self.create_api_key(&args[..].iter().collect::<Vec<_>>()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => { let __t = self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
@@ -861,7 +861,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "edit_order_request" => crate::Value::Dict(self.edit_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(6).cloned().unwrap_or_default()).as_ref(), &args[7.min(args.len())..].iter().collect::<Vec<_>>())),
                 "fetch_account_settings" => crate::Value::Dict(self.fetch_account_settings(&args[..].iter().collect::<Vec<_>>()).await),
-                "fetch_api_keys" => self.fetch_api_keys(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_api_keys" => crate::Value::Dict(self.fetch_api_keys(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_builder_approvals" => self.fetch_builder_approvals(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -916,8 +916,8 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "post_action_request" => Value::Dict(self.post_action_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &mut { let __m = args.get(1).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(2).cloned().unwrap_or(crate::Value::Null))),
-                "revoke_api_key" => self.revoke_api_key(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "revoke_builder_code" => self.revoke_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "revoke_api_key" => crate::Value::Dict(self.revoke_api_key(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "revoke_builder_code" => crate::Value::Dict(self.revoke_builder_code(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
@@ -2396,10 +2396,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2537,10 +2534,7 @@ if _try_result.is_err() {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let defaultMaxLimit: i64 = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2689,10 +2683,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3536,10 +3527,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3878,10 +3866,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4086,7 +4071,7 @@ if _try_result.is_err() {
             m
         });
         if (tifRaw.is_none()) {
-            return Value::Str("GTC".into()).as_str().map(str::to_owned);
+            return Some("GTC".to_string());
         }
         let tif: String = tifRaw.map(str::to_uppercase).unwrap_or_default();
         return self.safe_string_opt(&tifMap, &tif, &[&Value::Str("GTC".into())]);
@@ -4597,10 +4582,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4785,10 +4767,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5007,7 +4986,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn bind_agent_wallet(&mut self, agentAddress: &str, optional_args: &[&Value]) -> Value {
+    pub async fn bind_agent_wallet(&mut self, agentAddress: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5020,9 +4999,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_36 = self.extend(request, &[params]);
-        return self.private_post_agent_bind(&[&__ws_arg_36]).await;
-
-    Value::Null
+        return self.private_post_agent_bind(&[&__ws_arg_36]).await.unwrap_or_default();
 }
 
 /*
@@ -5032,7 +5009,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn create_api_key(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5044,9 +5021,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_37 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys_create(&[&__ws_arg_37]).await;
-
-    Value::Null
+        return self.private_post_account_api_keys_create(&[&__ws_arg_37]).await.unwrap_or_default();
 }
 
 /*
@@ -5057,7 +5032,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn revoke_api_key(&mut self, apiKey: &str, optional_args: &[&Value]) -> Value {
+    pub async fn revoke_api_key(&mut self, apiKey: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5070,9 +5045,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_38 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys_revoke(&[&__ws_arg_38]).await;
-
-    Value::Null
+        return self.private_post_account_api_keys_revoke(&[&__ws_arg_38]).await.unwrap_or_default();
 }
 
 /*
@@ -5082,7 +5055,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn fetch_api_keys(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_api_keys(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5094,9 +5067,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_39 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys(&[&__ws_arg_39]).await;
-
-    Value::Null
+        return self.private_post_account_api_keys(&[&__ws_arg_39]).await.unwrap_or_default();
 }
 
 /*
@@ -5109,7 +5080,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn approve_builder_code(&mut self, builderCode: &str, maxFeeRate: &str, optional_args: &[&Value]) -> Value {
+    pub async fn approve_builder_code(&mut self, builderCode: &str, maxFeeRate: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5123,9 +5094,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_40 = self.extend(request, &[params]);
-        return self.private_post_account_builder_codes_approve(&[&__ws_arg_40]).await;
-
-    Value::Null
+        return self.private_post_account_builder_codes_approve(&[&__ws_arg_40]).await.unwrap_or_default();
 }
 
 /*
@@ -5157,7 +5126,7 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn revoke_builder_code(&mut self, builderCode: &str, optional_args: &[&Value]) -> Value {
+    pub async fn revoke_builder_code(&mut self, builderCode: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5170,9 +5139,7 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let __ws_arg_42 = self.extend(request, &[params]);
-        return self.private_post_account_builder_codes_revoke(&[&__ws_arg_42]).await;
-
-    Value::Null
+        return self.private_post_account_builder_codes_revoke(&[&__ws_arg_42]).await.unwrap_or_default();
 }
 
     pub fn handle_origin_and_single_address(&self, methodName: &str, params: impl Into<crate::Value>) -> (Value, crate::value::Dict) {

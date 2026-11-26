@@ -5097,10 +5097,7 @@ impl Aster {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let methodOptionparamsMethodVariable = self.handle_option_string_and_params(params, Value::Str("fetchPositions".into()), Value::Str("method".into()), &[]);
         let methodOption: Option<String> = methodOptionparamsMethodVariable.0.as_str().map(str::to_owned);
         let paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.1;

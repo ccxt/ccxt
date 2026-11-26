@@ -293,8 +293,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let levels: crate::value::List = self.safe_list_k_t(raw, "levels");
         let rawBids: crate::value::List = self.safe_list_t(&levels, Value::Int(0));
         let rawAsks: crate::value::List = self.safe_list_t(&levels, Value::Int(1));
-        let topBid: Option<crate::value::Dict> = self.safe_dict_o(&rawBids, Value::Int(0));
-        let topAsk: Option<crate::value::Dict> = self.safe_dict_o(&rawAsks, Value::Int(0));
+        let topBid: Option<crate::value::Dict> = (match rawBids.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
+        let topAsk: Option<crate::value::Dict> = (match rawAsks.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let bid: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]).as_f64() } else { None });
         let ask: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]).as_f64() } else { None });
         let bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
@@ -1764,7 +1764,7 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (outcomesList.len() as i64) } {
-                let oc: crate::value::Dict = self.safe_dict_t(&outcomesList, Value::Int(i));
+                let oc: crate::value::Dict = (if let Some(Value::Dict(__m)) = outcomesList.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let ocSymbol: Value = self.safe_string2(&oc, Value::Str("outcome".into()), Value::Str("symbol".into()), &[Value::Str("".into())]);
                 let ocLabel: Option<String> = self.safe_string_upper_k_opt(&oc, "label", &[]);
                 if (ocLabel == normalizedHint) || (ocSymbol.as_str().zip((Value::Str(format!("{}{}", ":", normalizedHint.as_deref().unwrap_or("null")).into())).as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
@@ -1777,7 +1777,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (outcomesList.len() as i64) } {
-            let oc: crate::value::Dict = self.safe_dict_t(&outcomesList, Value::Int(i));
+            let oc: crate::value::Dict = (if let Some(Value::Dict(__m)) = outcomesList.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let info: crate::value::Dict = self.safe_dict_k_t(&oc, "info");
             if (self.safe_integer_k(&info, "side", &[]).as_f64() == Some(0.0)) {
                 return Value::Dict(oc);
@@ -1810,10 +1810,10 @@ impl Hyperliquid {
         }
         let lower: String = outcomeInput.as_str().unwrap_or_default().to_string().to_lowercase();
         if (lower.ends_with("-yes")) {
-            return Value::Str("YES".into()).as_str().map(str::to_owned);
+            return Some("YES".to_string());
         }
         if (lower.ends_with("-no")) {
-            return Value::Str("NO".into()).as_str().map(str::to_owned);
+            return Some("NO".to_string());
         }
         return None;
 }
@@ -1914,10 +1914,7 @@ impl Hyperliquid {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.initialize_client().await;
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
@@ -2458,10 +2455,10 @@ impl Hyperliquid {
             return None;
         }
         if (status.unwrap_or("").ends_with("Rejected")) {
-            return Value::Str("rejected".into()).as_str().map(str::to_owned);
+            return Some("rejected".to_string());
         }
         if (status.unwrap_or("").ends_with("Canceled")) {
-            return Value::Str("canceled".into()).as_str().map(str::to_owned);
+            return Some("canceled".to_string());
         }
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
@@ -3078,14 +3075,15 @@ if _try_result.is_err() {
 }
 
     pub fn format_vault_address(&self, address: Option<&str>) -> Option<String> {
-        if (address.is_none()) {
+        let address: Value = address.into();
+        if (address == Value::Null) {
             return None;
         }
-        let mut normalized: Option<String> = address.map(str::to_owned);
-        if (normalized.as_deref().unwrap_or_default().starts_with("0x")) || (normalized.as_deref().unwrap_or_default().starts_with("0X")) {
-            normalized = (if let Some(__s) = normalized.as_deref() { Some(__s.chars().skip(2).collect::<String>()) } else { None });
+        if (address.as_str().unwrap_or("").starts_with("0x")) || (address.as_str().unwrap_or("").starts_with("0X")) {
+            return (address.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l;
+                if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
         }
-        return normalized.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (if let Some(__s) = address.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
 

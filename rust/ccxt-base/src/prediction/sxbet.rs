@@ -287,7 +287,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
     {
         Box::pin(async move {
             match method {
-                "apply_sxbet_ws_snapshot" => self.apply_sxbet_ws_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "apply_sxbet_ws_snapshot" => crate::Value::Arr(self.apply_sxbet_ws_snapshot(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "approve" => self.approve(&args[..]).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1391,7 +1391,8 @@ impl Sxbet {
  */
     pub async fn fetch_sxbet_proxy(&mut self) -> crate::value::Dict {
         let response: crate::value::Dict = self.sxbet_private_get_user_proxy(&[]).await.unwrap_or_default();
-        return self.safe_dict_k_t(&response, "data");
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        return data;
 }
 
 /*
@@ -1574,10 +1575,7 @@ impl Sxbet {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
@@ -1902,7 +1900,7 @@ impl Sxbet {
         let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.sxbet_private_delete_orders_v3(&[&__ws_arg_7]).await.unwrap_or_default();
         let orders: crate::value::List = self.parse_sxbet_cancel_response(&response);
-        let mut first: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
+        let mut first: Option<crate::value::Dict> = (match orders.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         return first.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2743,7 +2741,8 @@ impl Sxbet {
             m
         });
         let response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[&Value::Map(request)]).await.unwrap_or_default();
-        return self.safe_dict_k_t(&response, "data");
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        return data;
 }
 
 /*
@@ -3409,13 +3408,13 @@ impl Sxbet {
  * @param {object} snapshot the raw book publication
  * @returns {string[]} the outcome handles whose books were refreshed
  */
-    pub fn apply_sxbet_ws_snapshot(&mut self, snapshot: impl Into<crate::Value>) -> Value {
+    pub fn apply_sxbet_ws_snapshot(&mut self, snapshot: impl Into<crate::Value>) -> crate::value::List {
         let snapshot: Value = snapshot.into();
         let marketHash: Option<String> = self.safe_string_k_opt(&snapshot, "marketHash", &[]);
         let version: String = self.safe_string_k(&snapshot, "version", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut refreshed: Vec<Value> = Vec::new();
         if (marketHash.is_none()) {
-            return Value::from(refreshed);
+            return std::sync::Arc::new(refreshed);
         }
         let held: String = self.safe_string(self.safe_dict_k(&self.options, "wsBookVersions", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3423,7 +3422,7 @@ impl Sxbet {
 })]), Value::from(marketHash.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if (held != "") && ((version == "") || crate::precise::Precise::stringLe(&version, &held).as_bool() == Some(true)) {
-            return Value::from(refreshed);
+            return std::sync::Arc::new(refreshed);
         }
         self.set_ws_option("wsBookVersions", marketHash.as_deref().unwrap_or_default(), Value::from(version));
         let watchedBooks: crate::value::Dict = self.safe_dict_k_t(&self.options, "wsWatchedBooks");
@@ -3463,9 +3462,7 @@ impl Sxbet {
             refreshed.push(sym.map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return Value::from(refreshed);
-
-    Value::Null
+        return std::sync::Arc::new(refreshed);
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
@@ -3485,7 +3482,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_36: bool = true;
             while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < rowsLength } {
-            let refreshed: crate::value::List = self.apply_sxbet_ws_snapshot(rows.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
+            let refreshed: crate::value::List = self.apply_sxbet_ws_snapshot(rows.get(i as usize).cloned().unwrap_or(Value::Null));
             let refreshedLength: i64 = refreshed.len() as i64;
             {
                                 let mut j: i64 = 0;

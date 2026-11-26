@@ -570,7 +570,7 @@ impl Coinone {
         }
         let type_var: Option<String> = (match __pro_message.get("response_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("PONG")) {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         if (type_var.as_deref() == Some("DATA")) {

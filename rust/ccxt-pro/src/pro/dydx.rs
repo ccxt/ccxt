@@ -624,7 +624,7 @@ impl Dydx {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
-            Value::Bool(self.handle_error_message(&client.as_value(), message));
+            self.handle_error_message(&client.as_value(), message);
             return;
         }
         if (type_var.is_some()) {

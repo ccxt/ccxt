@@ -1849,10 +1849,7 @@ impl Alpaca {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2150,10 +2147,7 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn generate_client_order_id(&self, params: impl Into<crate::Value>) -> Option<String> {
-        let mut params: Value = params.into();
-        let __params_empty = indexmap::IndexMap::new();
-        let params = params.as_map().unwrap_or(&__params_empty);
+    pub fn generate_client_order_id(&self, params: &indexmap::IndexMap<String, Value>) -> Option<String> {
         let clientOrderIdprefix: Option<String> = self.safe_string_k_opt(&self.options, "clientOrderId", &[]);
         let mut uuid: String = self.uuid(&[]);
         let parts: crate::value::List = crate::value::List::new(uuid.split("-").map(Value::from).collect());
@@ -2635,7 +2629,7 @@ impl Alpaca {
             // the venue only accepts lowercase values, normalize the unified uppercase spellings
             request.insert("time_in_force".into(), timeInForce.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         }
-        request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
+        request.insert("client_order_id".into(), self.generate_client_order_id(&paramsTimeInForce).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, &["clientOrderId"], &[])]);
         let response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[&__ws_arg_17]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), market.as_ref());

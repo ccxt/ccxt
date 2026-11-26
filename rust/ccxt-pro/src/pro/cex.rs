@@ -2067,7 +2067,7 @@ impl Cex {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let ok: Option<String> = (match __pro_message.get("ok").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (ok.as_deref() == Some("error")) {
-            Value::Bool(self.handle_error_message(&client.as_value(), message));
+            self.handle_error_message(&client.as_value(), message);
             return;
         }
         let event: Option<String> = (match __pro_message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

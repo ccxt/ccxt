@@ -1057,7 +1057,7 @@ impl Coinbaseexchange {
                                                         let mut i: i64 = 0;
                             let mut __for_first_2: bool = true;
                             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (previousTrades.len() as i64) } {
-                            let tradeEntry: crate::value::Dict = self.safe_dict_t(&previousTrades, Value::Int(i));
+                            let tradeEntry: crate::value::Dict = (if let Some(Value::Dict(__m)) = previousTrades.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
                             totalCost = self.safe_string_k(&tradeEntry, "cost", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                             totalAmount = self.safe_string_k(&tradeEntry, "amount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                         }
@@ -1358,10 +1358,10 @@ impl Coinbaseexchange {
         if (method.is_none()) {
             if (type_var.as_deref() == Some("match")) {
                 if authenticated {
-                    Value::Dict(self.handle_my_trade(&client.as_value(), message));
+                    self.handle_my_trade(&client.as_value(), message);
                     self.handle_order(&client.as_value(), Value::from(message));
                 }  else {
-                    Value::Dict(self.handle_trade(&client.as_value(), message));
+                    self.handle_trade(&client.as_value(), message);
                 }
             }
         }  else {

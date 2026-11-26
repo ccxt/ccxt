@@ -787,7 +787,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < rowsLength } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = (if let Some(Value::Dict(__m)) = rows.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let trade: crate::value::Dict = self.parse_ws_trade(&row, Some(&market));
             trades.append(Value::Dict(trade));
         }
@@ -1132,7 +1132,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < rowsLength } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = (if let Some(Value::Dict(__m)) = rows.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let parsed: crate::value::Dict = self.parse_order(Value::Dict(row), None);
             self.orders.append(Value::from(&parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -1253,7 +1253,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < rowsLength } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = (if let Some(Value::Dict(__m)) = rows.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let parsed: crate::value::Dict = self.parse_trade(Value::Dict(row), None);
             self.myTrades.append(Value::from(&parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);

@@ -2095,10 +2095,10 @@ impl Hitbtc {
             }
             let clientOrderId: Option<String> = self.safe_string_k_opt(&result, "client_order_id", &[]);
             if (clientOrderId.is_some()) {
-                Value::Dict(self.handle_order_request(&client.as_value(), message));
+                self.handle_order_request(&client.as_value(), message);
             }
             if ((match &(result) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && !(__pro_message.contains_key("id")) {
-                Value::Dict(self.handle_authenticate(&client.as_value(), message));
+                self.handle_authenticate(&client.as_value(), message);
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
@@ -2106,7 +2106,7 @@ impl Hitbtc {
                 let rows: crate::value::List = __pro_message.key_list("result");
                 let arrayLength: i64 = rows.len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
-                    Value::Dict(self.handle_order_request(&client.as_value(), message));
+                    self.handle_order_request(&client.as_value(), message);
                 }
             }
         }

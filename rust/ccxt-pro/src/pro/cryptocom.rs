@@ -1323,7 +1323,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
-            let mut tick: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
+            let mut tick: Option<crate::value::Dict> = (match data.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let parsed: crate::value::List = self.parse_ohlcv(tick.map_or(Value::Null, Value::Dict), Some(&market));
             stored.append(Value::Arr(parsed));
         }

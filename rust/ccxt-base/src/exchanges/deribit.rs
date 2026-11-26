@@ -2443,10 +2443,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut instrumentsResponses: Vec<Value> = Vec::new();
         let mut result: Vec<Value> = Vec::new();
         let mut parsedMarkets: indexmap::IndexMap<String, Value> = ({
@@ -3129,10 +3126,7 @@ impl Deribit {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4919,10 +4913,7 @@ impl Deribit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4944,8 +4935,7 @@ impl Deribit {
         let duration: i64 = ((self.parse_timeframe(Value::from(eachItemDuration))) * 1000);
         let now: i64 = self.milliseconds();
         let month: i64 = (((((((30 * 24)) * 60)) * 60)) * 1000);
-        let defaultSince: i64 = (now - month);
-        let sinceResolved: i64 = since.unwrap_or(defaultSince);
+        let sinceResolved: Option<i64> = (if (since.is_none()) { Some((now - month)) } else { since });
         let mut time: Option<i64> = Some(now);
         if (since.is_some()) {
             time = self.parse_to_int(Value::from((if let Some(__l) = since { Some(__l + month) } else { None })));
@@ -4953,7 +4943,7 @@ impl Deribit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("start_timestamp".to_string(), Value::Int((sinceResolved - 1)));
+                m.insert("start_timestamp".to_string(), Value::from((if let Some(__l) = sinceResolved { Some(__l - 1) } else { None })));
             m
         });
         let until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
@@ -4972,7 +4962,7 @@ impl Deribit {
             if (limit.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a limit argument")));
             }
-            let maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
+            let maxUntil: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = limit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5003,7 +4993,7 @@ impl Deribit {
             rates.push(Value::Dict(rate));
         }
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), Some(sinceResolved), limit, &[]));
+        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(rates), symbol.as_str(), sinceResolved, limit, &[]));
         Value::Null
         }).await?))
     }
@@ -5030,10 +5020,7 @@ impl Deribit {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

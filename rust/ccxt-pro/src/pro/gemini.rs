@@ -1226,7 +1226,7 @@ impl Gemini {
         });
         let type_var: String = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if type_var.contains("candles") {
-            Value::Dict(self.handle_ohlcv(client.as_value(), message));
+            self.handle_ohlcv(client.as_value(), message);
             return;
         }
         let method: Option<String> = self.safe_value(&methods, Value::from(type_var.as_str()), &[]).as_str().map(str::to_owned);
@@ -1249,7 +1249,7 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
                 while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+                let event: crate::value::Dict = (if let Some(__l) = &events { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
                 let eventType: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
                 let side: Option<String> = self.safe_string_k_opt(&event, "side", &[]);
                 let isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(&side, Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())]));

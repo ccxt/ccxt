@@ -1187,7 +1187,7 @@ impl Bingx {
         let rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
         let marketOptions: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(marketType.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&marketOptions, "timeframes");
-        let unifiedTimeframe: Value = Value::from(self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]));
+        let unifiedTimeframe: Option<String> = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
             let subscriptionHash: String = dataType;
             let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash));
@@ -1207,13 +1207,13 @@ impl Bingx {
             stored.append(Value::Arr(parsed));
         }
         }
-        let resolveData: Value = Value::from(vec![Value::from(symbol.as_str()), unifiedTimeframe.clone(), Value::from(&stored)]);
-        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from(symbol), &unifiedTimeframe]);
-        client.resolve(resolveData.clone(), messageHash.as_deref());
+        let resolveData: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol.as_str()), Value::from(unifiedTimeframe.as_deref()), Value::from(&stored)]);
+        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from(symbol), &Value::from(unifiedTimeframe.as_deref())]);
+        client.resolve(&resolveData, messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
-            let messageHashForAll: Option<String> = self.get_message_hash("ohlcv", &[&Value::Null, &unifiedTimeframe]);
-            client.resolve(resolveData, messageHashForAll.as_deref());
+            let messageHashForAll: Option<String> = self.get_message_hash("ohlcv", &[&Value::Null, &unifiedTimeframe.map(Value::from).unwrap_or(Value::Null)]);
+            client.resolve(Value::Arr(resolveData), messageHashForAll.as_deref());
         }
 }
 
@@ -2435,7 +2435,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.handle_ticker(&client, message);
         }
         if (dataType == "") && (msgEvent.is_none()) && (e.is_none()) {
-            Value::Dict(self.handle_subscription_status(&client, message));
+            self.handle_subscription_status(&client, message);
         }
 }
 

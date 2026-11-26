@@ -28,8 +28,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetMarketDetail` implicit endpoint.
-    pub async fn sapi_private_get_market_detail(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("sapi_private_get_market_detail".into()), optional_args).await
+    pub async fn sapi_private_get_market_detail(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("sapi_private_get_market_detail", optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiPrivateGetOrderBook` implicit endpoint.

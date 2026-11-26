@@ -1757,10 +1757,7 @@ impl Bitvavo {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2670,7 +2667,7 @@ impl Bitvavo {
         let messageHash: Option<String> = self.safe_string_k_opt(&message, "requestId", &[&buildMessage]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors((Value::from(code)).as_i64().unwrap_or_default(), error.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), error.as_deref().unwrap_or_default(), Value::from(message), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors((Value::from(code)).as_i64().unwrap_or_default(), error.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), error.as_deref().unwrap_or_default(), Value::from(message), Some(&indexmap::IndexMap::new()), None);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             rejected = true;
@@ -2731,7 +2728,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let error: Option<String> = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (error.is_some()) {
-            Value::Bool(self.handle_error_message(&client.as_value(), message));
+            self.handle_error_message(&client.as_value(), message);
         }
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -493,7 +493,8 @@ impl crate::exchange::DerivedExchange for Bigone {
         if matches!(self.safe_bool_k(&rawCurrency, "is_fiat", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Some("fiat".to_string());
         }  else if (chainLength == 0) {
-            if self.is_leveraged_currency(Value::from(id.as_deref()), &[]).as_bool() == Some(true) {
+            let leveragedId: String = self.safe_string_k(&rawCurrency, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if self.is_leveraged_currency(leveragedId.as_str(), &[]).as_bool() == Some(true) {
                 type_var = Some("leveraged".to_string());
             }  else {
                 type_var = Some("other".to_string());

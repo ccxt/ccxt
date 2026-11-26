@@ -625,7 +625,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "retrieve_credentials" => crate::Value::Dict(self.retrieve_credentials()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_onboarding_action" => self.sign_onboarding_action(),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2023,11 +2023,8 @@ impl Dydx {
         return Some(self.hash(message, "keccak", &[Value::Str("hex".into())]));
 }
 
-    pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> crate::value::Dict {
-        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), (match (&(privateKey), (-64i64), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }),
-            _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), Value::Str("secp256k1".into()), Value::Null);
+    pub fn sign_hash(&self, hash: &str, privateKey: &str) -> crate::value::Dict {
+        let signature: crate::value::Dict = ecdsa(Value::from(&hash[hash.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]), Value::Str("secp256k1".into()), Value::Null);
         let r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return std::sync::Arc::new({
@@ -2041,7 +2038,7 @@ impl Dydx {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Value::from(&privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]));
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), &privateKey[privateKey.char_indices().rev().nth(63).unwrap_or_default().0..]);
 }
 
     pub fn sign_onboarding_action(&self) -> Value {
@@ -2077,14 +2074,14 @@ impl Dydx {
     Value::Null
 }
 
-    pub fn sign_dydx_tx(&self, privateKey: Option<&str>, message: impl Into<crate::Value>, memo: Option<&str>, chainId: Option<&str>, account: impl Into<crate::Value>, mut authenticators: Value, optional_args: &[&Value]) -> Option<String> {
+    pub fn sign_dydx_tx(&self, privateKey: &str, message: impl Into<crate::Value>, memo: Option<&str>, chainId: Option<&str>, account: impl Into<crate::Value>, mut authenticators: Value, optional_args: &[&Value]) -> Option<String> {
         let message: Value = message.into();
         let account: Value = account.into();
         let fee = get_arg(optional_args, 0, Value::Null);
         let encodedTxsignDocVariable: Vec<Value> = self.encode_dydx_tx_for_signing(message, Value::from(memo), Value::from(chainId), account, authenticators, &[fee]).as_array().cloned().unwrap_or_default();
         let encodedTx: Option<String> = encodedTxsignDocVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let signDoc: Value = encodedTxsignDocVariable.get(1).cloned().unwrap_or(Value::Null);
-        let signature: crate::value::Dict = self.sign_hash(encodedTx.as_deref().unwrap_or_default(), Value::from(privateKey));
+        let signature: crate::value::Dict = self.sign_hash(encodedTx.as_deref().unwrap_or_default(), privateKey);
         let signatureR: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let signatureS: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signatureR, signatureS).into())).as_str().map(str::to_owned);
@@ -2442,7 +2439,8 @@ impl Dydx {
         let orderId: Option<String> = orderRequestRes.get(0).and_then(Value::as_str).map(str::to_owned);
         let orderRequest: Value = orderRequestRes.get(1).cloned().unwrap_or(Value::Null);
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
-        let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
+        let privateKey: String = self.safe_string_k(&credentials, "privateKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let signedTx: Option<String> = self.sign_dydx_tx(privateKey.as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2584,7 +2582,8 @@ impl Dydx {
             m
         });
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
-        let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
+        let privateKey: String = self.safe_string_k(&credentials, "privateKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let signedTx: Option<String> = self.sign_dydx_tx(privateKey.as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2634,10 +2633,7 @@ impl Dydx {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2685,7 +2681,8 @@ impl Dydx {
             m
         });
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
-        let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
+        let privateKey: String = self.safe_string_k(&credentials, "privateKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let signedTx: Option<String> = self.sign_dydx_tx(privateKey.as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2973,7 +2970,8 @@ impl Dydx {
         }
         let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), Some(""), &account).await;
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
-        let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
+        let privateKey: String = self.safe_string_k(&credentials, "privateKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let signedTx: Option<String> = self.sign_dydx_tx(privateKey.as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -3086,7 +3084,8 @@ impl Dydx {
         });
         let txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), &account).await;
         let chainName: Option<String> = self.safe_string_k_opt(&self.options, "chainName", &[]);
-        let signedTx: Option<String> = self.sign_dydx_tx(self.safe_string_k(&credentials, "privateKey", &[]).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
+        let privateKey: String = self.safe_string_k(&credentials, "privateKey", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let signedTx: Option<String> = self.sign_dydx_tx(privateKey.as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), &account, Value::Null, &[&Value::Dict(txFee)]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));

@@ -1992,10 +1992,7 @@ impl Bybit {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let method: String = "watchMyTrades".to_string();
         let mut messageHash: String = "myTrades".to_string();
         if (self.markets.is_none()) {
@@ -2006,7 +2003,7 @@ impl Bybit {
             symbolResolved = Some(self.symbol(symbol.as_str()));
             messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
-        let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
+        let url: Option<String> = self.get_url_by_market_type(symbolResolved.as_deref(), &[&Value::Bool(true), &Value::from(method), &Value::from(&params)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
         let mut topic: String = "execution".to_string();
@@ -2050,10 +2047,7 @@ impl Bybit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let method: String = "watchMyTrades".to_string();
         let messageHash: String = "unsubscribe:myTrades".to_string();
         let subHash: String = "myTrades".to_string();
@@ -2063,7 +2057,7 @@ impl Bybit {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades")));
         }
-        let url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[&Value::Bool(true), &Value::from(method), &params]).await.as_str().map(str::to_owned);
+        let url: Option<String> = self.get_url_by_market_type(symbol.as_str(), &[&Value::Bool(true), &Value::from(method), &Value::from(&params)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let privateType: Option<String> = self.get_private_type(url.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
         let mut topic: String = "execution".to_string();
@@ -2312,32 +2306,31 @@ impl Bybit {
     pub async fn load_positions_snapshot(&mut self, client: &Value, messageHash: &str) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        let fetchFunctions: crate::value::List = std::sync::Arc::new(vec![crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map({
+        let linearPositions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("subType".to_string(), Value::Str("linear".into()));
     m
-})).await), crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map({
+})).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let inversePositions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("subType".to_string(), Value::Str("inverse".into()));
     m
-})).await)]);
-        let promises: Vec<Value> = promise_all(&Value::Arr(fetchFunctions)).await.to_vec();
+})).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         {
                         let mut i: i64 = 0;
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (linearPositions.len() as i64) } {
+            self.positions.append(linearPositions.get(i as usize).map(crate::Value::from).unwrap_or_default());
+        }
+        }
+        {
+                        let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (promises.len() as i64) } {
-            let mut positions: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
-            {
-                                let mut ii: i64 = 0;
-                let mut __for_first_15: bool = true;
-                while { if !__for_first_15 { ii += 1; } __for_first_15 = false; ii < (positions.len() as i64) } {
-                let mut position: Option<crate::value::Dict> = (match positions.as_array().map(Vec::as_slice).unwrap_or_default().get(ii as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
-                self.positions.append(position.map_or(Value::Null, Value::Dict));
-            }
-            }
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (inversePositions.len() as i64) } {
+            self.positions.append(inversePositions.get(i as usize).map(crate::Value::from).unwrap_or_default());
         }
         }
         // don't remove the future from the .futures cache
@@ -3515,19 +3508,19 @@ impl Bybit {
         // contract pong
         let ret_msg: Option<String> = (match __pro_message.get("ret_msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (ret_msg.as_deref() == Some("pong")) || (topic == "pong") {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         // spot pong
         let pong: Option<i64> = (match __pro_message.get("pong") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         if (pong.is_some()) {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         // pong
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("sub")) || (topic == "subscribe") {
-            Value::Dict(self.handle_subscription_status(&client.as_value(), message));
+            self.handle_subscription_status(&client.as_value(), message);
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({

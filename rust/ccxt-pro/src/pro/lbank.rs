@@ -846,10 +846,10 @@ if _try_result.is_err() {
         //     }
         //
         let marketId: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let symbol: Value = self.safe_symbol(marketId.as_deref(), None, &[]);
+        let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let mut rawTrade: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "trade");
-        let subHash: String = format!("{}{}", "trades:", symbol);
+        let subHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
         if (rawTrade.is_some()) && !(client.has_subscription(subHash.as_str())) {
             return;
         }
@@ -865,14 +865,14 @@ if _try_result.is_err() {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (rawTrades.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_ws_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
-            std::sync::Arc::make_mut(&mut trade).insert("symbol".into(), symbol.clone());
+            std::sync::Arc::make_mut(&mut trade).insert("symbol".into(), Value::from(symbol.as_deref()));
             stored.append(Value::Dict(trade));
         }
         }
         CacheStore::put(&mut self.trades, &symbol, stored);
-        let mut messageHash: String = format!("{}{}", "trades:", symbol);
+        let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(self.trades.at(&symbol)), messageHash.as_str());
-        messageHash = format!("{}{}", "fetchTrades:", symbol);
+        messageHash = format!("{}{}", "fetchTrades:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(self.trades.at(&symbol)), messageHash.as_str());
 }
 
@@ -1400,7 +1400,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let status: Option<String> = (match __pro_message.get("status").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            Value::Bool(self.handle_error_message(&client, message));
+            self.handle_error_message(&client, message);
             return;
         }
         let type_var: Option<String> = self.safe_string2_opt(&message, Value::Str("type".into()), Value::Str("action".into()), &[]);

@@ -2668,7 +2668,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                                 let mut i: i64 = 0;
                         let mut __for_first_9: bool = true;
                         while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
-                        let isolatedBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                        let isolatedBalance: crate::value::Dict = (if let Some(Value::Dict(__m)) = data.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
                         let mut account: crate::value::Dict = self.account();
                         std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&isolatedBalance, "margin_balance", &[Value::Str("margin_available".into())]));
                         std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&isolatedBalance, "margin_frozen", &[]));
@@ -2686,7 +2686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_10: bool = true;
                     while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
-                    let mut balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                    let mut balance: crate::value::Dict = (if let Some(Value::Dict(__m)) = data.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
                     let currencyId: Option<String> = self.safe_string_k_opt(&balance, "symbol", &[]);
                     let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     let mut account: crate::value::Dict = self.account();

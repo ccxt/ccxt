@@ -1648,7 +1648,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let m: Option<String> = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (m.is_some()) && (m.as_deref() != Some("Success")) {
-            Value::Bool(self.handle_error_message(&client.as_value(), message));
+            self.handle_error_message(&client.as_value(), message);
         }
         let action: Option<String> = self.safe_string2_opt(&message, Value::Str("a".into()), Value::Str("action".into()), &[]);
         if (action.as_deref() == Some("RecvTopicAction")) {

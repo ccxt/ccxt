@@ -6507,7 +6507,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
         if (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")) {
             if (!isHedged) && (longLeverageRr.is_none()) && (shortLeverageRr.is_none()) {
-                request.insert("leverageRr".into(), leverage.clone());
+                request.insert("leverageRr".into(), leverage);
             }  else {
                 let longVar: Option<i64> = (if (longLeverageRr.is_some()) { longLeverageRr } else { leverage.as_i64() });
                 let shortVar: Option<i64> = (if (shortLeverageRr.is_some()) { shortLeverageRr } else { leverage.as_i64() });
@@ -6737,10 +6737,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }

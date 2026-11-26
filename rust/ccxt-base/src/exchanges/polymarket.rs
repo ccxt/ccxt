@@ -2770,7 +2770,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let response: crate::value::Dict = self.private_get_account_portfolio(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -2828,7 +2828,7 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let response: crate::value::Dict = self.private_get_account_portfolio(&[&params]).await.unwrap_or_default();
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
@@ -2902,7 +2902,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2943,7 +2943,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2994,7 +2994,7 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3046,7 +3046,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3121,7 +3121,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3222,7 +3222,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3271,7 +3271,7 @@ impl Polymarket {
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3447,7 +3447,7 @@ impl Polymarket {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        Value::Dict(self.load_proxy_credentials(&[]).await);
+        self.load_proxy_credentials(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

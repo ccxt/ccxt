@@ -339,10 +339,7 @@ impl Bitget {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -411,20 +408,17 @@ impl Bitget {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let symbolsList: crate::value::List = symbolsNormalized;
         let mut market: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchTickers".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
@@ -694,20 +688,17 @@ impl Bitget {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
         let symbolsList: crate::value::List = symbolsNormalized;
         let mut market: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
@@ -825,10 +816,7 @@ impl Bitget {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -902,15 +890,12 @@ impl Bitget {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
-        let interval: Option<String> = self.safe_string_opt(&timeframes, timeframe, &[]);
+        let interval: Option<String> = self.safe_string_opt(&timeframes, &timeframe, &[]);
         let mut channel: String = "".to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = "".to_string();
@@ -941,13 +926,14 @@ impl Bitget {
             channel = "kline".to_string();
             args.insert("topic".into(), Value::from(channel.as_str()));
             args.insert("symbol".into(), Value::from((market).id.as_deref()));
-            args.insert("interval".into(), Value::from(interval.as_deref()));
+            args.insert("interval".into(), interval.map(Value::from).unwrap_or(Value::Null));
             messageHash = format!("{}{}", "kline", symbol);
         }  else {
-            channel = format!("{}{}", "candle", interval.as_deref().unwrap_or("null"));
+            let intervalValue: String = self.safe_string(&timeframes, timeframe, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            channel = format!("{}{}", "candle", intervalValue);
             args.insert("channel".into(), Value::from(channel.as_str()));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
-            messageHash = format!("{}{}", "candles:", interval.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", "candles:", intervalValue);
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_str(), messageHash.as_str(), "watchOHLCV", &[&paramsRequest]).await;
         Value::Null
@@ -1566,10 +1552,7 @@ impl Bitget {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         let symbolsLength: i64 = symbols.len() as i64;
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTradesForSymbols() requires a non-empty array of symbols")));
@@ -1667,17 +1650,14 @@ impl Bitget {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let values = self.handle_option_bool_and_params(params.clone(), Value::Str("watchTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let uta: Option<bool> = values.0;
         let mut channelTopic: String = "trade".to_string();
         if (uta == Some(true)) {
             channelTopic = "publicTrade".to_string();
         }
-        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channelTopic.as_str(), "trade", "watchTrades", &[&params]).await;
+        return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channelTopic.as_str(), "trade", "watchTrades", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1860,7 +1840,7 @@ impl Bitget {
         let marketResolved: crate::types::Market = self.safe_market(instIdResolved.as_deref(), market, &[Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]);
         let timestamp: Option<i64> = self.safe_integer_n(&trade, Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]).as_i64();
         let feeDetail: crate::value::List = self.safe_list_k_t(&trade, "feeDetail");
-        let first: Option<crate::value::Dict> = self.safe_dict_o(&feeDetail, Value::Int(0));
+        let first: Option<crate::value::Dict> = (match feeDetail.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let mut fee: Option<crate::value::Dict> = None;
         if (first.is_some()) {
             let feeCurrencyId: Option<String> = self.safe_string_k_opt(&first, "feeCoin", &[]);
@@ -1909,18 +1889,15 @@ impl Bitget {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
     pub async fn watch_positions(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::Null, Value::from(since), Value::from(limit), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
+        let symbols = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1931,7 +1908,7 @@ impl Bitget {
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Option<bool> = utaparamsUtaVariable.0;
         let paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let hasSymbols: bool = (symbolsNormalized.is_some()) && !(self.is_empty(&symbolsNormalized).as_bool() == Some(true));
         if hasSymbols {
             market = self.get_market_from_symbols(symbolsNormalized.as_deref());
@@ -3059,10 +3036,7 @@ impl Bitget {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let utaparamsUtaVariable = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let uta: Option<bool> = utaparamsUtaVariable.0;
         let paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
@@ -3286,18 +3260,17 @@ impl Bitget {
 }
 
     pub async fn watch_public(&mut self, uta: bool, messageHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
-        let uta: Value = uta.into();
         let args: Value = args.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
+        let mut url: Value = (if (Some(uta) == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
         let sandboxMode: bool = self.safe_bool2_opt(&self.options, Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode {
             let instType: Option<String> = self.safe_string_k_opt(&args, "instType", &[]);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if (uta.as_bool() == Some(true)) {
+                if (Some(uta) == Some(true)) {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "utaPublic");
                 }  else {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "public");
@@ -3317,18 +3290,17 @@ impl Bitget {
 }
 
     pub async fn un_watch_public(&mut self, uta: bool, messageHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
-        let uta: Value = uta.into();
         let args: Value = args.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
+        let mut url: Value = (if (Some(uta) == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
         let sandboxMode: bool = self.safe_bool2_opt(&self.options, Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode {
             let instType: Option<String> = self.safe_string_k_opt(&args, "instType", &[]);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if (uta.as_bool() == Some(true)) {
+                if (Some(uta) == Some(true)) {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "utaPublic");
                 }  else {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "public");
@@ -3384,19 +3356,18 @@ impl Bitget {
 }
 
     pub async fn watch_public_multiple(&mut self, uta: bool, messageHashes: &[crate::Value], argsArray: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
-        let uta: Value = uta.into();
         let argsArray: Value = argsArray.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
+        let mut url: Value = (if (Some(uta) == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public") });
         let sandboxMode: bool = self.safe_bool2_opt(&self.options, Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode {
             let argsArrayFirst: crate::value::Dict = self.safe_dict_t(&argsArray, Value::Int(0));
             let instType: Option<String> = self.safe_string_k_opt(&argsArrayFirst, "instType", &[]);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                url = (if (uta.as_bool() == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "public") });
+                url = (if (Some(uta) == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "utaPublic") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "public") });
             }
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -3449,18 +3420,17 @@ impl Bitget {
 }
 
     pub async fn watch_private(&mut self, uta: bool, messageHash: &str, subscriptionHash: &str, args: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
-        let uta: Value = uta.into();
         let args: Value = args.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPrivate") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private") });
+        let mut url: Value = (if (Some(uta) == Some(true)) { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "utaPrivate") } else { crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private") });
         let sandboxMode: bool = self.safe_bool2_opt(&self.options, Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode {
             let instType: Option<String> = self.safe_string_k_opt(&args, "instType", &[]);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
-                if (uta.as_bool() == Some(true)) {
+                if (Some(uta) == Some(true)) {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "utaPrivate");
                 }  else {
                     url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("demo"), "private");
@@ -3629,11 +3599,11 @@ impl Bitget {
             return;
         }
         if (event.as_deref() == Some("subscribe")) {
-            Value::Dict(self.handle_subscription_status(&client.as_value(), message));
+            self.handle_subscription_status(&client.as_value(), message);
             return;
         }
         if (event.as_deref() == Some("unsubscribe")) {
-            Value::Dict(self.handle_un_subscription_status(&client.as_value(), message));
+            self.handle_un_subscription_status(&client.as_value(), message);
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -3859,7 +3829,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (argsList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let arg: crate::value::Dict = self.safe_dict_t(&argsList, Value::Int(i));
+            let arg: crate::value::Dict = (if let Some(__l) = &argsList { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let channel: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if channel.contains("books") {
                 // for now only unWatchOrderBook is supported

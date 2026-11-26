@@ -668,8 +668,8 @@ impl Gate {
     }
 
     /// Auto-generated wrapper for the `privateUnifiedPutUnifiedMode` implicit endpoint.
-    pub async fn private_unified_put_unified_mode(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_unified_put_unified_mode".into()), optional_args).await
+    pub async fn private_unified_put_unified_mode(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_unified_put_unified_mode", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotGetFee` implicit endpoint.

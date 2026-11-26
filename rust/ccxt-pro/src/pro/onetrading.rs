@@ -1437,9 +1437,7 @@ impl Onetrading {
             let m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        if (timeframe != Value::Null) {
-            marketTimeframes.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
-        }
+        marketTimeframes.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
         add_element_to_object(&mut subscription, &marketId, Value::Map(marketTimeframes));
         let mut properties: Vec<Value> = Vec::new();
         let marketIds: Vec<Value> = object_keys(&subscription).as_array().cloned().unwrap_or_default();
@@ -1589,7 +1587,7 @@ impl Onetrading {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let error: Option<String> = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (error.is_some()) {
-            Value::Bool(self.handle_error_message(&client.as_value(), message));
+            self.handle_error_message(&client.as_value(), message);
             return;
         }
         let type_var: Option<String> = (match __pro_message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

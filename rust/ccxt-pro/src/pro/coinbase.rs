@@ -1198,7 +1198,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let currentEvent: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+            let currentEvent: crate::value::Dict = (if let Some(__l) = &events { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let currentTrades: Option<crate::value::List> = self.safe_list_k_o(&currentEvent, "trades");
             if (currentTrades.is_none()) {
                 continue;
@@ -1267,7 +1267,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+            let event: crate::value::Dict = (if let Some(__l) = &events { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let responseOrders: Option<crate::value::List> = self.safe_list_k_o(&event, "orders");
             if (responseOrders.is_none()) {
                 continue;
@@ -1418,7 +1418,7 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let event: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+            let event: crate::value::Dict = (if let Some(__l) = &events { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let updates: crate::value::List = self.safe_list_k_t(&event, "updates");
             let marketId: Option<String> = self.safe_string_k_opt(&event, "product_id", &[]);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases

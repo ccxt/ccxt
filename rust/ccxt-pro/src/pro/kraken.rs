@@ -830,7 +830,7 @@ impl Kraken {
         //     }
         //
         let data: crate::value::List = message.key_list("data");
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
+        let mut ticker: Option<crate::value::Dict> = (match data.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[&Value::Null, &Value::from(symbol.as_deref())]);
         let vwap: Option<String> = self.safe_string_k_opt(&ticker, "vwap", &[]);

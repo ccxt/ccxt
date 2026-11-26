@@ -2781,7 +2781,7 @@ impl Weex {
         }
         let id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (id.is_some()) {
-            Value::Dict(self.handle_subscription_status(&client.as_value(), message));
+            self.handle_subscription_status(&client.as_value(), message);
             return;
         }
         let event: Option<String> = self.safe_string_n_opt(&message, Value::from(vec![Value::Str("e".into()), Value::Str("event".into()), Value::Str("type".into())]), &[]);

@@ -733,10 +733,7 @@ impl Pacifica {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.setup_api_key_headers(&[]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -793,10 +790,7 @@ impl Pacifica {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1885,7 +1879,7 @@ impl Pacifica {
         let wsHeaders: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "options");
         let wsHeadersFinal: crate::value::Dict = self.safe_dict_k_t(&wsHeaders, "headers");
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(0, error.as_str(), "", postType.as_str(), &wsHeadersFinal, (json_stringify(&data)).as_str().unwrap_or_default(), Value::from(message), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(0, error.as_str(), "", postType.as_str(), &wsHeadersFinal, (json_stringify(&data)).as_str().unwrap_or_default(), Value::from(message), Some(&indexmap::IndexMap::new()), None);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());

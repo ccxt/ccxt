@@ -93,8 +93,8 @@ impl Backpack {
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1StockIndicativeQuote` implicit endpoint.
-    pub async fn public_get_api_v1_stock_indicative_quote(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_api_v1_stock_indicative_quote".into()), optional_args).await
+    pub async fn public_get_api_v1_stock_indicative_quote(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("public_get_api_v1_stock_indicative_quote", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetApiV1Securities` implicit endpoint.

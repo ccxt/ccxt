@@ -283,13 +283,12 @@ impl Backpack {
  * @param {object} params local parameters
  * @returns {string} venue market id
  */
-    pub fn ws_venue_market_id(&self, mut methodName: Value, market: Option<&crate::types::Market>, params: impl Into<crate::Value>) -> Option<String> {
-        let params: Value = params.into();
+    pub fn ws_venue_market_id(&self, mut methodName: Value, market: Option<&crate::types::Market>, params: &crate::value::Dict) -> Option<String> {
         if (market.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() requires a market")));
         }
-        self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), params.clone(), market);
-        let source: Option<String> = self.safe_string_k_opt(params, "source", &[&Value::Str("Venue".into())]);
+        self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), Value::Dict(std::sync::Arc::clone(params)), market);
+        let source: Option<String> = self.safe_string_k_opt(&params, "source", &[&Value::Str("Venue".into())]);
         if (source.as_deref() == Some("External")) || (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) || (self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() requires a venue order-book market; provider and RFQ streams are not documented for this method")));
         }
@@ -2029,7 +2028,7 @@ impl Backpack {
         let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await;
         let stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         if stock && (self.safe_list_k(&self.options, "securities", &[]) == Value::Null) {
-            Value::Arr(self.parent.fetch_securities(&[]).await);
+            self.parent.fetch_securities(&[]).await;
         }
         let response: Value = self.watch_private(Value::from(vec![Value::Str("account.balanceUpdate".into())]), Value::from(vec![Value::Str("balance".into())]), &[self.omit(&query, Value::Str("stock".into()), &[])]).await;
         let balances: crate::value::Dict = self.safe_dict_t(Value::Map({

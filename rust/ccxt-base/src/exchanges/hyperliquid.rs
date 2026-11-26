@@ -4303,10 +4303,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.check_required_credentials(&[]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -5206,10 +5203,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (status.unwrap_or("").ends_with("Rejected")) {
-            return Value::Str("rejected".into()).as_str().map(str::to_owned);
+            return Some("rejected".to_string());
         }
         if (status.unwrap_or("").ends_with("Canceled")) {
-            return Value::Str("canceled".into()).as_str().map(str::to_owned);
+            return Some("canceled".to_string());
         }
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
@@ -5799,10 +5796,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.check_required_credentials(&[]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -6014,10 +6008,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.check_required_credentials(&[]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -6371,7 +6362,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultDeposit")) {
                 let delta: crate::value::Dict = self.safe_dict_k_t(&record, "delta");
-                if (self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str() == Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()).as_str()) {
+                let deltaVault: String = self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                if ((Some(deltaVault.as_str()) == Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()).as_str())) {
                     deposits.push(Value::Dict(record));
                 }
             }
@@ -6459,7 +6451,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let record: crate::value::Dict = crate::value::KeyRead::read(&&records, &Value::Int(i)).into_dict();
             if (self.safe_string_k(&record, "type", &[]).as_str() == Some("vaultWithdraw")) {
                 let delta: crate::value::Dict = self.safe_dict_k_t(&record, "delta");
-                if (self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str() == Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()).as_str()) {
+                let deltaVault: String = self.safe_string_k(&delta, "vault", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                if ((Some(deltaVault.as_str()) == Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()).as_str())) {
                     withdrawals.push(Value::Dict(record));
                 }
             }

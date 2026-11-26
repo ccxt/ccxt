@@ -82,7 +82,8 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref()).await,
-                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[5.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_public_multiple" => self.subscribe_public_multiple(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "subscribe_watch_tickers_and_bids_asks" => self.subscribe_watch_tickers_and_bids_asks(&args[..].iter().collect::<Vec<_>>()).await,
@@ -841,10 +842,7 @@ impl Gate {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -921,10 +919,7 @@ impl Gate {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1921,7 +1916,7 @@ impl Gate {
         let payload: crate::value::List = std::sync::Arc::new(vec![Value::from(marketId)]);
         // uid required for non spot markets
         let requiresUid: bool = type_var.as_deref() != Some("spot");
-        let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
+        let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), &paramsSubType, &[Value::Bool(requiresUid)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit);
@@ -2036,7 +2031,7 @@ impl Gate {
         // todo: add correct margin support
         let channel: String = format!("{}{}", channelType.as_deref().unwrap_or("null"), ".balances");
         let messageHash: String = format!("{}{}", type_var.as_deref().unwrap_or("null"), ".balance");
-        return self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::Null, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
+        return self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::Null, Some(channel.as_str()), &paramsSubType, &[Value::Bool(requiresUid)]).await;
         Value::Null
         }).await?))
     }
@@ -2444,7 +2439,7 @@ impl Gate {
         let url: Option<String> = self.get_url_by_market_type(type_var.as_deref(), &[&Value::Bool(isInverse)]).as_str().map(str::to_owned);
         // uid required for non spot markets
         let requiresUid: bool = type_var.as_deref() != Some("spot");
-        let mut orders: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(query), &[Value::Bool(requiresUid)]).await;
+        let mut orders: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), &query, &[Value::Bool(requiresUid)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -2650,7 +2645,7 @@ impl Gate {
             payload.push(crate::value::KeyRead::key_read(&&market, "id"));
         }
         let channel: String = format!("{}{}", typeId.as_deref().unwrap_or("null"), ".liquidates");
-        let newLiquidations: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::from(payload), Some(channel.as_str()), Value::Dict(query), &[Value::Bool(true)]).await;
+        let newLiquidations: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), Value::from(payload), Some(channel.as_str()), &query, &[Value::Bool(true)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newLiquidations;
         }
@@ -3182,21 +3177,21 @@ impl Gate {
     pub fn get_market_type_by_url(&self, mut url: Value) -> Option<String> {
         // same order as the url table: delivery urls also contain 'fx'
         if url.as_str().unwrap_or("").contains("op-") {
-            return Value::Str("option".into()).as_str().map(str::to_owned);
+            return Some("option".to_string());
         }
         if url.as_str().unwrap_or("").contains("/ws/options/") {
-            return Value::Str("option".into()).as_str().map(str::to_owned);
+            return Some("option".to_string());
         }
         if url.as_str().unwrap_or("").contains("delivery") {
-            return Value::Str("future".into()).as_str().map(str::to_owned);
+            return Some("future".to_string());
         }
         if url.as_str().unwrap_or("").contains("fx") {
-            return Value::Str("swap".into()).as_str().map(str::to_owned);
+            return Some("swap".to_string());
         }
         if url.as_str().unwrap_or("").contains("/ws/futures/") {
-            return Value::Str("swap".into()).as_str().map(str::to_owned);
+            return Some("swap".to_string());
         }
-        return Value::Str("spot".into()).as_str().map(str::to_owned);
+        return Some("spot".to_string());
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -3360,9 +3355,8 @@ impl Gate {
     Value::Null
 }
 
-    pub async fn subscribe_private(&mut self, url: Option<&str>, messageHash: &str, payload: impl Into<crate::Value>, channel: Option<&str>, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub async fn subscribe_private(&mut self, url: Option<&str>, messageHash: &str, payload: impl Into<crate::Value>, channel: Option<&str>, params: &indexmap::IndexMap<String, Value>, optional_args: &[Value]) -> Value {
         let payload: Value = payload.into();
-        let params: Value = params.into();
         let requiresUid = get_arg(optional_args, 0, Value::Bool(false));
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials

@@ -286,9 +286,9 @@ impl Aster {
 
     pub fn get_account_type_from_url(&self, mut url: Value) -> Option<String> {
         if url.as_str().unwrap_or("").contains("fstream") {
-            return Value::Str("swap".into()).as_str().map(str::to_owned);
+            return Some("swap".to_string());
         }
-        return Value::Str("spot".into()).as_str().map(str::to_owned);
+        return Some("spot".to_string());
 }
 
 /*

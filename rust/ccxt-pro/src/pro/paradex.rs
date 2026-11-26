@@ -84,7 +84,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "resubscribe_order_book" => self.resubscribe_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
-                "sbe_read_flags" => Value::Arr(self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
+                "sbe_read_flags" => crate::Value::Arr(self.sbe_read_flags(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
                 "sbe_read_int64" => crate::Value::from(self.sbe_read_int64(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "sbe_read_timestamp" => self.sbe_read_timestamp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sbe_read_uint" => self.sbe_read_uint(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -177,7 +177,6 @@ impl Paradex {
             "parse_ws_liquidation" => { Value::Dict(self.parse_ws_liquidation(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "request_id" => { self.request_id(); },
             "resubscribe_order_book" => crate::exchange_stubs::enqueue_spawn("resubscribe_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "sbe_read_flags" => { Value::Arr(self.sbe_read_flags(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null))); },
             "sbe_read_int64" => { self.sbe_read_int64(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "sbe_read_timestamp" => { self.sbe_read_timestamp(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "sbe_read_uint" => { self.sbe_read_uint(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1215,10 +1214,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1325,10 +1321,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3272,7 +3265,6 @@ if _try_result.is_err() {
 }
 
     pub fn parse_sbe_order(&self, frameHex: &str, mut blockLength: Value, mut frameLength: Value) -> Value {
-        let frameHex: Value = frameHex.into();
         let blockSize: Option<i64> = self.parse_to_int(&blockLength);
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
@@ -3285,7 +3277,7 @@ if _try_result.is_err() {
         if (blockSize.is_some() && blockSize < Some(126)) {
             return Value::Null;
         }
-        let strings: Vec<Value> = self.sbe_read_var_strings(frameHex.clone(), self.sum(&[blockLength, Value::Int(8)]), Value::Int(4), frameLength).as_array().cloned().unwrap_or_default();
+        let strings: Vec<Value> = self.sbe_read_var_strings(Value::from(frameHex), self.sum(&[blockLength, Value::Int(8)]), Value::Int(4), frameLength).as_array().cloned().unwrap_or_default();
         let stringsLength: i64 = strings.len() as i64;
         if stringsLength < 4 {
             return Value::Null;
@@ -3332,30 +3324,30 @@ if _try_result.is_err() {
                 m.insert("3".to_string(), Value::Str("EXPIRE_BOTH".into()));
             m
         });
-        let flags: crate::value::List = self.sbe_read_flags(frameHex.clone(), Value::Int(133), Value::from(vec![Value::Str("REDUCE_ONLY".into()), Value::Str("STOP_CONDITION_BELOW_TRIGGER".into()), Value::Str("STOP_CONDITION_ABOVE_TRIGGER".into()), Value::Str("INTERACTIVE".into()), Value::Str("TARGET_STRATEGY_VWAP".into()), Value::Str("MMP".into())]));
+        let flags: crate::value::List = self.sbe_read_flags(Value::from(frameHex), Value::Int(133), Value::from(vec![Value::Str("REDUCE_ONLY".into()), Value::Str("STOP_CONDITION_BELOW_TRIGGER".into()), Value::Str("STOP_CONDITION_ABOVE_TRIGGER".into()), Value::Str("INTERACTIVE".into()), Value::Str("TARGET_STRATEGY_VWAP".into()), Value::Str("MMP".into())]));
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), self.sbe_read_address(frameHex.clone(), Value::Int(84)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("avg_fill_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(60)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("account".to_string(), self.sbe_read_address(Value::from(frameHex), Value::Int(84)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("avg_fill_price".to_string(), self.sbe_read_decimal(Value::from(frameHex), Value::Int(60)).map(Value::from).unwrap_or(Value::Null));
                 m.insert("client_id".to_string(), self.safe_string(&strings, Value::Int(1), &[]));
-                m.insert("created_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(68)));
+                m.insert("created_at".to_string(), self.sbe_read_timestamp(Value::from(frameHex), Value::Int(68)));
                 m.insert("flags".to_string(), Value::Arr(flags));
                 m.insert("id".to_string(), self.safe_string(&strings, Value::Int(0), &[]));
-                m.insert("instruction".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(27), &timeInForces).map(Value::from).unwrap_or(Value::Null));
-                m.insert("last_updated_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(76)));
+                m.insert("instruction".to_string(), self.sbe_read_enum(Value::from(frameHex), Value::Int(27), &timeInForces).map(Value::from).unwrap_or(Value::Null));
+                m.insert("last_updated_at".to_string(), self.sbe_read_timestamp(Value::from(frameHex), Value::Int(76)));
                 m.insert("market".to_string(), self.safe_string(&strings, Value::Int(2), &[]));
-                m.insert("price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(28)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("published_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(124)));
-                m.insert("received_at".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(116)));
-                m.insert("remaining_size".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(52)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("seq_no".to_string(), self.sbe_read_int64(frameHex.clone(), Value::Int(16)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("side".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(25), &sides).map(Value::from).unwrap_or(Value::Null));
-                m.insert("size".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(44)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("status".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(24), &statuses).map(Value::from).unwrap_or(Value::Null));
-                m.insert("stp".to_string(), self.sbe_read_enum(frameHex.clone(), Value::Int(132), &stpModes).map(Value::from).unwrap_or(Value::Null));
-                m.insert("timestamp".to_string(), self.sbe_read_timestamp(frameHex.clone(), Value::Int(8)));
-                m.insert("trigger_price".to_string(), self.sbe_read_decimal(frameHex.clone(), Value::Int(36)).map(Value::from).unwrap_or(Value::Null));
-                m.insert("type".to_string(), self.sbe_read_enum(frameHex, Value::Int(26), &orderTypes).map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), self.sbe_read_decimal(Value::from(frameHex), Value::Int(28)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("published_at".to_string(), self.sbe_read_timestamp(Value::from(frameHex), Value::Int(124)));
+                m.insert("received_at".to_string(), self.sbe_read_timestamp(Value::from(frameHex), Value::Int(116)));
+                m.insert("remaining_size".to_string(), self.sbe_read_decimal(Value::from(frameHex), Value::Int(52)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("seq_no".to_string(), self.sbe_read_int64(Value::from(frameHex), Value::Int(16)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("side".to_string(), self.sbe_read_enum(Value::from(frameHex), Value::Int(25), &sides).map(Value::from).unwrap_or(Value::Null));
+                m.insert("size".to_string(), self.sbe_read_decimal(Value::from(frameHex), Value::Int(44)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("status".to_string(), self.sbe_read_enum(Value::from(frameHex), Value::Int(24), &statuses).map(Value::from).unwrap_or(Value::Null));
+                m.insert("stp".to_string(), self.sbe_read_enum(Value::from(frameHex), Value::Int(132), &stpModes).map(Value::from).unwrap_or(Value::Null));
+                m.insert("timestamp".to_string(), self.sbe_read_timestamp(Value::from(frameHex), Value::Int(8)));
+                m.insert("trigger_price".to_string(), self.sbe_read_decimal(Value::from(frameHex), Value::Int(36)).map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), self.sbe_read_enum(Value::from(frameHex), Value::Int(26), &orderTypes).map(Value::from).unwrap_or(Value::Null));
             m
         });
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled

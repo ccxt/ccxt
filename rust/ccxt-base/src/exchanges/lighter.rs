@@ -783,7 +783,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "load_account" => self.load_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "modify_leverage_and_margin_mode" => self.modify_leverage_and_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_leverage_and_margin_mode" => crate::Value::Dict(self.modify_leverage_and_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1821,7 +1821,7 @@ impl Lighter {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " pow() requires m > 0.")));
         }
         if (c == Some(0)) {
-            return Value::Str("1".into()).as_str().map(str::to_owned);
+            return Some("1".to_string());
         }
         if c > Some(100) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " pow() requires m < 100.")));
@@ -1885,7 +1885,7 @@ impl Lighter {
                 let builder: i64 = self.safe_integer_k(&self.options, "integratorAccountIndex", &[Value::Int(718718)]).as_i64().unwrap_or(718718);
                 let takerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorTakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 let makerFeeRate: i64 = self.safe_integer_k(&self.options, "integratorMakerFee", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                Value::Dict(Box::pin(self.approve_builder_fee(Value::from(builder), Value::from(takerFeeRate), Value::from(makerFeeRate), accountIndex, apiKeyIndex, &[])).await);
+                Box::pin(self.approve_builder_fee(Value::from(builder), Value::from(takerFeeRate), Value::from(makerFeeRate), accountIndex, apiKeyIndex, &[])).await;
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -3912,10 +3912,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4003,10 +4000,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4093,10 +4087,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
@@ -4329,10 +4320,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4444,10 +4432,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
@@ -4457,7 +4442,7 @@ if _try_result.is_err() {
         if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires an marginMode parameter")));
         }
-        return self.modify_leverage_and_margin_mode(leverage, marginMode.as_deref().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(paramsMarginMode)]).await;
+        return Value::Dict(self.modify_leverage_and_margin_mode(leverage, marginMode.as_deref().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(paramsMarginMode)]).await);
         Value::Null
         }).await?))
     }
@@ -4482,10 +4467,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (marginMode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMarginMode() requires an marginMode parameter")));
         }
@@ -4495,12 +4477,12 @@ if _try_result.is_err() {
         if (leverage == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMarginMode() requires an leverage parameter")));
         }
-        return self.modify_leverage_and_margin_mode(leverage, marginMode.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(paramsLeverage)]).await;
+        return Value::Dict(self.modify_leverage_and_margin_mode(leverage, marginMode.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(paramsLeverage)]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_leverage_and_margin_mode(&mut self, mut leverage: Value, marginMode: &str, symbol: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn modify_leverage_and_margin_mode(&mut self, mut leverage: Value, marginMode: &str, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4546,9 +4528,7 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return self.public_post_send_tx(&[&Value::Map(request)]).await;
-
-    Value::Null
+        return self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
 }
 
     pub async fn sign_and_cancel_order(&mut self, method: &str, id: &str, symbol: Option<&str>, optional_args: &[&Value]) -> Value {

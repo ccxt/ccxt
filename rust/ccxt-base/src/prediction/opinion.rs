@@ -2935,19 +2935,19 @@ if _try_result.is_err() {
         let status: Value = status.into();
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
         if (status.as_f64() == Some(1.0)) {
-            return Value::Str("open".into()).as_str().map(str::to_owned);
+            return Some("open".to_string());
         }
         if (status.as_f64() == Some(2.0)) {
-            return Value::Str("closed".into()).as_str().map(str::to_owned);
+            return Some("closed".to_string());
         }
         if (status.as_f64() == Some(3.0)) {
-            return Value::Str("canceled".into()).as_str().map(str::to_owned);
+            return Some("canceled".to_string());
         }
         if (status.as_f64() == Some(4.0)) {
-            return Value::Str("expired".into()).as_str().map(str::to_owned);
+            return Some("expired".to_string());
         }
         if (status.as_f64() == Some(5.0)) {
-            return Value::Str("rejected".into()).as_str().map(str::to_owned);
+            return Some("rejected".to_string());
         }
         return None;
 }

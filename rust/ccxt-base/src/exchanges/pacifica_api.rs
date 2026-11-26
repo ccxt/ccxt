@@ -298,13 +298,13 @@ impl Pacifica {
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBuilderCodesApprove` implicit endpoint.
-    pub async fn private_post_account_builder_codes_approve(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_builder_codes_approve".into()), optional_args).await
+    pub async fn private_post_account_builder_codes_approve(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_account_builder_codes_approve", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountBuilderCodesRevoke` implicit endpoint.
-    pub async fn private_post_account_builder_codes_revoke(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_builder_codes_revoke".into()), optional_args).await
+    pub async fn private_post_account_builder_codes_revoke(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_account_builder_codes_revoke", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBuilderUpdateFeeRate` implicit endpoint.
@@ -318,8 +318,8 @@ impl Pacifica {
     }
 
     /// Auto-generated wrapper for the `privatePostAgentBind` implicit endpoint.
-    pub async fn private_post_agent_bind(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_agent_bind".into()), optional_args).await
+    pub async fn private_post_agent_bind(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_agent_bind", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAgentList` implicit endpoint.
@@ -358,18 +358,18 @@ impl Pacifica {
     }
 
     /// Auto-generated wrapper for the `privatePostAccountApiKeysCreate` implicit endpoint.
-    pub async fn private_post_account_api_keys_create(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_api_keys_create".into()), optional_args).await
+    pub async fn private_post_account_api_keys_create(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_account_api_keys_create", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountApiKeysRevoke` implicit endpoint.
-    pub async fn private_post_account_api_keys_revoke(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_api_keys_revoke".into()), optional_args).await
+    pub async fn private_post_account_api_keys_revoke(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_account_api_keys_revoke", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAccountApiKeys` implicit endpoint.
-    pub async fn private_post_account_api_keys(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_account_api_keys".into()), optional_args).await
+    pub async fn private_post_account_api_keys(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_account_api_keys", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostLakeAddBlacklist` implicit endpoint.

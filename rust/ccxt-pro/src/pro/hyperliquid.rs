@@ -1885,13 +1885,13 @@ impl Hyperliquid {
 })); }
         }
         { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info); } }
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-        let accountEntry: Value = self.balance.get(crate::runtime::stringify_param(&account).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+        let mut accountEntry: indexmap::IndexMap<String, Value> = self.balance.get(crate::runtime::stringify_param(&account).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }));
-        { let __be_tmp = Value::Dict(self.safe_balance(accountEntry)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
+        })).as_map().cloned().unwrap_or_default();
+        accountEntry.insert("timestamp".into(), Value::from(timestamp));
+        accountEntry.insert("datetime".into(), self.iso8601(timestamp));
+        { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(accountEntry))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         if (topic.is_some()) {
             let messageHash: String = format!("{}{}", topic.as_deref().unwrap_or("null"), "::balance");
             client.resolve((if let Some(__k) = account.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
@@ -2388,7 +2388,7 @@ impl Hyperliquid {
             return true;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(0, "", "", "", &indexmap::IndexMap::new(), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(0, "", "", "", &indexmap::IndexMap::new(), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Some(&indexmap::IndexMap::new()), None);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());

@@ -665,7 +665,7 @@ impl crate::exchange_generated::ExchangeBase for Upbit {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "ids_query_strings" => self.ids_query_strings(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "ids_query_strings" => crate::Value::Arr(self.ids_query_strings(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1815,7 +1815,7 @@ impl Upbit {
         }  else {
             let mut ids: Option<crate::value::List> = self.market_ids(symbolsNormalized.as_deref());
             let mut promises: Vec<Value> = Vec::new();
-            let queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
+            let queries: Vec<Value> = self.ids_query_strings(ids.map_or(Value::Null, Value::Arr)).to_vec(); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
@@ -1836,7 +1836,7 @@ impl Upbit {
         }).await?))
     }
 
-    pub fn ids_query_strings(&self, mut ids: Value) -> Value {
+    pub fn ids_query_strings(&self, mut ids: Value) -> crate::value::List {
         let mut idsString: String = "".to_string();
         let mut queries: Vec<Value> = Vec::new();
         {
@@ -1856,9 +1856,7 @@ impl Upbit {
         if (idsString != "") {
             queries.push(Value::from(idsString));
         }
-        return Value::from(queries);
-
-    Value::Null
+        return std::sync::Arc::new(queries);
 }
 
 /*

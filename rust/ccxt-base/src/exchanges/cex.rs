@@ -1552,10 +1552,7 @@ impl Cex {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let dataTypeparamsDataTypeVariable = self.handle_option_string_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]);
         let dataType: Option<String> = dataTypeparamsDataTypeVariable.0.as_str().map(str::to_owned);
         let paramsDataType: crate::value::Dict = dataTypeparamsDataTypeVariable.1;
@@ -2095,10 +2092,7 @@ impl Cex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let accountIdparamsAccountIdVariable = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]);
         let accountId: Option<String> = accountIdparamsAccountIdVariable.0.as_str().map(str::to_owned);
         let paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.1;
@@ -2592,10 +2586,7 @@ impl Cex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let accountIdparamsAccountIdVariable = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]);
         let accountId: Option<String> = accountIdparamsAccountIdVariable.0.as_str().map(str::to_owned);
         let paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.1;

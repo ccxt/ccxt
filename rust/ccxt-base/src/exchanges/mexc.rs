@@ -4116,10 +4116,7 @@ impl Mexc {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6147,7 +6144,7 @@ impl Mexc {
                 }
             }  else {
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                parsedSymbols = (market).id.as_deref().map(str::to_owned);
+                parsedSymbols = Value::from((market).id.as_deref()).as_str().map(str::to_owned);
             }
             self.check_required_argument(Value::Str("fetchBalance".into()), &Value::from(parsedSymbols.as_deref()), Value::Str("symbol or symbols".into()), &[]);
             marketType = Some("margin".to_string());

@@ -2139,7 +2139,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if (channel == "") {
-            Value::Dict(self.handle_subscription_status(&client.as_value(), message));
+            self.handle_subscription_status(&client.as_value(), message);
         }
 }
 

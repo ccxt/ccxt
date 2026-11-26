@@ -1161,7 +1161,7 @@ impl Bullish {
         if (result.is_some()) {
             let response: Option<String> = self.safe_string_k_opt(&result, "message", &[]);
             if (response.as_deref() == Some("Keep alive pong")) {
-                Value::Dict(self.handle_pong(client.as_value(), message));
+                self.handle_pong(client.as_value(), message);
             }
         }  else if (dataType.is_some()) {
             if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
@@ -1183,7 +1183,7 @@ impl Bullish {
                 self.handle_balance(&client.as_value(), Value::from(message));
             }
             if (dataType.as_deref() == Some("V1TAErrorResponse")) {
-                Value::Bool(self.handle_error_message(&client.as_value(), message));
+                self.handle_error_message(&client.as_value(), message);
             }
         }
 }

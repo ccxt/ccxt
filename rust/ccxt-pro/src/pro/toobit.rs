@@ -852,7 +852,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let ticker: crate::value::Dict = (if let Some(__l) = &data { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let parsed: crate::value::Dict = self.parse_ws_ticker(&ticker, None);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
@@ -924,10 +924,7 @@ impl Toobit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1060,7 +1057,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < length } {
-            let entry: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
+            let entry: Option<crate::value::Dict> = (match data.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "s", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderBook::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), channel);

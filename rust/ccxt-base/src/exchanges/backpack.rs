@@ -1255,7 +1255,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_securities" => crate::Value::Arr(self.fetch_securities(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_stock_indicative_quote" => self.fetch_stock_indicative_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_stock_indicative_quote" => crate::Value::Dict(self.fetch_stock_indicative_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -2268,10 +2268,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let stockqueryVariable = self.handle_option_bool_and_params(params, Value::Str("fetchCurrencies".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
         let stock: bool = stockqueryVariable.0 == Some(true);
         let query: crate::value::Dict = stockqueryVariable.1;
@@ -2340,10 +2337,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
@@ -2524,7 +2518,7 @@ impl Backpack {
  * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
-    pub async fn fetch_stock_indicative_quote(&mut self, symbol: &str, side: &str, amount: f64, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_stock_indicative_quote(&mut self, symbol: &str, side: &str, amount: f64, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2551,9 +2545,7 @@ impl Backpack {
             m
         });
         let __ws_arg_1 = self.extend(query, &[Value::Map(request)]);
-        return self.public_get_api_v1_stock_indicative_quote(&[&__ws_arg_1]).await;
-
-    Value::Null
+        return self.public_get_api_v1_stock_indicative_quote(&[&__ws_arg_1]).await.unwrap_or_default();
 }
 
 /*
@@ -2630,7 +2622,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await.into_dict();
+})]).await;
             let initialPrice: Option<String> = self.safe_string_k_opt(&initialQuote, "price", &[]);
             if !matches!(self.safe_bool_k(&initialQuote, "available", &[Value::Bool(false)]), Value::Bool(true)) || (initialPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchConvertQuote() stock indicative quote unavailable: ").into()), self.safe_string_k(&initialQuote, "reason", &[Value::Str("priceUnavailable".into())]))));
@@ -2652,11 +2644,11 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
             }
         }
-        let mut quote: Value = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+        let mut quote: Value = Value::Dict(self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await;
+})]).await);
         if !matches!(self.safe_bool_k(&quote, "available", &[Value::Bool(false)]), Value::Bool(true)) || (self.safe_string_k(&quote, "price", &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchConvertQuote() stock indicative quote unavailable: ").into()), self.safe_string_k(&quote, "reason", &[Value::Str("priceUnavailable".into())]))));
         }
@@ -2670,11 +2662,11 @@ impl Backpack {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
                 }
                 amountString = reducedQuantity;
-                quote = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+                quote = Value::Dict(self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await;
+})]).await);
                 if !matches!(self.safe_bool_k(&quote, "available", &[Value::Bool(false)]), Value::Bool(true)) || (self.safe_string_k(&quote, "price", &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchConvertQuote() stock indicative quote unavailable: ").into()), self.safe_string_k(&quote, "reason", &[Value::Str("priceUnavailable".into())]))));
                 }
@@ -2764,7 +2756,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await.into_dict();
+})]).await;
                     if !matches!(self.safe_bool_k(&indicative, "available", &[Value::Bool(false)]), Value::Bool(true)) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " createConvertTrade() stock indicative quote unavailable: ").into()), self.safe_string_k(&indicative, "reason", &[Value::Str("priceUnavailable".into())]))));
                     }
@@ -2785,7 +2777,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await.into_dict();
+})]).await;
                 if !matches!(self.safe_bool_k(&indicative, "available", &[Value::Bool(false)]), Value::Bool(true)) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " createConvertTrade() stock indicative quote unavailable: ").into()), self.safe_string_k(&indicative, "reason", &[Value::Str("priceUnavailable".into())]))));
                 }
@@ -3660,10 +3652,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3721,10 +3710,7 @@ impl Backpack {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3776,10 +3762,7 @@ impl Backpack {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4080,7 +4063,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(false));
     m
-})]).await.into_dict();
+})]).await;
             let indicativePrice: Option<String> = self.safe_string_k_opt(&indicative, "price", &[]);
             if !matches!(self.safe_bool_k(&indicative, "available", &[Value::Bool(false)]), Value::Bool(true)) || (indicativePrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() stock indicative quote unavailable: ").into()), self.safe_string_k(&indicative, "reason", &[Value::Str("priceUnavailable".into())]))));

@@ -1177,21 +1177,13 @@ impl Apex {
     pub async fn load_positions_snapshot(&mut self, client: &Value, messageHash: &str) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        let fetchFunctions: crate::value::List = std::sync::Arc::new(vec![crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await)]);
-        let promises: Vec<Value> = promise_all(&Value::Arr(fetchFunctions)).await.to_vec();
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_13: bool = true;
-            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (promises.len() as i64) } {
-            let mut positions: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
-            {
-                                let mut ii: i64 = 0;
-                let mut __for_first_12: bool = true;
-                while { if !__for_first_12 { ii += 1; } __for_first_12 = false; ii < (positions.len() as i64) } {
-                self.positions.append(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(ii as usize).cloned().unwrap_or(Value::Null));
-            }
-            }
+            let mut __for_first_12: bool = true;
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (positions.len() as i64) } {
+            self.positions.append(positions.get(i as usize).map(crate::Value::from).unwrap_or_default());
         }
         }
         // don't remove the future from the .futures cache
@@ -1232,8 +1224,8 @@ impl Apex {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (lists.len() as i64) } {
+            let mut __for_first_13: bool = true;
+            while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (lists.len() as i64) } {
             let mut position: crate::value::Dict = self.parse_position(self.safe_dict(&lists, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -1259,8 +1251,8 @@ impl Apex {
         let messageHashes: Vec<Value> = self.find_message_hashes(client, Value::Str("positions::".into())).to_vec();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (messageHashes.len() as i64) } {
             let messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() });
             let symbolsString: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1415,7 +1407,7 @@ impl Apex {
         let ret_msg: Option<String> = (match __pro_message.get("ret_msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let pong: Option<i64> = (match __pro_message.get("pong") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         if (ret_msg.as_deref() == Some("pong")) || (pong.is_some()) {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         let topic: String = self.safe_string2(&message, Value::Str("topic".into()), Value::Str("op".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1443,8 +1435,8 @@ impl Apex {
         let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (keys.len() as i64) } {
+            let mut __for_first_15: bool = true;
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if ((if let (Some(__h), Some(__n)) = (Some(topic.as_str()), (keys.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 let method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

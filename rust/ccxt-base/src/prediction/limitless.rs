@@ -1552,7 +1552,7 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { j += 1; } __for_first_3 = false; j < length } {
-                let response: crate::value::Dict = self.safe_dict_t(&responses, Value::Int(j));
+                let response: crate::value::Dict = (if let Some(Value::Dict(__m)) = responses.get(j as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let data: crate::value::List = self.safe_list_k_t(&response, "data");
                 allRaw = self.array_concat_t(Value::Arr(allRaw), &data);
             }
@@ -1576,7 +1576,7 @@ impl Limitless {
                                                 let mut i: i64 = 0;
                         let mut __for_first_4: bool = true;
                         while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < pageMarketsLength } {
-                        let mut raw: Option<crate::value::Dict> = self.safe_dict_o(&page_markets, Value::Int(i));
+                        let mut raw: Option<crate::value::Dict> = (match page_markets.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
                         std::sync::Arc::make_mut(&mut allRaw).push(raw.map_or(Value::Null, Value::Dict));
                     }
                     }
@@ -2934,7 +2934,7 @@ impl Limitless {
             self.load_outcome(outcome.as_str(), &[]).await;
         }
         let orders: crate::value::List = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[&Value::Dict(params)]).await.into_list();
-        let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order ").into()), id)));
         }
@@ -3631,10 +3631,7 @@ if _try_result.is_err() {
         let outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         // resolve the handle for the final filter — the caller may have passed an outcomeId
         let mut outcomeSymbol: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
@@ -3728,7 +3725,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (data.len() as i64) } {
-            let mut item: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
+            let mut item: Option<crate::value::Dict> = (match data.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let strategy: Option<String> = self.safe_string_lower_k_opt(&item, "strategy", &[]);
             if (strategy.is_some()) {
                 let buyIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("buy")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
@@ -3762,7 +3759,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_26: bool = true;
             while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (outcomes.len() as i64) } {
-            let mut outcome: Option<crate::value::Dict> = self.safe_dict_o(&outcomes, Value::Int(i));
+            let mut outcome: Option<crate::value::Dict> = (match outcomes.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let outcomeLabel: Option<String> = self.safe_string_k_opt(&outcome, "label", &[]);
             if (outcomeLabel == label.map(str::to_owned)) {
                 return outcome.map_or(Value::Null, Value::Dict);
@@ -3891,7 +3888,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (clob.len() as i64) } {
-            let entry: Option<crate::value::Dict> = self.safe_dict_o(&clob, Value::Int(i));
+            let entry: Option<crate::value::Dict> = (match clob.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_27: bool = true;
@@ -4220,7 +4217,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_37: bool = true;
             while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < categoriesLength } {
-            let category: crate::value::Dict = self.safe_dict_t(&categories, Value::Int(i));
+            let category: crate::value::Dict = (if let Some(Value::Dict(__m)) = categories.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let name: String = self.safe_string_lower_k(&category, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let categoryId: Option<String> = self.safe_string_k_opt(&category, "id", &[]);
             let mut matched: bool = false;

@@ -1133,7 +1133,8 @@ impl crate::exchange::DerivedExchange for Gate {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         let mut type_var: String = "crypto".to_string();
-        if self.is_leveraged_currency(Value::from(currencyId.as_deref()), &[]).as_bool() == Some(true) {
+        let leveragedId: String = self.safe_string_k(&rawCurrency, "currency", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if self.is_leveraged_currency(leveragedId.as_str(), &[]).as_bool() == Some(true) {
             type_var = "leveraged".to_string();
         }
         let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "chains"));
@@ -1976,7 +1977,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "fetch_option_chain" => crate::types::IntoRaw::into_raw(self.fetch_option_chain(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_option_markets" => Value::Arr(self.fetch_option_markets(&args[..]).await),
                 "fetch_option_ohlcv" => self.fetch_option_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_option_underlyings" => self.fetch_option_underlyings().await,
+                "fetch_option_underlyings" => crate::Value::Arr(self.fetch_option_underlyings().await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_request" => { let __t = self.fetch_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
@@ -1995,7 +1996,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_transaction_fees" => crate::types::IntoRaw::into_raw(self.fetch_transaction_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_underlying_assets" => self.fetch_underlying_assets(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_underlying_assets" => crate::Value::Arr(self.fetch_underlying_assets(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_margin_mode" => { let __t = self.get_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "get_settlement_currencies" => self.get_settlement_currencies(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -2050,7 +2051,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "spot_order_prepare_request" => { let __t = self.spot_order_prepare_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "upgrade_unified_trade_account" => self.upgrade_unified_trade_account(&args[..].iter().collect::<Vec<_>>()).await,
+                "upgrade_unified_trade_account" => crate::Value::Dict(self.upgrade_unified_trade_account(&args[..].iter().collect::<Vec<_>>()).await),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -5143,14 +5144,12 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub async fn upgrade_unified_trade_account(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn upgrade_unified_trade_account(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.private_unified_put_unified_mode(&[&params]).await;
-
-    Value::Null
+        return self.private_unified_put_unified_mode(&[&params]).await.unwrap_or_default();
 }
 
 /*
@@ -5689,7 +5688,7 @@ if _try_result.is_err() {
     m
 }));
         let mut result: Vec<Value> = Vec::new();
-        let underlyings: Vec<Value> = self.fetch_option_underlyings().await.as_array().cloned().unwrap_or_default();
+        let underlyings: Vec<Value> = self.fetch_option_underlyings().await.to_vec();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
@@ -5809,7 +5808,7 @@ if _try_result.is_err() {
         return std::sync::Arc::new(result);
 }
 
-    pub async fn fetch_option_underlyings(&mut self) -> Value {
+    pub async fn fetch_option_underlyings(&mut self) -> crate::value::List {
         let underlyingsResponse: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_options_get_underlyings(&[]).await.unwrap_or_default());
         //
         //    [
@@ -5832,9 +5831,7 @@ if _try_result.is_err() {
             }
         }
         }
-        return Value::from(underlyings);
-
-    Value::Null
+        return std::sync::Arc::new(underlyings);
 }
 
     pub fn prepare_request(&self, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
@@ -6238,10 +6235,9 @@ if _try_result.is_err() {
         let networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
         let networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
         let paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.1;
-        let chainsIndexedByIdRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsNetworkCode)).await);
-        let chainsIndexedById: Value = chainsIndexedByIdRaw;
-        let selectedNetworkIdOrCode: Option<String> = self.select_network_key_from_networks(code, networkCode.map(Value::from).unwrap_or(Value::Null), chainsIndexedById.clone(), &[Value::Bool(true)]).as_str().map(str::to_owned);
-        return self.safe_dict(&chainsIndexedById, selectedNetworkIdOrCode.map(Value::from).unwrap_or(Value::Null), &[]);
+        let chainsIndexedByIdRaw: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsNetworkCode)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let selectedNetworkIdOrCode: Option<String> = self.select_network_key_from_networks(code, networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(chainsIndexedByIdRaw.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
+        return self.safe_dict(crate::types::IntoRaw::into_raw(chainsIndexedByIdRaw), selectedNetworkIdOrCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
     }
@@ -7265,10 +7261,7 @@ if _try_result.is_err() {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7390,10 +7383,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
@@ -7481,10 +7471,7 @@ if _try_result.is_err() {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7628,10 +7615,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7722,10 +7706,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7784,10 +7765,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -8738,10 +8716,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9181,7 +9156,7 @@ if _try_result.is_err() {
         if (market.is_none()) {
             defaultSettle = Some("usdt".to_string());
         }  else {
-            defaultSettle = crate::value::KeyRead::key_read(&&market, "settle").into_opt_string();
+            defaultSettle = self.safe_string_k_opt(&market, "settle", &[]);
         }
         let settle: Option<String> = self.safe_string_lower_k_opt(&params, "settle", &[defaultSettle.map(Value::from).unwrap_or(Value::Null)]);
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), market.as_ref(), &[&params]);
@@ -9975,10 +9950,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -10073,10 +10045,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -10192,10 +10161,7 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 1, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 4, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 4);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -10359,10 +10325,7 @@ if _try_result.is_err() {
         let timeframe = get_arg(optional_args, 0, Value::Str("5m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -10683,10 +10646,7 @@ if _try_result.is_err() {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -10844,7 +10804,7 @@ if _try_result.is_err() {
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
  * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
-    pub async fn fetch_underlying_assets(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_underlying_assets(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -10883,9 +10843,7 @@ if _try_result.is_err() {
             }
         }
         }
-        return Value::from(underlyings);
-
-    Value::Null
+        return std::sync::Arc::new(underlyings);
 }
 
 /*

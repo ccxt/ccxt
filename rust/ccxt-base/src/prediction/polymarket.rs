@@ -4564,7 +4564,7 @@ if _try_result.is_err() {
         if (self.privateKey != Value::Null) {
             let alreadyDerived: Option<String> = self.safe_string_k_opt(&self.options, "l2ApiKey", &[]);
             if (alreadyDerived.is_none()) {
-                Value::Dict(self.create_or_derive_api_key(&[]).await);
+                self.create_or_derive_api_key(&[]).await;
             }
             return;
         }

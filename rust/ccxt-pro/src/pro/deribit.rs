@@ -657,10 +657,7 @@ impl Deribit {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(params, Value::Str("watchTradesForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
@@ -886,10 +883,7 @@ impl Deribit {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let intervalparamsIntervalVariable = self.handle_option_string_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("interval".into()), &[Value::Str("100ms".into())]);
         let interval: Option<String> = intervalparamsIntervalVariable.0.as_str().map(str::to_owned);
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;

@@ -5919,7 +5919,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 })]).as_map().cloned().unwrap_or_default();
             let mut ts: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
-            let mut price: Value = trade.get("price").cloned().unwrap_or(Value::Null);
+            let mut price: Value = self.safe_number_k(&trade, "price", &[]);
             if (ts.is_none()) || (price == Value::Null) {
                 continue;
             }
@@ -6074,21 +6074,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn safe_currency(&self, currencyId: Option<&str>, currency: Option<&crate::types::Currency>) -> crate::types::Currency {
-        let currencyId: Value = currencyId.into();
-        if (currencyId == Value::Null) && (currency.is_some()) {
+        if (currencyId.is_none()) && (currency.is_some()) {
             return currency.cloned().unwrap_or_default();
         }
-        if (currencyId != Value::Null) && (self.currencies_by_id.is_some()) && (matches!((&self.currencies_by_id, &currencyId), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.currencies_by_id.as_deref(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null) {
-            return self.currencies_by_id_typed().records_by_id(currencyId.as_str().unwrap_or_default()).unwrap_or_default().first().cloned().unwrap_or_default();
+        if (currencyId.is_some()) && (self.currencies_by_id.is_some()) && (matches!((&self.currencies_by_id, &Value::from(currencyId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) && ((if let (Some(__m), Some(__k)) = (self.currencies_by_id.as_deref(), currencyId) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) != Value::Null) {
+            return self.currencies_by_id_typed().records_by_id(currencyId.unwrap_or_default()).unwrap_or_default().first().cloned().unwrap_or_default();
         }
-        let mut code: Option<String> = currencyId.as_str().map(str::to_owned);
-        if (currencyId != Value::Null) {
-            let upperId: String = currencyId.as_str().map(str::to_uppercase).unwrap_or_default();
+        let mut code: Option<String> = currencyId.map(str::to_owned);
+        if (currencyId.is_some()) {
+            let upperId: String = currencyId.map(str::to_uppercase).unwrap_or_default();
             code = self.common_currency_code(Value::from(upperId)).as_str().map(str::to_owned);
         }
         return <crate::types::Currency as crate::types::FromRaw>::from_raw(Value::Dict(self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId);
+        m.insert("id".to_string(), Value::from(currencyId));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), Value::Null);
     m
@@ -6724,10 +6723,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let defaultValue = get_arg(optional_args, 1, Value::Null);
         return self.handle_option_string_and_params(params, methodName, Value::Str("marginMode".into()), &[defaultValue]);
 }
@@ -7682,7 +7678,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn is_leveraged_currency(&self, mut currencyCode: Value, optional_args: &[Value]) -> Value {
+    fn is_leveraged_currency(&self, currencyCode: &str, optional_args: &[Value]) -> Value {
         let mut checkBaseCoin = get_arg(optional_args, 0, Value::Bool(false));
         let existingCurrencies = get_arg(optional_args, 1, Value::Null);
         let leverageSuffixes: crate::value::List = std::sync::Arc::new(vec![Value::Str("2L".into()), Value::Str("2S".into()), Value::Str("3L".into()), Value::Str("3S".into()), Value::Str("4L".into()), Value::Str("4S".into()), Value::Str("5L".into()), Value::Str("5S".into()), Value::Str("UP".into()), Value::Str("DOWN".into()), Value::Str("BULL".into()), Value::Str("BEAR".into())]);
@@ -7690,14 +7686,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (leverageSuffixes.len() as i64) } {
-            let leverageSuffix: Value = leverageSuffixes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let endsWithSuffix: bool = ends_with(&currencyCode, &leverageSuffix);
+            let mut leverageSuffix: Option<String> = leverageSuffixes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let endsWithSuffix: bool = matches!(leverageSuffix.as_deref(), Some(__p) if currencyCode.ends_with(__p));
             if endsWithSuffix {
                 if !(checkBaseCoin.as_bool() == Some(true)) {
                     return Value::Bool(true);
                 }  else {
                     // check if base currency is inside dict
-                    let baseCurrencyCode: Value = replace_str(&currencyCode, &leverageSuffix, &Value::Str("".into()));
+                    let baseCurrencyCode: Value = Value::from(match leverageSuffix.as_deref() { Some(__p) => currencyCode.replace(__p, ""), None => currencyCode.to_string() });
                     if (existingCurrencies != Value::Null) && (matches!((&existingCurrencies, &baseCurrencyCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         return Value::Bool(true);
                     }
@@ -8361,11 +8357,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let params: Value = params.into();
         let omitParams = get_arg(optional_args, 0, Value::Bool(true));
         //
-        let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let triggerPrice: Option<f64> = self.safe_number2(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut triggerPriceStr: Option<String> = None;
-        let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
+        let stopLossPrice: Option<f64> = self.safe_number_k(&params, "stopLossPrice", &[]).as_f64();
         let mut stopLossPriceStr: Option<String> = None;
-        let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
+        let takeProfitPrice: Option<f64> = self.safe_number_k(&params, "takeProfitPrice", &[]).as_f64();
         let mut takeProfitPriceStr: Option<String> = None;
         //
         let mut keysToOmit: Vec<Value> = Vec::new();
@@ -8374,19 +8370,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 keysToOmit.push(Value::Str("triggerPrice".into()));
                 keysToOmit.push(Value::Str("stopPrice".into()));
             }
-            triggerPriceStr = self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+            triggerPriceStr = self.price_to_precision(symbol.as_str(), triggerPrice);
         }
         if (stopLossPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("stopLossPrice".into()));
             }
-            stopLossPriceStr = self.price_to_precision(symbol.as_str(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
+            stopLossPriceStr = self.price_to_precision(symbol.as_str(), stopLossPrice);
         }
         if (takeProfitPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("takeProfitPrice".into()));
             }
-            takeProfitPriceStr = self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+            takeProfitPriceStr = self.price_to_precision(symbol.as_str(), takeProfitPrice);
         }
         let keysToOmitLength: i64 = keysToOmit.len() as i64;
         let paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(&params, Value::from(keysToOmit), &[]) } else { params });
@@ -13584,7 +13580,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "invert_flat_string_dictionary" => Value::Dict(self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
             "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
             "is_round_number" => self.is_round_number(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_significant_precision" => self.is_significant_precision(),

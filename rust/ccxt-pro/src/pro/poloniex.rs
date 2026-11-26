@@ -463,10 +463,7 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -478,7 +475,7 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrderWs() side is required")));
         }
         let uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
-        let isPostOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[&params]);
+        let isPostOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[&Value::from(&params)]);
         if isPostOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
@@ -490,7 +487,7 @@ impl Poloniex {
             m
         });
         let isMarketBuy: bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY");
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.clone();
         if isMarketBuy {
             let mut quoteAmount: Option<String> = None;
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
@@ -521,7 +518,7 @@ impl Poloniex {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let orders: crate::value::List = self.trade_request("createOrder", &[&__ws_arg_1]).await.into_list();
-        let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -951,10 +948,7 @@ impl Poloniex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1163,7 +1157,7 @@ impl Poloniex {
         //    }
         //
         let dataList: crate::value::List = __pro_message.key_list("data");
-        let mut data: Option<crate::value::Dict> = self.safe_dict_o(&dataList, Value::Int(0));
+        let mut data: Option<crate::value::Dict> = (match dataList.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
@@ -1214,7 +1208,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-            let item: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(i));
+            let item: Option<crate::value::Dict> = (match data.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
             let marketId: Option<String> = self.safe_string_k_opt(&item, "symbol", &[]);
             if (marketId.is_some()) {
                 let trade: crate::value::Dict = self.parse_ws_trade(&item, None);

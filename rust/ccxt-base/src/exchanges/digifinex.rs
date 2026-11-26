@@ -3546,7 +3546,7 @@ impl Digifinex {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
             }
             request.insert("order_type".into(), Value::from(orderType));
-            request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
+            request.insert("size".into(), amount); // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit_o(&paramsMarginMode, &["reduceOnly", "timeInForce", "postOnly"], &[]);
         }  else {
             postOnlyParsed = (if postOnly { 1 } else { 2 });

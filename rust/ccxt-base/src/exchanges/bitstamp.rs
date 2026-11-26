@@ -627,7 +627,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             amount = transactionAmount;
         }  else if (currency.is_some()) {
             amount = self.safe_string_opt(&transaction, crate::value::KeyRead::key_read(&currency, "id"), &[]);
-            feeCurrency = crate::value::KeyRead::key_read(&currency, "code").into_opt_string();
+            feeCurrency = self.safe_string_k_opt(&currency, "code", &[]);
         }  else if (code.is_some()) && (currencyId.is_some()) {
             amount = self.safe_string_opt(&transaction, currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             feeCurrency = code.clone();
@@ -3991,10 +3991,7 @@ impl Bitstamp {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;

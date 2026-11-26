@@ -496,7 +496,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "nonce" => crate::Value::from(self.nonce()),
-                "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "order_book_message_hashes" => crate::Value::Arr(self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "outcome_for_token" => crate::types::IntoRaw::into_raw(self.outcome_for_token(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "outcomes_by_market_id" => self.outcomes_by_market_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_event" => crate::Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -1437,7 +1437,7 @@ impl Predictfun {
                                 let mut ci: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { ci += 1; } __for_first_5 = false; ci < categoriesLength } {
-                let mut category: Option<crate::value::Dict> = self.safe_dict_o(&categories, Value::Int(ci));
+                let mut category: Option<crate::value::Dict> = (match categories.get(ci as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
                 let mut categorySlug: Option<String> = self.safe_string_k_opt(&category, "slug", &[]);
                 if (categorySlug.is_none()) {
                     // nothing to key a duplicate on, keep the row rather than drop it
@@ -2776,10 +2776,7 @@ impl Predictfun {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.authenticate(&[]).await;
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
@@ -3820,7 +3817,7 @@ impl Predictfun {
                 m.insert("id".to_string(), Value::from(self.number_to_string(Value::from(requestId))));
                 m.insert("topic".to_string(), Value::from(topic.as_str()));
                 m.insert("subscribeHash".to_string(), Value::from(topic.as_str()));
-                m.insert("messageHashes".to_string(), self.order_book_message_hashes(marketId.as_deref()));
+                m.insert("messageHashes".to_string(), Value::Arr(self.order_book_message_hashes(marketId.as_deref())));
             m
         });
         let url: Option<String> = self.socket_url();
@@ -3910,7 +3907,7 @@ impl Predictfun {
  * @param {string} [marketId] the venue market id
  * @returns {string[]} the message hashes
  */
-    pub fn order_book_message_hashes(&self, marketId: Option<&str>) -> Value {
+    pub fn order_book_message_hashes(&self, marketId: Option<&str>) -> crate::value::List {
         let outcomes: Vec<Value> = self.outcomes_by_market_id(marketId).as_array().cloned().unwrap_or_default();
         let outcomesLength: i64 = outcomes.len() as i64;
         let mut hashes: Vec<Value> = Vec::new();
@@ -3924,9 +3921,7 @@ impl Predictfun {
             }
         }
         }
-        return Value::from(hashes);
-
-    Value::Null
+        return std::sync::Arc::new(hashes);
 }
 
 /*

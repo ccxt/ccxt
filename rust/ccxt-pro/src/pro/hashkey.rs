@@ -571,7 +571,7 @@ impl Hashkey {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let data: crate::value::List = __pro_message.key_list("data");
-        let dataEntry: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
+        let dataEntry: Option<crate::value::Dict> = (match data.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         let timestamp: Option<i64> = self.safe_integer_k(&dataEntry, "t", &[]).as_i64();
         let snapshot: crate::value::Dict = self.parse_order_book(&dataEntry, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
         orderbook.reset(Value::Dict(snapshot));

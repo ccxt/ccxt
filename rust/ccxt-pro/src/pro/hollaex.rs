@@ -584,7 +584,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawOrders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&rawOrders, Value::Int(i));
+            let order: crate::value::Dict = (if let Some(Value::Dict(__m)) = rawOrders.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() });
             let parsed: crate::value::Dict = self.parse_order(Value::from(&order), None);
             self.orders.append(Value::Dict(parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -847,7 +847,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let content: Option<String> = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (content.as_deref() == Some("pong")) {
-            Value::Dict(self.handle_pong(client.as_value(), message));
+            self.handle_pong(client.as_value(), message);
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({

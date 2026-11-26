@@ -1023,17 +1023,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
             let mut parsed: Value = Value::Arr(self.parse_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)));
-            let mut timestamp: Value = parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (timestamp == Value::Null) {
+            if (self.safe_integer(&parsed, Value::Int(0), &[]) == Value::Null) {
                 continue;
             }
-            if timestamp.as_f64().unwrap_or(f64::NAN) < ((100000000000i64) as f64) {
-                timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // seconds
-                add_element_to_object(&mut parsed, &Value::Int(0), timestamp.clone());
+            let mut timestamp: i64 = self.safe_integer(&parsed, Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0);
+            if timestamp < 100000000000 {
+                timestamp = (timestamp * 1000); // seconds
+                add_element_to_object(&mut parsed, &Value::Int(0), Value::from(timestamp));
             }
             bars.push(parsed);
-            if (lastHistoryTimestamp == Value::Null) || (timestamp.as_f64().unwrap_or(f64::NAN) > lastHistoryTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                lastHistoryTimestamp = timestamp;
+            if (lastHistoryTimestamp == Value::Null) {
+                lastHistoryTimestamp = Value::from(timestamp);
+            }  else if (timestamp as f64) > lastHistoryTimestamp.as_f64().unwrap_or(f64::NAN) {
+                lastHistoryTimestamp = Value::from(timestamp);
             }
         }
         }
@@ -1077,7 +1079,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             _ => Value::Null }))).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         if (minutes.is_some() && minutes <= Some(30)) {
             if (minutes.is_some() && minutes < Some(1)) {
-                return Value::Str("1min".into()).as_str().map(str::to_owned);
+                return Some("1min".to_string());
             }
             return Some(format!("{}{}", Value::from(self.number_to_string(Value::from(minutes))), Value::Str("min".into())));
         }
@@ -1104,7 +1106,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let years: Option<i64> = self.parse_to_int((match ((((match (&(total), &(Value::Int(31535999))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
             _ => Value::Null }))).as_f64(), (Value::Int(31536000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         if years > Some(15) {
-            return Value::Str("15y".into()).as_str().map(str::to_owned);
+            return Some("15y".to_string());
         }
         return Some(format!("{}{}", Value::from(self.number_to_string(Value::from(years))), Value::Str("y".into())));
 }

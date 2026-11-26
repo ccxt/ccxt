@@ -585,7 +585,7 @@ impl Extended {
             let m = indexmap::IndexMap::new();
             m
         });
-        let first: Option<crate::value::Dict> = self.safe_dict_o(&rawTrades, Value::Int(0));
+        let first: Option<crate::value::Dict> = (match rawTrades.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         if (first.is_none()) {
             return;
         }
@@ -702,7 +702,7 @@ impl Extended {
         let data: crate::value::Dict = message.key_dict("data");
         let rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let first: Option<crate::value::Dict> = self.safe_dict_o(&rawPositions, Value::Int(0));
+        let first: Option<crate::value::Dict> = (match rawPositions.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         if (first.is_none()) {
             return;
         }
@@ -782,7 +782,7 @@ impl Extended {
             let m = indexmap::IndexMap::new();
             m
         });
-        let first: Option<crate::value::Dict> = self.safe_dict_o(&rawOrders, Value::Int(0));
+        let first: Option<crate::value::Dict> = (match rawOrders.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         if (first.is_none()) {
             return;
         }
@@ -1068,7 +1068,7 @@ impl Extended {
         //     }
         //
         let data: crate::value::List = message.key_list("data");
-        let first: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
+        let first: Option<crate::value::Dict> = (match data.get(0) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
         if (first.is_none()) {
             return;
         }

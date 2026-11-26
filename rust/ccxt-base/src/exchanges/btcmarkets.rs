@@ -136,12 +136,12 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         //
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&trade, "timestamp", &[]));
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "marketId", &[]);
-        let mut marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let mut feeCurrencyCode: Option<String> = None;
         if (crate::value::KeyRead::key_read(&&marketResolved, "quote").as_str() == Some("AUD")) {
-            feeCurrencyCode = marketResolved.raw.at("quote").as_str().map(str::to_owned);
+            feeCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
         }  else {
-            feeCurrencyCode = marketResolved.raw.at("base").as_str().map(str::to_owned);
+            feeCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
         }
         let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         if (side.as_deref() == Some("Bid")) {

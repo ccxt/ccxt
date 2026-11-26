@@ -384,7 +384,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawTrade: crate::value::Dict = (if let Some(__l) = &data { if let Some(Value::Dict(__m)) = __l.get(i as usize) { std::sync::Arc::clone(__m) } else { Default::default() } } else { Default::default() });
             let trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
             let symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -888,7 +888,7 @@ impl Blofin {
         let data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let interval: Option<String> = (if let Some(__s) = channelName.as_deref() { Some(__s.replace("candle", "")) } else { None });
         let unifiedTimeframe: Option<String> = self.find_timeframe(Value::from(interval.as_deref()), &[]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -907,9 +907,9 @@ impl Blofin {
             stored.append(Value::Arr(parsed));
         }
         }
-        let resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol);
-        client.resolve(resolveData, messageHash.as_str());
+        let resolveData: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol.as_deref()), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+        client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
 /*

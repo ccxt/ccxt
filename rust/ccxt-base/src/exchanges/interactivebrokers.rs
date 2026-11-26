@@ -683,9 +683,9 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         if isContract {
             settleId = quoteId.clone();
             settle = quote.clone();
-            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, ".").into()), microNanoPrefix).into()), listingExchange).into()), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             if isFuture {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}", base, ".", microNanoPrefix, listingExchange, "/", Value::from(quote.as_deref()), ":", settle.as_deref().unwrap_or("null"), "-", self.yymmdd(Value::from(expiry), &[]));
             }
         }
         let mut marketType: String = "spot".to_string();
@@ -1055,7 +1055,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         let apiUrl: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiBase.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let baseUrl: String = format!("{}{}", apiUrl, implodedPath.as_deref().unwrap_or("null"));
         let mut url: String = baseUrl.clone();
-        let query: crate::value::Dict = self.omit_t(params, self.ibkr_path_params(path), &[]);
+        let query: crate::value::Dict = self.omit_t(params, Value::Arr(self.ibkr_path_params(path)), &[]);
         let hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
         let isGetOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         let mut requestBody: Option<String> = None;
@@ -1219,7 +1219,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_is_authenticated" => self.ibkr_is_authenticated(),
                 "ibkr_is_gateway_request" => self.ibkr_is_gateway_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_oauth_base" => crate::Value::Dict(self.ibkr_oauth_base(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "ibkr_path_params" => self.ibkr_path_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "ibkr_path_params" => crate::Value::Arr(self.ibkr_path_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "ibkr_snapshot_ready" => self.ibkr_snapshot_ready(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
                 "load_account_id" => { let __t = self.load_account_id(&args[..]).await; Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
@@ -1263,7 +1263,7 @@ impl Interactivebrokers {
         m.insert("name".to_string(), Value::Str("Interactive Brokers".into()));
         m.insert("countries".to_string(), Value::from(vec![Value::Str("US".into())]));
         m.insert("version".to_string(), Value::Str("v1".into()));
-        m.insert("rateLimit".to_string(), (match (&(Value::Int(100)), &(Value::Float(1.2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        m.insert("rateLimit".to_string(), Value::Int(120));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2760,7 +2760,7 @@ impl Interactivebrokers {
         // open the brokerage session
         let initRequest: crate::value::Dict = self.safe_dict_k_t(&self.options, "signInInitRequest");
         self.webapi_post_v1_api_iserver_auth_ssodh_init(&[&Value::Dict(initRequest)]).await;
-        Value::Dict(self.fetch_service_accounts(&[]).await);
+        self.fetch_service_accounts(&[]).await;
         return Value::Dict(response);
 
     Value::Null
@@ -2900,7 +2900,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewaySessionLostTimestamp".into(), Value::Null); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("serviceAccountsLoaded".into(), Value::Bool(false)); }
-        Value::Dict(self.fetch_service_accounts(&[]).await);
+        self.fetch_service_accounts(&[]).await;
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewaySessionEstablished".into(), Value::Bool(true)); }
         { let __be_tmp = Value::Int(self.milliseconds()); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), __be_tmp); } }
         self.ibkr_gateway_start_keep_alive().await;
@@ -3388,7 +3388,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let results: Value = Value::Arr(promise_all(&Value::from(promises)).await);
         let markets: Value = self.arrays_concat(results);
-        return self.to_array(self.ibkr_disambiguate_contract_symbols(markets));
+        return self.ibkr_disambiguate_contract_symbols(markets);
         Value::Null
         }).await?))
     }
@@ -4139,24 +4139,21 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        if (symbols.is_none()) {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires a symbols argument")));
         }
         self.authenticate(&[]).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let fieldsqueryVariable = self.handle_option_and_params(params, Value::Str("fetchTickers".into()), Value::Str("fields".into()), &[]);
         let fields: Value = fieldsqueryVariable.0;
         let query: crate::value::Dict = fieldsqueryVariable.1;
@@ -5806,7 +5803,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
  * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
  * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
  */
-    pub fn ibkr_path_params(&self, path: &str) -> Value {
+    pub fn ibkr_path_params(&self, path: &str) -> crate::value::List {
         let segments: Vec<Value> = Value::Array(if let Some(__s) = Some(path) { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut pathParams: Vec<Value> = Vec::new();
         {
@@ -5819,9 +5816,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
             }
         }
         }
-        return Value::from(pathParams);
-
-    Value::Null
+        return std::sync::Arc::new(pathParams);
 }
 
 /*
