@@ -2255,8 +2255,8 @@ class limitless extends limitless$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        const rHex = this.padHexToEven(this.safeString(signature, 'r'));
-        const sHex = this.padHexToEven(this.safeString(signature, 's'));
+        const rHex = this.padHexToEven(this.safeString(signature, 'r', ''));
+        const sHex = this.padHexToEven(this.safeString(signature, 's', ''));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {

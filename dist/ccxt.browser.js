@@ -193982,7 +193982,7 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     padHexToEven(hex) {
-        if (hex === undefined) {
+        if (hex === '') {
             return '';
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -194001,9 +194001,6 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
         return '000000000000000000000000' + stripped;
     }
     rlpEncodeBytes(hex) {
-        if (hex === undefined) {
-            return '';
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt(hex.length / 2);
         if (byteLength === undefined) {
@@ -514322,8 +514319,8 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), _noble_hashes_sha3_js__rspack_import_3/* .keccak_256 */.lY, 'hex');
         const signature = (0,_base_functions_js__rspack_import_4/* .ecdsa */.h1)(hashHex, this.remove0xPrefix(privateKey), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        const rHex = this.padHexToEven(this.safeString(signature, 'r'));
-        const sHex = this.padHexToEven(this.safeString(signature, 's'));
+        const rHex = this.padHexToEven(this.safeString(signature, 'r', ''));
+        const sHex = this.padHexToEven(this.safeString(signature, 's', ''));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for(let i = 0; i < fields.length; i++){
@@ -516129,22 +516126,16 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), _noble_hashes_sha3_js__rspack_import_3/* .keccak_256 */.lY, 'hex');
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(hashHex, this.remove0xPrefix(privateKey), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        if (rHex === undefined) {
+        const rHexRaw = this.safeString(signature, 'r', '');
+        if (rHexRaw === '') {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
         }
-        const rHexLength = rHex.length;
-        if (rHexLength % 2 !== 0) {
-            rHex = '0' + rHex;
-        }
-        if (sHex === undefined) {
+        const sHexRaw = this.safeString(signature, 's', '');
+        if (sHexRaw === '') {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
         }
-        const sHexLength = sHex.length;
-        if (sHexLength % 2 !== 0) {
-            sHex = '0' + sHex;
-        }
+        const rHex = this.padHexToEven(rHexRaw);
+        const sHex = this.padHexToEven(sHexRaw);
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for(let i = 0; i < fields.length; i++){
@@ -528591,10 +528582,8 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), _noble_hashes_sha3_js__rspack_import_3/* .keccak_256 */.lY, 'hex');
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(hashHex, this.remove0xPrefix(privateKey), _noble_curves_secp256k1_js__rspack_import_5/* .secp256k1 */.bI, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        const rHex = this.padHexToEven(this.safeString(signature, 'r', ''));
+        const sHex = this.padHexToEven(this.safeString(signature, 's', ''));
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = this.arrayConcat(fields, [
             this.rlpEncodeBytes(this.intToRlpHex(yParity)),

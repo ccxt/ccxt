@@ -392,9 +392,9 @@ export default class PredictionExchange extends BaseExchange {
     amountToPredictionPrecision(outcome: Str, amount: any): Str;
     priceToPredictionPrecision(outcome: Str, price: any): Str;
     costToPredictionPrecision(outcome: Str, cost: any): Str;
-    padHexToEven(hex: Str): string;
+    padHexToEven(hex: string): string;
     padHexAddress(address: Str): string;
-    rlpEncodeBytes(hex: Str): string;
+    rlpEncodeBytes(hex: string): string;
     rlpEncodeList(items: string[]): string;
     intToRlpHex(value: Int): string;
     hexToRlpBytes(hexValue: Str): string;

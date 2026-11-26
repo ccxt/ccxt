@@ -728,22 +728,16 @@ class myriad extends myriad$1["default"] {
         const payload = '02' + this.rlpEncodeList(fields);
         const hashHex = this.hash(this.base16ToBinary(payload), sha3_js.keccak_256, 'hex');
         const signature = crypto.ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1_js.secp256k1, undefined);
-        let rHex = this.safeString(signature, 'r');
-        let sHex = this.safeString(signature, 's');
-        if (rHex === undefined) {
+        const rHexRaw = this.safeString(signature, 'r', '');
+        if (rHexRaw === '') {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing rHex');
         }
-        const rHexLength = rHex.length;
-        if ((rHexLength % 2) !== 0) {
-            rHex = '0' + rHex;
-        }
-        if (sHex === undefined) {
+        const sHexRaw = this.safeString(signature, 's', '');
+        if (sHexRaw === '') {
             throw new errors.ExchangeError(this.id + ' signEvmTransaction() missing sHex');
         }
-        const sHexLength = sHex.length;
-        if ((sHexLength % 2) !== 0) {
-            sHex = '0' + sHex;
-        }
+        const rHex = this.padHexToEven(rHexRaw);
+        const sHex = this.padHexToEven(sHexRaw);
         const yParity = this.safeInteger(signature, 'v');
         const signedFields = [];
         for (let i = 0; i < fields.length; i++) {

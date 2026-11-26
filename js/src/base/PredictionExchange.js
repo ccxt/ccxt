@@ -1604,7 +1604,7 @@ export default class PredictionExchange extends BaseExchange {
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     padHexToEven(hex) {
-        if (hex === undefined) {
+        if (hex === '') {
             return '';
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -1623,9 +1623,6 @@ export default class PredictionExchange extends BaseExchange {
         return '000000000000000000000000' + stripped;
     }
     rlpEncodeBytes(hex) {
-        if (hex === undefined) {
-            return '';
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt(hex.length / 2);
         if (byteLength === undefined) {
