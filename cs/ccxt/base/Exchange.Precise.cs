@@ -6,7 +6,7 @@ namespace ccxt
 
     public class Precise
     {
-        public object decimals { get; set; } = -1;
+        public Int64 decimals { get; set; } = -1;
 
         public BigInteger integer { get; set; } = 0;
 
