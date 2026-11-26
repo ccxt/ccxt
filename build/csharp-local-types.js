@@ -2130,6 +2130,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
 // ===== h29-C03: options-cache cores retyped IDictionary (csharpTranspiler VENUE_TYPED_CORES, sole declarations)
 CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchDydxAccount'] = 'IDictionary<string, object>';
 CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchCurrenciesFromCache'] = 'IDictionary<string, object>';
+// the prediction base sendEvmTransaction prints Task<string?> (CSHARP_ASYNC_CORE_RETURNS)
+CSHARP_LOCAL_AWAIT_RETURN_TYPES['sendEvmTransaction'] = 'string?';
 // ===== end h29-C03
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
@@ -16527,6 +16529,8 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // PredictionExchange.ts: `Promise<string>`, the eth_sendRawTransaction hash ethRpc hands back
+    'sendEvmTransaction': 'string?',
 };
 
 // the mapped C# return type for an async core declaration, or undefined to leave the
