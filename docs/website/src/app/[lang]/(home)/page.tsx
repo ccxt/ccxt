@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
+import { AssistantConnect } from '@/components/assistant-connect';
 import { CcxtMark } from '@/components/ccxt-mark';
 import { SiDiscord, SiGithub, SiTelegram } from 'react-icons/si';
 import { appName, basePath, gitConfig } from '@/lib/shared';
@@ -30,6 +31,7 @@ const CARDS: { href: string; key: string }[] = [
   { href: '/docs/pro-manual', key: 'cardPro' },
   { href: '/docs/exchanges/binance', key: 'cardExchanges' },
   { href: '/docs/prediction', key: 'cardPrediction' },
+  { href: '/docs/mcp', key: 'cardMcp' },
   { href: '/docs/base-spec', key: 'cardSpec' },
   { href: '/docs/examples', key: 'cardExamples' },
   { href: '/docs/changelog', key: 'cardChangelog' },
@@ -108,6 +110,9 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
 
       {/* install commands (AI one-liner + per-language) */}
       <InstallCommands lang={lang} />
+
+      {/* the hosted MCP server: CCXT inside Claude and ChatGPT */}
+      <AssistantConnect lang={lang} prefix={prefix} />
 
       {/* doc entry cards */}
       <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
