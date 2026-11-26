@@ -6990,8 +6990,8 @@ export class BaseExchange {
             } else {
                 // still processing the same timeframe -> update opening trade
                 const prevCandle = this.safeList (ohlcvs, candle);
-                const prevHigh = this.safeValue (prevCandle, i_high);
-                const prevLow = this.safeValue (prevCandle, i_low);
+                const prevHigh = this.safeNumber (prevCandle, 2);
+                const prevLow = this.safeNumber (prevCandle, 3);
                 ohlcvs[candle][i_high] = Math.max ((prevHigh === undefined) ? price : prevHigh, price);
                 ohlcvs[candle][i_low] = Math.min ((prevLow === undefined) ? price : prevLow, price);
                 ohlcvs[candle][i_close] = price;
