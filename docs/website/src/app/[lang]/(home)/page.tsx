@@ -60,12 +60,14 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href={`${prefix}/docs/install`}
+            data-docs-cta="get_started"
             className="rounded-md bg-fd-primary px-4 py-2 font-medium text-fd-primary-foreground transition-opacity hover:opacity-90"
           >
             {t.getStarted}
           </Link>
           <Link
             href={`${prefix}/docs/manual`}
+            data-docs-cta="read_manual"
             className="rounded-md border px-4 py-2 font-medium transition-colors hover:bg-fd-accent"
           >
             {t.readManual}

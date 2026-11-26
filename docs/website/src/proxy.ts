@@ -34,5 +34,7 @@ export const config = {
   // Page routes only — the bare root must be listed explicitly (the negative-lookahead
   // pattern alone doesn't match '/'); then skip api, _next, the og/ images (static files), and any
   // path with a file extension (sitemap.xml, robots.txt, icon.svg, llms.txt, *.md, ...).
-  matcher: ['/', '/((?!api|_next|og|.*\\..*).*)'],
+  // cx-relay is the analytics relay (next.config.mjs rewrites it to PostHog): locale routing
+  // must not turn it into /en/cx-relay.
+  matcher: ['/', '/((?!api|_next|og|cx-relay|.*\\..*).*)'],
 };

@@ -15,6 +15,13 @@ RUN npm ci
 # build-arg from the NEXT_SERVER_ACTIONS_ENCRYPTION_KEY secret; needed at build AND runtime.
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+# PostHog web and product analytics (src/lib/analytics.ts). NEXT_PUBLIC_* values are inlined
+# into the client bundle at build time. An empty token builds the site with analytics off.
+# The project token is public by design (it only allows sending events).
+ARG NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=""
+ARG NEXT_PUBLIC_POSTHOG_HOST="https://eu.i.posthog.com"
+ENV NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN \
+    NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
     NEXT_PUBLIC_AI_ENABLED=true \
     NODE_OPTIONS=--max-old-space-size=4096

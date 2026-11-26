@@ -2,6 +2,24 @@ import { createMDX } from 'fumadocs-mdx/next';
 
 const withMDX = createMDX();
 
+// PostHog analytics (src/lib/analytics.ts). Only when the build has a project token: without
+// one nothing below changes the site. The docs' own /cx-relay path is rewritten to the
+// PostHog EU ingestion host, so ad blockers that drop *.posthog.com requests still let the
+// analytics through. PostHog API paths end in a slash, hence skipTrailingSlashRedirect (as
+// PostHog's Next.js rewrites guide requires). Keep INGEST_PATH in step with analytics.ts.
+const POSTHOG_ENABLED = (process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? '').length > 0;
+const INGEST_PATH = '/cx-relay';
+const POSTHOG_HOST = (process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').replace(/\/+$/, '');
+// eu.i.posthog.com -> eu-assets.i.posthog.com (the SDK's static assets)
+const POSTHOG_ASSETS_HOST = POSTHOG_HOST.replace(/^https:\/\/(\w+)\.i\.posthog\.com$/, 'https://$1-assets.i.posthog.com');
+const posthogRewrites = POSTHOG_ENABLED
+  ? [
+      { source: `${INGEST_PATH}/static/:path*`, destination: `${POSTHOG_ASSETS_HOST}/static/:path*` },
+      { source: `${INGEST_PATH}/array/:path*`, destination: `${POSTHOG_ASSETS_HOST}/array/:path*` },
+      { source: `${INGEST_PATH}/:path*`, destination: `${POSTHOG_HOST}/:path*` },
+    ]
+  : [];
+
 /** @type {import('next').NextConfig} */
 const config = {
   // Containerized server build by default (lean standalone bundle, run via `node
@@ -32,8 +50,9 @@ const config = {
   // Pretty Markdown URLs for AI agents: /docs/x.md -> the markdown route (server mode only).
   async rewrites() {
     if (process.env.NEXT_OUTPUT === 'export') return [];
-    return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
+    return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }, ...posthogRewrites];
   },
+  ...(POSTHOG_ENABLED ? { skipTrailingSlashRedirect: true } : {}),
   // The home OG card used to be a route handler at /og/home; it is now a static file
   // generated at build time (scripts/generate-og-images.mjs). Keep the old URL working
   // for previews that were scraped before the move.
