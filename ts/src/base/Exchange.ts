@@ -8980,7 +8980,7 @@ export class BaseExchange {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
-            const requiredCalls = Math.ceil ((until - since) / step);
+            const requiredCalls = this.parseToInt (Math.ceil ((until - since) / step));
             if (requiredCalls > maxCallsLimit) {
                 throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsLimit.toString () + ' required calls is ' + requiredCalls.toString ());
             }
