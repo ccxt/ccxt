@@ -2615,7 +2615,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (orderId.is_some()) && (true) && (symbol.is_some()) {
                 if (self.orders.is_some()) {
-                    let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
+                    let mut orders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
                     let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
                     if (order.is_some()) {
                         // accumulate order fees

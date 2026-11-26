@@ -4310,7 +4310,7 @@ impl Bingx {
             let paramsTimeZone: crate::value::Dict = timeZoneparamsTimeZoneVariable.1;
             request.insert("timeZone".into(), Value::from(timeZone));
             let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsTimeZone]);
-            response = self.call_method_o("spot_v1_public_get_market_kline", &[&__ws_arg_0]).await;
+            response = self.spot_v1_public_get_market_kline(&[&__ws_arg_0]).await;
         }  else {
             if ((market).inverse == Some(true)) {
                 let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsUntil]);
@@ -4597,7 +4597,7 @@ impl Bingx {
         let orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let nonce: Option<i64> = self.safe_integer_k(&orderbook, "lastUpdateId", &[]).as_i64();
         let timestamp: Option<i64> = self.safe_integer2(&orderbook, Value::Str("T".into()), Value::Str("ts".into()), &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
+        let mut result: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         result.insert("nonce".into(), Value::from(nonce));
         return Value::Map(result);
         Value::Null
@@ -4787,7 +4787,7 @@ impl Bingx {
         //    }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_funding_rate_histories(&data, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&data, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -7276,7 +7276,7 @@ impl Bingx {
                 let until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
                 if (until.is_some()) {
                     request.insert("endTime".into(), Value::from(until));
-                    paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("until".into()), &[]);
+                    paramsOmitted = self.omit_t(paramsOmitted, Value::Str("until".into()), &[]);
                 }
             }
             if isTwapOrder {

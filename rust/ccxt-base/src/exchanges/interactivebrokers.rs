@@ -4604,7 +4604,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         let portfolioAccounts: crate::value::List = self.fetch_portfolio_accounts(&[Value::Dict(params)]).await;
-        let accountIds: crate::value::List = crate::value::List::new((Value::Dict(self.index_by(Value::from(&portfolioAccounts), Value::Str("accountId".into())))).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let accountsById: crate::value::Dict = self.index_by(Value::from(&portfolioAccounts), Value::Str("accountId".into()));
+        let accountIds: crate::value::List = crate::value::List::new(accountsById.keys().cloned().map(Value::from).collect());
         let length: i64 = accountIds.len() as i64;
         if (length == 0) {
             panic!("{}", crate::exchange_errors::exchange_error("No tradingaccount IDs found for the user"));

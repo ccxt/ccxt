@@ -3212,17 +3212,14 @@ if _try_result.is_err() {
     }
 
     pub fn cancel_orders_request(&self, ids: &[crate::Value], symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut actions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (ids.len() as i64) } {
             let id: Option<String> = self.safe_string_opt(ids, Value::Int(i), &[]);
-            let request: crate::value::Dict = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol, &[params.clone()]);
+            let request: crate::value::Dict = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol, &[Value::from(&params)]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
@@ -5235,7 +5232,7 @@ if _try_result.is_err() {
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (sortedKeys.len() as i64) } {
                 let key: String = self.safe_string(&sortedKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                result.insert(key.clone(), self.sort_json_keys(get_value(&value, key.as_str())));
+                result.insert(key.clone(), self.sort_json_keys(valueCopy.get(key.as_str()).cloned().unwrap_or(Value::Null)));
             }
             }
             return Value::Map(result);

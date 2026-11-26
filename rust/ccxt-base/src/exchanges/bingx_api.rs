@@ -38,8 +38,8 @@ impl Bingx {
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetMarketKline` implicit endpoint.
-    pub async fn spot_v1_public_get_market_kline(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("spot_v1_public_get_market_kline".into()), optional_args).await
+    pub async fn spot_v1_public_get_market_kline(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("spot_v1_public_get_market_kline", optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotV1PublicGetTicker24hr` implicit endpoint.

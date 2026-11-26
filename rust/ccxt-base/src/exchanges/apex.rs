@@ -1714,7 +1714,7 @@ impl Apex {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: i64 = self.milliseconds();
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&data, "u", &[]));
         return Value::Map(orderbook);
         Value::Null

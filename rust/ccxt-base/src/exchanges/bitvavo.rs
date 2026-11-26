@@ -1942,7 +1942,7 @@ impl Bitvavo {
         //         ]
         //     }
         //
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol), &[]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -2365,10 +2365,7 @@ impl Bitvavo {
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -2387,7 +2384,7 @@ impl Bitvavo {
         let isLimitOrder: bool = (type_var == "limit") || (type_var == "stopLossLimit") || (type_var == "takeProfitLimit");
         let timeInForce: Option<String> = self.safe_string_k_opt(&params, "timeInForce", &[]);
         let mut triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&params)]);
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]); // trigger when price crosses from above to below this value
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]);
@@ -2507,10 +2504,7 @@ impl Bitvavo {
     }
 
     pub fn edit_order_request(&self, id: &str, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut request: crate::value::Dict = std::sync::Arc::new({
             let m = indexmap::IndexMap::new();
             m
@@ -2587,10 +2581,7 @@ impl Bitvavo {
     }
 
     pub fn cancel_order_request(&self, id: Option<&str>, symbol: Option<&str>, optional_args: &[Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (symbol.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
@@ -3062,10 +3053,7 @@ impl Bitvavo {
 
 
     pub fn withdraw_request(&self, code: Option<&str>, amount: f64, address: &str, tag: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut currency: crate::types::Currency = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3077,7 +3065,7 @@ impl Bitvavo {
         if (tag.is_some()) {
             request.insert("paymentId".into(), Value::from(tag));
         }
-        return self.extend_t(Value::Map(request), &[params]);
+        return self.extend_t(Value::Map(request), &[&params]);
 }
 
 /*
@@ -3121,10 +3109,7 @@ impl Bitvavo {
     }
 
     pub fn fetch_withdrawals_request(&self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3140,7 +3125,7 @@ impl Bitvavo {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 500, max 1000
         }
-        return self.extend_t(Value::Map(request), &[params]);
+        return self.extend_t(Value::Map(request), &[&params]);
 }
 
 /*
@@ -3183,10 +3168,7 @@ impl Bitvavo {
     }
 
     pub fn fetch_deposits_request(&self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3202,7 +3184,7 @@ impl Bitvavo {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 500, max 1000
         }
-        return self.extend_t(Value::Map(request), &[params]);
+        return self.extend_t(Value::Map(request), &[&params]);
 }
 
 /*

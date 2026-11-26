@@ -5924,7 +5924,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let __ws_arg_43 = self.extend(requestUntil, &[&paramsUntil]);
         let response: crate::value::List = self.v4_public_get_funding_history_market(&[&__ws_arg_43]).await.unwrap_or_default();
-        return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&response, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }

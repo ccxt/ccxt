@@ -1040,7 +1040,7 @@ impl Blockchaincom {
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: Value = self.public_get_l3_symbol(&[&__ws_arg_0]).await;
-        return self.parse_order_book_l3(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
+        return self.parse_order_book_l3(response, Value::from((market).symbol), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
         Value::Null
         }).await?))
     }
@@ -1065,7 +1065,7 @@ impl Blockchaincom {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_l2_symbol(&[&__ws_arg_1]).await.unwrap_or_default();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]));
 
     Value::Null
 }

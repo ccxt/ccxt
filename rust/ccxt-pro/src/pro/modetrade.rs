@@ -805,7 +805,7 @@ impl Modetrade {
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let __ws_arg_3 = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1345,7 +1345,7 @@ impl Modetrade {
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
+            let mut orders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
             let order: Option<crate::value::Dict> = (if (orderId.is_none()) { None } else { self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null)) });
             if (order.is_some()) {
                 let fee: Value = self.safe_value_k(&order, "fee", &[]);

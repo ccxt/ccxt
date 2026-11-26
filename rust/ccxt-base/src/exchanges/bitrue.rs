@@ -288,7 +288,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let mut lastTradeTimestamp: Option<i64> = None;
         let time: Option<i64> = self.safe_integer_k(order, "time", &[]).as_i64();
         let transactTime: Option<i64> = self.safe_integer_k(order, "transactTime", &[]).as_i64();
-        let updateTime: Option<i64> = self.safe_integer_k(order, "updateTime", &[]).as_i64();
+        let mut updateTime: Option<i64> = self.safe_integer_k(order, "updateTime", &[]).as_i64();
         if (time.is_some()) {
             timestamp = time;
         }  else if (transactTime.is_some()) {
@@ -296,7 +296,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         }  else if (updateTime.is_some()) {
             if (status.as_deref() == Some("open")) {
                 if crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
-                    lastTradeTimestamp = updateTime;
+                    lastTradeTimestamp = updateTime.take();
                 }  else {
                     timestamp = updateTime;
                 }
@@ -2645,8 +2645,8 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
-        let mut response: Value = Value::Null;
-        let mut data: Value = Value::from(vec![]);
+        let mut response: Option<crate::value::Dict> = None;
+        let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).swap {
             let timeframesFuture: crate::value::Dict = self.safe_dict_k_t(&timeframes, "future");
             let mut request: crate::value::Dict = std::sync::Arc::new({
@@ -2660,12 +2660,11 @@ impl Bitrue {
             }
             if ((market).linear == Some(true)) {
                 let __ws_arg_7 = self.extend(&request, &[&params]);
-                response = self.call_method(Value::Str("fapi_v1_public_get_klines".into()), &[&__ws_arg_7]).await;
+                data = self.fapi_v1_public_get_klines(&[&__ws_arg_7]).await.unwrap_or_default();
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_8 = self.extend(request, &[&params]);
-                response = self.call_method(Value::Str("dapi_v1_public_get_klines".into()), &[&__ws_arg_8]).await;
+                data = self.dapi_v1_public_get_klines(&[&__ws_arg_8]).await.unwrap_or_default();
             }
-            data = response.clone();
         }  else if (market).spot {
             let timeframesSpot: crate::value::Dict = self.safe_dict_k_t(&timeframes, "spot");
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2684,11 +2683,11 @@ impl Bitrue {
             let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_public_get_market_kline(&[&__ws_arg_9]).await;
-            data = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            data = self.safe_list_k_t(&response, "data");
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOHLCV only support spot & swap markets")));
         }
-        return Value::Arr(self.parse_ohlc_vs(data, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
+        return Value::Arr(self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

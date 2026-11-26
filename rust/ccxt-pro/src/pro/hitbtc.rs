@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "cancel_order_ws" => crate::types::IntoRaw::into_raw(self.cancel_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "describe_data" => self.describe_data(),
+                "describe_data" => crate::Value::Dict(self.describe_data()),
                 "fetch_open_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_open_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_authenticate" => crate::Value::Dict(self.handle_authenticate(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_error" => self.handle_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
@@ -168,11 +168,11 @@ impl std::ops::DerefMut for Hitbtc {
 
 impl Hitbtc {
     pub fn describe(&self) -> crate::value::Dict {
-        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Dict(self.describe_data())]);
 }
 
-    pub fn describe_data(&self) -> Value {
-        return Value::Map({
+    pub fn describe_data(&self) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -265,8 +265,6 @@ impl Hitbtc {
 }));
     m
 });
-
-    Value::Null
 }
 
 /*
@@ -1178,7 +1176,7 @@ impl Hitbtc {
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        result = self.sort_by2(result, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return Value::Arr(self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]));
 
@@ -1767,7 +1765,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsMarketType)]);
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
-        let orderRequestparamsValueVariable = self.parent.create_order_request((market).raw.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]);
+        let orderRequestparamsValueVariable = self.parent.create_order_request((market).raw, marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(paramsMarginMode)]);
         let orderRequest: crate::value::Dict = orderRequestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = orderRequestparamsValueVariable.1;
         let request: crate::value::Dict = self.extend_t(orderRequest, &[&paramsValue]);

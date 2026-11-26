@@ -594,7 +594,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut openInterestAmount: Option<f64> = None;
         let mut openInterestValue: Option<f64> = None;
         if (marketResolved).option || ((marketResolved).future && ((marketResolved).linear == Some(true))) {
-            openInterestAmount = openInterest;
+            openInterestAmount = openInterest.take();
         }  else {
             openInterestValue = openInterest.take();
         }
@@ -3225,17 +3225,17 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
         if (since.is_some()) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), Value::from(since)); }
+            request.insert("start_timestamp".into(), Value::from(since));
         }
         if (limit.is_some()) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); }; // default 10
+            request.insert("count".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); // default 10
         }
         let until: Option<i64> = self.safe_integer2(&params, Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, Value::from(vec![]), &[]);
@@ -3243,14 +3243,14 @@ impl Deribit {
             paramsOmitted = self.omit_t(params, &["until"], &[]);
         }
         if (until.is_some()) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), Value::from(until)); }
+            request.insert("end_timestamp".into(), Value::from(until));
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (since.is_none()) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))) {
-            let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+        if (since.is_none()) && !(request.contains_key("end_timestamp")) {
+            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_get_last_trades_by_instrument(&[&__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request, &[&paramsOmitted]);
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_get_last_trades_by_instrument_and_time(&[&__ws_arg_8]).await;
         }
         //
@@ -3520,7 +3520,7 @@ impl Deribit {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
         let nonce: Option<i64> = self.safe_integer_k(&result, "change_id", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&result, Value::from((market).symbol), &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), Value::from(nonce));
         return Value::Map(orderbook);
         Value::Null
@@ -3868,7 +3868,7 @@ impl Deribit {
         let isTrailingAmountOrder: bool = trailingAmount.is_some();
         let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::from(vec![]), &[]);
         if isTrailingAmountOrder {
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("trigger_offset".into()), &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, Value::Str("trigger_offset".into()), &[]);
         }
         if isTrailingAmountOrder {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
@@ -5324,7 +5324,7 @@ impl Deribit {
         //
         let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
         let chain: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw]));
         Value::Null
         }).await?))
     }

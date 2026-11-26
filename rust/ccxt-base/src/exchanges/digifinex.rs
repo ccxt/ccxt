@@ -2768,7 +2768,7 @@ impl Digifinex {
             orderBook = response.clone();
             timestamp = self.safe_timestamp_k(&response, "date", &[]).as_i64();
         }
-        return Value::Dict(self.parse_order_book(&orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&orderBook, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

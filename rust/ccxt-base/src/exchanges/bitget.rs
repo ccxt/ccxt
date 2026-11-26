@@ -9332,7 +9332,7 @@ if _try_result.is_err() {
             asksKey = "a".to_string();
         }
         let timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]));
+        return Value::Dict(self.parse_order_book(&data, Value::from((market).symbol), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]));
         Value::Null
         }).await?))
     }
@@ -11151,7 +11151,7 @@ if _try_result.is_err() {
         let mut paramsMarketType: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("createOrder".into()), Some(&market), &[&params]); marketType = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsMarketType)]); marginMode = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("orderType".to_string(), Value::from(type_var));
@@ -11192,7 +11192,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")));
         }
         if (type_var == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price)))); }
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         let triggerPriceType: String = self.safe_string2(&paramsMarketType, Value::Str("triggerPriceType".into()), Value::Str("triggerType".into()), &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
         let reduceOnly: bool = self.safe_bool_k_opt(&paramsMarketType, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
@@ -11206,26 +11206,26 @@ if _try_result.is_err() {
             timeInForce = timeInForce.as_deref().map(str::to_uppercase);
         }
         if (postOnly == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("post_only".into())); }
+            request.insert("force".into(), Value::Str("post_only".into()));
         }  else if (timeInForce.as_deref() == Some("GTC")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("GTC".into())); }
+            request.insert("force".into(), Value::Str("GTC".into()));
         }  else if (timeInForce.as_deref() == Some("FOK")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("FOK".into())); }
+            request.insert("force".into(), Value::Str("FOK".into()));
         }  else if (timeInForce.as_deref() == Some("IOC")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("IOC".into())); }
+            request.insert("force".into(), Value::Str("IOC".into()));
         }
         paramsMarketType = self.omit_t(&paramsMarketType, &["stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"], &[]);
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId")); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), Value::from(self.amount_to_precision(symbol, Value::from(amount)))); }
+            request.insert("marginCoin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
             let mut productType: Option<String> = None;
             { let __destr_tmp = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsMarketType)]); productType = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
+            request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             if (clientOrderId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), Value::from(clientOrderId.as_deref())); }
+                request.insert("clientOid".into(), Value::from(clientOrderId.as_deref()));
             }
             if isTriggerOrder || isStopLossOrTakeProfitTrigger || isTrailingPercentOrder {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), Value::from(triggerPriceType.as_str())); }
+                request.insert("triggerType".into(), Value::from(triggerPriceType.as_str()));
             }
             if isTrailingPercentOrder {
                 if !isMarketOrder {
@@ -11234,49 +11234,49 @@ if _try_result.is_err() {
                 if (trailingTriggerPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() bitget trailing orders must have a trailingTriggerPrice param")));
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("track_plan".into())); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackRatio".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null)); }
+                request.insert("planType".into(), Value::Str("track_plan".into()));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("callbackRatio".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null));
             }  else if isTriggerOrder {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("normal_plan".into())); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice))); }
+                request.insert("planType".into(), Value::Str("normal_plan".into()));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
                 if (price.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price)))); }
+                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
                 }
                 if hasStopLoss {
                     let slTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    request.insert("stopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                     let slPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    request.insert("stopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slPrice.map(Value::from).unwrap_or(Value::Null))));
                     let slType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopLossTriggerType".into(), Value::from(slType)); }
+                    request.insert("stopLossTriggerType".into(), Value::from(slType));
                 }
                 if hasTakeProfit {
                     let tpTriggerPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    request.insert("stopSurplusTriggerPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                     let tpPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpPrice.map(Value::from).unwrap_or(Value::Null)))); }
+                    request.insert("stopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpPrice.map(Value::from).unwrap_or(Value::Null))));
                     let tpType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopSurplusTriggerType".into(), Value::from(tpType)); }
+                    request.insert("stopSurplusTriggerType".into(), Value::from(tpType));
                 }
             }  else if isStopLossOrTakeProfitTrigger {
                 if (price.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price)))); }
-                    if (matches!(&request, Value::Dict(__d) if __d.contains_key("price"))) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).shift_remove("price"); }
+                    request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
+                    if (request.contains_key("price")) {
+                        request.shift_remove("price");
                     }
                 }
                 if (hedged == Some(true)) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("holdSide".into(), (if (side == Some("sell")) { Value::Str("long".into()) } else { Value::Str("short".into()) })); }
+                    request.insert("holdSide".into(), (if (side == Some("sell")) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("holdSide".into(), (if (side == Some("sell")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) })); }
+                    request.insert("holdSide".into(), (if (side == Some("sell")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }));
                 }
                 if isStopLossTriggerOrder {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice))); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("pos_loss".into())); }
+                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice)));
+                    request.insert("planType".into(), Value::Str("pos_loss".into()));
                 }  else if isTakeProfitTriggerOrder {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice))); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), Value::Str("pos_profit".into())); }
+                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
+                    request.insert("planType".into(), Value::Str("pos_profit".into()));
                 }
             }  else {
                 if hasStopLoss {
@@ -11284,12 +11284,12 @@ if _try_result.is_err() {
                     if (slTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice))); }
+                    request.insert("presetStopLossPrice".into(), Value::from(self.price_to_precision(symbol, slTriggerPrice)));
                     let slLimitPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
                     if (slLimitPrice.is_some()) {
                         // without the execute price the exchange fills the attached stop loss
                         // at the market price, see https://github.com/ccxt/ccxt/issues/23459
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slLimitPrice))); }
+                        request.insert("presetStopLossExecutePrice".into(), Value::from(self.price_to_precision(symbol, slLimitPrice)));
                     }
                 }
                 if hasTakeProfit {
@@ -11297,10 +11297,10 @@ if _try_result.is_err() {
                     if (tpTriggerPrice.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")));
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice))); }
+                    request.insert("presetStopSurplusPrice".into(), Value::from(self.price_to_precision(symbol, tpTriggerPrice)));
                     let tpLimitPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                     if (tpLimitPrice.is_some()) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("presetStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice))); }
+                        request.insert("presetStopSurplusExecutePrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice)));
                     }
                 }
             }
@@ -11309,28 +11309,28 @@ if _try_result.is_err() {
                 if (marginMode.is_none()) || (marginMode.as_deref() == Some("cross")) {
                     marginModeRequest = "crossed".to_string();
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), Value::from(marginModeRequest)); }
+                request.insert("marginMode".into(), Value::from(marginModeRequest));
                 let mut requestSide: Option<String> = side.map(str::to_owned);
                 if reduceOnly {
                     if (hedged != Some(true)) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), Value::Str("YES".into())); }
+                        request.insert("reduceOnly".into(), Value::Str("YES".into()));
                     }  else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
                         requestSide = (if (side == Some("buy")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Close".into())); }
+                        request.insert("tradeSide".into(), Value::Str("Close".into()));
                     }
                 }  else {
                     if (hedged == Some(true)) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Open".into())); }
+                        request.insert("tradeSide".into(), Value::Str("Open".into()));
                     }
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), requestSide.map(Value::from).unwrap_or(Value::Null)); }
+                request.insert("side".into(), requestSide.map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (marketType.as_deref() == Some("spot")) {
             if isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), Value::from(side)); }
+            request.insert("side".into(), Value::from(side));
             let mut quantity: Option<String> = None;
             let mut planType: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: bool = true;
@@ -11358,32 +11358,32 @@ if _try_result.is_err() {
                 quantity = self.amount_to_precision(symbol, Value::from(amount));
             }
             if (clientOrderId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
+                request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
             if (marginMode.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("loanType".into(), Value::Str("normal".into())); }
+                request.insert("loanType".into(), Value::Str("normal".into()));
                 if isMarketOrder && (side == Some("buy")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteSize".into(), Value::from(quantity.as_deref())); }
+                    request.insert("quoteSize".into(), Value::from(quantity.as_deref()));
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("baseSize".into(), Value::from(quantity.as_deref())); }
+                    request.insert("baseSize".into(), Value::from(quantity.as_deref()));
                 }
             }  else {
                 if (quantity.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), quantity.map(Value::from).unwrap_or(Value::Null)); }
+                    request.insert("size".into(), quantity.map(Value::from).unwrap_or(Value::Null));
                 }
                 if (triggerPrice.is_some()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("planType".into(), planType.map(Value::from).unwrap_or(Value::Null)); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), Value::from(triggerPriceType)); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice))); }
+                    request.insert("planType".into(), planType.map(Value::from).unwrap_or(Value::Null));
+                    request.insert("triggerType".into(), Value::from(triggerPriceType));
+                    request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
                     if (price.is_some()) {
-                        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price)))); }
+                        request.insert("executePrice".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
                     }
                 }
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " orders")));
         }
-        return self.extend_t(request, &[&paramsMarketType]);
+        return self.extend_t(Value::Map(request), &[&paramsMarketType]);
 }
 
     pub async fn create_uta_orders(&mut self, mut orders: Value, optional_args: &[&Value]) -> Value {
@@ -11697,7 +11697,7 @@ if _try_result.is_err() {
                         request.insert("tpOrderType".into(), self.safe_string_k(&paramsOmitted, "tpOrderType", &[Value::Str("market".into())]));
                     }
                 }
-                paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice"], &[]);
+                paramsOmitted = self.omit_t(paramsOmitted, &["stopLossPrice", "takeProfitPrice"], &[]);
                 let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_uta_post_v3_trade_modify_strategy_order(&[&__ws_arg_49]).await;
             }  else {
@@ -11709,7 +11709,7 @@ if _try_result.is_err() {
             }
         }  else if (market).spot {
             let cost: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("cost".into()), &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, Value::Str("cost".into()), &[]);
             let editMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(&self.options, "editMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).unwrap_or(true);
             if (editMarketBuyOrderRequiresPrice || (cost.is_some())) && isMarketOrder && (side.as_str() == Some("buy")) {
                 if (price.is_none()) && (cost.is_none()) {
@@ -11805,7 +11805,7 @@ if _try_result.is_err() {
             }  else {
                 let defaultNewClientOrderId: String = self.uuid(&[]);
                 let newClientOrderId: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("newClientOid".into()), Value::Str("newClientOrderId".into()), &[&defaultNewClientOrderId]);
-                paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("newClientOrderId".into()), &[]);
+                paramsOmitted = self.omit_t(paramsOmitted, Value::Str("newClientOrderId".into()), &[]);
                 request.insert("newClientOid".into(), newClientOrderId.map(Value::from).unwrap_or(Value::Null));
                 if hasStopLoss {
                     let slTriggerPrice: Option<f64> = self.safe_number2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
@@ -17141,7 +17141,7 @@ if _try_result.is_err() {
             response = self.public_margin_get_v2_margin_market_long_short_ratio(&[&__ws_arg_164]).await;
         }
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_long_short_ratio_history(Value::Arr(data), &[(market).raw.clone()]);
+        return self.parse_long_short_ratio_history(Value::Arr(data), &[(market).raw]);
         Value::Null
         }).await?))
     }

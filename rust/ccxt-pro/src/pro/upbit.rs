@@ -955,7 +955,7 @@ impl Upbit {
         let mut orders: crate::value::Dict = (if (symbol.is_none()) { Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+}) } else { self.safe_dict(&self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]) }).into_dict();

@@ -1816,7 +1816,7 @@ impl Alpaca {
         let orderbooks: crate::value::Dict = self.safe_dict_k_t(&response, "orderbooks");
         let rawOrderbook: crate::value::Dict = (if let Some(Value::Dict(__m)) = orderbooks.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrderbook, "t", &[]));
-        return Value::Dict(self.parse_order_book(&rawOrderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]));
+        return Value::Dict(self.parse_order_book(&rawOrderbook, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]));
         Value::Null
         }).await?))
     }

@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "cancel_order_ws" => crate::types::IntoRaw::into_raw(self.cancel_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "describe_data" => self.describe_data(),
+                "describe_data" => crate::Value::Dict(self.describe_data()),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "ensure_user_data_stream_ws_subscribe_listen_token" => { self.ensure_user_data_stream_ws_subscribe_listen_token(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
@@ -275,11 +275,11 @@ impl std::ops::DerefMut for Binance {
 
 impl Binance {
     pub fn describe(&self) -> crate::value::Dict {
-        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Dict(self.describe_data())]);
 }
 
-    pub fn describe_data(&self) -> Value {
-        return Value::Map({
+    pub fn describe_data(&self) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -523,8 +523,6 @@ impl Binance {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub fn request_id(&mut self, url: &str) -> i64 {
@@ -7208,7 +7206,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
                 if (self.orders.is_some()) {
-                    let mut orders: Value = self.safe_dict(self.orders.hashmap(), Value::from(symbol.as_deref()), &[Value::Map({
+                    let mut orders: Value = self.safe_dict(&self.orders.hashmap(), Value::from(symbol.as_deref()), &[Value::Map({
                         let m = indexmap::IndexMap::new();
                         m
                     })]);
@@ -7292,7 +7290,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
+            let mut orders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
             let order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
             if (order.is_some()) {
                 let fee: Value = self.safe_value_k(&order, "fee", &[]);

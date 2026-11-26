@@ -2773,7 +2773,7 @@ if _try_result.is_err() {
         //    }
         //
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_funding_rate_histories(&result, &[(market).raw.clone()]);
+        return self.parse_funding_rate_histories(&result, &[(market).raw]);
         Value::Null
         }).await?))
     }

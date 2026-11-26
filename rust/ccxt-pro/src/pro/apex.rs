@@ -968,12 +968,7 @@ impl Apex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "".to_string();
-        let mut symbolsNormalized2: Value = Value::Null;
-        if self.is_empty(&symbols).as_bool() == Some(true) {
-            symbolsNormalized2 = symbols.clone();
-        }  else {
-            symbolsNormalized2 = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
-        }
+        let symbolsNormalized2: Value = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
         if !(self.is_empty(symbols).as_bool() == Some(true)) {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }

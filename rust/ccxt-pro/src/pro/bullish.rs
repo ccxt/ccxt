@@ -694,19 +694,19 @@ impl Bullish {
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(Value::from(&data), Some(&market)));
         if (updateType.as_deref() == Some("update")) {
-            let ticker: crate::value::Dict = if let Some(Value::Dict(__m)) = self.tickers.get(crate::runtime::stringify_param(&symbol).as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned() { __m } else { Default::default() };
+            let ticker: crate::value::Dict = if let Some(Value::Dict(__m)) = self.tickers.get(symbol.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned() { __m } else { Default::default() };
             let __ws_arg_4 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), &[&data]);
             parsed = std::sync::Arc::unwrap_or_clone(self.parse_ticker(__ws_arg_4, Some(&market)));
         }
-        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Map(parsed)); }
         let messageHash: String = format!("{}{}", "ticker::", symbol);
-        client.resolve((if let (__m, Some(__k)) = (&self.tickers, symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        client.resolve((if let (__m, Some(__k)) = (&self.tickers, Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*

@@ -64,7 +64,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "expire_pending_unsubscribe" => { self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "get_ws_url" => self.get_ws_url(),
                 "handle_binary_message" => { self.handle_binary_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_ticker" => crate::Value::Dict(self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_trade" => crate::Value::Dict(self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -149,7 +149,7 @@ impl Paradex {
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_binary_message" => { self.handle_binary_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_book_side_deltas" => { self.handle_book_side_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -2041,7 +2041,7 @@ if _try_result.is_err() {
                 let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 channels.push(Value::Str(format!("{}{}", "bbo.", marketId).into()));
                 subMessageHashes.push(Value::Str(format!("{}{}", "bidask:", (market).symbol).into()));
-                bidAskSymbols.push(Value::from((market).symbol.clone()));
+                bidAskSymbols.push(Value::from((market).symbol));
             }
             }
         }  else {
@@ -3568,10 +3568,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3651,6 +3649,10 @@ if _try_result.is_err() {
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        // error replies are JSON text frames only, the binary frames never carry one
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() != Some(true)) {
+            return;
+        }
         self.handle_stream_message(client.as_value(), Value::Dict(std::sync::Arc::clone(message)));
 }
 
@@ -3658,9 +3660,6 @@ if _try_result.is_err() {
         let message: Value = message.into();
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (Value::Bool(self.handle_error_message(&client, &message)).as_bool() != Some(true)) {
-            return;
-        }
         //
         // auth response
         //

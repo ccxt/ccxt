@@ -1537,7 +1537,7 @@ impl Hollaex {
         //
         let orderbook: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from((market).id.as_deref()));
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
-        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

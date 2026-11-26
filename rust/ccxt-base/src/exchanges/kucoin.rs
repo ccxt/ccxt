@@ -7232,7 +7232,7 @@ impl Kucoin {
                 timestamp = self.parse_to_int(Value::from((if let Some(__l) = nanoseconds { Some((__l as f64) / 1000000.0) } else { None })));
             }
         }
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int((level - 2)), Value::Int((level - 1))]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&data, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int((level - 2)), Value::Int((level - 1))]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&data, "sequence", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -7422,10 +7422,7 @@ impl Kucoin {
 }
 
     pub fn create_spot_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -7451,7 +7448,7 @@ impl Kucoin {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsOmitted)]); marginMode = __destr_tmp.0.as_str().map(str::to_owned); paramsOmitted = __destr_tmp.1; }
         if (type_var == Some("market")) {
             if (quoteAmount.is_some()) {
-                paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["cost", "funds"], &[]);
+                paramsOmitted = self.omit_t(paramsOmitted, &["cost", "funds"], &[]);
                 // kucoin uses base precision even for quote values
                 costString = self.market_order_amount_to_precision(symbol, Value::from(quoteAmount));
                 request.insert("funds".into(), costString.map(Value::from).unwrap_or(Value::Null));
@@ -7471,7 +7468,7 @@ impl Kucoin {
         let takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
         let isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
-        paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]);
+        paramsOmitted = self.omit_t(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]);
         if isTriggerOrder {
             if (triggerPrice.is_some()) {
                 request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
@@ -7600,10 +7597,7 @@ impl Kucoin {
 }
 
     pub fn create_contract_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -7629,7 +7623,7 @@ impl Kucoin {
             request.insert("marginMode".into(), marginModeUpper.map(Value::from).unwrap_or(Value::Null));
         }
         let cost: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
-        paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("cost".into()), &[]);
+        paramsOmitted = self.omit_t(paramsOmitted, Value::Str("cost".into()), &[]);
         if (cost.is_some()) {
             request.insert("valueQty".into(), Value::from(self.cost_to_precision(symbol, cost.map(Value::from).unwrap_or(Value::Null))));
         }  else {
@@ -7663,7 +7657,7 @@ impl Kucoin {
         });
         let triggerPriceType: String = self.safe_string_k(&paramsOmitted, "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
         let triggerPriceTypeValue: Option<String> = self.safe_string_opt(&triggerPriceTypes, Value::from(triggerPriceType.as_str()), &[&triggerPriceType]);
-        paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]);
+        paramsOmitted = self.omit_t(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]);
         if (triggerPrice.is_some()) {
             request.insert("stop".into(), (if (side == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
@@ -7743,7 +7737,7 @@ impl Kucoin {
                 request.insert("positionSide".into(), Value::from(posSide));
             }
         }
-        paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"], &[]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        paramsOmitted = self.omit_t(paramsOmitted, &["timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"], &[]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
 }
 
@@ -7816,10 +7810,7 @@ impl Kucoin {
 }
 
     pub fn create_uta_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -7965,7 +7956,7 @@ impl Kucoin {
                 }
             }
         }
-        paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPriceType", "stopLossPriceType", "takeProfitPriceType", "triggerPriceType", "triggerDirection", "stopLoss", "takeProfit", "hedged"], &[]);
+        paramsOmitted = self.omit_t(paramsOmitted, &["triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPriceType", "stopLossPriceType", "takeProfitPriceType", "triggerPriceType", "triggerDirection", "stopLoss", "takeProfit", "hedged"], &[]);
         return self.extend_t(Value::Map(request), &[&paramsOmitted]);
 }
 
@@ -14174,7 +14165,7 @@ impl Kucoin {
             response = self.futures_public_get_contract_funding_rates(&[&__ws_arg_142]).await;
         }
         let result: crate::value::List = self.safe_list_t(&response, Value::from(resultKey));
-        return self.parse_funding_rate_histories(&result, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&result, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }

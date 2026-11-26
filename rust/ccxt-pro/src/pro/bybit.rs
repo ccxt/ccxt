@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "clean_params" => crate::Value::Dict(self.clean_params(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "describe_data" => self.describe_data(),
+                "describe_data" => crate::Value::Dict(self.describe_data()),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "get_private_type" => self.get_private_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -204,11 +204,11 @@ impl std::ops::DerefMut for Bybit {
 
 impl Bybit {
     pub fn describe(&self) -> crate::value::Dict {
-        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Dict(self.describe_data())]);
 }
 
-    pub fn describe_data(&self) -> Value {
-        return Value::Map({
+    pub fn describe_data(&self) -> crate::value::Dict {
+        return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -414,8 +414,6 @@ impl Bybit {
 }));
     m
 });
-
-    Value::Null
 }
 
     pub fn request_id(&mut self) -> i64 {

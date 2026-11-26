@@ -3017,8 +3017,9 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from((market).symbol.clone()));
+        let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(marketSymbol.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from(marketSymbol));
         if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find a funding rate for ").into()), symbol)));
         }
@@ -3082,7 +3083,7 @@ impl Paradex {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "last_updated_at", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&response, "seq_no", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -5418,7 +5419,7 @@ impl Paradex {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let chain: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw]));
         Value::Null
         }).await?))
     }
@@ -5628,7 +5629,7 @@ impl Paradex {
             })]));
         }
         }
-        return self.parse_incomes(Value::from(tagged), &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_incomes(Value::from(tagged), &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }

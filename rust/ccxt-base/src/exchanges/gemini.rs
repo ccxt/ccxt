@@ -2250,7 +2250,7 @@ impl Gemini {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_v1_book_symbol(&[&__ws_arg_2]).await.unwrap_or_default();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
     }

@@ -223,7 +223,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             let kind: Option<String> = self.safe_string_k_opt(&tpsl, "kind", &[]);
             let mut triggerValue: Option<String> = self.safe_string_k_opt(&tpsl, "trp", &[]);
             if (kind.as_deref() == Some("sl")) {
-                stopLossPrice = triggerValue.clone();
+                stopLossPrice = triggerValue.take();
             }  else if (kind.as_deref() == Some("tp")) {
                 takeProfitPrice = triggerValue.take();
             }
@@ -1744,7 +1744,7 @@ impl Polymarket {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        let mut orderbook: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp)]));
         orderbook.insert("nonce".into(), self.safe_integer_k(&response, "sequence", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -2372,7 +2372,7 @@ impl Polymarket {
             let request: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_request(Some(&market), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.as_deref(), &[&price.map(Value::from).unwrap_or(Value::Null), &Value::Dict(orderParams)])).as_map().cloned().unwrap_or_default();
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));
-            ordersMarkets.push((market).raw.clone());
+            ordersMarkets.push((market).raw);
             std::sync::Arc::make_mut(&mut ordersEntries).push(request.get("entry").cloned().unwrap_or(Value::Null));
         }
         }

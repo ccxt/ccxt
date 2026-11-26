@@ -12522,10 +12522,7 @@ impl Binance {
  */
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -14297,7 +14294,7 @@ impl Binance {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[&Value::from((market).market_type.clone())]);
+        let type_var: Option<String> = self.safe_string_k_opt(&params, "type", &[&Value::from((market).market_type)]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("type".into()), &[]);
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrderTrades() supports spot markets only")));
@@ -15098,7 +15095,7 @@ impl Binance {
             let mut market: Option<crate::types::Market> = None;
             if (symbol.is_some()) {
                 market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("symbol".into()), &[]);
+                paramsOmitted = self.omit_t(paramsOmitted, Value::Str("symbol".into()), &[]);
             }
             let mut fromId: Value = (self.convert_type_to_account(fromAccount.clone())).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut toId: Value = (self.convert_type_to_account(toAccount.clone())).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
@@ -15248,7 +15245,7 @@ impl Binance {
         }
         let until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
         if (until.is_some()) {
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -19818,7 +19815,7 @@ if _try_result.is_err() {
         //     ]
         //
         let chain: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw]));
         Value::Null
         }).await?))
     }
@@ -20412,7 +20409,7 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")));
         }
-        return self.parse_long_short_ratio_history(response, &[(market).raw.clone()]);
+        return self.parse_long_short_ratio_history(response, &[(market).raw]);
         Value::Null
         }).await?))
     }

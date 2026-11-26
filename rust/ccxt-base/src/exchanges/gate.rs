@@ -6533,7 +6533,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
+        let symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { None });
         let type_varqueryVariable = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), market.as_ref(), &[&params]);
         let type_var: Option<String> = type_varqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = type_varqueryVariable.1;
@@ -7981,10 +7981,7 @@ if _try_result.is_err() {
     }
 
     pub fn create_orders_request(&self, mut orders: Value, optional_args: &[&Value]) -> crate::value::List {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
         let ordersLength: i64 = orders.len() as i64;
@@ -8206,7 +8203,7 @@ if _try_result.is_err() {
                     let mut createMarketBuyOrderRequiresPrice: bool = true;
                     { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.0 == Some(true); query = __destr_tmp.1; }
                     let cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
-                    query = self.omit_t(Value::Dict(query), Value::Str("cost".into()), &[]);
+                    query = self.omit_t(query, Value::Str("cost".into()), &[]);
                     if (cost.is_some()) {
                         quoteAmount = self.cost_to_precision(symbol, cost);
                     }  else if createMarketBuyOrderRequiresPrice {
@@ -8241,7 +8238,7 @@ if _try_result.is_err() {
                 if ((clientOrderIdRaw.as_deref().unwrap_or_default().chars().count() as i64)) > 28 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder () clientOrderId or text param must be up to 28 characters")));
                 }
-                query = self.omit_t(Value::Dict(query), Value::Str("textIsRequired".into()), &[]);
+                query = self.omit_t(query, Value::Str("textIsRequired".into()), &[]);
                 if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
                     clientOrderId = Some(format!("{}{}", "t-", clientOrderIdRaw.as_deref().unwrap_or("null")));
                 }
@@ -8304,7 +8301,7 @@ if _try_result.is_err() {
                     if priceType < 0 || priceType > 2 {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")));
                     }
-                    query = self.omit_t(Value::Dict(query), &["price_type"], &[]);
+                    query = self.omit_t(query, &["price_type"], &[]);
                     request.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price_type".to_string(), Value::from(priceType));
@@ -11185,7 +11182,7 @@ if _try_result.is_err() {
         });
         let __ws_arg_115 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_options_get_contracts_contract(&[&__ws_arg_115]).await.unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&response), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&response), None, &[(market).raw]));
         Value::Null
         }).await?))
     }

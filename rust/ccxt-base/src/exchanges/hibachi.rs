@@ -1708,10 +1708,7 @@ impl Hibachi {
     pub fn edit_order_request(&self, mut nonce: Value, id: Option<&str>, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let amount = get_arg(optional_args, 0, Value::Null);
         let price = get_arg(optional_args, 1, Value::Null);
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -1734,7 +1731,7 @@ impl Hibachi {
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        return self.extend_t(Value::Map(request), &[params]);
+        return self.extend_t(Value::Map(request), &[&params]);
 }
 
 /*

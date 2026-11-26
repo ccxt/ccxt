@@ -214,7 +214,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             //
             timestamp = self.safe_integer_k(&trade, "t", &[]).as_i64();
             marketResolved = Some(self.safe_market(None, market, &[]));
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
+            symbol = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
             priceString = self.safe_string_k_opt(&trade, "p", &[]);
             amountString = self.safe_string_k_opt(&trade, "v", &[]);
             side = self.parse_order_side(self.safe_string_k(&trade, "T", &[]).as_str());
@@ -272,7 +272,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             //
             let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             marketResolved = Some(self.safe_market(marketId.as_deref(), market, &[]));
-            symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol").into_opt_string();
+            symbol = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
             id = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("a".into()), &[]);
             priceString = self.safe_string2_opt(&trade, Value::Str("price".into()), Value::Str("p".into()), &[]);
             orderId = self.safe_string_k_opt(&trade, "orderId", &[]);

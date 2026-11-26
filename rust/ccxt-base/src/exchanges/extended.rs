@@ -2061,7 +2061,7 @@ impl Extended {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: i64 = self.milliseconds();
-        let mut orderbook: crate::value::Dict = self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("qty".into())]);
+        let mut orderbook: crate::value::Dict = self.parse_order_book(&data, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into()), Value::Str("price".into()), Value::Str("qty".into())]);
         if (limit.is_some()) {
             { let __be_tmp = Value::Arr(self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "bids"), Value::Int(0), &[Value::from(limit)])); std::sync::Arc::make_mut(&mut orderbook).insert("bids".into(), __be_tmp); }
             { let __be_tmp = Value::Arr(self.array_slice(crate::value::KeyRead::key_read(&&orderbook, "asks"), Value::Int(0), &[Value::from(limit)])); std::sync::Arc::make_mut(&mut orderbook).insert("asks".into(), __be_tmp); }

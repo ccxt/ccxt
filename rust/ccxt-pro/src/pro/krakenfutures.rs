@@ -1339,13 +1339,13 @@ impl Krakenfutures {
         // no longer open on the venue - it filled or was cancelled while we were
         // disconnected. the snapshot does not say which, so mark it canceled
         // instead of leaving it open in the cache forever
-        let cachedSymbols: Vec<Value> = object_keys(&self.orders.hashmap()).as_array().cloned().unwrap_or_default();
+        let cachedSymbols: Vec<Value> = Value::Array(self.orders.hashmap().keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (cachedSymbols.len() as i64) } {
             let cachedSymbol: Option<&str> = cachedSymbols.get(i as usize).and_then(Value::as_str);
-            let ordersById: Value = self.safe_dict(self.orders.hashmap(), Value::from(cachedSymbol.as_deref()), &[Value::Map({
+            let ordersById: Value = self.safe_dict(&self.orders.hashmap(), Value::from(cachedSymbol.as_deref()), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]);

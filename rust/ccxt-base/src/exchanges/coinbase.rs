@@ -4565,11 +4565,8 @@ if _try_result.is_err() {
 }
 
     pub fn prepare_account_request(&self, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let accountId: Option<String> = self.safe_string2_opt(params, Value::Str("account_id".into()), Value::Str("accountId".into()), &[]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let accountId: Option<String> = self.safe_string2_opt(&params, Value::Str("account_id".into()), Value::Str("accountId".into()), &[]);
         if (accountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " prepareAccountRequest() method requires an account_id (or accountId) parameter")));
         }

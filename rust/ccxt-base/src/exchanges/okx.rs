@@ -7067,10 +7067,7 @@ impl Okx {
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -7128,7 +7125,7 @@ impl Okx {
         let positionSideparamsPositionSideVariable = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("positionSide".into()), &[]);
         let positionSide: Option<String> = positionSideparamsPositionSideVariable.0.as_str().map(str::to_owned);
         let paramsPositionSide: crate::value::Dict = positionSideparamsPositionSideVariable.1;
-        let mut paramsSwapOrFuture: crate::value::Dict = params.clone().into_dict();
+        let mut paramsSwapOrFuture: crate::value::Dict = params.clone();
         if isSwapOrFuture {
             paramsSwapOrFuture = paramsPositionSide;
         }
@@ -7148,7 +7145,7 @@ impl Okx {
         if spot {
             if margin {
                 let defaultCurrency: String = (if (side == Some("buy")) { (market).quote.clone() } else { (market).base.clone() });
-                let currency: Option<String> = self.safe_string_k_opt(params, "ccy", &[&defaultCurrency]);
+                let currency: Option<String> = self.safe_string_k_opt(&params, "ccy", &[&defaultCurrency]);
                 request.insert("ccy".into(), self.safe_currency_code(currency.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
             }
             let tradeMode: Option<String> = (if (margin) { marginMode.clone() } else { Some("cash".to_string()) });
@@ -7408,7 +7405,7 @@ impl Okx {
             }
         }  else {
             request.insert("clOrdId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            orderParams = self.omit_t(Value::Dict(orderParams), &["clOrdId", "clientOrderId"], &[]);
+            orderParams = self.omit_t(orderParams, &["clOrdId", "clientOrderId"], &[]);
         }
         return self.extend_t(Value::Map(request), &[&orderParams]);
 }
@@ -12189,7 +12186,7 @@ impl Okx {
             let symbolMarket: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&symbolMarket));
             request.insert("instId".into(), Value::from((symbolMarket).id.as_deref()));
-            request.insert("instType".into(), self.convert_to_instrument_type((Value::from((symbolMarket).market_type.clone())).as_str()).map(Value::from).unwrap_or(Value::Null));
+            request.insert("instType".into(), self.convert_to_instrument_type((Value::from((symbolMarket).market_type)).as_str()).map(Value::from).unwrap_or(Value::Null));
         }
         if (since.is_some()) {
             request.insert("begin".into(), Value::from(since));
@@ -12688,7 +12685,7 @@ impl Okx {
         //
         let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let chain: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw]));
         Value::Null
         }).await?))
     }
@@ -13489,7 +13486,7 @@ impl Okx {
             }));
         }
         }
-        return self.parse_long_short_ratio_history(Value::from(result), &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_long_short_ratio_history(Value::from(result), &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -13498,7 +13495,7 @@ impl Okx {
         let timestamp: Option<i64> = self.safe_integer_k(info, "timestamp", &[]).as_i64();
         let mut symbol: Option<String> = None;
         if (market.is_some()) {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+            symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();

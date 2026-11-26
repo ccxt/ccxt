@@ -2681,10 +2681,7 @@ impl Deepcoin {
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         /*
          * @method
          * @ignore
@@ -2708,9 +2705,9 @@ impl Deepcoin {
             }
         }
         if isTriggerOrder {
-            return self.create_trigger_order_request(symbol, Some(type_var), Some(side), amount, price, &[&params]);
+            return self.create_trigger_order_request(symbol, Some(type_var), Some(side), amount, price, &[&Value::from(&params)]);
         }  else {
-            return self.create_regular_order_request(symbol, Some(type_var), Some(side), amount, price, &[&params]);
+            return self.create_regular_order_request(symbol, Some(type_var), Some(side), amount, price, &[&Value::Dict(params)]);
         }
 }
 
@@ -3696,7 +3693,7 @@ impl Deepcoin {
             if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " editOrder() is not supported for spot markets")));
             }
-            symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
+            symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         let stopLossPrice: Option<f64> = self.safe_number_k(&params, "stopLossPrice", &[]).as_f64();
         let takeProfitPrice: Option<f64> = self.safe_number_k(&params, "takeProfitPrice", &[]).as_f64();
@@ -4187,7 +4184,7 @@ impl Deepcoin {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_funding_rate_histories(&rows, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&rows, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }

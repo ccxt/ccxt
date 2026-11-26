@@ -300,10 +300,10 @@ impl crate::exchange::DerivedExchange for Xt {
             }
         }
         let timestamp: Option<i64> = self.safe_integer_n(&trade, Value::from(vec![Value::Str("t".into()), Value::Str("time".into()), Value::Str("timestamp".into())]), &[]).as_i64();
-        let quantity: Option<String> = self.safe_string2_opt(&trade, Value::Str("q".into()), Value::Str("quantity".into()), &[]);
+        let mut quantity: Option<String> = self.safe_string2_opt(&trade, Value::Str("q".into()), Value::Str("quantity".into()), &[]);
         let mut amount: Option<String> = None;
         if (marketType.as_deref() == Some("spot")) {
-            amount = quantity.clone();
+            amount = quantity.take();
         }  else {
             if (quantity.is_none()) {
                 amount = crate::precise::Precise::stringMul(&self.safe_string_k(&trade, "a", &[]), &Value::from(self.number_to_string(crate::value::KeyRead::key_read(&&marketResolved, "contractSize")))).as_str().map(str::to_owned);
@@ -4738,7 +4738,7 @@ impl Xt {
         if (type_var == "market") {
             timeInForce = self.safe_string_upper_k_opt(&paramsMarginMode, "timeInForce", &[Value::Str("FOK".into())]);
             if (side == "buy") {
-                let cost: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "cost", &[]);
+                let mut cost: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "cost", &[]);
                 let createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(&self.options, "createMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).unwrap_or(true);
                 if createMarketBuyOrderRequiresPrice {
                     if (price.is_none()) && (cost.is_none()) {
@@ -4750,7 +4750,7 @@ impl Xt {
                         if (price.is_some()) {
                             costCalculated = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         }  else {
-                            costCalculated = cost.clone();
+                            costCalculated = cost.take();
                         }
                         request.insert("quoteQty".into(), Value::from(self.cost_to_precision(Some(symbol), costCalculated.map(Value::from).unwrap_or(Value::Null))));
                     }

@@ -1008,7 +1008,7 @@ impl Mercado {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_coin_orderbook(&[&__ws_arg_0]).await.unwrap_or_default();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[]));
         Value::Null
         }).await?))
     }

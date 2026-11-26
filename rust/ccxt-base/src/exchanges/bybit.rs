@@ -8104,7 +8104,7 @@ impl Bybit {
         let mut category: Option<String> = None;
         { let __destr_tmp = self.get_bybit_type("createOrderRequest", Some(&market), &[&Value::from(&query)]); category = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
         request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
-        let cost: Option<String> = self.safe_string_k_opt(&query, "cost", &[]);
+        let mut cost: Option<String> = self.safe_string_k_opt(&query, "cost", &[]);
         query = self.omit_t(&query, Value::Str("cost".into()), &[]);
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         let isMarketBuyAndCostInferable: bool = (lowerCaseType.as_deref() == Some("market")) && (side == Some("buy")) && ((price.is_some()) || (cost.is_some()));
@@ -8115,7 +8115,7 @@ impl Bybit {
                 request.insert("marketUnit".into(), Value::Str("quoteCoin".into()));
                 let mut orderCost: Option<String> = None;
                 if (cost.is_some()) {
-                    orderCost = cost.clone();
+                    orderCost = cost.take();
                 }  else {
                     orderCost = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                 }
@@ -8326,10 +8326,7 @@ impl Bybit {
     pub fn edit_order_request(&self, id: Option<&str>, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
         let amount = get_arg(optional_args, 0, Value::Null);
         let price = get_arg(optional_args, 1, Value::Null);
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -8348,7 +8345,7 @@ impl Bybit {
         }  else {
             request.insert("orderLinkId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let categoryparamsValueVariable = self.get_bybit_type("editOrderRequest", Some(&market), &[&params]);
+        let categoryparamsValueVariable = self.get_bybit_type("editOrderRequest", Some(&market), &[&Value::Dict(params)]);
         let category: Option<String> = categoryparamsValueVariable.0.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = categoryparamsValueVariable.1;
         request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
@@ -12901,7 +12898,7 @@ impl Bybit {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let resultList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
         let chain: crate::value::Dict = resultList.get(0).cloned().unwrap_or_default();
-        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&chain), None, &[(market).raw]));
         Value::Null
         }).await?))
     }
@@ -13623,7 +13620,7 @@ impl Bybit {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::List = self.safe_list_k_t(&result, "list");
-        return self.parse_long_short_ratio_history(Value::Arr(data), &[(market).raw.clone()]);
+        return self.parse_long_short_ratio_history(Value::Arr(data), &[(market).raw]);
         Value::Null
         }).await?))
     }

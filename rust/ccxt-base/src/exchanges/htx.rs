@@ -8839,7 +8839,7 @@ impl Htx {
         });
         let mut orderType: Option<String> = (if let Some(__s) = typeStr.as_deref() { Some(__s.replace("buy-", "")) } else { None });
         orderType = (if let Some(__s) = orderType.as_deref() { Some(__s.replace("sell-", "")) } else { None });
-        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from((market).market_type.clone()));
+        let options: crate::value::Dict = self.safe_dict_t(&self.options, Value::from((market).market_type));
         let triggerPrice: Option<String> = self.safe_string_n_opt(Value::from(&paramsMarginMode), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop-price".into())]), &[]);
         if (triggerPrice.is_none()) {
             let stopOrderTypes: crate::value::Dict = self.safe_dict_k_t(&options, "stopOrderTypes");
@@ -9628,7 +9628,7 @@ impl Htx {
                 response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[&__ws_arg_82]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                query = self.omit_t(Value::Dict(query), &["client-order-id", "clientOrderId"], &[]);
+                query = self.omit_t(query, &["client-order-id", "clientOrderId"], &[]);
                 let __ws_arg_83 = self.extend(Value::Map(request), &[&query]);
                 response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[&__ws_arg_83]).await;
             }
@@ -9642,7 +9642,7 @@ impl Htx {
                     request.insert("order_id".into(), id.clone());
                 }  else {
                     request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                    query = self.omit_t(Value::Dict(query), &["client_order_id", "clientOrderId"], &[]);
+                    query = self.omit_t(query, &["client_order_id", "clientOrderId"], &[]);
                 }
             }
             if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -9659,10 +9659,10 @@ impl Htx {
                     });
                     if (clientOrderId.is_none()) {
                         requestItem.insert("algo_id".into(), id.clone());
-                        query = self.omit_t(Value::Dict(query), Value::Str("algo_id".into()), &[]);
+                        query = self.omit_t(query, Value::Str("algo_id".into()), &[]);
                     }  else {
                         requestItem.insert("algo_client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                        query = self.omit_t(Value::Dict(query), &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]);
+                        query = self.omit_t(query, &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]);
                     }
                     let requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
                     response = self.contract_private_post_v5_algo_cancel_orders(&[&requestBody]).await;
@@ -9833,7 +9833,7 @@ impl Htx {
                 request.insert("order-ids".into(), ids);
             }  else {
                 request.insert("client-order-ids".into(), clientOrderIds);
-                query = self.omit_t(Value::Dict(query), &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
+                query = self.omit_t(query, &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
             }
             let __ws_arg_94 = self.extend(Value::Map(request), &[&query]);
             response = self.spot_private_post_v1_order_orders_batchcancel(&[&__ws_arg_94]).await;
@@ -9843,7 +9843,7 @@ impl Htx {
             }
             let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
             clientOrderIds = self.safe_value2(&query, Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
-            query = self.omit_t(Value::Dict(query), &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]);
+            query = self.omit_t(query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]);
             if !matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     request.insert("order_id".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -11458,7 +11458,7 @@ impl Htx {
             response = self.contract_private_post_api_v3_contract_financial_record_exact(&[&__ws_arg_134]).await;
         }
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_incomes(&data, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_incomes(&data, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }

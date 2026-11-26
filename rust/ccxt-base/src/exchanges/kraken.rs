@@ -3299,10 +3299,7 @@ impl Kraken {
 
 
     pub fn order_request(&self, method: &str, symbol: Option<&str>, type_var: Option<&str>, mut request: Value, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId"], &[]);
         if (clientOrderId.is_some()) {
@@ -3504,7 +3501,7 @@ impl Kraken {
         let allTriggerPrices: Option<String> = self.safe_string_n_opt(&paramsOmitted, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()), Value::Str("trailingLimitPercent".into())]), &[]);
         if (allTriggerPrices.is_some()) {
             let offset: Option<String> = self.safe_string_k_opt(&paramsOmitted, "offset", &[]);
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"], &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"], &[]);
             if (offset.is_some()) {
                 request.insert("trigger_price".into(), Value::Str(format!("{}{}", offset.as_deref().unwrap_or("null"), allTriggerPrices.as_deref().unwrap_or("null")).into()));
             }  else {
@@ -4110,7 +4107,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let clientOrderId: Option<String> = self.safe_string_k_opt(&paramsOmitted, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("clientOrderId".into()), &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, Value::Str("clientOrderId".into()), &[]);
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_open_orders(&[&__ws_arg_20]).await.unwrap_or_default();
@@ -4222,7 +4219,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let clientOrderId: Option<String> = self.safe_string_k_opt(&paramsOmitted, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             std::sync::Arc::make_mut(&mut request).insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("clientOrderId".into()), &[]);
+            paramsOmitted = self.omit_t(paramsOmitted, Value::Str("clientOrderId".into()), &[]);
         }
         { let (__until0, __until1) = self.handle_until_option(Value::Str("end".into()), Value::Dict(request), &paramsOmitted, &[]); request = __until0; paramsOmitted = __until1; }
         let __ws_arg_21 = self.extend(request, &[&paramsOmitted]);

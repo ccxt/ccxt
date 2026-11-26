@@ -2587,7 +2587,7 @@ impl Derive {
         let response: crate::value::Dict = self.public_post_get_ticker(&[&__ws_arg_5]).await.unwrap_or_default();
         // the response sample is listed in fetchGreeks, both methods read the same endpoint
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return Value::Dict(self.parse_option(Some(&result), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&result), None, &[(market).raw]));
         Value::Null
         }).await?))
     }
@@ -2996,7 +2996,7 @@ impl Derive {
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        result = self.sort_by2(result, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }

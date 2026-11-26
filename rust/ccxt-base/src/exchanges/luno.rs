@@ -1534,7 +1534,7 @@ impl Luno {
             response = self.call_method_o("public_get_orderbook", &[&__ws_arg_3]).await;
         }
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]));
         Value::Null
         }).await?))
     }

@@ -3509,7 +3509,7 @@ impl Poloniex {
                 let mut createMarketBuyOrderRequiresPrice: bool = true;
                 { let __destr_tmp = self.handle_option_bool_and_params(&queryOmitted, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.0 == Some(true); queryOmitted = __destr_tmp.1; }
                 let cost: Option<f64> = self.safe_number_k(&queryOmitted, "cost", &[]).as_f64();
-                queryOmitted = self.omit_t(Value::Dict(queryOmitted), Value::Str("cost".into()), &[]);
+                queryOmitted = self.omit_t(queryOmitted, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
                     quoteAmount = self.cost_to_precision(Some(symbol), cost);
                 }  else if createMarketBuyOrderRequiresPrice && (market).spot {
@@ -3556,7 +3556,7 @@ impl Poloniex {
                 clientOrderIdKey = "clientOrderId".to_string();
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey, clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
-            queryOmitted = self.omit_t(Value::Dict(queryOmitted), &["clientOrderId", "clOrdId"], &[]);
+            queryOmitted = self.omit_t(queryOmitted, &["clientOrderId", "clOrdId"], &[]);
         }
         return (result.into_dict(), queryOmitted);
 }
@@ -4443,14 +4443,14 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress(): can not recognize ").into()), Value::from(code)).into()), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")));
         }
         let mut currency: crate::types::Currency = self.currency(Some(code));
-        let mut networkCode: Option<String> = None;
-        let mut query: crate::value::Dict = Default::default();
-        { let __destr_tmp = self.handle_network_code_and_params(params); networkCode = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
-        if (networkCode.is_none()) {
+        let networkCodeRawqueryVariable = self.handle_network_code_and_params(params);
+        let networkCodeRaw: Option<String> = networkCodeRawqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = networkCodeRawqueryVariable.1;
+        if (networkCodeRaw.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress requires a network parameter for ").into()), Value::from(code)).into()), ".")));
         }
         let mut exchangeNetworkId: Option<String> = None;
-        networkCode = self.network_id_to_code(networkCode.as_deref(), Some(code));
+        let networkCode: Option<String> = self.network_id_to_code(networkCodeRaw.as_deref(), Some(code));
         let networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(crate::value::KeyRead::key_read(&&currency, "networks"), Value::from(networkCode.as_deref()), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = self.safe_string_k_opt(&networkEntry, "id", &[]);

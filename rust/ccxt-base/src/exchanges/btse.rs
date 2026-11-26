@@ -2055,7 +2055,7 @@ impl Btse {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&data, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
+        return Value::Dict(self.parse_order_book(&data, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]));
         Value::Null
         }).await?))
     }
@@ -2136,7 +2136,7 @@ impl Btse {
         if (until.is_none()) {
             return self.parse_funding_rate_histories(&data, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
         }
-        let rates: Vec<Value> = self.parse_funding_rate_histories(&data, &[(market).raw.clone(), Value::from(since), Value::from(limit)]).as_array().cloned().unwrap_or_default();
+        let rates: Vec<Value> = self.parse_funding_rate_histories(&data, &[(market).raw, Value::from(since), Value::from(limit)]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3109,7 +3109,7 @@ impl Btse {
             let mut createMarketBuyOrderRequiresPrice: bool = true;
             { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.0 == Some(true); query = __destr_tmp.1; }
             let cost: Option<String> = self.safe_string_k_opt(&query, "cost", &[]);
-            query = self.omit_t(Value::Dict(query), Value::Str("cost".into()), &[]);
+            query = self.omit_t(query, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(Some(symbol), cost.map(Value::from).unwrap_or(Value::Null));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -3192,7 +3192,7 @@ impl Btse {
                 request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Some(symbol), triggerPriceToSend.map(Value::from).unwrap_or(Value::Null))));
                 let triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                 request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                query = self.omit_t(Value::Dict(query), &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
+                query = self.omit_t(query, &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
                 request.insert("orderType".into(), Value::from(typeValue.as_str()));
                 if (typeValue == "OCO") {
@@ -3209,7 +3209,7 @@ impl Btse {
                     }
                     let triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("stopLossTriggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit_t(Value::Dict(query), &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
+                    query = self.omit_t(query, &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
                 }  else if (typeValue == "PEG") {
                     // the required stealth and optional deviation params pass through
                     request.insert("orderPrice".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(price))));
@@ -3225,7 +3225,7 @@ impl Btse {
                     }
                     let triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit_t(Value::Dict(query), &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
+                    query = self.omit_t(query, &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
                 }
             }
             let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
@@ -3354,7 +3354,7 @@ impl Btse {
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(stopLossTriggerPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            query = self.omit_t(Value::Dict(query), &["takeProfit", "stopLoss"], &[]);
+            query = self.omit_t(query, &["takeProfit", "stopLoss"], &[]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if !isAlgoOrder {
@@ -3406,7 +3406,7 @@ impl Btse {
                 if isLimitOrder {
                     request.insert("orderPrice".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(price))));
                 }
-                query = self.omit_t(Value::Dict(query), &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
+                query = self.omit_t(query, &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
                 request.insert("orderType".into(), Value::from(typeValue.as_str()));
                 if (typeValue == "OCO") {
@@ -3423,7 +3423,7 @@ impl Btse {
                     }
                     let triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit_t(Value::Dict(query), &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
+                    query = self.omit_t(query, &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
                 }  else if (typeValue == "PEG") {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
@@ -3442,7 +3442,7 @@ impl Btse {
                     }
                     let triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("trailTriggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit_t(Value::Dict(query), &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
+                    query = self.omit_t(query, &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
                 }
             }
             let __ws_arg_15 = self.extend(Value::Map(request), &[&query]);

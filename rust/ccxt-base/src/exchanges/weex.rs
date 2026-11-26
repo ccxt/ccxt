@@ -3412,7 +3412,7 @@ impl Weex {
         let paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
         let response: crate::value::List = self.contract_get_capi_v3_market_funding_rate(&[&__ws_arg_14]).await.unwrap_or_default();
-        return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&response, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -3693,10 +3693,7 @@ impl Weex {
 }
 
     pub fn create_spot_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }

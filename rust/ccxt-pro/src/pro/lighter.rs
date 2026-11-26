@@ -1013,7 +1013,7 @@ impl Lighter {
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             m
         });
-        let messageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
+        let messageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol)]);
         let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
         let trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_10]).await.into();
         return Value::Arr(self.filter_by_since_limit(&trades, since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
@@ -1047,7 +1047,7 @@ impl Lighter {
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("trade/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             m
         });
-        let subMessageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
+        let subMessageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol)]);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_11]).await;
