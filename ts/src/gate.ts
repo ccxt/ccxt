@@ -2124,7 +2124,8 @@ export default class gate extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         let type: Str = 'crypto';
-        if (this.isLeveragedCurrency (currencyId)) {
+        const leveragedId: string = this.safeString (rawCurrency, 'currency', '');
+        if (this.isLeveragedCurrency (leveragedId)) {
             type = 'leveraged';
         }
         const chains: Dict[] = this.safeList (rawCurrency, 'chains', []);

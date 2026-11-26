@@ -7844,7 +7844,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
-    isLeveragedCurrency (currencyCode: any, checkBaseCoin: Bool = false, existingCurrencies: NullableDict = undefined): boolean {
+    isLeveragedCurrency (currencyCode: string, checkBaseCoin: Bool = false, existingCurrencies: NullableDict = undefined): boolean {
         const leverageSuffixes = [
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
             'UP', 'DOWN', // exchange-specific (e.g. BLVT)
