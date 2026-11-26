@@ -560574,7 +560574,8 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */ async unsubscribePublic(url, topic, messageHash, symbol, request = {}, params = {}) {
-        const wsUrl = this.safeString(this.urls['api']['ws'], 'public');
+        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const wsUrl = this.safeString(wsUrls, 'public');
         if (wsUrl === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' unsubscribePublic() has no public websocket url');
         }
@@ -560619,7 +560620,7 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
         this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache(subscription);
         const requestId = this.safeString(subscription, 'id', '');
-        if (requestId in client.subscriptions) {
+        if (this.safeDict(client.subscriptions, requestId) !== undefined) {
             delete client.subscriptions[requestId];
         }
     }
@@ -560655,12 +560656,18 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
      * @returns {any} status of the unwatch request
      */ async unsubscribePrivate(topic, subscribeHash, request = {}, params = {}) {
-        const url = this.urls['api']['ws']['private'];
+        const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
+        const url = this.safeString(wsUrls, 'private');
+        if (url === undefined) {
+            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' unsubscribePrivate() has no private websocket url');
+        }
         const token = await this.handleToken();
         const cookies = {
             'JWT_COOKIE': token
         };
-        this.options['ws']['cookies'] = cookies;
+        const wsDict = this.safeDict(this.options, 'ws', {});
+        wsDict['cookies'] = cookies;
+        this.options['ws'] = wsDict;
         const tradingAccountId = this.safeString(params, 'tradingAccountId');
         let paramsOmitted = params;
         let requestParams = request;
@@ -561469,7 +561476,7 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const messageId = this.safeString(message, 'id');
-        if (messageId === undefined || !(messageId in client.subscriptions)) {
+        if (messageId === undefined) {
             return;
         }
         const subscription = this.safeDict(client.subscriptions, messageId);
@@ -561501,7 +561508,7 @@ class bullish extends _bullish_js__rspack_import_0/* ["default"] */.A {
                 this.handlePong(client, message);
             }
             const messageId = this.safeString(message, 'id');
-            if (messageId !== undefined && messageId in client.subscriptions) {
+            if (messageId !== undefined) {
                 const subscription = this.safeDict(client.subscriptions, messageId);
                 if (subscription !== undefined && this.safeBool(subscription, 'unsubscribe', false)) {
                     this.handleUnSubscription(client, subscription);
