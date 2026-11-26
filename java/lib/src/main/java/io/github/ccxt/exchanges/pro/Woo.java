@@ -383,7 +383,11 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     private Void fetchOrderBookSnapshotCore(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
 
-        String symbol = this.safeString(subscription, "symbol");
+        String symbol = this.safeString(subscription, "symbol", "");
+        if (java.util.Objects.equals(symbol, ""))
+        {
+            return null;
+        }
         String messageHash = this.safeString(message, "topic");
         try
         {
@@ -416,10 +420,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     this.handleOrderBookMessage(client, messageItem, (io.github.ccxt.ws.WsOrderBook) (orderbook));
                 }
             }
-            if (!java.util.Objects.equals(symbol, null))
-            {
-                this.orderbooks.put(symbol, orderbook);
-            }
+            this.orderbooks.put(symbol, orderbook);
             client.resolve(orderbook, messageHash);
         } catch(Exception e)
         {

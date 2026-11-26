@@ -4954,7 +4954,7 @@ public class Paradex extends ParadexApi
             Long paginationCalls = (Long) ((List<Object>) paginationCallsparamsCallsVariable).get(0);
             Map<String, Object> paramsCalls = (Map<String, Object>) ((List<Object>) paginationCallsparamsCallsVariable).get(1);
             Long until = this.safeInteger(paramsCalls, "until");
-            Long pageSpan = this.parseToInt(Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing));
+            Long pageSpan = this.parseToInt(((paginationCalls == null) ? null : (paginationCalls * 25000000L))); // 5000 rows per page * 5000ms rowSpacing
             Long sinceEnd = this.sum(since, pageSpan);
             Long endAt = this.milliseconds();
             if ((endAt != null && (sinceEnd == null || sinceEnd < endAt)))

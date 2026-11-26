@@ -1344,7 +1344,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public String parseOutcomeInputSideHint(String outcomeInput)
     {
-        if ((java.util.Objects.equals(outcomeInput, null)) || (java.util.Objects.equals(outcomeInput, "")))
+        if (java.util.Objects.equals(outcomeInput, ""))
         {
             return null;
         }
