@@ -24,16 +24,21 @@ func newBullish() *Bullish {
 func (this *Bullish) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
-			"ws":             true,
-			"watchTicker":    true,
-			"watchTickers":   false,
-			"watchOrderBook": true,
-			"watchOrders":    true,
-			"watchTrades":    true,
-			"watchPositions": true,
-			"watchMyTrades":  true,
-			"watchBalance":   true,
-			"watchOHLCV":     false,
+			"ws":               true,
+			"watchTicker":      true,
+			"watchTickers":     false,
+			"watchOrderBook":   true,
+			"unWatchOrderBook": true,
+			"watchOrders":      true,
+			"unWatchOrders":    true,
+			"watchTrades":      true,
+			"unWatchTrades":    true,
+			"watchPositions":   true,
+			"unWatchPositions": true,
+			"watchMyTrades":    true,
+			"unWatchMyTrades":  true,
+			"watchBalance":     true,
+			"watchOHLCV":       false,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -124,6 +129,98 @@ func (this *Bullish) watchPublicBody(ch chan ccxt.AsyncResult[any], url string, 
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
+
+/**
+ * @ignore
+ * @method
+ * @name bullish#unsubscribePublic
+ * @description sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
+ * @param {string} url path of the public websocket endpoint the subscription was opened on
+ * @param {string} topic unified cache topic: trades, orderbook
+ * @param {string} messageHash message hash the subscription was opened with
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} request exchange-specific topic and symbol of the subscription
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnsubscribePublicAsync(url string, topic string, messageHash string, symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unsubscribePublicBody(ch, url, topic, messageHash, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], url string, topic string, messageHash string, symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = request
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
+	var wsUrl *string = this.SafeString(wsUrls, "public")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " unsubscribePublic() has no public websocket url"))
+	}
+	var requestId string = strconv.FormatInt(this.RequestId(), 10)
+	var message map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"type":    "command",
+		"method":  "unsubscribe",
+		"params":  request,
+		"id":      requestId,
+	}
+	var unsubHash string = "unsubscribe::" + messageHash
+	var symbols []any = []any{symbol}
+	// the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+	var subscription map[string]any = map[string]any{
+		"unsubscribe":    true,
+		"id":             requestId,
+		"topic":          topic,
+		"symbols":        symbols,
+		"subMessageHash": messageHash,
+		"messageHash":    unsubHash,
+	}
+
+	r := <-this.Watch(*wsUrl+url, unsubHash, this.DeepExtend(message, params), requestId, subscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+func (this *Bullish) HandleUnSubscription(client ccxt.ClientInterface, subscription map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": "2",
+	//         "result": {
+	//             "responseCode": "200",
+	//             "responseCodeName": "OK",
+	//             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+	//         }
+	//     }
+	//
+	var subHash *string = this.SafeString(subscription, "subMessageHash")
+	var unsubHash *string = this.SafeString(subscription, "messageHash")
+	var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)
+	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, subHashIsPrefix)
+	this.CleanCache(subscription)
+	var requestId string = *this.SafeString(subscription, "id", "")
+	if this.SafeDictMap(client.SubscriptionsSnapshot(), requestId) != nil {
+		client.SubscriptionDel(requestId)
+	}
+}
 func (this *Bullish) WatchPrivateAsync(messageHash string, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, messageHash, subscribeHash, optionalArgs...)
@@ -169,6 +266,88 @@ func (this *Bullish) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	result := r1.Value
 
 	ch <- ccxt.AsyncResult[any]{Value: result}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name bullish#unsubscribePrivate
+ * @description sends an unsubscribe command for one private topic and registers the pending unsubscription under the request id
+ * @param {string} topic unified cache topic: orders, myTrades, positions
+ * @param {string} subscribeHash hash the subscription was opened with, per-symbol message hashes start with it
+ * @param {object} request exchange-specific topic of the subscription
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnsubscribePrivateAsync(topic string, subscribeHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unsubscribePrivateBody(ch, topic, subscribeHash, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unsubscribePrivateBody(ch chan ccxt.AsyncResult[any], topic string, subscribeHash string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var request map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = request
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var wsUrls map[string]any = this.UrlsApiSections["ws"]
+	var url *string = this.SafeString(wsUrls, "private")
+	if url == nil {
+		panic(ccxt.ExchangeError(this.Id + " unsubscribePrivate() has no private websocket url"))
+	}
+
+	r := <-this.HandleTokenAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var token *string = r.Value
+	var cookies map[string]any = map[string]any{
+		"JWT_COOKIE": token,
+	}
+	var wsDict map[string]any
+	wsDict, _ = this.Options["ws"].(map[string]any)
+	if wsDict == nil {
+		wsDict = map[string]any{}
+	}
+	wsDict["cookies"] = cookies
+	this.Options["ws"] = wsDict
+	var tradingAccountId *string = this.SafeString(params, "tradingAccountId")
+	var paramsOmitted map[string]any = params
+	var requestParams map[string]any = request
+	if tradingAccountId != nil {
+		var accountRequest map[string]any = map[string]any{
+			"tradingAccountId": tradingAccountId,
+		}
+		paramsOmitted = this.OmitDict(params, "tradingAccountId")
+		requestParams = this.Extend(request, accountRequest)
+	}
+	var requestId string = strconv.FormatInt(this.RequestId(), 10)
+	var message map[string]any = map[string]any{
+		"jsonrpc": "2.0",
+		"type":    "command",
+		"method":  "unsubscribe",
+		"params":  requestParams,
+		"id":      requestId,
+	}
+	var unsubHash string = "unsubscribe::" + subscribeHash
+	// the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+	var subscription map[string]any = map[string]any{
+		"unsubscribe":     true,
+		"id":              requestId,
+		"topic":           topic,
+		"subMessageHash":  subscribeHash,
+		"subHashIsPrefix": true,
+		"messageHash":     unsubHash,
+	}
+
+	r1 := <-this.Watch(url, unsubHash, this.DeepExtend(message, paramsOmitted), requestId, subscription)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
 
@@ -223,6 +402,50 @@ func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name bullish#unWatchTrades
+ * @description unsubscribes from the trades channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
+	var marketId *string = this.SafeString(market, "id", "")
+	var messageHash string = "trades::" + marketSymbol
+	var url string = "/trading-api/v1/market-data/trades"
+	var request map[string]any = map[string]any{
+		"topic":  "anonymousTrades",
+		"symbol": marketId,
+	}
+
+	r1 := <-this.UnsubscribePublicAsync(url, "trades", messageHash, marketSymbol, request, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
 func (this *Bullish) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
@@ -431,6 +654,50 @@ func (this *Bullish) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
+
+/**
+ * @method
+ * @name bullish#unWatchOrderBook
+ * @description unsubscribes from the orderbook channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
+	var marketId *string = this.SafeString(market, "id", "")
+	var messageHash string = "orderbook::" + marketSymbol
+	var url string = "/trading-api/v1/market-data/orderbook"
+	var request map[string]any = map[string]any{
+		"topic":  "l2Orderbook",
+		"symbol": marketId,
+	}
+
+	r1 := <-this.UnsubscribePublicAsync(url, "orderbook", messageHash, marketSymbol, request, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+	return nil
+}
 func (this *Bullish) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
@@ -570,6 +837,59 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name bullish#unWatchOrders
+ * @description unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchOrders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOrdersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var request map[string]any = map[string]any{
+		"topic": "orders",
+	}
+
+	r1 := <-this.UnsubscribePrivateAsync("orders", "orders", request, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
 func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	// snapshot
 	//     {
@@ -639,11 +959,11 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 		var orders ccxt.WsArrayCache = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawOrders); i++ {
-			rawOrdersDict47953, _ := rawOrders[i].(map[string]any)
-			if rawOrdersDict47953 == nil {
-				rawOrdersDict47953 = map[string]any{}
+			rawOrdersDict67453, _ := rawOrders[i].(map[string]any)
+			if rawOrdersDict67453 == nil {
+				rawOrdersDict67453 = map[string]any{}
 			}
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict47953))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict67453))
 			orders.Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {
@@ -735,6 +1055,59 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name bullish#unWatchMyTrades
+ * @description unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchMyTrades
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchMyTradesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchMyTradesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
+	_ = symbol
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var request map[string]any = map[string]any{
+		"topic": "trades",
+	}
+
+	r1 := <-this.UnsubscribePrivateAsync("myTrades", "myTrades", request, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Bullish) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
@@ -1040,6 +1413,59 @@ func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name bullish#unWatchPositions
+ * @description unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string[]} [symbols] not used by bullish unWatchPositions
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchPositionsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bullish) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var request map[string]any = map[string]any{
+		"topic": "derivativesPositionsV2",
+	}
+
+	r1 := <-this.UnsubscribePrivateAsync("positions", "positions", request, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
 func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	// exchange does not return messages for sandbox mode
 	// current method is implemented blindly
@@ -1062,11 +1488,11 @@ func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[st
 	var positions ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		rawPositionsDict76649, _ := rawPositions[i].(map[string]any)
-		if rawPositionsDict76649 == nil {
-			rawPositionsDict76649 = map[string]any{}
+		rawPositionsDict100149, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict100149 == nil {
+			rawPositionsDict100149 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict76649))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict100149))
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}
@@ -1128,14 +1554,79 @@ func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map
 	}
 	return false
 }
+func (this *Bullish) HandleUnSubscriptionError(client ccxt.ClientInterface, message map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "id": "1",
+	//         "error": {
+	//             "code": "-32602",
+	//             "errorCode": "29013",
+	//             "errorCodeName": "'abcde' is not a valid topic"
+	//         }
+	//     }
+	//
+	var messageId *string = this.SafeString(message, "id")
+	if messageId == nil {
+		return
+	}
+	var subscription map[string]any = client.SubscriptionDict(messageId)
+	if (subscription == nil) || !(*this.SafeBool(subscription, "unsubscribe", false)) {
+		return
+	}
+	// the subscription stays active, only the pending unsubscription is dropped and rejected
+	client.SubscriptionDel(messageId)
+	var unsubHash *string = this.SafeString(subscription, "messageHash")
+	var errorResponse map[string]any
+	errorResponse, _ = message["error"].(map[string]any)
+	if errorResponse == nil {
+		errorResponse = map[string]any{}
+	}
+	var feedback string = this.Id + " " + this.Json(errorResponse)
+
+	{
+		func(this *Bullish) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *Bullish) any {
+						// catch block:
+						client.Reject(e, unsubHash)
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var errorCode *string = this.SafeString(errorResponse, "errorCode")
+			var errorCodeName *string = this.SafeString(errorResponse, "errorCodeName")
+			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCodeName, feedback)
+			panic(ccxt.ExchangeError(feedback))
+
+		}(this)
+
+	}
+}
 func (this *Bullish) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")
 	var result, _ = message["result"].(map[string]any)
+	var errorResponse, _ = message["error"].(map[string]any)
 	if result != nil {
 		var response *string = this.SafeString(result, "message")
 		if response != nil && *response == "Keep alive pong" {
 			this.HandlePong(client, message)
 		}
+		var messageId *string = this.SafeString(message, "id")
+		if messageId != nil {
+			var subscription map[string]any = client.SubscriptionDict(messageId)
+			if (subscription != nil) && (*this.SafeBool(subscription, "unsubscribe", false)) {
+				this.HandleUnSubscription(client, subscription)
+			}
+		}
+	} else if errorResponse != nil {
+		this.HandleUnSubscriptionError(client, message)
 	} else if dataType != nil {
 		if dataType != nil && *dataType == "V1TAAnonymousTradeUpdate" {
 			this.HandleTrades(client, message)
@@ -1203,6 +1694,29 @@ func (this *Bullish) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 
 /**
  * @method
+ * @name bullish#unWatchTrades
+ * @description unsubscribes from the trades channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name bullish#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--anonymous-market-data-price-tick-unauthenticated
@@ -1252,6 +1766,29 @@ func (this *Bullish) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 
 /**
  * @method
+ * @name bullish#unWatchOrderBook
+ * @description unsubscribes from the orderbook channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name bullish#watchOrders
  * @description watches information on multiple orders made by the user
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
@@ -1279,6 +1816,30 @@ func (this *Bullish) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 
 /**
  * @method
+ * @name bullish#unWatchOrders
+ * @description unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchOrders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {
+
+	opts := ccxt.UnWatchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
  * @name bullish#watchMyTrades
  * @description watches information on multiple trades made by the user
  * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--private-data-websocket-authenticated
@@ -1302,6 +1863,30 @@ func (this *Bullish) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 	}
 	var res []ccxt.Trade = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name bullish#unWatchMyTrades
+ * @description unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchMyTrades
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**
@@ -1346,4 +1931,28 @@ func (this *Bullish) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]cc
 	}
 	var res []ccxt.Position = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name bullish#unWatchPositions
+ * @description unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string[]} [symbols] not used by bullish unWatchPositions
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+func (this *Bullish) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) (any, error) {
+
+	opts := ccxt.UnWatchPositionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchPositionsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
