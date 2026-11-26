@@ -9216,6 +9216,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'handleMarginModeAndParams': [0],
     'signEvmTransaction': [1],
     'createSubAccount': [0],
+    'isLeveragedCurrency': [0],
 };
 
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
@@ -15147,7 +15148,30 @@ function javaSubtractDeclaredLong (printer, node) {
     if (ts.isBindingElement (declaration)) {
         return HANDLE_TYPED_BINDINGS.get (declaration) === 'Long' && printer.javaNullGuardAdmitsRead (node);
     }
-    return javaSubtractNonNullLongLocal (printer, declaration);
+    return javaSubtractNonNullLongLocal (printer, declaration) || javaSubtractGuardedLongLocal (printer, node, declaration);
+}
+
+// a rebound `Long` local read in the first statement of `if (x !== undefined) { .. }`, which does not write it
+function javaSubtractGuardedLongLocal (printer, node, declaration) {
+    if (!ts.isVariableDeclaration (declaration) || String (printer.javaDeclaredTypeOfDeclaration (declaration) ?? '').replace (/^final\s+/, '') !== 'Long') {
+        return false;
+    }
+    let statement = node;
+    while (statement !== undefined && !ts.isExpressionStatement (statement)) {
+        statement = statement.parent;
+    }
+    const block = statement?.parent;
+    const guard = block?.parent;
+    if (block === undefined || !ts.isBlock (block) || block.statements[0] !== statement || guard === undefined || !ts.isIfStatement (guard)
+        || guard.thenStatement !== block || enclosingFunction (guard) !== enclosingFunction (declaration)) {
+        return false;
+    }
+    const symbol = printer.getChecker ().getSymbolAtLocation (node);
+    const writes = (identifierIndex (statement).get (node.text) ?? []).some ((n) => n.parent !== undefined && (
+        (ts.isBinaryExpression (n.parent) && n.parent.left === n && n.parent.operatorToken.kind >= ts.SyntaxKind.FirstAssignment
+            && n.parent.operatorToken.kind <= ts.SyntaxKind.LastAssignment)
+        || ts.isPrefixUnaryExpression (n.parent) || ts.isPostfixUnaryExpression (n.parent)));
+    return symbol !== undefined && !writes && printer.javaTestProvesNonNull (guard.expression, symbol, true);
 }
 
 // a never-rebound local printed `Long x = <non-null Long>` (or `x == null ? <int> : x`)
