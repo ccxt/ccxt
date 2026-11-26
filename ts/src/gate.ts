@@ -2473,9 +2473,8 @@ export default class gate extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork (code, paramsNetworkCode);
-        const chainsIndexedById: Dict = chainsIndexedByIdRaw;
-        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks (code, networkCode, chainsIndexedById, true);
-        return this.safeDict (chainsIndexedById, selectedNetworkIdOrCode) as DepositAddress;
+        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks (code, networkCode, chainsIndexedByIdRaw, true);
+        return this.safeDict (chainsIndexedByIdRaw, selectedNetworkIdOrCode) as DepositAddress;
     }
 
     override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
