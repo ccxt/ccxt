@@ -175,7 +175,7 @@ public partial class BaseExchange
     public object last_response_headers { get; set; }
     public object last_request_headers { get; set; }
     public object last_json_response { get; set; }
-    public object last_http_response { get; set; }
+    public string? last_http_response { get; set; } = null;
 
     private object lastReqBody = null;
     public object last_request_body

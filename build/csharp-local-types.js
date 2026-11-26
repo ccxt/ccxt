@@ -3999,6 +3999,7 @@ const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
     'ws_proxy': 'string?',
     'wssProxy': 'string?',
     'wss_proxy': 'string?',
+    'last_http_response': 'string?',
     'wsSocksProxy': 'string?',
     'ws_socks_proxy': 'string?',
 };
@@ -11245,11 +11246,13 @@ export const CSHARP_STRING_PARAMS = {
     'fetchOrderSupplement': { 1: 'string?' },
     'fetchOrdersHelper': { 0: 'string?' },
     'fetchOrdersRequest': { 0: 'string?' },
+    'fetchOutcome': { 0: 'string?' },
     'fetchPaginatedCallCursor': { 0: 'string', 5: 'string?', 6: 'string?' },
     'fetchPaginatedCallIncremental': { 0: 'string', 1: 'string?', 5: 'string?' },
     'fetchPortfolioDetails': { 0: 'string' },
     'fetchRawTopicDetail': { 0: 'string?' },
     'fetchSpotOrder': { 1: 'string?' },
+    'fetchTradeQuote': { 0: 'string' },
     'fetchUtaOrder': { 1: 'string?' },
     'fetchWallet': { 0: 'string' },
     'fetchWebEndpoint': { 0: 'string', 3: 'string?', 4: 'string?' },
@@ -11327,6 +11330,7 @@ export const CSHARP_STRING_PARAMS = {
     'isFuturesMethod': { 0: 'string' },
     'isHfOrMining': { 0: 'string?', 1: 'string?' },
     'isLinear': { 1: 'string?' },
+    'loadOutcome': { 0: 'string?' },
     'loadQuoteToken': { 0: 'string?' },
     'mapSide': { 0: 'string?' },
     'mapTimeInForce': { 0: 'string?' },
@@ -11339,6 +11343,7 @@ export const CSHARP_STRING_PARAMS = {
     'orderBookSuffix': { 1: 'string' },
     'orderRequestWs': { 0: 'string' },
     'outcomeForToken': { 0: 'string?' },
+    'outcomeSearchQuery': { 0: 'string?' },
     'outcomesByMarketId': { 0: 'string?' },
     'padHexToEven': { 0: 'string?' },
     'parseAccountId': { 0: 'string?' },
@@ -11468,6 +11473,7 @@ export const CSHARP_STRING_PARAMS = {
     'interactivebrokers.ibkrBaseString': { 0: 'string?', 3: 'string?' },
     'polymarket.signMessage': { 1: 'string?' },
     'htx.tryGetSymbolFromFutureMarkets': { 0: 'string?' },
+    'prediction/predictfun.approve': { 0: 'string?' },
 };
 // the table type for a parameter of a listed generated method whose checker type is string-ish
 function csharpStringParamType (csharp, node) {

@@ -103,7 +103,6 @@ public partial class BaseTest
     // typed twin mirroring Exchange.TranspileHelpers.cs (S58): Dictionary<string, object> + string
     // takes InOp's IDictionary branch (a Dictionary is not an IList), ContainsKey behind null guards
     public static bool inOp(Dictionary<string, object> a, string b) => Exchange.InOp(a, b);
-    public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
     public static int getArrayLength(object a) => Exchange.getArrayLength(a);
     // typed twins mirroring Exchange.TranspileHelpers.cs (S58): a generated test operand that is
     // statically List<object>/IList<object> must resolve to the library's own list branch

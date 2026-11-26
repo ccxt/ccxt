@@ -836,26 +836,6 @@ public partial class BaseExchange
         }
     }
 
-    public static int getIndexOf(object str, object target)
-    {
-        if (str is IList<object>)
-        {
-            return ((IList<object>)str).IndexOf(target);
-        }
-        else if (str is IList<string>)
-        {
-            return ((IList<string>)str).IndexOf((string)target);
-        }
-        else if (str is (string))
-        {
-            return ((string)str).IndexOf((string)target);
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
     // Every return path of this helper is the Convert.ToInt64 box or null (the
     // catch), so the signature names that single box instead of `object`. A call site that
     // keeps the value in an object context (a dict slot, a request value, an object local)

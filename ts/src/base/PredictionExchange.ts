@@ -765,7 +765,7 @@ export default class PredictionExchange extends BaseExchange {
      */
     async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            await this.fetchOutcome (outcomeSymbols[i]);
+            await this.fetchOutcome (this.safeString (outcomeSymbols, i, ''));
         }
         return this.outcomes;
     }

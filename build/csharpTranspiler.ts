@@ -5091,7 +5091,8 @@ function declaredReceiverRewriteLine (original: string, masked: string, typeOf, 
         const literal = keyMask.startsWith ('"') && keyMask.endsWith ('"') && (keyMask.indexOf ('"', 1) === keyMask.length - 1);
         const key = /^[A-Za-z_]\w*$/.test (keyMask) ? typeOf (keyMask) : undefined;
         if (helper === 'getIndexOf') {
-            const receiver = typeOf (name);
+            const stringField = [ 'this.id', 'this.hostname', 'this.last_http_response', 'this.wsProxy', 'this.ws_proxy', 'this.wssProxy', 'this.wss_proxy' ].includes (name);
+            const receiver = stringField ? { type: 'string?' } : typeOf (name);
             if ((receiver === undefined) || ((receiver.type !== 'string') && (receiver.type !== 'string?'))) continue;
             // the needle is never evaluated twice and is already a C# string (a null one throws in both forms)
             if (!literal && !((key !== undefined) && ((key.type === 'string') || (key.type === 'string?'))) && !isStringConcatNeedle (keyMask)) continue;
