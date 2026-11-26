@@ -25658,3 +25658,140 @@ function listValuedMemberRead (csharp, node, context) {
     // the guarded print `m[(string)k]` yields the declared value type whatever the key's box
     return !ts.isNumericLiteral (key);
 }
+
+// ===== pro presence flags =====
+// `const x = <expr>` in a ts/src/pro file whose every use is `x === undefined` / `x !== undefined`
+// (either order, loose or strict) prints `bool x = (<expr>) != null;` and each test prints `!x` / `x`:
+// the value is evaluated once at the same place and only its null-ness is ever read.
+function proPresenceCompare (node) {
+    const parent = node.parent;
+    if (parent === undefined || parent.kind !== ts.SyntaxKind.BinaryExpression) {
+        return undefined;
+    }
+    const op = parent.operatorToken.kind;
+    const negated = op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken;
+    if (!negated && op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken) {
+        return undefined;
+    }
+    const other = (parent.left === node) ? parent.right : ((parent.right === node) ? parent.left : undefined);
+    const nullish = other !== undefined && (other.kind === ts.SyntaxKind.NullKeyword || (other.kind === ts.SyntaxKind.Identifier && other.text === 'undefined'));
+    return nullish ? { present: negated } : undefined;
+}
+
+// keyed by file + position: the worker batch hands back fresh node handles from resolve ()
+const proPresenceDecisions = new Map ();
+
+function proPresenceKey (declaration) {
+    return `${declaration?.getSourceFile?.()?.fileName ?? ''}:${declaration?.pos}:${declaration?.end}`;
+}
+
+function proPresenceFlagLocal (csharp, declaration) {
+    const key = proPresenceKey (declaration);
+    if (proPresenceDecisions.has (key)) {
+        return proPresenceDecisions.get (key);
+    }
+    let result = false;
+    try {
+        result = proPresenceFlagDecide (csharp, declaration);
+    } catch (e) {
+        result = false;
+    }
+    proPresenceDecisions.set (key, result);
+    return result;
+}
+
+function proPresenceFlagDecide (csharp, declaration) {
+    const list = declaration?.parent;
+    if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || list?.kind !== ts.SyntaxKind.VariableDeclarationList || list.declarations.length !== 1 || (list.flags & ts.NodeFlags.Const) === 0
+            || list.parent?.kind !== ts.SyntaxKind.VariableStatement || declaration.type !== undefined || declaration.initializer === undefined) {
+        return false;
+    }
+    const init = stripParens (declaration.initializer);
+    if (init.kind === ts.SyntaxKind.NullKeyword || (init.kind === ts.SyntaxKind.Identifier && init.text === 'undefined')) {
+        return false;
+    }
+    const file = String (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (!/(^|\/)ts\/src\/pro\/[a-z0-9_]+\.ts$/.test (file)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || scope.kind === ts.SyntaxKind.SourceFile) {
+        return false;
+    }
+    const checker = csharp.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    const name = declaration.name.text;
+    let uses = 0;
+    let ok = symbol !== undefined;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            if (isNotAUse (n)) {
+                // a second binding of the same name (C# would reject a reused name), or a member name
+                if (n.parent?.kind !== ts.SyntaxKind.PropertyAccessExpression && n.parent?.kind !== ts.SyntaxKind.PropertyAssignment) {
+                    ok = false;
+                }
+                return;
+            }
+            if (n.parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment || checker.getSymbolAtLocation (n) !== symbol || proPresenceCompare (n) === undefined) {
+                ok = false;
+                return;
+            }
+            uses++;
+        }
+        n.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return ok && uses > 0;
+}
+
+export function installCsharpProPresenceFlags (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printVariableDeclarationList !== 'function' || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._proPresenceFlagsPatched) {
+        return;
+    }
+    csharp._proPresenceFlagsPatched = true;
+    // only the declarations this hook printed as a flag: their tests read the flag
+    const flagged = new Set ();
+    const upstreamPrint = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamPrint (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (typeof printed !== 'string' || declaration === undefined || node.declarations.length !== 1 || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const head = `${csharp.getIden (identation)}object ${csharp.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (head) || printed.indexOf ('\n') !== -1 || !proPresenceFlagLocal (csharp, declaration)) {
+            return printed;
+        }
+        const rest = printed.slice (head.length);
+        const semi = rest.endsWith (';') ? ';' : '';
+        flagged.add (proPresenceKey (declaration));
+        return `${csharp.getIden (identation)}bool ${csharp.printNode (declaration.name, 0)} = (${(semi === '') ? rest : rest.slice (0, -1)}) != null${semi}`;
+    };
+    const upstreamBinary = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        try {
+            for (const side of [ node?.left, node?.right ]) {
+                if (side?.kind !== ts.SyntaxKind.Identifier) {
+                    continue;
+                }
+                const compare = proPresenceCompare (side);
+                if (compare === undefined) {
+                    continue;
+                }
+                const declaration = csharp.getChecker ().getSymbolAtLocation (side)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && flagged.has (proPresenceKey (declaration))) {
+                    const text = csharp.printNode (side, 0);
+                    return compare.present ? text : `!${text}`;
+                }
+            }
+        } catch (e) {
+            // fall through to the upstream print
+        }
+        return upstreamBinary (node, identation);
+    };
+}
