@@ -6946,7 +6946,7 @@ export class BaseExchange {
         for (let i = 0; i < oldest; i++) {
             const trade = this.safeDict (trades, i, {});
             const ts = this.safeInteger (trade, 'timestamp');
-            const price = trade['price'];
+            const price = this.safeNumber (trade, 'price');
             if ((ts === undefined) || (price === undefined)) {
                 continue;
             }
