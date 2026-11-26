@@ -8907,6 +8907,7 @@ function rustTypedAccountBuilder (content: string): string {
         const prev = out, rest = parts[i];
         if (/[\w.]$/.test (prev)) out += 'self.account()' + rest;
         else if (rest.startsWith ('.into_dict()')) out += 'self.account()' + rest.slice ('.into_dict()'.length);
+        else if (rest.startsWith ('.into_opt_dict()')) out += 'Some(self.account())' + rest.slice ('.into_opt_dict()'.length);
         else if (rest.startsWith (copy)) out += 'std::sync::Arc::unwrap_or_clone(self.account())' + rest.slice (copy.length);
         else out += 'Value::Dict(self.account())' + rest;
     }
