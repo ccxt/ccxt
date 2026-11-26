@@ -8555,7 +8555,7 @@ function lendCredentialFieldReads(content: string): string {
 // `Value::from((market).f.clone())` over a `String` field of `Market`: `.as_str()` lends the field,
 // `.as_str().map(str::to_owned)` copies it once, and a top-level `format!` argument prints it directly.
 function lendMarketStringMembers(content: string): string {
-    const box = String.raw`Value::from\(\(market\)\.(symbol|market_type|base|quote)\.clone\(\)\)`;
+    const box = String.raw`Value::from\(\(market\)\.(symbol|market_type|base|quote)(?:\.clone\(\))?\)`;
     let out = content.replace(new RegExp(String.raw`(?:\(${box}\)|${box})\.as_str\(\)(\.map\(str::to_owned\))?`, 'g'),
         (_s, f1: string | undefined, f2: string | undefined, own: string | undefined) =>
             own ? `Some((market).${f1 ?? f2}.clone())` : `Some((market).${f1 ?? f2}.as_str())`);
