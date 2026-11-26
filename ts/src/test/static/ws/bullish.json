@@ -134,6 +134,108 @@
                 ],
                 "parsedResponse": true
             }
+        ],
+        "unWatchOrders": [
+            {
+                "description": "orders unsubscribe acknowledged by request id, the trading account id in the acknowledgement is masked",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "options": {
+                    "tokenExpires": 9999999999999
+                },
+                "input": [],
+                "url": "wss://api.exchange.bullish.com/trading-api/v1/private-data",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "1",
+                        "result": {
+                            "responseCode": "200",
+                            "responseCodeName": "OK",
+                            "message": "Successfully unsubscribed (orders 111111111111111)"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "type": "command",
+                        "method": "unsubscribe",
+                        "params": {
+                            "topic": "orders"
+                        },
+                        "id": "1"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchMyTrades": [
+            {
+                "description": "user trades unsubscribe acknowledged by request id, the trading account id in the acknowledgement is masked",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "options": {
+                    "tokenExpires": 9999999999999
+                },
+                "input": [],
+                "url": "wss://api.exchange.bullish.com/trading-api/v1/private-data",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "1",
+                        "result": {
+                            "responseCode": "200",
+                            "responseCodeName": "OK",
+                            "message": "Successfully unsubscribed (trades 111111111111111)"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "type": "command",
+                        "method": "unsubscribe",
+                        "params": {
+                            "topic": "trades"
+                        },
+                        "id": "1"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchPositions": [
+            {
+                "description": "positions unsubscribe acknowledged by request id, the trading account id in the acknowledgement is masked",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "options": {
+                    "tokenExpires": 9999999999999
+                },
+                "input": [],
+                "url": "wss://api.exchange.bullish.com/trading-api/v1/private-data",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "1",
+                        "result": {
+                            "responseCode": "200",
+                            "responseCodeName": "OK",
+                            "message": "Successfully unsubscribed (derivativesPositionsV2 111111111111111)"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "type": "command",
+                        "method": "unsubscribe",
+                        "params": {
+                            "topic": "derivativesPositionsV2"
+                        },
+                        "id": "1"
+                    }
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }
