@@ -806,7 +806,7 @@ class lbank extends lbank$1["default"] {
         const marketSymbol = this.safeString(market, 'symbol', '');
         if (this.safeBool(market, 'swap', false)) {
             const responseForSwap = await this.fetchTickers([marketSymbol], params);
-            const swapTicker = this.safeDict(responseForSwap, market['symbol']);
+            const swapTicker = this.safeDict(responseForSwap, marketSymbol);
             return swapTicker;
         }
         const request = {

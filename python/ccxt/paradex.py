@@ -1357,8 +1357,9 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        rates = self.fetch_funding_rates([self.safe_string(market, 'symbol', '')], params)
-        rate = self.safe_dict(rates, market['symbol'])
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        rates = self.fetch_funding_rates([marketSymbol], params)
+        rate = self.safe_dict(rates, marketSymbol)
         if rate is None:
             raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
         return rate

@@ -1757,7 +1757,7 @@ impl Onetrading {
         //     }
         //
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "time", &[]));
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
     }

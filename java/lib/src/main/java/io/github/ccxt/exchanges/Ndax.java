@@ -902,7 +902,7 @@ public class Ndax extends NdaxApi
             return null;
         }
         String sessionStatus = this.safeString(market, "SessionStatus");
-        Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable", false);
+        Boolean isDisable = this.safeBool(market, "IsDisable", false);
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);

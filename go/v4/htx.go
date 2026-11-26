@@ -4918,10 +4918,10 @@ func (this *Htx) NetworkIdToCode(optionalArgs ...any) *string {
 	var networkTitle *string = this.SafeString(this.Options["networkNamesByChainIds"], networkId, networkId)
 	return this.Exchange.NetworkIdToCode(networkTitle, currencyCode)
 }
-func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) *string {
+func (this *Htx) NetworkCodeToId(networkCode *string, optionalArgs ...any) *string {
 	var currencyCode *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = currencyCode
-	if IsEqual(networkCode, nil) {
+	if networkCode == nil {
 		return nil
 	}
 	if currencyCode == nil {
@@ -8882,9 +8882,9 @@ func (this *Htx) FetchWithdrawAddressesAsync(code string, optionalArgs ...any) <
 func (this *Htx) fetchWithdrawAddressesBody(ch chan AsyncResult[[]DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	note := GetArg(optionalArgs, 0, nil)
+	var note *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = note
-	networkCode := GetArg(optionalArgs, 1, nil)
+	var networkCode *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = networkCode
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
@@ -8928,8 +8928,8 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan AsyncResult[[]DepositAddress
 	var addresses []any = []any{}
 	for i := 0; i < len(allAddresses); i++ {
 		var address any = allAddresses[i]
-		var noteMatch bool = (note == nil) || (IsEqual(this.SafeString(address, "note"), note))
-		var networkMatch bool = (networkCode == nil) || (IsEqual(this.SafeString(address, "network"), networkCode))
+		var noteMatch bool = (note == nil) || (this.SafeString(address, "note") == note || (this.SafeString(address, "note") != nil && note != nil && *this.SafeString(address, "note") == *note))
+		var networkMatch bool = (networkCode == nil) || (this.SafeString(address, "network") == networkCode || (this.SafeString(address, "network") != nil && networkCode != nil && *this.SafeString(address, "network") == *networkCode))
 		if noteMatch && networkMatch {
 			addresses = append(addresses, address)
 		}

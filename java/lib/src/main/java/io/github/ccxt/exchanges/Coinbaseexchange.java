@@ -1767,7 +1767,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "side");
         String timeInForce = this.safeString(order, "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean postOnly = this.safeBool(order, "post_only", null);
         Double triggerPrice = this.safeNumber(order, "stop_price", null);
         String clientOrderId = this.safeString(order, "client_oid");
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -2027,7 +2027,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             request.put("time_in_force", timeInForce);
         }
-        Boolean postOnly = (Boolean) this.safeBool2(parameters, "postOnly", "post_only", false);
+        Boolean postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("post_only", true);

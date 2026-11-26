@@ -18,7 +18,7 @@ class hitbtc(ccxt.async_support.hitbtc):
     def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
 
-    def describe_data(self) -> object:
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,

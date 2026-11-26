@@ -129,7 +129,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public String getUrl(String channel, String access)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandbox = this.safeBool(this.options, "sandboxMode", false);
         String sandboxSuffix = "";
         if (java.util.Objects.equals(isSandbox, true))
         {
@@ -1192,7 +1192,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         String accessType = "private";
         if (Boolean.TRUE.equals(isTrigger))
@@ -2313,7 +2313,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
         String typeOption = typeOptionparamsTypeVariable.first();
         Map<String, Object> paramsType = typeOptionparamsTypeVariable.second();
-        Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(paramsType, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if (java.util.Objects.equals(this.markets, null))
         {
@@ -2564,7 +2564,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
         String typeOption = typeOptionparamsTypeVariable.first();
         Map<String, Object> paramsType = typeOptionparamsTypeVariable.second();
-        Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "stop", "trigger", false);
+        Boolean isTrigger = this.safeBool2(paramsType, "stop", "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(paramsType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (java.util.Objects.equals(this.markets, null))
         {

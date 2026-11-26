@@ -21,7 +21,7 @@ class bybit(ccxt.async_support.bybit):
     def describe(self) -> dict:
         return self.deep_extend(super(bybit, self).describe(), self.describe_data())
 
-    def describe_data(self) -> object:
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,

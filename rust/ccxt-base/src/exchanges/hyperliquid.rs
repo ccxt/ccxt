@@ -2504,7 +2504,7 @@ impl Hyperliquid {
             m
         });
         let timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(Value::Map(result), Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]));
+        return Value::Dict(self.parse_order_book(Value::Map(result), Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]));
         Value::Null
         }).await?))
     }
@@ -2608,7 +2608,7 @@ impl Hyperliquid {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(marketSymbol)])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from((market).symbol.clone()));
+        let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from((market).symbol));
         if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find a funding rate for ").into()), symbol)));
         }
@@ -3850,10 +3850,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn create_orders_request(&mut self, mut orders: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         /*
          * @method
          * @name hyperliquid#createOrdersRequest
@@ -4006,7 +4003,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (vaultAddress.is_some()) {
-            params2 = self.omit_t(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]);
+            params2 = self.omit_t(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         return std::sync::Arc::new(request);
@@ -4277,7 +4274,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), Value::Dict(signature));
         if (vaultAddress.is_some()) {
-            params2 = self.omit_t(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]);
+            params2 = self.omit_t(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         return std::sync::Arc::new(request);
@@ -4420,7 +4417,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), Value::Dict(signature));
         if (vaultAddress.is_some()) {
-            params2 = self.omit_t(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]);
+            params2 = self.omit_t(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Map(request)]).await;
@@ -4430,10 +4427,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     }
 
     pub fn edit_orders_request(&mut self, mut orders: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.check_required_credentials(&[]);
         let mut hasClientOrderId: bool = false;
         let ordersLength: i64 = orders.len() as i64;
@@ -5661,7 +5655,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (vaultAddress.is_some()) {
-            params2 = self.omit_t(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]);
+            params2 = self.omit_t(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Map(request)]).await;

@@ -16,25 +16,41 @@ func HelperTestNetworkCodeToId(networksMap any) {
 	}, map[string]any{}, exchange)
 	exchange.Currencies = map[string]any{} // go fix + c# uninitialized prop fix
 	// unified code and its alias resolve to the same id, regardless of which one options.networks uses
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ERC20", "ETH"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ETH", "USDC"), "Ether"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRC20"), "Tron"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX"), "Tron"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("TRX", "TRX"), "Tron"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BEP20"), "Bsc"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BSC"), "Bsc"))
+	argStr := "ERC20"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr), "Ether"))
+	argStr2 := "ETH"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr2), "Ether"))
+	argStr3 := "ERC20"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr3, "ETH"), "Ether"))
+	argStr4 := "ETH"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr4, "USDC"), "Ether"))
+	argStr5 := "TRC20"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr5), "Tron"))
+	argStr6 := "TRX"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr6), "Tron"))
+	argStr7 := "TRX"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr7, "TRX"), "Tron"))
+	argStr8 := "BEP20"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr8), "Bsc"))
+	argStr9 := "BSC"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr9), "Bsc"))
 	// BTC and BRC20 are distinct networks, not aliases
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC"), "Bitcoin"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BRC20"), "Brc_20"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("BTC", "USDC"), "Bitcoin"))
+	argStr10 := "BTC"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr10), "Bitcoin"))
+	argStr11 := "BRC20"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr11), "Brc_20"))
+	argStr12 := "BTC"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr12, "USDC"), "Bitcoin"))
 	// backward-supported aliases
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ARB"), "Arb"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("ARBONE"), "Arb"))
+	argStr13 := "ARB"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr13), "Arb"))
+	argStr14 := "ARBONE"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr14), "Arb"))
 	// unknown network code passes through
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("Xyz"), "Xyz"))
-	Assert(ccxt.IsEqual(exchange.NetworkCodeToId("Xyz", "SAMPLECOIN"), "Xyz"))
+	argStr15 := "Xyz"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr15), "Xyz"))
+	argStr16 := "Xyz"
+	Assert(ccxt.IsEqual(exchange.NetworkCodeToId(&argStr16, "SAMPLECOIN"), "Xyz"))
 }
 func HelperTestNetworkIdToCode(networksMap any) {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

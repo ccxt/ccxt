@@ -2350,7 +2350,7 @@ export default class deepcoin extends Exchange {
             if (this.safeBool (market, 'spot', false)) {
                 throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
             }
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');

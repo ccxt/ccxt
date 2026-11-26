@@ -1437,7 +1437,7 @@ impl Poloniex {
                     let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
                     orders.append(Value::Dict(parsed));
                 }  else {
-                    let previousOrders: crate::value::Dict = self.safe_dict_t(orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
+                    let previousOrders: crate::value::Dict = orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
                     let mut previousOrder: Option<crate::value::Dict> = self.safe_dict2_o(&previousOrders, Value::from(orderId), Value::from(clientOrderId));
                     let trade: Value = Value::Dict(self.parse_ws_trade(&order, None));
                     self.handle_my_trades(client, trade.clone());

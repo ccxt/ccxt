@@ -1452,8 +1452,9 @@ class paradex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $rates = Async\await($this->fetch_funding_rates(array( $this->safe_string($market, 'symbol', '') ), $params));
-        $rate = $this->safe_dict($rates, $market['symbol']);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $rates = Async\await($this->fetch_funding_rates(array( $marketSymbol ), $params));
+        $rate = $this->safe_dict($rates, $marketSymbol);
         if ($rate === null) {
             throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);
         }

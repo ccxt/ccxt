@@ -1782,7 +1782,7 @@ class sxbet extends Exchange {
         $result = array();
         $rawTradesLength = count($rawTrades);
         for ($i = 0; $i < $rawTradesLength; $i++) {
-            $settlement = $this->parse_settlement($rawTrades[$i]);
+            $settlement = $this->parse_settlement($this->safe_dict($rawTrades, $i, array()));
             if (($wantedOutcomeId === null) || ($this->safe_string($settlement, 'outcomeId') === $wantedOutcomeId)) {
                 $result[] = $settlement;
             }

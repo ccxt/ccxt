@@ -25,7 +25,7 @@ class binance extends \ccxt\async\binance {
         return $this->deep_extend(parent::describe(), $this->describe_data());
     }
 
-    public function describe_data() {
+    public function describe_data(): array {
         return array(
             'has' => array(
                 'ws' => true,

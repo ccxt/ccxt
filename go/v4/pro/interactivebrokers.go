@@ -779,12 +779,12 @@ func (this *Interactivebrokers) HandleTicker(client ccxt.ClientInterface, messag
 	var parts []string = strings.Split(topic, "+")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	// the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
 	// the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
-	var previous any = ccxt.TickerToMap(this.Tickers[*symbol])
+	var previous any = ccxt.TickerToMap(this.Tickers[symbol])
 	if previous == nil {
-		previous = ccxt.TickerToMap(this.Bidsasks[*symbol])
+		previous = ccxt.TickerToMap(this.Bidsasks[symbol])
 	}
 	var previousInfo map[string]any = this.SafeDictMap(previous, "info", map[string]any{})
 	var merged map[string]any = this.Extend(previousInfo, message)
@@ -792,10 +792,8 @@ func (this *Interactivebrokers) HandleTicker(client ccxt.ClientInterface, messag
 		merged["_updated"] = this.Milliseconds()
 	}
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(merged, market))
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	}
-	client.Resolve(ticker, "ticker::"+*symbol)
+	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
+	client.Resolve(ticker, "ticker::"+symbol)
 	// a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
 	// and nothing is emitted to watchBidsAsks until a bid or an ask has been received
 	_, has1 := message["84"]
@@ -815,12 +813,10 @@ func (this *Interactivebrokers) HandleTicker(client ccxt.ClientInterface, messag
 			"askVolume": this.SafeString(ticker, "askVolume"),
 			"info":      merged,
 		}, market))
-		if symbol != nil {
-			this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
-		}
-		client.Resolve(bidAsk, "bidask::"+*symbol)
+		this.Bidsasks[symbol] = ccxt.TickerFromMap(bidAsk)
+		client.Resolve(bidAsk, "bidask::"+symbol)
 	}
-	this.IbkrUpdateOHLCVs(client, *symbol, message)
+	this.IbkrUpdateOHLCVs(client, symbol, message)
 }
 
 /**

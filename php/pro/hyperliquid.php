@@ -871,9 +871,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $cache = $this->myLiquidations;
         $symbols = array();
         for ($i = 0; $i < $newLiquidationsLength; $i++) {
-            $liquidation = $newLiquidations[$i];
-            $cache->append($liquidation);
-            $symbols[($liquidation['symbol'])] = true;
+            $cache->append($newLiquidations[$i]);
+            $liquidationSymbol = $this->safe_string($newLiquidations[$i], 'symbol', '');
+            $symbols[$liquidationSymbol] = true;
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($keys); $i++) {

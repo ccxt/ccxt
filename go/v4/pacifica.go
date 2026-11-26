@@ -1200,7 +1200,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	var market map[string]any = this.Market(symbol)
 	userAccount, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("fetchLeverage", params)
 	var settings any = nil
-	if IsEqual(userAccount, this.WalletAddress) {
+	if userAccount != nil && *userAccount == this.WalletAddress {
 		settings = this.HandleOption("fetchLeverage", "settings")
 	} else {
 		var request map[string]any = map[string]any{
@@ -1385,7 +1385,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 	}
 	userAccount, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
 	var settings any = nil
-	if IsEqual(userAccount, this.WalletAddress) {
+	if userAccount != nil && *userAccount == this.WalletAddress {
 		settings = this.HandleOption("fetchMarginMode", "settings")
 	} else {
 		var request map[string]any = map[string]any{
@@ -3399,7 +3399,11 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	return nil
 }
 func (this *Pacifica) AddPaginationCursorToResult(response map[string]any) []any {
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var paginationCursor *string = this.SafeString(response, "next_cursor")
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
 	var dataLength int = len(data)
@@ -5305,7 +5309,7 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		var sortedKeys []any = this.Sort(keys)
 		for i := 0; i < len(sortedKeys); i++ {
 			var key string = *this.SafeString(sortedKeys, i, "")
-			result[key] = this.SortJsonKeys(GetValue(value, key))
+			result[key] = this.SortJsonKeys(valueCopy[key])
 		}
 		return result
 	} else if IsArray(value) {

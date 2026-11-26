@@ -923,7 +923,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         Map<String, Object> orderUpdate = new HashMap<String, Object>() {{}};
         orderUpdate.put("remaining", remains);
-        Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
+        Boolean canceled = this.safeBool(data, "cancel", false);
         if (Boolean.TRUE.equals(canceled))
         {
             orderUpdate.put("status", "canceled");
@@ -1030,7 +1030,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             timestamp = this.parse8601(time);
         }
-        Boolean canceled = (Boolean) this.safeBool(order, "cancel", false);
+        Boolean canceled = this.safeBool(order, "cancel", false);
         String status = "open";
         if (Boolean.TRUE.equals(canceled))
         {

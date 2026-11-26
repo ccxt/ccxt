@@ -803,7 +803,7 @@ class lbank(Exchange, ImplicitAPI):
         marketSymbol = self.safe_string(market, 'symbol', '')
         if self.safe_bool(market, 'swap', False):
             responseForSwap = self.fetch_tickers([marketSymbol], params)
-            swapTicker = self.safe_dict(responseForSwap, market['symbol'])
+            swapTicker = self.safe_dict(responseForSwap, marketSymbol)
             return swapTicker
         request = {
             'symbol': market['id'],

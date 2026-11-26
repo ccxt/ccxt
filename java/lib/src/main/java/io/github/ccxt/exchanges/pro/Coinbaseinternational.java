@@ -2138,10 +2138,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             request.put("price", this.parseNumber(this.priceToPrecision(symbol, price)));
         }
-        Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", null);
+        Boolean postOnly = this.safeBool2(paramsResolved, "postOnly", "post_only", null);
         if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", null);
+            Boolean reduceOnly = this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", null);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);

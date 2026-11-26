@@ -3162,10 +3162,7 @@ impl Blofin {
     }
 
     pub fn create_tpsl_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let hedged: bool = self.safe_bool_k_opt(&params, "hedged", &[Value::Bool(false)]).unwrap_or(false);
         let mut positionSide: String = "net".to_string();

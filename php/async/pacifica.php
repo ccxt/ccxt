@@ -3946,7 +3946,7 @@ class pacifica extends Exchange {
             $sortedKeys = $this->sort($keys);
             for ($i = 0; $i < count($sortedKeys); $i++) {
                 $key = $this->safe_string($sortedKeys, $i, '');
-                $result[$key] = $this->sort_json_keys($value[$key]);
+                $result[$key] = $this->sort_json_keys($valueCopy[$key]);
             }
             return $result;
         } elseif ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {

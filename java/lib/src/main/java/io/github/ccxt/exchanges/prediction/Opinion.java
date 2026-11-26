@@ -1303,7 +1303,7 @@ public class Opinion extends OpinionApi
         String takerAmount = this.safeString(amounts, "takerAmount");
         Integer sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
         String salt = this.numberToString(this.milliseconds());
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
         String maker = (this.loadMultiSignAddress()).join();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
@@ -1384,7 +1384,7 @@ public class Opinion extends OpinionApi
         }};
         Map<String, Object> response = (this.opinionPrivatePostOrderCancel(this.extend(request, parameters))).join();
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Boolean canceled = (Boolean) this.safeBool(result, "result", false);
+        Boolean canceled = this.safeBool(result, "result", false);
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them

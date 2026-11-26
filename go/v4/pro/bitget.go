@@ -3844,14 +3844,18 @@ func (this *Bitget) HandleOHLCVUnSubscription(client ccxt.ClientInterface, messa
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(instId, nil, nil, typeVar))
 	var symbol string = market.Symbol
-	var messageHash any = nil
-	var subMessageHash any = nil
+	var messageHash *string = nil
+	var subMessageHash *string = nil
 	if isUta {
-		messageHash = "unsubscribe:kline:" + symbol
-		subMessageHash = "kline:" + symbol
+		messageHashStr := "unsubscribe:kline:" + symbol
+		messageHash = &messageHashStr
+		subMessageHashStr := "kline:" + symbol
+		subMessageHash = &subMessageHashStr
 	} else if timeframe != nil {
-		messageHash = "unsubscribe:candles:" + *timeframe + ":" + symbol
-		subMessageHash = "candles:" + *timeframe + ":" + symbol
+		messageHashStr2 := "unsubscribe:candles:" + *timeframe + ":" + symbol
+		messageHash = &messageHashStr2
+		subMessageHashStr2 := "candles:" + *timeframe + ":" + symbol
+		subMessageHash = &subMessageHashStr2
 	}
 	if _, ok := this.Ohlcvs[symbol]; ok {
 		if timeframe != nil {

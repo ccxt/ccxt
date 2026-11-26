@@ -23,7 +23,7 @@ func newHitbtc() *Hitbtc {
 func (this *Hitbtc) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
-func (this *Hitbtc) DescribeData() any {
+func (this *Hitbtc) DescribeData() map[string]any {
 	return map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

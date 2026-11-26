@@ -3745,11 +3745,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.positions.is_none()) {
             return Value::Null;
         }
-        let symbolCache: Value = self.safe_dict(self.positions.hashmap(), Value::from(symbol), &[Value::Map({
+        let symbolCache: indexmap::IndexMap<String, Value> = self.safe_dict(&self.positions.hashmap(), Value::from(symbol), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut values: crate::value::List = crate::value::List::new(symbolCache.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
+        })]).as_map().cloned().unwrap_or_default();
+        let mut values: crate::value::List = crate::value::List::new(symbolCache.values().cloned().collect());
         return self.safe_dict(&values, Value::Int(0), &[]);
 
     Value::Null

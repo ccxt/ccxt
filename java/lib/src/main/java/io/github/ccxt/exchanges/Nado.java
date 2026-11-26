@@ -605,7 +605,7 @@ public class Nado extends NadoApi
         Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
         String nonce = this.createOrderNonce(recvWindow);
         Long requestId = this.safeInteger(paramsRecvWindow, "id");
-        Boolean spotLeverage = (Boolean) this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", null);
+        Boolean spotLeverage = this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", null);
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
         Map<String, Object> order = new HashMap<String, Object>();
         order.put("sender", sender);
@@ -823,7 +823,7 @@ public class Nado extends NadoApi
             appendix = this.createOrderAppendix(false, paramsRecvWindow);
         }
         Long requestId = this.safeInteger(paramsRecvWindow, "id");
-        Boolean spotLeverage = (Boolean) this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", null);
+        Boolean spotLeverage = this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", null);
         Boolean placeRequiresUnfilled = (Boolean) this.safeBool2(paramsRecvWindow, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
         Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -929,7 +929,7 @@ public class Nado extends NadoApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = (this.cancelAllOrdersRequest(symbol, paramsOmitted)).join();
         Map<String, Object> response = null;
@@ -1043,7 +1043,7 @@ public class Nado extends NadoApi
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = (this.cancelOrdersRequest(ids, symbol, paramsOmitted)).join();
         Map<String, Object> response = null;
@@ -1227,7 +1227,7 @@ public class Nado extends NadoApi
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsSubaccount, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(paramsSubaccount, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (!java.util.Objects.equals(trigger, true))
         {
@@ -1321,7 +1321,7 @@ public class Nado extends NadoApi
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsSubaccount, "stop", "trigger", null);
         if (java.util.Objects.equals(trigger, true))
         {
             return (this.fetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new HashMap<String, Object>() {{
@@ -1411,7 +1411,7 @@ public class Nado extends NadoApi
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsSubaccount, "stop", "trigger", null);
         if (java.util.Objects.equals(trigger, true))
         {
             return (this.fetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new HashMap<String, Object>() {{
@@ -2050,10 +2050,10 @@ public class Nado extends NadoApi
                 assetsByCode.put(assetCode, rawAsset);
             } else
             {
-                Boolean previousDeposit = (Boolean) this.safeBool(previous, "can_deposit", false);
-                Boolean previousWithdraw = (Boolean) this.safeBool(previous, "can_withdraw", false);
-                Boolean currentDeposit = (Boolean) this.safeBool(rawAsset, "can_deposit", false);
-                Boolean currentWithdraw = (Boolean) this.safeBool(rawAsset, "can_withdraw", false);
+                Boolean previousDeposit = this.safeBool(previous, "can_deposit", false);
+                Boolean previousWithdraw = this.safeBool(previous, "can_withdraw", false);
+                Boolean currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
+                Boolean currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
                 if ((!Boolean.TRUE.equals(previousDeposit)) && (!Boolean.TRUE.equals(previousWithdraw)) && (Boolean.TRUE.equals(currentDeposit) || Boolean.TRUE.equals(currentWithdraw)))
                 {
                     assetsByCode.put(assetCode, rawAsset);
@@ -2200,15 +2200,15 @@ public class Nado extends NadoApi
                 continue;
             }
             Map<String, Object> previous = this.safeDict(result, code, null);
-            Boolean canDeposit = (Boolean) this.safeBool(currency, "can_deposit", false);
-            Boolean canWithdraw = (Boolean) this.safeBool(currency, "can_withdraw", false);
+            Boolean canDeposit = this.safeBool(currency, "can_deposit", false);
+            Boolean canWithdraw = this.safeBool(currency, "can_withdraw", false);
             if (java.util.Objects.equals(previous, null))
             {
                 result.put(code, parsed);
             } else
             {
-                Boolean previousDeposit = (Boolean) this.safeBool(previous, "deposit", false);
-                Boolean previousWithdraw = (Boolean) this.safeBool(previous, "withdraw", false);
+                Boolean previousDeposit = this.safeBool(previous, "deposit", false);
+                Boolean previousWithdraw = this.safeBool(previous, "withdraw", false);
                 if ((!Boolean.TRUE.equals(previousDeposit)) && (!Boolean.TRUE.equals(previousWithdraw)) && (Boolean.TRUE.equals(canDeposit) || Boolean.TRUE.equals(canWithdraw)))
                 {
                     result.put(code, parsed);
@@ -2821,7 +2821,7 @@ public class Nado extends NadoApi
             }
         }
         String takerOrMaker = null;
-        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", null);
+        Boolean isTaker = this.safeBool(trade, "is_taker", null);
         if (!java.util.Objects.equals(isTaker, null))
         {
             if (Boolean.TRUE.equals(isTaker))
@@ -3034,8 +3034,8 @@ public class Nado extends NadoApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object rawCurrency)
     {
-        Boolean canDeposit = (Boolean) this.safeBool(rawCurrency, "can_deposit", false);
-        Boolean canWithdraw = (Boolean) this.safeBool(rawCurrency, "can_withdraw", false);
+        Boolean canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
+        Boolean canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode((String) (this.removeMarketSuffix(currencyId)), null);
@@ -3538,7 +3538,7 @@ public class Nado extends NadoApi
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Boolean postOnly = this.isPostOnly(false, null, parameters);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
@@ -3564,7 +3564,7 @@ public class Nado extends NadoApi
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
-        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
+        Boolean buildFee = this.safeBool(this.options, "builderFee", true);
         if (Boolean.TRUE.equals(buildFee))
         {
             String builder = this.safeString(this.options, "builder", "4500");

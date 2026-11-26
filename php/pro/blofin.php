@@ -571,7 +571,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $interval = str_replace('candle', '', $channelName);
         $unifiedTimeframe = $this->find_timeframe($interval);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
@@ -1004,7 +1004,7 @@ class blofin extends \ccxt\async\blofin {
             'op' => 'unsubscribe',
             'args' => $topics,
         );
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $url = $this->safe_string($this->urls['api']['ws'][$marketType], 'public', '');
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 

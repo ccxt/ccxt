@@ -219,7 +219,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         if (java.util.Objects.equals(method, "createOrderWs"))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
+            Boolean reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly", false);
             if (Boolean.TRUE.equals(reduceOnly))
             {
                 orderParams.put("reduce_only", true);

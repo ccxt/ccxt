@@ -1962,19 +1962,22 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var marketSymbol string = market.Symbol
 
-	r1 := <-this.FetchFundingRatesAsync([]any{this.SafeString(market, "symbol", "")}, params)
+	r1 := <-this.FetchFundingRatesAsync([]any{marketSymbol}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var rates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
-	if rate == nil {
+	var rates map[string]FundingRate = r1.Value
+	var rate FundingRate
+	var rateOk bool
+	rate, rateOk = rates[marketSymbol]
+	if !rateOk {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
 
-	ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(rate)}
+	ch <- AsyncResult[FundingRate]{Value: rate}
 	return nil
 }
 func (this *Paradex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
@@ -2015,7 +2018,7 @@ func (this *Paradex) ParseFundingRate(contract map[string]any, optionalArgs ...a
 		intervalStr := *hours + "h"
 		interval = &intervalStr
 	}
-	var literal145815 map[string]any = map[string]any{
+	var literal145915 map[string]any = map[string]any{
 		"info":                     contract,
 		"markPrice":                this.SafeNumber(contract, "mark_price"),
 		"indexPrice":               this.SafeNumber(contract, "underlying_price"),
@@ -2035,11 +2038,11 @@ func (this *Paradex) ParseFundingRate(contract map[string]any, optionalArgs ...a
 		"interval":                 interval,
 	}
 	if funds {
-		literal145815["symbol"] = marketResolved["symbol"]
+		literal145915["symbol"] = marketResolved["symbol"]
 	} else {
-		literal145815["symbol"] = nil
+		literal145915["symbol"] = nil
 	}
-	return FundingRateFromMap(literal145815)
+	return FundingRateFromMap(literal145915)
 }
 
 /**
@@ -2156,11 +2159,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154519 []any = r1.Value
-		if retRes154519 == nil {
+		var retRes154619 []any = r1.Value
+		if retRes154619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154619)}
 		}
 		return nil
 	}
@@ -2715,7 +2718,7 @@ func (this *Paradex) ParseOrder(order map[string]any, optionalArgs ...any) Order
 	if flags != nil {
 		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
-	var literal194831 map[string]any = map[string]any{
+	var literal194931 map[string]any = map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"timestamp":           timestamp,
@@ -2746,12 +2749,12 @@ func (this *Paradex) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"info": order,
 	}
 	if takeProfitPrice != nil {
-		literal194831["takeProfitPrice"] = *takeProfitPrice
+		literal194931["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal194831["stopLossPrice"] = *stopLossPrice
+		literal194931["stopLossPrice"] = *stopLossPrice
 	}
-	return this.SafeOrder(literal194831, marketResolved)
+	return this.SafeOrder(literal194931, marketResolved)
 }
 func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -2941,14 +2944,14 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	if !isMarket {
 		orderPrice = this.ScaleNumber(this.SafeString(request, "price"))
 	}
-	var ternaryStr214220 string = "2"
+	var ternaryStr214320 string = "2"
 	if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
-		ternaryStr214220 = "1"
+		ternaryStr214320 = "1"
 	}
 	var orderReq map[string]any = map[string]any{
 		"timestamp": now,
 		"market":    this.StringToBase16(this.SafeString(request, "market")),
-		"side":      ternaryStr214220,
+		"side":      ternaryStr214320,
 		"orderType": this.StringToBase16(this.SafeString(request, "type")),
 		"size":      this.ScaleNumber(this.SafeString(request, "size")),
 		"price":     orderPrice,
@@ -3697,11 +3700,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes260519 []any = r2.Value
-		if retRes260519 == nil {
+		var retRes260619 []any = r2.Value
+		if retRes260619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes260519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes260619)}
 		}
 		return nil
 	}
@@ -3987,11 +3990,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes278819 []any = r2.Value
-		if retRes278819 == nil {
+		var retRes278919 []any = r2.Value
+		if retRes278919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278919)}
 		}
 		return nil
 	}
@@ -4628,11 +4631,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes321019 []any = r2.Value
-		if retRes321019 == nil {
+		var retRes321119 []any = r2.Value
+		if retRes321119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321119)}
 		}
 		return nil
 	}
@@ -4724,7 +4727,7 @@ func (this *Paradex) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 		toAccountStr2 := "external"
 		toAccount = &toAccountStr2
 	}
-	var literal328515 map[string]any = map[string]any{
+	var literal328615 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
@@ -4736,12 +4739,12 @@ func (this *Paradex) ParseTransfer(transfer map[string]any, optionalArgs ...any)
 		"status":      this.ParseTransactionStatus(this.SafeString(transfer, "status")),
 	}
 	if fromAccount != nil {
-		literal328515["fromAccount"] = *fromAccount
+		literal328615["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal328515["toAccount"] = *toAccount
+		literal328615["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal328515)
+	return TransferEntryFromMap(literal328615)
 }
 func (this *Paradex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
@@ -4879,14 +4882,14 @@ func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 	var configs []any
 	configs, _ = response["configs"].([]any)
 
-	var configsDict340437 map[string]any
+	var configsDict340537 map[string]any
 	if len(configs) > 0 {
-		configsDict340437, _ = configs[0].(map[string]any)
+		configsDict340537, _ = configs[0].(map[string]any)
 	}
-	if configsDict340437 == nil {
-		configsDict340437 = map[string]any{}
+	if configsDict340537 == nil {
+		configsDict340537 = map[string]any{}
 	}
-	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(configsDict340437, market)}
+	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(configsDict340537, market)}
 	return nil
 }
 func (this *Paradex) ParseMarginMode(rawMarginMode map[string]any, optionalArgs ...any) MarginMode {
@@ -5032,14 +5035,14 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 	var configs []any
 	configs, _ = response["configs"].([]any)
 
-	var configsDict348735 map[string]any
+	var configsDict348835 map[string]any
 	if len(configs) > 0 {
-		configsDict348735, _ = configs[0].(map[string]any)
+		configsDict348835, _ = configs[0].(map[string]any)
 	}
-	if configsDict348735 == nil {
-		configsDict348735 = map[string]any{}
+	if configsDict348835 == nil {
+		configsDict348835 = map[string]any{}
 	}
-	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(configsDict348735, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(configsDict348835, market)}
 	return nil
 }
 func (this *Paradex) ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage {
@@ -5487,11 +5490,11 @@ func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 			var market map[string]any = this.SafeMarket(marketId)
 			if market["option"] == true {
 				var optionSymbol string = *this.SafeString(market, "symbol", "")
-				dataDict380161, _ := data[i].(map[string]any)
-				if dataDict380161 == nil {
-					dataDict380161 = map[string]any{}
+				dataDict380261, _ := data[i].(map[string]any)
+				if dataDict380261 == nil {
+					dataDict380261 = map[string]any{}
 				}
-				result[optionSymbol] = OptionToMap(this.ParseOption(dataDict380161, nil, market))
+				result[optionSymbol] = OptionToMap(this.ParseOption(dataDict380261, nil, market))
 			}
 		}
 	}
@@ -5609,11 +5612,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388619 []any = r2.Value
-		if retRes388619 == nil {
+		var retRes388719 []any = r2.Value
+		if retRes388719 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388719)}
 		}
 		return nil
 	}

@@ -2850,7 +2850,7 @@ class toobit extends toobit$1["default"] {
             results.push(this.extend(this.parseTransactionWithType(this.safeDict(response, i, {}), currency, transactType), paramsUntil));
         }
         const sorted = this.sortBy(results, 'timestamp');
-        const currencyCode = (currency !== undefined) ? currency['code'] : undefined;
+        const currencyCode = (currency !== undefined) ? this.safeString(currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit);
     }
     parseTransactionWithType(transaction, currency = undefined, transactType = undefined) {

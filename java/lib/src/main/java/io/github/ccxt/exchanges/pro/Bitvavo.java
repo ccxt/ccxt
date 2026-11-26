@@ -988,7 +988,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             String flagKey = ("watchingOrderBookSnapshot@" + this.safeString(message, "market", ""));
-            Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey, null);
+            Boolean watchingOrderBookSnapshot = this.safeBool(subscription, flagKey, null);
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
                 subscription.put(flagKey, true);
@@ -2260,7 +2260,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         String messageHash = "authenticated";
-        Boolean authenticated = (Boolean) this.safeBool(message, "authenticated", false);
+        Boolean authenticated = this.safeBool(message, "authenticated", false);
         if (Boolean.TRUE.equals(authenticated))
         {
             // we resolve the future here permanently so authentication only happens once

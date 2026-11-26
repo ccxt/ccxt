@@ -786,7 +786,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let parts: crate::value::List = crate::value::List::new(topic.split("+").map(Value::from).collect());
         let marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         let mut previous: Option<crate::value::Dict> = self.safe_dict_o(&self.tickers, &symbol);
@@ -1788,7 +1788,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 continue;
             }
             if skipDuplicates {
-                let cachedBySymbol: crate::value::Dict = self.safe_dict_t(self.myTrades.hashmap(), crate::value::KeyRead::key_read(&&trade, "symbol"));
+                let cachedBySymbol: crate::value::Dict = self.safe_dict_t(&self.myTrades.hashmap(), crate::value::KeyRead::key_read(&&trade, "symbol"));
                 let cached: Option<crate::value::Dict> = self.safe_dict_o(&cachedBySymbol, crate::value::KeyRead::key_read(&&trade, "id"));
                 if (cached.is_some()) {
                     let cachedInfo: crate::value::Dict = self.safe_dict_k_t(&cached, "info");

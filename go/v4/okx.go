@@ -10021,11 +10021,8 @@ func (this *Okx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var accounts any = nil
-	if r.Value != nil {
-		accounts = AccountsToList(r.Value)
-	}
-	var length int = GetArrayLength(accounts)
+	var accounts []any = AccountsToList(r.Value)
+	var length int = len(accounts)
 	var selectedAccount any = nil
 	if length > 1 {
 		var accountId *string = this.SafeString(params, "accountId")
@@ -11952,21 +11949,21 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		request["end"] = until
 	}
 	var query map[string]any = this.OmitDict(paramsMethod, "until")
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if method != nil && *method == "privateGetAccountBills" {
 
 		r1 := <-this.PrivateGetAccountBills(this.Extend(request, query))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 
 		r2 := <-this.PrivateGetAccountBillsArchive(this.Extend(request, query))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
@@ -13529,9 +13526,9 @@ func (this *Okx) ParseLongShortRatio(info map[string]any, optionalArgs ...any) L
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
-	var symbol any = nil
+	var symbol *string = nil
 	if market != nil {
-		symbol = market["symbol"]
+		symbol = this.SafeString(market, "symbol")
 	}
 	return LongShortRatioFromMap(map[string]any{
 		"info":           info,

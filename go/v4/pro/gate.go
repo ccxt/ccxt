@@ -24,7 +24,7 @@ func newGate() *Gate {
 func (this *Gate) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
-func (this *Gate) DescribeData() any {
+func (this *Gate) DescribeData() map[string]any {
 	return map[string]any{
 		"has": map[string]any{
 			"ws":                              true,

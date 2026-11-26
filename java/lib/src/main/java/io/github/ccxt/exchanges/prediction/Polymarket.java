@@ -1052,8 +1052,8 @@ public class Polymarket extends PolymarketApi
             String conditionId = this.safeString(market, "conditionId");
             String marketId = this.safeString(market, "id");
             String marketSlug = this.safeString(market, "slug", conditionId);
-            Boolean active = (Boolean) this.safeBool(market, "active", false);
-            Boolean closed = (Boolean) this.safeBool(market, "closed", false);
+            Boolean active = this.safeBool(market, "active", false);
+            Boolean closed = this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             Boolean marketResolved = Boolean.TRUE.equals(closed) || (java.util.Objects.equals(this.safeStringLower(market, "umaResolutionStatus"), "resolved"));
             String resolvedOutcome = null;
@@ -1062,7 +1062,7 @@ public class Polymarket extends PolymarketApi
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             Double orderMinSize = this.safeNumber(market, "orderMinSize", 1);
             Double priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
-            Boolean negRisk = (Boolean) this.safeBool(market, "negRisk", false);
+            Boolean negRisk = this.safeBool(market, "negRisk", false);
             String endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
             List<Object> outcomeLabels = new ArrayList<Object>(Arrays.asList());
@@ -1548,7 +1548,7 @@ public class Polymarket extends PolymarketApi
                     }});
                 tickerInput.put("book", book);
                 tickerInput.put("lastTrade", this.safeDict(lastTradesByTokenId, tokenId, new HashMap<String, Object>() {{}}));
-                Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+                Map<String, Object> ticker = this.parsePredictionTicker(tickerInput, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 String symbolKey = this.safeString(ticker, "outcome", tokenId);
                 result.put(symbolKey, ticker);
             }
@@ -2622,7 +2622,7 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", null))).join();
         // request echo first so the response's real orderID/status/success win on overlap
         Map<String, Object> enriched = this.extend(this.safeDict(built, "request", null), response);
-        Map<String, Object> order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (this.safeDict(built, "outcome", null))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        Map<String, Object> order = this.parsePredictionOrder(enriched, this.safeDict(built, "outcome", null));
         order.put("info", response); // keep info the raw exchange response, not the request echo
         return order;
 
@@ -2688,7 +2688,7 @@ public class Polymarket extends PolymarketApi
                 // request echo first so the response's real orderID/status win on overlap
                 Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 Map<String, Object> enriched = this.extend(this.safeDict(requests, i, null), rawItem);
-                Map<String, Object> parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (this.safeDict(outcomes, i, null))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> parsedItem = this.parsePredictionOrder(enriched, this.safeDict(outcomes, i, null));
                 parsedItem.put("info", rawItem); // keep info the raw exchange response
                 result.add(parsedItem);
             }
@@ -2762,7 +2762,7 @@ public class Polymarket extends PolymarketApi
         String tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
         Boolean negRisk = (Boolean) this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
         // maker-only: the CLOB rejects the order if it would immediately take
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -2794,7 +2794,7 @@ public class Polymarket extends PolymarketApi
             String builderHex = this.remove0xPrefix(builderRaw);
             if (builderHex.length() <= 40)
             {
-                Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
+                Boolean builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 Long feeRate = 0L;
                 if (Boolean.TRUE.equals(builderFeeEnabled))
                 {
@@ -3457,8 +3457,8 @@ public class Polymarket extends PolymarketApi
         String createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
         String endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
         String updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
-        Boolean rawActive = (Boolean) this.safeBool(rawEvent, "active", null);
-        Boolean closed = (Boolean) this.safeBool(rawEvent, "closed", false);
+        Boolean rawActive = this.safeBool(rawEvent, "active", null);
+        Boolean closed = this.safeBool(rawEvent, "closed", false);
         Boolean active = null;
         if (!java.util.Objects.equals(rawActive, null))
         {

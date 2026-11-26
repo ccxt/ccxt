@@ -4275,7 +4275,7 @@ public partial class pacifica : Exchange
             for (int i = 0; i < (sortedKeys?.Count ?? 0); i++)
             {
                 string? key = this.safeString(sortedKeys, i, "");
-                result[(string)key] = this.sortJsonKeys(getValue(value, key));
+                result[(string)key] = this.sortJsonKeys((valueCopy != null && key != null && valueCopy.ContainsKey(key) ? valueCopy[key] : null));
             }
             return result;
         } else if (((value is IList<object>) || (value is not null && value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))

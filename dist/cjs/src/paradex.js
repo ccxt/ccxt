@@ -1403,8 +1403,9 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const rates = await this.fetchFundingRates([this.safeString(market, 'symbol', '')], params);
-        const rate = this.safeDict(rates, market['symbol']);
+        const marketSymbol = this.safeString(market, 'symbol', '');
+        const rates = await this.fetchFundingRates([marketSymbol], params);
+        const rate = this.safeDict(rates, marketSymbol);
         if (rate === undefined) {
             throw new errors.BadSymbol(this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
         }

@@ -2343,9 +2343,9 @@ impl Exchange {
 
     /// `sortBy2(array, key1, key2, descending=false)` — sort by `key1`,
     /// then `key2` as a tiebreaker. Mirrors `functions/generic.ts`.
-    pub fn sort_by2(&self, arr: Value, k1: Value, k2: Value, optional_args: &[Value]) -> crate::value::List {
+    pub fn sort_by2(&self, arr: impl crate::value::Rows, k1: Value, k2: Value, optional_args: &[Value]) -> crate::value::List {
         // a non-list input answers the empty list (TS `sortBy2` throws on it)
-        let mut items = match arr {
+        let mut items = match crate::value::Rows::rows(arr) {
             Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
             _ => return crate::value::List::default(),
         };
@@ -3723,14 +3723,14 @@ mod built_list_sort_parity_tests {
     fn native_list_sort_matches_boxed_sort() {
         let ex = Exchange::default();
         let sort: fn(&Exchange, Value, Value, &[Value]) -> Value = Exchange::sort_by;
-        let sort2: fn(&Exchange, Value, Value, Value, &[Value]) -> crate::value::List = Exchange::sort_by2;
+        let sort2: fn(&Exchange, crate::value::List, Value, Value, &[Value]) -> crate::value::List = Exchange::sort_by2;
         for desc in [false, true] {
             let native: crate::value::List = Arc::new(rows());
             let native = sort(&ex, Value::Arr(native), Value::Str("timestamp".into()), &[Value::Bool(desc)]).into_list();
             assert_eq!(Value::Arr(native), sort(&ex, Value::Array(rows()), Value::Str("timestamp".into()), &[Value::Bool(desc)]));
             let native2: crate::value::List = Arc::new(rows());
-            let native2 = sort2(&ex, Value::Arr(native2), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]);
-            assert_eq!(native2, sort2(&ex, Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
+            let native2 = sort2(&ex, native2, Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]);
+            assert_eq!(native2, ex.sort_by2(Value::Array(rows()), Value::Str("timestamp".into()), Value::Str("id".into()), &[Value::Bool(desc)]));
         }
     }
 }

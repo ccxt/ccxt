@@ -205,7 +205,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //
         String subHash = this.safeString(subscription, "subMessageHash");
         String unsubHash = this.safeString(subscription, "messageHash");
-        Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
+        Boolean subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache(subscription);
         String requestId = this.safeString(subscription, "id", "");
@@ -513,7 +513,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(data, market);
         if (java.util.Objects.equals(updateType, "update"))
         {

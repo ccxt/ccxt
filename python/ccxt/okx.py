@@ -9312,7 +9312,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(info, 'timestamp')
         symbol = None
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         return {
             'info': info,
             'symbol': symbol,

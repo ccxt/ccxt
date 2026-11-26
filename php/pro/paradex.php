@@ -2785,13 +2785,14 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function handle_message(Client $client, array $message) {
+        // error replies are JSON text frames only, the binary frames never carry one
+        if ($this->handle_error_message($client, $message) !== true) {
+            return;
+        }
         $this->handle_stream_message($client, $message);
     }
 
     public function handle_stream_message(Client $client, array $message) {
-        if ($this->handle_error_message($client, $message) !== true) {
-            return;
-        }
         //
         // auth response
         //

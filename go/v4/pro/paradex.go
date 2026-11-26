@@ -3754,12 +3754,13 @@ func (this *Paradex) HandleBinaryMessage(client ccxt.ClientInterface, message an
 	}
 }
 func (this *Paradex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
-	this.HandleStreamMessage(client, message)
-}
-func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message map[string]any) {
+	// error replies are JSON text frames only, the binary frames never carry one
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
+	this.HandleStreamMessage(client, message)
+}
+func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// auth response
 	//

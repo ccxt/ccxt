@@ -1191,7 +1191,7 @@ public partial class htx : ccxt.htx
             subType = this.safeString2(this.options, "subType", "defaultSubType", "linear");
             subType = this.safeString(parameters, "subType", subType);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         IDictionary<string, object> paramsRequest = ((symbol != null)) ? parameters : this.omit(parameters, new List<object>() {"type", "subType"});
         bool linear = (subType == "linear");
         bool swap = (type == "swap");

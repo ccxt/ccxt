@@ -151,17 +151,14 @@ impl crate::exchange::DerivedExchange for Sxbet {
         let marketHash: Option<String> = self.safe_string_k_opt(raw, "marketHash", &[]);
         let isOutcomeOne: bool = outcomeId == marketHash;
         let outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(raw, "outcomeOne");
-        let outcomeTwoOdds: Value = self.safe_dict_k(raw, "outcomeTwo", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut ownOdds: crate::value::Dict = outcomeTwoOdds.clone().into_dict();
+        let outcomeTwoOdds: crate::value::Dict = self.safe_dict_k_t(raw, "outcomeTwo");
+        let mut ownOdds: crate::value::Dict = std::sync::Arc::clone(&outcomeTwoOdds);
         if isOutcomeOne {
             ownOdds = std::sync::Arc::clone(&outcomeOneOdds);
         }
         let mut oppositeOdds: crate::value::Dict = outcomeOneOdds;
         if isOutcomeOne {
-            oppositeOdds = outcomeTwoOdds.into_dict();
+            oppositeOdds = outcomeTwoOdds;
         }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
@@ -2634,7 +2631,10 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < rawTradesLength } {
-            let settlement: crate::value::Dict = self.parse_settlement(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let settlement: crate::value::Dict = self.parse_settlement(self.safe_dict(&rawTrades, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None);
             if (wantedOutcomeId.is_none()) || ((wantedOutcomeId.as_deref() == self.safe_string_k(&settlement, "outcomeId", &[]).as_str())) {
                 result.push(Value::Dict(settlement));
             }

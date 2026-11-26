@@ -277,7 +277,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> resolvedMarket = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {

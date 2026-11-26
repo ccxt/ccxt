@@ -2433,7 +2433,11 @@ func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var result []any = []any{}
 	var rawTradesLength int = len(rawTrades)
 	for i := 0; i < rawTradesLength; i++ {
-		var settlement any = this.ParseSettlement(rawTrades[i])
+		rawTradesDict172553, _ := rawTrades[i].(map[string]any)
+		if rawTradesDict172553 == nil {
+			rawTradesDict172553 = map[string]any{}
+		}
+		var settlement any = this.ParseSettlement(rawTradesDict172553)
 		if (wantedOutcomeId == nil) || (this.SafeString(settlement, "outcomeId") == wantedOutcomeId || (this.SafeString(settlement, "outcomeId") != nil && wantedOutcomeId != nil && *this.SafeString(settlement, "outcomeId") == *wantedOutcomeId)) {
 			result = append(result, settlement)
 		}
@@ -2452,7 +2456,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {object} [market] a resolved outcome/market hint
  * @returns {object} a prediction settlement structure
  */
-func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
+func (this *Sxbet) ParseSettlement(trade map[string]any, optionalArgs ...any) any {
 	//
 	//     TradeV3 row with a settlement sub-object:
 	//     {
@@ -2476,7 +2480,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		outcomeId = (*marketHash + "-2")
 	}
 	var outcomeObj map[string]any = this.SafeOutcome(outcomeId, market)
-	var settlement map[string]any = ccxt.SafeMapTyped(trade, "settlement")
+	var settlement, _ = trade["settlement"].(map[string]any)
 	var winner *int64 = this.SafeInteger(settlement, "outcome")
 	var isVoid bool = (winner != nil && *winner == 0)
 	var heldNumber int

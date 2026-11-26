@@ -1186,21 +1186,6 @@ public partial class BaseExchange
         return result;
     }
 
-    // the generated helpers (getValue / getArrayLength / safeString) already read
-    // List<string> by index, so the reverse is a pass-through
-    public static List<string> FromStringList(List<string> values)
-    {
-        return values;
-    }
-
-    // typed-core boundary identities: the printer only emits these five names from
-    // typedCoreFromHelper (build/csharpTranspiler.ts), keyed on the exact core type, so every
-    // call site passes the box the signature names (108 sites audited, tools/S56)
-    public static Dictionary<string, object> FromDict(Dictionary<string, object> value)
-    {
-        return value;
-    }
-
     public static object FromDictList(object values)
     {
         // getValue / getArrayLength read any IList through the non-generic interface, but the
@@ -1219,16 +1204,6 @@ public partial class BaseExchange
     public static List<object> FromDictList(List<Dictionary<string, object>> values)
     {
         return (List<object>)FromDictList((object)values);
-    }
-
-    public static Int64 FromInt64(Int64 value)
-    {
-        return value;
-    }
-
-    public static string FromStringValue(string value)
-    {
-        return value;
     }
 
     public static string toStringOrNull(object value)

@@ -891,8 +891,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Client client = this.client(url);
         this.setBalanceCache(client, name);
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
             client.future((name + ":fetchBalanceSnapshot")).getFuture().join();
@@ -908,7 +908,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             return;
         }
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
@@ -1892,7 +1892,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         Map<String, Object> data = this.safeDict(message, "data", null);
-        Boolean success = (Boolean) this.safeBool(data, "success", false);
+        Boolean success = this.safeBool(data, "success", false);
         String messageHash = "authenticated";
         if (Boolean.TRUE.equals(success))
         {

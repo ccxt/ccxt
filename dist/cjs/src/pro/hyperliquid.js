@@ -781,9 +781,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const cache = this.myLiquidations;
         const symbols = {};
         for (let i = 0; i < newLiquidationsLength; i++) {
-            const liquidation = newLiquidations[i];
-            cache.append(liquidation);
-            symbols[liquidation['symbol']] = true;
+            cache.append(newLiquidations[i]);
+            const liquidationSymbol = this.safeString(newLiquidations[i], 'symbol', '');
+            symbols[liquidationSymbol] = true;
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {

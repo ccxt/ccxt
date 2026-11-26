@@ -880,6 +880,7 @@ public partial class BaseExchange
 
     public virtual List<T> filterByLimit<T>(IList<T> array, object limit = null, object key = null, bool? fromStart = null)
     {
+        // a missing key reads as undefined, so no presence test is needed
         key ??= "timestamp";
         fromStart ??= false;
         if ((limit != null) && (limit != null))
@@ -888,14 +889,11 @@ public partial class BaseExchange
             if (arrayLength > 0)
             {
                 bool ascending = true;
-                if ((inOp((array != null && 0 < array.Count ? array[0] : default), key)))
+                double? first = this.safeFloat((array != null && 0 < array.Count ? array[0] : default), key);
+                double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : default), key);
+                if ((first != null) && (last != null))
                 {
-                    double? first = this.safeFloat((array != null && 0 < array.Count ? array[0] : default), key);
-                    double? last = this.safeFloat((array != null && (arrayLength - 1) < array.Count ? array[(arrayLength - 1)] : default), key);
-                    if ((first != null) && (last != null))
-                    {
-                        ascending = last.Value >= first.Value; // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                    ascending = last.Value >= first.Value; // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if (fromStart == true)
                 {
@@ -2341,9 +2339,9 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2336_18) ? sourceExchangeOption2336_18 : null) == null))
+            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2334_18) ? sourceExchangeOption2334_18 : null) == null))
             {
-                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2338_47) ? sourceExchangeOption2338_47 : null);
+                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2336_47) ? sourceExchangeOption2336_47 : null);
             }
         }
         return this;
@@ -4502,7 +4500,7 @@ public partial class BaseExchange
             result.Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        string? code = ((string)(((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null));
+        string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,code, since, limit);
     }
 
@@ -4517,7 +4515,7 @@ public partial class BaseExchange
             result.Add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        string? code = ((string)(((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null));
+        string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,code, since, limit);
     }
 
@@ -4532,7 +4530,7 @@ public partial class BaseExchange
             result.Add(this.extend(entry, parameters));
         }
         result = this.sortBy(result, "timestamp");
-        string? code = ((string)(((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null));
+        string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,code, since, limit);
     }
 
@@ -4959,7 +4957,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328019 && i_timestamp < ohlcvsSlot328019.Count ? ohlcvsSlot328019[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328080 && i_timestamp < ohlcvsSlot328080.Count ? ohlcvsSlot328080[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -6685,7 +6683,7 @@ public partial class BaseExchange
         return this.handleTriggerAndParams(parameters);
     }
 
-    public virtual bool isPostOnly(bool isMarketOrder, object exchangeSpecificParam, object parameters = null)
+    public virtual bool isPostOnly(bool isMarketOrder, bool? exchangeSpecificParam, object parameters = null)
     {
         /**
         * @ignore
@@ -6701,7 +6699,7 @@ public partial class BaseExchange
         bool ioc = timeInForce == "IOC";
         bool fok = timeInForce == "FOK";
         bool timeInForcePostOnly = timeInForce == "PO";
-        bool postOnly = (this.safeBool2(parameters, "postOnly", "post_only", false) == true) || timeInForcePostOnly || isTrue(exchangeSpecificParam);
+        bool postOnly = (this.safeBool2(parameters, "postOnly", "post_only", false) == true) || timeInForcePostOnly || exchangeSpecificParam == true;
         if (postOnly)
         {
             if (ioc || fok)
@@ -7293,9 +7291,9 @@ public partial class BaseExchange
         (Int64?, object) maxRetriesOptionparamsMaxRetriesVariable = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, "maxRetries", 3);
         Int64? maxRetriesOption = maxRetriesOptionparamsMaxRetriesVariable.Item1;
         IDictionary<string, object> paramsMaxRetries = ((IDictionary<string, object>)maxRetriesOptionparamsMaxRetriesVariable.Item2);
-        IList<object> removeRepeatedOptionparamsRemoveRepeatedVariable = (IList<object>)this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated);
-        bool removeRepeatedOption = (bool)removeRepeatedOptionparamsRemoveRepeatedVariable[0];
-        IDictionary<string, object> paramsRemoveRepeated = ((IDictionary<string, object>)removeRepeatedOptionparamsRemoveRepeatedVariable[1]);
+        (bool?, IDictionary<string, object>) removeRepeatedOptionparamsRemoveRepeatedVariable = this.handleOptionBoolAndParams(paramsMaxRetries, method, "removeRepeated", removeRepeated);
+        bool? removeRepeatedOption = removeRepeatedOptionparamsRemoveRepeatedVariable.Item1;
+        IDictionary<string, object> paramsRemoveRepeated = (removeRepeatedOptionparamsRemoveRepeatedVariable.Item2);
         (string?, IDictionary<string, object>) paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams(paramsRemoveRepeated, method, "paginationDirection", "backward");
         string? paginationDirection = paginationDirectionparamsPaginationDirectionVariable.Item1;
         IDictionary<string, object> paramsPaginationDirection = (paginationDirectionparamsPaginationDirectionVariable.Item2);
@@ -7407,7 +7405,7 @@ public partial class BaseExchange
             }
         }
         IList<object> uniqueResults = result;
-        if (removeRepeatedOption)
+        if ((removeRepeatedOption == true))
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }

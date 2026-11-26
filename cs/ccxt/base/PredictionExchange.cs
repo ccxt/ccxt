@@ -2108,7 +2108,7 @@ public partial class PredictionExchange : BaseExchange
         return this.safeValue(response, "result");
     }
 
-    public async virtual Task<object> sendEvmTransaction(string? rpcUrl, object chainId, string? fromAddress, string? to, string? value, string? data, string? gasLimit)
+    public async virtual Task<string?> sendEvmTransaction(string? rpcUrl, object chainId, string? fromAddress, string? to, string? value, string? data, string? gasLimit)
     {
         object nonce = await this.ethRpc(rpcUrl, "eth_getTransactionCount", new List<object>() {fromAddress, "pending"});
         object gasPrice = await this.ethRpc(rpcUrl, "eth_gasPrice", new List<object>() {});
@@ -2123,7 +2123,7 @@ public partial class PredictionExchange : BaseExchange
             { "data", data },
         };
         string? signed = this.signEvmTransaction(tx, this.privateKey);
-        return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
+        return ((string?)((object)(await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed}))));
     }
 
     public async virtual Task<object> waitForTransactionReceipt(string? rpcUrl, object txHash, object timeout = null)

@@ -1827,8 +1827,9 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(this.safeString(market, "symbol", ""))), parameters)).join();
-        Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
+        String marketSymbol = this.safeString(market, "symbol", "");
+        FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
+        Map<String, Object> rate = this.safeDict(rates, marketSymbol, null);
         if (java.util.Objects.equals(rate, null))
         {
             throw new BadSymbol(((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
@@ -2580,7 +2581,7 @@ public class Paradex extends ParadexApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean reduceOnlyParam = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnlyParam = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true));
         String orderType = type.toUpperCase();
         String orderSide = side.toUpperCase();
@@ -3852,7 +3853,7 @@ public class Paradex extends ParadexApi
             List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "DEPOSIT");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
-        Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
+        Boolean allKinds = this.safeBool(paramsPaginate, "allKinds", false);
         Map<String, Object> paramsKinds = this.omit(paramsPaginate, "allKinds");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(limit, null))
@@ -3944,7 +3945,7 @@ public class Paradex extends ParadexApi
             List<Object> transactionsOfKind = this.filterTransactionsByKind(transactions, "WITHDRAWAL");
             return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
         }
-        Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
+        Boolean allKinds = this.safeBool(paramsPaginate, "allKinds", false);
         Map<String, Object> paramsKinds = this.omit(paramsPaginate, "allKinds");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(limit, null))

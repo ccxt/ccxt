@@ -888,7 +888,7 @@ impl Blofin {
         let data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: Option<String> = (if let Some(__s) = channelName.as_deref() { Some(__s.replace("candle", "")) } else { None });
         let unifiedTimeframe: Option<String> = self.find_timeframe(Value::from(interval.as_deref()), &[]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -907,8 +907,8 @@ impl Blofin {
             stored.append(Value::Arr(parsed));
         }
         }
-        let resolveData: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol.as_deref()), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+        let resolveData: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol.as_str()), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol);
         client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
@@ -1445,9 +1445,9 @@ impl Blofin {
                 m.insert("args".to_string(), Value::from(topics));
             m
         });
-        let url: Value = crate::value::get_value_k(&get_value(&(self.urls.get("api").cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "public");
+        let url: String = self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), Value::Str("public".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let __ws_arg_6 = self.deep_extend(Value::Map(request), &[&paramsMarketType]);
-        return self.watch_multiple(&url, &messageHashes, __ws_arg_6, &messageHashes, Value::Null).await;
+        return self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_6, &messageHashes, Value::Null).await;
 
     Value::Null
 }

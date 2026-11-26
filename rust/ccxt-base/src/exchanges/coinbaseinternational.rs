@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
-        let instrumentName: Option<String> = self.safe_string_k_opt(&market, "instrument_name", &[]);
+        let instrumentName: String = self.safe_string_k(&market, "instrument_name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let lowercaseId: Option<String> = self.safe_string_lower_k_opt(&market, "instrument_name", &[]);
         let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
@@ -398,11 +398,11 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         }  else if isOption {
             type_var = "option".to_string();
         }
-        let mut symbol: Option<String> = instrumentName.clone();
+        let mut symbol: String = instrumentName.clone();
         if !isComboMarket && (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             if !isSpot && (settle.is_some()) {
-                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             }
         }
         let mut linear: Option<bool> = (if isSpot { None } else { Some(settle == quote) });
@@ -418,21 +418,21 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let optionType: Option<String> = self.safe_string_k_opt(&market, "option_type", &[]);
         if !isComboMarket && (isOption || isFuture) {
             let expiryString: Option<String> = self.yymmdd(Value::from(expiry), &[Value::Str("".into())]).as_str().map(str::to_owned);
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "-").into()), expiryString.as_deref().unwrap_or("null")));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), expiryString.as_deref().unwrap_or("null"));
         }
         if !isComboMarket && isOption {
             let mut optionTypeLetter: String = "P".to_string();
             if (optionType.as_deref() == Some("call")) {
                 optionTypeLetter = "C".to_string();
             }
-            let strikeString: Option<String> = self.number_to_string(Value::from(strike));
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "-").into()), strikeString.as_deref().unwrap_or("null")).into()), "-").into()), optionTypeLetter));
+            let strikeString: String = self.safe_string_k(&market, "strike", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), strikeString).into()), "-").into()), optionTypeLetter);
         }
         let marketStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), instrumentName.map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), Value::from(instrumentName));
                 m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from(symbol));
                 m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                 m.insert("settle".to_string(), marketSettle.map(Value::from).unwrap_or(Value::Null));
@@ -2506,7 +2506,7 @@ impl Coinbaseinternational {
         //     }
         //
         let rawRates: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_funding_rate_histories(&rawRates, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&rawRates, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -2740,7 +2740,7 @@ impl Coinbaseinternational {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let timestamp: Option<i64> = self.safe_integer_k(&result, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }
@@ -3670,7 +3670,7 @@ impl Coinbaseinternational {
         }
         let mut paramsOrder: crate::value::Dict = self.omit_t(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"], &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOrder = self.omit_t(Value::Dict(paramsOrder), &["reduceOnly", "reduce_only"], &[]);
+            paramsOrder = self.omit_t(paramsOrder, &["reduceOnly", "reduce_only"], &[]);
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;

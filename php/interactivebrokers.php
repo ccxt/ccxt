@@ -3043,7 +3043,8 @@ class interactivebrokers extends Exchange {
          */
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         $portfolioAccounts = $this->fetch_portfolio_accounts($params);
-        $accountIds = is_array($this->index_by($portfolioAccounts, 'accountId')) ? array_keys($this->index_by($portfolioAccounts, 'accountId')) : array();
+        $accountsById = $this->index_by($portfolioAccounts, 'accountId');
+        $accountIds = is_array($accountsById) ? array_keys($accountsById) : array();
         $length = count($accountIds);
         if ($length === 0) {
             throw new ExchangeError('No tradingaccount IDs found for the user');

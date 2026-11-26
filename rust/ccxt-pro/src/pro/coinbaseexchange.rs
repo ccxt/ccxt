@@ -1028,7 +1028,7 @@ impl Coinbaseexchange {
             if (self.orders.is_none()) {
                 return;
             }
-            let previousOrders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null));
+            let previousOrders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
             let mut previousOrder: Option<crate::value::Dict> = self.safe_dict_o(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null));
             if (previousOrder.is_none()) {
                 previousOrder = self.safe_dict_n(&previousOrders, Value::from(vec![makerOrderId.map(Value::from).unwrap_or(Value::Null), takerOrderId.map(Value::from).unwrap_or(Value::Null)]), &[]);

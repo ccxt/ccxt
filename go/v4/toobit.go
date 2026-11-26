@@ -2244,7 +2244,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if *this.SafeBool(market, "spot", false) {
 		request, paramsRequest := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -2252,7 +2252,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 		request, paramsRequest := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -2260,7 +2260,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 
 	//
@@ -2596,21 +2596,21 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	if marketType != nil && *marketType == "none" {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\""))
 	}
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if marketType != nil && *marketType == "spot" {
 
 		r1 := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 
 		r2 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
@@ -2788,21 +2788,21 @@ func (this *Toobit) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		"orderId": id,
 	}
 	var market map[string]any = this.Market(symbol)
-	var response any = map[string]any{}
+	var response map[string]any = map[string]any{}
 	if *this.SafeBool(market, "spot", false) {
 
 		r1 := <-this.PrivateGetApiV1SpotOrder(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 
 		r2 := <-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 
 	//
@@ -3534,9 +3534,9 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		results = append(results, this.Extend(this.ParseTransactionWithType(responseDict286870, currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")
-	var currencyCode any
+	var currencyCode *string
 	if currency != nil {
-		currencyCode = currency["code"]
+		currencyCode = this.SafeString(currency, "code")
 	} else {
 		currencyCode = nil
 	}

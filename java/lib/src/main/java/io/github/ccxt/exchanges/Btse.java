@@ -866,7 +866,7 @@ public class Btse extends BtseApi
         String minPriceString = this.safeString(market, "minOrderPrice");
         String pricePrecision = this.safeString(market, "minPriceIncrement");
         String amountPrecision = this.safeString(market, "minSizeIncrement");
-        Boolean active = (Boolean) this.safeBool(market, "active", null);
+        Boolean active = this.safeBool(market, "active", null);
         String type = "spot";
         Long expiry = null;
         String contractSize = null;
@@ -1909,7 +1909,7 @@ public class Btse extends BtseApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
+        Boolean paginate = this.safeBool(parameters, "paginate", false);
         if (Boolean.TRUE.equals(paginate))
         {
             return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, this.omit(parameters, "paginate"), null, true)).join();
@@ -2852,7 +2852,7 @@ public class Btse extends BtseApi
         {
             request.put("orderPrice", this.priceToPrecision(symbol, price));
         }
-        Boolean isSlide = (Boolean) this.safeBool(query, "slide", false);
+        Boolean isSlide = this.safeBool(query, "slide", false);
         if ((java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(triggerPrice, null)) && (!Boolean.TRUE.equals(isSlide)))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
@@ -4161,7 +4161,7 @@ public class Btse extends BtseApi
         {
             throw new BadRequest((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
-        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Boolean hedged = this.safeBool(parameters, "hedged", false);
         if (java.util.Objects.equals(marginModeValue, "cross"))
         {
             if (!(parameters.containsKey("hedged")))
@@ -4378,7 +4378,7 @@ public class Btse extends BtseApi
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         if (!Boolean.TRUE.equals(success))
         {
             String spotErrorCode = this.safeString(response, "code");

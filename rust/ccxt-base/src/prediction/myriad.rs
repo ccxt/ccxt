@@ -1937,9 +1937,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let gasLimit: String = self.safe_string_k(&params, "gasLimit", &[Value::Str("0xaae60".into())]).as_str().unwrap_or("0xaae60").to_string();
         let sideStr: String = sideLower;
         let quoteParams: crate::value::Dict = self.omit_t(&params, &["rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt"], &[]);
-        let mut quote: Value = self.safe_dict_k(&params, "quote", &[]);
-        if (quote == Value::Null) {
-            quote = Value::Dict(self.fetch_trade_quote(outcome, sideStr.as_str(), amount, &[&Value::Dict(quoteParams)]).await);
+        let mut quote: Option<crate::value::Dict> = self.safe_dict_k_o(&params, "quote");
+        if (quote.is_none()) {
+            quote = Some(self.fetch_trade_quote(outcome, sideStr.as_str(), amount, &[&Value::Dict(quoteParams)]).await);
         }
         let calldata: Option<String> = self.safe_string_k_opt(self.safe_dict_k(&quote, "info", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1966,7 +1966,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !(skipWaitForReceipt == Some(true)) {
             self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash.clone(), &[]).await;
         }
-        return self.parse_trade_tx(txHash.as_str(), quote, crate::Value::from(outcomeObj.as_ref()), sideStr.as_str());
+        return self.parse_trade_tx(txHash.as_str(), &quote, crate::Value::from(outcomeObj.as_ref()), sideStr.as_str());
 
     Value::Null
 }

@@ -333,7 +333,7 @@ public class Mudrex extends MudrexApi
         {
             return null;
         }
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         if (!Boolean.TRUE.equals(success))
         {
             List<Object> errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));

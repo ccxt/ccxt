@@ -1888,7 +1888,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         for (var i = 0; i < subscriptionHashes.size(); i++)
         {
             Object subscription = (client.subscriptions == null || (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)) == null ? null : client.subscriptions.get((subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i))));
-            Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
             String subscriptionId = this.safeString(subscription, "id");
             if (Boolean.TRUE.equals(isUnSubscription) && (!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
             {
@@ -1912,7 +1912,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        "result": true
         //    }
         //
-        Boolean success = (Boolean) this.safeBool(message, "result", false);
+        Boolean success = this.safeBool(message, "result", false);
         String messageHash = "authenticated";
         if (Boolean.TRUE.equals(success))
         {

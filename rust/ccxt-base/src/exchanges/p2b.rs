@@ -1161,7 +1161,7 @@ impl P2b {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let timestamp: Option<i64> = self.safe_integer_product_k(&response, "current_time", Value::Int(1000), &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
+        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         Value::Null
         }).await?))
     }

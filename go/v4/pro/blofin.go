@@ -840,21 +840,21 @@ func (this *Blofin) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	data, _ = message["data"].([]any)
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var interval string = strings.Replace(*channelName, "candle", "", 1)
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && unifiedTimeframe != nil {
-		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
+	if unifiedTimeframe != nil {
+		stored, _ = this.Ohlcvs[symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
+		if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*unifiedTimeframe] = stored
 		}
 	}
 	for i := 0; i < len(data); i++ {
@@ -863,7 +863,7 @@ func (this *Blofin) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash string = "candle" + interval + ":" + *symbol
+	var messageHash string = "candle" + interval + ":" + symbol
 	client.Resolve(resolveData, messageHash)
 }
 
@@ -1467,7 +1467,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "public")
+	var url *string = this.SafeString(ccxt.GetValue(this.UrlsApi["ws"], marketType), "public", "")
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, paramsMarketType), messageHashes)
 	if r1.Err != nil {

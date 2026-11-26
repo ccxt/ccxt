@@ -1402,7 +1402,7 @@ impl Bit2me {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]));
         Value::Null
         }).await?))
     }
@@ -1656,10 +1656,7 @@ impl Bit2me {
  * @returns {object} the request body
  */
     pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let isMarketOrder: bool = type_var.to_string() == "market";
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
@@ -1680,7 +1677,7 @@ impl Bit2me {
         let mut postOnly: bool = false;
         { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&query, "timeInForce", &[]);
-        query = self.omit_t(Value::Dict(query), Value::Str("timeInForce".into()), &[]);
+        query = self.omit_t(query, Value::Str("timeInForce".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));

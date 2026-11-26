@@ -1829,7 +1829,7 @@ public class Woo extends WooApi
     private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
         String orderType = type.toUpperCase();
         if (java.util.Objects.equals(this.markets, null))
@@ -2091,7 +2091,7 @@ public class Woo extends WooApi
                 request.put("callbackRate", convertedTrailingPercent);
             }
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
         Boolean isConditional = Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailing) || (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeList(paramsOmitted, "childOrders", null), null));
         Map<String, Object> response = null;
@@ -2158,7 +2158,7 @@ public class Woo extends WooApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if ((!Boolean.TRUE.equals(isTrigger)) && (java.util.Objects.equals(symbol, null)))
         {
@@ -2246,7 +2246,7 @@ public class Woo extends WooApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbol, null))
@@ -2350,7 +2350,7 @@ public class Woo extends WooApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String clientOrderId = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
@@ -2418,7 +2418,7 @@ public class Woo extends WooApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
-        Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsPaginate, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -3864,7 +3864,7 @@ public class Woo extends WooApi
         data.put("status", "ok");
         Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             transfer.put("amount", amount);
@@ -3994,7 +3994,7 @@ public class Woo extends WooApi
         //
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Long timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
+        Boolean success = this.safeBool(transfer, "success", null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {
@@ -4186,7 +4186,7 @@ public class Woo extends WooApi
             this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && (java.util.Objects.equals(path, "trade/algoOrder") || java.util.Objects.equals(path, "trade/order")))
             {
-                Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+                Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
@@ -4267,7 +4267,7 @@ public class Woo extends WooApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", false);
+        Boolean success = this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
         if (!Boolean.TRUE.equals(success))
         {

@@ -923,7 +923,7 @@ public class Extended extends ExtendedApi
         }
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
-        Boolean isActive = (Boolean) this.safeBool(currency, "isActive", null);
+        Boolean isActive = this.safeBool(currency, "isActive", null);
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", currencyId);
         mapLiteral2.put("code", code);
@@ -1507,7 +1507,7 @@ public class Extended extends ExtendedApi
             }
             fee = feeDict;
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", null);
+        Boolean isTaker = this.safeBool(trade, "isTaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -2437,7 +2437,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Boolean validSignature = (Boolean) this.safeBool(data, "validSignature", null);
+        Boolean validSignature = this.safeBool(data, "validSignature", null);
         Long now = this.milliseconds();
         String status = "pending";
         if (!java.util.Objects.equals(validSignature, null))
@@ -2476,7 +2476,7 @@ public class Extended extends ExtendedApi
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature", null);
+        Boolean validSignature = this.safeBool(transfer, "validSignature", null);
         String status = null;
         if (!java.util.Objects.equals(validSignature, null))
         {
@@ -3224,7 +3224,7 @@ public class Extended extends ExtendedApi
         String amountString = this.amountToPrecision(symbol, amount);
         String priceString = this.priceToPrecision(symbol, price);
         Boolean postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), null, parameters);
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -3234,7 +3234,7 @@ public class Extended extends ExtendedApi
         String builderFeeRate = null;
         String builderId = null;
         Map<String, Object> paramsBuilder = parameters;
-        Boolean builderEnabled = (Boolean) this.safeBool(this.options, "builderFee", false);
+        Boolean builderEnabled = this.safeBool(this.options, "builderFee", false);
         if (Boolean.TRUE.equals(builderEnabled))
         {
             if (this.isSandboxModeEnabled)
@@ -3534,8 +3534,8 @@ public class Extended extends ExtendedApi
         Double amountValue = amount;
         Double priceValue = price;
         Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", null);
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", null);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
         if ((java.util.Objects.equals(amountValue, null)) || (java.util.Objects.equals(priceValue, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
         {
@@ -3557,11 +3557,11 @@ public class Extended extends ExtendedApi
             }
             if (java.util.Objects.equals(postOnly, null))
             {
-                postOnly = (Boolean) this.safeBool(order, "postOnly", false);
+                postOnly = this.safeBool(order, "postOnly", false);
             }
             if (java.util.Objects.equals(reduceOnly, null))
             {
-                reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", false);
+                reduceOnly = this.safeBool(order, "reduceOnly", false);
             }
             if (java.util.Objects.equals(cancelId, null))
             {

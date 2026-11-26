@@ -2644,11 +2644,11 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
             }
         }
-        let mut quote: Value = Value::Dict(self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+        let mut quote: crate::value::Dict = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await);
+})]).await;
         if !matches!(self.safe_bool_k(&quote, "available", &[Value::Bool(false)]), Value::Bool(true)) || (self.safe_string_k(&quote, "price", &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchConvertQuote() stock indicative quote unavailable: ").into()), self.safe_string_k(&quote, "reason", &[Value::Str("priceUnavailable".into())]))));
         }
@@ -2662,11 +2662,11 @@ impl Backpack {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
                 }
                 amountString = reducedQuantity;
-                quote = Value::Dict(self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+                quote = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
-})]).await);
+})]).await;
                 if !matches!(self.safe_bool_k(&quote, "available", &[Value::Bool(false)]), Value::Bool(true)) || (self.safe_string_k(&quote, "price", &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchConvertQuote() stock indicative quote unavailable: ").into()), self.safe_string_k(&quote, "reason", &[Value::Str("priceUnavailable".into())]))));
                 }
@@ -2682,7 +2682,7 @@ impl Backpack {
         let toCurrency: Option<String> = self.safe_currency_code(toCode.as_str(), None);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), quote.clone());
+        m.insert("info".to_string(), Value::from(&quote));
         m.insert("timestamp".to_string(), self.safe_integer_k(&quote, "publishedAt", &[]));
         m.insert("datetime".to_string(), self.iso8601(self.safe_integer_k(&quote, "publishedAt", &[])));
         m.insert("id".to_string(), Value::Null);

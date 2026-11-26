@@ -4789,7 +4789,7 @@ function lendOptionalArgs(content: string): string {
             if (!cand.has(n) || matched.has(n)) continue;
             matched.add(n);
             const body = content.slice(decl.index! + decl[0].length, balancedCloseIndex(content, decl.index! + decl[0].length));
-            if (body.replace(/get_arg\(optional_args, /g, '').includes('optional_args')) continue;
+            if (body.replace(/get_arg(?:_dict)?\(optional_args, /g, '').includes('optional_args')) continue;
             names.push(n);
         }
     }
@@ -6689,7 +6689,7 @@ function lendCredentialFieldReads(content: string): string {
 }
 // `Value::from((market).f.clone())` over a `String` field of `Market`: `.as_str()` lends the field, `.as_str().map(str::to_owned)` copies it once, and a top-level `format!` argume...
 function lendMarketStringMembers(content: string): string {
-    const box = String.raw`Value::from\(\(market\)\.(symbol|market_type|base|quote)\.clone\(\)\)`;
+    const box = String.raw`Value::from\(\(market\)\.(symbol|market_type|base|quote)(?:\.clone\(\))?\)`;
     let out = content.replace(new RegExp(String.raw`(?:\(${box}\)|${box})\.as_str\(\)(\.map\(str::to_owned\))?`, 'g'),
         (_s, f1: string | undefined, f2: string | undefined, own: string | undefined) => own ? `Some((market).${f1 ?? f2}.clone())` : `Some((market).${f1 ?? f2}.as_str())`);
     const one = new RegExp(String.raw`^\s*${box}\s*$`);
@@ -13406,6 +13406,7 @@ function rustPassesSelfTest(): string[] {
     ok(lent.includes('optional_args: &[&Value]') && lent.includes('self.authenticate(&[&params])') && lent.includes('self.authenticate(&args[..].iter().collect::<Vec<_>>())') && lent.includes('self.authenticate(&[])'), 'lendOptionalArgs: get_arg-only method lends');
     const kept = lendOptionalArgs(lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'));
     ok(kept === lendSrc.replace('Value::Null);', 'Value::Null); g(optional_args);'), 'lendOptionalArgs: other optional_args use keeps the slice');
+    ok(lendOptionalArgs(lendSrc.replace('let mut params = get_arg(optional_args, 0, Value::Null);', 'let params: crate::value::Dict = get_arg_dict(optional_args, 0);')).includes('optional_args: &[&Value]'), 'lendOptionalArgs: get_arg_dict-only method lends');
     const disp = lendOptionalArgs('fn g(&mut self) { self.call_method_t("x_get_y", &[params.clone()]).await; self.parent.call_method(Value::Str("z".into()), &[Value::Dict(r)]).await; }\n');
     ok(disp.includes('call_method_t("x_get_y", &[&params])') && disp.includes('&[&Value::Dict(r)]'), 'lendOptionalArgs: by-name dispatcher lends');
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';

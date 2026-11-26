@@ -1527,10 +1527,7 @@ impl Nado {
  * @returns {object} the request payload for the place_order execute
  */
     pub async fn create_order_request(&mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (type_var != "limit") {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() supports limit orders only")));
@@ -1741,10 +1738,7 @@ impl Nado {
  * @returns {object} the request payload for the cancel_and_place execute
  */
     pub async fn edit_order_request(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (type_var != "limit") {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " editOrder() supports limit orders only")));
@@ -1943,10 +1937,7 @@ impl Nado {
  * @returns {object} the request payload for the cancel_product_orders execute
  */
     pub async fn cancel_all_orders_request(&mut self, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut productIds: Vec<Value> = Vec::new();
         if (symbol.is_some()) {
             let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2065,10 +2056,7 @@ impl Nado {
  * @returns {object} the request payload for the cancel_orders execute
  */
     pub async fn cancel_orders_request(&mut self, mut ids: Value, symbol: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let productId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
         let subaccountparamsSubaccountVariable = self.handle_option_string_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subaccount".into()), &[Value::Str("default".into())]);
@@ -3772,7 +3760,7 @@ impl Nado {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

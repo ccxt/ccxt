@@ -921,7 +921,7 @@ public partial class myriad : PredictionExchange
         // approve(spender, maxUint256)
         string maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
         string approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + maxUint);
-        object approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
+        string? approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return ((Dictionary<string, object>)((object)(null)));
     }
@@ -1251,7 +1251,7 @@ public partial class myriad : PredictionExchange
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
         bool? skipWaitForReceipt = this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
-        object txHash = null;
+        string? txHash = null;
         if ((txHashParam != null))
         {
             txHash = txHashParam;
@@ -2329,7 +2329,7 @@ public partial class myriad : PredictionExchange
         return ((string?)((object)(Precise.stringDiv(decimalString, scale))));
     }
 
-    public virtual object parseTradeTx(object txHash, object quote, IDictionary<string, object> market, string side)
+    public virtual object parseTradeTx(string? txHash, object quote, IDictionary<string, object> market, string side)
     {
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", txHash },

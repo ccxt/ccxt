@@ -3522,11 +3522,11 @@ class BaseExchange(object):
             arrayLength = len(array)
             if arrayLength > 0:
                 ascending = True
-                if (key in array[0]):
-                    first = self.safe_float(array[0], key)
-                    last = self.safe_float(array[arrayLength - 1], key)
-                    if first is not None and last is not None:
-                        ascending = last >= first  # true if array is sorted in ascending order based on 'timestamp'
+                # a missing key reads as undefined, so no presence test is needed
+                first = self.safe_float(array[0], key)
+                last = self.safe_float(array[arrayLength - 1], key)
+                if first is not None and last is not None:
+                    ascending = last >= first  # true if array is sorted in ascending order based on 'timestamp'
                 if fromStart:
                     if ascending:
                         limitResolved = arrayLength if (limit > arrayLength) else limit
@@ -4008,7 +4008,7 @@ class BaseExchange(object):
                         subTypeFeatures[subType] = self.features_mapper(initialFeatures, marketType, subType)
                     self.features[marketType] = subTypeFeatures
 
-    def features_mapper(self, initialFeatures: dict, marketType: Str, subType: Str = None):
+    def features_mapper(self, initialFeatures: dict, marketType: str, subType: Str = None):
         featuresObj = self.safe_dict(initialFeatures, marketType)
         if subType is not None:
             featuresObj = self.safe_dict(featuresObj, subType)
@@ -5886,7 +5886,7 @@ class BaseExchange(object):
             transaction = self.extend(self.parse_transaction(self.safe_dict(transactionsArray, i, {}), currency), params)
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
-        code = currency['code'] if (currency is not None) else None
+        code = self.safe_string(currency, 'code') if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transfers(self, transfers: list, currency: Currency = None, since: Int = None, limit: Int = None, params: dict = {}):
@@ -5896,7 +5896,7 @@ class BaseExchange(object):
             transfer = self.extend(self.parse_transfer(self.safe_dict(transfersArray, i, {}), currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
-        code = currency['code'] if (currency is not None) else None
+        code = self.safe_string(currency, 'code') if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_ledger(self, data: object, currency: Currency = None, since: Int = None, limit: Int = None, params: dict = {}):
@@ -5906,7 +5906,7 @@ class BaseExchange(object):
             entry = self.parse_ledger_entry(self.safe_dict(arrayData, i, {}), currency)
             result.append(self.extend(entry, params))
         result = self.sort_by(result, 'timestamp')
-        code = currency['code'] if (currency is not None) else None
+        code = self.safe_string(currency, 'code') if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def nonce(self) -> int:
@@ -7602,7 +7602,7 @@ class BaseExchange(object):
     def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', 10)
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', 3)
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
+        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_bool_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
         paginationDirection, paramsPaginationDirection = self.handle_option_string_and_params(paramsRemoveRepeated, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
         result = []

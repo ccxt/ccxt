@@ -722,14 +722,7 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         string messageHash = "";
-        IList<object> symbolsNormalized2 = null;
-        if (this.isEmpty(symbols))
-        {
-            symbolsNormalized2 = symbols;
-        } else
-        {
-            symbolsNormalized2 = this.marketSymbols(symbols);
-        }
+        IList<object> symbolsNormalized2 = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols))
         {
             messageHash = ("::" + String.Join(",", symbolsNormalized2.ToArray()));

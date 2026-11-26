@@ -1029,7 +1029,7 @@ public class Blofin extends BlofinApi
         String symbol = this.safeString(marketResolved, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Boolean spot = (Boolean) this.safeBool(marketResolved, "spot", false);
+        Boolean spot = this.safeBool(marketResolved, "spot", false);
         String quoteVolume = ((Boolean.TRUE.equals(spot))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -1759,7 +1759,7 @@ public class Blofin extends BlofinApi
         String triggerPriceAny = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
         String triggerPriceSlTp = this.safeString2(query, "stopLossPrice", "takeProfitPrice");
         String timeInForce = this.safeString(query, "timeInForce", "GTC");
-        Boolean isHedged = (Boolean) this.safeBool(query, "hedged", false);
+        Boolean isHedged = this.safeBool(query, "hedged", false);
         if (Boolean.TRUE.equals(isHedged))
         {
             request.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "long" : "short");
@@ -2029,7 +2029,7 @@ public class Blofin extends BlofinApi
         Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
         Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
         Map<String, Object> response = null;
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(paramsTpsl, "reduceOnly", null);
         if (!java.util.Objects.equals(reduceOnly, null))
         {
             ((Map<String, Object>)paramsTpsl).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");
@@ -2064,7 +2064,7 @@ public class Blofin extends BlofinApi
     public Object createTpslOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
-        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Boolean hedged = this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
         if (Boolean.TRUE.equals(hedged))
         {
@@ -2166,8 +2166,8 @@ public class Blofin extends BlofinApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instId", market.get("id") );
         }};
-        Boolean isTrigger = (Boolean) this.safeBool(parameters, "trigger", false);
-        Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
+        Boolean isTrigger = this.safeBool(parameters, "trigger", false);
+        Boolean isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -2285,8 +2285,8 @@ public class Blofin extends BlofinApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instId", market.get("id") );
         }};
-        Boolean isTrigger = (Boolean) this.safeBool(parameters, "trigger", false);
-        Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
+        Boolean isTrigger = this.safeBool(parameters, "trigger", false);
+        Boolean isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -2411,7 +2411,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instId", market.get("id") );
         }};
-        Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
+        Boolean isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -2486,8 +2486,8 @@ public class Blofin extends BlofinApi
         {
             request.put("limit", limit); // default 100, max 100
         }
-        Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
-        Boolean isTpSl = (Boolean) this.safeBool2(paramsPaginate, "tpsl", "TPSL", false);
+        Boolean isTrigger = this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger")), false);
+        Boolean isTpSl = this.safeBool2(paramsPaginate, "tpsl", "TPSL", false);
         Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
@@ -3558,7 +3558,7 @@ public class Blofin extends BlofinApi
         Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
         List<Object> clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         List<Object> tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
-        Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl")), null);
+        Boolean trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl")), null);
         if (java.util.Objects.equals(trigger, true))
         {
             method = "privatePostTradeCancelTpsl";
@@ -4345,7 +4345,7 @@ public class Blofin extends BlofinApi
         {
             request.put("begin", since);
         }
-        Boolean isTrigger = (Boolean) this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
+        Boolean isTrigger = this.safeBoolN(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
         Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();

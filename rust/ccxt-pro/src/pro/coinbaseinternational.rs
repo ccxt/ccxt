@@ -2572,7 +2572,7 @@ impl Coinbaseinternational {
         }
         let mut paramsRequest: crate::value::Dict = self.omit_t(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"], &[]);
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            paramsRequest = self.omit_t(Value::Dict(paramsRequest), &["reduceOnly", "reduce_only"], &[]);
+            paramsRequest = self.omit_t(paramsRequest, &["reduceOnly", "reduce_only"], &[]);
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
         let result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[&__ws_arg_10, &Value::Bool(true)]).await;

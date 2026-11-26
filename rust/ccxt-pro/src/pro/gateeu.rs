@@ -82,11 +82,11 @@ impl Gateeu {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::gateeu::Gateeu::new(None);
         let restDescribe: crate::value::Dict = restInstance.describe();
-        let parentWsDescribe: Value = self.parent.describe_data();
+        let parentWsDescribe: crate::value::Dict = self.parent.describe_data();
         // the ws describe-data must be applied on top of the rest describe,
         // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
-        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
+        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[&parentWsDescribe]);
         return self.deep_extend_t(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gateeu".into()));

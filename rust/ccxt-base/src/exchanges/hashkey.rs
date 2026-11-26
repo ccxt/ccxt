@@ -1343,7 +1343,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 if (method.as_str() == Some("GET")) {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), Value::from(path)).into()), "?").into()), query.as_deref().unwrap_or("null"));
                 }  else {
-                    bodySigned = query.clone();
+                    bodySigned = query.take();
                 }
             }
             headersSigned.insert("INPUT-SOURCE".into(), self.safe_string_k(&self.options, "broker", &[Value::Str("10000700011".into())]));
@@ -3810,10 +3810,7 @@ impl Hashkey {
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -3822,9 +3819,9 @@ impl Hashkey {
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
-            return self.create_spot_order_request(symbol, type_var, side, amount.as_f64(), price.as_f64(), &[&params]);
+            return self.create_spot_order_request(symbol, type_var, side, amount.as_f64(), price.as_f64(), &[&Value::from(&params)]);
         }  else if (market).swap {
-            return self.create_swap_order_request(symbol, type_var, side, amount.as_f64(), price.as_f64(), &[&params]);
+            return self.create_swap_order_request(symbol, type_var, side, amount.as_f64(), price.as_f64(), &[&Value::Dict(params)]);
         }  else {
             let marketTypeValue: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), "createOrderRequest() is not supported for ").into()), marketTypeValue).into()), " type of markets")));

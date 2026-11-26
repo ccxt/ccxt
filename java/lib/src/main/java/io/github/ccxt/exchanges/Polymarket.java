@@ -503,7 +503,7 @@ public class Polymarket extends PolymarketApi
         //         "engine_version": "0.0.69"
         //     }
         //
-        Boolean cancelOnly = (Boolean) this.safeBool(response, "cancel_only", false);
+        Boolean cancelOnly = this.safeBool(response, "cancel_only", false);
         return new HashMap<String, Object>() {{
             put( "status", ((Boolean.TRUE.equals(cancelOnly))) ? "maintenance" : "ok" );
             put( "updated", null );
@@ -1066,7 +1066,7 @@ public class Polymarket extends PolymarketApi
         {
             side = "sell";
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "taker", null);
+        Boolean isTaker = this.safeBool(trade, "taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -1558,7 +1558,7 @@ public class Polymarket extends PolymarketApi
             }
         }
         String tif = timeInForce.toLowerCase();
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsOmitted, "reduceOnly", false);
         String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "c");
         paramsOmitted = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("timeInForce", "reduceOnly", "clientOrderId")));
         Long instrumentId = this.parseToInt(((Map<String, Object>)market).get("id"));
@@ -2066,7 +2066,7 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = (Long) this.safeInteger2(order, "created_timestamp", "cts");
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updated_timestamp", "uts");
-        Boolean isBuy = (Boolean) this.safeBool(order, "buy", null);
+        Boolean isBuy = this.safeBool(order, "buy", null);
         String side = null;
         if (!java.util.Objects.equals(isBuy, null))
         {
@@ -2262,7 +2262,7 @@ public class Polymarket extends PolymarketApi
             Boolean isLong = Precise.stringGt(size, "0");
             side = ((Boolean.TRUE.equals(isLong))) ? "long" : "short";
         }
-        Boolean isCross = (Boolean) this.safeBool(position, "cross", null);
+        Boolean isCross = this.safeBool(position, "cross", null);
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {
@@ -2914,7 +2914,7 @@ public class Polymarket extends PolymarketApi
     {
         String marketId = this.safeString(leverage, "instrument_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isCross = (Boolean) this.safeBool(leverage, "cross", null);
+        Boolean isCross = this.safeBool(leverage, "cross", null);
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {
@@ -3195,7 +3195,7 @@ public class Polymarket extends PolymarketApi
         String owner = this.ethGetAddressFromPrivateKey(this.privateKey);
         Long ts = this.milliseconds();
         Long lifetime = this.safeInteger(this.options, "proxyExpiry", 604800000);
-        Object expiry = this.sum(ts, lifetime);
+        Long expiry = this.sum(ts, lifetime);
         Integer salt = this.randNumber(9);
         Long chainId = this.safeInteger(this.options, "chainId", 137);
         Map<String, Object> domain = new HashMap<String, Object>() {{

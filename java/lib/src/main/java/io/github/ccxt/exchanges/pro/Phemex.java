@@ -945,7 +945,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             String subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
             Object subscription = (client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash));
-            Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
             String subscriptionId = this.safeString(subscription, "id");
             if (Boolean.TRUE.equals(isUnSubscription) && (!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
             {

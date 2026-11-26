@@ -1402,7 +1402,7 @@ impl Coinone {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("qty".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("qty".into())]));
         Value::Null
         }).await?))
     }

@@ -301,7 +301,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         String messageType = this.getTypeByMarket(market);
         String channel = (messageType + ".order_cancel_cp");
         Pair<String, Map<String, Object>> channelOptionparamsChannelVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
@@ -353,7 +353,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
+        Boolean trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, null);
         String type = typequeryVariable.first();
@@ -761,7 +761,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //      "event":"update"
         //   }
         Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Boolean full = (Boolean) this.safeBool(result, "full", false);
+        Boolean full = this.safeBool(result, "full", false);
         String marketIdWithPrefix = this.safeString(result, "s");
         if (java.util.Objects.equals(marketIdWithPrefix, null))
         {
@@ -2878,7 +2878,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> data = this.safeDict(message, "data", null);
             // use safeValue as result may be Array or an Object
             Object result = this.safeValue(data, "result");
-            Boolean ack = (Boolean) this.safeBool(message, "ack", false);
+            Boolean ack = this.safeBool(message, "ack", false);
             if (!Boolean.TRUE.equals(ack))
             {
                 client.resolve(result, requestId);

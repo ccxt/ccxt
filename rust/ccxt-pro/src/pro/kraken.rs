@@ -2037,7 +2037,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
                 let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
                 let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-                let previousOrders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
+                let previousOrders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
                 let previousOrder: Option<crate::value::Dict> = self.safe_dict_o(&previousOrders, id.map(Value::from).unwrap_or(Value::Null));
                 let mut newOrder: Value = Value::from(&parsed);
                 if (previousOrder.is_some()) {

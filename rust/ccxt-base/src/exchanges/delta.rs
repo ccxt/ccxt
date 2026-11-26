@@ -3036,7 +3036,7 @@ impl Delta {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into()), Value::Str("price".into()), Value::Str("size".into())]));
+        return Value::Dict(self.parse_order_book(&result, Value::from((market).symbol), &[Value::Null, Value::Str("buy".into()), Value::Str("sell".into()), Value::Str("price".into()), Value::Str("size".into())]));
         Value::Null
         }).await?))
     }
@@ -4921,7 +4921,7 @@ impl Delta {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return Value::Dict(self.parse_option(Some(&result), None, &[(market).raw.clone()]));
+        return Value::Dict(self.parse_option(Some(&result), None, &[(market).raw]));
         Value::Null
         }).await?))
     }

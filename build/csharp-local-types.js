@@ -2130,6 +2130,8 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
 // ===== h29-C03: options-cache cores retyped IDictionary (csharpTranspiler VENUE_TYPED_CORES, sole declarations)
 CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchDydxAccount'] = 'IDictionary<string, object>';
 CSHARP_LOCAL_AWAIT_RETURN_TYPES['fetchCurrenciesFromCache'] = 'IDictionary<string, object>';
+// the prediction base sendEvmTransaction prints Task<string?> (CSHARP_ASYNC_CORE_RETURNS)
+CSHARP_LOCAL_AWAIT_RETURN_TYPES['sendEvmTransaction'] = 'string?';
 // ===== end h29-C03
 
 // Per-venue awaited types for same-named typed cores whose shape differs by class (alpaca/bydfi/
@@ -2913,8 +2915,8 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
 // matching arm builds: `From<Family>(<Family> value)` -> Dictionary<string, object>,
 // `From<Family>List(List<Family> values)` -> List<object> (the generated families are structs, so
 // the matching arm is the only reachable one; a null List passes through as null), plus the
-// hand-written identities FromDict / FromDictList / FromOHLCVDict / FromOHLCVList / FromInt64 /
-// FromStringValue / FromStringList in Exchange.TranspileHelpers.cs. The box is read from those
+// hand-written FromDictList / FromOHLCVDict / FromOHLCVList in Exchange.TranspileHelpers.cs (the
+// identity helpers are never printed; their box is their own type). The box is read from those
 // base files — the files the C# compiler compiles — so the declaration below can only name a type
 // the emitted call really carries, and a site the funnel pass never visits (a non-`public async`
 // method, a file without typed cores) has no on-disk funnel line and keeps its local `object`.
@@ -2923,6 +2925,8 @@ const CSHARP_TYPED_CORE_FILES = ['Exchange.TypedCores.cs', 'Exchange.TranspileHe
 const CSHARP_TYPED_CORE_BOXES = ['Dictionary<string, object>', 'List<object>', 'List<string>', 'Int64', 'string'];
 const CSHARP_TYPED_CORE_OVERLOAD = /^\s*public static ([A-Za-z0-9_<>,. ]+?) (From[A-Za-z0-9]+)\(([A-Za-z0-9_<>,. ]+?) [A-Za-z_]\w*\)/;
 const CSHARP_EXCHANGE_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'exchanges');
+const CSHARP_IDENTITY_FUNNEL_BOXES = { 'FromInt64': 'Int64', 'FromStringValue': 'string', 'FromDict': 'Dictionary<string, object>', 'FromStringList': 'List<string>' };
+const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 let csharpTypedCoreFunnels;
 function csharpTypedCoreFunnelTypes () {
     if (csharpTypedCoreFunnels !== undefined) {
@@ -2943,6 +2947,10 @@ function csharpTypedCoreFunnelTypes () {
             }
             table.set (match[2], match[1]);
         }
+    }
+    // the identity From* helpers are never printed (csharpHelperIsIdentity): their box is their own type
+    for (const [ helper, box ] of Object.entries (CSHARP_IDENTITY_FUNNEL_BOXES)) {
+        table.set (helper, box);
     }
     csharpTypedCoreFunnels = table;
     return table;
@@ -3111,7 +3119,6 @@ function typedCoreListFunnelWriteBox (csharp, declaration, value) {
     return (helper !== undefined && csharpTypedCoreFunnelTypes ().get (helper) === 'List<object>') ? 'List<object>' : undefined;
 }
 
-const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 function csharpIdentityCoreBox (content, core, table) {
     const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
     const signature = new RegExp ('^[ \\t]*public async (?:virtual |override )+Task<([^\\n]+)> ' + core + '\\(', 'i');
@@ -6003,9 +6010,8 @@ function requestIdLocalInitializer (method, name) {
 // venue's declaration of the same name boxes something else, so a name-keyed table cannot
 // express them. The same proof retypes the definition's signature (csharpMethodReturnType)
 // and answers the call sites in the declaring file (callReturnType) — no cast on either side.
-//   convertFromRawQuantity — bitmex's 4 return paths are all this.parseNumber (...)
-//     (Exchange.cs `double?`); pro/bitrue's own declaration returns its rawQuantity param and
-//     `rawQuantity * contractSize` and stays `object`.
+//   convertFromRawQuantity — pro/bitrue returns null, its `Num` rawQuantity param and
+//     `rawQuantity * contractSize` (two double? operands): `double?` (doubleReturnOperandsProve).
 export const CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS = {
     'convertFromRawQuantity': 'double?',
 };
@@ -6043,7 +6049,29 @@ function numericReturnExpressionProves (csharp, expression, mapped) {
     if (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined') {
         return true;
     }
+    if (mapped === 'double?' && doubleReturnOperandsProve (csharp, node)) {
+        return true;
+    }
     return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (node) === mapped;
+}
+
+// a `Num` / `number` parameter never written in its method, a local declared double / double?, or
+// `a * b` over two of them (the final pass prints the lifted double operator for that return)
+function doubleReturnOperandsProve (csharp, expression) {
+    const node = stripParens (expression);
+    const doubles = [ 'double', 'double?' ];
+    if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken.kind === ts.SyntaxKind.AsteriskToken) {
+        return [ node.left, node.right ].every ((x) => x.kind === ts.SyntaxKind.Identifier && doubleReturnOperandsProve (csharp, x));
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const reference = resolveReference (csharp, node);
+    if (reference?.kind === ts.SyntaxKind.Parameter) {
+        return reference.parent?.kind === ts.SyntaxKind.MethodDeclaration && annotationType (reference) === 'double?'
+            && reference.initializer === undefined && !csharpParameterIsWritten (csharp, reference.parent, reference);
+    }
+    return doubles.includes (identifierType (csharp, node));
 }
 
 const sameFileNumericTypes = new WeakMap ();
@@ -6844,7 +6872,8 @@ function conditionalArmType (csharp, node, context) {
         return undefined;
     }
     return localIdentifierType (csharp, arm) ?? numericParameterArmType (csharp, arm) ?? stringParameterArmType (csharp, arm)
-        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined) ?? dictParameterArmType (csharp, arm);
+        ?? (element1ParamsRead (csharp, arm) ? CSHARP_ELEMENT_1_TYPE : undefined) ?? dictParameterArmType (csharp, arm)
+        ?? venueListParameterArmType (csharp, arm);
 }
 
 // a parameter arm the emitted signature prints `IDictionary<string, object>` (the parse* `market`
@@ -16505,6 +16534,8 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     'handleToken': 'string?',
     'authenticateRest': 'string?',
     'loadMultiSignAddress': 'string?',
+    // PredictionExchange.ts: `Promise<string>`, the eth_sendRawTransaction hash ethRpc hands back
+    'sendEvmTransaction': 'string?',
 };
 
 // the mapped C# return type for an async core declaration, or undefined to leave the
@@ -16830,6 +16861,9 @@ function needsUnboxingWrap (csharp, expression, mapped) {
         return false;
     }
     if (callReturnIsMapped (csharp, expression, mapped)) {
+        return false;
+    }
+    if (mapped === 'double?' && doubleReturnOperandsProve (csharp, expression)) {
         return false;
     }
     // an int-typed value (an int counter, `(x?.Count ?? 0)`) reaches Int64 / Int64? through the
@@ -19288,7 +19322,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'handleTriggerPricesAndParams': { 2: 'bool?' },
     'handleUTAAndParams': { 2: 'bool?' },
     'isLeveragedCurrency': { 1: 'bool?' },
-    'isPostOnly': { 0: 'bool' },
+    'isPostOnly': { 0: 'bool', 1: 'bool?' },
     'loadAccountSettings': { 0: 'bool?' },
     'loadAccounts': { 0: 'bool?' },
     'loadEvents': { 0: 'bool?' },
@@ -21461,6 +21495,30 @@ function coreParameterCopyReadType (csharp, scope, identifier) {
     return (type === undefined || type === 'object') ? undefined : type;
 }
 
+export const VENUE_LIST_ARGS = {
+    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
+    // every caller passes a List<object> local or list literal and no body rebinds the parameter
+    'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
+    'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
+    'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
+    // callers pass IList<object> symbols / List<object> hash locals or literals; no body rebinds them
+    'pro:deribit': { 'watchMultipleWrapper': [ 2 ] },
+    'pro:backpack': { 'watchPublic': [ 1 ], 'watchPrivate': [ 1 ], 'handleUnsubscriptions': [ 1 ] },
+};
+
+// a pro venue parameter that typeVenueListArgs prints `IList<object>` after printing, read unwritten
+function venueListParameterArmType (csharp, arm) {
+    const reference = resolveReference (csharp, arm);
+    const owner = reference?.parent;
+    if (reference?.kind !== ts.SyntaxKind.Parameter || owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.name?.kind !== ts.SyntaxKind.Identifier
+            || csharpParameterIsWritten (csharp, owner, reference)) {
+        return undefined;
+    }
+    const venue = /(?:^|\/)pro\/(\w+)(?:\.nooverloads\.\d+)?\.ts$/.exec ((owner.getSourceFile ()?.fileName ?? '').replace (/\\/g, '/'))?.[1];
+    const positions = (venue === undefined) ? undefined : VENUE_LIST_ARGS['pro:' + venue]?.[owner.name.text];
+    return (Array.isArray (positions) && positions.includes (owner.parameters.indexOf (reference))) ? 'IList<object>' : undefined;
+}
+
 // a read of an unwritten parameter whose printed signature is a list (`IList<object>` / `IList<object>?`)
 // in its own method body: the read is that reference, so a copy local can name the list interface
 function printedListParameterReadType (csharp, scope, identifier) {
@@ -21506,6 +21564,13 @@ const CSHARP_77C7_HANDWRITTEN_RETURNS = {
     'ethAbiEncode': 'byte[]',
     'lighterCreateAuthToken': 'string',
     'implodeParams': 'string',
+    // Exchange.Crypto.cs `public byte[] decryptPrivateKey`, Exchange.cs `public BigInteger modPow`
+    'decryptPrivateKey': 'byte[]',
+    'modPow': 'System.Numerics.BigInteger',
+    // Exchange.Lighter.cs `public LighterSigner.Signer lighterCreateClient` (returns its cast argument)
+    'lighterCreateClient': 'LighterSigner.Signer',
+    // Exchange.cs: the single return is StarkSharp TypedData.EncodeTypedDataRaw's `string`
+    'starknetEncodeStructuredData': 'string',
 };
 for (const [ name, type ] of Object.entries (CSHARP_77C7_HANDWRITTEN_RETURNS)) {
     if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {

@@ -413,7 +413,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        Boolean use1sFreq = (Boolean) this.safeBool(paramsOmitted, "use1sFreq", true);
+        Boolean use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             Map<String, Object> market = this.market(this.safeString(symbolsNormalized, i, ""));
@@ -490,7 +490,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         List<Object> subscriptionArgs = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        Boolean use1sFreq = (Boolean) this.safeBool(paramsOmitted, "use1sFreq", true);
+        Boolean use1sFreq = this.safeBool(paramsOmitted, "use1sFreq", true);
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             Map<String, Object> market = this.market(this.safeString(symbolsNormalized, i, ""));
@@ -1107,7 +1107,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isMaker = this.safeBool(trade, "m", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
@@ -1800,8 +1800,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Client client = this.client(url);
         this.setBalanceCache(client, (String) (typeMarketType));
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
             client.future((typeMarketType + ":fetchBalanceSnapshot")).getFuture().join();
@@ -1819,7 +1819,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             return;
         }
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");

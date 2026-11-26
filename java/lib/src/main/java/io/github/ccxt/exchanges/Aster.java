@@ -1687,21 +1687,21 @@ public class Aster extends AsterApi
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = this.safeStringLower(trade, "side");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean isMaker = this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
             if (java.util.Objects.equals(side, null))
             {
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", null);
+                Boolean isBuyer = this.safeBool(trade, "buyer", null);
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
                     side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
                 }
             }
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m", null);
+        Boolean isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m", null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -3491,7 +3491,7 @@ public class Aster extends AsterApi
         //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
         // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
         //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
-        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
+        Boolean closePosition = this.safeBool(parameters, "closePosition", false);
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -4769,7 +4769,7 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", null);
+        Boolean isolatedRaw = this.safeBool(position, "isolated", null);
         Boolean isolated = false;
         if (java.util.Objects.equals(isolatedRaw, null))
         {
@@ -5474,7 +5474,7 @@ public class Aster extends AsterApi
         {
             return false;  // skip if builder fee is not enabled
         }
-        Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (Boolean.TRUE.equals(approvedBuilderFee))
         {
             return true;  // skip if builder fee is already approved

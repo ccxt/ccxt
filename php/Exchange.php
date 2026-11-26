@@ -3989,12 +3989,11 @@ class BaseExchange {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
                 $ascending = true;
-                if ((is_array($array[0]) && array_key_exists($key ?? '', $array[0]))) {
-                    $first = $this->safe_float($array[0], $key);
-                    $last = $this->safe_float($array[$arrayLength - 1], $key);
-                    if ($first !== null && $last !== null) {
-                        $ascending = $last >= $first;  // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                // a missing key reads as undefined, so no presence test is needed
+                $first = $this->safe_float($array[0], $key);
+                $last = $this->safe_float($array[$arrayLength - 1], $key);
+                if ($first !== null && $last !== null) {
+                    $ascending = $last >= $first;  // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if ($fromStart) {
                     if ($ascending) {
@@ -4605,7 +4604,7 @@ class BaseExchange {
         }
     }
 
-    public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
+    public function features_mapper(array $initialFeatures, string $marketType, ?string $subType = null) {
         $featuresObj = $this->safe_dict($initialFeatures, $marketType);
         if ($subType !== null) {
             $featuresObj = $this->safe_dict($featuresObj, $subType);
@@ -6881,7 +6880,7 @@ class BaseExchange {
             $result[] = $transaction;
         }
         $result = $this->sort_by($result, 'timestamp');
-        $code = ($currency !== null) ? $currency['code'] : null;
+        $code = ($currency !== null) ? $this->safe_string($currency, 'code') : null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
@@ -6893,7 +6892,7 @@ class BaseExchange {
             $result[] = $transfer;
         }
         $result = $this->sort_by($result, 'timestamp');
-        $code = ($currency !== null) ? $currency['code'] : null;
+        $code = ($currency !== null) ? $this->safe_string($currency, 'code') : null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
@@ -6905,7 +6904,7 @@ class BaseExchange {
             $result[] = $this->extend($entry, $params);
         }
         $result = $this->sort_by($result, 'timestamp');
-        $code = ($currency !== null) ? $currency['code'] : null;
+        $code = ($currency !== null) ? $this->safe_string($currency, 'code') : null;
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
@@ -9010,7 +9009,7 @@ class BaseExchange {
     public function fetch_paginated_call_dynamic(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array(), ?int $maxEntriesPerRequest = null, $removeRepeated = true) {
         list($maxCallsPaginationCalls, $paramsPaginationCalls) = $this->handle_option_integer_and_params($params, $method, 'paginationCalls', 10);
         list($maxRetriesOption, $paramsMaxRetries) = $this->handle_option_integer_and_params($paramsPaginationCalls, $method, 'maxRetries', 3);
-        list($removeRepeatedOption, $paramsRemoveRepeated) = $this->handle_option_and_params($paramsMaxRetries, $method, 'removeRepeated', $removeRepeated);
+        list($removeRepeatedOption, $paramsRemoveRepeated) = $this->handle_option_bool_and_params($paramsMaxRetries, $method, 'removeRepeated', $removeRepeated);
         list($paginationDirection, $paramsPaginationDirection) = $this->handle_option_string_and_params($paramsRemoveRepeated, $method, 'paginationDirection', 'backward');
         $paginationTimestamp = null;
         $result = array();

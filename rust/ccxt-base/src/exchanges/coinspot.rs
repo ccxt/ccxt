@@ -1191,7 +1191,7 @@ impl Coinspot {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
         let orderbook: crate::value::Dict = self.private_post_orders(&[&__ws_arg_0]).await.unwrap_or_default();
-        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]));
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
     }

@@ -252,7 +252,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         //  }
         //
         List<Object> parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Boolean isSnapshot = (Boolean) this.safeBool(parameters, 0, false);
+        Boolean isSnapshot = this.safeBool(parameters, 0, false);
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = (String) market.get("symbol");
@@ -1128,7 +1128,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Boolean hasSymbolSubscription = true;
             Map<String, Object> market = this.market(symbol);
             String marketId = this.safeString(market, "id");
-            Boolean isSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
+            Boolean isSubscribed = this.safeBool(subscription, marketId, false);
             if (!Boolean.TRUE.equals(isSubscribed))
             {
                 if (!java.util.Objects.equals(marketId, null))

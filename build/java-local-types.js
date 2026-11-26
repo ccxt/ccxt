@@ -72,6 +72,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseFundingHistories',
     // base-only filterByOutcomeSinceLimit returns filterByValueSinceLimit; base-only parsePredictionOrders returns it
     'filterByOutcomeSinceLimit', 'parsePredictionOrders',
+    // base-only parseTransfers returns filterByCurrencySinceLimit (List<Object>); no override in ts/src
+    'parseTransfers',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -318,12 +320,12 @@ const LOCAL_THIS_RETURN_TYPES = {
     // `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
     // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
     // default argument is absent or a boolean literal — see the section-7 header.
-    'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
+    'safeBool': { type: 'Boolean', defaultArg: 2, safeBool: true },
     // `safeBool2(a, k1, k2[, default])` / `safeBoolN(a, keys[, default])` are the same box
     // (BaseExchange.safeBool2/safeBoolN return `value instanceof Boolean ? value : defaultValue`,
     // with `defaultValue = optionalArgs.length > 0 ? optionalArgs[0] : null`), the default
-    'safeBool2': { type: 'Boolean', cast: '(Boolean)', defaultArg: 3, safeBool: true },
-    'safeBoolN': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
+    'safeBool2': { type: 'Boolean', defaultArg: 3, safeBool: true },
+    'safeBoolN': { type: 'Boolean', defaultArg: 2, safeBool: true },
     // string/crypto/url helpers (section 4); classifyStringHelperCall adds the ts/src/base file gate
     'json': { type: 'String' },
     'urlencode': { type: 'String' },
@@ -570,7 +572,10 @@ function isParseStructureReturnType (printer, type) {
 // a whole call to an internal method the printer itself retyped (javaNativeReturnType): the
 // declaration takes that native type with no checkcast
 function internalReturnLocalType (printer, initializer) {
-    if (typeof printer.javaNativeReturnType !== 'function' || !isThisCall (initializer)) {
+    // a pro file's `super.x ()` resolves to the parent declaration, whose retyped return it carries
+    const proSuper = isThisOrSuperCall (initializer) && !isThisCall (initializer)
+        && /[\\/]ts[\\/]src[\\/]pro[\\/]/.test (initializer.getSourceFile ().fileName);
+    if (typeof printer.javaNativeReturnType !== 'function' || !(isThisCall (initializer) || proSuper)) {
         return undefined;
     }
     let declaration;
@@ -591,7 +596,7 @@ function internalReturnLocalType (printer, initializer) {
         && javaBytesLocalIsSafe (local, printer))) {
         return undefined; // a byte[] local may only feed an Object slot
     }
-    return { type: native, valuePrefix: 'this.', strictPlus: native === 'String' };
+    return { type: native, valuePrefix: proSuper ? 'super.' : 'this.', strictPlus: native === 'String' };
 }
 
 function parseStructureLocalType (printer, initializer, name) {
@@ -3043,6 +3048,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const describe = asserted ? undefined : describeCallLocalType (printer, initializer);
     if (describe !== undefined) {
         return describe;
+    }
+    const proSuperReturn = asserted || isThisCall (initializer) ? undefined : internalReturnLocalType (printer, initializer);
+    if (proSuperReturn !== undefined) {
+        return proSuperReturn;
     }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
@@ -11607,9 +11616,13 @@ function nullScalarWriteType (printer, node) {
         return nullScalarCopyTernaryType (printer, value, arms);
     }
     const numeric = numericFamilyCallType (printer, value) ?? numericNativeArithmeticWrite (printer, value)
-        ?? (r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined ? 'Long' : undefined);
+        ?? (r97j3TypedLongSum (printer, value) && !r90j3NativeSumPrinted (printer, value) ? 'Long' : undefined);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
+    }
+    // base `this.sum (a, b)` of two Long/long operands binds hand-written `Long sum(Long, Long)`
+    if (r97j3TypedLongSum (printer, value)) {
+        return 'Long';
     }
     if (literalTypeOfValue (printer, value)?.type === LITERAL_BOOLEAN_TYPE) {
         return 'Boolean';
@@ -18937,7 +18950,7 @@ function javaScalarLocalValue (printer, node, declaration, type, depth = 0) {
     }
     // base `this.sum (a, b)` of two Long operands binds the hand-written `Long sum (Long, Long)`;
     // whole initializer only, and not a sum the native long add already prints
-    if (type === 'Long' && depth === 0 && r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined) {
+    if (type === 'Long' && depth === 0 && r97j3TypedLongSum (printer, value) && !r90j3NativeSumPrinted (printer, value)) {
         return { cast: '' };
     }
     // a sync callee whose Java declaration (hand-written base or generated core) already returns T
@@ -24117,6 +24130,21 @@ function r90j3NativeSum (printer, node, depth = 0, constLocals = true) {
     const a = r90j3LongOperand (printer, call.arguments[0], depth, constLocals);
     const b = a === undefined ? undefined : r90j3LongOperand (printer, call.arguments[1], depth, constLocals);
     return b === undefined ? undefined : `(${a} + ${b})`;
+}
+
+// would installJavaR90j3NativeSumLocals print this sum natively? (its R2 shape test; a sum that is not a
+// const declaration initializer keeps the plain r90j3NativeSum answer)
+function r90j3NativeSumPrinted (printer, node) {
+    if (r90j3NativeSum (printer, node) === undefined) {
+        return false;
+    }
+    const d = unwrapParensUp (node).parent;
+    if (d === undefined || !ts.isVariableDeclaration (d) || unwrapParens (d.initializer) !== unwrapParens (node)) {
+        return true;
+    }
+    return ts.isIdentifier (d.name) && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0
+        && d.parent.declarations.length === 1 && !r87j6UnderPropertyAssignment (d)
+        && (r90j3NativeSum (printer, d.initializer, 0, false) !== undefined || r90j3NativeUse (printer, d));
 }
 
 // ral-90j3 R2: a read of the local the printer makes native on a Long: an ordering comparison or

@@ -344,7 +344,7 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...int) string
-	NetworkCodeToId(networkCode any, optionalArgs ...any) *string
+	NetworkCodeToId(networkCode *string, optionalArgs ...any) *string
 	NetworkIdToCode(optionalArgs ...any) *string
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any

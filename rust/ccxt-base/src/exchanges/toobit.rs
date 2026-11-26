@@ -2391,7 +2391,7 @@ impl Toobit {
         //    }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "t", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
+        return Value::Dict(self.parse_order_book(&response, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]));
         Value::Null
         }).await?))
     }
@@ -2829,7 +2829,7 @@ impl Toobit {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let response: crate::value::List = self.common_get_api_v1_futures_history_funding_rate(&[&__ws_arg_10]).await.unwrap_or_default();
-        return self.parse_funding_rate_histories(&response, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
+        return self.parse_funding_rate_histories(&response, &[(market).raw, Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
     }
@@ -3904,7 +3904,7 @@ impl Toobit {
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(results), Value::Str("timestamp".into()), &[]);
-        let currencyCode: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&&currency, "code").into_opt_string() } else { None });
+        let currencyCode: Option<String> = (if (currency.is_some()) { self.safe_string_k_opt(&currency, "code", &[]) } else { None });
         return Value::Arr(self.filter_by_currency_since_limit(&sorted, currencyCode.as_deref(), since, limit, &[]));
 
     Value::Null

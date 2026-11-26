@@ -1851,7 +1851,7 @@ public partial class limitless : PredictionExchange
         {
             await this.loadOutcome(outcome);
         }
-        int length = ids?.Count ?? 0;
+        int length = (ids?.Count ?? 0);
         if (length > 50)
         {
             throw new BadRequest ((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -2663,7 +2663,7 @@ public partial class limitless : PredictionExchange
         }
         // approve(spender, amount) -> selector 0x095ea7b3
         string approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + (amountHex));
-        object txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
+        string? txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
         return await this.waitForTransactionReceipt(rpcUrl, txHash);
     }
 

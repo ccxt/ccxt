@@ -385,7 +385,7 @@ impl Htx {
     m
 }));
         let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type), &[&Value::Bool(isLinearMarket)]);
         return self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
@@ -517,7 +517,7 @@ impl Htx {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
         let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type), &[&Value::Bool(isLinearMarket)]);
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -651,7 +651,7 @@ impl Htx {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
         let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket)]);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type), &[&Value::Bool(isLinearMarket)]);
         let mut ohlcv: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
@@ -966,7 +966,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let attempts: i64 = self.safe_integer_k(&subscription, "numAttempts", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let isLinearMarket: bool = (market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true);
-        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&Value::Bool(isLinearMarket), &Value::Bool(false), &Value::Bool(true)]);
+        let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type), &[&Value::Bool(isLinearMarket), &Value::Bool(false), &Value::Bool(true)]);
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1452,7 +1452,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             subType = self.safe_string2_opt(&self.options, Value::Str("subType".into()), Value::Str("defaultSubType".into()), &[&Value::Str("linear".into())]);
             subType = self.safe_string_k_opt(&params, "subType", &[&subType]);
         }
-        let symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { symbol.as_str().map(str::to_owned) });
+        let symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
         let mut paramsRequest: Value = (if (symbol != Value::Null) { params } else { self.omit(params, &["type", "subType"], &[]) });
         let linear: bool = subType.as_deref() == Some("linear");
         let swap: bool = type_var.as_deref() == Some("swap");

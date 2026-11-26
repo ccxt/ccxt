@@ -2524,7 +2524,7 @@ public class Kucoin extends KucoinApi
                 symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry, ""));
                 type = "future";
             }
-            Boolean inverse = (Boolean) this.safeBool(market, "isInverse", null);
+            Boolean inverse = this.safeBool(market, "isInverse", null);
             String status = this.safeString(market, "status");
             String multiplier = this.safeString(market, "multiplier");
             Double tickSize = this.safeNumber(market, "tickSize", null);
@@ -2839,7 +2839,7 @@ public class Kucoin extends KucoinApi
 
     public Object handleHfAndParams(Map<String, Object> parameters)
     {
-        Boolean migrated = (Boolean) this.safeBool(this.options, "hf", false);
+        Boolean migrated = this.safeBool(this.options, "hf", false);
         Boolean hf = false;
         if (Boolean.TRUE.equals(migrated))
         {
@@ -4902,7 +4902,7 @@ public class Kucoin extends KucoinApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean testOrder = this.safeBool(parameters, "test", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "test");
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(paramsOmitted);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
@@ -5128,7 +5128,7 @@ public class Kucoin extends KucoinApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean testOrder = this.safeBool(parameters, "test", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "test");
         Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeDict(paramsOmitted, "stopLoss", null), null)) || (!java.util.Objects.equals(this.safeDict(paramsOmitted, "takeProfit", null), null));
         Map<String, Object> orderRequest = (Map<String, Object>) this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
@@ -5290,7 +5290,7 @@ public class Kucoin extends KucoinApi
         {
             throw new BadRequest((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
-        Boolean iceberg = (Boolean) this.safeBool(paramsOmitted, "iceberg", false);
+        Boolean iceberg = this.safeBool(paramsOmitted, "iceberg", false);
         if (Boolean.TRUE.equals(iceberg))
         {
             String visibleSize = this.safeString(paramsOmitted, "visibleSize");
@@ -5299,7 +5299,7 @@ public class Kucoin extends KucoinApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsOmitted, "reduceOnly", false);
         Boolean hedged = null;
         List<Object> hedgedparamsOmittedVariable = (List<Object>) this.handleParamBool(paramsOmitted, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsOmittedVariable).get(0);
@@ -5496,7 +5496,7 @@ public class Kucoin extends KucoinApi
                         }
                     }
                 }
-                Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", false);
+                Boolean reduceOnly = this.safeBool(paramsOmitted, "reduceOnly", false);
                 Object hedged = false;
                 List<Object> hedgedparamsOmittedVariable = (List<Object>) this.handleParamBool(paramsOmitted, "hedged", hedged);
                 hedged = ((List<Object>) hedgedparamsOmittedVariable).get(0);
@@ -6077,7 +6077,7 @@ public class Kucoin extends KucoinApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
@@ -6422,7 +6422,7 @@ public class Kucoin extends KucoinApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean trigger = this.safeBool2(parameters, "trigger", "stop", false);
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
@@ -6507,7 +6507,7 @@ public class Kucoin extends KucoinApi
         {
             request.put("symbol", this.marketId(symbol));
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(trigger))
@@ -6728,7 +6728,7 @@ public class Kucoin extends KucoinApi
         }
         String lowercaseStatus = status.toLowerCase();
         Long until = this.safeInteger(parameters, "until");
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
@@ -6875,7 +6875,7 @@ public class Kucoin extends KucoinApi
             String paginatedMethod = this.safeString(paginatedMethods, status, "fetchClosedOrders");
             return (this.fetchPaginatedCallDynamic(paginatedMethod, symbol, since, limit, paramsContract, null, true)).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(paramsPaginate, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsPaginate, "stop", "trigger", null);
         Long until = this.safeInteger(paramsPaginate, "until");
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("stop", "until", "trigger")));
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -7327,7 +7327,7 @@ public class Kucoin extends KucoinApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
@@ -7755,8 +7755,8 @@ public class Kucoin extends KucoinApi
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        Boolean isActive = (Boolean) this.safeBool(order, "isActive", null);
-        Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
+        Boolean isActive = this.safeBool(order, "isActive", null);
+        Boolean cancelExist = this.safeBool(order, "cancelExist", false);
         Object status = null;
         if (!java.util.Objects.equals(isActive, null))
         {
@@ -7775,8 +7775,8 @@ public class Kucoin extends KucoinApi
         }
         String clientOrderId = this.safeString(order, "clientOid");
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean postOnly = this.safeBool(order, "postOnly", null);
+        Boolean reduceOnly = this.safeBool(order, "reduceOnly", null);
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
         HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
         mapLiteral14.put("id", orderId);
@@ -7931,11 +7931,11 @@ public class Kucoin extends KucoinApi
         String marketId = this.safeString(order, "symbol");
         Long timestamp = this.safeInteger(order, "createdAt");
         String feeCurrencyId = this.safeString(order, "feeCurrency");
-        Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
+        Boolean cancelExist = this.safeBool(order, "cancelExist", false);
         String responseStop = this.safeString(order, "stop");
         Boolean trigger = !java.util.Objects.equals(responseStop, null);
-        Boolean stopTriggered = (Boolean) this.safeBool(order, "stopTriggered", false);
-        Boolean isActive = (Boolean) this.safeBool2(order, "isActive", "active", null);
+        Boolean stopTriggered = this.safeBool(order, "stopTriggered", false);
+        Boolean isActive = this.safeBool2(order, "isActive", "active", null);
         String responseStatus = this.safeString(order, "status");
         String status = null;
         if (!java.util.Objects.equals(isActive, null))
@@ -9396,7 +9396,7 @@ public class Kucoin extends KucoinApi
         Object updatedAtMs = (((java.util.Objects.equals(updatedAt, null)))) ? null : (updatedAt * 1000L);
         Object timestamp = ((Boolean.TRUE.equals(isV1))) ? createdAtMs : createdAt;
         Object updated = ((Boolean.TRUE.equals(isV1))) ? updatedAtMs : updatedAt;
-        Boolean intern = (Boolean) this.safeBool(transaction, "isInner", null);
+        Boolean intern = this.safeBool(transaction, "isInner", null);
         String tag = this.safeString(transaction, "memo");
         String chainId = this.safeString(transaction, "chain");
         {
@@ -10432,7 +10432,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             transfer.put("amount", amount);
@@ -10540,7 +10540,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             transfer.put("amount", amount);
@@ -13072,7 +13072,7 @@ public class Kucoin extends KucoinApi
         String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
-        Boolean crossMode = (Boolean) this.safeBool(position, "crossMode", null);
+        Boolean crossMode = this.safeBool(position, "crossMode", null);
         // currently crossMode is always set to false and only isolated positions are supported
         String marginMode = this.safeStringLower(position, "marginMode");
         if (!java.util.Objects.equals(crossMode, null))
@@ -13474,7 +13474,7 @@ public class Kucoin extends KucoinApi
         String id = this.safeString(info, "id");
         Map<String, Object> marketResolved = this.safeMarket(id, market, null, null);
         String currencyId = this.safeString(info, "settleCurrency");
-        Boolean crossMode = (Boolean) this.safeBool(info, "crossMode", false);
+        Boolean crossMode = this.safeBool(info, "crossMode", false);
         String mode = ((Boolean.TRUE.equals(crossMode))) ? "cross" : "isolated";
         String marketId = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(info, "currentTimestamp");
@@ -13693,7 +13693,7 @@ public class Kucoin extends KucoinApi
         }
         Map<String, Object> market = this.market(symbol);
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean testOrder = this.safeBool(parameters, "test", false);
         String marginMode = this.safeStringUpper(parameters, "marginMode");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("test", "clientOrderId", "marginMode")));
         if (java.util.Objects.equals(clientOrderId, null))

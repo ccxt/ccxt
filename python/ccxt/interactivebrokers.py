@@ -2830,7 +2830,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         """
         # as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         portfolioAccounts = self.fetch_portfolio_accounts(params)
-        accountIds = list(self.index_by(portfolioAccounts, 'accountId').keys())
+        accountsById = self.index_by(portfolioAccounts, 'accountId')
+        accountIds = list(accountsById.keys())
         length = len(accountIds)
         if length == 0:
             raise ExchangeError('No tradingaccount IDs found for the user')

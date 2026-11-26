@@ -1195,7 +1195,7 @@ public class Tokocrypto extends TokocryptoApi
         id = this.safeString2(trade, "id", "tradeId", id);
         String side = null;
         String orderId = this.safeString(trade, "orderId");
-        Boolean buyerMaker = (Boolean) this.safeBool2(trade, "m", "isBuyerMaker", null);
+        Boolean buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(buyerMaker, null))
         {
@@ -3198,7 +3198,7 @@ public class Tokocrypto extends TokocryptoApi
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         Object responseParsed = response;
         if (!Boolean.TRUE.equals(success))
         {

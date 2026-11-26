@@ -1714,7 +1714,7 @@ class mexc extends Exchange {
             //
             $timestamp = $this->safe_integer($trade, 't');
             $marketResolved = $this->safe_market(null, $market);
-            $symbol = $marketResolved['symbol'];
+            $symbol = $this->safe_string($marketResolved, 'symbol');
             $priceString = $this->safe_string($trade, 'p');
             $amountString = $this->safe_string($trade, 'v');
             $side = $this->parse_order_side($this->safe_string($trade, 'T'));
@@ -1772,7 +1772,7 @@ class mexc extends Exchange {
             //
             $marketId = $this->safe_string($trade, 'symbol');
             $marketResolved = $this->safe_market($marketId, $market);
-            $symbol = $marketResolved['symbol'];
+            $symbol = $this->safe_string($marketResolved, 'symbol');
             $id = $this->safe_string_2($trade, 'id', 'a');
             $priceString = $this->safe_string_2($trade, 'price', 'p');
             $orderId = $this->safe_string($trade, 'orderId');

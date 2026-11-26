@@ -2360,7 +2360,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(trade));
         }
         }
-        results = self.sort_by2(Value::Arr(results), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
         return self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]);
 }

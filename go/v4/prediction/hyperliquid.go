@@ -1084,7 +1084,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	var market map[string]any = this.Market(this.SafeString(outcomeObj, "market"))
 	var info, _ = outcomeObj["info"].(map[string]any)
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
-	var startTime any = since
+	var startTime *int64 = since
 	if since == nil {
 		var tf int64 = this.ParseTimeframe(timeframe)
 		var candleCount int64
@@ -1093,14 +1093,16 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 		} else {
 			candleCount = 100
 		}
-		var startOffset int64 = ((tf * candleCount) * int64(-1000))
-		var shiftedStart any = this.Sum(until, startOffset)
-		startTime = shiftedStart
-		if ccxt.IsEqual(startTime, nil) {
+		var startOffset int64 = (tf * candleCount) * -1000
+		var shiftedStart int64 = *until + startOffset
+		startTimeValue := shiftedStart
+		startTime = &startTimeValue
+		if startTime == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchOHLCV() missing startTime"))
 		}
-		if ccxt.IsLessThan(shiftedStart, 0) {
-			startTime = 0
+		if shiftedStart < 0 {
+			startTimeValue2 := int64(0)
+			startTime = &startTimeValue2
 		}
 	}
 	var request map[string]any = map[string]any{

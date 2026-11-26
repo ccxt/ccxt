@@ -2332,7 +2332,7 @@ class deepcoin extends Exchange {
             if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
             }
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');

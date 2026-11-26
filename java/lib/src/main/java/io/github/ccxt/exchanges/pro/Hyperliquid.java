@@ -973,7 +973,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //
         Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         // every subscription starts with a snapshot, a resubscribe replays it
-        Boolean isSnapshot = (Boolean) this.safeBool(entry, "isSnapshot", false);
+        Boolean isSnapshot = this.safeBool(entry, "isSnapshot", false);
         if (Boolean.TRUE.equals(isSnapshot) || (java.util.Objects.equals(this.myLiquidations, null)))
         {
             Long limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
@@ -1001,9 +1001,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; (newLiquidationsLength != null && i < newLiquidationsLength); i++)
         {
-            Map<String, Object> liquidation = (Map<String, Object>) (newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i));
-            cache.append(liquidation);
-            symbols.put((String)((String)liquidation.get("symbol")), true);
+            cache.append((newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i)));
+            String liquidationSymbol = this.safeString((newLiquidations == null || i < 0 || i >= newLiquidations.size() ? null : newLiquidations.get(i)), "symbol", "");
+            symbols.put(liquidationSymbol, true);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
         for (var i = 0; i < keys.size(); i++)
@@ -1405,7 +1405,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         List<Object> unifiedResult = (this.isUnifiedEnabled("watchBalance", java.util.Objects.toString(userAddress, null), false, paramsMarketType)).join();
-        Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
+        Boolean isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
         String dex = this.safeString(paramsValue2, "dex");
         Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(isUnifiedEnabled)) && (java.util.Objects.equals(dex, null));
@@ -1473,7 +1473,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         List<Object> unifiedResult = (this.isUnifiedEnabled("unWatchBalance", java.util.Objects.toString(userAddress, null), false, paramsMarketType)).join();
-        Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
+        Boolean isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
         String dex = this.safeString(paramsValue2, "dex");
         Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(isUnifiedEnabled)) && (java.util.Objects.equals(dex, null));

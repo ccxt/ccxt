@@ -399,7 +399,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         parts = topic.split('+')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         # the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         # the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         previous = self.safe_dict(self.tickers, symbol)

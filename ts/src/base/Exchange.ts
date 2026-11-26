@@ -3704,12 +3704,11 @@ export class BaseExchange {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
-                if ((key in array[0])) {
-                    const first = this.safeFloat (array[0], key);
-                    const last = this.safeFloat (array[arrayLength - 1], key);
-                    if (first !== undefined && last !== undefined) {
-                        ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                // a missing key reads as undefined, so no presence test is needed
+                const first = this.safeFloat (array[0], key);
+                const last = this.safeFloat (array[arrayLength - 1], key);
+                if (first !== undefined && last !== undefined) {
+                    ascending = last >= first;  // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if (fromStart) {
                     if (ascending) {
@@ -4326,7 +4325,7 @@ export class BaseExchange {
         }
     }
 
-    featuresMapper (initialFeatures: Dict, marketType: Str, subType: Str = undefined): NullableDict {
+    featuresMapper (initialFeatures: Dict, marketType: string, subType: Str = undefined): NullableDict {
         let featuresObj = this.safeDict (initialFeatures, marketType);
         if (subType !== undefined) {
             featuresObj = this.safeDict (featuresObj, subType);
@@ -6619,7 +6618,7 @@ export class BaseExchange {
             result.push (transaction);
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -6631,7 +6630,7 @@ export class BaseExchange {
             result.push (transfer);
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -6643,7 +6642,7 @@ export class BaseExchange {
             result.push (this.extend (entry, params));
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -8827,7 +8826,7 @@ export class BaseExchange {
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any[]> {
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', 10);
         const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', 3);
-        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsMaxRetries, method, 'removeRepeated', removeRepeated);
+        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionBoolAndParams (paramsMaxRetries, method, 'removeRepeated', removeRepeated);
         const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionStringAndParams (paramsRemoveRepeated, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         let result: any[] = [];

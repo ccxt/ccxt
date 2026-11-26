@@ -2664,13 +2664,14 @@ export default class paradex extends paradexRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
+        // error replies are JSON text frames only, the binary frames never carry one
+        if (this.handleErrorMessage (client, message) !== true) {
+            return;
+        }
         this.handleStreamMessage (client, message);
     }
 
     handleStreamMessage (client: Client, message: Dict) {
-        if (this.handleErrorMessage (client, message) !== true) {
-            return;
-        }
         //
         // auth response
         //

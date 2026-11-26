@@ -437,8 +437,8 @@ public class Bitopro extends BitoproApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, null);
-        Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit", null);
-        Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw", null);
+        Boolean deposit = this.safeBool(rawCurrency, "deposit", null);
+        Boolean withdraw = this.safeBool(rawCurrency, "withdraw", null);
         boolean isFiat = this.inArray(code, fiatCurrencies);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", currencyId);
@@ -803,7 +803,7 @@ public class Bitopro extends BitoproApi
         String side = this.safeStringLower(trade, "action");
         if (java.util.Objects.equals(side, null))
         {
-            Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
+            Boolean isBuyer = this.safeBool(trade, "isBuyer", false);
             if (Boolean.TRUE.equals(isBuyer))
             {
                 side = "buy";
@@ -830,7 +830,7 @@ public class Bitopro extends BitoproApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", null);
+        Boolean isTaker = this.safeBool(trade, "isTaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {

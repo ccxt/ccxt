@@ -9900,7 +9900,7 @@ class okx extends okx$1["default"] {
         const timestamp = this.safeInteger(info, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString(market, 'symbol');
         }
         return {
             'info': info,

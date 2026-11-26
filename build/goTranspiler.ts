@@ -5610,6 +5610,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable 
     [ [1,2,3,5], 'handleErrors' ],
     [ [0,2,3], 'transfer' ],
     [ [0], 'selectNetworkKeyFromNetworks' ],
+    [ [1], 'featuresMapper' ],
 ]);
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {
@@ -7920,10 +7921,24 @@ function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, l
     const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], name);
     if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) { return undefined; }
     const declareLine = (decl.index === undefined) ? -1 : (fn.open + 1 + (maskedFunc.substring (0, decl.index).split ('\n').length - 1));
-    for (let k = fn.open + 1; k < fn.close; k++) { if ((k !== declareLine) && goTextWritesName (maskedLines[k], name)) { return undefined; } }
+    const collected = goKeysCollectionEnd (maskedLines, declareLine, name);
+    for (let k = fn.open + 1; k < fn.close; k++) { if ((k !== declareLine) && ((k <= declareLine) || (k > collected)) && goTextWritesName (maskedLines[k], name)) { return undefined; } }
     const init = ((lines !== undefined) && (declareLine >= 0)) ? lines[declareLine] : undefined;
     const header = ((lines !== undefined) && (declareLine > fn.open + 1)) ? lines[declareLine - 1] : undefined;
     return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init, 'header': header, 'line': declareLine };
+}
+
+// the last line of the native key collection `var ks []string = nil` / `if m != nil {` / make / `for objectKey := range m {` / append / `}` / `}`
+// that declares `name` at `declareLine` (its writes only build the list, before any read), or declareLine when the block is not there
+function goKeysCollectionEnd (maskedLines: string[], declareLine: number, name: string): number {
+    const n = goAccessEscape (name);
+    const head = (declareLine < 0) ? null : new RegExp ('^([ \\t]*)var ' + n + ' \\[\\]string = nil$').exec (maskedLines[declareLine] ?? '');
+    const recv = (head === null) ? null : new RegExp ('^' + head[1] + 'if ([A-Za-z_]\\w*) != nil \\{$').exec (maskedLines[declareLine + 1] ?? '');
+    if ((head === null) || (recv === null)) { return declareLine; }
+    const i = head[1];
+    const r = recv[1];
+    const want = [ i + '\t' + n + ' = make([]string, 0, len(' + r + '))', i + '\tfor objectKey := range ' + r + ' {', i + '\t\t' + n + ' = append(' + n + ', objectKey)', i + '\t}', i + '}' ];
+    return want.every ((line: string, j: number) => maskedLines[declareLine + 2 + j] === line) ? (declareLine + 6) : declareLine;
 }
 
 // top-level comma split of a call's argument text (string/rune aware)
@@ -8227,6 +8242,9 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (g (lists + '\tfor i := 0; i < len(markets); i++ {\n' + read ('i', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[i]') >= 0, 'a counting loop over len() counts');
     ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'DerefScalar(') + '\t}\n').indexOf ('var m any = DerefScalar(values[0])') >= 0, 'a non-SafeList slice keeps derefScalar');
     ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'ccxt.DerefScalar(') + '\t}\n').indexOf ('var m any = ccxt.DerefScalar(values[0])') >= 0, 'the ccxt. prefix survives');
+    const keyed = (tail: string) => g ('\tvar m map[string]any = this.IndexBy(p, "a")\n\tvar ks []string = nil\n\tif m != nil {\n\t\tks = make([]string, 0, len(m))\n\t\tfor objectKey := range m {\n\t\t\tks = append(ks, objectKey)\n\t\t}\n\t}\n\tif len(ks) == 0 {\n\t\tpanic(1)\n\t}\n' + tail + read ('0', 'ks', ''));
+    ok (keyed ('').indexOf ('var m any = ks[0]') >= 0, 'a native key collection builds its list before the early exit: ' + keyed (''));
+    ok (keyed ('\tks = append(ks, "x")\n').indexOf ('func() any {') >= 0, 'a write after the key collection keeps the guard');
     const unguarded = g (lists + read ('0', 'markets', 'DerefScalar('));
     ok ((unguarded.indexOf ('\t\t\t\treturn markets[0]') >= 0) && (unguarded.indexOf ('DerefScalar(') < 0), 'without a proof a SafeList read drops only the wrap');
     ok (g ('\tvar parts []string = strings.Split(x, "/")\n' + read ('1', 'parts', '')).indexOf ('func() any {') >= 0, 'an unproven []string read keeps the literal');
@@ -9552,6 +9570,8 @@ const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Floa
 const GO_NIL_FOLD_LIST_READERS = /^this\.(?:ParseLedger|ParseTransactions|ParseCurrencies|FilterBySymbolSinceLimit|FilterByArray)\($/;
 // Readers that touch their first argument only through GetArrayLength and in-loop element reads (0 for both nils).
 const GO_NIL_FOLD_LENGTH_READERS = /^this\.(?:FilterTransactionsByKind|FilterTransfersByType|SetEvents)\($/;
+// GetListFromObjectValues reads its first argument only through ToArray (nil for both nils).
+const GO_NIL_FOLD_TOARRAY_READERS = /^this\.GetListFromObjectValues\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) { return content; }
     const masked = goMaskGoCode (content);
@@ -9580,7 +9600,7 @@ function goTypedNilFoldLocals (content: string): string {
             const after = rest.substring (u.index + name.length, u.index + name.length + 8);
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
-            const listReader = (reader !== null) && (type === '[]any') && (GO_NIL_FOLD_LIST_READERS.test (reader[1]) || GO_NIL_FOLD_LENGTH_READERS.test (reader[1]));
+            const listReader = (reader !== null) && (type === '[]any') && (GO_NIL_FOLD_LIST_READERS.test (reader[1]) || GO_NIL_FOLD_LENGTH_READERS.test (reader[1]) || GO_NIL_FOLD_TOARRAY_READERS.test (reader[1]));
             safe = nilTest || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || listReader) && /^[,)]/.test (after));
         }
         if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) { continue; }
@@ -9722,6 +9742,8 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (led.includes ('\tvar g []any = OrdersToList(r.Value)\n') && led.includes ('\tvar k any = nil\n'), 'ToArray-only reader fold typed, FilterBy kept: ' + led);
     const len = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) l() any {\n' + fold ('r', 'FetchOrdersAsync()', 'q', 'OrdersToList(r.Value)') + '\treturn this.SetEvents(q)\n}\n');
     ok (len.includes ('\tvar q []any = OrdersToList(r.Value)\n'), 'length-only reader fold typed: ' + len);
+    const gl = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) m() any {\n' + fold ('r', 'FetchAccountsAsync()', 'w', 'AccountsToList(r.Value)') + '\treturn this.GetListFromObjectValues(w, "id")\n}\n');
+    ok (gl.includes ('\tvar w []any = AccountsToList(r.Value)\n'), 'ToArray-reading list reader fold typed: ' + gl);
 }
 
 // `var x map[string]any = SafeMapTyped(m, k)` with `m` one map[string]any declaration and a literal or string key: the
@@ -10133,6 +10155,7 @@ class NewTranspiler {
                 "asyncTickerMapCallees": [ ...goChan3Table () ].filter (([ name, type ]) => (type === 'map[string]Ticker') && !name.includes ('.')).map (([ name ]) => name),
                 "asyncStringCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === 'string').map (([ name ]) => name),
                 "asyncStringPtrCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '*string').map (([ name ]) => name),
+                "asyncStringListCallees": [ ...goChan3Table () ].filter (([ , type ]) => type === '[]string').map (([ name ]) => name),
                 // struct-list channels (receive is the `*ToList` carrier of maps): names only, read by the h27g08 rule
                 "asyncStructRowListCallees": Object.fromEntries ([ ...goChan3Table () ].filter (([ name, type ]) => /^\[\][A-Z]\w*$/.test (type) && !name.includes ('.')).map (([ name, type ]) => [ name, type ])),
                 "uncalledStringParams": GO_UNCALLED_STRING_PARAMS,

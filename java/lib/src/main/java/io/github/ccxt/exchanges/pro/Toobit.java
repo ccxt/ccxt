@@ -770,7 +770,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //         shared: false
         //     }
         //
-        Boolean isSnapshot = (Boolean) this.safeBool(message, "f", false);
+        Boolean isSnapshot = this.safeBool(message, "f", false);
         if (Boolean.TRUE.equals(isSnapshot))
         {
             this.setOrderBookSnapshot(client, message, "diffDepth");
@@ -1253,7 +1253,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         String marketId = this.safeString(trade, "s");
         String ts = this.safeString(trade, "t");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", false);
+        Boolean isMaker = this.safeBool(trade, "m", false);
         String takerOrMaker = "taker";
         if (Boolean.TRUE.equals(isMaker))
         {

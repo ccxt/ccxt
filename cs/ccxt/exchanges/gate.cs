@@ -3657,7 +3657,7 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
@@ -3700,7 +3700,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(response, symbolResolved, since, limit));
     }
 
-    public virtual IList<object> parseFundingHistories(IList<object> response, object symbol, Int64? since, Int64? limit)
+    public virtual IList<object> parseFundingHistories(IList<object> response, string? symbol, Int64? since, Int64? limit)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)

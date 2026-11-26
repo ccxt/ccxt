@@ -1257,7 +1257,7 @@ public class Backpack extends BackpackApi
      */
     public Pair<Boolean, Map<String, Object>> handleStockParams(String methodName, Map<String, Object> parameters, Map<String, Object> market)
     {
-        Boolean defaultStock = (Boolean) this.safeBool(market, "stock", false);
+        Boolean defaultStock = this.safeBool(market, "stock", false);
         Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock", defaultStock);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
@@ -2535,9 +2535,9 @@ public class Backpack extends BackpackApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String price = this.safeString2(trade, "fillPrice", "price");
         String amount = this.safeString2(trade, "fillQuantity", "quantity");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", null);
+        Boolean isBuyerMaker = this.safeBool(trade, "isBuyerMaker", null);
         String side = this.parseOrderSide(this.safeString(trade, "side"));
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -2974,7 +2974,7 @@ public class Backpack extends BackpackApi
         String addressFrom = this.safeString(transaction, "fromAddress");
         String tag = this.safeString(transaction, "platformMemo");
         Double feeCost = this.safeNumber(transaction, "fee", null);
-        Boolean intern = (Boolean) this.safeBool(transaction, "isInternal", false);
+        Boolean intern = this.safeBool(transaction, "isInternal", false);
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -3985,8 +3985,8 @@ public class Backpack extends BackpackApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String triggerPrice = this.safeString(order, "triggerPrice");
         String filled = this.safeString(order, "executedQuantity");
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
+        Boolean reduceOnly = this.safeBool(order, "reduceOnly", null);
+        Boolean postOnly = this.safeBool(order, "postOnly", null);
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();

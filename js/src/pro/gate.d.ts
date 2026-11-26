@@ -5,7 +5,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 export default class gate extends gateRest {
     describe(): Dict;
-    describeData(): any;
+    describeData(): Dict;
     /**
      * @method
      * @name gate#createOrderWs

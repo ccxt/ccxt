@@ -1023,7 +1023,7 @@ impl Bitbank {
         let response: crate::value::Dict = self.public_get_pair_depth(&[&__ws_arg_1]).await.unwrap_or_default();
         let orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&orderbook, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

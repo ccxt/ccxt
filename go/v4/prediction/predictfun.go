@@ -400,7 +400,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if !(allowUnscopedFetchEvents != nil && *allowUnscopedFetchEvents) {
 		this.RequireEventQuery(params)
 	}
-	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
+	var queries []string = this.ParseSearchQueries(params)
 	var queriesLength int = len(queries)
 	var paramsValue map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	// keys dropped before the client-side pass; the categories listing also drops its limit
@@ -699,12 +699,12 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
  * @returns {object[]} an array of raw market topics, each with a nested markets list
  */
-func (this *Predictfun) FetchRawTopicsByQueriesAsync(queries []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Predictfun) FetchRawTopicsByQueriesAsync(queries []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawTopicsByQueriesBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []any, optionalArgs ...any) any {
+func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]map[string]any], queries []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// always ask for the venue's maximum page size - this is the per-type page size of the
@@ -732,7 +732,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	var orphanSlugs []string = []string{}
 	for i := 0; i < queriesLength; i++ {
 		var request map[string]any = map[string]any{
-			"query":           this.SafeString(queries, i, ""),
+			"query":           queries[i],
 			"limit":           limit,
 			"includeResolved": includeResolved,
 		}
@@ -4373,8 +4373,10 @@ func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map
 	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "marketId")
 	var timestamp *int64 = this.SafeInteger(data, "updateTimestampMs")
-	var rawAsks []any = ccxt.SafeListTyped(data, "asks")
-	var rawBids []any = ccxt.SafeListTyped(data, "bids")
+	var rawAsks []any
+	rawAsks, _ = data["asks"].([]any)
+	var rawBids []any
+	rawBids, _ = data["bids"].([]any)
 	// every message carries the whole book - the venue publishes no deltas - and the levels
 	// arrive already sorted, best first
 	var yesBids []any = []any{}
@@ -4383,7 +4385,7 @@ func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map
 	var noAsks []any = []any{}
 	var bidsLength int = len(rawBids)
 	for i := 0; i < bidsLength; i++ {
-		var bid []any = ccxt.SafeListTyped(rawBids, i)
+		var bid, _ = rawBids[i].([]any)
 		var bidPrice *string = this.SafeString(bid, 0)
 		var bidSize *float64 = this.ParseNumber(this.SafeString(bid, 1))
 		yesBids = append(yesBids, []any{this.ParseNumber(bidPrice), bidSize})
@@ -4392,7 +4394,7 @@ func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map
 	}
 	var asksLength int = len(rawAsks)
 	for i := 0; i < asksLength; i++ {
-		var ask []any = ccxt.SafeListTyped(rawAsks, i)
+		var ask, _ = rawAsks[i].([]any)
 		var askPrice *string = this.SafeString(ask, 0)
 		var askSize *float64 = this.ParseNumber(this.SafeString(ask, 1))
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
@@ -5079,7 +5081,7 @@ func (this *Predictfun) FetchEvents(params map[string]interface{}) ([]ccxt.Predi
  * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
  * @returns {object[]} an array of raw market topics, each with a nested markets list
  */
-func (this *Predictfun) FetchRawTopicsByQueries(queries []any, options ...FetchRawTopicsByQueriesOptions) ([]map[string]any, error) {
+func (this *Predictfun) FetchRawTopicsByQueries(queries []string, options ...FetchRawTopicsByQueriesOptions) ([]map[string]any, error) {
 
 	opts := FetchRawTopicsByQueriesOptionsStruct{}
 

@@ -3206,10 +3206,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     }
 
     pub fn create_advanced_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -3303,7 +3300,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("type".into(), Value::from(uppercaseType.as_deref()));
         }
         let isMarketBuy: bool = (side == Some("buy")) && ((uppercaseType.as_deref() == Some("MARKET")) || (uppercaseType.as_deref() == Some("STOP_LOSS")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT")));
-        let mut paramsMarketBuy: crate::value::Dict = params.clone().into_dict();
+        let mut paramsMarketBuy: crate::value::Dict = params.clone();
         if isMarketBuy {
             // use createmarketBuy logic here
             let mut quoteAmount: Option<String> = None;
@@ -3376,10 +3373,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     }
 
     pub fn edit_order_request(&self, id: Option<&str>, symbol: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3394,7 +3388,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("orig_client_oid".into(), originalClientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let paramsOmitted: crate::value::Dict = (if (id.is_none()) { self.omit(&params, &["orig_client_oid", "clientOrderId"], &[]) } else { params }).into_dict();
+        let paramsOmitted: crate::value::Dict = (if (id.is_none()) { self.omit_t(&params, &["orig_client_oid", "clientOrderId"], &[]) } else { params });
         if (amount.is_none()) || (price.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")));
         }

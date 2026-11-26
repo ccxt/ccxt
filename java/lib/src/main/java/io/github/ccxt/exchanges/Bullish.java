@@ -1415,7 +1415,7 @@ public class Bullish extends BullishApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", false);
+        Boolean isTaker = this.safeBool(trade, "isTaker", false);
         String currency = this.safeString(marketResolved, "quote");
         String code = this.safeCurrencyCode(currency, null);
         Double feeCost = this.safeNumber(trade, "quoteFee", null);
@@ -1849,7 +1849,7 @@ public class Bullish extends BullishApi
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
-        Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
+        Boolean paginate = this.safeBool(parameters, "paginate", false);
         if (Boolean.TRUE.equals(paginate))
         {
             Map<String, Object> paramsPagination = (Map<String, Object>) this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2296,7 +2296,7 @@ public class Bullish extends BullishApi
         {
             request.put("type", type.toUpperCase());
         }
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         if (Boolean.TRUE.equals(postOnly))
         {
             request.put("type", "POST_ONLY");
@@ -3331,7 +3331,7 @@ public class Bullish extends BullishApi
         //     }
         //
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         Map<String, Object> transfer = this.parseTransfer(response, currency);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {

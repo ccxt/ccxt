@@ -1610,7 +1610,7 @@ public class P2b extends P2bApi
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         if (!Boolean.TRUE.equals(success))
         {
             String errorCode = this.safeString(response, "errorCode");

@@ -1308,7 +1308,7 @@ impl Coinmate {
         let response: crate::value::Dict = self.public_get_order_book(&[&__ws_arg_0]).await.unwrap_or_default();
         let orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_timestamp_k(&orderbook, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
+        return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]));
         Value::Null
         }).await?))
     }

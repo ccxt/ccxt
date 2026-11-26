@@ -4560,7 +4560,7 @@ impl Phemex {
                 request.insert("stopPxEp".into(), self.to_ep(Value::from(triggerPrice.as_deref()), Some(&market)));
             }
         }
-        let mut orderParams: Value = self.omit(&paramsOmitted, &["stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"], &[]);
+        let mut orderParams: crate::value::Dict = self.omit_t(&paramsOmitted, &["stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"], &[]);
         if (market).spot {
             let mut qtyType: String = self.safe_string_k(&orderParams, "qtyType", &[Value::Str("ByBase".into())]).as_str().unwrap_or("ByBase").to_string();
             if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
@@ -4583,7 +4583,7 @@ impl Phemex {
                 if (costParam.is_some()) {
                     cost = self.safe_number_k(&orderParams, "cost", &[]).as_f64();
                 }
-                orderParams = self.omit(orderParams, Value::Str("cost".into()), &[]);
+                orderParams = self.omit_t(orderParams, Value::Str("cost".into()), &[]);
                 if matches!(self.safe_bool_k(&self.options, "createOrderByQuoteRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (price.is_some()) {
                         let amountString: Option<String> = self.number_to_string(amount);
@@ -4602,7 +4602,7 @@ impl Phemex {
             }
         }  else if (market).swap {
             let hedged: bool = self.safe_bool_k_opt(&orderParams, "hedged", &[Value::Bool(false)]).unwrap_or(false);
-            orderParams = self.omit(orderParams, Value::Str("hedged".into()), &[]);
+            orderParams = self.omit_t(orderParams, Value::Str("hedged".into()), &[]);
             let mut posSide: Option<String> = self.safe_string_lower_k_opt(&orderParams, "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
             let flipSide: bool = (posSide.is_none()) && hedged && self.safe_bool_k(&orderParams, "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
@@ -4614,7 +4614,7 @@ impl Phemex {
             if (posSide.is_none()) {
                 if hedged {
                     if flipSide {
-                        orderParams = self.omit(orderParams, Value::Str("reduceOnly".into()), &[]);
+                        orderParams = self.omit_t(orderParams, Value::Str("reduceOnly".into()), &[]);
                     }
                     posSide = (if (sideResolved == "buy") { Some("Long".to_string()) } else { Some("Short".to_string()) });
                 }  else {
@@ -4632,10 +4632,10 @@ impl Phemex {
                 let triggerType: String = self.safe_string_k(&orderParams, "triggerType", &[Value::Str("ByMarkPrice".into())]).as_str().unwrap_or("ByMarkPrice").to_string();
                 request.insert("triggerType".into(), Value::from(triggerType));
                 // set direction & exchange specific order type
-                let triggerDirectionparamsTriggerDirectionVariable = self.handle_param_string(orderParams, Value::Str("triggerDirection".into()), &[]);
+                let triggerDirectionparamsTriggerDirectionVariable = self.handle_param_string(&orderParams, Value::Str("triggerDirection".into()), &[]);
                 let triggerDirection: Option<String> = triggerDirectionparamsTriggerDirectionVariable.0.as_str().map(str::to_owned);
                 let paramsTriggerDirection: crate::value::Dict = triggerDirectionparamsTriggerDirectionVariable.1;
-                orderParams = Value::Dict(paramsTriggerDirection);
+                orderParams = paramsTriggerDirection;
                 if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")));
                 }
@@ -4710,7 +4710,7 @@ impl Phemex {
             }  else {
                 request.insert("takeProfitEp".into(), self.to_ep(takeProfitPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
-            orderParams = self.omit(orderParams, Value::Str("takeProfitPrice".into()), &[]);
+            orderParams = self.omit_t(orderParams, Value::Str("takeProfitPrice".into()), &[]);
         }
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[]);
         if (stopLossPrice.is_some()) {
@@ -4719,7 +4719,7 @@ impl Phemex {
             }  else {
                 request.insert("stopLossEp".into(), self.to_ep(stopLossPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
-            orderParams = self.omit(orderParams, Value::Str("stopLossPrice".into()), &[]);
+            orderParams = self.omit_t(orderParams, Value::Str("stopLossPrice".into()), &[]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if isStableSettled {
@@ -4729,7 +4729,7 @@ impl Phemex {
             let __ws_arg_17 = self.extend(Value::Map(request), &[&orderParams]);
             response = self.private_post_orders(&[&__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(Value::Map(request), &[orderParams]);
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&orderParams]);
             response = self.private_post_spot_orders(&[&__ws_arg_18]).await;
         }
         //

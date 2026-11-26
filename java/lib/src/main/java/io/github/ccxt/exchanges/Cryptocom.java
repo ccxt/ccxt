@@ -1096,8 +1096,8 @@ public class Cryptocom extends CryptocomApi
             String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId, null);
             String optionType = this.safeStringLower(market, "put_call");
             String strike = this.safeString(market, "strike");
-            Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled", false);
-            Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled", false);
+            Boolean marginBuyEnabled = this.safeBool(market, "margin_buy_enabled", false);
+            Boolean marginSellEnabled = this.safeBool(market, "margin_sell_enabled", false);
             Long expiryRaw = this.safeInteger(market, "expiry_timestamp_ms");
             Long expiry = ((((expiryRaw != null && expiryRaw == 0)))) ? null : expiryRaw;
             String symbol = ((base + "/") + quote);
@@ -1807,7 +1807,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("time_in_force", timeInForce);
             }
         }
-        Boolean postOnly = (Boolean) this.safeBool(paramsValue, "postOnly", false);
+        Boolean postOnly = this.safeBool(paramsValue, "postOnly", false);
         if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             request.put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
@@ -2080,7 +2080,7 @@ public class Cryptocom extends CryptocomApi
                 request.put("time_in_force", timeInForce);
             }
         }
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             request.put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
@@ -3346,7 +3346,7 @@ public class Cryptocom extends CryptocomApi
          * @returns {Array} the marginMode in lowercase
          */
         String defaultType = this.safeString(this.options, "defaultType");
-        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
+        Boolean isMargin = this.safeBool(parameters, "margin", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "margin");
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
@@ -4411,7 +4411,7 @@ public class Cryptocom extends CryptocomApi
         {
             String symbol = this.safeString(this.symbols, i, "");
             Map<String, Object> market = this.market(symbol);
-            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
+            Boolean isSwap = this.safeBool(market, "swap", false);
             String takerFeeKey = "effective_spot_taker_rate_bps";
             if (Boolean.TRUE.equals(isSwap))
             {

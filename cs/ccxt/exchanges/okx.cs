@@ -11543,7 +11543,7 @@ public partial class okx : Exchange
         string? symbol = null;
         if ((market != null))
         {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return new Dictionary<string, object>() {
             { "info", info },

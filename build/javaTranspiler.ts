@@ -266,6 +266,8 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.
 const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
     'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
+    // hand-written with a Boolean return (the printed body returns its Object default)
+    'safeBool', 'safeBool2', 'safeBoolN',
 ];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
@@ -6332,7 +6334,7 @@ function javaScalarLocalsSelfTest (): string[] {
         "    product (p: any) { const g = this.safeIntegerProduct2 (p, 'a', 'b', 1000, 0); return g; }",
     ], checks: [
         [ /Long a = \(Long\) this\.safeIntegerOmitZero\(/, true, "'a' (safeIntegerOmitZero, no default) must print Long with a checkcast" ],
-        [ /Boolean b = \(Boolean\) this\.safeBool\(/, true, "'b' (safeBool, Boolean default) must print Boolean" ],
+        [ /Boolean b = this\.safeBool\(/, true, "'b' (safeBool, Boolean default) must print Boolean" ],
         [ /String c = this\.safeString\(/, true, "'c' (safeString + safeString2 write) must print String" ],
         [ /Long u = this\.safeInteger\(/, true, "'u' (safeInteger + milliseconds write) must print Long" ],
         ...[ 'e', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default/arm and must stay Object` ]),
@@ -6703,6 +6705,8 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                         // the two-argument extend overload is declared Map<String, Object> (varargs one is Object)
                         const ext = head === 'this.extend(' ? splitTopLevelArgs (arg.slice (call[0].length, -1)) : [];
                         if (ext.length === 2 && ext.every ((a) => (a.match (/</g) ?? []).length === (a.match (/>/g) ?? []).length)) native = true;
+                        // a literal null default binds the safeDict(.., Map<String, Object>) overload, which returns a Map
+                        if (head === 'this.safeDict(' && /^\s*null\s*$/.test (splitTopLevelArgs (arg.slice (call[0].length, -1))[2] ?? '')) native = true;
                         if (head === 'this.omit(') {
                             // the omit(Map<String, Object>, ..) overloads return a Map
                             const first = /^this\.omit\(([A-Za-z_]\w*), /.exec (arg);
@@ -6766,6 +6770,8 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
     const want = 'return this.f(m, Helpers.toMapArg(o), s, n, l, this.omit(q, "y"), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), this.currency((String) (s)), Woo.this.extend(q, m), Helpers.toMapArg(this.extend(q, m, o)));';
     if (!out.includes(want)) problems.push('declared-type core args must drop their identity wrapper (only those)');
     if (!out.includes('return this.g(Helpers.toMapArg(m));')) problems.push('a lambda-shadowed name must keep the wrapper');
+    const sd = nativeJavaCoreArgIdentities ('    public Object c(Object p, Object d)\n    {\n        return this.h(Helpers.toMapArg(this.safeDict(p, "k", null)), Helpers.toMapArg(this.safeDict(p, "k", d)));\n    }');
+    if (!sd.includes ('return this.h(this.safeDict(p, "k", null), Helpers.toMapArg(this.safeDict(p, "k", d)));')) problems.push('only a null-default safeDict drops its toMapArg wrapper');
     return problems;
 }
 
@@ -8291,6 +8297,12 @@ function coreArgDeclType (masked: string, name: string, pos: number): string | u
     return last;
 }
 
+// every declaration of `name` in this file returns Long (at least one)
+function coreArgOnlyLongMethod (masked: string, name: string): boolean {
+    const decls = [ ...masked.matchAll(new RegExp(`^[ \\t]*(?:public|private|protected)[ \\t]+(?:static[ \\t]+)?([\\w.<>?,\\[\\] ]+?)[ \\t]+${name}\\(`, 'gm')) ];
+    return decls.length > 0 && decls.every((d) => d[1] === 'Long');
+}
+
 interface CoreArgHelperCtx { masked: string, pos: number, fields: Set<string>, methods: Set<string> }
 
 function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n: number, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
@@ -8306,6 +8318,10 @@ function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n:
     }
     if (name === 'toLongOrNull') {
         if (args.length !== 1) { return undefined; }
+        // a name declared Long, or a call to a method this file declares only as Long, already is the slot value
+        if (/^[A-Za-z_]\w*$/.test(x) && coreArgDeclType(ctx.masked, x, ctx.pos) === 'Long') { return x; }
+        const own = /^this\.(\w+)\(/.exec(x);
+        if (own !== null && stringAddClose(x, own[0].length - 1) === x.length && coreArgOnlyLongMethod(ctx.masked, own[1])) { return x; }
         return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Number ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> throw new ClassCastException("ccxt: expected a number, got " + ${v}.getClass().getName()); }))`;
     }
     if (name === 'isTrue') {
@@ -8417,6 +8433,9 @@ function javaCoreArgHelpersSelfTest (): string[] {
         // negatives: String-declared add operand, statement position
         [ 'add String', '        return Helpers.add(s, 1);', undefined ],
         [ 'statement', '        Helpers.toMapArg(p);', undefined ],
+        [ 'toLongOrNull Long param', '        return this.f(Helpers.toLongOrNull(n));', 'return this.f(n);' ],
+        [ 'toLongOrNull Object param', '        return this.f(Helpers.toLongOrNull(p));', 'case Long hx4J40v0 -> hx4J40v0;' ],
+        [ 'toLongOrNull foreign call', '        return this.f(Helpers.toLongOrNull(this.sum(n, n)));', 'case Long hx4J40v0 -> hx4J40v0;' ],
     ];
     const isTrue = runSnippetCases(isTrueCases, isTrueCls, nativeJavaCoreArgHelpers, (name, out) => `java is true self test: ${name}\n${out}`, isTrueCls, (out) => !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
     return isTrue.concat(runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java core arg helpers self: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.')));

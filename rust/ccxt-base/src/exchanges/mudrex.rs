@@ -173,7 +173,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
             triggerPrice = priceString.clone();
             orderPrice = None;
             if (rawSide.as_deref() == Some("STOPLOSS")) {
-                stopLossPrice = priceString.clone();
+                stopLossPrice = priceString.take();
             }  else {
                 takeProfitPrice = priceString.take();
             }
@@ -420,7 +420,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
                 // is_symbol is a query-string flag even on write requests
                 let isSymbol: Option<String> = self.safe_string_k_opt(&query, "is_symbol", &[]);
                 if (isSymbol.is_some()) {
-                    query = self.omit_t(Value::Dict(query), Value::Str("is_symbol".into()), &[]);
+                    query = self.omit_t(query, Value::Str("is_symbol".into()), &[]);
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("is_symbol".to_string(), isSymbol.map(Value::from).unwrap_or(Value::Null));

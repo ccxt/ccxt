@@ -1174,14 +1174,14 @@ public class Interactivebrokers extends InteractivebrokersApi
         //         "fail": ""
         //     }
         //
-        Boolean authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-        Boolean established = (Boolean) this.safeBool(this.options, "gatewaySessionEstablished", false);
-        Boolean openOnStart = (Boolean) this.safeBool(this.options, "gatewayReauthenticate", true);
+        Boolean authenticated = this.safeBool(response, "authenticated", false);
+        Boolean established = this.safeBool(this.options, "gatewaySessionEstablished", false);
+        Boolean openOnStart = this.safeBool(this.options, "gatewayReauthenticate", true);
         if (!Boolean.TRUE.equals(authenticated) && !Boolean.TRUE.equals(established) && Boolean.TRUE.equals(openOnStart))
         {
             // the first sign in of this instance opens the brokerage session right away
             response = (this.ibkrGatewayRegainSession(parameters)).join();
-            authenticated = (Boolean) this.safeBool(response, "authenticated", false);
+            authenticated = this.safeBool(response, "authenticated", false);
             if (!Boolean.TRUE.equals(authenticated))
             {
                 Object gatewayUrl = this.safeString(this.options, "gatewayUrl");
@@ -1205,7 +1205,7 @@ public class Interactivebrokers extends InteractivebrokersApi
                 throw new AuthenticationError(((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + regainDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
             }
             response = (this.ibkrGatewayRegainSession(parameters)).join();
-            authenticated = (Boolean) this.safeBool(response, "authenticated", false);
+            authenticated = this.safeBool(response, "authenticated", false);
             if (!Boolean.TRUE.equals(authenticated))
             {
                 // try again options.autoRegainSession seconds later
@@ -1345,7 +1345,7 @@ public class Interactivebrokers extends InteractivebrokersApi
     {
 
         this.options.put("gatewayRegainScheduled", false);
-        Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
         Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
         Long regainDelay = this.ibkrGatewayRegainDelay();
         if (!Boolean.TRUE.equals(useGateway) || (java.util.Objects.equals(lostTimestamp, null)) || ((regainDelay == null || regainDelay <= 0)))
@@ -1384,7 +1384,7 @@ public class Interactivebrokers extends InteractivebrokersApi
      */
     public Boolean ibkrGatewayStartKeepAlive()
     {
-        Boolean keepAlive = (Boolean) this.safeBool(this.options, "gatewayKeepAlive", true);
+        Boolean keepAlive = this.safeBool(this.options, "gatewayKeepAlive", true);
         if (!Boolean.TRUE.equals(keepAlive) || Boolean.TRUE.equals(this.safeBool(this.options, "gatewayKeepAliveStarted", false)))
         {
             return keepAlive;
@@ -1420,8 +1420,8 @@ public class Interactivebrokers extends InteractivebrokersApi
     private Object ibkrGatewayKeepAliveCore()
     {
 
-        Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
-        Boolean keepAlive = (Boolean) this.safeBool(this.options, "gatewayKeepAlive", true);
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
+        Boolean keepAlive = this.safeBool(this.options, "gatewayKeepAlive", true);
         if (!Boolean.TRUE.equals(useGateway) || !Boolean.TRUE.equals(keepAlive))
         {
             this.options.put("gatewayKeepAliveStarted", false);
@@ -1897,14 +1897,14 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             Map<String, Object> market = this.extend(new HashMap<String, Object>() {{}}, (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)));
             String symbol = this.safeString(market, "symbol");
-            Boolean isContract = (Boolean) this.safeBool(market, "contract", false);
+            Boolean isContract = this.safeBool(market, "contract", false);
             if ((seen.containsKey(symbol)) && Boolean.TRUE.equals(isContract))
             {
                 Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                 String listingExchange = this.safeString2(info, "listingExchange", "exchange", "default");
                 String marketBase = this.safeString(market, "base", "");
                 String marketBaseId = this.safeString(market, "baseId", "");
-                Boolean isFuture = (Boolean) this.safeBool(market, "future", false);
+                Boolean isFuture = this.safeBool(market, "future", false);
                 // keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
                 String quotePart = this.safeString(symbolParts, 1, "");
@@ -3634,8 +3634,8 @@ public class Interactivebrokers extends InteractivebrokersApi
         //         "fail": ""
         //     }
         //
-        Boolean authenticated = (Boolean) this.safeBool(response, "authenticated", false);
-        Boolean connected = (Boolean) this.safeBool(response, "connected", false);
+        Boolean authenticated = this.safeBool(response, "authenticated", false);
+        Boolean connected = this.safeBool(response, "connected", false);
         String status = (((Boolean.TRUE.equals(authenticated) && Boolean.TRUE.equals(connected)))) ? "ok" : "error";
         return new HashMap<String, Object>() {{
             put( "status", status );
@@ -3856,7 +3856,8 @@ public class Interactivebrokers extends InteractivebrokersApi
 
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         List<Object> portfolioAccounts = (this.fetchPortfolioAccounts(parameters)).join();
-        List<String> accountIds = new ArrayList<String>(((Map<String, Object>)this.indexBy(portfolioAccounts, "accountId")).keySet());
+        Map<String,Object> accountsById = this.indexBy(portfolioAccounts, "accountId");
+        List<String> accountIds = new ArrayList<String>(accountsById.keySet());
         Integer length = accountIds.size();
         if (java.util.Objects.equals(length, 0))
         {
@@ -4323,7 +4324,7 @@ public class Interactivebrokers extends InteractivebrokersApi
     {
 
         Map<String, Object> options = this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-        Boolean autoConfirm = (Boolean) this.safeBool(options, "autoConfirmOrderReplies", true);
+        Boolean autoConfirm = this.safeBool(options, "autoConfirmOrderReplies", true);
         Long maxReplies = this.safeInteger(options, "maxReplies", 10);
         String errorPrefix = (((this.id + " ") + methodName) + "() ");
         Object current = response;
@@ -5561,7 +5562,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         // with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
         // the requests are routed to the gateway when there is no live session token and oauth is not configured
         // (e.g. public calls like fetchOpenInterests made before any private call)
-        Boolean useGatewayOption = (Boolean) this.safeBool(this.options, "useGateway", false);
+        Boolean useGatewayOption = this.safeBool(this.options, "useGateway", false);
         Boolean hasLiveSessionToken = !java.util.Objects.equals(this.safeString(this.options, "liveSessionToken"), null);
         Boolean oauthConfigured = (!java.util.Objects.equals(this.safeString(this.options, "encryptionPemPath"), null)) && (!java.util.Objects.equals(this.safeString(this.options, "dhParamPemPath"), null));
         Boolean isLiveSessionTokenRequest = path.endsWith("v1/api/oauth/live_session_token");

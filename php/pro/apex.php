@@ -710,12 +710,7 @@ class apex extends \ccxt\async\apex {
             Async\await($this->load_markets());
         }
         $messageHash = '';
-        $symbolsNormalized2 = null;
-        if ($this->is_empty($symbols)) {
-            $symbolsNormalized2 = $symbols;
-        } else {
-            $symbolsNormalized2 = $this->market_symbols($symbols);
-        }
+        $symbolsNormalized2 = $this->market_symbols($symbols);
         if (!$this->is_empty($symbols)) {
             $messageHash = '::' . implode(',', ($symbolsNormalized2));
         }

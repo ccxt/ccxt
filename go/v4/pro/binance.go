@@ -24,7 +24,7 @@ func newBinance() *Binance {
 func (this *Binance) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
-func (this *Binance) DescribeData() any {
+func (this *Binance) DescribeData() map[string]any {
 	return map[string]any{
 		"has": map[string]any{
 			"ws":                            true,

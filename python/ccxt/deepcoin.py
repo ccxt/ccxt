@@ -2181,7 +2181,7 @@ class deepcoin(Exchange, ImplicitAPI):
             market = self.market(symbol)
             if self.safe_bool(market, 'spot', False):
                 raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         isTPSL = (stopLossPrice is not None) or (takeProfitPrice is not None)

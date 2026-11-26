@@ -787,19 +787,19 @@ impl crate::exchange::DerivedExchange for Limitless {
             let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&book, "asks"));
             let yesBestBid: crate::value::Dict = rawBids.get(0).cloned().unwrap_or_default();
             let yesBestAsk: crate::value::Dict = rawAsks.get(0).cloned().unwrap_or_default();
-            let yesBidPrice: Option<String> = self.safe_string_k_opt(&yesBestBid, "price", &[]);
+            let mut yesBidPrice: Option<String> = self.safe_string_k_opt(&yesBestBid, "price", &[]);
             let yesBidSize: Option<String> = self.safe_string_k_opt(&yesBestBid, "size", &[]);
-            let yesAskPrice: Option<String> = self.safe_string_k_opt(&yesBestAsk, "price", &[]);
+            let mut yesAskPrice: Option<String> = self.safe_string_k_opt(&yesBestAsk, "price", &[]);
             let yesAskSize: Option<String> = self.safe_string_k_opt(&yesBestAsk, "size", &[]);
             let yesLast: Option<String> = self.safe_string_k_opt(&book, "lastTradePrice", &[]);
-            let yesMid: Option<String> = self.safe_string_k_opt(&book, "midpoint", &[]);
+            let mut yesMid: Option<String> = self.safe_string_k_opt(&book, "midpoint", &[]);
             if isYes {
-                bidStr = yesBidPrice.clone();
+                bidStr = yesBidPrice.take();
                 bidSizeStr = yesBidSize.clone();
-                askStr = yesAskPrice.clone();
+                askStr = yesAskPrice.take();
                 askSizeStr = yesAskSize.clone();
                 lastStr = yesLast.clone();
-                midStr = yesMid.clone();
+                midStr = yesMid.take();
             }  else {
                 if (yesAskPrice.is_some()) {
                     bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice).as_str().map(str::to_owned);
@@ -2395,15 +2395,15 @@ impl Limitless {
         let outcomeLabel: Option<String> = self.safe_string_lower_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[Value::Str("yes".into())]);
         let isYes: bool = outcomeLabel.as_deref() != Some("no");
         let rawBids: crate::value::List = self.safe_list_k_t(&response, "bids");
-        let rawAsks: Value = self.safe_list_k(&response, "asks", &[Value::from(vec![])]);
+        let rawAsks: crate::value::List = self.safe_list_k_t(&response, "asks");
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        let mut bidsSource: crate::value::List = rawAsks.clone().into_list();
+        let mut bidsSource: crate::value::List = Value::from(&rawAsks).into_list();
         if isYes {
             bidsSource = Value::from(&rawBids).into_list();
         }
         let mut asksSource: crate::value::List = Value::from(&rawBids).into_list();
         if isYes {
-            asksSource = rawAsks.into_list();
+            asksSource = Value::from(&rawAsks).into_list();
         }
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();

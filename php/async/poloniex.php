@@ -3167,15 +3167,13 @@ class poloniex extends Exchange {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' currency, you might try using unified currency-code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
         $currency = $this->currency($code);
-        $networkCode = null;
-        $query = null;
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        if ($networkCode === null) {
+        list($networkCodeRaw, $query) = $this->handle_network_code_and_params($params);
+        if ($networkCodeRaw === null) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
         }
         $exchangeNetworkId = null;
-        $networkCode = $this->network_id_to_code($networkCode, $code);
+        $networkCode = $this->network_id_to_code($networkCodeRaw, $code);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry !== null) {
             $exchangeNetworkId = $this->safe_string($networkEntry, 'id');

@@ -1630,7 +1630,7 @@ public class Dydx extends DydxApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String orderType = type.toUpperCase();
         Map<String, Object> market = this.market(symbol);
         if (java.util.Objects.equals(side, null))
@@ -1942,7 +1942,7 @@ public class Dydx extends DydxApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if ((!Boolean.TRUE.equals(isTrigger)) && (java.util.Objects.equals(symbol, null)))
         {

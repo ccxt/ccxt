@@ -22,7 +22,7 @@ class gate(ccxt.async_support.gate):
     def describe(self) -> dict:
         return self.deep_extend(super(gate, self).describe(), self.describe_data())
 
-    def describe_data(self) -> object:
+    def describe_data(self) -> dict:
         return {
             'has': {
                 'ws': True,

@@ -494,7 +494,7 @@ class blofin extends blofin$1["default"] {
         const data = this.safeList(message, 'data');
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const interval = channelName.replace('candle', '');
         const unifiedTimeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
@@ -889,7 +889,7 @@ class blofin extends blofin$1["default"] {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = (this.urls['api'])['ws'][marketType]['public'];
+        const url = this.safeString(this.urls['api']['ws'][marketType], 'public', '');
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
     handleUnsubscription(client, message) {

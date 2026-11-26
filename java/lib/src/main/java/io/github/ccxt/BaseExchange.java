@@ -4567,6 +4567,22 @@ public class BaseExchange {
         return new Pair<>(true, this.omit(parameters, keysToOmit));
     }
 
+    // the boolean readers: a found Boolean, else the caller's default (a Bool in ts/src, so Boolean or null)
+    public Boolean safeBool(Object dictionaryOrList, Object key, Object defaultValue) {
+        return this.safeValue(dictionaryOrList, key, defaultValue) instanceof Boolean value ? value : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
+    public Boolean safeBool2(Object dictionaryOrList, Object key1, Object key2, Object defaultValue) {
+        if (this.safeValue(dictionaryOrList, key1) instanceof Boolean value) {
+            return value;
+        }
+        return this.safeValue(dictionaryOrList, key2) instanceof Boolean value2 ? value2 : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
+    public Boolean safeBoolN(Object dictionaryOrList, Object keys, Object defaultValue) {
+        return this.safeValueN(dictionaryOrList, keys, defaultValue) instanceof Boolean value ? value : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
@@ -4969,58 +4985,8 @@ public Map<String, Object> describe()
         return null;
     }
 
-    public Object safeBoolN(Object dictionaryOrList, Object keys, Object defaultValue)
-    {
-        /**
-         * @ignore
-         * @method
-         * @description safely extract boolean value from dictionary or list
-         * @returns {bool | undefined}
-         */
-        Object value = this.safeValueN(dictionaryOrList, keys, defaultValue);
-        if ((value instanceof Boolean))
-        {
-            return value;
-        }
-        return defaultValue;
-    }
 
-    public Object safeBool2(Object dictionaryOrList, Object key1, Object key2, Object defaultValue)
-    {
-        /**
-         * @ignore
-         * @method
-         * @description safely extract boolean value from dictionary or list
-         * @returns {bool | undefined}
-         */
-        Object value = this.safeValue(dictionaryOrList, key1);
-        if ((value instanceof Boolean))
-        {
-            return value;
-        }
-        Object value2 = this.safeValue(dictionaryOrList, key2);
-        if ((value2 instanceof Boolean))
-        {
-            return value2;
-        }
-        return defaultValue;
-    }
 
-    public Object safeBool(Object dictionaryOrList, Object key, Object defaultValue)
-    {
-        /**
-         * @ignore
-         * @method
-         * @description safely extract boolean value from dictionary or list
-         * @returns {bool | undefined}
-         */
-        Object value = this.safeValue(dictionaryOrList, key, defaultValue);
-        if ((value instanceof Boolean))
-        {
-            return value;
-        }
-        return defaultValue;
-    }
 
     public Object safeDictN(Object dictionaryOrList, Object keys, Object defaultValue)
     {
@@ -5447,14 +5413,12 @@ public Map<String, Object> describe()
             if ((arrayLength != null && arrayLength > 0))
             {
                 Boolean ascending = true;
-                if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
+                // a missing key reads as undefined, so no presence test is needed
+                Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
+                Double last = this.safeFloat((array == null || ((int) (((long) arrayLength) - 1L)) < 0 || ((int) (((long) arrayLength) - 1L)) >= array.size() ? null : array.get(((int) (((long) arrayLength) - 1L)))), java.util.Objects.requireNonNullElse(key, "timestamp"));
+                if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
                 {
-                    Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
-                    Double last = this.safeFloat((array == null || ((int) (((long) arrayLength) - 1L)) < 0 || ((int) (((long) arrayLength) - 1L)) >= array.size() ? null : array.get(((int) (((long) arrayLength) - 1L)))), java.util.Objects.requireNonNullElse(key, "timestamp"));
-                    if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
-                    {
-                        ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                    ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(fromStart, false)))
                 {
@@ -6209,7 +6173,7 @@ public Map<String, Object> describe()
         // init the request rate limiter
         this.initRestRateLimiter();
         // sanbox mode
-        Boolean isSandbox = (Boolean) this.safeBool2(this.options, "sandbox", "testnet", false);
+        Boolean isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
         if (Boolean.TRUE.equals(isSandbox))
         {
             this.setSandboxMode(true);
@@ -6596,14 +6560,14 @@ public Map<String, Object> describe()
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> network = this.safeDict(networks, key, new HashMap<String, Object>() {{}});
-                Boolean deposit = (Boolean) this.safeBool(network, "deposit", null);
-                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", null);
+                Boolean deposit = this.safeBool(network, "deposit", null);
+                Boolean currencyDeposit = this.safeBool(currency, "deposit", null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
                     currency.put("deposit", deposit);
                 }
-                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", null);
-                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", null);
+                Boolean withdraw = this.safeBool(network, "withdraw", null);
+                Boolean currencyWithdraw = this.safeBool(currency, "withdraw", null);
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
                     currency.put("withdraw", withdraw);
@@ -7218,7 +7182,7 @@ public Map<String, Object> describe()
             }
         }
         // ensure that the average field is calculated correctly
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean inverse = this.safeBool(market, "inverse", false);
         String contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
@@ -7510,7 +7474,7 @@ public Map<String, Object> describe()
             String multiplyPrice = price;
             if (!java.util.Objects.equals(contractSize, null))
             {
-                Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
+                Boolean inverse = this.safeBool(market, "inverse", false);
                 if (Boolean.TRUE.equals(inverse))
                 {
                     multiplyPrice = Precise.stringDiv("1", price);
@@ -8046,7 +8010,7 @@ public Map<String, Object> describe()
     {
 
         Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
-        Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
+        Boolean muteOnFailure = this.safeBool(options, "webApiMuteFailure", true);
         try
         {
             // if it was not explicitly disabled, then don't fetch
@@ -8305,8 +8269,8 @@ public Map<String, Object> describe()
 
     public Object safeNetwork(Map<String, Object> network)
     {
-        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", null);
-        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", null);
+        Boolean withdrawEnabled = this.safeBool(network, "withdraw", null);
+        Boolean depositEnabled = this.safeBool(network, "deposit", null);
         Map<String, Object> limits = this.safeDict(network, "limits", null);
         Map<String, Object> withdraw = this.safeDict(limits, "withdraw", null);
         Map<String, Object> deposit = this.safeDict(limits, "deposit", null);
@@ -8534,7 +8498,7 @@ public Map<String, Object> describe()
                 String id = (((java.util.Objects.equals(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 Map<String, Object> market = this.safeMarket(id, null, null, "swap");
                 String symbol = this.safeString(market, "symbol", "");
-                Boolean contract = (Boolean) this.safeBool(market, "contract", false);
+                Boolean contract = this.safeBool(market, "contract", false);
                 if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
@@ -8549,7 +8513,7 @@ public Map<String, Object> describe()
                 Object item = this.safeValue(response, marketId);
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), null, null, "swap");
                 String symbol = this.safeString(market, "symbol", "");
-                Boolean contract = (Boolean) this.safeBool(market, "contract", false);
+                Boolean contract = this.safeBool(market, "contract", false);
                 if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
                     tiers.put(symbol, this.parseMarketLeverageTiers(item, market));
@@ -9093,11 +9057,11 @@ public Map<String, Object> describe()
             result.add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        String code = (((!java.util.Objects.equals(currency, null)))) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
-    public Object parseTransfers(Object transfers, Map<String, Object> currency, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parseTransfers(Object transfers, Map<String, Object> currency, Long since, Long limit, Map<String, Object> parameters)
     {
         List<Object> transfersArray = this.toArray(transfers);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -9107,7 +9071,7 @@ public Map<String, Object> describe()
             result.add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        String code = (((!java.util.Objects.equals(currency, null)))) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
@@ -9121,7 +9085,7 @@ public Map<String, Object> describe()
             result.add(this.extend(entry, parameters));
         }
         result = this.sortBy(result, "timestamp");
-        String code = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        String code = (((!java.util.Objects.equals(currency, null)))) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result, code, since, limit, false);
     }
 
@@ -9509,7 +9473,7 @@ public Map<String, Object> describe()
         Integer tradesLength = ((List<?>)trades).size();
         long oldest = Math.min(tradesLength, java.util.Objects.requireNonNullElse(limit, 2147483647L));
         Map<String, Object> options = this.safeDict(this.options, "buildOHLCVC", new HashMap<String, Object>() {{}});
-        Boolean skipZeroPrices = (Boolean) this.safeBool(options, "skipZeroPrices", true);
+        Boolean skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (var i = 0; (i < oldest); i++)
         {
             Map<String, Object> trade = this.safeDict(trades, i, new HashMap<String, Object>() {{}});
@@ -9562,8 +9526,8 @@ public Map<String, Object> describe()
                 List<Object> prevCandle = this.safeList(ohlcvs, candle, null);
                 Double prevHigh = this.safeNumber(prevCandle, 2, null);
                 Double prevLow = this.safeNumber(prevCandle, 3, null);
-                ohlcvs.get(candle.intValue()).set(i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
-                ohlcvs.get(candle.intValue()).set(i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
+                ohlcvs.get(candle.intValue()).set(i_high, Math.max((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
+                ohlcvs.get(candle.intValue()).set(i_low, Math.min((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
                 ohlcvs.get(candle.intValue()).set(i_close, price);
                 ohlcvs.get(candle.intValue()).set(i_volume, this.sum(this.safeValue(prevCandle, i_volume), trade.get("amount")));
                 ohlcvs.get(candle.intValue()).set(i_count, this.sum(this.safeValue(prevCandle, i_count), 1));
@@ -11221,7 +11185,7 @@ public Map<String, Object> describe()
 
     public Object handleTriggerAndParams(Map<String, Object> parameters)
     {
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = (((java.util.Objects.equals(isTrigger, true)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop"))) : parameters;
         return new ArrayList<Object>(Arrays.asList(isTrigger, paramsOmitted));
     }
@@ -11831,10 +11795,10 @@ public Map<String, Object> describe()
         List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", 3L);
         Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
         Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-        List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
-        var removeRepeatedOption = ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(0);
-        Map<String, Object> paramsRemoveRepeated = (Map<String, Object>) ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(1);
-        Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
+        Pair<Boolean, Map<String, Object>> removeRepeatedOptionparamsRemoveRepeatedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMaxRetries), (String) (method), "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
+        Boolean removeRepeatedOption = removeRepeatedOptionparamsRemoveRepeatedVariable.first();
+        Map<String, Object> paramsRemoveRepeated = removeRepeatedOptionparamsRemoveRepeatedVariable.second();
+        Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams(paramsRemoveRepeated, (String) (method), "paginationDirection", "backward");
         String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
         Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
         Long paginationTimestamp = null;
@@ -11945,7 +11909,7 @@ public Map<String, Object> describe()
             }
         }
         Object uniqueResults = result;
-        if (Helpers.isTrue(removeRepeatedOption))
+        if (Boolean.TRUE.equals(removeRepeatedOption))
         {
             uniqueResults = this.removeRepeatedElementsFromArray(result, true);
         }

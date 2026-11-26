@@ -1524,7 +1524,7 @@ impl Cex {
         //
         let orderBook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&orderBook, "timestamp", &[]).as_i64();
-        return Value::Dict(self.parse_order_book(&orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]));
+        return Value::Dict(self.parse_order_book(&orderBook, Value::from((market).symbol), &[Value::from(timestamp)]));
         Value::Null
         }).await?))
     }

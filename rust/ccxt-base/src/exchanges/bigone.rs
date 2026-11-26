@@ -2011,7 +2011,7 @@ impl Bigone {
             //     }
             //
             let orderbook: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-            return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]));
+            return Value::Dict(self.parse_order_book(&orderbook, Value::from((market).symbol), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]));
         }
         Value::Null
         }).await?))

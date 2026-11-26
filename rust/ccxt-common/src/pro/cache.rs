@@ -68,7 +68,8 @@ impl Cache {
     pub fn append(&mut self, item: impl Into<Value>) { self.0.append(item) }
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
-    pub fn hashmap(&self) -> Value { self.0.hashmap() }
+    /// The bucket index snapshot: always a map (symbol buckets keep their write-back tag).
+    pub fn hashmap(&self) -> crate::value::Dict { if let Value::Dict(m) = self.0.hashmap() { m } else { Default::default() } }
     /// `cache.length`: the rolling buffer's size (`Value::len` unwraps the marker).
     pub fn size(&self) -> i64 { self.0.len() as i64 }
 }
@@ -106,7 +107,7 @@ pub trait CacheSlot {
     fn append(&mut self, item: impl Into<Value>);
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
     fn clear(&mut self);
-    fn hashmap(&self) -> Value;
+    fn hashmap(&self) -> crate::value::Dict;
     fn size(&self) -> i64;
 }
 
@@ -116,7 +117,7 @@ impl CacheSlot for Option<Cache> {
         match self { Some(c) => c.get_limit(symbol, limit), None => limit }
     }
     fn clear(&mut self) { if let Some(c) = self { c.clear() } }
-    fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
+    fn hashmap(&self) -> crate::value::Dict { self.as_ref().map(Cache::hashmap).unwrap_or_default() }
     /// An absent cache has length 0, as `get_array_length(&Value::Null)` did.
     fn size(&self) -> i64 { self.as_ref().map_or(0, Cache::size) }
 }

@@ -168,7 +168,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams(methodName, parameters)).join();
-        Boolean stock = (Boolean) this.safeBool(query, "stock", false);
+        Boolean stock = this.safeBool(query, "stock", false);
         String explicitSource = this.safeString(query, "source");
         String channel = this.safeString(query, "channel");
         List<String> normalized = this.marketSymbols(symbols, null, false, false, false);
@@ -1277,7 +1277,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isBuyerMaker = this.safeBool(trade, "m", null);
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -1797,7 +1797,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
 
         Map<String, Object> query = (this.prepareWsStockParams("watchBalance", parameters)).join();
-        Boolean stock = (Boolean) this.safeBool(query, "stock", false);
+        Boolean stock = this.safeBool(query, "stock", false);
         if (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(this.safeList(this.options, "securities", null), null)))
         {
             (this.fetchSecurities(new HashMap<String, Object>() {{}})).join();

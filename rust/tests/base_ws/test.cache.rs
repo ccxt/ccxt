@@ -1159,7 +1159,7 @@ pub fn testWsCache() {
     }
     let evictedLength: i64 = get_array_length(&Value::from(&cacheEvictBuckets)).as_i64().unwrap_or_default();
     assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength == 3))));
-    let bucketKeys: Vec<Value> = object_keys(&cacheEvictBuckets.hashmap()).as_array().cloned().unwrap_or_default();
+    let bucketKeys: Vec<Value> = Value::Array(cacheEvictBuckets.hashmap().keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
     let bucketCount: i64 = bucketKeys.len() as i64;
     assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount == 3)))); // no empty leftover buckets
     // ----------------------------------------------------------------------------

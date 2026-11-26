@@ -3049,15 +3049,13 @@ export default class poloniex extends Exchange {
             throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
         const currency = this.currency (code);
-        let networkCode: Str = undefined;
-        let query: NullableDict = undefined;
-        [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode === undefined) {
+        const [ networkCodeRaw, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCodeRaw === undefined) {
             // we need to know the network to find out the currency-junction
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
         }
         let exchangeNetworkId: Str = undefined;
-        networkCode = this.networkIdToCode (networkCode, code);
+        const networkCode = this.networkIdToCode (networkCodeRaw, code);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
         if (networkEntry !== undefined) {
             exchangeNetworkId = this.safeString (networkEntry, 'id');

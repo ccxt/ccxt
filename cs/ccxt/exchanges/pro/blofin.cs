@@ -579,7 +579,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string interval = channelName.Replace("candle", (string)"");
         string? unifiedTimeframe = this.findTimeframe(interval);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -1063,7 +1063,7 @@ public partial class blofin : ccxt.blofin
             { "op", "unsubscribe" },
             { "args", topics },
         };
-        object url = getValue(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType), "public");
+        string? url = this.safeString(getValue((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), marketType), "public", "");
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 

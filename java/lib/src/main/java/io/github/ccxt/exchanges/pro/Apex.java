@@ -811,14 +811,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String messageHash = "";
-        List<String> symbolsNormalized2 = null;
-        if (this.isEmpty(symbols))
-        {
-            symbolsNormalized2 = symbols;
-        } else
-        {
-            symbolsNormalized2 = this.marketSymbols(symbols, null, true, false, false);
-        }
+        List<String> symbolsNormalized2 = this.marketSymbols(symbols, null, true, false, false);
         if (!this.isEmpty(symbols))
         {
             messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized2));
@@ -1192,7 +1185,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
-            Boolean success = (Boolean) this.safeBool(message, "success", null);
+            Boolean success = this.safeBool(message, "success", null);
             if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg", "");
@@ -1432,7 +1425,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
         if (Boolean.TRUE.equals(success) || ((code != null && code == 0)))

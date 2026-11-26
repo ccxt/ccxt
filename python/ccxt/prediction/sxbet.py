@@ -1576,7 +1576,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         result = []
         rawTradesLength = len(rawTrades)
         for i in range(0, rawTradesLength):
-            settlement = self.parse_settlement(rawTrades[i])
+            settlement = self.parse_settlement(self.safe_dict(rawTrades, i, {}))
             if (wantedOutcomeId is None) or (self.safe_string(settlement, 'outcomeId') == wantedOutcomeId):
                 result.append(settlement)
         return result

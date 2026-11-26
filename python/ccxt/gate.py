@@ -2695,7 +2695,7 @@ class gate(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         request, requestParams = self.prepare_request(market, type, query)
         request['type'] = 'fund'  # 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'

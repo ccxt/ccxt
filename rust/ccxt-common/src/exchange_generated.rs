@@ -974,12 +974,11 @@ pub trait ExchangeBase:
             let arrayLength: i64 = array.len() as i64;
             if arrayLength > 0 {
                 let mut ascending: bool = true;
-                if (in_op(&array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &key)) {
-                    let first: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), key.clone(), &[]).as_f64();
-                    let last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &(Value::Int((arrayLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
-                    if (first.is_some()) && (last.is_some()) {
-                        ascending = (last.is_some() && first.is_some() && last >= first); // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                // a missing key reads as undefined, so no presence test is needed
+                let first: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), key.clone(), &[]).as_f64();
+                let last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &(Value::Int((arrayLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
+                if (first.is_some()) && (last.is_some()) {
+                    ascending = (last.is_some() && first.is_some() && last >= first); // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if fromStart.as_bool() == Some(true) {
                     if ascending {
@@ -4760,7 +4759,7 @@ pub trait ExchangeBase:
     fn select_network_key_from_networks(&self, mut currencyCode: Value, mut networkCode: Value, mut indexedNetworkEntries: Value, optional_args: &[Value]) -> Value {
         let isIndexedByUnifiedNetworkCode = get_arg(optional_args, 0, Value::Bool(false));
         // this method is used against raw & unparse network entries, which are just indexed by network id
-        let mut chosenNetworkId: Value = Value::Null;
+        let mut chosenNetworkId: Option<String> = None;
         let availableNetworkIds: crate::value::List = crate::value::List::new(indexedNetworkEntries.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect());
         let responseNetworksLength: i64 = availableNetworkIds.len() as i64;
         if (networkCode != Value::Null) {
@@ -4768,12 +4767,12 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " - ").into()), networkCode).into()), " network did not return any result for ").into()), currencyCode)));
             }  else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                let networkIdOrCode: Option<String> = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { networkCode.as_str().map(str::to_owned) } else { self.network_code_to_id(networkCode.as_text().as_deref(), currencyCode.as_text().as_deref()).as_str().map(str::to_owned) });
+                let mut networkIdOrCode: Option<String> = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { networkCode.as_str().map(str::to_owned) } else { self.network_code_to_id(networkCode.as_text().as_deref(), currencyCode.as_text().as_deref()).as_str().map(str::to_owned) });
                 if (networkIdOrCode.is_none()) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " - ").into()), networkCode).into()), " network was not found for ").into()), currencyCode)));
                 }
                 if (matches!((&indexedNetworkEntries, networkIdOrCode.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    chosenNetworkId = Value::from(networkIdOrCode.as_deref());
+                    chosenNetworkId = networkIdOrCode.take();
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}{}{}{}{}{}", self.id, " - ", networkIdOrCode.map(Value::from).unwrap_or(Value::Null), " network was not found for ", currencyCode, ", use one of ", Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
                 }
@@ -4797,7 +4796,7 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " - can not determine the default network, please pass param[\"network\"] one from : ").into()), Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
             }
         }
-        return chosenNetworkId;
+        return chosenNetworkId.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -5403,7 +5402,7 @@ pub trait ExchangeBase:
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(trade));
         }
         }
-        result = self.sort_by2(Value::Arr(result), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        result = self.sort_by2(result, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return self.filter_by_symbol_since_limit(&result, symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }
@@ -5454,7 +5453,7 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by_t(Value::Arr(result), Value::Str("timestamp".into()), &[]);
-        let code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        let code: Option<String> = (if (currency.is_some()) { self.safe_string_k_opt(&currency, "code", &[]) } else { None });
         return self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }
 
@@ -5480,7 +5479,7 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by_t(Value::Arr(result), Value::Str("timestamp".into()), &[]);
-        let code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        let code: Option<String> = (if (currency.is_some()) { self.safe_string_k_opt(&currency, "code", &[]) } else { None });
         return self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }
 
@@ -5506,7 +5505,7 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by_t(Value::Arr(result), Value::Str("timestamp".into()), &[]);
-        let code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        let code: Option<String> = (if (currency.is_some()) { self.safe_string_k_opt(&currency, "code", &[]) } else { None });
         return Value::Arr(self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]));
 
     Value::Null
@@ -9196,8 +9195,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]);
         let maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.0;
         let paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.1;
-        let removeRepeatedOptionparamsRemoveRepeatedVariable = self.handle_option_and_params(&paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]);
-        let removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.0;
+        let removeRepeatedOptionparamsRemoveRepeatedVariable = self.handle_option_bool_and_params(&paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]);
+        let removeRepeatedOption: bool = removeRepeatedOptionparamsRemoveRepeatedVariable.0 == Some(true);
         let paramsRemoveRepeated: crate::value::Dict = removeRepeatedOptionparamsRemoveRepeatedVariable.1;
         let paginationDirectionparamsPaginationDirectionVariable = self.handle_option_string_and_params(&paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]);
         let paginationDirection: Option<String> = paginationDirectionparamsPaginationDirectionVariable.0.as_str().map(str::to_owned);
@@ -9290,7 +9289,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut uniqueResults: Value = result.clone();
-        if is_true(&removeRepeatedOption) {
+        if removeRepeatedOption {
             uniqueResults = self.remove_repeated_elements_from_array(result, &[]);
         }
         let key: Value = (if (method.as_str() == Some("fetchOHLCV")) { Value::Int(0) } else { Value::Str("timestamp".into()) });

@@ -2862,7 +2862,7 @@ class toobit extends Exchange {
             $results[] = $this->extend($this->parse_transaction_with_type($this->safe_dict($response, $i, array()), $currency, $transactType), $paramsUntil);
         }
         $sorted = $this->sort_by($results, 'timestamp');
-        $currencyCode = ($currency !== null) ? $currency['code'] : null;
+        $currencyCode = ($currency !== null) ? $this->safe_string($currency, 'code') : null;
         return $this->filter_by_currency_since_limit($sorted, $currencyCode, $since, $limit);
     }
 

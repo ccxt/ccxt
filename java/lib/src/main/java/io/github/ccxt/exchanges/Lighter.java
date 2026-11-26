@@ -859,12 +859,12 @@ public class Lighter extends LighterApi
     private Boolean handleBuilderFeeApprovalCore(Object accountIndex, Object apiKeyIndex)
     {
 
-        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
+        Boolean buildFee = this.safeBool(this.options, "builderFee", true);
         if (!Boolean.TRUE.equals(buildFee))
         {
             return false;
         }
-        Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (Boolean.TRUE.equals(approvedBuilderFee))
         {
             return true;
@@ -907,7 +907,7 @@ public class Lighter extends LighterApi
 
         Map<String, Object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new HashMap<String, Object>() {{}});
         String accountIndexStr = this.numberToString(accountIndex);
-        Boolean isStandardTier = (Boolean) this.safeBool(tiersForAccountIndexes, accountIndexStr, null);
+        Boolean isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr, null);
         if (!java.util.Objects.equals(isStandardTier, null))
         {
             Boolean cachedIsStandard = (java.util.Objects.equals(isStandardTier, true));
@@ -1065,7 +1065,7 @@ public class Lighter extends LighterApi
         {
             throw new ArgumentsRequired((this.id + " createOrder() requires a price argument")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         String orderType = type.toUpperCase();
         Map<String, Object> market = this.market(symbol);
         String orderSide = ((String)((String)side)).toUpperCase();
@@ -2959,7 +2959,7 @@ public class Lighter extends LighterApi
         String marketId = this.safeString(order, "market_index");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeTimestamp(order, "timestamp");
-        Boolean isAsk = (Boolean) this.safeBool(order, "is_ask", null);
+        Boolean isAsk = this.safeBool(order, "is_ask", null);
         Long isAskAsInteger = this.safeInteger(order, "is_ask");
         String side = null;
         if (!java.util.Objects.equals(isAsk, null))
@@ -2992,7 +2992,7 @@ public class Lighter extends LighterApi
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         Long tifAsInteger = this.safeInteger(order, "time_in_force");
         String tif = (((!java.util.Objects.equals(tifAsInteger, null)))) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, "time_in_force");
-        Boolean reduceOnlyAsBool = (Boolean) this.safeBool(order, "reduce_only", null);
+        Boolean reduceOnlyAsBool = this.safeBool(order, "reduce_only", null);
         Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
         Boolean reduceOnly = reduceOnlyAsBool;
         if ((java.util.Objects.equals(reduceOnlyAsBool, null)) && (!java.util.Objects.equals(reduceOnlyAsInteger, null)))
@@ -3811,7 +3811,7 @@ public class Lighter extends LighterApi
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", null);
+        Boolean isMakerAsk = this.safeBool(trade, "is_maker_ask", null);
         String side = null;
         String orderId = null;
         if (!java.util.Objects.equals(accountIndex, null))

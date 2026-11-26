@@ -1217,7 +1217,7 @@ public class Hashkey extends HashkeyApi
         Boolean active = java.util.Objects.equals(status, "TRADING");
         Boolean isLinear = null;
         String subType = null;
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", null);
+        Boolean isInverse = this.safeBool(market, "inverse", null);
         if (!java.util.Objects.equals(isInverse, null))
         {
             if (Boolean.TRUE.equals(isInverse))
@@ -1699,18 +1699,18 @@ public class Hashkey extends HashkeyApi
         {
             side = this.safeString(new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_")))), 0);
         }
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
+        Boolean isBuyer = this.safeBool(trade, "isBuyer", null);
         if (!java.util.Objects.equals(isBuyer, null))
         {
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool2(trade, "isMaker", "isMarker", null);
+        Boolean isMaker = this.safeBool2(trade, "isMaker", "isMarker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", null);
+        Boolean isBuyerMaker = this.safeBool(trade, "ibm", null);
         // if public trade
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
@@ -2503,7 +2503,7 @@ public class Hashkey extends HashkeyApi
         String status = this.safeString(transaction, "status"); // for fetchDeposits
         if (java.util.Objects.equals(status, null))
         {
-            Boolean success = (Boolean) this.safeBool(transaction, "success", false); // for withdraw
+            Boolean success = this.safeBool(transaction, "success", false); // for withdraw
             if (Boolean.TRUE.equals(success))
             {
                 status = "ok";
@@ -2628,7 +2628,7 @@ public class Hashkey extends HashkeyApi
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(currency, "id");
         String status = null;
-        Boolean success = (Boolean) this.safeBool(transfer, "success", false);
+        Boolean success = this.safeBool(transfer, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             status = "ok";
@@ -3013,7 +3013,7 @@ public class Hashkey extends HashkeyApi
         }
         Map<String, Object> request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
         Map<String, Object> response = null;
-        Boolean test = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean test = this.safeBool(parameters, "test", false);
         if (Boolean.TRUE.equals(test))
         {
             response = (this.privatePostApiV1SpotOrderTest(request)).join();

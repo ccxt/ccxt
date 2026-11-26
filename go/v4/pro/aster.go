@@ -1968,21 +1968,21 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 					}
 				}()
 				// try block:
-				var response any = map[string]any{}
+				var response map[string]any = map[string]any{}
 				if typeVar == "spot" {
 
 					r1 := <-this.SapiPrivatePostV3ListenKey(params)
 					if r1.Err != nil {
 						panic(r1.Err)
 					}
-					response = r1.Raw
+					response = r1.Value
 				} else {
 
 					r2 := <-this.FapiPrivatePostV3ListenKey(params)
 					if r2.Err != nil {
 						panic(r2.Err)
 					}
-					response = r2.Raw
+					response = r2.Value
 				}
 				var listenKey *string = this.SafeString(response, "listenKey")
 				if listenKey == nil {

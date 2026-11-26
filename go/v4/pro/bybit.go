@@ -24,7 +24,7 @@ func newBybit() *Bybit {
 func (this *Bybit) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
-func (this *Bybit) DescribeData() any {
+func (this *Bybit) DescribeData() map[string]any {
 	return map[string]any{
 		"has": map[string]any{
 			"ws":                            true,

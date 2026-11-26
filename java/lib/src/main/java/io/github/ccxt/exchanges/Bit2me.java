@@ -640,7 +640,7 @@ public class Bit2me extends Bit2meApi
         String id = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(id, null);
         String assetType = this.safeString(rawCurrency, "assetType");
-        Boolean enabled = (Boolean) this.safeBool(rawCurrency, "enabled", false);
+        Boolean enabled = this.safeBool(rawCurrency, "enabled", false);
         String removedAt = this.safeString(rawCurrency, "removedAt");
         Boolean active = Boolean.TRUE.equals(enabled) && (java.util.Objects.equals(removedAt, null));
         List<Object> actions = this.safeList(rawCurrency, "actions", new ArrayList<Object>(Arrays.asList()));
@@ -975,7 +975,7 @@ public class Bit2me extends Bit2meApi
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> privateMarket = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {

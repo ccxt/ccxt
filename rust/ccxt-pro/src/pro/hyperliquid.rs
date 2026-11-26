@@ -1267,9 +1267,9 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < newLiquidationsLength } {
-            let liquidation: Option<crate::value::Dict> = (match newLiquidations.get(i as usize) { Some(Value::Dict(__m)) => Some(std::sync::Arc::clone(__m)), _ => None });
-            self.myLiquidations.append(liquidation.clone().map_or(Value::Null, Value::Dict));
-            symbols.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&liquidation, "symbol"))), Value::Bool(true));
+            self.myLiquidations.append(newLiquidations.get(i as usize).cloned().unwrap_or(Value::Null));
+            let liquidationSymbol: String = self.safe_string_k(newLiquidations.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbols.insert(liquidationSymbol, Value::Bool(true));
         }
         }
         let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();

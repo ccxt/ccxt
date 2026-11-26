@@ -1404,9 +1404,9 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 			subType = nil
 		}
 	}
-	var symbolResolved any
+	var symbolResolved *string
 	if market != nil {
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 	} else {
 		symbolResolved = symbol
 	}

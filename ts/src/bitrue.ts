@@ -1479,11 +1479,10 @@ export default class bitrue extends Exchange {
                 request['limit'] = limit;
             }
             if (this.safeBool (market, 'linear', false)) {
-                response = await this.fapiV1PublicGetKlines (this.extend (request, params));
+                data = await this.fapiV1PublicGetKlines (this.extend (request, params));
             } else if (this.safeBool (market, 'inverse', false)) {
-                response = await this.dapiV1PublicGetKlines (this.extend (request, params));
+                data = await this.dapiV1PublicGetKlines (this.extend (request, params));
             }
-            data = response as Dict[];
         } else if (this.safeBool (market, 'spot', false)) {
             const timeframesSpot = this.safeDict (timeframes, 'spot', {});
             const request: Dict = {

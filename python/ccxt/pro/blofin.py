@@ -471,7 +471,7 @@ class blofin(ccxt.async_support.blofin):
         data = self.safe_list(message, 'data')
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         interval = channelName.replace('candle', '')
         unifiedTimeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
@@ -825,7 +825,7 @@ class blofin(ccxt.async_support.blofin):
             'op': 'unsubscribe',
             'args': topics,
         }
-        url = (self.urls['api'])['ws'][marketType]['public']
+        url = self.safe_string(self.urls['api']['ws'][marketType], 'public', '')
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, paramsMarketType), messageHashes)
 
     def handle_unsubscription(self, client: Client, message: dict):

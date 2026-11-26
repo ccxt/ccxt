@@ -4108,7 +4108,7 @@ impl Aster {
             let rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let currentMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            orderSymbols.push(Value::from((currentMarket).symbol.clone()));
+            orderSymbols.push(Value::from((currentMarket).symbol));
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
             let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
@@ -4137,10 +4137,7 @@ impl Aster {
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -4208,7 +4205,7 @@ impl Aster {
                 uppercaseType = Some("TAKE_PROFIT".to_string());
             }
         }
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[&Value::from(&params)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }

@@ -2254,7 +2254,7 @@ public class Woofipro extends WoofiproApi
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
         String status = this.safeString2(order, "status", "algoStatus");
-        Boolean success = (Boolean) this.safeBool(order, "success", null);
+        Boolean success = this.safeBool(order, "success", null);
         if (!java.util.Objects.equals(success, null))
         {
             status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
@@ -2378,7 +2378,7 @@ public class Woofipro extends WoofiproApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         String orderType = type.toUpperCase();
         if (java.util.Objects.equals(side, null))
         {
@@ -2735,7 +2735,7 @@ public class Woofipro extends WoofiproApi
     private Object cancelOrderCore(String id, String symbol, Map<String, Object> parameters)
     {
 
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if ((!Boolean.TRUE.equals(trigger)) && (java.util.Objects.equals(symbol, null)))
         {
@@ -2890,7 +2890,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbol, null))
@@ -2959,7 +2959,7 @@ public class Woofipro extends WoofiproApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
@@ -3052,7 +3052,7 @@ public class Woofipro extends WoofiproApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         Long maxLimit = ((Boolean.TRUE.equals(isTrigger))) ? 100L : 500L;
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
@@ -3983,7 +3983,7 @@ public class Woofipro extends WoofiproApi
         //     }
         //
         Long timestamp = this.safeInteger(data, "timestamp");
-        Boolean success = (Boolean) this.safeBool(data, "success", false);
+        Boolean success = this.safeBool(data, "success", false);
         return new HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", Woofipro.this.safeString(market, "symbol") );
@@ -4411,7 +4411,7 @@ public class Woofipro extends WoofiproApi
             this.checkRequiredCredentials(true);
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) && (java.util.Objects.equals(path, "algo/order") || java.util.Objects.equals(path, "order") || java.util.Objects.equals(path, "batch-order")))
             {
-                Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+                Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
@@ -4497,7 +4497,7 @@ public class Woofipro extends WoofiproApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", false);
+        Boolean success = this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
         if (!Boolean.TRUE.equals(success))
         {

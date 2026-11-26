@@ -1043,7 +1043,7 @@ impl Derive {
                     let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                     self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
                 }
-                let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
+                let mut orders: crate::value::Dict = self.orders.hashmap().key_dict(symbol.as_deref().unwrap_or("null"));
                 let order: Option<crate::value::Dict> = (if (orderId.is_none()) { None } else { self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null)) });
                 if (order.is_some()) {
                     let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
@@ -1446,7 +1446,7 @@ impl Derive {
         let side: String = (if isShort { "short".to_string() } else { "long".to_string() });
         let contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&Value::from(subaccountIdKey));
-        let symbolPositions: crate::value::Dict = self.safe_dict_t(cache.hashmap(), Value::from(symbol.as_str()));
+        let symbolPositions: crate::value::Dict = cache.hashmap().key_dict(symbol.as_str());
         // a fill through zero flattens the opposite side first
         let oppositeSide: String = (if isShort { "long".to_string() } else { "short".to_string() });
         let mut opposite: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(oppositeSide));

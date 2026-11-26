@@ -1337,7 +1337,7 @@ public class Myriad extends MyriadApi
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         String sideLower = side.toLowerCase();
-        Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
+        Boolean isCostDenominated = this.safeBool(parameters, "costDenominated", false);
         if ((java.util.Objects.equals(sideLower, "buy")) && (!Boolean.TRUE.equals(isCostDenominated)))
         {
             throw new NotSupported((this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
@@ -2614,7 +2614,7 @@ public class Myriad extends MyriadApi
         Boolean active = java.util.Objects.equals(state, "open");
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         String resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
-        Boolean voided = (Boolean) this.safeBool(raw, "voided", false);
+        Boolean voided = this.safeBool(raw, "voided", false);
         Boolean hasResolution = (!java.util.Objects.equals(resolvedOutcomeId, "-1")) && (!java.util.Objects.equals(resolvedOutcomeId, null)) && (!java.util.Objects.equals(resolvedOutcomeId, ""));
         Boolean marketResolved = Boolean.TRUE.equals(hasResolution) || Boolean.TRUE.equals(voided);
         String resolvedOutcome = null;
@@ -3638,7 +3638,7 @@ public class Myriad extends MyriadApi
     private Object fetchEventsCore(Map<String, Object> parameters)
     {
 
-        Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        Boolean allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
         if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
         {
             this.requireEventQuery(parameters);

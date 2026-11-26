@@ -719,7 +719,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             cost = Precise.stringMul(price, amount);
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", null);
+        Boolean isMaker = this.safeBool(trade, "is_maker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";

@@ -1701,7 +1701,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             timestamp = self.safe_integer(trade, 't')
             marketResolved = self.safe_market(None, market)
-            symbol = marketResolved['symbol']
+            symbol = self.safe_string(marketResolved, 'symbol')
             priceString = self.safe_string(trade, 'p')
             amountString = self.safe_string(trade, 'v')
             side = self.parse_order_side(self.safe_string(trade, 'T'))
@@ -1759,7 +1759,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             marketId = self.safe_string(trade, 'symbol')
             marketResolved = self.safe_market(marketId, market)
-            symbol = marketResolved['symbol']
+            symbol = self.safe_string(marketResolved, 'symbol')
             id = self.safe_string_2(trade, 'id', 'a')
             priceString = self.safe_string_2(trade, 'price', 'p')
             orderId = self.safe_string(trade, 'orderId')

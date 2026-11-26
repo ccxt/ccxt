@@ -930,7 +930,7 @@ func (this *Apex) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.AsyncResu
 func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -946,14 +946,9 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		}
 	}
 	var messageHash string = ""
-	var symbolsNormalized2 any = nil
-	if this.IsEmpty(symbols) {
-		symbolsNormalized2 = symbols
-	} else {
-		symbolsNormalized2 = this.MarketSymbols(symbols)
-	}
+	var symbolsNormalized2 []string = this.MarketSymbols(symbols)
 	if !this.IsEmpty(symbols) {
-		messageHash = "::" + ccxt.Join(symbolsNormalized2, ",")
+		messageHash = "::" + strings.Join(symbolsNormalized2, ",")
 	}
 	var url string = this.GetWsPrivateUrl()
 	messageHash = "positions" + messageHash
@@ -1150,11 +1145,11 @@ func (this *Apex) HandleOrder(client ccxt.ClientInterface, lists []any) {
 	var orders ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		listsDict79944, _ := lists[i].(map[string]any)
-		if listsDict79944 == nil {
-			listsDict79944 = map[string]any{}
+		listsDict79444, _ := lists[i].(map[string]any)
+		if listsDict79444 == nil {
+			listsDict79444 = map[string]any{}
 		}
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(listsDict79944))
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(listsDict79444))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1245,11 +1240,11 @@ func (this *Apex) HandlePositions(client ccxt.ClientInterface, lists []any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
-		listsDict87049, _ := lists[i].(map[string]any)
-		if listsDict87049 == nil {
-			listsDict87049 = map[string]any{}
+		listsDict86549, _ := lists[i].(map[string]any)
+		if listsDict86549 == nil {
+			listsDict86549 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(listsDict87049))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(listsDict86549))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later

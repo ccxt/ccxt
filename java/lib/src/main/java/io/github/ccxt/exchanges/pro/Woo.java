@@ -1116,7 +1116,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -1267,7 +1267,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -1320,7 +1320,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -1932,7 +1932,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             return false;
@@ -2318,7 +2318,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);

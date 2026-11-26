@@ -1017,8 +1017,8 @@ public partial class deribit : ccxt.deribit
         List<object> rawSubscriptions = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         bool isOHLCV = ((channelName == "chart.trades"));
-        object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        this.marketSymbols(symbols, null, false);
         if ((symbolsArray == null))
         {
             throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;

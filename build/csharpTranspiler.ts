@@ -3,6 +3,7 @@ import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS } from './csharp-local-types.js'
+import { VENUE_LIST_ARGS } from './csharp-local-types.js'
 import { MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
@@ -1683,16 +1684,6 @@ VENUE_NUMERIC_ARG_NAMES.push ('side');
 
 // Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue
 // class declares the method once and no file calls it by that venue's binding.
-const VENUE_LIST_ARGS: Record<string, Record<string, number[]>> = {
-    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
-    // every caller passes a List<object> local or list literal and no body rebinds the parameter
-    'pro:nado': { 'watchPublicMultiple': [ 1, 2, 4 ] },
-    'pro:kucoin': { 'subscribeMultiple': [ 3 ] },
-    'pro:coinbaseinternational': { 'subscribe': [ 0, 1 ], 'unSubscribe': [ 0 ] },
-    // callers pass IList<object> symbols / List<object> hash locals or literals; no body rebinds them
-    'pro:deribit': { 'watchMultipleWrapper': [ 2 ] },
-    'pro:backpack': { 'watchPublic': [ 1 ], 'watchPrivate': [ 1 ], 'handleUnsubscriptions': [ 1 ] },
-};
 
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
@@ -2253,11 +2244,17 @@ function csharpBookLimitReturnsSelf (): boolean {
 }
 
 
-// `From<T>(T value) { return value; }` declared in the runtime: the typed core's `T` is handed back as is
+// the From* helpers whose reverse conversion is the identity for their typed core's own type:
+// the consumer keeps the bare value, so no call is printed and no runtime definition is needed
+const CSHARP_IDENTITY_FROM_HELPERS: Record<string, string> = {
+    'FromDict': 'Dictionary<string, object>',
+    'FromInt64': 'Int64',
+    'FromStringValue': 'string',
+    'FromStringList': 'List<string>',
+}
 function csharpHelperIsIdentity (helper: string, type: string): boolean {
-    const declared = csharpRuntimeDeclarations ().get (helper.replace (/^ccxt\.BaseExchange\./, '')) ?? []
-    return declared.some ((d) => d.params.length === 1 && d.ret === type && d.params[0].type === type
-        && d.body === '{ return ' + d.params[0].name + '; }')
+    const name = helper.replace (/^ccxt\.BaseExchange\./, '')
+    return Object.prototype.hasOwnProperty.call (CSHARP_IDENTITY_FROM_HELPERS, name) && (CSHARP_IDENTITY_FROM_HELPERS[name] === type)
 }
 
 // the declared C# type of a return operand: a local / parameter bound exactly once in the method
@@ -8703,6 +8700,8 @@ function guardedArithmetic (text: string, typeOfName, guardedName: (name: string
                 // the object overload: double left converts any right; Int64 left casts the right to Int64
                 const pair = (base[0] === 'double') || ((base[1] !== 'double') && !((base[0] === 'int') && (base[1] === 'int')));
                 if (nullable && proven && pair) native = '(' + L + ' - ' + R + ')';
+                // a non-null this.sum operand (the Int64 sum twin) the operand-type pass could not type: the subtract twin's body
+                else if (!nullable && pair) native = '(' + L + ' - ' + R + ')';
             } else if ((m[1] === 'multiply') && (kinds[0] === 'int') && (kinds[1] === 'int') && !typed[0].literal && !typed[1].literal) {
                 native = '((Int64)' + L + ' * ' + R + ')'; // the multiply(Int64, Int64) twin's body
             } else if ((arithmeticOperandType (inner[0], typeOfName, new Map ()) === undefined) || (arithmeticOperandType (inner[1], typeOfName, new Map ()) === undefined)) {
@@ -8847,6 +8846,8 @@ export function counterAndGuardedMathSelfTest (): string[] {
     check ('guard write inside block keeps helper', '        Int64? p = parseInt(s);\n        if ((p != null))\n        {\n            p = null;\n            object q = subtract(p, 1);\n        }', 'subtract(p, 1)');
     check ('Int64? - double keeps helper', '        Int64? a = parseInt(s);\n        double b = 1.5;\n        if ((a != null))\n        {\n            object q = subtract(a, b);\n        }', 'subtract(a, b)');
     check ('int * int -> Int64 twin body', '        int a = 60;\n        int b = 300;\n        object d = multiply(a, b);', 'object d = ((Int64)a * b);');
+    check ('this.sum operand -> subtract twin', '        Int64? a = this.safeInteger(o, "a", 1);\n        Int64? d = this.safeInteger(o, "d");\n        object w = subtract(this.sum(a, d), this.milliseconds());', 'object w = (this.sum(a, d) - this.milliseconds());');
+    check ('this.sum minus object keeps helper', '        Int64? a = this.safeInteger(o, "a");\n        object b = 1;\n        object w = subtract(this.sum(a, a), b);', 'subtract(this.sum(a, a), b)');
     check ('this.sum operand -> divide twin', '        int n = 3;\n        Int64? c = this.safeInteger(o, "c", 100);\n        Int64? k = this.parseToInt(divide(this.sum(n, (c - 1)), c));', 'this.parseToInt(((double?)this.sum(n, (c - 1)) / c))');
     check ('double? multiply keeps helper', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        if ((a != null) && (b != null))\n        {\n            object c = multiply(a, b);\n        }', 'multiply(a, b)');
     return problems;
@@ -10584,7 +10585,7 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
     return undefined;
 }
 
-function subMulRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>, file: string): string {
+function subMulRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>, file: string, returnsDouble = false): string {
     let out = '';
     let last = 0;
     const callRe = /(?<![A-Za-z0-9_.])(subtract|multiply)\(/g;
@@ -10624,7 +10625,9 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
         const target = /^[ ]*([A-Za-z_]\w*) = $/.exec (text.slice (0, m.index));
         const doubleNames = args.every ((a) => /^[A-Za-z_]\w*$/.test (a.trim ())) && t.every ((x) => (x === 'double') || (x === 'double?'));
         const intoDoubleLocal = (target !== null) && doubleNames && (text.slice (close + 1).trim () === ';') && (typeOfName (target[1]) === 'double?');
-        if ((bind === 'object') && (m[1] === 'multiply') && intoDoubleLocal) {
+        // `return multiply(a, b);` in a method declared double? over two double / double? names
+        const intoDoubleReturn = returnsDouble && doubleNames && /^[ ]*return $/.test (text.slice (0, m.index)) && (text.slice (close + 1).trim () === ';');
+        if ((bind === 'object') && (m[1] === 'multiply') && (intoDoubleLocal || intoDoubleReturn)) {
             native = '(' + args[0].trim () + ' * ' + args[1].trim () + ')';
         } else if ((bind === 'object') && (m[1] === 'multiply') && (intoParseToInt || intoDivide)) {
             native = '((double?)' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
@@ -10676,7 +10679,8 @@ export function csharpTypedSubtractMultiply (objectNull: boolean, content: strin
             const opaque = lines[i].replace (/"(?:[^"\\]|\\.)*"/g, (s) => '\u0001' + (strings.push (s) - 1) + '\u0001');
             const restored = (s: string) => s.replace (/\u0001(\d+)\u0001/g, (_, k) => strings[Number (k)]);
             // operand typing sees the string literals (dictionary keys), emission keeps them verbatim
-            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content));
+            const returnsDouble = /^[ ]*(?:public|protected|private|internal)[ \w]*[ ]double\?[ ]+[A-Za-z_]\w*\(/.test (masked[start]);
+            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content, returnsDouble));
             if (next !== lines[i]) {
                 lines[i] = next;
                 changed = true;
@@ -10714,6 +10718,11 @@ function typedSubtractMultiplySnippetChecks (): string[] {
     check ('object operand into parseToInt keeps body', '        object v = getValue(o, "a");\n        Int64? r = this.parseToInt(multiply(v, 2));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(v, 2))');
     check ('non-literal double product into parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        double b = 2.5;\n        Int64? r = this.parseToInt(multiply(a, b));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(a, b))');
     check ('double? product into a double? local', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        double? r = null;\n        r = multiply(a, b);', 'r = (a * b);');
+    const wrapD = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual double? f(string s, double? q)\n    {\n' + body + '\n    }\n}\n';
+    const dOut = csharpTypedSubtractMultiply (true, wrapD ('        double? c = this.safeNumber(o, "c");\n        return multiply(q, c);'));
+    if (!dOut.includes ('return (q * c);')) problems.push ('typed subtract multiply snippet checks: double? product returned from a double? method');
+    const oOut = csharpTypedSubtractMultiply (true, wrap ('        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        return multiply(a, b);'));
+    if (oOut.includes ('return (a * b);')) problems.push ('typed subtract multiply snippet checks: object method return keeps body');
     check ('double? product outside parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        object r = multiply(a, 2);', 'object r = ' + subMulHelperBody ('multiply') + '(a, 2);');
     keep ('unknown operand', '        object r = subtract(this.foo(), 1);');
     const tests = wrap ('        object r = subtract(since, 1);', 'Tests');

@@ -1196,7 +1196,7 @@ public class Hyperliquid extends HyperliquidApi
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
         String pricePrecisionStr = this.numberToString(pricePrecision);
-        Boolean isDelisted = (Boolean) this.safeBool(market, "isDelisted", null);
+        Boolean isDelisted = this.safeBool(market, "isDelisted", null);
         Boolean active = true;
         if (!java.util.Objects.equals(isDelisted, null))
         {
@@ -1979,7 +1979,7 @@ public class Hyperliquid extends HyperliquidApi
     public Map<String, Object> signL1Action(Object action, Object nonce, String vaultAdress, Long expiresAfter)
     {
         Object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
-        Boolean isTestnet = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isTestnet = this.safeBool(this.options, "sandboxMode", false);
         Map<String, Object> phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
         //     'domain': {
@@ -2237,7 +2237,7 @@ public class Hyperliquid extends HyperliquidApi
     {
 
         Long nonce = this.incrementingNonce();
-        Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
             put( "maxFeeRate", maxFeeRate );
@@ -2282,7 +2282,7 @@ public class Hyperliquid extends HyperliquidApi
         try
         {
             // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
-            Boolean refSet = (Boolean) this.safeBool(this.options, "refSet", false);
+            Boolean refSet = this.safeBool(this.options, "refSet", false);
             this.options.put("refSet", true);
             Boolean feeApproved = (this.handleBuilderFeeApproval()).join();
             if (Boolean.TRUE.equals(feeApproved))
@@ -2310,8 +2310,8 @@ public class Hyperliquid extends HyperliquidApi
     private Boolean handleBuilderFeeApprovalCore()
     {
 
-        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
-        Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+        Boolean buildFee = this.safeBool(this.options, "builderFee", true);
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (Boolean.TRUE.equals(approvedBuilderFee))
         {
             return true;  // skip if builder fee is already approved
@@ -2430,7 +2430,7 @@ public class Hyperliquid extends HyperliquidApi
         String userAddress = userAddressparamsPublicAddressVariable.first();
         Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
         Long nonce = this.incrementingNonce();
-        Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         String type = this.safeString(paramsPublicAddress, "type", "userSetAbstraction");
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
@@ -2486,7 +2486,7 @@ public class Hyperliquid extends HyperliquidApi
         String userAddress = userAddressparamsPublicAddressVariable.first();
         Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
         Long nonce = this.incrementingNonce();
-        Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         String type = this.safeString(paramsPublicAddress, "type", "userDexAbstraction");
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
@@ -2626,7 +2626,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> market = this.market(symbol);
         Long nonce = this.incrementingNonce();
         Boolean isBuy = (java.util.Objects.equals(side.toUpperCase(), "BUY"));
-        Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
+        Boolean randomize = this.safeBool(parameters, "randomize", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "randomize");
         Pair<String, Map<String, Object>> vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress", null);
         String vaultAddressOption = vaultAddressOptionparamsVaultVariable.first();
@@ -2770,7 +2770,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             defaultTimeInForce = "ioc";
         }
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         if (Boolean.TRUE.equals(postOnly))
         {
             defaultTimeInForce = "alo";
@@ -2795,7 +2795,7 @@ public class Hyperliquid extends HyperliquidApi
             px = this.priceToPrecision(symbol, price);
         }
         String sz = this.amountToPrecision(symbol, amount);
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Map<String, Object> orderType = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(isTrigger))
         {
@@ -3182,7 +3182,7 @@ public class Hyperliquid extends HyperliquidApi
          */
         Map<String, Object> market = this.market(symbol);
         List<Object> clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
-        Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
+        Boolean fast = this.safeBool(parameters, "fast", false);
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "fast")));
         Long nonce = this.incrementingNonce();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3301,7 +3301,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         cancelAction.put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
         cancelAction.put("cancels", cancelReq);
-        Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
+        Boolean fast = this.safeBool(parameters, "fast", false);
         if (Boolean.TRUE.equals(fast))
         {
             // "f" must be omitted when false, actions hashed with "f": false are rejected
@@ -3440,7 +3440,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 defaultTimeInForce = "ioc";
             }
-            Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
+            Boolean postOnly = this.safeBool(orderParams, "postOnly", false);
             if (Boolean.TRUE.equals(postOnly))
             {
                 defaultTimeInForce = "alo";
@@ -3452,7 +3452,7 @@ public class Hyperliquid extends HyperliquidApi
             String stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             String takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
             Boolean isTrigger = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
-            Boolean reduceOnly = (Boolean) this.safeBool(orderParams, "reduceOnly", false);
+            Boolean reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly")));
             String px = this.numberToString(price);
             if (Boolean.TRUE.equals(isMarket))
@@ -4263,7 +4263,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             postOnly = (java.util.Objects.equals(tif, "ALO"));
         }
-        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
+        Boolean isTrigger = this.safeBool(entry, "isTrigger", false);
         Double triggerPx = null;
         if (Boolean.TRUE.equals(isTrigger))
         {
@@ -4461,7 +4461,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         String fee = this.safeString(trade, "fee");
         String takerOrMaker = null;
-        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", null);
+        Boolean crossed = this.safeBool(trade, "crossed", null);
         if (!java.util.Objects.equals(crossed, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(crossed))) ? "taker" : "maker";
@@ -5144,7 +5144,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Long nonce = this.incrementingNonce();
         if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp"))))
         {
@@ -5391,7 +5391,7 @@ public class Hyperliquid extends HyperliquidApi
             sig = this.signL1Action(action, nonce, null, null);
         } else
         {
-            Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+            Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
                 put( "destination", address );

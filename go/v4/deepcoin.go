@@ -3286,7 +3286,11 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))
 		}
-		symbolResolved = market["symbol"]
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 	}
 	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")

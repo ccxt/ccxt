@@ -970,7 +970,7 @@ public class Sxbet extends SxbetApi
             throw new ArgumentsRequired((this.id + " approve() requires params.amount - the USDC amount to move into the proxy wallet")) ;
         }
         Map<String, Object> proxy = (this.fetchSxbetProxy()).join();
-        Boolean deployed = (Boolean) this.safeBool(proxy, "deployed", false);
+        Boolean deployed = this.safeBool(proxy, "deployed", false);
         if (!Boolean.TRUE.equals(deployed))
         {
             (this.sxbetPrivatePostUserDeployProxy(new HashMap<String, Object>() {{}})).join();
@@ -1112,7 +1112,7 @@ public class Sxbet extends SxbetApi
         }
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         if (Boolean.TRUE.equals(postOnly))
         {
             throw new NotSupported((this.id + " createOrder() does not support postOnly - GTC orders may cross on entry")) ;
@@ -1223,7 +1223,7 @@ public class Sxbet extends SxbetApi
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        Boolean useBetCredits = (Boolean) this.safeBool(paramsTimeInForce, "useBetCredits", null);
+        Boolean useBetCredits = this.safeBool(paramsTimeInForce, "useBetCredits", null);
         if (!java.util.Objects.equals(useBetCredits, null))
         {
             orderItem.put("useBetCredits", useBetCredits);
@@ -1233,7 +1233,7 @@ public class Sxbet extends SxbetApi
         {
             orderItem.put("externalUserId", externalUserId);
         }
-        Boolean waitForOutcome = (Boolean) this.safeBool(paramsTimeInForce, "waitForOutcome", true);
+        Boolean waitForOutcome = this.safeBool(paramsTimeInForce, "waitForOutcome", true);
         Map<String, Object> rest = this.omit(paramsTimeInForce, new ArrayList<Object>(Arrays.asList("salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId")));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orders", new ArrayList<Object>(Arrays.asList(orderItem)) );
@@ -1493,7 +1493,7 @@ public class Sxbet extends SxbetApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
-        Boolean hasMore = (Boolean) this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
+        Boolean hasMore = this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
         for (var guard = 0; guard < 50; guard++)
         {
             if (!Boolean.TRUE.equals(hasMore))
@@ -1511,7 +1511,7 @@ public class Sxbet extends SxbetApi
                 nextResponse = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
             }
             result = this.arrayConcat(result, this.parseSxbetCancelResponse(nextResponse));
-            hasMore = (Boolean) this.safeBool(this.safeDict(nextResponse, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
+            hasMore = this.safeBool(this.safeDict(nextResponse, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
         }
         return result;
 
@@ -1548,7 +1548,7 @@ public class Sxbet extends SxbetApi
         //
         String orderId = this.safeString2(order, "id", "orderId");
         String marketHash = this.safeString(order, "marketHash", "");
-        Boolean isBettingOutcomeOne = (Boolean) this.safeBool(order, "isBettingOutcomeOne", true);
+        Boolean isBettingOutcomeOne = this.safeBool(order, "isBettingOutcomeOne", true);
         String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
@@ -1862,7 +1862,7 @@ public class Sxbet extends SxbetApi
         //     }
         //
         String marketHash = this.safeString(fill, "marketHash", "");
-        Boolean isBettingOutcomeOne = (Boolean) this.safeBool(fill, "isBettingOutcomeOne", true);
+        Boolean isBettingOutcomeOne = this.safeBool(fill, "isBettingOutcomeOne", true);
         String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
@@ -1880,7 +1880,7 @@ public class Sxbet extends SxbetApi
         Double amount = this.parseNumber(Precise.stringDiv(fillAmount, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(fill, "createdAt"));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        Boolean isMaker = (Boolean) this.safeBool(fill, "isMaker", null);
+        Boolean isMaker = this.safeBool(fill, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -2044,7 +2044,7 @@ public class Sxbet extends SxbetApi
         //     }
         //
         String marketHash = this.safeString(raw, "marketHash", "");
-        Boolean isOutcomeOneMaxWin = (Boolean) this.safeBool(raw, "isOutcomeOneMaxWin", true);
+        Boolean isOutcomeOneMaxWin = this.safeBool(raw, "isOutcomeOneMaxWin", true);
         String outcomeId = null;
         if (Boolean.TRUE.equals(isOutcomeOneMaxWin))
         {
@@ -2135,7 +2135,7 @@ public class Sxbet extends SxbetApi
         Integer rawTradesLength = rawTrades.size();
         for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
         {
-            Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), null);
+            Map<String, Object> settlement = this.parseSettlement(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), null);
             if ((java.util.Objects.equals(wantedOutcomeId, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcomeId"), wantedOutcomeId)))
             {
                 result.add(settlement);
@@ -2169,7 +2169,7 @@ public class Sxbet extends SxbetApi
         //     }
         //
         String marketHash = this.safeString(trade, "marketHash", "");
-        Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
+        Boolean isBettingOutcomeOne = this.safeBool(trade, "isBettingOutcomeOne", true);
         String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {
@@ -3185,7 +3185,7 @@ public class Sxbet extends SxbetApi
     public Object parseSxbetV3PublicTrade(Map<String, Object> trade)
     {
         String marketHash = this.safeString(trade, "marketHash", "");
-        Boolean isBettingOutcomeOne = (Boolean) this.safeBool(trade, "isBettingOutcomeOne", true);
+        Boolean isBettingOutcomeOne = this.safeBool(trade, "isBettingOutcomeOne", true);
         String outcomeId = null;
         if (Boolean.TRUE.equals(isBettingOutcomeOne))
         {

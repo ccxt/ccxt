@@ -82,8 +82,8 @@ impl Bybitid {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::bybitid::Bybitid::new(None);
         let restDescribe: crate::value::Dict = restInstance.describe();
-        let parentWsDescribe: Value = self.parent.describe_data();
-        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
+        let parentWsDescribe: crate::value::Dict = self.parent.describe_data();
+        let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[&parentWsDescribe]);
         return self.deep_extend_t(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bybitid".into()));
