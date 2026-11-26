@@ -185,8 +185,10 @@ jobs:
 
           # Zero-downtime blue/green swap. nginx proxies the docs to 127.0.0.1:<active port>; we
           # bring the new build up on the *other* port, smoke-test it there, then repoint nginx with
-          # a graceful reload (in-flight requests drain) and only then drop the old container. This
-          # removes the rm->run gap of the old swap, which briefly 502'd on every deploy.
+          # a graceful reload and only then drop the old container. This removes the rm->run gap of
+          # the old swap, which briefly 502'd on every deploy. The old container is stopped only
+          # once nginx's pre-reload workers (the only ones still proxying to it) have finished their
+          # in-flight requests, so long responses such as /api/chat streams are not cut either.
           NGINX_CONF=/etc/nginx/sites-available/docs
           CUR_PORT=$(grep -oE '127\.0\.0\.1:30(05|06)' "$NGINX_CONF" 2>/dev/null | grep -oE '30(05|06)' | head -1)
           [ -n "$CUR_PORT" ] || CUR_PORT="$PORT"
@@ -220,9 +222,25 @@ jobs:
               echo "nginx: framing headers set (no XFO; frame-ancestors self + https://ccxt.com)"
             fi
             if nginx -t 2>/dev/null; then
+              # Drain, then stop. After the reload, new requests go to the new container, but the
+              # workers that existed before it keep serving their in-flight requests from the old
+              # one until they finish (they hold no new connections), then exit. `nginx -s reload`
+              # returns before the master has replaced them, so note their PIDs first and wait for
+              # exactly those to be gone. Bounded: a long-lived connection elsewhere on this
+              # server (a WebSocket) can keep an old worker alive, and must not hold the deploy.
+              OLD_WORKERS=$(pgrep -f '^nginx: worker process' || true)
               nginx -s reload
-              sleep 3                                              # let in-flight requests on the old container finish
-              docker rm -f "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
+              DRAIN_MAX=60                                         # >= the longest response (/api/chat maxDuration 30 s)
+              for _ in $(seq 1 "$DRAIN_MAX"); do
+                alive=0
+                for pid in $OLD_WORKERS; do kill -0 "$pid" 2>/dev/null && alive=1; done
+                [ "$alive" = 0 ] && break
+                sleep 1
+              done
+              # SIGTERM, then remove: the old container finishes anything still in flight instead
+              # of being killed mid-response (the 3 s sleep + rm -f this replaces cut them)
+              docker stop -t 30 "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
+              docker rm "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
               docker tag "$IMAGE:$SHA" "$IMAGE:latest"
               docker image prune -f
               docker logout ghcr.io || true
