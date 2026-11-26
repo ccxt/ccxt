@@ -24521,7 +24521,8 @@ function r92j3LongListProducerText (printed) {
     const out = printed
         .replace (/public (?:java\.util\.)?List<Object> unsubscribedChannels\(/, 'public java.util.List<Long> unsubscribedChannels(')
         .replace (/(?:java\.util\.)?List<Object> result = new (?:java\.util\.)?ArrayList<Object>\((?:java\.util\.)?Arrays\.asList\(\)\);/, 'java.util.List<Long> result = new java.util.ArrayList<Long>();')
-        .replace (/\(\((?:java\.util\.)?List<Object>\)result\)\.add\((\w+)\);/, 'result.add(((long) $1));');
+        .replace (/\(\((?:java\.util\.)?List<Object>\)result\)\.add\((\w+)\);/, 'result.add(((long) $1));')
+        .replace (/(?<![\w.)])result\.add\((\w+)\);/, 'result.add(((long) $1));');
     // all three rewrites or none
     return /List<Long> unsubscribedChannels\(/.test (out) && out.includes ('new java.util.ArrayList<Long>()') && out.includes ('result.add(((long) ') ? out : printed;
 }
