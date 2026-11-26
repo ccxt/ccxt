@@ -8270,11 +8270,11 @@ export class BaseExchange {
 
     handleTriggerPricesAndParams (symbol: any, params: Dict, omitParams = true): [Str, Str, Str, Dict] {
         //
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         let takeProfitPriceStr: Str = undefined;
         //
         const keysToOmit: string[] = [];
