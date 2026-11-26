@@ -5620,7 +5620,7 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     },
     'markets': { 'rowStructReads': true, 'mapStorage': true },
 };
-const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = { 'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ], 'isPostOnly': [ 0 ], 'handlePostOnly': [ 0, 1 ], 'parseTradesHelper': [ 0 ] };
+const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = { 'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ], 'isPostOnly': [ 0, 1 ], 'handlePostOnly': [ 0, 1 ], 'parseTradesHelper': [ 0 ] };
 const GO_PREDICTION_STRUCT_FIELDS: [string, string][] = [ [ 'BaseExchange', '' ], [ 'Outcomes', 'map[string]any' ], [ 'Outcomes_by_id', 'map[string]any' ], [ 'Events', 'map[string]any' ], [ 'Events_by_slug', 'map[string]any' ], [ 'ReloadingEvents', 'bool' ], [ 'EventsLoading', 'any' ] ];
 const GO_PREDICTION_MAP_FIELDS: string[] = GO_PREDICTION_STRUCT_FIELDS.filter ((f) => f[1] === 'map[string]any').map ((f) => f[0]);
 const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = { 'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ], 'createAuthToken': [ 0 ] };

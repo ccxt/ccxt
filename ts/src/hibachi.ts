@@ -915,7 +915,7 @@ export default class hibachi extends Exchange {
             'signature': signature,
             'maxFeesPercent': this.numberToString (feeRate),
         };
-        const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly (type.toUpperCase () === 'MARKET', false, params);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');

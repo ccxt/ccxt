@@ -2822,7 +2822,7 @@ export default class aster extends Exchange {
                 uppercaseType = 'TAKE_PROFIT';
             }
         }
-        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }

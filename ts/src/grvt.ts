@@ -2067,7 +2067,7 @@ export default class grvt extends Exchange {
             // 'state': null,
         };
         let timeInForce = this.safeStringUpper (paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
-        const postOnly = this.isPostOnly (isMarketOrder, undefined, paramsOmitted3);
+        const postOnly = this.isPostOnly (isMarketOrder, false, paramsOmitted3);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }

@@ -8336,7 +8336,7 @@ export class BaseExchange {
         return this.handleTriggerAndParams (params);
     }
 
-    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: Bool, params: Dict = {}): boolean {
+    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: boolean, params: Dict = {}): boolean {
         /**
          * @ignore
          * @method

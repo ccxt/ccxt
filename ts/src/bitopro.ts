@@ -1198,7 +1198,7 @@ export default class bitopro extends Exchange {
             }
         }
         const paramsOmitted: Dict = (orderType === 'STOP_LIMIT') ? this.omit (params, [ 'triggerPrice', 'stopPrice' ]) : params;
-        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, paramsOmitted);
+        const postOnly = this.isPostOnly (orderType === 'MARKET', false, paramsOmitted);
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }

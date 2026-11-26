@@ -1519,7 +1519,7 @@ export default class apex extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for market orders');
         }
         let timeInForce = this.safeStringUpper (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        const postOnly = this.isPostOnly (isMarket, false, params);
         if (timeInForce === undefined) {
             timeInForce = 'GOOD_TIL_CANCEL';
         }

@@ -1364,7 +1364,7 @@ export default class hollaex extends Exchange {
         const meta = this.safeDict (params, 'meta', {});
         const exchangeSpecificParam = this.safeBool (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam === true, params);
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }

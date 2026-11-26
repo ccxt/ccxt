@@ -1356,7 +1356,7 @@ export default class dydx extends Exchange {
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper (paramsSubAccountId, 'timeInForce', 'GTT');
-        const postOnly = this.isPostOnly (isMarket, undefined, paramsSubAccountId);
+        const postOnly = this.isPostOnly (isMarket, false, paramsSubAccountId);
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
         const marketInfo = this.safeDict (market, 'info', {});

@@ -1783,7 +1783,7 @@ export default class modetrade extends Exchange {
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
-        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        const postOnly = this.isPostOnly (isMarket, false, params);
         let orderQtyKey: Str = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -2062,7 +2062,7 @@ export default class modetrade extends Exchange {
             const orderType = type.toUpperCase ();
             const timeInForce = this.safeStringLower (paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly (isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly (isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
