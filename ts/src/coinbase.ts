@@ -1615,14 +1615,14 @@ export default class coinbase extends Exchange {
         }
         const futureData: Dict[] = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            const futureMarket = this.parseContractMarket (futureData[i]);
+            const futureMarket = this.parseContractMarket (this.safeDict (futureData, i, {}));
             if (futureMarket !== undefined) {
                 result.push (futureMarket);
             }
         }
         const perpetualData: Dict[] = this.safeList (perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
-            const perpetualMarket = this.parseContractMarket (perpetualData[i]);
+            const perpetualMarket = this.parseContractMarket (this.safeDict (perpetualData, i, {}));
             if (perpetualMarket !== undefined) {
                 result.push (perpetualMarket);
             }
