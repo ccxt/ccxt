@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Account, Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ export default class hyperliquid extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'editOrders': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -5373,6 +5373,63 @@ export default class hyperliquid extends Exchange {
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
         return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchAccounts
+     * @description fetch the sub-accounts of a master account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchAccounts', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchAccounts', params), 1, {});
+        const request: Dict = {
+            'type': 'subAccounts',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "name": "Test",
+        //             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        //             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        //             "clearinghouseState": {
+        //                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMaintenanceMarginUsed": "0.0",
+        //                 "withdrawable": "29.78001",
+        //                 "assetPositions": [],
+        //                 "time": 1733968369395
+        //             },
+        //             "spotState": {
+        //                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        //             }
+        //         }
+        //     ]
+        //
+        // the response is null when the account has no sub-accounts
+        const result: Account[] = [];
+        if (Array.isArray (response)) {
+            for (let i = 0; i < response.length; i++) {
+                result.push (this.parseAccount (this.safeDict (response, i, {})));
+            }
+        }
+        return result;
+    }
+
+    override parseAccount (account: Dict): Account {
+        return {
+            'id': this.safeString (account, 'subAccountUser'),
+            'type': 'subaccount',
+            'name': this.safeString (account, 'name'),
+            'code': undefined,
+            'info': account,
+        };
     }
 
     /**

@@ -2860,6 +2860,169 @@
                 }
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "two sub-accounts",
+                "method": "fetchAccounts",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "name": "test",
+                        "subAccountUser": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                        "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "clearinghouseState": {
+                            "marginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMarginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMaintenanceMarginUsed": "0.0",
+                            "withdrawable": "0.0",
+                            "assetPositions": [],
+                            "time": 1795692771591
+                        },
+                        "spotState": {
+                            "balances": [
+                                {
+                                    "coin": "USDC",
+                                    "token": 0,
+                                    "total": "0.0",
+                                    "hold": "0.0",
+                                    "entryNtl": "0.0"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "second",
+                        "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                        "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "clearinghouseState": {
+                            "marginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMarginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMaintenanceMarginUsed": "0.0",
+                            "withdrawable": "0.0",
+                            "assetPositions": [],
+                            "time": 1795692771591
+                        },
+                        "spotState": {
+                            "balances": [
+                                {
+                                    "coin": "USDC",
+                                    "token": 0,
+                                    "total": "0.22",
+                                    "hold": "0.0",
+                                    "entryNtl": "0.0"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                        "type": "subaccount",
+                        "name": "test",
+                        "code": null,
+                        "info": {
+                            "name": "test",
+                            "subAccountUser": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                            "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "clearinghouseState": {
+                                "marginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMarginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMaintenanceMarginUsed": "0.0",
+                                "withdrawable": "0.0",
+                                "assetPositions": [],
+                                "time": 1795692771591
+                            },
+                            "spotState": {
+                                "balances": [
+                                    {
+                                        "coin": "USDC",
+                                        "token": 0,
+                                        "total": "0.0",
+                                        "hold": "0.0",
+                                        "entryNtl": "0.0"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                        "type": "subaccount",
+                        "name": "second",
+                        "code": null,
+                        "info": {
+                            "name": "second",
+                            "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                            "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "clearinghouseState": {
+                                "marginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMarginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMaintenanceMarginUsed": "0.0",
+                                "withdrawable": "0.0",
+                                "assetPositions": [],
+                                "time": 1795692771591
+                            },
+                            "spotState": {
+                                "balances": [
+                                    {
+                                        "coin": "USDC",
+                                        "token": 0,
+                                        "total": "0.22",
+                                        "hold": "0.0",
+                                        "entryNtl": "0.0"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "tiered tables and a single tier asset without a listed table",

@@ -16,6 +16,22 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchAccounts": [
+            {
+                "description": "fetch the sub-accounts of a user",
+                "method": "fetchAccounts",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "subAccounts",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "leverage tiers of the main dex",
