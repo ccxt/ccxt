@@ -1717,7 +1717,7 @@ class mexc extends mexc$1["default"] {
             //
             timestamp = this.safeInteger(trade, 't');
             marketResolved = this.safeMarket(undefined, market);
-            symbol = marketResolved['symbol'];
+            symbol = this.safeString(marketResolved, 'symbol');
             priceString = this.safeString(trade, 'p');
             amountString = this.safeString(trade, 'v');
             side = this.parseOrderSide(this.safeString(trade, 'T'));
@@ -1776,7 +1776,7 @@ class mexc extends mexc$1["default"] {
             //
             const marketId = this.safeString(trade, 'symbol');
             marketResolved = this.safeMarket(marketId, market);
-            symbol = marketResolved['symbol'];
+            symbol = this.safeString(marketResolved, 'symbol');
             id = this.safeString2(trade, 'id', 'a');
             priceString = this.safeString2(trade, 'price', 'p');
             orderId = this.safeString(trade, 'orderId');

@@ -641,13 +641,7 @@ export default class apex extends apexRest {
             await this.loadMarkets();
         }
         let messageHash = '';
-        let symbolsNormalized2 = undefined;
-        if (this.isEmpty(symbols)) {
-            symbolsNormalized2 = symbols;
-        }
-        else {
-            symbolsNormalized2 = this.marketSymbols(symbols);
-        }
+        const symbolsNormalized2 = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
             messageHash = '::' + symbolsNormalized2.join(',');
         }

@@ -446,7 +446,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const parts = topic.split('+');
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         let previous = this.safeDict(this.tickers, symbol);

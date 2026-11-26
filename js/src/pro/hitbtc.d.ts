@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
     describe(): Dict;
-    describeData(): any;
+    describeData(): Dict;
     /**
      * @ignore
      * @method

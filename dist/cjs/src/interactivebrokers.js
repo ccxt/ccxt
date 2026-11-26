@@ -3062,7 +3062,8 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async fetchAccounts(params = {}) {
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
         const portfolioAccounts = await this.fetchPortfolioAccounts(params);
-        const accountIds = Object.keys(this.indexBy(portfolioAccounts, 'accountId'));
+        const accountsById = this.indexBy(portfolioAccounts, 'accountId');
+        const accountIds = Object.keys(accountsById);
         const length = accountIds.length;
         if (length === 0) {
             throw new errors.ExchangeError('No tradingaccount IDs found for the user');

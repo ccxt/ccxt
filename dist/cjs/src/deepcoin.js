@@ -2323,7 +2323,7 @@ class deepcoin extends deepcoin$1["default"] {
             if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
             }
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');

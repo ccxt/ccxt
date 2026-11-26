@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bybit extends bybitRest {
     describe(): Dict;
-    describeData(): any;
+    describeData(): Dict;
     requestId(): int;
     getUrlByMarketType(symbol?: Str, isPrivate?: Bool, method?: Str, params?: Dict): Promise<string>;
     cleanParams(params: Dict): Dict;

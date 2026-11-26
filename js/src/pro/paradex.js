@@ -2605,12 +2605,13 @@ export default class paradex extends paradexRest {
         }
     }
     handleMessage(client, message) {
-        this.handleStreamMessage(client, message);
-    }
-    handleStreamMessage(client, message) {
+        // error replies are JSON text frames only, the binary frames never carry one
         if (this.handleErrorMessage(client, message) !== true) {
             return;
         }
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
         //
         // auth response
         //

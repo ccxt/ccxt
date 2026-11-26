@@ -572,7 +572,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseMarkets(instruments);
     }
     parseMarket(market) {
-        const instrumentName = this.safeString(market, 'instrument_name');
+        const instrumentName = this.safeString(market, 'instrument_name', '');
         const lowercaseId = this.safeStringLower(market, 'instrument_name');
         const baseId = this.safeString(market, 'base_currency');
         const quoteId = this.safeString(market, 'counter_currency');
@@ -625,7 +625,7 @@ export default class coinbaseinternational extends Exchange {
             if (optionType === 'call') {
                 optionTypeLetter = 'C';
             }
-            const strikeString = this.numberToString(strike);
+            const strikeString = this.safeString(market, 'strike', '');
             symbol = symbol + '-' + strikeString + '-' + optionTypeLetter;
         }
         const marketStructure = {

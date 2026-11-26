@@ -404,7 +404,7 @@ class bullish extends bullish$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let parsed = this.parseTicker(data, market);
         if (updateType === 'update') {
             const ticker = this.safeDict(this.tickers, symbol, {});

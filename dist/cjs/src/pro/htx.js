@@ -1053,7 +1053,7 @@ class htx extends htx$1["default"] {
             subType = this.safeString2(this.options, 'subType', 'defaultSubType', 'linear');
             subType = this.safeString(params, 'subType', subType);
         }
-        const symbolResolved = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         let paramsRequest = (symbol !== undefined) ? params : this.omit(params, ['type', 'subType']);
         const linear = (subType === 'linear');
         const swap = (type === 'swap');

@@ -3146,12 +3146,11 @@ class BaseExchange {
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
-                if ((key in array[0])) {
-                    const first = this.safeFloat(array[0], key);
-                    const last = this.safeFloat(array[arrayLength - 1], key);
-                    if (first !== undefined && last !== undefined) {
-                        ascending = last >= first; // true if array is sorted in ascending order based on 'timestamp'
-                    }
+                // a missing key reads as undefined, so no presence test is needed
+                const first = this.safeFloat(array[0], key);
+                const last = this.safeFloat(array[arrayLength - 1], key);
+                if (first !== undefined && last !== undefined) {
+                    ascending = last >= first; // true if array is sorted in ascending order based on 'timestamp'
                 }
                 if (fromStart) {
                     if (ascending) {
@@ -5960,7 +5959,7 @@ class BaseExchange {
             result.push(transaction);
         }
         result = this.sortBy(result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString(currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseTransfers(transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5971,7 +5970,7 @@ class BaseExchange {
             result.push(transfer);
         }
         result = this.sortBy(result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString(currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     parseLedger(data, currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5982,7 +5981,7 @@ class BaseExchange {
             result.push(this.extend(entry, params));
         }
         result = this.sortBy(result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString(currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
     nonce() {
@@ -7994,7 +7993,7 @@ class BaseExchange {
     async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined, removeRepeated = true) {
         const [maxCallsPaginationCalls, paramsPaginationCalls] = this.handleOptionIntegerAndParams(params, method, 'paginationCalls', 10);
         const [maxRetriesOption, paramsMaxRetries] = this.handleOptionIntegerAndParams(paramsPaginationCalls, method, 'maxRetries', 3);
-        const [removeRepeatedOption, paramsRemoveRepeated] = this.handleOptionAndParams(paramsMaxRetries, method, 'removeRepeated', removeRepeated);
+        const [removeRepeatedOption, paramsRemoveRepeated] = this.handleOptionBoolAndParams(paramsMaxRetries, method, 'removeRepeated', removeRepeated);
         const [paginationDirection, paramsPaginationDirection] = this.handleOptionStringAndParams(paramsRemoveRepeated, method, 'paginationDirection', 'backward');
         let paginationTimestamp = undefined;
         let result = [];
