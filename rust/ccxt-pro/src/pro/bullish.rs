@@ -303,11 +303,7 @@ impl Bullish {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
-        let wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
+        let wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " unsubscribePublic() has no public websocket url")));
         }
@@ -361,7 +357,7 @@ impl Bullish {
         self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
         self.clean_cache(subscription);
         let requestId: String = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        if (self.safe_dict(&__ch.subscriptions, Value::from(requestId.as_str()), &[]) != Value::Null) {
+        if (__ch.has_subscription(requestId.as_str())) {
             __ch.remove_subscription(requestId.as_str());
         }
 }
@@ -426,14 +422,7 @@ impl Bullish {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let wsUrls: crate::value::Dict = self.safe_dict_t(self.safe_dict_k(&self.urls, "api", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::Str("ws".into()));
-        let url: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
-        if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " unsubscribePrivate() has no private websocket url")));
-        }
+        let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private").as_str().map(str::to_owned);
         let token: Option<String> = self.parent.handle_token(&[]).await.as_str().map(str::to_owned);
         let cookies: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1521,7 +1510,7 @@ impl Bullish {
         //     }
         //
         let messageId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        if (messageId.is_none()) {
+        if (messageId.is_none()) || !(__ch.has_subscription((&messageId).as_deref())) {
             return;
         }
         let subscription: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(messageId.as_deref()));
@@ -1556,7 +1545,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.handle_pong(client.as_value(), message);
             }
             let messageId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-            if (messageId.is_some()) {
+            if (messageId.is_some()) && (client.has_subscription((&messageId).as_deref())) {
                 let subscription: Value = self.safe_dict(&(client).subscriptions, messageId.map(Value::from).unwrap_or(Value::Null), &[]);
                 if (subscription != Value::Null) && matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
                     self.handle_un_subscription(&client.as_value(), subscription);
