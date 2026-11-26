@@ -2126,7 +2126,7 @@ public partial class bingx : Exchange
                 request["limit"] = Math.Min(limit.Value, 1000); // api maximum 1000
             } else
             {
-                request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
+                request["limit"] = this.findNearestCeiling(new List<Int64>() {5, 10, 20, 50, 100, 500, 1000}, limit.Value);
             }
         }
         if ((marketType == "spot"))

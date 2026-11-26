@@ -327,7 +327,7 @@ public partial class myriad : PredictionExchange
         List<object> rawMarkets = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
+            string? q = ((string)queries[i]);
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "state", state },
@@ -528,7 +528,7 @@ public partial class myriad : PredictionExchange
         List<object> rawQuestions = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
+            string? q = ((string)queries[i]);
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "limit", limit },

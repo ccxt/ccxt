@@ -1800,7 +1800,7 @@ public partial class interactivebrokers : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, (markets != null && i < markets.Count ? markets[i] : null));
+            Dictionary<string, object> market = this.extend(new Dictionary<string, object>() {}, markets[i]);
             string symbol = this.safeString(market, "symbol");
             bool? isContract = this.safeBool(market, "contract", false);
             if ((((symbol != null) && (seen?.ContainsKey(symbol) == true))) && (isContract == true))
@@ -3203,7 +3203,7 @@ public partial class interactivebrokers : Exchange
         List<object> conids = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbols[i]);
             conids.Add(this.safeString(market, "id", ""));
         }
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});

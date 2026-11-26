@@ -185,7 +185,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string subMessageHash = ((messageHashPrefix + "::") + (symbols != null && i < symbols.Count ? symbols[i] : null));
+            string subMessageHash = ((messageHashPrefix + "::") + symbols[i]);
             subMessageHashes.Add(subMessageHash);
             messageHashes.Add(("unsubscribe:" + subMessageHash));
         }

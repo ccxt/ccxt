@@ -107,7 +107,7 @@ public partial class testMainClass : BaseTest
                     object diffBetweenCurrentAndPrevious = subtract(barTs, previousBarTs);
                     assert(isGreaterThan(diffBetweenCurrentAndPrevious, 0), ((((("Difference between current bar timestamp (" + ((object)barTs).ToString()) + ") and previous bar timestamp (") + ((object)previousBarTs).ToString()) + ") should be positive") + (logText)));
                     // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-                    bool isRoundNumber = exchange.isRoundNumber(divide(diffBetweenCurrentAndPrevious, durationMs));
+                    bool isRoundNumber = exchange.isRoundNumber(ccxt.BaseExchange.ToDoubleArg(divide(diffBetweenCurrentAndPrevious, durationMs)));
                     assert(isRoundNumber, ((((((("Difference between current bar timestamp (" + ((object)barTs).ToString()) + ") and previous bar timestamp (") + ((object)previousBarTs).ToString()) + ") is not multiplier of duration (") + ((object)durationMs).ToString()) + ")") + (logText)));
                 }
             }

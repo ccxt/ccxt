@@ -214,7 +214,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk((bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null));
+            List<object> bidAsk = this.parseOrderBookBidAsk(bidAsks[i]);
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }

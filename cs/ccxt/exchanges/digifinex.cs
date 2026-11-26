@@ -4071,7 +4071,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (info?.Count ?? 0); i++)
         {
-            object item = (info != null && i < info.Count ? info[i] : null);
+            object item = info[i];
             string? currency = this.safeString(item, codeKey);
             string? code = this.safeCurrencyCode(currency);
             Dictionary<string, object> borrowRate = this.parseBorrowRate(item);

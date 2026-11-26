@@ -272,7 +272,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         subscription ??= new Dictionary<string, object>();
         for (int i = 0; i < (subHashes?.Count ?? 0); i++)
         {
-            object subHash = (subHashes != null && i < subHashes.Count ? subHashes[i] : null);
+            object subHash = subHashes[i];
             this.cleanUnsubscription(client, subHash, ("unsubscribe::" + (subHash)));
         }
         this.cleanCache(subscription);

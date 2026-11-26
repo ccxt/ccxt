@@ -6560,7 +6560,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object entry = (response != null && i < response.Count ? response[i] : null);
+            object entry = response[i];
             string? currencyId = this.safeString(entry, "coin");
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? code = this.safeString(currency, "code");

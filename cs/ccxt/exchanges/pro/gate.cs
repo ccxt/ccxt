@@ -848,7 +848,7 @@ public partial class gate : ccxt.gate
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {
-            object bidAsk = (bidAsks != null && i < bidAsks.Count ? bidAsks[i] : null);
+            object bidAsk = bidAsks[i];
             if (((bidAsk is IList<object>) || (bidAsk is not null && bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookSide as IOrderBookSide).storeArray(this.parseOrderBookBidAsk(bidAsk));
@@ -2684,7 +2684,7 @@ public partial class gate : ccxt.gate
         isInverse ??= false;
         if (((type == "swap")) || ((type == "future")))
         {
-            string settleKey = (isInverse == true) ? "btc" : "usdt";
+            string settleKey = isInverse == true ? "btc" : "usdt";
             return this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type), settleKey);
         } else
         {

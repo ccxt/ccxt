@@ -6121,7 +6121,7 @@ public partial class xt : Exchange
         Dictionary<string, object> breakBySymbolSide = new Dictionary<string, object>() {};
         for (int i = 0; i < (breakList?.Count ?? 0); i++)
         {
-            IDictionary<string, object> breakEntry = ((IDictionary<string, object>)(breakList != null && i < breakList.Count ? breakList[i] : null));
+            IDictionary<string, object> breakEntry = ((IDictionary<string, object>)breakList[i]);
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which

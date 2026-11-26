@@ -473,7 +473,7 @@ public partial class onetrading : ccxt.onetrading
         //
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleBookDelta(orderbook, (deltas != null && i < deltas.Count ? deltas[i] : null));
+            this.handleBookDelta(orderbook, deltas[i]);
         }
     }
 

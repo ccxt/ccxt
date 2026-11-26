@@ -902,7 +902,7 @@ public partial class phemex : ccxt.phemex
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.customHandleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null), market);
+            this.customHandleDelta(bookside, deltas[i], market);
         }
     }
 

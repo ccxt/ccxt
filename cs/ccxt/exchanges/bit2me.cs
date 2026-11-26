@@ -1061,7 +1061,7 @@ public partial class bit2me : Exchange
         };
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            IDictionary<string, object> wallet = ((IDictionary<string, object>)(response != null && i < response.Count ? response[i] : null));
+            IDictionary<string, object> wallet = ((IDictionary<string, object>)response[i]);
             string? currencyId = this.safeString(wallet, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

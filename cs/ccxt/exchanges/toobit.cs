@@ -1740,7 +1740,7 @@ public partial class toobit : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (tickers?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsedTicker = this.parseBidAskCustom((tickers != null && i < tickers.Count ? tickers[i] : null));
+            Dictionary<string, object> parsedTicker = this.parseBidAskCustom(tickers[i]);
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             results.Add(ticker);
         }

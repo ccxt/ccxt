@@ -864,7 +864,7 @@ public partial class PredictionExchange : BaseExchange
                 bool coldMiss = false;
                 for (int i = 0; i < (outcomes?.Count ?? 0); i++)
                 {
-                    if (!this.hasOutcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null)))
+                    if (!this.hasOutcome(outcomes[i]))
                     {
                         coldMiss = true;
                     }
@@ -877,9 +877,9 @@ public partial class PredictionExchange : BaseExchange
             List<object> missing = new List<object>() {};
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
-                if (reload == true || !this.hasOutcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null)))
+                if (reload == true || !this.hasOutcome(outcomes[i]))
                 {
-                    missing.Add((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
+                    missing.Add(outcomes[i]);
                 }
             }
             int missingLength = (missing?.Count ?? 0);

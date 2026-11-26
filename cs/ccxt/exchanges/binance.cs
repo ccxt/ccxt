@@ -4737,7 +4737,7 @@ public partial class binance : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (responseCurrencies?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parseCurrency((responseCurrencies != null && i < responseCurrencies.Count ? responseCurrencies[i] : null));
+            Dictionary<string, object> parsed = this.parseCurrency(responseCurrencies[i]);
             if ((parsed == null))
             {
                 throw new ExchangeError ((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -15633,7 +15633,7 @@ public partial class binance : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, settlements[i]);
             result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;

@@ -273,7 +273,7 @@ public partial class apex : ccxt.apex
             string? messageHash = this.safeString(messageHashes, i, "");
             if (!(((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))))
             {
-                newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
+                newTopics.Add(topics[i]);
             }
         }
         int newTopicsLength = (newTopics?.Count ?? 0);

@@ -657,7 +657,7 @@ public partial class polymarket : PredictionExchange
         List<object> rawEvents = new List<object>() {};
         for (int qi = 0; qi < (queries?.Count ?? 0); qi++)
         {
-            string? q = ((string)(queries != null && qi < queries.Count ? queries[qi] : null));
+            string? q = ((string)queries[qi]);
             Dictionary<string, object> baseRequest = new Dictionary<string, object>() {
                 { "q", q },
                 { "limit_per_type", pageSize },
@@ -3298,7 +3298,7 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawEvents?.Count ?? 0); i++)
         {
-            result.Add(this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null))));
+            result.Add(this.parseEvent(this.extend(new Dictionary<string, object>() {}, rawEvents[i])));
         }
         return result;
     }

@@ -364,10 +364,10 @@ public partial class bingx : ccxt.bingx
         }
         if ((marketType == "swap") || (marketType == "future"))
         {
-            return this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100}, limit);
+            return this.findNearestCeiling(new List<Int64>() {5, 10, 20, 50, 100}, limit.Value);
         } else if ((marketType == "spot"))
         {
-            return this.findNearestCeiling(new List<object>() {20, 100}, limit);
+            return this.findNearestCeiling(new List<Int64>() {20, 100}, limit.Value);
         }
         return limit;
     }

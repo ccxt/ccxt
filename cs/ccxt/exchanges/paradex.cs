@@ -1547,7 +1547,7 @@ public partial class paradex : Exchange
         }
         for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
-            IDictionary<string, object> summary = ((IDictionary<string, object>)(summaries != null && i < summaries.Count ? summaries[i] : null));
+            IDictionary<string, object> summary = ((IDictionary<string, object>)summaries[i]);
             string? marketId = this.safeString(summary, "symbol");
             if (((marketId != null)) && (((marketId != null) && marketsById.ContainsKey(marketId))))
             {
@@ -3920,10 +3920,10 @@ public partial class paradex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
-            IDictionary<string, object> info = this.safeDict((transactions != null && i < transactions.Count ? transactions[i] : null), "info");
+            IDictionary<string, object> info = this.safeDict(transactions[i], "info");
             if ((this.safeString(info, "kind") == kind))
             {
-                result.Add((transactions != null && i < transactions.Count ? transactions[i] : null));
+                result.Add(transactions[i]);
             }
         }
         return result;

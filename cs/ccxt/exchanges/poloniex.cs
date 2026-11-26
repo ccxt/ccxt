@@ -3233,7 +3233,7 @@ public partial class poloniex : Exchange
         if ((limit != null))
         {
             // both hosts accept only these depths, anything else is rejected with 24104
-            request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 150}, limit);
+            request["limit"] = this.findNearestCeiling(new List<Int64>() {5, 10, 20, 50, 100, 150}, limit.Value);
         }
         if ((this.safeBool(market, "contract", false) == true))
         {

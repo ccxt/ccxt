@@ -1252,7 +1252,7 @@ public partial class grvt : Exchange
         }
         if ((limit == null) || (limit == null || limit <= 500))
         {
-            request["depth"] = this.findNearestCeiling(new List<object>() {10, 50, 100, 500}, limitResolved);
+            request["depth"] = this.findNearestCeiling(new List<Int64>() {10, 50, 100, 500}, limitResolved.GetValueOrDefault());
         }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Book(this.extend(request, parameters));
         //
@@ -2099,7 +2099,7 @@ public partial class grvt : Exchange
         List<object> nonMatchedResults = new List<object>() {};
         for (int i = 0; i < (transfers?.Count ?? 0); i++)
         {
-            IDictionary<string, object> transfer = ((IDictionary<string, object>)(transfers != null && i < transfers.Count ? transfers[i] : null));
+            IDictionary<string, object> transfer = ((IDictionary<string, object>)transfers[i]);
             string? fromAccount = this.safeString(transfer, "fromAccount", "");
             string? toAccount = this.safeString(transfer, "toAccount", "");
             if ((onlyMainAccount == true && fromAccount == "0" && toAccount == "0") || (onlyMainAccount != true && (fromAccount != "0" || toAccount != "0")))

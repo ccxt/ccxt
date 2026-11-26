@@ -3041,9 +3041,9 @@ public partial class polymarket : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (row?.Count ?? 0); i++)
         {
-            if (!((row != null && i < row.Count ? row[i] : null) == null))
+            if (!(((object)(row[i])) == null))
             {
-                result.Add((row != null && i < row.Count ? row[i] : null));
+                result.Add(row[i]);
             }
         }
         return result;

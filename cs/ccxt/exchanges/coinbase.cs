@@ -5336,7 +5336,7 @@ public partial class coinbase : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            Dictionary<string, object> id = this.extend(this.parseDepositMethodId((ids != null && i < ids.Count ? ids[i] : null)), parameters);
+            Dictionary<string, object> id = this.extend(this.parseDepositMethodId(ids[i]), parameters);
             result.Add(id);
         }
         return result;

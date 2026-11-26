@@ -974,7 +974,7 @@ public partial class cex : Exchange
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> market = null;
-            if ((useKeyAsId == true))
+            if (useKeyAsId == true)
             {
                 market = this.safeMarket(key);
             }

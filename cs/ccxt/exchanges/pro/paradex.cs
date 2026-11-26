@@ -216,7 +216,7 @@ public partial class paradex : ccxt.paradex
         List<Int64> result = new List<Int64>() {};
         for (int i = 0; i < (channels?.Count ?? 0); i++)
         {
-            if (!((client.subscriptions != null && (channels != null && i < channels.Count ? channels[i] : null) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
+            if (!((client.subscriptions != null && channels[i] is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 result.Add(i);
             }
@@ -1116,7 +1116,7 @@ public partial class paradex : ccxt.paradex
         // a size of 0 removes the price level
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk((deltas != null && i < deltas.Count ? deltas[i] : null), 0, 1);
+            List<object> bidAsk = this.parseOrderBookBidAsk(deltas[i], 0, 1);
             (bookside as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1376,7 +1376,7 @@ public partial class paradex : ccxt.paradex
         List<object> pendingHashes = new List<object>() {channel, (channel + ":scoped")};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbols[i]);
             string? pendingId = this.safeString(market, "id", "");
             pendingHashes.Add(((channel + ".") + pendingId));
         }
@@ -1396,7 +1396,7 @@ public partial class paradex : ccxt.paradex
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbols[i]);
             string? marketId = this.safeString(market, "id", "");
             string subscribeHash = ((channel + ".") + marketId);
             subscribeHashes.Add(subscribeHash);

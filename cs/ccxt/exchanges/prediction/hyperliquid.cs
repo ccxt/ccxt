@@ -684,9 +684,9 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} szDecimals the number of size decimals
      * @returns {float} the price tick size
      */
-    public virtual object calculatePricePrecision(object midPx, object szDecimals)
+    public virtual object calculatePricePrecision(double midPx, object szDecimals)
     {
-        if (isLessThanOrEqual(midPx, 0))
+        if ((!(midPx > 0)))
         {
             return 0.0001;
         }

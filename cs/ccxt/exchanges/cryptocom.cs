@@ -3623,7 +3623,7 @@ public partial class cryptocom : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, settlements[i]);
             result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;

@@ -4362,7 +4362,7 @@ public partial class binance : ccxt.binance
         string? accountType = "";
         for (int i = 0; i < (subscriptions?.Count ?? 0); i++)
         {
-            string? subscription = ((string)(subscriptions != null && i < subscriptions.Count ? subscriptions[i] : null));
+            string? subscription = ((string)subscriptions[i]);
             if ((subscription == "spot") || (subscription == "margin") || (subscription == "linear") || (subscription == "inverse") || (subscription == "option"))
             {
                 accountType = subscription;

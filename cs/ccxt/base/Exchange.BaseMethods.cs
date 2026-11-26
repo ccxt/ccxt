@@ -650,7 +650,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (arraysOfArrays?.Count ?? 0); i++)
         {
-            result = this.arrayConcat(result, (arraysOfArrays != null && i < arraysOfArrays.Count ? arraysOfArrays[i] : null));
+            result = this.arrayConcat(result, arraysOfArrays[i]);
         }
         return result;
     }
@@ -1549,11 +1549,11 @@ public partial class BaseExchange
         return JsParse.parseInt(stringVersion);
     }
 
-    public virtual bool isRoundNumber(object value)
+    public virtual bool isRoundNumber(double? value)
     {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        object res = this.parseToNumeric((mod(value, 1)));
+        object res = this.parseToNumeric(((value % 1)));
         return isEqual(res, 0);
     }
 
@@ -3015,19 +3015,19 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual object findNearestCeiling(IList<object> arr, object providedValue)
+    public virtual object findNearestCeiling(IList<Int64> arr, Int64 providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         int length = (arr?.Count ?? 0);
         for (int i = 0; i < length; i++)
         {
-            object current = (arr != null && i < arr.Count ? arr[i] : null);
-            if (isLessThanOrEqual(providedValue, current))
+            Int64 current = arr[i];
+            if ((providedValue <= current))
             {
                 return current;
             }
         }
-        return (arr != null && (length - 1) < arr.Count ? arr[(length - 1)] : null);
+        return (arr != null && (length - 1) < arr.Count ? arr[(length - 1)] : (Int64?)null);
     }
 
     public virtual List<object> addKeyInArrayItems(object obj, object keyName)
@@ -3410,8 +3410,8 @@ public partial class BaseExchange
         result[(string)volume] = new List<object>() {};
         for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
         {
-            IList<object> ohlcv = (IList<object>)((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null));
-            object ts = ms == true ? (ohlcv != null && 0 < ohlcv.Count ? ohlcv[0] : null) : this.parseToInt(divide(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0), 1000));
+            IList<object> ohlcv = (IList<object>)(ohlcvs[i]);
+            object ts = ms == true ? (ohlcv != null && 0 < ohlcv.Count ? ohlcv[0] : null) : this.parseToInt(divide(getValue(ohlcvs[i], 0), 1000));
             IList<object> resultTimestamp = ((IList<object>)(result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null));
             resultTimestamp.Add(ts);
             IList<object> resultOpen = ((IList<object>)(result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null));
@@ -3518,7 +3518,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? id = this.marketId((symbols != null && i < symbols.Count ? symbols[i] : null));
+            string? id = this.marketId(symbols[i]);
             if ((id != null))
             {
                 result.Add(id);
@@ -3536,7 +3536,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (codes?.Count ?? 0); i++)
         {
-            string? id = this.currencyId(((string)(codes != null && i < codes.Count ? codes[i] : null)));
+            string? id = this.currencyId(((string)codes[i]));
             if ((id != null))
             {
                 result.Add(id);
@@ -3554,7 +3554,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            result.Add(this.market((symbols != null && i < symbols.Count ? symbols[i] : null)));
+            result.Add(this.market(symbols[i]));
         }
         return result;
     }
@@ -3592,7 +3592,7 @@ public partial class BaseExchange
         bool? isLinearSubType = null;
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(symbols[i]);
             if (sameTypeOnly == true && ((marketType != null)))
             {
                 if (!isEqual((market.ContainsKey("type") ? market["type"] : null), marketType))
@@ -3616,7 +3616,7 @@ public partial class BaseExchange
             {
                 isLinearSubType = this.safeBool(market, "linear");
             }
-            string? symbol = this.safeString(market, "symbol", (symbols != null && i < symbols.Count ? symbols[i] : null));
+            string? symbol = this.safeString(market, "symbol", symbols[i]);
             result.Add(symbol);
         }
         return result;
@@ -3631,7 +3631,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (codes?.Count ?? 0); i++)
         {
-            result.Add(this.commonCurrencyCode(((string)(codes != null && i < codes.Count ? codes[i] : null))));
+            result.Add(this.commonCurrencyCode(((string)codes[i])));
         }
         return result;
     }
@@ -3984,7 +3984,7 @@ public partial class BaseExchange
                 }
                 for (int i = 0; i < (symbols?.Count ?? 0); i++)
                 {
-                    string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
+                    string? symbol = ((string)symbols[i]);
                     markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null), (response != null && symbol != null && response.ContainsKey(symbol) ? response[symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
@@ -6402,7 +6402,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (pricesData?.Count ?? 0); i++)
         {
-            results.Add(this.extend(this.parseLastPrice(this.extend(new Dictionary<string, object>() {}, (pricesData != null && i < pricesData.Count ? pricesData[i] : null))), parameters));
+            results.Add(this.extend(this.parseLastPrice(this.extend(new Dictionary<string, object>() {}, pricesData[i])), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -6549,7 +6549,7 @@ public partial class BaseExchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            rates.Add(this.parseFundingRateHistory((response != null && i < response.Count ? response[i] : null), market));
+            rates.Add(this.parseFundingRateHistory(response[i], market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -6592,7 +6592,7 @@ public partial class BaseExchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            rates.Add(this.parseLongShortRatio(this.extend(new Dictionary<string, object>() {}, (response != null && i < response.Count ? response[i] : null)), market));
+            rates.Add(this.parseLongShortRatio(this.extend(new Dictionary<string, object>() {}, response[i]), market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
@@ -6808,7 +6808,7 @@ public partial class BaseExchange
         List<object> interests = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            interests.Add(this.parseOpenInterest((response != null && i < response.Count ? response[i] : null), market));
+            interests.Add(this.parseOpenInterest(response[i], market));
         }
         List<object> sorted = this.sortBy(interests, "timestamp");
         string? symbol = this.safeString(market, "symbol");
@@ -7166,7 +7166,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (incomes?.Count ?? 0); i++)
         {
-            result.Add(this.parseIncome(this.extend(new Dictionary<string, object>() {}, (incomes != null && i < incomes.Count ? incomes[i] : null)), market));
+            result.Add(this.parseIncome(this.extend(new Dictionary<string, object>() {}, incomes[i]), market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");
@@ -7730,7 +7730,7 @@ public partial class BaseExchange
         List<object> uniqueResult = new List<object>() {};
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
-            object entry = (input != null && i < input.Count ? input[i] : null);
+            object entry = input[i];
             string? uniqValue = this.safeString(entry, "id");
             if (fallbackToTimestamp == true)
             {
@@ -7755,7 +7755,7 @@ public partial class BaseExchange
         Dictionary<string, object> uniqueResult = new Dictionary<string, object>() {};
         for (int i = 0; i < (input?.Count ?? 0); i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)(input != null && i < input.Count ? input[i] : null));
+            IDictionary<string, object> entry = ((IDictionary<string, object>)input[i]);
             // safeString treats an empty id as missing, so '' marks an absent id
             string id = this.safeString(entry, "id", "");
             if (id == "")
@@ -7848,7 +7848,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (liquidations?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parseLiquidation((liquidations != null && i < liquidations.Count ? liquidations[i] : null), market);
+            Dictionary<string, object> parsed = this.parseLiquidation(liquidations[i], market);
             result.Add(parsed);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -7948,7 +7948,7 @@ public partial class BaseExchange
         object marketTypeResolved = ((marketType == null)) ? "swap" : marketType; // default to swap
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object info = (response != null && i < response.Count ? response[i] : null);
+            object info = response[i];
             string? marketId = ((symbolKey == null)) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null,((string)marketTypeResolved));
             if (((symbols == null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
