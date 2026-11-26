@@ -6790,6 +6790,13 @@ const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
     // Exchange.Options.cs: `public Dictionary<string, object> timeframes`
     'timeframes': 'Dictionary<string, object>',
     'timeframes': 'Dictionary<string, object>',
+    // Exchange.Options.cs declares the ws proxy settings `string?`
+    'wsProxy': 'string?',
+    'ws_proxy': 'string?',
+    'wssProxy': 'string?',
+    'wss_proxy': 'string?',
+    'wsSocksProxy': 'string?',
+    'ws_socks_proxy': 'string?',
 };
 
 function thisMemberArmType (node) {

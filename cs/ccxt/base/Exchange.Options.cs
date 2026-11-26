@@ -232,8 +232,8 @@ public partial class BaseExchange
     public object socksProxy { get; set; } = null;
     public object socks_proxy { get; set; } = null;
 
-    public object wsSocksProxy { get; set; } = null;
-    public object ws_socks_proxy { get; set; } = null;
+    public string? wsSocksProxy { get; set; } = null;
+    public string? ws_socks_proxy { get; set; } = null;
 
     public Func<object, object, object, object, object> socksProxyCallback { get; set; } = null;
     public Func<object, object, object, object, object> socks_proxy_callback { get; set; } = null;
@@ -303,11 +303,11 @@ public partial class BaseExchange
         get { return this.ohlcvsState; }
         set { this.ohlcvsState = this.wrapWsCache(value); }
     }
-    public object wssProxy { get; set; } = null;
-    public object wss_proxy { get; set; } = null;
+    public string? wssProxy { get; set; } = null;
+    public string? wss_proxy { get; set; } = null;
 
-    public object wsProxy { get; set; } = null;
-    public object ws_proxy { get; set; } = null;
+    public string? wsProxy { get; set; } = null;
+    public string? ws_proxy { get; set; } = null;
 
     public Dictionary<string, object> streaming { get; set; } = new dict();
 
