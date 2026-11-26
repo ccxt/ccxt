@@ -65,7 +65,7 @@
     "ts/src/pro/bitvavo.ts": 6,
     "ts/src/pro/blockchaincom.ts": 5,
     "ts/src/pro/blofin.ts": 16,
-    "ts/src/pro/bullish.ts": 11,
+    "ts/src/pro/bullish.ts": 13,
     "ts/src/pro/bybit.ts": 32,
     "ts/src/pro/cex.ts": 8,
     "ts/src/pro/coinbase.ts": 9,

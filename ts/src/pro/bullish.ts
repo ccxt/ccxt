@@ -121,8 +121,7 @@ export default class bullish extends bullishRest {
      * @returns {any} status of the unwatch request
      */
     async unsubscribePublic (url: string, topic: string, messageHash: string, symbol: string, request: Dict = {}, params: Dict = {}): Promise<any> {
-        const wsUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
-        const wsUrl = this.safeString (wsUrls, 'public');
+        const wsUrl = this.safeString (this.urls['api']['ws'], 'public');
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' unsubscribePublic() has no public websocket url');
         }
@@ -166,7 +165,7 @@ export default class bullish extends bullishRest {
         this.cleanUnsubscription (client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache (subscription);
         const requestId = this.safeString (subscription, 'id', '');
-        if (this.safeDict (client.subscriptions, requestId) !== undefined) {
+        if (requestId in client.subscriptions) {
             delete client.subscriptions[requestId];
         }
     }
@@ -205,11 +204,7 @@ export default class bullish extends bullishRest {
      * @returns {any} status of the unwatch request
      */
     async unsubscribePrivate (topic: string, subscribeHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
-        const wsUrls = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
-        const url = this.safeString (wsUrls, 'private');
-        if (url === undefined) {
-            throw new ExchangeError (this.id + ' unsubscribePrivate() has no private websocket url');
-        }
+        const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
         const cookies: Dict = {
             'JWT_COOKIE': token,
@@ -1056,7 +1051,7 @@ export default class bullish extends bullishRest {
         //     }
         //
         const messageId = this.safeString (message, 'id');
-        if (messageId === undefined) {
+        if ((messageId === undefined) || !(messageId in client.subscriptions)) {
             return;
         }
         const subscription = this.safeDict (client.subscriptions, messageId);
@@ -1089,7 +1084,7 @@ export default class bullish extends bullishRest {
                 this.handlePong (client, message);
             }
             const messageId = this.safeString (message, 'id');
-            if (messageId !== undefined) {
+            if ((messageId !== undefined) && (messageId in client.subscriptions)) {
                 const subscription = this.safeDict (client.subscriptions, messageId);
                 if ((subscription !== undefined) && this.safeBool (subscription, 'unsubscribe', false)) {
                     this.handleUnSubscription (client, subscription);
