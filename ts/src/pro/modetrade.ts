@@ -942,15 +942,14 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const topic: string = this.safeString (message, 'topic', '');
-        const data = this.safeValue (message, 'data');
-        const dataIsArray = Array.isArray (data);
-        if (dataIsArray) {
+        const dataRows = this.safeList (message, 'data');
+        if (dataRows !== undefined) {
             // algoexecutionreport
             const dataList: Dict[] = this.safeList (message, 'data', []);
             const dataListLength = dataList.length;
             for (let i = 0; i < dataListLength; i++) {
                 const order = dataList[i];
-                const tradeIdStr = this.safeString (data, 'tradeId');
+                const tradeIdStr = this.safeString (dataRows, 'tradeId');
                 const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
                 if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
@@ -959,12 +958,12 @@ export default class modetrade extends modetradeRest {
             }
         } else {
             // executionreport
-            const tradeIdStr = this.safeString (data, 'tradeId');
+            const dataDict = this.safeDict (message, 'data', {});
+            const tradeIdStr = this.safeString (dataDict, 'tradeId');
             const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
             if (tradeId !== undefined) {
-                this.handleMyTrade (client, data);
+                this.handleMyTrade (client, dataDict);
             }
-            const dataDict = this.safeDict (message, 'data', {});
             this.handleOrder (client, dataDict, topic);
         }
     }
