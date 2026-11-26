@@ -7048,6 +7048,8 @@ function goAccessSingleDeclarationScan (maskedFunc: string, signature: string, n
     const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
     if (count !== 1) { return undefined; }
     if (sigParam) { return { 'type': sigParam[1].trim (), 'init': undefined }; }
+    // `a, name := this.<pair>(..)`: the second result of a hand-written or printed pair is map[string]any
+    if ((shortDecls.length === 1) && goTypedMaplistTupleMap (maskedFunc, name)) { return { 'type': 'map[string]any', 'init': undefined }; }
     if (vars.length === 1) {
         const line = maskedFunc.substring (vars[0].index).split ('\n')[0];
         return { 'type': vars[0][1].trim (), 'index': vars[0].index, 'line': line };
@@ -14098,7 +14100,8 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function goTypedMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?|HandleOptionAndParams2?|HandleMaxEntriesPerRequestAndParams';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?(?:Nullable)?|HandleOptionIntegerAndParams2?|HandleOptionAndParams2?|HandleMaxEntriesPerRequestAndParams'
+        + '|HandlePostOnly';
 }
 
 function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {
