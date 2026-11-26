@@ -2554,9 +2554,9 @@ export default class interactivebrokers extends Exchange {
         if (isContract) {
             settleId = quoteId;
             settle = quote;
-            symbol = symbol + ':' + settle;
+            symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle;
             if (isFuture) {
-                symbol = symbol + '-' + this.yymmdd (expiry);
+                symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
             }
         }
         let marketType = 'spot';

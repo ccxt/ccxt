@@ -1963,8 +1963,7 @@ export default class kucoin extends Exchange {
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             if (future) {
-                const expirySuffix: string = '-' + this.yymmdd (expiry, '');
-                symbol = symbol + expirySuffix;
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
             const inverse = this.safeBool (market, 'isInverse');

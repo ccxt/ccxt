@@ -2253,7 +2253,7 @@ export default class bybit extends Exchange {
             const expiryDatetime = this.iso8601 (expiry);
             symbol = base + '/' + quote + ':' + settle;
             if (expiry !== undefined) {
-                symbol = symbol + '-' + this.yymmdd (expiry);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
             }
             const contractSize = inverse ? this.safeNumber2 (lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber ('1');
             const costLimits: Dict = {
