@@ -11609,7 +11609,7 @@ function nullScalarWriteType (printer, node) {
         return nullScalarCopyTernaryType (printer, value, arms);
     }
     const numeric = numericFamilyCallType (printer, value) ?? numericNativeArithmeticWrite (printer, value)
-        ?? (r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined ? 'Long' : undefined);
+        ?? (r97j3TypedLongSum (printer, value) && !r90j3NativeSumPrinted (printer, value) ? 'Long' : undefined);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
     }
@@ -18943,7 +18943,7 @@ function javaScalarLocalValue (printer, node, declaration, type, depth = 0) {
     }
     // base `this.sum (a, b)` of two Long operands binds the hand-written `Long sum (Long, Long)`;
     // whole initializer only, and not a sum the native long add already prints
-    if (type === 'Long' && depth === 0 && r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined) {
+    if (type === 'Long' && depth === 0 && r97j3TypedLongSum (printer, value) && !r90j3NativeSumPrinted (printer, value)) {
         return { cast: '' };
     }
     // a sync callee whose Java declaration (hand-written base or generated core) already returns T
@@ -24123,6 +24123,21 @@ function r90j3NativeSum (printer, node, depth = 0, constLocals = true) {
     const a = r90j3LongOperand (printer, call.arguments[0], depth, constLocals);
     const b = a === undefined ? undefined : r90j3LongOperand (printer, call.arguments[1], depth, constLocals);
     return b === undefined ? undefined : `(${a} + ${b})`;
+}
+
+// would installJavaR90j3NativeSumLocals print this sum natively? (its R2 shape test; a sum that is not a
+// const declaration initializer keeps the plain r90j3NativeSum answer)
+function r90j3NativeSumPrinted (printer, node) {
+    if (r90j3NativeSum (printer, node) === undefined) {
+        return false;
+    }
+    const d = unwrapParensUp (node).parent;
+    if (d === undefined || !ts.isVariableDeclaration (d) || unwrapParens (d.initializer) !== unwrapParens (node)) {
+        return true;
+    }
+    return ts.isIdentifier (d.name) && ts.isVariableDeclarationList (d.parent) && (d.parent.flags & ts.NodeFlags.Const) !== 0
+        && d.parent.declarations.length === 1 && !r87j6UnderPropertyAssignment (d)
+        && (r90j3NativeSum (printer, d.initializer, 0, false) !== undefined || r90j3NativeUse (printer, d));
 }
 
 // ral-90j3 R2: a read of the local the printer makes native on a Long: an ordering comparison or
