@@ -245,7 +245,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs 
 		var streamLimits, _ = this.Options["streamLimits"].(map[string]any)
 		var streamLimit int64 = *this.SafeInteger(streamLimits, typeVar, 50)
 		var streamIndex int64 = *previousStreamIndex + 1
-		var normalizedIndex any = (streamIndex % streamLimit)
+		var normalizedIndex int64 = streamIndex % streamLimit
 		this.Options["streamIndex"] = streamIndex
 		stream = this.NumberToString(normalizedIndex)
 		if subscriptionHash != nil {

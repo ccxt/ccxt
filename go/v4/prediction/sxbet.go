@@ -943,9 +943,9 @@ func (this *Sxbet) fetchErc20NameBody(ch chan ccxt.AsyncResult[string], rpcUrl *
  * @param {string} hex the hex string, no '0x' prefix
  * @returns {int} the parsed integer
  */
-func (this *Sxbet) HexToInt(hex any) int64 {
+func (this *Sxbet) HexToInt(hex string) int64 {
 	var digits string = "0123456789abcdef"
-	var lowerHex string = ccxt.ToLower(hex)
+	var lowerHex string = strings.ToLower(hex)
 	var hexLength int = len(lowerHex)
 	var result int64 = 0
 	for i := 0; i < hexLength; i++ {
@@ -1087,9 +1087,9 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		panic(r4.Err)
 	}
 	nonceResult := r4.Value
-	var nonceHex any = this.HexToRlpBytes(nonceResult)
+	var nonceHex string = this.HexToRlpBytes(nonceResult)
 	var nonce *string
-	if ccxt.IsEqual(nonceHex, "") {
+	if nonceHex == "" {
 		retStr := "0"
 		nonce = &retStr
 	} else {

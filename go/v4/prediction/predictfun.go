@@ -3423,16 +3423,8 @@ func (this *Predictfun) SignEvmTransaction(tx map[string]any, privateKey string)
 	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any
-	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
-		rHex = *derefPtr
-	}
-	var sHex any
-	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
-		sHex = *derefPtr
-	}
-	rHex = this.PadHexToEven(rHex)
-	sHex = this.PadHexToEven(sHex)
+	var rHex string = this.PadHexToEven(*this.SafeString(signature, "r", ""))
+	var sHex string = this.PadHexToEven(*this.SafeString(signature, "s", ""))
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = this.ArrayConcat(fields, []any{this.RlpEncodeBytes(this.IntToRlpHex(yParity)), this.RlpEncodeBytes(rHex), this.RlpEncodeBytes(sHex)})
 	return "0x02" + this.RlpEncodeList(signedFields)
@@ -4580,7 +4572,7 @@ func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 		eventHandle = &shortenSlugText
 	}
 	var label any = this.StripPriceFormatting(this.SafeStringUpper(details, "outcomeName"))
-	var literal365315 map[string]any = map[string]any{
+	var literal365115 map[string]any = map[string]any{
 		"outcome":   nil,
 		"outcomeId": nil,
 		"market":    nil,
@@ -4589,9 +4581,9 @@ func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 		"info":      details,
 	}
 	if eventHandle != nil {
-		literal365315["event"] = *eventHandle
+		literal365115["event"] = *eventHandle
 	}
-	return literal365315
+	return literal365115
 }
 
 /**
@@ -4683,7 +4675,7 @@ func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
 		remaining = ccxt.Precise.StringSub(amount, filled)
 	}
 	var timestamp *int64 = this.SafeInteger(event, "timestamp")
-	var literal374041 map[string]any = map[string]any{
+	var literal373841 map[string]any = map[string]any{
 		"id":                  this.SafeString2(event, "orderHash", "orderId"),
 		"clientOrderId":       nil,
 		"timestamp":           timestamp,
@@ -4712,12 +4704,12 @@ func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
 		"info":                event,
 	}
 	if status != nil {
-		literal374041["status"] = *status
+		literal373841["status"] = *status
 	}
 	if side != nil {
-		literal374041["side"] = *side
+		literal373841["side"] = *side
 	}
-	return this.SafePredictionOrder(literal374041)
+	return this.SafePredictionOrder(literal373841)
 }
 
 /**
@@ -4969,16 +4961,16 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 		bodyValue = &jsonText
 	}
 	var headersExtended map[string]any = this.Extend(map[string]any{}, authHeaders)
-	var literal398615 map[string]any = map[string]any{
+	var literal398415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersExtended,
 	}
 	if bodyValue != nil {
-		literal398615["body"] = *bodyValue
+		literal398415["body"] = *bodyValue
 	}
-	return literal398615
+	return literal398415
 }
 
 func NewPredictfun(userConfig map[string]any) *Predictfun {

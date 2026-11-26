@@ -1034,24 +1034,16 @@ func (this *Myriad) SignEvmTransaction(tx map[string]any, privateKey string) str
 	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex *string = this.SafeString(signature, "r")
-	var sHex *string = this.SafeString(signature, "s")
-	if rHex == nil {
+	var rHexRaw string = *this.SafeString(signature, "r", "")
+	if rHexRaw == "" {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
-	var rHexLength int = len(*rHex)
-	if (rHexLength % 2) != 0 {
-		rHexStr := "0" + *rHex
-		rHex = &rHexStr
-	}
-	if sHex == nil {
+	var sHexRaw string = *this.SafeString(signature, "s", "")
+	if sHexRaw == "" {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing sHex"))
 	}
-	var sHexLength int = len(*sHex)
-	if (sHexLength % 2) != 0 {
-		sHexStr := "0" + *sHex
-		sHex = &sHexStr
-	}
+	var rHex string = this.PadHexToEven(rHexRaw)
+	var sHex string = this.PadHexToEven(sHexRaw)
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
@@ -1115,9 +1107,9 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpc
 		panic(r.Err)
 	}
 	current := r.Value
-	var trimmed any = this.HexToRlpBytes(current)
+	var trimmed string = this.HexToRlpBytes(current)
 	// a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
-	if ccxt.GetLength(trimmed) >= 50 {
+	if len(trimmed) >= 50 {
 
 		return nil
 	}
@@ -1925,9 +1917,9 @@ func (this *Myriad) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		outcomeObj = this.SafeOutcome(composite, market)
 		outcome = this.SafeString(outcomeObj, "outcome")
 	}
-	var ternaryStr134420 string = "limit"
+	var ternaryStr133820 string = "limit"
 	if isMarketTif {
-		ternaryStr134420 = "market"
+		ternaryStr133820 = "market"
 	}
 	return this.SafePredictionOrder(map[string]any{
 		"id":                 orderHash,
@@ -1940,7 +1932,7 @@ func (this *Myriad) ParsePredictionOrder(order map[string]any, optionalArgs ...a
 		"outcomeId":          this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":              this.SafeString(outcomeObj, "label"),
 		"market":             this.SafeString(outcomeObj, "market"),
-		"type":               ternaryStr134420,
+		"type":               ternaryStr133820,
 		"timeInForce":        tif,
 		"postOnly":           (tif != nil && *tif == "PO"),
 		"side":               side,
@@ -2586,11 +2578,11 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes178119 []any = ccxt.PredictionOrdersToList(r1.Value)
-		if retRes178119 == nil {
+		var retRes177519 []any = ccxt.PredictionOrdersToList(r1.Value)
+		if retRes177519 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes178119)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes177519)}
 		}
 		return nil
 	}
@@ -2684,11 +2676,11 @@ func (this *Myriad) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes184215 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes184215 == nil {
+	var retRes183615 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes183615 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes184215)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes183615)}
 	}
 	return nil
 }
@@ -2728,11 +2720,11 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes186015 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes186015 == nil {
+	var retRes185415 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes185415 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes186015)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes185415)}
 	}
 	return nil
 }
@@ -2772,11 +2764,11 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes187815 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes187815 == nil {
+	var retRes187215 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes187215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes187815)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes187215)}
 	}
 	return nil
 }
@@ -2994,7 +2986,7 @@ func (this *Myriad) ParseMarketToEvent(raw any, market any) map[string]any {
 	var slug *string = this.SafeString(raw, "slug", this.SafeString(raw, "id"))
 	var state string = *this.SafeString(raw, "state", "open")
 	var endDate *string = this.SafeString(raw, "expiresAt")
-	var literal204515 map[string]any = map[string]any{
+	var literal203915 map[string]any = map[string]any{
 		"id":               this.SafeString(market, "id", ""),
 		"slug":             slug,
 		"event":            this.SafeString(market, "market", ""),
@@ -3017,11 +3009,11 @@ func (this *Myriad) ParseMarketToEvent(raw any, market any) map[string]any {
 		"info":             raw,
 	}
 	if endDate != nil {
-		literal204515["end"] = this.Parse8601(endDate)
+		literal203915["end"] = this.Parse8601(endDate)
 	} else {
-		literal204515["end"] = nil
+		literal203915["end"] = nil
 	}
-	return literal204515
+	return literal203915
 }
 
 /**
@@ -4356,7 +4348,7 @@ func (this *Myriad) ParseEvent(rawEvent map[string]any) map[string]any {
 		marketsList = append(marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
 	}
 	var endDate *string = this.SafeString(rawEvent, "expiresAt", this.SafeString(rawEvent, "endDate"))
-	var literal314238 map[string]any = map[string]any{
+	var literal313638 map[string]any = map[string]any{
 		"id":               this.SafeString(rawEvent, "id"),
 		"slug":             questionSlug,
 		"title":            this.SafeString(rawEvent, "title"),
@@ -4378,16 +4370,16 @@ func (this *Myriad) ParseEvent(rawEvent map[string]any) map[string]any {
 		"info":             rawEvent,
 	}
 	if (questionSlug != nil) && (questionSlug == nil || *questionSlug != "") {
-		literal314238["event"] = this.ShortenSlug(questionSlug)
+		literal313638["event"] = this.ShortenSlug(questionSlug)
 	} else {
-		literal314238["event"] = nil
+		literal313638["event"] = nil
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal314238["end"] = this.Parse8601(endDate)
+		literal313638["end"] = this.Parse8601(endDate)
 	} else {
-		literal314238["end"] = nil
+		literal313638["end"] = nil
 	}
-	return this.Extend(rawEvent, literal314238)
+	return this.Extend(rawEvent, literal313638)
 }
 func (this *Myriad) RequestId(url *string) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
@@ -5274,9 +5266,9 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data map[string]any
 	var tif *string = this.SafeStringUpper(data, "timeInForce")
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(data, "updatedAt", "createdAt"))
-	var ternaryStr372420 string = "limit"
+	var ternaryStr371820 string = "limit"
 	if isMarketTif {
-		ternaryStr372420 = "market"
+		ternaryStr371820 = "market"
 	}
 	var parsed map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(data, "orderHash"),
@@ -5288,7 +5280,7 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data map[string]any
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"type":          ternaryStr372420,
+		"type":          ternaryStr371820,
 		"timeInForce":   tif,
 		"side":          this.SafeStringLower(data, "side"),
 		"price":         price,
@@ -5590,16 +5582,16 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) map[string]any {
 		headersKey[headerKey] = this.ApiKey
 		headersValue = this.Extend(headersValue, headersKey)
 	}
-	var literal392715 map[string]any = map[string]any{
+	var literal392115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal392715["body"] = *bodyValue
+		literal392115["body"] = *bodyValue
 	}
-	return literal392715
+	return literal392115
 }
 
 func NewMyriad(userConfig map[string]any) *Myriad {

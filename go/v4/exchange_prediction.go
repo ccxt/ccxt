@@ -2302,14 +2302,14 @@ func (this *PredictionExchange) CostToPredictionPrecision(outcome any, cost any)
 // per-language prediction base skeletons don't carry; this base
 // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
 
-func (this *PredictionExchange) PadHexToEven(hex any) any {
-	if IsEqual(hex, nil) {
+func (this *PredictionExchange) PadHexToEven(hex string) string {
+	if hex == "" {
 		return ""
 	}
 	// prepend a nibble so the hex has an even number of characters (whole bytes)
-	var hexLength int = GetLength(hex)
+	var hexLength int = len(hex)
 	if (hexLength % 2) != 0 {
-		return Add("0", hex)
+		return "0" + hex
 	}
 	return hex
 }
@@ -2321,12 +2321,9 @@ func (this *PredictionExchange) PadHexAddress(address *string) string {
 	var stripped string = this.Remove0xPrefix(address)
 	return "000000000000000000000000" + stripped
 }
-func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
-	if IsEqual(hex, nil) {
-		return ""
-	}
+func (this *PredictionExchange) RlpEncodeBytes(hex string) string {
 	// RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-	var byteLength int64 = this.ParseToInt(float64(GetLength(hex)) / 2)
+	var byteLength int64 = this.ParseToInt(float64(len(hex)) / 2)
 
 	if byteLength == 0 {
 		return "80"
@@ -2335,7 +2332,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 		return hex
 	}
 	if byteLength < 56 {
-		return Add(this.IntToBase16(128+byteLength), hex)
+		return this.IntToBase16(128+byteLength) + hex
 	}
 	var lengthHex string = this.IntToBase16(byteLength)
 	var lengthHexLength int = len(lengthHex)
@@ -2343,7 +2340,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 		lengthHex = "0" + lengthHex
 	}
 	var lengthOfLength int64 = this.ParseToInt(float64(len(lengthHex)) / 2)
-	return Add(this.IntToBase16(183+lengthOfLength)+lengthHex, hex)
+	return this.IntToBase16(183+lengthOfLength) + lengthHex + hex
 }
 func (this *PredictionExchange) RlpEncodeList(items []any) string {
 	var concatenated string = ""
@@ -2378,7 +2375,7 @@ func (this *PredictionExchange) IntToRlpHex(value *int64) string {
 	}
 	return hex
 }
-func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
+func (this *PredictionExchange) HexToRlpBytes(hexValue any) string {
 	// a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
 	// are stripped and 0 becomes the empty byte string (RLP integer encoding)
 	if IsEqual(hexValue, nil) {

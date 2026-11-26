@@ -1809,7 +1809,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 		if until == nil {
 			if parsedTimeframe != nil {
 				var parsedTimeframeMilliseconds int64 = *parsedTimeframe * 1000
-				if this.IsRoundNumber(Mod(since, parsedTimeframeMilliseconds)) {
+				if this.IsRoundNumber(*since % parsedTimeframeMilliseconds) {
 					request["end"] = this.Iso8601((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds + *since)
 				} else {
 					request["end"] = this.Iso8601(cappedLimit*parsedTimeframeMilliseconds + *since)

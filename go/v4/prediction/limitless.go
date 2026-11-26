@@ -2918,8 +2918,8 @@ func (this *Limitless) SignEvmTransaction(tx map[string]any, privateKey string) 
 	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any = this.PadHexToEven(this.SafeString(signature, "r"))
-	var sHex any = this.PadHexToEven(this.SafeString(signature, "s"))
+	var rHex string = this.PadHexToEven(*this.SafeString(signature, "r", ""))
+	var sHex string = this.PadHexToEven(*this.SafeString(signature, "s", ""))
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
