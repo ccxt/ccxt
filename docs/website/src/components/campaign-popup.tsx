@@ -12,12 +12,12 @@ const id = 'bithumb-2026-11';
 
 const banners = [
   {
-    href: 'https://feed.bithumb.com/notice/1653746',
+    href: 'https://feed.bithumb.com/notice/1653746?utm_source=docs.ccxt.com',
     image: '/images/campaigns/bithumb-api-trading-event.png',
     alt: 'Bithumb API Trading Event: trade with CCXT on Bithumb with zero fees',
   },
   {
-    href: 'https://feed.bithumb.com/notice/1653910',
+    href: 'https://feed.bithumb.com/notice/1653910?utm_source=docs.ccxt.com',
     image: '/images/campaigns/bithumb-vip-matching-program.png',
     alt: 'Bithumb VIP Matching Program: your track record on other exchanges is recognised on Bithumb',
   },
