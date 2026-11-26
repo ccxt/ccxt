@@ -66,6 +66,77 @@ test ('call_read_method: reads pass, writes and watch are structurally rejected'
     await client.close ();
 });
 
+test ('call_read_method: an oversized result is paged through next_page from one snapshot', async () => {
+    const { client, ctx } = await connect ({});
+    const first = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'marketType': 'swap' });
+    assert.equal (first.ok, true);
+    assert.equal (first.meta.paginated, true);
+    assert.equal (first.meta.page.total, 700);
+    assert.equal (first.meta.method, 'fetchFundingRates');
+    const merged: Record<string, any> = { ...first.data };
+    let page = first;
+    let pages = 1;
+    while (page.meta.page.hasMore) {
+        page = await call (client, 'next_page', { 'cursor': page.meta.page.nextCursor });
+        assert.equal (page.ok, true);
+        Object.assign (merged, page.data);
+        pages += 1;
+    }
+    assert.ok (pages > 1);
+    assert.equal (Object.keys (merged).length, 700, 'nothing is lost across pages');
+    assert.equal (merged['COIN699/USDT:USDT'].info, undefined, 'info is still stripped');
+    // pages come from the stored snapshot: the exchange was hit once
+    const exchange: any = await ctx.pools.getPublic ('fakex', 'swap', false);
+    assert.equal (exchange.fundingRatesFetches, 1);
+    const bad = await call (client, 'next_page', { 'cursor': 'garbage' });
+    assert.equal (bad.error.code, 'BAD_CURSOR');
+    await client.close ();
+});
+
+test ('search_markets caps a page at 100 rows and pages the rest with offset', async () => {
+    const { client, ctx } = await connect ({});
+    const exchange: any = await ctx.pools.getPublic ('fakex', undefined, false);
+    const markets: Record<string, any> = {};
+    for (let i = 0; i < 150; i++) {
+        const symbol = 'COIN' + i + '/USDT';
+        markets[symbol] = { symbol, 'id': 'COIN' + i + 'USDT', 'type': 'spot', 'base': 'COIN' + i, 'quote': 'USDT', 'active': true, 'spot': true };
+    }
+    exchange.markets = markets;
+    const first = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 150 });
+    assert.equal (first.ok, true);
+    assert.equal (first.data.length, 100, 'a limit above the cap is clamped, not rejected');
+    assert.equal (first.meta.returned, 100);
+    assert.equal (first.meta.available, 150);
+    assert.deepEqual (first.meta.limitClamped, { 'requested': 150, 'applied': 100 });
+    assert.equal (first.meta.hasMore, true);
+    assert.equal (first.meta.nextOffset, 100);
+    assert.equal (first.meta.paginated, undefined, 'a capped page fits one response');
+    const second = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 100, 'offset': first.meta.nextOffset });
+    assert.equal (second.data.length, 50);
+    assert.equal (second.meta.hasMore, false);
+    assert.equal (second.meta.notice ?? null, null, 'no clamp or "more matches" notice on the last page');
+    assert.deepEqual ([ ...first.data, ...second.data ].map ((market: any) => market.symbol), Object.keys (markets));
+    await client.close ();
+});
+
+test ('call_read_method: sortBy/limit/fields shape a bulk read into one small response', async () => {
+    const { client } = await connect ({});
+    const top = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': '-fundingRate', 'limit': 5, 'fields': [ 'fundingRate', 'nextFundingDatetime' ] });
+    assert.equal (top.ok, true);
+    assert.equal (top.meta.paginated, undefined, 'fits in one response');
+    assert.equal (top.meta.matched, 700);
+    assert.deepEqual (top.meta.window, { 'offset': 0, 'count': 5 });
+    const next = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': '-fundingRate', 'limit': 5, 'offset': 5, 'fields': [ 'fundingRate' ] });
+    assert.equal (Object.keys (next.data)[0], 'COIN694/USDT:USDT', 'offset continues the sorted list');
+    assert.deepEqual (Object.keys (top.data), [ 'COIN699/USDT:USDT', 'COIN698/USDT:USDT', 'COIN697/USDT:USDT', 'COIN696/USDT:USDT', 'COIN695/USDT:USDT' ]);
+    assert.deepEqual (Object.keys (top.data['COIN699/USDT:USDT']).sort (), [ 'fundingRate', 'nextFundingDatetime' ]);
+    const bad = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': 'rate' });
+    assert.equal (bad.ok, false);
+    assert.equal (bad.error.code, 'BAD_REQUEST');
+    assert.ok (bad.error.hint.includes ('fundingRate'));
+    await client.close ();
+});
+
 test ('describe_method keyword search: token-matched and defaults to a complete reference', async () => {
     const { client } = await connect ({});
     // multi-word query must hit camelCase names via token matching
