@@ -5569,7 +5569,9 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     [ {"0":"[]any"}, 'setEvents' ],
 ]);
 const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = { 'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray', 'string[][]': 'ConvertStringMatrixToArray', 'string[]': 'StringSliceToList' };
-const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = { 'bingx.getOrderBookLimitByMarketType': [ 0 ], 'hitbtc.convertCurrencyNetwork': [ 2, 3 ], 'hyperliquid.resolveOutcomeInput': [ 0 ] };
+const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = { 'bingx.getOrderBookLimitByMarketType': [ 0 ], 'hitbtc.convertCurrencyNetwork': [ 2, 3 ], 'hyperliquid.resolveOutcomeInput': [ 0 ],
+    'interactivebrokers.createTestOrder': [ 1, 2 ],
+};
 const GO_STRING_POINTER_TUPLE_CALLS: string[] = [ 'handleMarketTypeAndParams' ];
 const GO_GUARDED_STRING_TUPLE_CALLS: string[] = [ 'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'getInstType' ];
 const GO_SIBLING_STRING_PASSTHROUGH_PATTERN = '^(create|edit)\\w*OrderRequest$';
