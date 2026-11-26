@@ -64,6 +64,14 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
                 "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_positions" => crate::types::IntoRaw::into_raw(self.un_watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "unsubscribe_private" => self.unsubscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "unsubscribe_public" => self.unsubscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..]).await,
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -96,9 +104,18 @@ impl Bullish {
             "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription_error" => { self.handle_un_subscription_error(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
             "separate_bids_or_asks" => self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.to_vec()); crate::Value::Null },
+            "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.to_vec()); crate::Value::Null },
+            "un_watch_orders" => { crate::exchange_stubs::enqueue_spawn("un_watch_orders", args.to_vec()); crate::Value::Null },
+            "un_watch_positions" => { crate::exchange_stubs::enqueue_spawn("un_watch_positions", args.to_vec()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
+            "unsubscribe_private" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_private", args.to_vec()); crate::Value::Null },
+            "unsubscribe_public" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_public", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
@@ -132,10 +149,15 @@ impl Bullish {
         m.insert("watchTicker".to_string(), Value::Bool(true));
         m.insert("watchTickers".to_string(), Value::Bool(false));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
+        m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
         m.insert("watchOrders".to_string(), Value::Bool(true));
+        m.insert("unWatchOrders".to_string(), Value::Bool(true));
         m.insert("watchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Bool(true));
+        m.insert("unWatchPositions".to_string(), Value::Bool(true));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchMyTrades".to_string(), Value::Bool(true));
         m.insert("watchBalance".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(false));
     m
@@ -262,6 +284,92 @@ impl Bullish {
     Value::Null
 }
 
+/*
+ * @ignore
+ * @method
+ * @name bullish#unsubscribePublic
+ * @description sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
+ * @param {string} url path of the public websocket endpoint the subscription was opened on
+ * @param {string} topic unified cache topic: trades, orderbook
+ * @param {string} messageHash message hash the subscription was opened with
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} request exchange-specific topic and symbol of the subscription
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn unsubscribe_public(&mut self, url: &str, topic: &str, messageHash: &str, symbol: &str, optional_args: &[Value]) -> Value {
+        let mut url: Value = url.into();
+        let mut topic: Value = topic.into();
+        let mut messageHash: Value = messageHash.into();
+        let mut symbol: Value = symbol.into();
+        let mut request = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public", &[]);
+        if (wsUrl.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " unsubscribePublic() has no public websocket url")));
+        }
+        let mut requestId: String = format!("{}", self.request_id());
+        let mut message: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("type".to_string(), Value::Str("command".into()));
+                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("params".to_string(), request);
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
+            m
+        });
+        let mut unsubHash: String = format!("{}{}", "unsubscribe::", messageHash);
+        let mut symbols: crate::value::List = std::sync::Arc::new(vec![symbol]);
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("unsubscribe".to_string(), Value::Bool(true));
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
+                m.insert("topic".to_string(), topic);
+                m.insert("symbols".to_string(), Value::Arr(symbols));
+                m.insert("subMessageHash".to_string(), messageHash);
+                m.insert("messageHash".to_string(), Value::from(unsubHash.clone()));
+            m
+        });
+        let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
+        return self.watch(&(Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), url).into())), unsubHash.as_str(), __ws_arg_1, requestId.as_str(), Value::Map(subscription)).await;
+
+    Value::Null
+}
+
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "2",
+        //         "result": {
+        //             "responseCode": "200",
+        //             "responseCodeName": "OK",
+        //             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+        //         }
+        //     }
+        //
+        let mut subHash: Option<String> = (match __pro_message.get("subMessageHash") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let mut unsubHash: Option<String> = (match __pro_message.get("messageHash") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let mut subHashIsPrefix: bool = (match __pro_message.get("subHashIsPrefix").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
+        self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(subHashIsPrefix)]);
+        self.clean_cache(subscription);
+        let mut requestId: String = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+        if (__ch.has_subscription(requestId.as_str())) {
+            __ch.remove_subscription(requestId.as_str());
+        }
+}
+
     pub async fn watch_private(&mut self, messageHash: &str, subscribeHash: &str, optional_args: &[Value]) -> Value {
         let mut request = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -289,9 +397,80 @@ impl Bullish {
                 m.insert("id".to_string(), Value::from(id));
             m
         });
-        let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);
-        let mut result: Value = self.watch(url.as_deref(), messageHash, __ws_arg_1, subscribeHash, Value::Null).await;
+        let __ws_arg_2 = self.deep_extend(Value::Map(message), &[params]);
+        let mut result: Value = self.watch(url.as_deref(), messageHash, __ws_arg_2, subscribeHash, Value::Null).await;
         return result;
+
+    Value::Null
+}
+
+/*
+ * @ignore
+ * @method
+ * @name bullish#unsubscribePrivate
+ * @description sends an unsubscribe command for one private topic and registers the pending unsubscription under the request id
+ * @param {string} topic unified cache topic: orders, myTrades, positions
+ * @param {string} subscribeHash hash the subscription was opened with, per-symbol message hashes start with it
+ * @param {object} request exchange-specific topic of the subscription
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn unsubscribe_private(&mut self, topic: &str, subscribeHash: &str, optional_args: &[Value]) -> Value {
+        let mut topic: Value = topic.into();
+        let mut subscribeHash: Value = subscribeHash.into();
+        let mut request = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
+        let mut token: Option<String> = self.parent.handle_token(&[]).await.as_str().map(str::to_owned);
+        let mut cookies: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("JWT_COOKIE".to_string(), token.map(Value::from).unwrap_or(Value::Null));
+            m
+        });
+        if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), Value::Map(cookies)); } }
+        let mut tradingAccountId: Option<String> = self.safe_string_k_opt(params.clone(), "tradingAccountId", &[]);
+        let mut paramsOmitted: Value = params.clone();
+        let mut requestParams: Value = request.clone();
+        if (tradingAccountId.is_some()) {
+            let mut accountRequest: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("tradingAccountId".to_string(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
+                m
+            });
+            paramsOmitted = self.omit(params, Value::Str("tradingAccountId".into()), &[]);
+            requestParams = self.extend(request, &[Value::Map(accountRequest)]);
+        }
+        let mut requestId: String = format!("{}", self.request_id());
+        let mut message: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
+                m.insert("type".to_string(), Value::Str("command".into()));
+                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("params".to_string(), requestParams);
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
+            m
+        });
+        let mut unsubHash: String = format!("{}{}", "unsubscribe::", subscribeHash);
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("unsubscribe".to_string(), Value::Bool(true));
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
+                m.insert("topic".to_string(), topic);
+                m.insert("subMessageHash".to_string(), subscribeHash);
+                m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
+                m.insert("messageHash".to_string(), Value::from(unsubHash.clone()));
+            m
+        });
+        let __ws_arg_3 = self.deep_extend(Value::Map(message), &[paramsOmitted]);
+        return self.watch(url.as_deref(), unsubHash.as_str(), __ws_arg_3, requestId.as_str(), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -338,6 +517,45 @@ impl Bullish {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @name bullish#unWatchTrades
+ * @description unsubscribes from the trades channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut messageHash: String = format!("{}{}", "trades::", marketSymbol);
+        let mut url: String = "/trading-api/v1/market-data/trades".to_string();
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("anonymousTrades".into()));
+                m.insert("symbol".to_string(), Value::from(marketId));
+            m
+        });
+        return self.unsubscribe_public(url.as_str(), "trades", messageHash.as_str(), marketSymbol.as_str(), &[Value::Map(request), params]).await;
         Value::Null
         }).await?))
     }
@@ -490,11 +708,11 @@ impl Bullish {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let __ws_arg_2 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
+            let __ws_arg_4 = self.extend(self.safe_dict_k(&ticker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[&data]);
-            parsed = self.parse_ticker(__ws_arg_2, Some(&market)).as_map().cloned().unwrap_or_default();
+            parsed = self.parse_ticker(__ws_arg_4, Some(&market)).as_map().cloned().unwrap_or_default();
         }
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
         let mut messageHash: String = format!("{}{}", "ticker::", symbol);
@@ -537,6 +755,45 @@ impl Bullish {
         });
         let mut orderbook: Value = self.watch_public(url.as_str(), messageHash.as_str(), &[Value::Map(request), params]).await;
         return orderbook.limit();
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @name bullish#unWatchOrderBook
+ * @description unsubscribes from the orderbook channel
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+ * @param {string} symbol unified symbol of the market to unsubscribe from
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_order_book(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut messageHash: String = format!("{}{}", "orderbook::", marketSymbol);
+        let mut url: String = "/trading-api/v1/market-data/orderbook".to_string();
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("l2Orderbook".into()));
+                m.insert("symbol".to_string(), Value::from(marketId));
+            m
+        });
+        return self.unsubscribe_public(url.as_str(), "orderbook", messageHash.as_str(), marketSymbol.as_str(), &[Value::Map(request), params]).await;
         Value::Null
         }).await?))
     }
@@ -667,6 +924,40 @@ impl Bullish {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @name bullish#unWatchOrders
+ * @description unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchOrders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_orders(&mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("orders".into()));
+            m
+        });
+        return self.unsubscribe_private("orders", "orders", &[Value::Map(request), params]).await;
         Value::Null
         }).await?))
     }
@@ -815,6 +1106,40 @@ impl Bullish {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @name bullish#unWatchMyTrades
+ * @description unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string} [symbol] not used by bullish unWatchMyTrades
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_my_trades(&mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let mut symbol = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("trades".into()));
+            m
+        });
+        return self.unsubscribe_private("myTrades", "myTrades", &[Value::Map(request), params]).await;
         Value::Null
         }).await?))
     }
@@ -1082,6 +1407,40 @@ impl Bullish {
         }).await?))
     }
 
+/*
+ * @method
+ * @name bullish#unWatchPositions
+ * @description unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+ * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+ * @param {string[]} [symbols] not used by bullish unWatchPositions
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("derivativesPositionsV2".into()));
+            m
+        });
+        return self.unsubscribe_private("positions", "positions", &[Value::Map(request), params]).await;
+        Value::Null
+        }).await?))
+    }
+
     pub fn handle_positions(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -1156,16 +1515,67 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
+    pub fn handle_un_subscription_error(&self, mut client: Value, mut message: Value) {
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "1",
+        //         "error": {
+        //             "code": "-32602",
+        //             "errorCode": "29013",
+        //             "errorCodeName": "'abcde' is not a valid topic"
+        //         }
+        //     }
+        //
+        let mut messageId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (messageId.is_none()) || !(__ch.has_subscription((&messageId).as_deref())) {
+            return;
+        }
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), messageId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        if (subscription.is_none()) || !matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
+            return;
+        }
+        // the subscription stays active, only the pending unsubscription is dropped and rejected
+        __ch.remove_subscription(messageId.as_deref());
+        let mut unsubHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
+        let mut errorResponse: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&errorResponse));
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let mut errorCode: Option<String> = self.safe_string_k_opt(&errorResponse, "errorCode", &[]);
+            let mut errorCodeName: Option<String> = self.safe_string_k_opt(&errorResponse, "errorCodeName", &[]);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorCodeName.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+         #[allow(unreachable_code)] { Value::Null }}));
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+            client.reject(e, unsubHash.as_deref());
+        }
+}
+
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut dataType: Option<String> = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut result: Option<crate::value::Dict> = __pro_message.get("result").cloned().unwrap_or_default().into_opt_dict();
+        let mut errorResponse: Option<crate::value::Dict> = __pro_message.get("error").cloned().unwrap_or_default().into_opt_dict();
         if (result.is_some()) {
             let mut response: Option<String> = self.safe_string_k_opt(&result, "message", &[]);
             if (response.as_deref() == Some("Keep alive pong")) {
                 self.handle_pong(client.clone(), message.clone());
             }
+            let mut messageId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+            if (messageId.is_some()) && (__ch.has_subscription((&messageId).as_deref())) {
+                let mut subscription: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), messageId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+                if (subscription.is_some()) && matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
+                    self.handle_un_subscription(client.clone(), &subscription);
+                }
+            }
+        }  else if (errorResponse.is_some()) {
+            self.handle_un_subscription_error(client.clone(), message.clone());
         }  else if (dataType.is_some()) {
             if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
                 self.handle_trades(client.clone(), message.clone());
