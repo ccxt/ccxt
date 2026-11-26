@@ -6618,7 +6618,7 @@ export class BaseExchange {
             result.push (transaction);
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -6630,7 +6630,7 @@ export class BaseExchange {
             result.push (transfer);
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -6642,7 +6642,7 @@ export class BaseExchange {
             result.push (this.extend (entry, params));
         }
         result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const code = (currency !== undefined) ? this.safeString (currency, 'code') : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 

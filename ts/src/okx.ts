@@ -9924,7 +9924,7 @@ export default class okx extends Exchange {
         const timestamp = this.safeInteger (info, 'timestamp');
         let symbol: Str = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         return {
             'info': info,
