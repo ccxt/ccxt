@@ -22,7 +22,7 @@ export default class interactivebrokers extends Exchange {
             'name': 'Interactive Brokers',
             'countries': [ 'US' ],
             'version': 'v1',
-            'rateLimit': 100 * 1.2, // the client portal gateway allows ~10 requests per second
+            'rateLimit': 120, // the client portal gateway allows ~10 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
