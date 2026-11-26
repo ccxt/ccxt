@@ -921,7 +921,7 @@ export default class blofin extends blofinRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = (this.urls['api'])['ws'][marketType]['public'];
+        const url = this.safeString (this.urls['api']['ws'][marketType], 'public', '');
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, paramsMarketType), messageHashes);
     }
 
