@@ -5267,7 +5267,7 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [marginMode, paramsOmitted] = this.handleMarginModeAndParams('cancelOrder', paramsOmitted);
         const isUnified = (accountMode === 'unified');
-        const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, paramsOmitted);
+        const tradeType = this.handleTradeType(this.safeBool(market, 'contract', false), marginMode, isUnified, paramsOmitted);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, paramsOmitted));
         //
@@ -6292,7 +6292,7 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [marginMode, paramsOmitted] = this.handleMarginModeAndParams('fetchOrder', paramsOmitted);
         const isUnified = (accountMode === 'unified');
-        const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, paramsOmitted);
+        const tradeType = this.handleTradeType(this.safeBool(market, 'contract', false), marginMode, isUnified, paramsOmitted);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, paramsOmitted));
         //
@@ -7140,7 +7140,7 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
-            isContract = market['contract'];
+            isContract = this.safeBool(market, 'contract', false);
         }
         else if ((marketType === 'spot') || (marketType === 'margin')) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades');

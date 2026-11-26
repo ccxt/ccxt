@@ -125,13 +125,7 @@ class luno extends luno$1["default"] {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        }
-        else {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeString(market, 'symbol');
         return this.safeTrade({
             'info': trade,
             'id': undefined,

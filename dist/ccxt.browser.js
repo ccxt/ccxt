@@ -193156,7 +193156,7 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
      * @returns {object} the outcome cache
      */ async fetchOutcomes(outcomeSymbols) {
         for(let i = 0; i < outcomeSymbols.length; i++){
-            await this.fetchOutcome(outcomeSymbols[i]);
+            await this.fetchOutcome(this.safeString(outcomeSymbols, i, ''));
         }
         return this.outcomes;
     }
@@ -429786,7 +429786,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         let marginMode = undefined;
         [marginMode, paramsOmitted] = this.handleMarginModeAndParams('cancelOrder', paramsOmitted);
         const isUnified = accountMode === 'unified';
-        const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, paramsOmitted);
+        const tradeType = this.handleTradeType(this.safeBool(market, 'contract', false), marginMode, isUnified, paramsOmitted);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, paramsOmitted));
         //
@@ -430806,7 +430806,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         let marginMode = undefined;
         [marginMode, paramsOmitted] = this.handleMarginModeAndParams('fetchOrder', paramsOmitted);
         const isUnified = accountMode === 'unified';
-        const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, paramsOmitted);
+        const tradeType = this.handleTradeType(this.safeBool(market, 'contract', false), marginMode, isUnified, paramsOmitted);
         request['tradeType'] = tradeType;
         const response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, paramsOmitted));
         //
@@ -431641,7 +431641,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
-            isContract = market['contract'];
+            isContract = this.safeBool(market, 'contract', false);
         } else if (marketType === 'spot' || marketType === 'margin') {
             throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades');
         } else {
@@ -506543,11 +506543,11 @@ class binance extends _abstract_prediction_binance_js__rspack_import_0/* ["defau
         if (defaultRecvWindow !== undefined) {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
-        let querystring = this.urlencodeNested(extendedParams);
-        querystring = querystring.replaceAll('%5B', '[');
-        querystring = querystring.replaceAll('%5D', ']');
-        const signature = this.hmac(this.encode(querystring), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
-        querystring = querystring + '&signature=' + signature;
+        const rawQuery = this.urlencodeNested(extendedParams);
+        const bracketedQuery = rawQuery.replaceAll('%5B', '[');
+        const cleanQuery = bracketedQuery.replaceAll('%5D', ']');
+        const signature = this.hmac(this.encode(cleanQuery), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
+        const querystring = cleanQuery + '&signature=' + signature;
         const headersValue = {
             'X-MBX-APIKEY': this.apiKey
         };
@@ -531807,8 +531807,9 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const hashesOrder = [];
         const seenHashes = {};
         for(let i = 0; i < outcomesLength; i++){
-            await this.loadOutcome(outcomesList[i]);
-            const outcomeObj = this.outcome(outcomesList[i]);
+            const outcomeItem = this.safeString(outcomesList, i, '');
+            await this.loadOutcome(outcomeItem);
+            const outcomeObj = this.outcome(outcomeItem);
             const marketHash = this.safeString(outcomeObj['info'], 'marketHash', '');
             if (this.safeBool(seenHashes, marketHash) === undefined) {
                 seenHashes[marketHash] = true;
@@ -602576,12 +602577,7 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        } else {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeString(market, 'symbol');
         return this.safeTrade({
             'info': trade,
             'id': undefined,

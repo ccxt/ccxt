@@ -1878,8 +1878,9 @@ class sxbet extends sxbet$1["default"] {
         const hashesOrder = [];
         const seenHashes = {};
         for (let i = 0; i < outcomesLength; i++) {
-            await this.loadOutcome(outcomesList[i]);
-            const outcomeObj = this.outcome(outcomesList[i]);
+            const outcomeItem = this.safeString(outcomesList, i, '');
+            await this.loadOutcome(outcomeItem);
+            const outcomeObj = this.outcome(outcomeItem);
             const marketHash = this.safeString(outcomeObj['info'], 'marketHash', '');
             if (this.safeBool(seenHashes, marketHash) === undefined) {
                 seenHashes[marketHash] = true;
