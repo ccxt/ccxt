@@ -340,6 +340,7 @@ export default class hyperliquid extends Exchange {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                        'trailing': true,
                     },
                 },
                 'swap': {
@@ -2178,16 +2179,100 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        const isTrailing = this.safeString2 (params, 'trailingPercent', 'trailingAmount') !== undefined;
+        if (isTrailing) {
+            return await this.createTrailingStopOrder (symbol, side, amount, params);
+        }
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as OrderRequest ], globalParams);
         const created = this.safeDict (orders, 0);
         return created as Order;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopOrder
+     * @description create a native trailing stop order, which executes as a market order once the mark price retraces from its best level, called by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createTrailingStopOrder (symbol: string, side: OrderSide, amount: number, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        await this.initializeClient ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' createOrder() supports trailing orders for swap markets only');
+        }
+        const trailingPercent = this.safeString (params, 'trailingPercent');
+        const trailingAmount = this.safeString (params, 'trailingAmount');
+        const trailingTriggerPrice = this.safeString (params, 'trailingTriggerPrice');
+        const retracement: Dict = {};
+        if (trailingPercent !== undefined) {
+            retracement['pct'] = trailingPercent + '%';
+        } else {
+            retracement['px'] = this.priceToPrecision (symbol, trailingAmount);
+        }
+        const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
+        const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
+        const nonce = this.incrementingNonce ();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        const action: Dict = {
+            'type': 'trailingStop',
+            'asset': this.parseToInt (market['baseId']),
+            'isBuy': (side.toUpperCase () === 'BUY'),
+            'sz': this.amountToPrecision (symbol, amount),
+            'reduceOnly': this.safeBool (paramsVault, 'reduceOnly', false),
+            'retracement': retracement,
+            'activationPx': null,
+        };
+        if (trailingTriggerPrice !== undefined) {
+            action['activationPx'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+        }
+        const signature = this.signL1Action (action, nonce, vaultAddress);
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "trailingStop",
+        //             "data": {
+        //                 "oid": 77738308
+        //             }
+        //         }
+        //     }
+        //
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        return this.parseOrder (this.extend (data, { 'status': 'open' }), market);
     }
 
     /**
@@ -3604,13 +3689,18 @@ export default class hyperliquid extends Exchange {
             postOnly = (tif === 'ALO');
         }
         const isTrigger = this.safeBool (entry, 'isTrigger', false);
-        const triggerPx = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
+        let triggerPx = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
+        const orderTypeRaw = this.safeStringLower (entry, 'orderType', '') as string;
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        const isTrailing = (orderTypeRaw.indexOf ('trailing') >= 0);
+        if (isTrailing && Precise.stringEq (this.safeString (entry, 'triggerPx', '0'), '0')) {
+            triggerPx = undefined;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        const orderTypeRaw = this.safeStringLower (entry, 'orderType', '') as string;
         let stopLossPrice: Num = undefined;
         let takeProfitPrice: Num = undefined;
-        if (triggerPx !== undefined) {
+        if ((triggerPx !== undefined) && !isTrailing) {
             if (orderTypeRaw.indexOf ('stop') >= 0) {
                 stopLossPrice = triggerPx;
             } else if (orderTypeRaw.indexOf ('take profit') >= 0) {
@@ -3672,6 +3762,7 @@ export default class hyperliquid extends Exchange {
         const statuses: Dict = {
             'stop limit': 'limit',
             'stop market': 'market',
+            'trailing stop market': 'market',
         };
         return this.safeString (statuses, status, status);
     }
