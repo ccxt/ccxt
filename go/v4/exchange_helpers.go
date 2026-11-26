@@ -1305,15 +1305,6 @@ func EndsWith(v any, suffix any) bool {
 	return false
 }
 
-// Trim removes leading and trailing whitespace from a string
-func Trim(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.TrimSpace(str)
-	}
-	return ""
-}
-
 // Contains checks if the string contains the specified substring
 func Contains(v any, substr any) bool {
 	v = derefScalar(v)
@@ -1880,19 +1871,6 @@ func GetArgStringSlice(args []any, index int, def []string) []string {
 	return def
 }
 
-// GetArgMapSlice returns the []map[string]any the caller passed, or def when absent.
-func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	if res, isMaps := val.([]map[string]any); isMaps {
-		return res
-	}
-	goArgPanic("GetArgMapSlice", index, val)
-	return def
-}
-
 // GetArgString returns the string the caller passed, or def when the argument is absent.
 func GetArgString(args []any, index int, def string) string {
 	val, ok := goArgValue(args, index)
@@ -1950,34 +1928,6 @@ func GetArgInt64(args []any, index int, def int64) int64 {
 		return int64(res)
 	}
 	goArgPanic("GetArgInt64", index, val)
-	return def
-}
-
-// GetArgFloat64 returns the number the caller passed, or def when the argument is absent.
-func GetArgFloat64(args []any, index int, def float64) float64 {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	switch res := val.(type) {
-	case float64:
-		return res
-	case float32:
-		return float64(res)
-	case int64:
-		return float64(res)
-	case int:
-		return float64(res)
-	case int32:
-		return float64(res)
-	case uint:
-		return float64(res)
-	case uint32:
-		return float64(res)
-	case uint64:
-		return float64(res)
-	}
-	goArgPanic("GetArgFloat64", index, val)
 	return def
 }
 
@@ -2447,30 +2397,6 @@ func mathMin(a, b any) any {
 
 // mathMax returns the maximum of two values of the same type.
 // It supports int, float64, and string types.
-func MathAbs(v any) float64 {
-	v = derefScalar(v)
-	switch n := v.(type) {
-	case float64:
-		return math.Abs(n)
-	case float32:
-		return math.Abs(float64(n))
-	case int:
-		return math.Abs(float64(n))
-	case int64:
-		return math.Abs(float64(n))
-	case int32:
-		return math.Abs(float64(n))
-	case int16:
-		return math.Abs(float64(n))
-	case int8:
-		return math.Abs(float64(n))
-	case uint, uint64, uint32, uint16, uint8:
-		return float64(reflect.ValueOf(n).Uint()) // no need for Abs on unsigned values
-	default:
-		return 0
-	}
-}
-
 func mathMax(a, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)

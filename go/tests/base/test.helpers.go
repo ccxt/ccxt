@@ -244,10 +244,6 @@ func EndsWith(v interface{}, suffix interface{}) bool {
 	return ccxt.EndsWith(v, suffix)
 }
 
-func Trim(v interface{}) string {
-	return ccxt.Trim(v)
-}
-
 func Contains(v interface{}, substr interface{}) bool {
 	return ccxt.Contains(v, substr)
 }
@@ -336,10 +332,6 @@ func GetArgStringSlice(args []any, index int, def []string) []string {
 	return ccxt.GetArgStringSlice(args, index, def)
 }
 
-func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
-	return ccxt.GetArgMapSlice(args, index, def)
-}
-
 func GetArgString(args []any, index int, def string) string {
 	return ccxt.GetArgString(args, index, def)
 }
@@ -350,10 +342,6 @@ func GetArgBool(args []any, index int, def bool) bool {
 
 func GetArgInt64(args []any, index int, def int64) int64 {
 	return ccxt.GetArgInt64(args, index, def)
-}
-
-func GetArgFloat64(args []any, index int, def float64) float64 {
-	return ccxt.GetArgFloat64(args, index, def)
 }
 
 func GetArgStringPtr(args []any, index int, def *string) *string {

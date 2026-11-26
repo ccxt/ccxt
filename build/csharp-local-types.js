@@ -218,6 +218,7 @@ export const CORE_STRING_ARGS = {
     'cancelUtaOrders': [ 1 ],
     'closePosition': [ 0, 1 ],
     'commonCurrencyCode': [ 0 ],
+    'parsePrecision': [ 0 ],
     'convertCurrencyNetwork': [ 0 ],
     'costToPrecision': [ 0 ],
     'createAmmOrder': [ 0, 1, 2 ],

@@ -5780,22 +5780,31 @@ export class BaseExchange {
                     break; // this is needed because of GO
                 }
             }
-            let content: any = response;
-            if (content === undefined) {
+            if (response === undefined) {
                 throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
             }
+            if (typeof response !== 'string') {
+                if ((startRegex !== undefined) || (endRegex !== undefined)) {
+                    throw new BadResponse (this.id + ' fetchWebEndpoint() returned non-string content');
+                }
+                return response;
+            }
+            let content: string = response;
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split (startRegex);
+                if (splitted_by_start.length < 2) {
+                    throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
+                }
                 content = splitted_by_start[1]; // we need second part after start
-            }
-            if (content === undefined) {
-                throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
             }
             if (endRegex !== undefined) {
                 const splitted_by_end = content.split (endRegex);
+                if (splitted_by_end.length < 1) {
+                    throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
+                }
                 content = splitted_by_end[0]; // we need first part after start
             }
-            if ((returnAsJson === true) && (typeof content === 'string')) {
+            if (returnAsJson === true) {
                 const jsoned = this.parseJson (content.trim ()); // content should be trimmed before json parsing
                 if ((jsoned !== undefined) && (jsoned !== null)) {
                     return jsoned; // if parsing was not successfull, exception should be thrown

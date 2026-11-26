@@ -7855,7 +7855,7 @@ function parseHelperInnerIsSimple (inner: string, typeOf: (name: string) => stri
 }
 export function csharpNativeParseCalls (objectNull: boolean, content: string): string {
     if (!objectNull || !/\bparse(?:Int|Float)\s*\(/.test (content) || /^namespace Tests;/m.test (content)) { return content; }
-    return csharpLinePass (content, false, (region, line, masked, i) => {
+    const rewritten = csharpLinePass (content, false, (region, line, masked, i) => {
         if (!/\bparse(?:Int|Float)\s*\(/.test (masked)) { return undefined; }
         const typeOf = (name: string) => csharpHelperReceiverType (region, name, i, region.params)?.type;
         let result = '';
@@ -7878,6 +7878,14 @@ export function csharpNativeParseCalls (objectNull: boolean, content: string): s
         }
         return (from === 0) ? undefined : result + line.slice (from);
     });
+    return csharpNativeParseFloatToInt (rewritten);
+}
+// `object x = JsParse.parseFloat(...); return ((Int64?)((object)(parseInt(((object)x)))));` -> typed `double?` + finite bounds Math.Floor
+function csharpNativeParseFloatToInt (content: string): string {
+    return content.replace (
+        /([ ]+)object ([A-Za-z_]\w*) = JsParse\.parseFloat\(([^;\n]+)\);\n\1return \(\(Int64\?\)\(\(object\)\(parseInt\(\(\(object\)\2\)\)\)\)\);/g,
+        (_m, pad, name, arg) => `${pad}double? ${name} = JsParse.parseFloat(${arg});\n${pad}return ((${name} != null && !double.IsNaN(${name}.Value) && !double.IsInfinity(${name}.Value) && ${name}.Value >= (double)Int64.MinValue && ${name}.Value < 9223372036854775808.0) ? (Int64?)Convert.ToInt64(Math.Floor(${name}.Value)) : null);`
+    );
 }
 // exact snippet checks: `pass (wrap (body[, sig]))` must equal `wrap (expected[, sig])` and be a fixed point
 function exactSnippetChecker (problems: string[], label: string, pass: (text: string) => string, wrap: (body: string, sig?: string) => string) {

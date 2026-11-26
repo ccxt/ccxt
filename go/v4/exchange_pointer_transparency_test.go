@@ -141,8 +141,6 @@ func unaryShims() []unaryShim {
 	return []unaryShim{
 		// exchange_helpers.go
 		{"EvalTruthy", func(v any) any { return EvalTruthy(v) }},
-		{"Trim", func(v any) any { return Trim(v) }},
-		{"MathAbs", func(v any) any { return MathAbs(v) }},
 		{"JsonStringify", func(v any) any { return JsonStringify(v) }},
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
 		{"IsDictionary", func(v any) any { return IsDictionary(v) }},
