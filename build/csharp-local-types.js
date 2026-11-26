@@ -6535,6 +6535,11 @@ function isProvablyStringOperand (csharp, node) {
     return false;
 }
 
+// reads in ts/src/pro files resolve a same-name sibling-block binding by scope
+function proSiblingBindingReads (node) {
+    return (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/').includes ('/pro/');
+}
+
 // a read of a local whose own declaration this module emits as `string` / `string?`
 // (parameters, destructured names, multi-declarator lists and unproven locals reject)
 function isStringLocalRead (csharp, node) {
@@ -6883,10 +6888,8 @@ function localIdentifierType (csharp, node) {
     }
     let binding;
     let bindings = 0;
+    const candidates = [];
     const visit = (n) => {
-        if (bindings > 1) {
-            return;
-        }
         if (n !== scope && isFunctionScope (n)) {
             return; // a nested function binds its own names
         }
@@ -6895,11 +6898,22 @@ function localIdentifierType (csharp, node) {
             if (names.includes (name)) {
                 bindings++;
                 binding = n;
+                candidates.push (n);
             }
         }
         n?.forEachChild (visit);
     };
     scope?.forEachChild (visit);
+    if (bindings > 1 && proSiblingBindingReads (node)) {
+        // same-name locals in sibling blocks of a pro method: the one binding the read refers to
+        const referred = candidates.filter ((c) => c.kind === ts.SyntaxKind.VariableDeclaration && c.name?.kind === ts.SyntaxKind.Identifier
+            && useRefersToDeclaration (csharp, scope, c, node) === true);
+        const others = candidates.filter ((c) => !referred.includes (c));
+        if (referred.length === 1 && others.every ((c) => c.kind === ts.SyntaxKind.VariableDeclaration && useRefersToDeclaration (csharp, scope, c, node) === false)) {
+            bindings = 1;
+            binding = referred[0];
+        }
+    }
     if (bindings !== 1 || binding === undefined) {
         return undefined;
     }
