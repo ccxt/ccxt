@@ -2812,7 +2812,7 @@ class aster extends aster$1["default"] {
                 uppercaseType = 'TAKE_PROFIT';
             }
         }
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, params);
+        const postOnly = this.isPostOnly(isMarketOrder, false, params);
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }

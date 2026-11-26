@@ -3038,7 +3038,7 @@ export default class nado extends Exchange {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const postOnly = this.isPostOnly(false, undefined, params);
+        const postOnly = this.isPostOnly(false, false, params);
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         let orderType = 0;
         if (timeInForce === 'IOC') {

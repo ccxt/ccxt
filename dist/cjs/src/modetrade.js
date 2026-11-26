@@ -1751,7 +1751,7 @@ class modetrade extends modetrade$1["default"] {
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         let orderQtyKey = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -2033,7 +2033,7 @@ class modetrade extends modetrade$1["default"] {
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }

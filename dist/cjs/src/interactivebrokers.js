@@ -4114,7 +4114,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         if (month === undefined) {
             return undefined;
         }
-        const dayPart = parts[2];
+        const dayPart = this.safeString(parts, 2, '');
         const day = dayPart.padStart(2, '0');
         const offset = this.safeString(offsets, parts[4], '+00:00');
         return this.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset);

@@ -2027,7 +2027,7 @@ class paradex extends paradex$1["default"] {
         const isStopLossOrder = (stopLossPrice !== undefined);
         const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         let instruction = 'GTC';
         if (timeInForce !== undefined) {
             instruction = this.encodeTimeInForce(timeInForce);

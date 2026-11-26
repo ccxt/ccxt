@@ -997,7 +997,7 @@ export declare class BaseExchange {
     handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
     handleTriggerAndParams(params: Dict): [Bool, Dict];
     isTriggerOrder(params: Dict): [Bool, Dict];
-    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: Bool, params?: Dict): boolean;
+    isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: boolean, params?: Dict): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: Dict): [boolean, Dict];
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;
     fetchTradingFees(params?: Dict): Promise<TradingFees>;

@@ -803,7 +803,7 @@ class lighter extends lighter$1["default"] {
         const isConditional = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
         const isMarketOrder = (orderType === 'MARKET');
         const timeInForce = this.safeStringLower(paramsOrderExpiry, 'timeInForce', 'gtt');
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, paramsOrderExpiry);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOrderExpiry);
         const paramsOmitted = this.omit(paramsOrderExpiry, ['stopLoss', 'takeProfit', 'timeInForce']);
         let orderTypeNum = undefined;
         let timeInForceNum = undefined;

@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var bitrue$1 = require('../bitrue.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -874,8 +875,8 @@ class bitrue extends bitrue$1["default"] {
         const baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         const quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         const close = this.safeNumber(tick, 'close');
-        const rose = this.safeNumber(tick, 'rose');
-        const percentage = (rose === undefined) ? undefined : rose * 100;
+        const rose = this.safeString(tick, 'rose');
+        const percentage = Precise["default"].stringMul(rose, '100');
         return this.safeTicker({
             'info': tick,
             'symbol': symbol,

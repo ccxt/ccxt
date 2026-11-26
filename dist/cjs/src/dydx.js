@@ -1330,7 +1330,7 @@ class dydx extends dydx$1["default"] {
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
-        const postOnly = this.isPostOnly(isMarket, undefined, paramsSubAccountId);
+        const postOnly = this.isPostOnly(isMarket, false, paramsSubAccountId);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
         const marketInfo = this.safeDict(market, 'info', {});
@@ -1899,13 +1899,20 @@ class dydx extends dydx$1["default"] {
             gasPrice = this.safeString(feeDenom, 'CHAINTOKEN_GAS_PRICE');
             denom = this.safeString(feeDenom, 'CHAINTOKEN_DENOM');
         }
-        const gasLimit = Math.ceil(this.parseToNumeric(Precise["default"].stringMul(gasUsed, defaultFeeMultiplier)));
+        const gasLimitNum = this.parseNumber(Precise["default"].stringMul(gasUsed, defaultFeeMultiplier));
+        if (gasLimitNum === undefined) {
+            throw new errors.ExchangeError(this.id + ' estimateTxFee() missing gasLimit');
+        }
+        const gasLimit = Math.ceil(gasLimitNum);
         let feeAmount = Precise["default"].stringMul(this.numberToString(gasLimit), gasPrice);
         if (feeAmount === undefined) {
             throw new errors.ExchangeError(this.id + ' estimateTxFee() missing feeAmount');
         }
         if (feeAmount.indexOf('.') >= 0) {
-            feeAmount = this.numberToString(Math.ceil(this.parseToNumeric(feeAmount)));
+            const feeAmountNum = this.parseNumber(feeAmount);
+            if (feeAmountNum !== undefined) {
+                feeAmount = this.numberToString(Math.ceil(feeAmountNum));
+            }
         }
         const feeObj = {
             'amount': feeAmount,

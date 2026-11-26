@@ -168835,7 +168835,7 @@ class apex extends _abstract_apex_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' createOrder() requires a price argument for market orders');
         }
         let timeInForce = this.safeStringUpper(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         if (timeInForce === undefined) {
             timeInForce = 'GOOD_TIL_CANCEL';
         }
@@ -172736,7 +172736,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
                 uppercaseType = 'TAKE_PROFIT';
             }
         }
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, params);
+        const postOnly = this.isPostOnly(isMarketOrder, false, params);
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
@@ -259106,7 +259106,7 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
             'triggerPrice',
             'stopPrice'
         ]) : params;
-        const postOnly = this.isPostOnly(orderType === 'MARKET', undefined, paramsOmitted);
+        const postOnly = this.isPostOnly(orderType === 'MARKET', false, paramsOmitted);
         if (postOnly) {
             request['timeInForce'] = 'POST_ONLY';
         }
@@ -262191,7 +262191,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         if (this.safeBool(market, 'swap', false)) {
             const isMarket = uppercaseType === 'MARKET';
             const timeInForce = this.safeStringLower(params, 'timeInForce');
-            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            const postOnly = this.isPostOnly(isMarket, false, params);
             if (postOnly) {
                 request['type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -341244,7 +341244,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         const isLimitOrder = type === 'limit' || isStopLimit || isTakeLimit;
         const isMarketOrder = type === 'market' || isStopMarket || isTakeMarket;
         const exchangeSpecificPostOnly = this.safeBool(params, 'post_only');
-        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
+        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly === true, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
             request['price'] = this.priceToPrecision(symbol, price);
@@ -352687,7 +352687,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         const query = this.omit(params, this.extractParams(path));
         let urlencoded = '';
         if (signed && pathPart === '/swap/v2' && method === 'POST') {
-            urlencoded = JSON.stringify(params);
+            urlencoded = this.json(params);
         } else {
             urlencoded = this.urlencode(this.keysort(query));
         }
@@ -354225,7 +354225,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
-        const postOnly = this.isPostOnly(isMarket, undefined, paramsSubAccountId);
+        const postOnly = this.isPostOnly(isMarket, false, paramsSubAccountId);
         const amountStr = this.amountToPrecision(symbol, amount);
         const priceStr = this.priceToPrecision(symbol, price);
         const marketInfo = this.safeDict(market, 'info', {});
@@ -354806,13 +354806,20 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
             gasPrice = this.safeString(feeDenom, 'CHAINTOKEN_GAS_PRICE');
             denom = this.safeString(feeDenom, 'CHAINTOKEN_DENOM');
         }
-        const gasLimit = Math.ceil(this.parseToNumeric(_base_Precise_js__rspack_import_3/* ["default"].stringMul */.A.stringMul(gasUsed, defaultFeeMultiplier)));
+        const gasLimitNum = this.parseNumber(_base_Precise_js__rspack_import_3/* ["default"].stringMul */.A.stringMul(gasUsed, defaultFeeMultiplier));
+        if (gasLimitNum === undefined) {
+            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' estimateTxFee() missing gasLimit');
+        }
+        const gasLimit = Math.ceil(gasLimitNum);
         let feeAmount = _base_Precise_js__rspack_import_3/* ["default"].stringMul */.A.stringMul(this.numberToString(gasLimit), gasPrice);
         if (feeAmount === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' estimateTxFee() missing feeAmount');
         }
         if (feeAmount.indexOf('.') >= 0) {
-            feeAmount = this.numberToString(Math.ceil(this.parseToNumeric(feeAmount)));
+            const feeAmountNum = this.parseNumber(feeAmount);
+            if (feeAmountNum !== undefined) {
+                feeAmount = this.numberToString(Math.ceil(feeAmountNum));
+            }
         }
         const feeObj = {
             'amount': feeAmount,
@@ -358247,7 +358254,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
         }
         const amountString = this.amountToPrecision(symbol, amount);
         const priceString = this.priceToPrecision(symbol, price);
-        const postOnly = this.isPostOnly(uppercaseType === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly(uppercaseType === 'MARKET', false, params);
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         let timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce === undefined) {
@@ -376131,7 +376138,7 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
             'reduce_only': isReduceOnly
         };
         let timeInForce = this.safeStringUpper(paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, paramsOmitted3);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }
@@ -377328,10 +377335,12 @@ class grvt extends _abstract_grvt_js__rspack_import_0/* ["default"] */.A {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         const signature = (0,_base_functions_crypto_js__rspack_import_4/* .ecdsa */.h1)(this.hash(ethEncodedMessage, _noble_hashes_sha3_js__rspack_import_5/* .keccak_256 */.lY, 'hex'), privateKeyWithoutZero, _noble_curves_secp256k1_js__rspack_import_6/* .secp256k1 */.bI, undefined);
+        const rHex = this.safeString(signature, 'r', '');
+        const sHex = this.safeString(signature, 's', '');
         const signatureEntry = {
             'signer': undefined,
-            'r': this.formatSignatureRS(signature['r']),
-            's': this.formatSignatureRS(signature['s']),
+            'r': this.formatSignatureRS(rHex),
+            's': this.formatSignatureRS(sHex),
             'v': this.sum(27, signature['v']),
             'expiration': requestSignature['expiration'],
             'nonce': requestSignature['nonce'],
@@ -383247,7 +383256,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
             'signature': signature,
             'maxFeesPercent': this.numberToString(feeRate)
         };
-        const postOnly = this.isPostOnly(type.toUpperCase() === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly(type.toUpperCase() === 'MARKET', false, params);
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
@@ -387478,7 +387487,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             'stopPrice',
             'stop_price'
         ]);
-        const isPostOnly = this.isPostOnly(type === 'market', undefined, params);
+        const isPostOnly = this.isPostOnly(type === 'market', false, params);
         const resolvedMarketType = this.safeString(market, 'type');
         const request = {
             'type': type,
@@ -390308,7 +390317,7 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         const meta = this.safeDict(params, 'meta', {});
         const exchangeSpecificParam = this.safeBool(meta, 'post_only', false);
         const isMarketOrder = type === 'market';
-        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, params);
+        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam === true, params);
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
@@ -415067,7 +415076,7 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
         if (month === undefined) {
             return undefined;
         }
-        const dayPart = parts[2];
+        const dayPart = this.safeString(parts, 2, '');
         const day = dayPart.padStart(2, '0');
         const offset = this.safeString(offsets, parts[4], '+00:00');
         return this.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset);
@@ -443250,7 +443259,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const isConditional = stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarketOrder = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(paramsOrderExpiry, 'timeInForce', 'gtt');
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, paramsOrderExpiry);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOrderExpiry);
         const paramsOmitted = this.omit(paramsOrderExpiry, [
             'stopLoss',
             'takeProfit',
@@ -457801,7 +457810,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || paramsChildOrders !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         let orderQtyKey = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -458105,7 +458114,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {
@@ -464228,7 +464237,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const postOnly = this.isPostOnly(false, undefined, params);
+        const postOnly = this.isPostOnly(false, false, params);
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         let orderType = 0;
         if (timeInForce === 'IOC') {
@@ -488122,7 +488131,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const isStopLossOrder = stopLossPrice !== undefined;
         const isStopOrder = triggerPrice !== undefined || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         let instruction = 'GTC';
         if (timeInForce !== undefined) {
             instruction = this.encodeTimeInForce(timeInForce);
@@ -534423,7 +534432,7 @@ class apex extends _apex_js__rspack_import_0/* ["default"] */.A {
             const message = {
                 'op': 'login',
                 'args': [
-                    JSON.stringify({
+                    this.json({
                         'type': 'login',
                         'topics': [
                             'ws_zk_accounts_v3'
@@ -554032,7 +554041,9 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _bitrue_js__rspack_import_0 = __webpack_require__(7551);
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_ws_Cache_js__rspack_import_1 = __webpack_require__(1697);
+/* import */ var _base_Precise_js__rspack_import_3 = __webpack_require__(7749);
 //  ---------------------------------------------------------------------------
+
 
 
 
@@ -554913,8 +554924,8 @@ class bitrue extends _bitrue_js__rspack_import_0/* ["default"] */.A {
         const baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         const quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         const close = this.safeNumber(tick, 'close');
-        const rose = this.safeNumber(tick, 'rose');
-        const percentage = rose === undefined ? undefined : rose * 100;
+        const rose = this.safeString(tick, 'rose');
+        const percentage = _base_Precise_js__rspack_import_3/* ["default"].stringMul */.A.stringMul(rose, '100');
         return this.safeTicker({
             'info': tick,
             'symbol': symbol,
@@ -659113,7 +659124,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
         const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || this.safeList(paramsMarginMode, 'childOrders') !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(paramsMarginMode, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, paramsMarginMode);
+        const postOnly = this.isPostOnly(isMarket, false, paramsMarginMode);
         let clientOrderIdKey = 'clientOrderId';
         if (isConditional) {
             clientOrderIdKey = 'clientAlgoOrderId';
@@ -664673,7 +664684,7 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || paramsChildOrders !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         const typeKey = isConditional ? 'type' : 'order_type';
@@ -664951,7 +664962,7 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             } else if (timeInForce === 'fok') {

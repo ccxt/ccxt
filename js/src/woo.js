@@ -1402,7 +1402,7 @@ export default class woo extends Exchange {
         const isConditional = isTrailing || triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeList(paramsMarginMode, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(paramsMarginMode, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, paramsMarginMode);
+        const postOnly = this.isPostOnly(isMarket, false, paramsMarginMode);
         let clientOrderIdKey = 'clientOrderId';
         if (isConditional) {
             clientOrderIdKey = 'clientAlgoOrderId';

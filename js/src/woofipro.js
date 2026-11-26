@@ -1830,7 +1830,7 @@ export default class woofipro extends Exchange {
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, undefined, params);
+        const postOnly = this.isPostOnly(isMarket, false, params);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         const typeKey = isConditional ? 'type' : 'order_type';
@@ -2086,7 +2086,7 @@ export default class woofipro extends Exchange {
             const orderType = type.toUpperCase();
             const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
+            const postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }

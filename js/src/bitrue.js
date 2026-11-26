@@ -2093,7 +2093,7 @@ export default class bitrue extends Exchange {
         if (this.safeBool(market, 'swap', false)) {
             const isMarket = uppercaseType === 'MARKET';
             const timeInForce = this.safeStringLower(params, 'timeInForce');
-            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            const postOnly = this.isPostOnly(isMarket, false, params);
             if (postOnly) {
                 request['type'] = 'POST_ONLY';
             }

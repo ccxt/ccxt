@@ -2484,7 +2484,7 @@ class hitbtc extends hitbtc$1["default"] {
         const reduceOnly = this.safeBool(params, 'reduceOnly');
         const timeInForce = this.safeString(params, 'timeInForce');
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
-        const isPostOnly = this.isPostOnly(type === 'market', undefined, params);
+        const isPostOnly = this.isPostOnly(type === 'market', false, params);
         const resolvedMarketType = this.safeString(market, 'type');
         const request = {
             'type': type,

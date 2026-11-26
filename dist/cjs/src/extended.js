@@ -2599,7 +2599,7 @@ class extended extends extended$1["default"] {
         }
         const amountString = this.amountToPrecision(symbol, amount);
         const priceString = this.priceToPrecision(symbol, price);
-        const postOnly = this.isPostOnly(uppercaseType === 'MARKET', undefined, params);
+        const postOnly = this.isPostOnly(uppercaseType === 'MARKET', false, params);
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         let timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce === undefined) {

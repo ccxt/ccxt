@@ -2136,7 +2136,7 @@ class deribit extends deribit$1["default"] {
         const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
         const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
         const exchangeSpecificPostOnly = this.safeBool(params, 'post_only');
-        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
+        const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly === true, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
             request['price'] = this.priceToPrecision(symbol, price);

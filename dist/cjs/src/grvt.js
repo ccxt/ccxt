@@ -2048,7 +2048,7 @@ class grvt extends grvt$1["default"] {
             // 'state': null,
         };
         let timeInForce = this.safeStringUpper(paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
-        const postOnly = this.isPostOnly(isMarketOrder, undefined, paramsOmitted3);
+        const postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }
@@ -3242,10 +3242,12 @@ class grvt extends grvt$1["default"] {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         const signature = crypto.ecdsa(this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex'), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
+        const rHex = this.safeString(signature, 'r', '');
+        const sHex = this.safeString(signature, 's', '');
         const signatureEntry = {
             'signer': undefined,
-            'r': this.formatSignatureRS(signature['r']),
-            's': this.formatSignatureRS(signature['s']),
+            'r': this.formatSignatureRS(rHex),
+            's': this.formatSignatureRS(sHex),
             'v': this.sum(27, signature['v']),
             'expiration': requestSignature['expiration'],
             'nonce': requestSignature['nonce'],
