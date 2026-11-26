@@ -38,8 +38,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = Value::Int(exchange.milliseconds());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1667: bool = true;
-                while { if !__for_first_1667 { i += 1; } __for_first_1667 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1668: bool = true;
+                while { if !__for_first_1668 { i += 1; } __for_first_1668 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &Value::Int(i)), Value::Null, now.clone());
             }
             }
@@ -68,8 +68,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = Value::Int(exchange.milliseconds());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1668: bool = true;
-                while { if !__for_first_1668 { i += 1; } __for_first_1668 = false; i < (positionsForSymbols.len() as i64) } {
+                let mut __for_first_1669: bool = true;
+                while { if !__for_first_1669 { i += 1; } __for_first_1669 = false; i < (positionsForSymbols.len() as i64) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }

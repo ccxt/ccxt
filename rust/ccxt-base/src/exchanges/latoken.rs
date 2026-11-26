@@ -398,8 +398,8 @@ impl crate::exchange::DerivedExchange for Latoken {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_966: bool = true;
-            while { if !__for_first_966 { i += 1; } __for_first_966 = false; i < (bindings.len() as i64) } {
+            let mut __for_first_967: bool = true;
+            while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (bindings.len() as i64) } {
             let mut binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&binding, "providerName", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1423,8 +1423,8 @@ impl Latoken {
         let mut rawMarkets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_964: bool = true;
-            while { if !__for_first_964 { i += 1; } __for_first_964 = false; i < (rawMarkets.len() as i64) } {
+            let mut __for_first_965: bool = true;
+            while { if !__for_first_965 { i += 1; } __for_first_965 = false; i < (rawMarkets.len() as i64) } {
             let mut market: Option<crate::value::Dict> = self.safe_dict(&rawMarkets, Value::Int(i), &[]).into_opt_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             // the exchange shows them inverted
@@ -1594,8 +1594,8 @@ impl Latoken {
         let mut merged: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_965: bool = true;
-            while { if !__for_first_965 { i += 1; } __for_first_965 = false; i < (rawCurrencies.len() as i64) } {
+            let mut __for_first_966: bool = true;
+            while { if !__for_first_966 { i += 1; } __for_first_966 = false; i < (rawCurrencies.len() as i64) } {
             let mut rawCurrency: Option<crate::value::Dict> = self.safe_dict(&rawCurrencies, Value::Int(i), &[]).into_opt_dict();
             let mut bindingEntry: crate::value::Dict = self.safe_dict(&bindingsById, self.safe_string_k(&rawCurrency, "id", &[]), &[]).into_dict();
             let mut bindings: Option<crate::value::List> = self.safe_list_k(&bindingEntry, "bindings", &[]).into_opt_list();
@@ -1681,8 +1681,8 @@ impl Latoken {
         let mut maxTimestamp: Option<i64> = self.safe_integer_k(&firstBalance, "timestamp", &[]).as_i64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_967: bool = true;
-            while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (balances.len() as i64) } {
+            let mut __for_first_968: bool = true;
+            while { if !__for_first_968 { i += 1; } __for_first_968 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
@@ -1774,8 +1774,8 @@ impl Latoken {
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_968: bool = true;
-            while { if !__for_first_968 { i += 1; } __for_first_968 = false; i < (rawAsks.len() as i64) } {
+            let mut __for_first_969: bool = true;
+            while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rawAsks.len() as i64) } {
             let mut askEntry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut askQuantity: Option<String> = self.safe_string_k_opt(&askEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1785,8 +1785,8 @@ impl Latoken {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_969: bool = true;
-            while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rawBids.len() as i64) } {
+            let mut __for_first_970: bool = true;
+            while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < (rawBids.len() as i64) } {
             let mut bidEntry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut bidQuantity: Option<String> = self.safe_string_k_opt(&bidEntry, "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".into())).as_bool() == Some(true) {
