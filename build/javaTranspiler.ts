@@ -8297,6 +8297,12 @@ function coreArgDeclType (masked: string, name: string, pos: number): string | u
     return last;
 }
 
+// every declaration of `name` in this file returns Long (at least one)
+function coreArgOnlyLongMethod (masked: string, name: string): boolean {
+    const decls = [ ...masked.matchAll(new RegExp(`^[ \\t]*(?:public|private|protected)[ \\t]+(?:static[ \\t]+)?([\\w.<>?,\\[\\] ]+?)[ \\t]+${name}\\(`, 'gm')) ];
+    return decls.length > 0 && decls.every((d) => d[1] === 'Long');
+}
+
 interface CoreArgHelperCtx { masked: string, pos: number, fields: Set<string>, methods: Set<string> }
 
 function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n: number, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
@@ -8312,6 +8318,10 @@ function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n:
     }
     if (name === 'toLongOrNull') {
         if (args.length !== 1) { return undefined; }
+        // a name declared Long, or a call to a method this file declares only as Long, already is the slot value
+        if (/^[A-Za-z_]\w*$/.test(x) && coreArgDeclType(ctx.masked, x, ctx.pos) === 'Long') { return x; }
+        const own = /^this\.(\w+)\(/.exec(x);
+        if (own !== null && stringAddClose(x, own[0].length - 1) === x.length && coreArgOnlyLongMethod(ctx.masked, own[1])) { return x; }
         return `((Long) (switch ((Object) (${x})) { case null -> (Long) null; case Long ${v} -> ${v}; case Number ${v} -> Long.valueOf(${v}.longValue()); case Object ${v} -> throw new ClassCastException("ccxt: expected a number, got " + ${v}.getClass().getName()); }))`;
     }
     if (name === 'isTrue') {
@@ -8423,6 +8433,9 @@ function javaCoreArgHelpersSelfTest (): string[] {
         // negatives: String-declared add operand, statement position
         [ 'add String', '        return Helpers.add(s, 1);', undefined ],
         [ 'statement', '        Helpers.toMapArg(p);', undefined ],
+        [ 'toLongOrNull Long param', '        return this.f(Helpers.toLongOrNull(n));', 'return this.f(n);' ],
+        [ 'toLongOrNull Object param', '        return this.f(Helpers.toLongOrNull(p));', 'case Long hx4J40v0 -> hx4J40v0;' ],
+        [ 'toLongOrNull foreign call', '        return this.f(Helpers.toLongOrNull(this.sum(n, n)));', 'case Long hx4J40v0 -> hx4J40v0;' ],
     ];
     const isTrue = runSnippetCases(isTrueCases, isTrueCls, nativeJavaCoreArgHelpers, (name, out) => `java is true self test: ${name}\n${out}`, isTrueCls, (out) => !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
     return isTrue.concat(runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java core arg helpers self: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.')));
