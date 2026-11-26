@@ -1286,7 +1286,7 @@ public partial class bitopro : Exchange
             }
         }
         IDictionary<string, object> paramsOmitted = (orderType == "STOP_LIMIT") ? this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"}) : parameters;
-        bool postOnly = this.isPostOnly(orderType == "MARKET", null, paramsOmitted);
+        bool postOnly = this.isPostOnly(orderType == "MARKET", false, paramsOmitted);
         if (postOnly)
         {
             request["timeInForce"] = "POST_ONLY";

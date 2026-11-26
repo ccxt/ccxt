@@ -2760,7 +2760,7 @@ public partial class hitbtc : Exchange
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         string? timeInForce = this.safeString(parameters, "timeInForce");
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
-        bool isPostOnly = this.isPostOnly((type == "market"), null, parameters);
+        bool isPostOnly = this.isPostOnly((type == "market"), false, parameters);
         string? resolvedMarketType = this.safeString(market, "type");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },

@@ -1012,7 +1012,7 @@ public partial class hibachi : Exchange
             { "signature", signature },
             { "maxFeesPercent", this.numberToString(feeRate) },
         };
-        bool postOnly = this.isPostOnly((type.ToUpper() == "MARKET"), null, parameters);
+        bool postOnly = this.isPostOnly((type.ToUpper() == "MARKET"), false, parameters);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");

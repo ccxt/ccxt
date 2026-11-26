@@ -1018,7 +1018,7 @@ public partial class lighter : Exchange
         bool isConditional = (((stopLossPrice != null)) || ((takeProfitPrice != null)));
         bool isMarketOrder = (orderType == "MARKET");
         string? timeInForce = this.safeStringLower(paramsOrderExpiry, "timeInForce", "gtt");
-        bool postOnly = this.isPostOnly(isMarketOrder, null, paramsOrderExpiry);
+        bool postOnly = this.isPostOnly(isMarketOrder, false, paramsOrderExpiry);
         Dictionary<string, object> paramsOmitted = this.omit(paramsOrderExpiry, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
         int? orderTypeNum = null;
         int? timeInForceNum = null;

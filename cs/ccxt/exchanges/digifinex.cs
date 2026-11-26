@@ -5371,7 +5371,7 @@ public partial class digifinex : Exchange
         string urlencoded = "";
         if (signed && (pathPart == "/swap/v2") && ((method == "POST")))
         {
-            urlencoded = json(parameters);
+            urlencoded = this.json(parameters);
         } else
         {
             urlencoded = this.urlencode(this.keysort(query));

@@ -1659,7 +1659,7 @@ public partial class apex : Exchange
             throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for market orders")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        bool postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, false, parameters);
         if ((timeInForce == null))
         {
             timeInForce = "GOOD_TIL_CANCEL";

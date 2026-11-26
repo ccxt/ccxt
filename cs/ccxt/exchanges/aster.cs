@@ -3283,7 +3283,7 @@ public partial class aster : Exchange
                 uppercaseType = "TAKE_PROFIT";
             }
         }
-        bool postOnly = this.isPostOnly(isMarketOrder, null, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         if (postOnly)
         {
             request["timeInForce"] = "GTX";

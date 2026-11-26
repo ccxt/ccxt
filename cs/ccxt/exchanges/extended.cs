@@ -2970,7 +2970,7 @@ public partial class extended : Exchange
         }
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceString = this.priceToPrecision(symbol, price);
-        bool postOnly = this.isPostOnly(uppercaseType == "MARKET", null, parameters);
+        bool postOnly = this.isPostOnly(uppercaseType == "MARKET", false, parameters);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if ((timeInForce == null))

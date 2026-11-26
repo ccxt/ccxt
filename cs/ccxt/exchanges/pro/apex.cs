@@ -1004,7 +1004,7 @@ public partial class apex : ccxt.apex
             // auth sign
             Dictionary<string, object> message = new Dictionary<string, object>() {
                 { "op", "login" },
-                { "args", new List<object> {json(new Dictionary<string, object>() {
+                { "args", new List<object> {this.json(new Dictionary<string, object>() {
     { "type", "login" },
     { "topics", new List<object>() {"ws_zk_accounts_v3"} },
     { "httpMethod", http_method },

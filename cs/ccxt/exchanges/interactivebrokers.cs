@@ -4830,7 +4830,7 @@ public partial class interactivebrokers : Exchange
         {
             return null;
         }
-        string? dayPart = ((string)(parts != null && 2 < parts.Count ? parts[2] : null));
+        string? dayPart = this.safeString(parts, 2, "");
         string day = (dayPart as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"));
         string? offset = this.safeString(offsets, (parts != null && 4 < parts.Count ? parts[4] : null), "+00:00");
         return this.parse8601(((object)((parts != null && 5 < parts.Count ? parts[5] : null) == null ? null : (parts != null && 5 < parts.Count ? parts[5] : null) + "-" + month + "-" + day + "T" + (string)(object)((parts != null && 3 < parts.Count ? parts[3] : null)) + offset)));

@@ -2246,7 +2246,7 @@ public partial class woofipro : Exchange
         bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
-        bool postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, false, parameters);
         string orderQtyKey = isConditional ? "quantity" : "order_quantity";
         string priceKey = isConditional ? "price" : "order_price";
         string typeKey = isConditional ? "type" : "order_type";
@@ -2503,7 +2503,7 @@ public partial class woofipro : Exchange
             string orderType = type.ToUpper();
             string? timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
             bool isMarket = orderType == "MARKET";
-            bool postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
+            bool postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly)
             {
                 request["order_type"] = "POST_ONLY";

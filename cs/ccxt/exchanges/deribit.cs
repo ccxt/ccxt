@@ -2522,7 +2522,7 @@ public partial class deribit : Exchange
         bool isLimitOrder = ((type == "limit")) || isStopLimit || isTakeLimit;
         bool isMarketOrder = ((type == "market")) || isStopMarket || isTakeMarket;
         bool? exchangeSpecificPostOnly = this.safeBool(parameters, "post_only");
-        bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, (exchangeSpecificPostOnly == true), parameters);
         if (isLimitOrder)
         {
             request["type"] = "limit";

@@ -2155,7 +2155,7 @@ public partial class modetrade : Exchange
         bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
-        bool postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, false, parameters);
         string orderQtyKey = "order_quantity";
         if (isConditional)
         {
@@ -2446,7 +2446,7 @@ public partial class modetrade : Exchange
             string orderType = type.ToUpper();
             string? timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
             bool isMarket = orderType == "MARKET";
-            bool postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
+            bool postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (postOnly)
             {
                 request["order_type"] = "POST_ONLY";

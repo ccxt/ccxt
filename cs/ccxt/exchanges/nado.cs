@@ -3282,7 +3282,7 @@ public partial class nado : Exchange
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         parameters ??= new Dictionary<string, object>();
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        bool postOnly = this.isPostOnly(false, null, parameters);
+        bool postOnly = this.isPostOnly(false, false, parameters);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         int orderType = 0;
         if (timeInForce == "IOC")

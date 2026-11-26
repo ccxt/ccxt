@@ -2438,7 +2438,7 @@ public partial class grvt : Exchange
             { "reduce_only", isReduceOnly },
         };
         string? timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-        bool postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
+        bool postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
         if (postOnly)
         {
             orderRequest["post_only"] = true;
@@ -3746,10 +3746,12 @@ public partial class grvt : Exchange
         string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         string privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.hash(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, null);
+        string? rHex = this.safeString(signature, "r", "");
+        string? sHex = this.safeString(signature, "s", "");
         Dictionary<string, object> signatureEntry = new Dictionary<string, object>() {
             { "signer", null },
-            { "r", this.formatSignatureRS((signature != null && signature.ContainsKey("r") ? signature["r"] : null)) },
-            { "s", this.formatSignatureRS((signature != null && signature.ContainsKey("s") ? signature["s"] : null)) },
+            { "r", this.formatSignatureRS(rHex) },
+            { "s", this.formatSignatureRS(sHex) },
             { "v", this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null)) },
             { "expiration", (requestSignature != null && requestSignature.ContainsKey("expiration") ? requestSignature["expiration"] : null) },
             { "nonce", (requestSignature != null && requestSignature.ContainsKey("nonce") ? requestSignature["nonce"] : null) },
@@ -3766,7 +3768,7 @@ public partial class grvt : Exchange
         return ((Dictionary<string, object>)((object)(request)));
     }
 
-    public virtual string? formatSignatureRS(object value)
+    public virtual string? formatSignatureRS(string value)
     {
         string padded = (value as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         if (padded.StartsWith("0x"))

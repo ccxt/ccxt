@@ -1736,7 +1736,7 @@ public partial class woo : Exchange
         bool isConditional = isTrailing || (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((this.safeList(paramsMarginMode, "childOrders") != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(paramsMarginMode, "timeInForce");
-        bool postOnly = this.isPostOnly(isMarket, null, paramsMarginMode);
+        bool postOnly = this.isPostOnly(isMarket, false, paramsMarginMode);
         string clientOrderIdKey = "clientOrderId";
         if (isConditional)
         {

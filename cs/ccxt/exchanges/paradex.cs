@@ -2437,7 +2437,7 @@ public partial class paradex : Exchange
         bool isStopLossOrder = ((stopLossPrice != null));
         bool isStopOrder = ((triggerPrice != null)) || isTakeProfitOrder || isStopLossOrder;
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        bool postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, false, parameters);
         string? instruction = "GTC";
         if ((timeInForce != null))
         {

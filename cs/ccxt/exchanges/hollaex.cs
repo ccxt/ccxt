@@ -1469,7 +1469,7 @@ public partial class hollaex : Exchange
         IDictionary<string, object> meta = this.safeDict(parameters, "meta", new Dictionary<string, object>() {});
         bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = (type == "market");
-        bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, (exchangeSpecificParam == true), parameters);
         if (!isMarketOrder)
         {
             request["price"] = this.priceToPrecision(symbol, price);

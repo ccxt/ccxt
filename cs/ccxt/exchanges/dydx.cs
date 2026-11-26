@@ -1543,7 +1543,7 @@ public partial class dydx : Exchange
         bool isConditional = (triggerPrice != null) || (stopLossPrice != null) || (takeProfitPrice != null);
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
-        bool postOnly = this.isPostOnly(isMarket, null, paramsSubAccountId);
+        bool postOnly = this.isPostOnly(isMarket, false, paramsSubAccountId);
         string? amountStr = this.amountToPrecision(symbol, amount);
         string? priceStr = this.priceToPrecision(symbol, price);
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
@@ -2175,7 +2175,12 @@ public partial class dydx : Exchange
             gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
             denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
         }
-        double gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
+        double? gasLimitNum = this.parseNumber(Precise.stringMul(gasUsed, defaultFeeMultiplier));
+        if ((gasLimitNum == null))
+        {
+            throw new ExchangeError ((this.id + " estimateTxFee() missing gasLimit")) ;
+        }
+        double gasLimit = Math.Ceiling(Convert.ToDouble(gasLimitNum));
         string? feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
         if ((feeAmount == null))
         {
@@ -2183,7 +2188,11 @@ public partial class dydx : Exchange
         }
         if (feeAmount.IndexOf(".", StringComparison.Ordinal) >= 0)
         {
-            feeAmount = this.numberToString(Math.Ceiling(Convert.ToDouble(this.parseToNumeric(feeAmount))));
+            double? feeAmountNum = this.parseNumber(feeAmount);
+            if ((feeAmountNum != null))
+            {
+                feeAmount = this.numberToString(Math.Ceiling(Convert.ToDouble(feeAmountNum)));
+            }
         }
         Dictionary<string, object> feeObj = new Dictionary<string, object>() {
             { "amount", feeAmount },
