@@ -823,6 +823,141 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "fills of twap orders",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "twap": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "fill": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.435",
+                            "side": "B",
+                            "startPosition": "26.86",
+                            "sz": "3.53",
+                            "time": 1795692771591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037719
+                        },
+                        "twapId": 3156
+                    },
+                    {
+                        "fill": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.512",
+                            "side": "B",
+                            "startPosition": "30.39",
+                            "sz": "3.53",
+                            "time": 1795692801591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037720
+                        },
+                        "twapId": 3156
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.435",
+                            "side": "B",
+                            "startPosition": "26.86",
+                            "sz": "3.53",
+                            "time": 1795692771591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037719,
+                            "twapId": "3156"
+                        },
+                        "timestamp": 1795692771591,
+                        "datetime": "2026-11-26T11:32:51.591Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "118906512037719",
+                        "order": "90542681",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 70.435,
+                        "amount": 3.53,
+                        "cost": 248.63555,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.512",
+                            "side": "B",
+                            "startPosition": "30.39",
+                            "sz": "3.53",
+                            "time": 1795692801591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037720,
+                            "twapId": "3156"
+                        },
+                        "timestamp": 1795692801591,
+                        "datetime": "2026-11-26T11:33:21.591Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "118906512037720",
+                        "order": "90542681",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 70.512,
+                        "amount": 3.53,
+                        "cost": 248.90736,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -2858,6 +2993,331 @@
                         "USDH": 0.00621736
                     }
                 }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "predicted funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC"
+                    ],
+                    {
+                        "method": "predictedFundings"
+                    }
+                ],
+                "httpResponse": [
+                    [
+                        "BTC",
+                        [
+                            [
+                                "BinPerp",
+                                {
+                                    "fundingRate": "0.00007851",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            ],
+                            [
+                                "HlPerp",
+                                {
+                                    "fundingRate": "-0.0000054226",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                }
+                            ],
+                            [
+                                "BybitPerp",
+                                {
+                                    "fundingRate": "0.00008697",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            ]
+                        ]
+                    ],
+                    [
+                        "SOL",
+                        [
+                            [
+                                "BinPerp",
+                                {
+                                    "fundingRate": "0.0",
+                                    "nextFundingTime": 1795694400000
+                                }
+                            ],
+                            [
+                                "HlPerp",
+                                {
+                                    "fundingRate": "0.0000125",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                }
+                            ],
+                            [
+                                "BybitPerp",
+                                null
+                            ]
+                        ]
+                    ]
+                ],
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "name": "BTC",
+                            "predictedFundings": {
+                                "BinPerp": {
+                                    "fundingRate": "0.00007851",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                },
+                                "HlPerp": {
+                                    "fundingRate": "-0.0000054226",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                },
+                                "BybitPerp": {
+                                    "fundingRate": "0.00008697",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            }
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": null,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": -5.4226e-06,
+                        "nextFundingTimestamp": 1795690800000,
+                        "nextFundingDatetime": "2026-11-26T11:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    },
+                    "SOL/USDC:USDC": {
+                        "info": {
+                            "name": "SOL",
+                            "predictedFundings": {
+                                "BinPerp": {
+                                    "fundingRate": "0.0",
+                                    "nextFundingTime": 1795694400000
+                                },
+                                "HlPerp": {
+                                    "fundingRate": "0.0000125",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                },
+                                "BybitPerp": null
+                            }
+                        },
+                        "symbol": "SOL/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": null,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": 1.25e-05,
+                        "nextFundingTimestamp": 1795690800000,
+                        "nextFundingDatetime": "2026-11-26T11:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
+                }
+            }
+        ],
+        "fetchCrossBorrowRates": [
+            {
+                "description": "borrow rates of the borrow/lend protocol",
+                "method": "fetchCrossBorrowRates",
+                "input": [],
+                "httpResponse": [
+                    [
+                        0,
+                        {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0249808267",
+                            "balance": "284714721.5832400322",
+                            "utilization": "0.5551294814",
+                            "oraclePx": "1.0",
+                            "ltv": "0.0",
+                            "totalSupplied": "639994288.7804760933",
+                            "totalBorrowed": "355279697.6056296229"
+                        }
+                    ],
+                    [
+                        150,
+                        {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0",
+                            "balance": "15645035.9247208908",
+                            "utilization": "0.0",
+                            "oraclePx": "60.659",
+                            "ltv": "0.65",
+                            "totalSupplied": "15645035.9247208908",
+                            "totalBorrowed": "0.0"
+                        }
+                    ]
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "currency": "USDC",
+                        "rate": 0.05,
+                        "period": 31536000000,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0249808267",
+                            "balance": "284714721.5832400322",
+                            "utilization": "0.5551294814",
+                            "oraclePx": "1.0",
+                            "ltv": "0.0",
+                            "totalSupplied": "639994288.7804760933",
+                            "totalBorrowed": "355279697.6056296229",
+                            "token": "0"
+                        }
+                    },
+                    "HYPE": {
+                        "currency": "HYPE",
+                        "rate": 0.05,
+                        "period": 31536000000,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0",
+                            "balance": "15645035.9247208908",
+                            "utilization": "0.0",
+                            "oraclePx": "60.659",
+                            "ltv": "0.65",
+                            "totalSupplied": "15645035.9247208908",
+                            "totalBorrowed": "0.0",
+                            "token": "150"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "borrow rate of a currency",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": {
+                    "borrowYearlyRate": "0.05",
+                    "supplyYearlyRate": "0.0249808267",
+                    "balance": "284714721.5832400322",
+                    "utilization": "0.5551294814",
+                    "oraclePx": "1.0",
+                    "ltv": "0.0",
+                    "totalSupplied": "639994288.7804760933",
+                    "totalBorrowed": "355279697.6056296229"
+                },
+                "parsedResponse": {
+                    "currency": "USDC",
+                    "rate": 0.05,
+                    "period": 31536000000,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "borrowYearlyRate": "0.05",
+                        "supplyYearlyRate": "0.0249808267",
+                        "balance": "284714721.5832400322",
+                        "utilization": "0.5551294814",
+                        "oraclePx": "1.0",
+                        "ltv": "0.0",
+                        "totalSupplied": "639994288.7804760933",
+                        "totalBorrowed": "355279697.6056296229",
+                        "token": "0"
+                    }
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest, tokens with nothing borrowed are skipped",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "tokenToState": [
+                        [
+                            0,
+                            {
+                                "borrow": {
+                                    "basis": "100.0",
+                                    "value": "100.25"
+                                },
+                                "supply": {
+                                    "basis": "0.0",
+                                    "value": "0.0"
+                                }
+                            }
+                        ],
+                        [
+                            150,
+                            {
+                                "borrow": {
+                                    "basis": "0.0",
+                                    "value": "0.0"
+                                },
+                                "supply": {
+                                    "basis": "2.0",
+                                    "value": "2.01"
+                                }
+                            }
+                        ]
+                    ],
+                    "health": "healthy",
+                    "healthFactor": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "borrow": {
+                                "basis": "100.0",
+                                "value": "100.25"
+                            },
+                            "supply": {
+                                "basis": "0.0",
+                                "value": "0.0"
+                            },
+                            "token": "0"
+                        },
+                        "symbol": null,
+                        "currency": "USDC",
+                        "interest": 0.25,
+                        "interestRate": null,
+                        "amountBorrowed": 100.25,
+                        "marginMode": "cross",
+                        "timestamp": null,
+                        "datetime": null
+                    }
+                ]
             }
         ],
         "fetchAccounts": [

@@ -16,6 +16,51 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCrossBorrowRates": [
+            {
+                "description": "borrow rates of the borrow/lend protocol",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [],
+                "output": {
+                    "type": "allBorrowLendReserveStates"
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "borrow rate of a currency",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "USDC"
+                ],
+                "output": {
+                    "type": "borrowLendReserveState",
+                    "token": 0
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest, tokens with nothing borrowed are skipped",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "borrowLendUserState",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "fetch the sub-accounts of a user",
@@ -1254,6 +1299,23 @@
                     ]
                 ],
                 "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            },
+            {
+                "description": "predicted funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC"
+                    ],
+                    {
+                        "method": "predictedFundings"
+                    }
+                ],
+                "output": {
+                    "type": "predictedFundings"
+                }
             }
         ],
         "fetchOpenInterest": [
@@ -1456,6 +1518,21 @@
                     }
                 ],
                 "output": { "type": "userFills", "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A" }
+            },
+            {
+                "description": "fills of twap orders",
+                "method": "fetchMyTrades",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "twap": true
+                    }
+                ],
+                "output": "{\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"type\":\"userTwapSliceFills\"}"
             }
         ],
         "fetchPosition": [

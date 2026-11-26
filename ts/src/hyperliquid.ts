@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Account, Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Account, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -56,14 +56,14 @@ export default class hyperliquid extends Exchange {
                 'editOrders': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -1372,7 +1372,9 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+     * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
@@ -1380,6 +1382,38 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const method = this.safeString (this.handleOptionAndParams (params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 0);
+        const paramsMethod: Dict = this.safeDict (this.handleOptionAndParams (params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 1, {});
+        if (method === 'predictedFundings') {
+            const predictedResponse = await this.publicPostInfo (this.extend ({ 'type': 'predictedFundings' }, paramsMethod));
+            //
+            //     [
+            //         [
+            //             "BTC",
+            //             [
+            //                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            //                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            //                 [ "BybitPerp", null ]
+            //             ]
+            //         ]
+            //     ]
+            //
+            const predicted: List = [];
+            if (Array.isArray (predictedResponse)) {
+                for (let i = 0; i < predictedResponse.length; i++) {
+                    const coinEntry = this.safeList (predictedResponse, i, []);
+                    const venues = this.safeList (coinEntry, 1, []);
+                    const venuesByName: Dict = {};
+                    for (let j = 0; j < venues.length; j++) {
+                        const venue = this.safeList (venues, j, []);
+                        const venueName = this.safeString (venue, 0, '');
+                        venuesByName[venueName] = this.safeDict (venue, 1);
+                    }
+                    predicted.push ({ 'name': this.safeString (coinEntry, 0), 'predictedFundings': venuesByName });
+                }
+            }
+            return this.parseFundingRates (predicted, symbolsNormalized);
+        }
         const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
@@ -1387,7 +1421,7 @@ export default class hyperliquid extends Exchange {
         if (dexName !== undefined) {
             request['dex'] = dexName;
         }
-        const response = await this.publicPostInfo (this.extend (request, params));
+        const response = await this.publicPostInfo (this.extend (request, paramsMethod));
         //
         //     [
         //         {
@@ -1457,6 +1491,42 @@ export default class hyperliquid extends Exchange {
         const base = this.safeString (info, 'name');
         const marketId = this.coinToMarketId (base);
         const symbol = this.safeSymbol (marketId, market);
+        const predictedFundings = this.safeDict (info, 'predictedFundings');
+        if (predictedFundings !== undefined) {
+            //
+            //     {
+            //         "name": "BTC",
+            //         "predictedFundings": {
+            //             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            //             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            //             "BybitPerp": null
+            //         }
+            //     }
+            //
+            const predictedFunding = this.safeDict (predictedFundings, 'HlPerp', {});
+            const nextFundingTimestamp = this.safeInteger (predictedFunding, 'nextFundingTime');
+            const intervalHours = this.safeString (predictedFunding, 'fundingIntervalHours', '1');
+            return {
+                'info': info,
+                'symbol': symbol,
+                'markPrice': undefined,
+                'indexPrice': undefined,
+                'interestRate': undefined,
+                'estimatedSettlePrice': undefined,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'fundingRate': undefined,
+                'fundingTimestamp': undefined,
+                'fundingDatetime': undefined,
+                'nextFundingRate': this.safeNumber (predictedFunding, 'fundingRate'),
+                'nextFundingTimestamp': nextFundingTimestamp,
+                'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+                'previousFundingRate': undefined,
+                'previousFundingTimestamp': undefined,
+                'previousFundingDatetime': undefined,
+                'interval': intervalHours + 'h',
+            } as FundingRate;
+        }
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'markPx');
         const oraclePx = this.safeNumber (info, 'oraclePx');
@@ -3682,12 +3752,14 @@ export default class hyperliquid extends Exchange {
      * @description fetch all trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -3703,15 +3775,18 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'user': userAddress,
         };
-        if (since !== undefined) {
+        const twap = this.safeBool (paramsPublicAddress, 'twap', false);
+        const until = this.safeInteger (paramsPublicAddress, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPublicAddress, [ 'until', 'twap' ]);
+        if (twap) {
+            request['type'] = 'userTwapSliceFills';
+        } else if (since !== undefined) {
             request['type'] = 'userFillsByTime';
             request['startTime'] = since;
         } else {
             request['type'] = 'userFills';
         }
-        const until = this.safeInteger (paramsPublicAddress, 'until');
-        const paramsOmitted: Dict = this.omit (paramsPublicAddress, 'until');
-        if (until !== undefined) {
+        if ((until !== undefined) && !twap) {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo (this.extend (request, paramsOmitted));
@@ -3739,6 +3814,38 @@ export default class hyperliquid extends Exchange {
         let myFills: Dict[] = [];
         if (Array.isArray (response)) {
             myFills = response;
+        }
+        if (twap) {
+            //
+            //     [
+            //         {
+            //             "fill": {
+            //                 "closedPnl": "0.0",
+            //                 "coin": "AVAX",
+            //                 "crossed": true,
+            //                 "dir": "Open Long",
+            //                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //                 "oid": 90542681,
+            //                 "px": "18.435",
+            //                 "side": "B",
+            //                 "startPosition": "26.86",
+            //                 "sz": "93.53",
+            //                 "time": 1681222254710,
+            //                 "fee": "0.01",
+            //                 "feeToken": "USDC",
+            //                 "tid": 118906512037719
+            //             },
+            //             "twapId": 3156
+            //         }
+            //     ]
+            //
+            const twapFills: Dict[] = [];
+            for (let i = 0; i < myFills.length; i++) {
+                const twapFill = this.safeDict (myFills, i, {});
+                const fill = this.safeDict (twapFill, 'fill', {});
+                twapFills.push (this.extend (fill, { 'twapId': this.safeString (twapFill, 'twapId') }));
+            }
+            myFills = twapFills;
         }
         return this.parseTrades (myFills, market, since, limit);
     }
@@ -5430,6 +5537,214 @@ export default class hyperliquid extends Exchange {
             'code': undefined,
             'info': account,
         };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    override async fetchCrossBorrowRates (params: Dict = {}): Promise<CrossBorrowRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {
+            'type': 'allBorrowLendReserveStates',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             0,
+        //             {
+        //                 "borrowYearlyRate": "0.05",
+        //                 "supplyYearlyRate": "0.0249808267",
+        //                 "balance": "284714721.5832400322",
+        //                 "utilization": "0.5551294814",
+        //                 "oraclePx": "1.0",
+        //                 "ltv": "0.0",
+        //                 "totalSupplied": "639994288.7804760933",
+        //                 "totalBorrowed": "355279697.6056296229"
+        //             }
+        //         ]
+        //     ]
+        //
+        const rates: Dict = {};
+        if (Array.isArray (response)) {
+            for (let i = 0; i < response.length; i++) {
+                const reserve = this.safeList (response, i, []);
+                const reserveState = this.safeDict (reserve, 1, {});
+                const rate = this.parseBorrowRate (this.extend (reserveState, { 'token': this.safeString (reserve, 0) }));
+                const code = this.safeString (rate, 'currency', '');
+                rates[code] = rate;
+            }
+        }
+        return rates as CrossBorrowRates;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRate
+     * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'type': 'borrowLendReserveState',
+            'token': this.parseToInt (currency['id']),
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0008245002",
+        //         "balance": "3245939.4732256099",
+        //         "utilization": "0.018322226",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "3306509.7335290499",
+        //         "totalBorrowed": "60582.61869494"
+        //     }
+        //
+        return this.parseBorrowRate (this.extend (response as Dict, { 'token': currency['id'] }), currency) as CrossBorrowRate;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#tokenIndexToCurrencyCode
+     * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+     * @param {string} tokenIndex the index of the token
+     * @returns {string} the unified currency code
+     */
+    tokenIndexToCurrencyCode (tokenIndex: Str): Str {
+        const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
+        const tokenName = this.safeString (cachedCurrencies, tokenIndex);
+        if (tokenName !== undefined) {
+            return this.safeCurrencyCode (tokenName);
+        }
+        // the cache is filled by fetchCurrencies, look the index up in the currencies when they were set from elsewhere
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            if (this.safeString (this.currencies[code], 'id') === tokenIndex) {
+                return code;
+            }
+        }
+        return this.safeCurrencyCode (tokenIndex);
+    }
+
+    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0249808267",
+        //         "balance": "284714721.5832400322",
+        //         "utilization": "0.5551294814",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "639994288.7804760933",
+        //         "totalBorrowed": "355279697.6056296229"
+        //     }
+        //
+        return {
+            'currency': this.tokenIndexToCurrencyCode (this.safeString (info, 'token')),
+            'rate': this.safeNumber (info, 'borrowYearlyRate'),
+            'period': 31536000000, // the rate is yearly
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchBorrowInterest
+     * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+     * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchBorrowInterest', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchBorrowInterest', params), 1, {});
+        const request: Dict = {
+            'type': 'borrowLendUserState',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "tokenToState": [
+        //             [
+        //                 0,
+        //                 {
+        //                     "borrow": { "basis": "100.0", "value": "100.25" },
+        //                     "supply": { "basis": "0.0", "value": "0.0" }
+        //                 }
+        //             ]
+        //         ],
+        //         "health": "healthy",
+        //         "healthFactor": null
+        //     }
+        //
+        const tokenToState = this.safeList (response, 'tokenToState', []);
+        const interests: List = [];
+        for (let i = 0; i < tokenToState.length; i++) {
+            const tokenState = this.safeList (tokenToState, i, []);
+            const state = this.safeDict (tokenState, 1, {});
+            const borrow = this.safeDict (state, 'borrow', {});
+            // tokens that are only supplied have nothing borrowed
+            if (Precise.stringGt (this.safeString (borrow, 'value', '0'), '0')) {
+                interests.push (this.extend (state, { 'token': this.safeString (tokenState, 0) }));
+            }
+        }
+        const parsed = this.parseBorrowInterests (interests);
+        return this.filterByCurrencySinceLimit (parsed, code, undefined, limit) as BorrowInterest[];
+    }
+
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrow": { "basis": "100.0", "value": "100.25" },
+        //         "supply": { "basis": "0.0", "value": "0.0" }
+        //     }
+        //
+        const borrow = this.safeDict (info, 'borrow', {});
+        const borrowed = this.safeString (borrow, 'value');
+        // the basis is the amount borrowed, the value includes the interest accrued since
+        const interest = Precise.stringSub (borrowed, this.safeString (borrow, 'basis'));
+        return {
+            'info': info,
+            'symbol': undefined,
+            'currency': this.tokenIndexToCurrencyCode (this.safeString (info, 'token')),
+            'interest': this.parseNumber (interest),
+            'interestRate': undefined,
+            'amountBorrowed': this.parseNumber (borrowed),
+            'marginMode': 'cross',
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as BorrowInterest;
     }
 
     /**
