@@ -1032,9 +1032,46 @@ export default class bullish extends bullishRest {
         }
     }
 
+    handleUnSubscriptionError (client: Client, message: Dict) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "1",
+        //         "error": {
+        //             "code": "-32602",
+        //             "errorCode": "29013",
+        //             "errorCodeName": "'abcde' is not a valid topic"
+        //         }
+        //     }
+        //
+        const messageId = this.safeString (message, 'id');
+        if ((messageId === undefined) || !(messageId in client.subscriptions)) {
+            return;
+        }
+        const subscription = this.safeDict (client.subscriptions, messageId);
+        if ((subscription === undefined) || !this.safeBool (subscription, 'unsubscribe', false)) {
+            return;
+        }
+        // the subscription stays active, only the pending unsubscription is dropped and rejected
+        delete client.subscriptions[messageId];
+        const unsubHash = this.safeString (subscription, 'messageHash');
+        const errorResponse = this.safeDict (message, 'error', {});
+        const feedback = this.id + ' ' + this.json (errorResponse);
+        try {
+            const errorCode = this.safeString (errorResponse, 'errorCode');
+            const errorCodeName = this.safeString (errorResponse, 'errorCodeName');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorCodeName, feedback);
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            client.reject (e, unsubHash);
+        }
+    }
+
     override handleMessage (client: Client, message: Dict) {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result');
+        const errorResponse = this.safeDict (message, 'error');
         if (result !== undefined) {
             const response = this.safeString (result, 'message');
             if (response === 'Keep alive pong') {
@@ -1047,6 +1084,8 @@ export default class bullish extends bullishRest {
                     this.handleUnSubscription (client, subscription);
                 }
             }
+        } else if (errorResponse !== undefined) {
+            this.handleUnSubscriptionError (client, message);
         } else if (dataType !== undefined) {
             if (dataType === 'V1TAAnonymousTradeUpdate') {
                 this.handleTrades (client, message);
