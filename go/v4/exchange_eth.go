@@ -73,8 +73,13 @@ type OrderHyperliquid struct {
 type OrderMessage struct {
 	Type     string             `json:"type" msgpack:"type"`
 	Orders   []OrderHyperliquid `json:"orders" msgpack:"orders"`
-	Grouping string             `json:"grouping" msgpack:"grouping"`
+	Grouping any                `json:"grouping" msgpack:"grouping"` // "na" | "normalTpsl" | "positionTpsl", or OrderPriorityGrouping
 	Builder  *Builder           `json:"builder" msgpack:"builder,omitempty"`
+}
+
+// order priority fee, sent in place of the grouping string: {"p": rate in units of 1e-8}
+type OrderPriorityGrouping struct {
+	P int `json:"p" msgpack:"p"`
 }
 
 type Builder struct {
@@ -549,6 +554,10 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		err := decodeHyperliquidMessage(converted, &orderMsg)
 		if err != nil {
 			panic(err)
+		}
+		// a JSON object decodes into a map with float64 numbers, the rate must be hashed as an integer
+		if priority, ok := orderMsg.Grouping.(map[string]any); ok {
+			orderMsg.Grouping = OrderPriorityGrouping{P: int(SafeInt(priority["p"]))}
 		}
 
 		return msgpackEncode(orderMsg)

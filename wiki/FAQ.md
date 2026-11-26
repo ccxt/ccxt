@@ -904,6 +904,46 @@ exchange = ccxt.prediction.hyperliquid({
 
 The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
 
+## How to use priority fees on Hyperliquid?
+
+Hyperliquid lets latency-sensitive traders pay an [order priority fee](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees) to get an order processed sooner. Pass `priorityFee` in the `params` of `createOrder` or `createOrders` (and their WebSocket versions).
+
+`priorityFee` is an integer rate in units of `1e-8`, so `10000` is 1 basis point (0.01%) of the order notional:
+
+```Python
+exchange = ccxt.hyperliquid({
+    'walletAddress': 'YOUR_WALLET_ADDRESS',
+    'privateKey': 'YOUR_PRIVATE_KEY',
+})
+
+# market orders are sent as IOC, so they can carry a priority fee
+order = exchange.create_order('SOL/USDC:USDC', 'market', 'buy', 0.2, 150, {'priorityFee': 10000})
+
+# an IOC limit order
+order = exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 0.2, 150, {'timeInForce': 'IOC', 'priorityFee': 10000})
+
+# a post-only order
+order = exchange.create_order('SOL/USDC:USDC', 'limit', 'buy', 0.2, 140, {'postOnly': True, 'priorityFee': 10000})
+
+# one fee for a whole batch
+orders = exchange.create_orders([
+    {'symbol': 'SOL/USDC:USDC', 'type': 'limit', 'side': 'buy', 'amount': 0.2, 'price': 140, 'params': {'postOnly': True}},
+    {'symbol': 'SOL/USDC:USDC', 'type': 'limit', 'side': 'buy', 'amount': 0.2, 'price': 139, 'params': {'postOnly': True}},
+], {'priorityFee': 10000})
+```
+
+Rules enforced by the exchange (CCXT checks the order types before sending):
+
+- every order in the request must be IOC (market orders included), or every order must be post-only and not reduce-only; a plain GTC limit order cannot carry a priority fee
+- the fee applies to the whole request, so it cannot be combined with attached `stopLoss` / `takeProfit` orders, and all orders in `createOrders` must share the same value
+- it is not available on outcome (prediction) markets, and `editOrder` does not support it
+
+How the fee is charged:
+
+- it is paid in HYPE from the **undelegated staking balance**, not from the trading balance; without one the order is rejected with `InsufficientFunds` (`Insufficient delegatable balance for priority order`)
+- IOC orders pay on the filled notional, so an IOC that does not fill pays nothing; the fee shortens the time to execution, linearly up to 8 bps (`priorityFee = 80000`), and above that it only breaks ties between orders
+- post-only orders pay on the resting notional as soon as they are placed, whether or not they fill later; the fee improves the queue position among orders placed within the same 400 ms
+
 ## How to fetch an RPI orderbook?
 
 OKX publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
