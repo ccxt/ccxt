@@ -154,37 +154,40 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unsubscribePublic(String url, String topic, String messageHash, String symbol, Object request, Object parameters)
+    public CompletableFuture<Object> unsubscribePublic(String url, String topic, String messageHash, String symbol, Map<String, Object> request, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unsubscribePublicCore(url, topic, messageHash, symbol, request, parameters));
+    }
+
+    private Object unsubscribePublicCore(String url, String topic, String messageHash, String symbol, Map<String, Object> request, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            if (java.util.Objects.equals(wsUrl, null))
-            {
-                throw new ExchangeError((this.id + " unsubscribePublic() has no public websocket url")) ;
-            }
-            String requestId = String.valueOf(this.requestId());
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "type", "command" );
-                put( "method", "unsubscribe" );
-                put( "params", request );
-                put( "id", requestId );
-            }};
-            String unsubHash = ("unsubscribe::" + messageHash);
-            List<String> symbols = new ArrayList<String>(Arrays.asList(symbol));
-            // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "unsubscribe", true );
-                put( "id", requestId );
-                put( "topic", topic );
-                put( "symbols", symbols );
-                put( "subMessageHash", messageHash );
-                put( "messageHash", unsubHash );
-            }};
-            return (this.watch((wsUrl + url), unsubHash, this.deepExtend(message, parameters), requestId, subscription)).join();
-        });
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String wsUrl = this.safeString(wsUrls, "public");
+        if (java.util.Objects.equals(wsUrl, null))
+        {
+            throw new ExchangeError((this.id + " unsubscribePublic() has no public websocket url")) ;
+        }
+        String requestId = String.valueOf(this.requestId());
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "type", "command" );
+            put( "method", "unsubscribe" );
+            put( "params", request );
+            put( "id", requestId );
+        }};
+        String unsubHash = ("unsubscribe::" + messageHash);
+        List<String> symbols = new ArrayList<String>(Arrays.asList(symbol));
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "unsubscribe", true );
+            put( "id", requestId );
+            put( "topic", topic );
+            put( "symbols", symbols );
+            put( "subMessageHash", messageHash );
+            put( "messageHash", unsubHash );
+        }};
+        return (this.watch((wsUrl + url), unsubHash, this.deepExtend(message, parameters), requestId, subscription)).join();
 
     }
 
@@ -204,10 +207,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         String subHash = this.safeString(subscription, "subMessageHash");
         String unsubHash = this.safeString(subscription, "messageHash");
         Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
-        this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), subHashIsPrefix);
+        this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache(subscription);
         String requestId = this.safeString(subscription, "id", "");
-        if (client.subscriptions.containsKey(requestId))
+        if (!java.util.Objects.equals(this.safeDict(client.subscriptions, requestId, null), null))
         {
             client.subscriptions.remove((String)requestId);
         }
@@ -254,46 +257,55 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unsubscribePrivate(String topic, String subscribeHash, Object request, Object parameters)
+    public CompletableFuture<Object> unsubscribePrivate(String topic, String subscribeHash, Map<String, Object> request, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unsubscribePrivateCore(topic, subscribeHash, request, parameters));
+    }
+
+    private Object unsubscribePrivateCore(String topic, String subscribeHash, Map<String, Object> request, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
-            String token = (this.handleToken(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> cookies = new HashMap<String, Object>() {{
-                put( "JWT_COOKIE", token );
-            }};
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "cookies", cookies);
-            String tradingAccountId = this.safeString(parameters, "tradingAccountId");
-            Object paramsOmitted = parameters;
-            Object requestParams = request;
-            if (!java.util.Objects.equals(tradingAccountId, null))
-            {
-                Map<String, Object> accountRequest = new HashMap<String, Object>();
-                accountRequest.put("tradingAccountId", tradingAccountId);
-                paramsOmitted = this.omit(parameters, "tradingAccountId");
-                requestParams = this.extend(request, accountRequest);
-            }
-            String requestId = String.valueOf(this.requestId());
-            Map<String, Object> message = new HashMap<String, Object>();
-            message.put("jsonrpc", "2.0");
-            message.put("type", "command");
-            message.put("method", "unsubscribe");
-            message.put("params", requestParams);
-            message.put("id", requestId);
-            String unsubHash = ("unsubscribe::" + subscribeHash);
-            // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
-            Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "unsubscribe", true );
-                put( "id", requestId );
-                put( "topic", topic );
-                put( "subMessageHash", subscribeHash );
-                put( "subHashIsPrefix", true );
-                put( "messageHash", unsubHash );
-            }};
-            return (this.watch(url, unsubHash, this.deepExtend(message, paramsOmitted), requestId, subscription)).join();
-        });
+        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        String url = this.safeString(wsUrls, "private");
+        if (java.util.Objects.equals(url, null))
+        {
+            throw new ExchangeError((this.id + " unsubscribePrivate() has no private websocket url")) ;
+        }
+        String token = (this.handleToken(new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> cookies = new HashMap<String, Object>() {{
+            put( "JWT_COOKIE", token );
+        }};
+        Map<String, Object> wsDict = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        wsDict.put("cookies", cookies);
+        this.options.put("ws", wsDict);
+        String tradingAccountId = this.safeString(parameters, "tradingAccountId");
+        Map<String, Object> paramsOmitted = parameters;
+        Map<String, Object> requestParams = request;
+        if (!java.util.Objects.equals(tradingAccountId, null))
+        {
+            Map<String, Object> accountRequest = new HashMap<String, Object>();
+            accountRequest.put("tradingAccountId", tradingAccountId);
+            paramsOmitted = this.omit(parameters, "tradingAccountId");
+            requestParams = this.extend(request, accountRequest);
+        }
+        String requestId = String.valueOf(this.requestId());
+        Map<String, Object> message = new HashMap<String, Object>();
+        message.put("jsonrpc", "2.0");
+        message.put("type", "command");
+        message.put("method", "unsubscribe");
+        message.put("params", requestParams);
+        message.put("id", requestId);
+        String unsubHash = ("unsubscribe::" + subscribeHash);
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "unsubscribe", true );
+            put( "id", requestId );
+            put( "topic", topic );
+            put( "subMessageHash", subscribeHash );
+            put( "subHashIsPrefix", true );
+            put( "messageHash", unsubHash );
+        }};
+        return (this.watch(url, unsubHash, this.deepExtend(message, paramsOmitted), requestId, subscription)).join();
 
     }
 
@@ -348,24 +360,26 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      */
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String marketSymbol = this.safeString(market, "symbol", "");
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = ("trades::" + marketSymbol);
-            String url = "/trading-api/v1/market-data/trades";
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "topic", "anonymousTrades" );
-                put( "symbol", marketId );
-            }};
-            return (this.unsubscribePublic(url, "trades", messageHash, (String) (marketSymbol), request, parameters)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = ("trades::" + marketSymbol);
+        String url = "/trading-api/v1/market-data/trades";
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "topic", "anonymousTrades" );
+            put( "symbol", marketId );
+        }};
+        return (this.unsubscribePublic(url, "trades", messageHash, marketSymbol, request, parameters)).join();
 
     }
 
@@ -560,26 +574,28 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchOrderBook(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrderBookCore(symbol, parameters));
+    }
+
+    private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> market = this.market(symbol);
-            String marketSymbol = this.safeString(market, "symbol", "");
-            String marketId = this.safeString(market, "id", "");
-            String messageHash = ("orderbook::" + marketSymbol);
-            String url = "/trading-api/v1/market-data/orderbook";
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "topic", "l2Orderbook" );
-                put( "symbol", marketId );
-            }};
-            return (this.unsubscribePublic(url, "orderbook", messageHash, (String) (marketSymbol), request, parameters)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        String messageHash = ("orderbook::" + marketSymbol);
+        String url = "/trading-api/v1/market-data/orderbook";
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "topic", "l2Orderbook" );
+            put( "symbol", marketId );
+        }};
+        return (this.unsubscribePublic(url, "orderbook", messageHash, marketSymbol, request, parameters)).join();
 
     }
 
@@ -718,18 +734,20 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      */
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchOrdersCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "topic", "orders" );
-            }};
-            return (this.unsubscribePrivate("orders", "orders", request, parameters)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "topic", "orders" );
+        }};
+        return (this.unsubscribePrivate("orders", "orders", request, parameters)).join();
 
     }
 
@@ -884,18 +902,20 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      */
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchMyTradesCore(symbol, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchMyTradesCore(String symbol, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "topic", "trades" );
-            }};
-            return (this.unsubscribePrivate("myTrades", "myTrades", request, parameters)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "topic", "trades" );
+        }};
+        return (this.unsubscribePrivate("myTrades", "myTrades", request, parameters)).join();
 
     }
 
@@ -1159,18 +1179,20 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
      */
     public CompletableFuture<Object> unWatchPositions(List<String> symbols, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.unWatchPositionsCore(symbols, parameters));
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object unWatchPositionsCore(List<String> symbols, Map<String, Object> parameters)
+    {
 
-            if (java.util.Objects.equals(this.markets, null))
-            {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "topic", "derivativesPositionsV2" );
-            }};
-            return (this.unsubscribePrivate("positions", "positions", request, parameters)).join();
-        });
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "topic", "derivativesPositionsV2" );
+        }};
+        return (this.unsubscribePrivate("positions", "positions", request, parameters)).join();
 
     }
 
@@ -1260,7 +1282,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String messageId = this.safeString(message, "id");
-        if ((java.util.Objects.equals(messageId, null)) || !(client.subscriptions.containsKey(messageId)))
+        if (java.util.Objects.equals(messageId, null))
         {
             return;
         }
@@ -1278,8 +1300,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             String errorCode = this.safeString(errorResponse, "errorCode");
             String errorCodeName = this.safeString(errorResponse, "errorCodeName");
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorCodeName), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorCodeName, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
@@ -1300,7 +1322,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 this.handlePong(client, message);
             }
             String messageId = this.safeString(message, "id");
-            if ((!java.util.Objects.equals(messageId, null)) && (client.subscriptions.containsKey(messageId)))
+            if (!java.util.Objects.equals(messageId, null))
             {
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, messageId, null);
                 if ((!java.util.Objects.equals(subscription, null)) && Boolean.TRUE.equals(this.safeBool(subscription, "unsubscribe", false)))
