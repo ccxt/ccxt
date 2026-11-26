@@ -992,14 +992,6 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
 //     }
 // }
 
-    public static String json(Object obj) {
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize JSON", e);
-        }
-    }
-
     // Printed by javaTranspiler's Math.abs arm; keep at 0 call sites.
     public static Object mathAbs(Object val) {
         if (val == null) {

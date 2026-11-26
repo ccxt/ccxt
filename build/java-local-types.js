@@ -9261,7 +9261,7 @@ function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
 }
 // ral-87j3: more non-null String calls, each proven from the hand-written Java it prints to: - `JSON.stringify (x)` prints Helpers.json (Jackson writeValueAsString: "null" for nul...
 const JAVA_NON_NULL_STRING_CASE_METHODS = new Set ([ 'toUpperCase', 'toLowerCase', 'trim' ]);
-const JAVA_NON_NULL_STRING_BASE_METHODS = new Set ([ 'remove0xPrefix', 'intToBase16' ]);
+const JAVA_NON_NULL_STRING_BASE_METHODS = new Set ([ 'remove0xPrefix', 'intToBase16', 'json' ]);
 function javaNonNullStringCall87 (printer, node, name, declaration, retyped, depth) {
     const receiver = node.expression.expression;
     if (name === 'stringify' && ts.isIdentifier (receiver) && receiver.text === 'JSON') { return node.arguments.length === 1 && node.arguments[0].kind !== ts.SyntaxKind.SpreadElement; }

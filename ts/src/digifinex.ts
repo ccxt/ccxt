@@ -4714,7 +4714,7 @@ export default class digifinex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let urlencoded = '';
         if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
-            urlencoded = JSON.stringify (params);
+            urlencoded = this.json (params);
         } else {
             urlencoded = this.urlencode (this.keysort (query));
         }

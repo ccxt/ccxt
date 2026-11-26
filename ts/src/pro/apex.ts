@@ -910,7 +910,7 @@ export default class apex extends apexRest {
             // auth sign
             const message = {
                 'op': 'login',
-                'args': [ JSON.stringify ({
+                'args': [ this.json ({
                     'type': 'login',
                     'topics': [ 'ws_zk_accounts_v3' ],
                     'httpMethod': http_method,
