@@ -20,7 +20,7 @@ export default class binance extends binanceRest {
         return this.deepExtend (super.describe (), this.describeData ());
     }
 
-    describeData () {
+    describeData (): any {
         return {
             'has': {
                 'ws': true,

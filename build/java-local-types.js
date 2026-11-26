@@ -572,7 +572,10 @@ function isParseStructureReturnType (printer, type) {
 // a whole call to an internal method the printer itself retyped (javaNativeReturnType): the
 // declaration takes that native type with no checkcast
 function internalReturnLocalType (printer, initializer) {
-    if (typeof printer.javaNativeReturnType !== 'function' || !isThisCall (initializer)) {
+    // a pro file's `super.x ()` resolves to the parent declaration, whose retyped return it carries
+    const proSuper = isThisOrSuperCall (initializer) && !isThisCall (initializer)
+        && /[\\/]ts[\\/]src[\\/]pro[\\/]/.test (initializer.getSourceFile ().fileName);
+    if (typeof printer.javaNativeReturnType !== 'function' || !(isThisCall (initializer) || proSuper)) {
         return undefined;
     }
     let declaration;
@@ -593,7 +596,7 @@ function internalReturnLocalType (printer, initializer) {
         && javaBytesLocalIsSafe (local, printer))) {
         return undefined; // a byte[] local may only feed an Object slot
     }
-    return { type: native, valuePrefix: 'this.', strictPlus: native === 'String' };
+    return { type: native, valuePrefix: proSuper ? 'super.' : 'this.', strictPlus: native === 'String' };
 }
 
 function parseStructureLocalType (printer, initializer, name) {
@@ -3045,6 +3048,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const describe = asserted ? undefined : describeCallLocalType (printer, initializer);
     if (describe !== undefined) {
         return describe;
+    }
+    const proSuperReturn = asserted || isThisCall (initializer) ? undefined : internalReturnLocalType (printer, initializer);
+    if (proSuperReturn !== undefined) {
+        return proSuperReturn;
     }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
