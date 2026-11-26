@@ -19288,7 +19288,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'handleTriggerPricesAndParams': { 2: 'bool?' },
     'handleUTAAndParams': { 2: 'bool?' },
     'isLeveragedCurrency': { 1: 'bool?' },
-    'isPostOnly': { 0: 'bool' },
+    'isPostOnly': { 0: 'bool', 1: 'bool?' },
     'loadAccountSettings': { 0: 'bool?' },
     'loadAccounts': { 0: 'bool?' },
     'loadEvents': { 0: 'bool?' },
