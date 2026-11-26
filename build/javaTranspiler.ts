@@ -84,35 +84,22 @@ import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import { installJ84j6StringListLocals } from './java-local-types.js';
 import { javaCoreBaseTierSpellings } from './java-local-types.js';
-import { javaBaseMapCallReturnTable } from './java-local-types.js';
+import { javaBaseMapCallReturnTable, javaTsSrcTree, javaCachedSourceFile, javaRepoAstBundle, javaVenueAsyncReturnSnapshot } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
-
 ansi.nice
-
 type dict = { [key: string]: string }
-
 let exchanges = JSON.parse(fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
-
 // @ts-expect-error
 const metaUrl = import.meta.url
 let __dirname = new URL('.', metaUrl).pathname;
-
 let shouldTranspileTests = true
-
 function overwriteFileAndFolder(path: string, content: string) {
-    if (!(fs.existsSync(path))) {
-        checkCreateFolder(path);
-    }
-    // overwriteFile() already opens+truncates+writes the file; the extra
-    // fs.writeFileSync below wrote every generated file a second time
-    //
-    // Every Java compilation unit this transpiler emits (exchange cores, WS cores, tests,
-    // errors) goes through here: collapse the `java.util.*` / `io.github.ccxt.types.*`
-    // spelling last, so every regex pass above still matches on the fully-qualified form.
+    if (!(fs.existsSync(path))) { checkCreateFolder(path); }
+    // overwriteFile() already opens+truncates+writes the file; the extra fs.writeFileSync below wrote every generated file a second time Every Java compilation unit this transpiler em...
     if (path.endsWith('.java')) {
         content = nativeJavaStringAdd(content);
         content = applyJavaImports(path.includes('/java/lib/') ? nativeJavaCoreArgHelpers(content) : content);
@@ -120,11 +107,7 @@ function overwriteFileAndFolder(path: string, content: string) {
     }
     overwriteFile(path, content);
 }
-
-// Split a comma-separated argument list, respecting nested () [] {} and
-// string literals (so that `()` inside a quoted string is not counted as
-// paren depth). Used to rewrite multi-arg System.out.println calls in
-// transpiled tests.
+// Split a comma-separated argument list, respecting nested () [] {} and string literals (so that `()` inside a quoted string is not counted as paren depth). Used to rewrite multi-...
 function splitTopLevelArgs(s: string): string[] {
     const out: string[] = [];
     let depth = 0;
@@ -132,100 +115,53 @@ function splitTopLevelArgs(s: string): string[] {
     let buf = '';
     for (let i = 0; i < s.length; i++) {
         const ch = s[i];
-        if (inStr) {
-            buf += ch;
-            if (ch === '\\' && i + 1 < s.length) { buf += s[++i]; continue; }
-            if (ch === inStr) inStr = null;
-            continue;
-        }
+        if (inStr) { buf += ch; if (ch === '\\' && i + 1 < s.length) { buf += s[++i]; continue; } if (ch === inStr) inStr = null; continue; }
         if (ch === '"' || ch === '\'') { inStr = ch; buf += ch; continue; }
-        if (ch === '(' || ch === '[' || ch === '{') depth++;
-        else if (ch === ')' || ch === ']' || ch === '}') depth--;
-        if (ch === ',' && depth === 0) {
-            out.push(buf);
-            buf = '';
-        } else {
-            buf += ch;
-        }
+        if (ch === '(' || ch === '[' || ch === '{') depth++; else if (ch === ')' || ch === ']' || ch === '}') depth--;
+        if (ch === ',' && depth === 0) { out.push(buf); buf = ''; } else { buf += ch; }
     }
     if (buf.length > 0) out.push(buf);
     return out;
 }
-
 const JAVA_MEMBER_START_RE = /^    (?:public|private|protected)\b/;
-
 function javaDeclaredClassOf (lines: string[], lineIndex: number, receiver: string): string | undefined {
     const declaration = new RegExp('^\\s*(?:final\\s+)?([A-Za-z_][\\w.<>]*)\\s+' + receiver + '\\s*(?:=|;)');
-    for (let i = lineIndex; i >= 0; i--) {
-        const m = declaration.exec(lines[i]);
-        if (m) {
-            return m[1];
-        }
-        if (JAVA_MEMBER_START_RE.test(lines[i])) {
-            return undefined;
-        }
-    }
+    for (let i = lineIndex; i >= 0; i--) { const m = declaration.exec(lines[i]); if (m) { return m[1]; } if (JAVA_MEMBER_START_RE.test(lines[i])) { return undefined; } }
     return undefined;
 }
-
 // WsOrderBook.containsKey is true for these keys, so the helper's Map branch is exactly `get`
 const JAVA_WS_ORDERBOOK_READ_KEYS = new Set([ 'asks', 'bids', 'timestamp', 'datetime', 'nonce', 'cache' ]);
 const JAVA_INT_COUNTER_RE = (name: string) => new RegExp('\\bfor \\((?:var|int) ' + name + ' = ');
 const JAVA_ANY_DECLARATION_RE = (name: string) => new RegExp('(?:^|[\\s(,])(?:final\\s+)?[A-Za-z_][\\w.<>?]*(?:<[^;()=]*>)?\\s+' + name + '\\s*(?:=|;|:|,|\\))');
-
 // the nearest declaration of `name` in the same member is a `for (var|int name = ..)` counter (prints int)
 function javaIntCounterIndex (lines: string[], lineIndex: number, name: string): boolean {
     const anyDeclaration = JAVA_ANY_DECLARATION_RE(name);
-    for (let i = lineIndex; i >= 0; i--) {
-        if (anyDeclaration.test(lines[i])) {
-            return JAVA_INT_COUNTER_RE(name).test(lines[i]);
-        }
-        if (JAVA_MEMBER_START_RE.test(lines[i])) {
-            return false;
-        }
-    }
+    for (let i = lineIndex; i >= 0; i--) { if (anyDeclaration.test(lines[i])) { return JAVA_INT_COUNTER_RE(name).test(lines[i]); } if (JAVA_MEMBER_START_RE.test(lines[i])) { return false; } }
     return false;
 }
-
-// `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
-// counter index) or `WsOrderBook` (a key its containsKey always answers) -> the helper's own branch,
-// with its null / out-of-range answers kept explicit; every other receiver keeps the helper
+// `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int counter index) or `WsOrderBook` (a key its containsKey always answers) -> ...
 export function nativeJavaDeclaredElementReads (content: string): string {
     const lines = content.split('\n');
     const call = /Helpers\.GetValue\((\w+), (\d+|[A-Za-z_]\w*|"(\w+)")\)/g;
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
-            continue;
-        }
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) { continue; }
         const next = line.replace(call, (whole, receiver, key, literal) => {
             const cls = javaDeclaredClassOf(lines, i, receiver);
             if (cls === 'List<Object>' || cls === 'java.util.List<Object>') {
-                if (/^\d+$/.test(key)) {
-                    return `(${receiver} == null || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
-                }
-                if (literal === undefined && javaIntCounterIndex(lines, i, key)) {
-                    return `(${receiver} == null || ${key} < 0 || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
-                }
+                if (/^\d+$/.test(key)) { return `(${receiver} == null || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`; }
+                if (literal === undefined && javaIntCounterIndex(lines, i, key)) { return `(${receiver} == null || ${key} < 0 || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`; }
                 return whole;
             }
-            if ((cls === 'io.github.ccxt.ws.WsOrderBook' || cls === 'WsOrderBook') && literal !== undefined && JAVA_WS_ORDERBOOK_READ_KEYS.has(literal)) {
-                return `(${receiver} == null ? null : ${receiver}.get(${key}))`;
-            }
+            if ((cls === 'io.github.ccxt.ws.WsOrderBook' || cls === 'WsOrderBook') && literal !== undefined && JAVA_WS_ORDERBOOK_READ_KEYS.has(literal)) return `(${receiver} == null ? null : ${receiver}.get(${key}))`;
             return whole;
         });
-        if (next !== line) {
-            lines[i] = next;
-            changed = true;
-        }
+        if (next !== line) { lines[i] = next; changed = true; }
     }
     return changed ? lines.join('\n') : content;
 }
-
-// Find a System.out.println(...) call starting at `from` in `src` and
-// return the start, end-of-call (one past the closing paren), and the raw
-// argument string. Walks paren depth and respects string literals.
+// Find a System.out.println(...) call starting at `from` in `src` and return the start, end-of-call (one past the closing paren), and the raw argument string. Walks paren depth an...
 function findPrintlnCall(src: string, from: number): { start: number, end: number, args: string } | null {
     const marker = 'System.out.println(';
     const start = src.indexOf(marker, from);
@@ -235,30 +171,15 @@ function findPrintlnCall(src: string, from: number): { start: number, end: numbe
     let inStr: string | null = null;
     while (i < src.length && depth > 0) {
         const ch = src[i];
-        if (inStr) {
-            if (ch === '\\' && i + 1 < src.length) { i += 2; continue; }
-            if (ch === inStr) inStr = null;
-            i++; continue;
-        }
-        if (ch === '"' || ch === '\'') inStr = ch;
-        else if (ch === '(') depth++;
-        else if (ch === ')') depth--;
+        if (inStr) { if (ch === '\\' && i + 1 < src.length) { i += 2; continue; } if (ch === inStr) inStr = null; i++; continue; }
+        if (ch === '"' || ch === '\'') inStr = ch; else if (ch === '(') depth++; else if (ch === ')') depth--;
         i++;
     }
     if (depth !== 0) return null;
     return { start, end: i, args: src.slice(start + marker.length, i - 1) };
 }
-
-// this is necessary because for some reason
-// pathname keeps the first '/' for windows paths
-// making them invalid
-// example: /C:Users/user/Desktop/
-if (platform === 'win32') {
-    if (__dirname[0] === '/') {
-        __dirname = __dirname.substring(1)
-    }
-}
-
+// this is necessary because for some reason pathname keeps the first '/' for windows paths making them invalid example: /C:Users/user/Desktop/
+if (platform === 'win32') { if (__dirname[0] === '/') { __dirname = __dirname.substring(1) } }
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
@@ -269,11 +190,7 @@ const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     // hand-written with a Boolean return (the printed body returns its Object default)
     'safeBool', 'safeBool2', 'safeBoolN',
 ];
-// Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
-// methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
-// TS `export default class Exchange extends BaseExchange` block and are injected here,
-// NOT into BaseExchange — so the prediction tier (extends BaseExchange) does not
-// inherit them and can declare its own standalone-typed versions.
+// Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the TS `export def...
 const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
@@ -282,46 +199,27 @@ const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
 const EXCHANGE_BASE_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
-
-// the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted
-// as plain text, so no local-type family can re-type them; this pass copies the source
-// declaration's own emitted type token onto the hoist — never a cast, never a primitive.
-const RETYPE_HOIST_LINE = /^(\s*)final Object (final[A-Za-z0-9_]+) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
-const RETYPE_SNAPSHOT_LINE = /^(\s*)final Object ([A-Za-z_$][A-Za-z0-9_$]*3) = ([A-Za-z_$][A-Za-z0-9_$]*2);$/;
-const RETYPE_REFERENCE_TYPES = new Set ([
-    'String', 'Long', 'Double', 'Boolean', 'Integer', 'Character',
-    'java.lang.String', 'java.lang.Long', 'java.lang.Double', 'java.lang.Boolean',
-    'java.lang.Integer', 'java.lang.Character',
-]);
+// the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted as plain text, so no local-type family can re-type them; this pass copies the source dec...
+const RETYPE_REFERENCE_TYPES = new Set ([ 'String', 'Long', 'Double', 'Boolean', 'Integer', 'Character', 'java.lang.String', 'java.lang.Long', 'java.lang.Double', 'java.lang.Boolean', 'java.lang.Integer', 'java.lang.Character', ]);
 const RETYPE_TYPED_CONTAINER = /^(?:java\.util\.)?(?:List|Map|Set)<[A-Za-z0-9_$<>,. ]*>$/;
 const RETYPE_MEMBER_BOUNDARY = /^\s*(?:public|private|protected|@)/;
 const RETYPE_METHOD_END = /^ {0,4}\}$/;
-// audited use shapes — the positions a hoisted name may occupy for the retype to fire: the
-// `put` of the anonymous `HashMap<String, Object>` initializer every parse* returns, and the
-// async-param snapshot's single widening copy (both fixed-parameter Object positions).
+// audited use shapes — the positions a hoisted name may occupy for the retype to fire: the `put` of the anonymous `HashMap<String, Object>` initializer every parse* returns, and t...
 const RETYPE_AUDITED_USE_SHAPES = [
     /^\s*(?:[A-Za-z_$][\w$.]*\s*\.\s*)?put\s*\([^;]*,\s*NAME\s*\)\s*;$/,
     /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
     // a value line of a multi-line `Helpers.newMap("k", v, ...)` (Object... parameter)
     /^\s*"[^"]*",\s*NAME,?\s*(?:\/\/.*)?$/,
 ];
-
-// the plain copy shape `Object x = y;` (the async-param inside-wrapper
-// `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
+// the plain copy shape `Object x = y;` (the async-param inside-wrapper `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
 const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
-// every one of these callees declares an `Object` parameter at the position the hoisted name can
-// occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
-// argument type cannot move the overload; the receivers themselves are untouched.
+// every one of these callees declares an `Object` parameter at the position the hoisted name can occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrow...
 const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
-// callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
-// :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
-// Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
+// callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol, :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232...
 const RETYPE_STRING_RETURN_CALLEES = new Set ([
-    'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString',
-    'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace',
-    'Precise.stringMul', 'Precise.stringAdd', 'Precise.stringAbs',
+    'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString', 'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace', 'Precise.stringMul',
+    'Precise.stringAdd', 'Precise.stringAbs',
 ]);
-
 function retypeReferenceToken (token: string | undefined): string | undefined {
     if (token === undefined) return undefined;
     const t = token.trim ();
@@ -330,31 +228,13 @@ function retypeReferenceToken (token: string | undefined): string | undefined {
     if (RETYPE_TYPED_CONTAINER.test (t)) return t;
     return undefined;
 }
-
-// the member (method) window: a generated file closes a member with a 4-space `}` and opens a
-// new one with a `public|private|protected`/`@` line — the convention the final pass below uses
-
-function retypeMemberStart (lines: string[], index: number): number {
-    for (let j = index - 1; j >= 0; j--) {
-        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j;
-    }
-    return -1;
-}
-
+// the member (method) window: a generated file closes a member with a 4-space `}` and opens a new one with a `public|private|protected`/`@` line — the convention the final pass be...
+function retypeMemberStart (lines: string[], index: number): number { for (let j = index - 1; j >= 0; j--) { if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j; } return -1; }
 function retypeMemberEnd (lines: string[], index: number): number {
-    for (let j = index + 1; j < lines.length; j++) {
-        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j - 1;
-    }
+    for (let j = index + 1; j < lines.length; j++) { if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j - 1; }
     return lines.length - 1;
 }
-
-function retypeSignatureLine (lines: string[], from: number, to: number): number {
-    for (let j = to; j >= from; j--) {
-        if (/^\s*(?:public|private|protected)\s+.*\(.*\)/.test (lines[j])) return j;
-    }
-    return -1;
-}
-
+function retypeSignatureLine (lines: string[], from: number, to: number): number { for (let j = to; j >= from; j--) { if (/^\s*(?:public|private|protected)\s+.*\(.*\)/.test (lines[j])) return j; } return -1; }
 function retypeParameterType (signature: string, name: string): string | undefined {
     const open = signature.indexOf ('(');
     const close = signature.lastIndexOf (')');
@@ -365,9 +245,7 @@ function retypeParameterType (signature: string, name: string): string | undefin
     const parts: string[] = [];
     for (let k = 0; k < params.length; k++) {
         const c = params[k];
-        if (c === '<' || c === '(' || c === '[') depth++;
-        else if (c === '>' || c === ')' || c === ']') depth--;
-        else if (c === ',' && depth === 0) { parts.push (params.slice (start, k)); start = k + 1; }
+        if (c === '<' || c === '(' || c === '[') depth++; else if (c === '>' || c === ')' || c === ']') depth--; else if (c === ',' && depth === 0) { parts.push (params.slice (start, k)); start = k + 1; }
     }
     parts.push (params.slice (start));
     for (const part of parts) {
@@ -377,52 +255,24 @@ function retypeParameterType (signature: string, name: string): string | undefin
     }
     return undefined;
 }
-
-// a name mention inside a string/char literal or a comment is not a use —
-// `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
+// a name mention inside a string/char literal or a comment is not a use — `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
 function retypeCodeOnly (line: string, inComment = false): [string, boolean] {
+    if (!inComment && !line.includes ('"') && !line.includes ("'") && !line.includes ('/')) { return [line, false]; }
     let out = '';
     let i = 0;
     while (i < line.length) {
-        if (inComment) {
-            const j = line.indexOf ('*/', i);
-            if (j === -1) return [out, true];
-            i = j + 2; inComment = false; continue;
-        }
+        if (inComment) { const j = line.indexOf ('*/', i); if (j === -1) return [out, true]; i = j + 2; inComment = false; continue; }
         const c = line[i];
-        if (line.startsWith ('//', i)) break;
-        if (line.startsWith ('/*', i)) {
-            const j = line.indexOf ('*/', i + 2);
-            if (j === -1) { inComment = true; break; }
-            i = j + 2; continue;
-        }
-        if (c === '"') {
-            i++;
-            while (i < line.length) {
-                if (line[i] === '\\') { i += 2; continue; }
-                if (line[i] === '"') { i++; break; }
-                i++;
-            }
-            continue;
-        }
-        if (c === "'") {
-            const j = line.indexOf ("'", i + 1);
-            if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
-            out += c; i++; continue;
-        }
+        if (c === '/') { if (line[i + 1] === '/') break; if (line[i + 1] === '*') { const j = line.indexOf ('*/', i + 2); if (j === -1) { inComment = true; break; } i = j + 2; continue; } }
+        if (c === '"') { i++; while (i < line.length) { if (line[i] === '\\') { i += 2; continue; } if (line[i] === '"') { i++; break; } i++; } continue; }
+        if (c === "'") { const j = line.indexOf ("'", i + 1); if (j !== -1 && j - i <= 3) { i = j + 1; continue; } out += c; i++; continue; }
         out += c; i++;
     }
     return [out, inComment];
 }
-
 // a mention of local NAME: member accesses (`x.NAME()`) and method calls are other symbols
-function retypeMentionRegex (name: string, flags = ''): RegExp {
-    return new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, flags);
-}
-
-// every occurrence of the name must sit in a proven cast-free context: an argument of an
-// Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
-// printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
+function retypeMentionRegex (name: string, flags = ''): RegExp { return new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, flags); }
+// every occurrence of the name must sit in a proven cast-free context: an argument of an Object-parameter callee, an operand of a native `+` chain carrying a string literal (the p...
 function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
     const re = retypeMentionRegex (name, 'g');
     let m: RegExpExecArray | null;
@@ -432,15 +282,7 @@ function retypeMentionContextsOk (code: string, name: string, token: string | un
         let callee: string | undefined = undefined;
         for (let k = pre.length - 1; k >= 0; k--) {
             const c = pre[k];
-            if (c === ')') depth++;
-            else if (c === '(') {
-                if (depth === 0) {
-                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
-                    callee = head !== null ? head[1] : undefined;
-                    break;
-                }
-                depth--;
-            }
+            if (c === ')') depth++; else if (c === '(') { if (depth === 0) { const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/); callee = head !== null ? head[1] : undefined; break; } depth--; }
         }
         if (callee !== undefined && RETYPE_AUDITED_CALLEES.test (callee)) continue;
         const adjacentPlus = /\+\s*$/.test (pre) || /^\s*\+/.test (code.slice (m.index + name.length));
@@ -453,246 +295,93 @@ function retypeMentionContextsOk (code: string, name: string, token: string | un
     }
     return true;
 }
-
-// the write whitelist of the non-final copy shape: every later `NAME = <value>` must produce a
-// value the declared token can hold without a cast.
+// the write whitelist of the non-final copy shape: every later `NAME = <value>` must produce a value the declared token can hold without a cast.
 function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     const value = rhs.trim ().replace (/;$/, '');
     if (/^"[^"]*"$/.test (value)) return true;
     // Java widens a literal into a primitive but never boxes int -> Long or int -> Double
-    if (token === 'Long' && /^-?\d+[Ll]$/.test (value)) return true;
-    if (token === 'Double' && /^-?(\d+\.\d*|\d*\.\d+|\d+[Dd])$/.test (value)) return true;
-    if (token === 'Integer' && /^-?\d+$/.test (value)) return true;
+    if (token === 'Long' && /^-?\d+[Ll]$/.test (value) || token === 'Double' && /^-?(\d+\.\d*|\d*\.\d+|\d+[Dd])$/.test (value) || token === 'Integer' && /^-?\d+$/.test (value)) return true;
     const callee = value.match (/^([\w.$]+)\s*\(/);
     if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
     // native literal String.replaceFirst/replace (section 52) returns String
     if ((token === 'String' || token === 'java.lang.String') && /^(?:\(\(String\)[\w$]+\)|[\w$]+)\.replace(?:First)?\("/.test (value)) return true;
     // Guarded native replaceFirst is a String (null arm included)
-    if ((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value)) return true;
-    if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
-    return false;
+    return Boolean((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value) || value.indexOf ('+') !== -1 && /"/.test (value));
 }
-
-// a later declaration of the same name is a DIFFERENT variable (Java forbids
-// redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
-function retypeDeclaresName (code: string, name: string): boolean {
-    return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code);
-}
-
+// a later declaration of the same name is a DIFFERENT variable (Java forbids redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
+function retypeDeclaresName (code: string, name: string): boolean { return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code); }
 function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
     const [code] = retypeCodeOnly (line);
-    if (retypeDeclaresName (code, name)) return true;
-    if (!retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
-    for (const shape of RETYPE_AUDITED_USE_SHAPES) {
-        if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
-    }
+    if (retypeDeclaresName (code, name) || !retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
+    for (const shape of RETYPE_AUDITED_USE_SHAPES) { if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true; }
     return retypeMentionContextsOk (code, name, token, line);
 }
-
-// the text indentation of the printer's spliced wrappers does not track block
-// nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin).
-// The lookup below replaces it with a real brace-depth test; the scanner carries the block-comment
+// the text indentation of the printer's spliced wrappers does not track block nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin). The...
 function retypeDepthScan (lines: string[]): number[] {
     const depths: number[] = [];
     let depth = 0;
     let inComment = false;
-    for (const line of lines) {
-        const [code, open] = retypeCodeOnly (line, inComment);
-        inComment = open;
-        depths.push (depth);
-        depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length;
-    }
+    for (const line of lines) { const [code, open] = retypeCodeOnly (line, inComment); inComment = open; depths.push (depth); depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length; }
     return depths;
 }
-
-// every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
-// which Exchange-tier methods get injected into PredictionExchange.java, so they are real
-// inputs of the prediction base stage. Computed once per process.
+// every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide which Exchange-tier methods get injected into PredictionExchange.java, so they are real in...
 let cachedPredictionSourceFiles: string[] | undefined = undefined;
 function predictionSourceFiles () {
     if (cachedPredictionSourceFiles === undefined) {
         const dir = './ts/src/prediction/';
-        try {
-            cachedPredictionSourceFiles = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => dir + f);
-        } catch (e) {
-            cachedPredictionSourceFiles = [] as string[];
-        }
+        try { cachedPredictionSourceFiles = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => dir + f); } catch (e) { cachedPredictionSourceFiles = [] as string[]; }
     }
     return cachedPredictionSourceFiles;
 }
-
-// ============================================================================
-// Java local-variable typing for the ast-transpiler Java printer.
-//
-// The Java printer declares every body local as `Object` (VAR_TOKEN) because its
-// generic INFER_VAR_TYPE branch would also type Safe*/GetValue/ternary/Add results,
-// which are genuinely `Object` at runtime. patchJavaLocalTypes narrows ONLY the
-// locals whose initializer is a whole call to a hand-written base accessor with a
-// known concrete runtime type:
-//
-//     Object price = this.safeString(ticker, "price");
-// becomes
-//     String price = this.safeString(ticker, "price");
-//
-// `BaseExchange.safeString / safeString2 / safeStringN` are hand-written, delegate
-// to `SafeMethods`, and are DECLARED `String` (their bodies return a `String` or
-// null on every path), so the narrowed declaration needs no cast. The
-// `safeStringUpper* / safeStringLower*` family is declared `String` too (SS-01: the
-// hand-written SafeMethods bodies drop a non-String default through `optString`), so
-// it classifies the same way and needs no `(String)` cast either. Boxed `String`,
-// never a primitive: an absent key yields null.
-//
-// It is applied as a monkey-patch on `transpiler.javaTranspiler` from BOTH the
-// main-thread Transpiler (setupTranspiler below) and the piscina worker
-// (build/java-worker.ts, which imports it from this module) — same precedent as
-// patchJavaPropertyTypes(), and it keeps the ast-transpiler pin untouched.
-//
-// Uses the generator's own typescript (build/csharp-local-types.js `ts`) so SyntaxKind
-// values agree with the AST nodes the printer hands us.
-// ============================================================================
-
-
-// helper → Java type. Every entry MUST be a hand-written Java base method whose
-// runtime value is always an instance of that type (or null). Transpiled base
-// methods (safeBool/safeDict/safeList/safeNumber...) do NOT qualify: their Java
-// bodies return whatever the TS default argument was, boxed as Object.
-//
-// SafeMethods.SafeStringTyped / safeString2 / SafeStringN coerce the found value to
-// String and drop a non-String default (`instanceof String s ? s : null`), so they
-// are String-or-null unconditionally — and `BaseExchange` declares them `String`.
-//
-// SS-01: SafeMethods.safeStringUpper* / safeStringLower* apply the same rule to their
-// default through `optString` (String when the caller passed one, null when it was
-// absent or non-String), so the case family is String-or-null on every path too and
-// `BaseExchange` declares all six `String`. The family therefore needs no `(String)`
-// checkcast at any declaration/reassignment use site — it classifies exactly like
-// safeString.
-const STRING_ACCESSORS = new Set([
-    'safeString', 'safeString2', 'safeStringN',
-    'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN',
-    'safeStringLower', 'safeStringLower2', 'safeStringLowerN',
-]);
-
-// hand-written base methods declared with a String return in Java
-// (BaseExchange.iso8601 / numberToString) — used only to prove a later
-// reassignment keeps the local a String
-const STRING_RETURNING_BASE_METHODS = new Set([
-    'iso8601', 'numberToString',
-]);
-
+// Java local-variable typing for the ast-transpiler Java printer. The Java printer declares every body local as `Object` (VAR_TOKEN) because its generic INFER_VAR_TYPE branch woul...
+// helper → Java type. Every entry MUST be a hand-written Java base method whose runtime value is always an instance of that type (or null). Transpiled base methods (safeBool/safeD...
+const STRING_ACCESSORS = new Set([ 'safeString', 'safeString2', 'safeStringN', 'safeStringUpper', 'safeStringUpper2', 'safeStringUpperN', 'safeStringLower', 'safeStringLower2', 'safeStringLowerN', ]);
+// hand-written base methods declared with a String return in Java (BaseExchange.iso8601 / numberToString) — used only to prove a later reassignment keeps the local a String
+const STRING_RETURNING_BASE_METHODS = new Set([ 'iso8601', 'numberToString', ]);
 // Precise.string* statics are declared `public static String` in Precise.java
-const PRECISE_STRING_STATICS = new Set([
-    'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringAbs',
-    'stringNeg', 'stringMax', 'stringMin', 'stringOr',
-]);
-
+const PRECISE_STRING_STATICS = new Set([ 'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringAbs', 'stringNeg', 'stringMax', 'stringMin', 'stringOr', ]);
 const ACCESSOR_DECLARATION_FILE = /[\\/]base[\\/]functions[\\/]type\.ts$/;
-
-function isThisCall (node: any): boolean {
-    return node !== undefined && ts.isCallExpression (node)
-        && ts.isPropertyAccessExpression (node.expression)
-        && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-}
-
+function isThisCall (node: any): boolean { return node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression) && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword; }
 // `this.x(...)` or `super.x(...)`: both resolve against the class hierarchy
 function isThisOrSuperCall (node: any): boolean {
     return node !== undefined && ts.isCallExpression (node)
         && ts.isPropertyAccessExpression (node.expression)
         && (node.expression.expression.kind === ts.SyntaxKind.ThisKeyword || node.expression.expression.kind === ts.SyntaxKind.SuperKeyword);
 }
-
-// `this.safeString(...)` / `this.safeStringUpper(...)` … resolving to the base accessor
-// in ts/src/base/functions/type.ts (an exchange override would be transpiled with its
-// own signature and must not classify)
+// `this.safeString(...)` / `this.safeStringUpper(...)` … resolving to the base accessor in ts/src/base/functions/type.ts (an exchange override would be transpiled with its own sig...
 function isBaseStringAccessorCall (printer: any, node: any): boolean {
-    if (!isThisCall (node)) {
-        return false;
-    }
+    if (!isThisCall (node)) { return false; }
     const name = node.expression.name.text;
-    if (!STRING_ACCESSORS.has (name)) {
-        return false;
-    }
+    if (!STRING_ACCESSORS.has (name)) { return false; }
     const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
 }
-
-// ===== SS-03: value-identity of the add overload switch (measured) =====
-//
-// Measured with a javac harness against the built Helpers (72-row matrix): with a
-// String-OR-NULL left box — exactly what BaseExchange.safeString / safeString2 /
-// safeStringN hand back — the overload a retyped local selects (add(String,String) /
-// add(String,Object)) is value-IDENTICAL to today's add(Object,Object) iff the right
-// operand is a provably NON-NULL String: every path then string-concatenates, a null left
-// included ("null" + r). The measured divergences (add(Object,Object) -> add(String,*)):
-//
-//   (null, null)              null         -> "nullnull"
-//   (null, Long/Integer)      null         -> "null5"
-//   (null, Boolean/Map/List)  null         -> "nulltrue" / "null{}" / "null[]"
-//   (any,  Double)            numeric box  -> string   (the Double branch wins first)
-//
-// In a `x + r0 + r1` chain the accumulated left of every ENCLOSING add is a NON-NULL
-// String (r0 is a non-null String), so there only a possibly-numeric right operand can
-// move the result. A local on the LEFT of `+` is therefore admitted exactly when the
-// first right operand is a provably non-null String and every deeper right operand is
-// not possibly numeric. This mirrors the predicates the guarded-string family in
-// build/java-local-types.js already uses for its own `+=`/add-left rule
-// (isProvablyNonNullStringExpression / isPossiblyNumericDeep); no ternary is emitted —
-// the acceptance is a compile-time predicate on the printed shape only.
-
+// Measured with a javac harness against the built Helpers (72-row matrix): with a String-OR-NULL left box — exactly what BaseExchange.safeString / safeString2 / safeStringN hand b...
 // unwrap `( ... )` layers
-function unwrapParensAll (node: any): any {
-    while (node !== undefined && ts.isParenthesizedExpression (node)) {
-        node = node.expression;
-    }
-    return node;
-}
-
-// true when the printed Java for `node` is statically a String — a real String box, NOT
-// the null/undefined literals (those print `Helpers.add(null, r)`, whose Object overload
-// returns null when r is numeric): the deep form — a `+` chain counts when its LEFT spine
-// is statically a String, because `Helpers.add(String, ..)` returns a String on every
-// path. The inline hook's isProvablyStringExpression above is deliberately left untouched
-// (it gates the already-accepted set); this is the predicate the `+` proof needs, and it
-// is deliberately STRICTER than the module's same-named predicate (no NullKeyword /
-// undefined / selfName acceptance).
+function unwrapParensAll (node: any): any { while (node !== undefined && ts.isParenthesizedExpression (node)) { node = node.expression; } return node; }
+// true when the printed Java for `node` is statically a String — a real String box, NOT the null/undefined literals (those print `Helpers.add(null, r)`, whose Object overload retu...
 function isStaticallyStringExpression (printer: any, node: any, selfName: string | undefined): boolean {
     node = unwrapParensAll (node);
-    if (node === undefined) {
-        return false;
-    }
+    if (node === undefined) { return false; }
     switch (node.kind) {
         case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-            return true;
-        case ts.SyntaxKind.ConditionalExpression:
-            return isStaticallyStringExpression (printer, node.whenTrue, selfName)
-                && isStaticallyStringExpression (printer, node.whenFalse, selfName);
-        case ts.SyntaxKind.BinaryExpression:
-            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
-                && isStaticallyStringExpression (printer, node.left, selfName);
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral: return true;
+        case ts.SyntaxKind.ConditionalExpression: return isStaticallyStringExpression (printer, node.whenTrue, selfName) && isStaticallyStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.BinaryExpression: return node.operatorToken.kind === ts.SyntaxKind.PlusToken && isStaticallyStringExpression (printer, node.left, selfName);
         case ts.SyntaxKind.CallExpression: {
             if (isBaseStringAccessorCall (printer, node)) {
                 return true; // BaseExchange.safeString* are declared String
             }
             const callee = node.expression;
-            if (!ts.isPropertyAccessExpression (callee)) {
-                return false;
-            }
+            if (!ts.isPropertyAccessExpression (callee)) { return false; }
             const method = String (callee.name.text);
-            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return STRING_RETURNING_BASE_METHODS.has (method);
-            }
-            return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).text === 'Precise'
-                && PRECISE_STRING_STATICS.has (method);
+            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) { return STRING_RETURNING_BASE_METHODS.has (method); }
+            return callee.expression.kind === ts.SyntaxKind.Identifier && (callee.expression as any).text === 'Precise' && PRECISE_STRING_STATICS.has (method);
         }
-        default:
-            return false;
+        default: return false;
     }
 }
-
-// true when the TYPE the checker gives `node` could hold a Java-Double box at runtime
-// (number / bigint members, or an any/unknown/error type we cannot rule out).
+// true when the TYPE the checker gives `node` could hold a Java-Double box at runtime (number / bigint members, or an any/unknown/error type we cannot rule out).
 function isPossiblyNumericExpression (printer: any, node: any): boolean {
     try {
         const type = printer.getChecker ().getTypeAtLocation (node);
@@ -701,170 +390,87 @@ function isPossiblyNumericExpression (printer: any, node: any): boolean {
         return true; // unprovable — treat as possibly numeric
     }
 }
-
 function typeIsPossiblyNumeric (type: any): boolean {
-    if (type === undefined) {
-        return true;
-    }
+    if (type === undefined) { return true; }
     const flags = type.flags;
-    if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
-        return true;
-    }
-    if (flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) {
-        return true;
-    }
-    if (flags & ts.TypeFlags.Union) {
-        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
-    }
-    if (flags & ts.TypeFlags.Intersection) {
-        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
-    }
+    if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown) || flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) return true;
+    if (flags & ts.TypeFlags.Union) { return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member)); }
+    if (flags & ts.TypeFlags.Intersection) { return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member)); }
     return false;
 }
-
-// true when any operand of the `+` chain (through parentheses) could be a Java Double
-// box: Helpers.add tests `a instanceof Double || b instanceof Double` BEFORE its String
-// branches, so a single Double operand silently turns the whole call numeric.
+// true when any operand of the `+` chain (through parentheses) could be a Java Double box: Helpers.add tests `a instanceof Double || b instanceof Double` BEFORE its String branche...
 function isPossiblyNumericDeep (printer: any, node: any): boolean {
     node = unwrapParensAll (node);
-    if (node === undefined) {
-        return true;
-    }
-    if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return isPossiblyNumericDeep (printer, node.left) || isPossiblyNumericDeep (printer, node.right);
-    }
+    if (node === undefined) { return true; }
+    if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) { return isPossiblyNumericDeep (printer, node.left) || isPossiblyNumericDeep (printer, node.right); }
     return isPossiblyNumericExpression (printer, node);
 }
-
-// true when the printed Java for `node` is a String GUARANTEED non-null at runtime
-// (given the named local holds String-or-null): literals, templates, ternaries of these,
-// and `+` chains with a statically-String or non-null-String-plus-non-numeric shape.
-// Calls do NOT qualify — even an audited non-null call is only proven for the narrowed
-// local, not for arbitrary call sites (same rule as the module's predicate).
+// true when the printed Java for `node` is a String GUARANTEED non-null at runtime (given the named local holds String-or-null): literals, templates, ternaries of these, and `+` c...
 function isProvablyNonNullStringExpression (printer: any, node: any, selfName: string | undefined): boolean {
     node = unwrapParensAll (node);
-    if (node === undefined) {
-        return false;
-    }
+    if (node === undefined) { return false; }
     switch (node.kind) {
         case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-            return true;
-        case ts.SyntaxKind.ConditionalExpression:
-            return isProvablyNonNullStringExpression (printer, node.whenTrue, selfName)
-                && isProvablyNonNullStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral: return true;
+        case ts.SyntaxKind.ConditionalExpression: return isProvablyNonNullStringExpression (printer, node.whenTrue, selfName) && isProvablyNonNullStringExpression (printer, node.whenFalse, selfName);
         case ts.SyntaxKind.BinaryExpression: {
-            if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
-                return false;
-            }
+            if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) { return false; }
             return isStaticallyStringExpression (printer, node.left, selfName)
                 || (isProvablyNonNullStringExpression (printer, node.left, selfName) && !isPossiblyNumericDeep (printer, node.right))
                 || (isProvablyNonNullStringExpression (printer, node.right, selfName) && !isPossiblyNumericDeep (printer, node.left));
         }
-        default:
-            return false;
+        default: return false;
     }
 }
-
-// `x = x + r0 + r1 ...` (and the `x += r` form, which prints `x = Helpers.add(x, r)`):
-// measured-safe when the level-0 right operand is a provably non-null String and every
-// enclosing right operand is not possibly numeric. Walks DOWN the left spine to find the
-// level-0 `+`, then UP for the enclosing levels.
+// `x = x + r0 + r1 ...` (and the `x += r` form, which prints `x = Helpers.add(x, r)`): measured-safe when the level-0 right operand is a provably non-null String and every enclosi...
 function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): boolean {
     let node = unwrapParensAll (right);
-    if (node === undefined || !ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
-        return false;
-    }
+    if (node === undefined || !ts.isBinaryExpression (node) || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) { return false; }
     let level0;
     while (node !== undefined && ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
         const left = unwrapParensAll (node.left);
-        if (left !== undefined && ts.isIdentifier (left) && left.text === sourceName) {
-            level0 = node;
-            break;
-        }
-        if (left !== undefined && ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-            node = left;
-            continue;
-        }
+        if (left !== undefined && ts.isIdentifier (left) && left.text === sourceName) { level0 = node; break; }
+        if (left !== undefined && ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) { node = left; continue; }
         break;
     }
-    if (level0 === undefined) {
-        return false;
-    }
-    if (!isProvablyNonNullStringExpression (printer, level0.right, sourceName)) {
-        return false;
-    }
+    if (level0 === undefined || !isProvablyNonNullStringExpression (printer, level0.right, sourceName)) return false;
     let child = level0;
     let parent = level0.parent;
-    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
-        child = parent;
-        parent = parent.parent;
-    }
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) { child = parent; parent = parent.parent; }
     while (parent !== undefined && ts.isBinaryExpression (parent)
         && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && parent.left === child) {
-        if (isPossiblyNumericDeep (printer, parent.right)) {
-            return false;
-        }
+        if (isPossiblyNumericDeep (printer, parent.right)) { return false; }
         child = parent;
         parent = parent.parent;
-        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
-            child = parent;
-            parent = parent.parent;
-        }
+        while (parent !== undefined && ts.isParenthesizedExpression (parent)) { child = parent; parent = parent.parent; }
     }
     return true;
 }
-
-// true when the printed Java for `node` is statically a String (or null).
-// `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`)
-// is consistent with whatever type that local ends up with.
-//
-// A bare base accessor call is only accepted at the TOP level (`nested` false): the
-// declaration hook narrows exactly that shape. A case-family call inside a ternary arm
-// would print uncast (fine for javac now that both families are String-declared); the
-// refinement is deliberately not made here so the set of narrowed locals stays
-// unchanged.
+// true when the printed Java for `node` is statically a String (or null). `selfName` is the local being classified: a self-reference (`x = cond ? 'a' : x`) is consistent with what...
 function isProvablyStringExpression (printer: any, node: any, selfName: string | undefined, nested = false): boolean {
-    if (node === undefined) {
-        return false;
-    }
+    if (node === undefined) { return false; }
     switch (node.kind) {
         case ts.SyntaxKind.StringLiteral:
         case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-        case ts.SyntaxKind.NullKeyword:
-            return true;
-        case ts.SyntaxKind.Identifier:
-            return node.text === 'undefined' || node.text === selfName;
-        case ts.SyntaxKind.ParenthesizedExpression:
-            return isProvablyStringExpression (printer, node.expression, selfName, nested);
-        case ts.SyntaxKind.ConditionalExpression:
-            return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
+        case ts.SyntaxKind.NullKeyword: return true;
+        case ts.SyntaxKind.Identifier: return node.text === 'undefined' || node.text === selfName;
+        case ts.SyntaxKind.ParenthesizedExpression: return isProvablyStringExpression (printer, node.expression, selfName, nested);
+        case ts.SyntaxKind.ConditionalExpression: return isProvablyStringExpression (printer, node.whenTrue, selfName, true) && isProvablyStringExpression (printer, node.whenFalse, selfName, true);
         case ts.SyntaxKind.BinaryExpression:
             // `'lit' + x` prints Helpers.add(String, Object) → String
-            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
-                && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken && (node.left.kind === ts.SyntaxKind.StringLiteral || node.left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
         case ts.SyntaxKind.CallExpression: {
-            if (isBaseStringAccessorCall (printer, node)) {
-                return !nested;
-            }
+            if (isBaseStringAccessorCall (printer, node)) { return !nested; }
             const callee = node.expression;
-            if (!ts.isPropertyAccessExpression (callee)) {
-                return false;
-            }
+            if (!ts.isPropertyAccessExpression (callee)) { return false; }
             // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
             const method = String (callee.name.text);
-            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                return STRING_RETURNING_BASE_METHODS.has (method);
-            }
-            return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).text === 'Precise'
-                && PRECISE_STRING_STATICS.has (method);
+            if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) { return STRING_RETURNING_BASE_METHODS.has (method); }
+            return callee.expression.kind === ts.SyntaxKind.Identifier && (callee.expression as any).text === 'Precise' && PRECISE_STRING_STATICS.has (method);
         }
-        default:
-            return false;
+        default: return false;
     }
 }
-
 function enclosingFunction (node: any): any {
     let current = node?.parent;
     while (current) {
@@ -874,171 +480,83 @@ function enclosingFunction (node: any): any {
             case ts.SyntaxKind.FunctionExpression:
             case ts.SyntaxKind.ArrowFunction:
             case ts.SyntaxKind.Constructor:
-            case ts.SyntaxKind.SourceFile:
-                return current;
+            case ts.SyntaxKind.SourceFile: return current;
         }
         current = current.parent;
     }
     return undefined;
 }
-
-// SS-04: replace every comment character with a space, preserving LENGTH and newlines,
-// so text offsets computed on the result are valid for the original string. Used by the
-// ws post-pass when it has to prove a local's declared type from the printed text.
-function maskJavaComments (content: string): string {
-    const blanks = (m: string) => m.replace(/[^\n]/g, ' ');
-    return content
-        .replace(/\/\*[\s\S]*?\*\//g, blanks)
-        .replace(/\/\/[^\n]*/g, blanks);
-}
-
-// SS-04: hand-written BaseExchange fields whose Java declaration is `public String`
-// (mirror of THIS_MEMBER_TYPES['…'] === 'String' in build/java-local-types.js)
+// SS-04: replace every comment character with a space, preserving LENGTH and newlines, so text offsets computed on the result are valid for the original string. Used by the ws pos...
+function maskJavaComments (content: string): string { const blanks = (m: string) => m.replace(/[^\n]/g, ' '); return content .replace(/\/\*[\s\S]*?\*\//g, blanks) .replace(/\/\/[^\n]*/g, blanks); }
+// SS-04: hand-written BaseExchange fields whose Java declaration is `public String` (mirror of THIS_MEMBER_TYPES['…'] === 'String' in build/java-local-types.js)
 const WS_FUTURE_TYPE = 'io.github.ccxt.ws.Future';
-const JS_STRING_MEMBER_FIELDS = new Set([
-    'id', 'version', 'name', 'secret', 'apiKey', 'password', 'uid', 'login', 'url', 'hostname',
-]);
-
-// the first argument of the `Helpers.add(` call that starts at `addStart`, as text +
-// offset. Quote- and paren-aware; undefined when the call cannot be parsed (the callers
-// then keep the conservative behaviour).
+const JS_STRING_MEMBER_FIELDS = new Set([ 'id', 'version', 'name', 'secret', 'apiKey', 'password', 'uid', 'login', 'url', 'hostname', ]);
+// the first argument of the `Helpers.add(` call that starts at `addStart`, as text + offset. Quote- and paren-aware; undefined when the call cannot be parsed (the callers then kee...
 function jsAddFirstOperand (content: string, addStart: number): { text: string; start: number } | undefined {
     const open = content.indexOf('(', addStart);
-    if (open === -1 || open - addStart > 'Helpers.add'.length + 2) {
-        return undefined;
-    }
+    if (open === -1 || open - addStart > 'Helpers.add'.length + 2) { return undefined; }
     const start = open + 1;
     let depth = 0;
     let inString = '';
     let end = -1;
     for (let i = start; i < content.length; i++) {
         const ch = content[i];
-        if (inString !== '') {
-            if (ch === '\\') {
-                i++;
-                continue;
-            }
-            if (ch === inString) {
-                inString = '';
-            }
-            continue;
-        }
+        if (inString !== '') { if (ch === '\\') { i++; continue; } if (ch === inString) { inString = ''; } continue; }
         if (ch === '"' || ch === "'") {
             inString = ch;
-        } else if (ch === '(') {
-            depth++;
-        } else if (ch === ')') {
-            if (depth === 0) {
-                end = i;
-                break;
-            }
-            depth--;
-        } else if (ch === ',' && depth === 0) {
-            end = i;
-            break;
-        } else if (ch === '\n') {
-            return undefined;
-        }
+        } else if (ch === '(') { depth++; } else if (ch === ')') { if (depth === 0) { end = i; break; } depth--; } else if (ch === ',' && depth === 0) { end = i; break; } else if (ch === '\n') { return undefined; }
     }
-    if (end === -1) {
-        return undefined;
-    }
+    if (end === -1) { return undefined; }
     return { text: content.slice(start, end), start };
 }
-
-
-// every Identifier node in `scope`, by source name. Not cached: the Java printer
-// renames identifiers inside object literals in place (`x` → `finalX`) while a
-// function body is being printed, so the walk must read the live AST each time.
+// every Identifier node in `scope`, by source name. Not cached: the Java printer renames identifiers inside object literals in place (`x` → `finalX`) while a function body is bein...
+const identifierIndexCache = new WeakMap<object, Map<string, any[]>> ();
 function identifierIndex (scope: any): Map<string, any[]> {
-    const index = new Map<string, any[]> ();
-    const visit = (n: any) => {
-        if (n.kind === ts.SyntaxKind.Identifier) {
-            const name = n.text;
-            let list = index.get (name);
-            if (list === undefined) {
-                list = [];
-                index.set (name, list);
-            }
-            list.push (n);
-        }
-        n?.forEachChild (visit);
-    };
+    if (scope === undefined || scope === null) { return new Map<string, any[]> (); }
+    let index = identifierIndexCache.get (scope);
+    if (index !== undefined) { return index; }
+    index = new Map<string, any[]> ();
+    const visit = (n: any) => { if (n.kind === ts.SyntaxKind.Identifier) { const name = n.text; let list = index.get (name); if (list === undefined) { list = []; index.set (name, list); } list.push (n); } n?.forEachChild (visit); };
     scope?.forEachChild (visit);
+    identifierIndexCache.set (scope, index);
     return index;
 }
-
-// resolves to an `async` method (or one declared to return a Promise — an overload
-// signature carries the return type but not the modifier)
+// resolves to an `async` method (or one declared to return a Promise — an overload signature carries the return type but not the modifier)
 function isAsyncMethodCall (printer: any, callNode: any): boolean {
     const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration?.resolve ();
-    if (declaration === undefined) {
-        return false;
-    }
-    if (ts.canHaveModifiers (declaration) && (ts.getModifiers (declaration) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
-        return true;
-    }
+    if (declaration === undefined) { return false; }
+    if (ts.canHaveModifiers (declaration) && (ts.getModifiers (declaration) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) { return true; }
     const returnType = declaration.type;
-    return returnType !== undefined && ts.isTypeReferenceNode (returnType)
-        && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
+    return returnType !== undefined && ts.isTypeReferenceNode (returnType) && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
-
-// would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
-// `Object`? (mirror of build/java-local-types.js#dataflowWsReverts): pro/prediction source
-// file + a printed value starting with `this.<m>(` / `Helpers.<...>(`. The SS-03 `+`
-// acceptance must not fire there — the retype would be silently reverted, and it would
-// also pre-empt a declaration the pro messageHash family types WITH the redundant
-// `(String)` checkcast that defeats the revert (measured: pro/Htx messageHash would
-// lose its String type). Files that survive the revert (REST/base) keep the relaxation.
+// would postProcessWsJava's "String type fixes" pass rewrite this declaration back to `Object`? (mirror of build/java-local-types.js#dataflowWsReverts): pro/prediction source file...
 const WS_REVERT_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
 function wsPostProcessReverts (declaration: any): boolean {
-    if (!WS_REVERT_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return false;
-    }
+    if (!WS_REVERT_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) { return false; }
     let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = initializer.expression;
-    }
-    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
-        return false;
-    }
+    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) { initializer = initializer.expression; }
+    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) { return false; }
     const callee = initializer.expression;
-    if (ts.isPropertyAccessExpression (callee)) {
-        return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
-    }
+    if (ts.isPropertyAccessExpression (callee)) { return callee.expression.kind === ts.SyntaxKind.ThisKeyword; }
     return ts.isIdentifier (callee) && callee.text === 'Helpers';
 }
-
 // reject the refinement when a later use needs the local to stay `Object`
 function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
     const scope = enclosingFunction (declaration);
-    if (scope === undefined) {
-        return false;
-    }
+    if (scope === undefined) { return false; }
     const uses = identifierIndex (scope).get (sourceName) ?? [];
     for (const n of uses) {
-        if (n === declaration.name) {
-            continue;
-        }
+        if (n === declaration.name) { continue; }
         const parent = n.parent;
-        if (parent === undefined) {
-            continue;
-        }
+        if (parent === undefined) { continue; }
         if (ts.isVariableDeclaration (parent) && parent.name === n) {
             continue; // a sibling block-scoped declaration gets its own type
         }
         if (ts.isPropertyAccessExpression (parent) && parent.name === n) {
             continue; // `obj.<name>` is a member, not this local
         }
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
-            const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                return false;
-            }
-        }
-        if (ts.isSpreadElement (parent)) {
-            return false;
-        }
+        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) { const op = parent.operator; if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) { return false; } }
+        if (ts.isSpreadElement (parent)) { return false; }
         if (ts.isTypeOfExpression (parent)) {
             return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
         }
@@ -1049,268 +567,127 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                // SS-02: a reassignment whose RHS is provably a String read/chain (non-ws tiers).
-                // SS-03: a write whose printed Java is `Helpers.add(<local>, ..)` — admitted when
-                // the measured add-overload identity holds, so the emitted call binds
-                // add(String, ..) with an unchanged value for every reachable input.
+                // SS-02: a reassignment whose RHS is provably a String read/chain (non-ws tiers). SS-03: a write whose printed Java is `Helpers.add(<local>, ..)` — admitted when the measured add-...
                 const provable = isProvablyStringExpression (printer, parent.right, sourceName)
                     || isProvablyStringReassignment (printer, parent.right, sourceName)
                     || (plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName));
-                if (!provable) {
-                    return false;
-                }
+                if (!provable) { return false; }
             } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                // `x += r` prints `x = Helpers.add (x, r)`: with x a String the call binds
-                // add(String, ..) -> String, value-identical to add(Object, Object) whenever
-                // r is a provably non-null String. Other compound operators print numeric
-                // helpers whose Object result cannot assign to a String local.
-                const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName))
-                    || isProvablyNonNullStringOperand (printer, parent.right, sourceName);
-                if (!plusOk) {
-                    return false;
-                }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                return false;
-            }
+                // `x += r` prints `x = Helpers.add (x, r)`: with x a String the call binds add(String, ..) -> String, value-identical to add(Object, Object) whenever r is a provably non-null Stri...
+                const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName)) || isProvablyNonNullStringOperand (printer, parent.right, sourceName);
+                if (!plusOk) { return false; }
+            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) { return false; }
         }
-        // A pro core extends the REST *wrapper* class, whose typed overloads
-        // (`Ticker fetchTicker(String symbol)`) would win Java overload resolution
-        // over the `Object...` core once an argument expression is a String. Keep
-        // any local that feeds such a call `Object` (directly or nested — e.g.
-        // `Helpers.add(String, String)` also returns String) so the call keeps
-        // binding to the core.
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            return false;
-        }
+        // A pro core extends the REST *wrapper* class, whose typed overloads (`Ticker fetchTicker(String symbol)`) would win Java overload resolution over the `Object...` core once an arg...
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) { return false; }
     }
     return true;
 }
-
-// is `n` an argument of a `this.<async>()` call, either directly or through the
-// expression forms whose printed Java type is String whenever an operand is
-// (`(x)`, `x + y` → Helpers.add(String, ..) → String, `c ? x : y`). Anything else
-// in between (another call, an element access) prints as Object and breaks the chain.
+// is `n` an argument of a `this.<async>()` call, either directly or through the expression forms whose printed Java type is String whenever an operand is (`(x)`, `x + y` → Helpers...
 function feedsInheritedAsyncCall (printer: any, n: any, scope: any): boolean {
     let child = n;
     let current = n.parent;
     while (current !== undefined && current !== scope) {
-        if (ts.isCallExpression (current)) {
-            return current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current);
-        }
+        if (ts.isCallExpression (current)) { return current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current); }
         const propagates = ts.isParenthesizedExpression (current)
             || (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken)
             || (ts.isConditionalExpression (current) && current.condition !== child);
-        if (!propagates) {
-            return false;
-        }
+        if (!propagates) { return false; }
         child = current;
         current = current.parent;
     }
     return false;
 }
-
-// ===== SS-02: reassignment acceptance for `safeString*` locals =====
-//
-// The write `x = …` on a narrowed safeString-family local must print a value javac
-// accepts as a String. `isProvablyStringExpression` above proves the literal /
-// accessor / Precise / literal-led `+` shapes; the functions below add the remaining
-// shapes whose printed Java is provably a String (or null), each with its own proof:
-//
-//   * `x = recv[key]` — `recv` provably holds only String elements
-//     (java-local-types.js#elementAccessHasStringElements). Prints
-//     `Helpers.GetValue (recv, key)`, declared Object, so the WRITE SITE needs the same
-//     `(String)` checkcast the declaration of such a local already carries (that path
-//     has shipped it since JAVA-RE-6).
-//   * `x = other` — the local itself, or another local whose own decision this engine
-//     recomputes to String (cycle-guarded; a local the output keeps Object proves
-//     nothing).
-//   * `x = a + b + …` — the printed `Helpers.add (<left>, …)` resolves to the
-//     String-declared `add(String, …)` exactly when the left spine starts with a
-//     String literal or with a String local whose first right operand is a provably
-//     non-null String. Every such chain yields a non-null String from the first `+`
-//     on, and the value matches the old add(Object, Object) call on every path
-//     (Helpers.add's String branches concatenate `valueOf(a) + valueOf(b)`).
-//   * `x = <value> as string` — prints `((String)value)`, already String-typed.
-//   * `x = <recv>.replace/.replaceAll/.slice/.toLowerCase/.toUpperCase()/.toString()`
-//     — prints `Helpers.replace/replaceAll/slice` (all `public static String`) or, for
-//     a String receiver, a String-typed method / `String.valueOf`.
-//   * `x = this.<name>(…)` — a name in JAVA_STRING_RETURN_METHODS whose Java
-//     declaration is `public String` on every override (tree-audited for this slice),
-//     or one of the two hand-written String-declared helpers below.
-//   * `x += r` — a provably non-null String `r` (see isProvablyNonNullStringOperand).
-//
-// Every other shape keeps the printer's Object, unchanged.
+// The write `x = …` on a narrowed safeString-family local must print a value javac accepts as a String. `isProvablyStringExpression` above proves the literal / accessor / Precise ...
 const STRING_RESULT_METHOD_CALLS = new Set([
     // TS-side method names whose printed Java is statically String for a String receiver
     'replace', 'replaceAll', 'slice', 'toLowerCase', 'toUpperCase', 'toString',
 ]);
-
-// hand-written BaseExchange methods declared String in Java that are not part of
-// JAVA_STRING_RETURN_METHODS (tree census: one `public String` declaration each)
+// hand-written BaseExchange methods declared String in Java that are not part of JAVA_STRING_RETURN_METHODS (tree census: one `public String` declaration each)
 const STRING_DECLARED_BASE_CALLS = new Set([ 'capitalize', 'json' ]);
-
 // declarations whose String decision is already being computed higher up a read chain
 const stringWriteInProgress = new Set<any> ();
-
 function resolvesToMethodNamed (printer: any, node: any, name: string): boolean {
     let declaration;
-    try {
-        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
-    } catch (e) {
-        declaration = undefined;
-    }
-    return declaration !== undefined && ts.isMethodDeclaration (declaration)
-        && declaration.name !== undefined && declaration.name.text === name;
+    try { declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve (); } catch (e) { declaration = undefined; }
+    return declaration !== undefined && ts.isMethodDeclaration (declaration) && declaration.name !== undefined && declaration.name.text === name;
 }
-
 // the single local binding an identifier reads, or undefined
 function referencedLocalDeclaration (printer: any, identifier: any): any {
     let declaration;
-    try {
-        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
-    } catch (e) {
-        declaration = undefined;
-    }
-    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
-        return undefined;
-    }
+    try { declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve (); } catch (e) { declaration = undefined; }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) { return undefined; }
     return declaration;
 }
-
-// does the FINAL output declare this local `String`? The full decision is recomputed
-// under a cycle guard. In a ws-tier file the declaration is also subject to
-// postProcessWsJava's `String x = this.<m>(` -> Object revert, so only the case family
-// (whose declaration prints a `(String)` prefix that the revert pattern does not match)
-// counts as String there.
+// does the FINAL output declare this local `String`? The full decision is recomputed under a cycle guard. In a ws-tier file the declaration is also subject to postProcessWsJava's ...
 function referencedLocalEmitsString (printer: any, identifier: any): boolean {
     const declaration = referencedLocalDeclaration (printer, identifier);
-    if (declaration === undefined || stringWriteInProgress.has (declaration)) {
-        return false;
-    }
-    try {
-        if (declaration.getStart () >= identifier.getStart ()) {
-            return false;
-        }
-    } catch (e) {
-        return false;
-    }
+    if (declaration === undefined || stringWriteInProgress.has (declaration)) { return false; }
+    try { if (declaration.getStart () >= identifier.getStart ()) { return false; } } catch (e) { return false; }
     stringWriteInProgress.add (declaration);
-    try {
-        if (javaLocalType (printer, declaration) !== 'String') {
-            return false;
-        }
-    } finally {
-        stringWriteInProgress.delete (declaration);
-    }
+    try { if (javaLocalType (printer, declaration) !== 'String') { return false; } } finally { stringWriteInProgress.delete (declaration); }
     return true;
 }
-
 function receiverIsProvablyString (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
     while (ts.isParenthesizedExpression (value)) value = value.expression;
-    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-        return true;
-    }
-    if (ts.isIdentifier (value)) {
-        return value.text === sourceName || referencedLocalEmitsString (printer, value);
-    }
-    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
-        return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
-    }
+    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) { return true; }
+    if (ts.isIdentifier (value)) { return value.text === sourceName || referencedLocalEmitsString (printer, value); }
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) { return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword; }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
         const method = String (value.expression.name.text);
-        // never-null String results of any receiver (a null receiver throws, exactly
-        // like the TS expression they print)
+        // never-null String results of any receiver (a null receiver throws, exactly like the TS expression they print)
         return method === 'toString' || method === 'toLowerCase' || method === 'toUpperCase';
     }
     return false;
 }
-
 // `this.<name>(…)` whose printed Java is `public String <name>(…)` on every declaration
 function isStringDeclaredThisCall (printer: any, node: any): boolean {
     const method = String (node.expression.name.text);
-    if (STRING_DECLARED_BASE_CALLS.has (method)) {
-        return true;
-    }
+    if (STRING_DECLARED_BASE_CALLS.has (method)) { return true; }
     return JAVA_STRING_RETURN_METHODS.has (method) && resolvesToMethodNamed (printer, node, method);
 }
-
-// a value that is a non-null String on every path: a literal, a literal-led `+` chain,
-// or a never-null String call
+// a value that is a non-null String on every path: a literal, a literal-led `+` chain, or a never-null String call
 function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let value = node;
     while (ts.isParenthesizedExpression (value)) value = value.expression;
-    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-        return true;
-    }
-    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return plusChainIsValuePreserving (printer, value, sourceName, depth + 1);
-    }
+    if (value.kind === ts.SyntaxKind.StringLiteral || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) { return true; }
+    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) { return plusChainIsValuePreserving (printer, value, sourceName, depth + 1); }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
         const method = String (value.expression.name.text);
         return method === 'toLowerCase' || method === 'toUpperCase' || method === 'toString';
     }
     return false;
 }
-
-// a `+` chain whose printed Helpers.add(...) calls all return a non-null String from
-// the first `+` on: the left spine starts with a String literal, or with a String local
-// whose first right operand is a provably non-null String
+// a `+` chain whose printed Helpers.add(...) calls all return a non-null String from the first `+` on: the left spine starts with a String literal, or with a String local whose fi...
 function plusChainIsValuePreserving (printer: any, node: any, sourceName: string, depth = 0): boolean {
     if (node === undefined || depth > 3) return false;
     let spine = node;
     for (;;) {
         let left = spine.left;
         while (ts.isParenthesizedExpression (left)) left = left.expression;
-        if (ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-            spine = left;
-            continue;
-        }
-        if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-            return true;
-        }
-        if (ts.isIdentifier (left) && (left.text === sourceName || referencedLocalEmitsString (printer, left))) {
-            return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1);
-        }
+        if (ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) { spine = left; continue; }
+        if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) { return true; }
+        if (ts.isIdentifier (left) && (left.text === sourceName || referencedLocalEmitsString (printer, left))) { return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1); }
         return false;
     }
 }
-
-// the SS-02 extension of the reassignment acceptance: is the printed Java of this
-// write value provably a String (or null)?
+// the SS-02 extension of the reassignment acceptance: is the printed Java of this write value provably a String (or null)?
 function isProvablyStringReassignment (printer: any, node: any, sourceName: string, depth = 0): boolean {
-    if (node === undefined || depth > 3) {
-        return false;
-    }
-    if (isProvablyStringExpression (printer, node, sourceName)) {
-        return true;
-    }
+    if (node === undefined || depth > 3) { return false; }
+    if (isProvablyStringExpression (printer, node, sourceName)) { return true; }
     let value = node;
-    while (ts.isParenthesizedExpression (value)) {
-        value = value.expression;
-    }
-    if (ts.isElementAccessExpression (value)) {
-        return elementAccessHasStringElements (value);
-    }
-    if (ts.isIdentifier (value)) {
-        return value.text === sourceName || referencedLocalEmitsString (printer, value);
-    }
-    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
-        return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
-    }
-    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return plusChainIsValuePreserving (printer, value, sourceName, depth);
-    }
+    while (ts.isParenthesizedExpression (value)) { value = value.expression; }
+    if (ts.isElementAccessExpression (value)) { return elementAccessHasStringElements (value); }
+    if (ts.isIdentifier (value)) { return value.text === sourceName || referencedLocalEmitsString (printer, value); }
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) { return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword; }
+    if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) { return plusChainIsValuePreserving (printer, value, sourceName, depth); }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) {
-            return isStringDeclaredThisCall (printer, value);
-        }
+        if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) { return isStringDeclaredThisCall (printer, value); }
         const method = String (value.expression.name.text);
-        if (!STRING_RESULT_METHOD_CALLS.has (method)) {
-            return false;
-        }
+        if (!STRING_RESULT_METHOD_CALLS.has (method)) { return false; }
         if (method === 'toString') {
             return true; // String.valueOf(x) / x.toString() — String for every receiver
         }
@@ -1318,69 +695,44 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
     }
     return false;
 }
-
 function javaLocalType (printer: any, declaration: any): string | undefined {
     let initializer = declaration.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = initializer.expression;
-    }
-    if (!isBaseStringAccessorCall (printer, initializer)) {
-        return undefined;
-    }
-    if (!ts.isIdentifier (declaration.name)) {
-        return undefined;
-    }
+    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) { initializer = initializer.expression; }
+    if (!isBaseStringAccessorCall (printer, initializer) || !ts.isIdentifier (declaration.name)) return undefined;
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
     const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
-    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
-        return undefined;
-    }
+    if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) { return undefined; }
     return 'String';
 }
-
 // venue-local async cores (java-local-types section 12) join the unified table; base names never collide
 function withVenueAsyncReturns (table: Map<string, any>, tsPath?: string): Map<string, any> {
     const merged = new Map(table);
-    for (const [name, info] of (tsPath === undefined ? new Map() : javaVenueFileAsyncReturns(tsPath))) {
-        if (!merged.has(name)) merged.set(name, info);
-    }
+    for (const [name, info] of (tsPath === undefined ? new Map() : javaVenueFileAsyncReturns(tsPath))) { if (!merged.has(name)) merged.set(name, info); }
     for (const [name, javaReturnType] of javaVenueAsyncReturnTable()) {
         if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false, returnsProven: javaVenueTupleCoreProven(name), ...javaVenueDtoListInfo(javaReturnType) });
     }
     return merged;
 }
-
 export function patchJavaLocalTypes (transpiler: any): void {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._localTypesPatched) {
-        return;
-    }
-    // declaration node → narrowed Java type, filled as declarations are printed.
-    // Java statements print in source order, so by the time a reassignment is
-    // printed its declaration has already been classified.
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._localTypesPatched) { return; }
+    // declaration node → narrowed Java type, filled as declarations are printed. Java statements print in source order, so by the time a reassignment is printed its declaration has al...
     const narrowed = new WeakMap<any, string> ();
     const original = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node: any, identation: number) {
         const printed = original (node, identation);
         const declaration = node.declarations?.[0];
-        if (declaration === undefined || declaration.initializer === undefined) {
-            return printed;
-        }
+        if (declaration === undefined || declaration.initializer === undefined) { return printed; }
         const javaType = javaLocalType (printer, declaration);
-        if (javaType === undefined) {
-            return printed;
-        }
-        // the original emits `<finalVars><iden>Object <name> = <value>`; retype the
-        // declaration line only (finalVars above it, if any, are left untouched)
+        if (javaType === undefined) { return printed; }
+        // the original emits `<finalVars><iden>Object <name> = <value>`; retype the declaration line only (finalVars above it, if any, are left untouched)
         const iden = printer.getIden (identation);
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
         const at = printed.lastIndexOf (marker);
-        if (at === -1) {
-            return printed;
-        }
+        if (at === -1) { return printed; }
         const value = printed.slice (at + marker.length);
         if (!value.startsWith ('this.')) {
             return printed; // unexpected shape — leave it as the printer emitted it
@@ -1388,35 +740,23 @@ export function patchJavaLocalTypes (transpiler: any): void {
         narrowed.set (declaration, javaType);
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${value}`;
     };
-    // SS-02: `x = recv[key]` with provably String elements prints
-    // `Helpers.GetValue(recv, key)`, declared Object, so the write site needs the same
-    // `(String)` checkcast such declarations already carry.
+    // SS-02: `x = recv[key]` with provably String elements prints `Helpers.GetValue(recv, key)`, declared Object, so the write site needs the same `(String)` checkcast such declaratio...
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node: any, identation: number) {
         const printed = originalBinary (node, identation);
-        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
-            return printed;
-        }
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) { return printed; }
         let right = node.right;
-        while (ts.isParenthesizedExpression (right)) {
-            right = right.expression;
-        }
+        while (ts.isParenthesizedExpression (right)) { right = right.expression; }
         if (ts.isElementAccessExpression (right)) {
-            if (!elementAccessHasStringElements (right)) {
-                return printed;
-            }
+            if (!elementAccessHasStringElements (right)) { return printed; }
             const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
             const declaration = symbol?.valueDeclaration?.resolve ();
             const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
-            if (javaType !== 'String') {
-                return printed;
-            }
+            if (javaType !== 'String') { return printed; }
             const leftText = printer.printNode (node.left, 0);
             const marker = `${leftText} = `;
             const at = printed.lastIndexOf (marker);
-            if (at === -1) {
-                return printed;
-            }
+            if (at === -1) { return printed; }
             const head = at + marker.length;
             if (!printed.slice (head).startsWith ('Helpers.GetValue(')) {
                 return printed; // unexpected shape — leave it as the printer emitted it
@@ -1430,77 +770,23 @@ export function patchJavaLocalTypes (transpiler: any): void {
     };
     printer._localTypesPatched = true;
 }
-
-// ===== java-13: the printed-Java String proof the `+` concat anchor needs =====
-//
-// `x + y` prints Helpers.add(x, y) unless one operand's printed text is statically a
-// String — javac compiles `+` only when one side is. The generator proves string
-// literals and the concats it prints itself; the two operand families only this layer
-// can prove are
-//
-//   * a local whose FINAL emitted declaration is `String <name> = ` — every local-typing
-//     slice rewrites the declaration text, so the proof is an observer of that text
-//     (the same trick java-local-types.js#observeJavaStringDeclaration uses, with this
-//     wrapper installed LAST so it sees what the whole chain emitted);
-//   * a call to a hand-written `public String` runtime method (BaseExchange accessors,
-//     the Precise string statics).
-//
-// javaExpressionTypeResolver hands both to the generator, whose javaProvableString then
-// emits the native concat (ast-transpiler src/javaTranspiler.ts). Anything unproven
-// returns undefined and keeps the helper.
-//
-// Every name below is a hand-written Java method declared `public String` /
-// `public static String` in java/lib/src/main/java/io/github/ccxt (BaseExchange,
-// base/SafeMethods, base/Strings, base/Time, base/NumberHelpers, base/Precise) and is
-// not redeclared with another return type anywhere in the generated tree (grepped:
-// only Kraken.java redeclares safeCurrencyCode, also as String).
-const JAVA_STRING_RUNTIME_METHODS = new Set ([
-    'safeString', 'safeString2', 'safeStringN', 'safeStringUpper', 'safeStringLower',
-    'uuid22', 'capitalize', 'numberToString', 'decimalToPrecision', 'safeCurrencyCode',
-    'yymmdd', 'yyyymmdd',
-]);
-const JAVA_STRING_PRECISE_METHODS = new Set ([
-    'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr', 'stringMax',
-    'stringMin', 'stringAbs', 'stringNeg', 'stringMod',
-]);
-// zero-argument members the Java printer rewrites into a String-typed expression of its own:
-// printToLowerCaseCall / printToUpperCaseCall / printTrimCall emit `((String)<recv>)<m>()`
-// (the cast is the printer's own, stripped again only when the receiver is already declared
-// `String`), and printToStringCall emits `String.valueOf(<recv>)`. All four are statically
-// `java.lang.String` whatever the receiver's printed declaration was, so they anchor a native
-// `+` the same way a string literal or a `this.safeString(..)` call does.
-const JAVA_STRING_CAST_METHODS = new Set ([
-    'toLowerCase', 'toUpperCase', 'trim', 'toString',
-]);
-
+// `x + y` prints Helpers.add(x, y) unless one operand's printed text is statically a String — javac compiles `+` only when one side is. The generator proves string literals and th...
+const JAVA_STRING_RUNTIME_METHODS = new Set ([ 'safeString', 'safeString2', 'safeStringN', 'safeStringUpper', 'safeStringLower', 'uuid22', 'capitalize', 'numberToString', 'decimalToPrecision', 'safeCurrencyCode', 'yymmdd', 'yyyymmdd', ]);
+const JAVA_STRING_PRECISE_METHODS = new Set ([ 'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr', 'stringMax', 'stringMin', 'stringAbs', 'stringNeg', 'stringMod', ]);
+// zero-argument members the Java printer rewrites into a String-typed expression of its own: printToLowerCaseCall / printToUpperCaseCall / printTrimCall emit `((String)<recv>)<m>(...
+const JAVA_STRING_CAST_METHODS = new Set ([ 'toLowerCase', 'toUpperCase', 'trim', 'toString', ]);
 // the printed Java type of an expression, or undefined when this layer cannot prove it
 function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<any>, node: any): string | undefined {
-    if (node === undefined) {
-        return undefined;
-    }
+    if (node === undefined) { return undefined; }
     let current = node;
-    while (current.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
-    if (current.kind === ts.SyntaxKind.StringLiteral || current.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
-        return 'String';
-    }
+    while (current.kind === ts.SyntaxKind.ParenthesizedExpression) { current = current.expression; }
+    if (current.kind === ts.SyntaxKind.StringLiteral || current.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) { return 'String'; }
     if (current.kind === ts.SyntaxKind.Identifier) {
         let declaration;
-        try {
-            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
-        } catch (e) {
-            return undefined;
-        }
-        if (declaration === undefined || !emittedStringLocals.has (declaration)) {
-            return undefined;
-        }
-        // the Java printer renames the identifiers captured by an object literal in place
-        // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
-        // renamed use site is NOT the type the local's own declaration was emitted with
-        if (String (current.text) !== String (declaration.name?.text)) {
-            return undefined;
-        }
+        try { declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve (); } catch (e) { return undefined; }
+        if (declaration === undefined || !emittedStringLocals.has (declaration)) { return undefined; }
+        // the Java printer renames the identifiers captured by an object literal in place (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a renamed use site ...
+        if (String (current.text) !== String (declaration.name?.text)) { return undefined; }
         return 'String';
     }
     if (current.kind === ts.SyntaxKind.CallExpression) {
@@ -1508,136 +794,46 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
             const receiver = callee.expression;
             const name = String (callee.name?.text);
-            // a zero-argument String-cast member: the printer emits `((String)recv).toLowerCase()`
-            // / `String.valueOf(recv)` itself, which javac types String no matter what the receiver
-            // was declared as (see JAVA_STRING_CAST_METHODS)
-            if (JAVA_STRING_CAST_METHODS.has (name) && (current.arguments?.length ?? 0) === 0) {
-                return 'String';
-            }
-            // padStart the printer emits as its native `(len >= n ? ..substring(..) : String.format(..)
-            // .replace(..) + recv)` ternary: both arms are Strings; the Helpers.padStart form is not claimed
+            // a zero-argument String-cast member: the printer emits `((String)recv).toLowerCase()` / `String.valueOf(recv)` itself, which javac types String no matter what the receiver was de...
+            if (JAVA_STRING_CAST_METHODS.has (name) && (current.arguments?.length ?? 0) === 0) { return 'String'; }
+            // padStart the printer emits as its native `(len >= n ? ..substring(..) : String.format(..) .replace(..) + recv)` ternary: both arms are Strings; the Helpers.padStart form is not ...
             if (name === 'padStart' && current.arguments?.length === 2) {
                 try {
                     const printed = printer.printNode (current, 0);
-                    if (typeof printed === 'string' && printed.startsWith ('(') && printed.includes ('.length() >= ')
-                        && printed.includes ('String.format(') && !printed.includes ('Helpers.')) {
-                        return 'String';
-                    }
-                } catch (e) {
-                    return undefined;
-                }
+                    if (typeof printed === 'string' && printed.startsWith ('(') && printed.includes ('.length() >= ') && printed.includes ('String.format(') && !printed.includes ('Helpers.')) { return 'String'; }
+                } catch (e) { return undefined; }
             }
             const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
-            if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
-                return 'String';
-            }
-            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
-                return 'String';
-            }
+            if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) { return 'String'; }
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) { return 'String'; }
         }
     }
     return undefined;
 }
-
-// Whole-repo facts about a method name for printer.javaBaseListParameterTypeOf (the base-tier program
-// holds ts/src/base/Exchange.ts and its imports, never the venues). Plain data only, every judgement stays in the
-// printer: how many ts/src declarations carry the name, whether a non-call `.name` reference or a string literal
-// mentions it, whether the hand-written Java above the transpile delimiters calls it, and the argument nodes of
-// every `this.name (..)` call outside the declaring file. Installed in the main thread and in every worker.
+// Whole-repo facts about a method name for printer.javaBaseListParameterTypeOf (the base-tier program holds ts/src/base/Exchange.ts and its imports, never the venues). Plain data ...
 let javaRepoMethodIndex: any;
-// an unannotated async method whose returns (outside nested functions) carry no value
-function javaIsAsyncVoidMethod (n: any): boolean {
-    if (!ts.isMethodDeclaration (n) || n.body === undefined || n.type !== undefined || !(n.modifiers ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
-        return false;
-    }
-    let valued = false;
-    const visit = (c: any) => {
-        if (valued || ts.isFunctionLike (c)) {
-            return;
-        }
-        if (ts.isReturnStatement (c) && c.expression !== undefined) {
-            valued = true;
-            return;
-        }
-        c.forEachChild (visit);
-    };
-    n.body.forEachChild (visit);
-    return !valued;
-}
 function javaRepoMethodUsesIndex (): any {
-    if (javaRepoMethodIndex !== undefined) {
-        return javaRepoMethodIndex;
-    }
-    const declared = new Map<string, number> ();
-    const mentioned = new Set<string> ();
-    const asyncVoid = new Map<string, boolean> ();
-    const calls = new Map<string, { file: string, args: any[] }[]> ();
-    const declaredIn = new Map<string, Set<string>> ();
-    const key = (file: string) => path.resolve (file).replace (/\.nooverloads\.\d+(\.ts)$/, '$1');
-    const visitDir = (dir: string) => {
-        if (!fs.existsSync (dir)) {
-            return;
-        }
-        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
-            const full = path.join (dir, entry.name);
-            if (entry.isDirectory ()) {
-                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
-                    visitDir (full);
-                }
-                continue;
-            }
-            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
-            if (text === undefined) {
-                continue;
-            }
-            const source: any = ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true);
-            const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full); // the base tier prints its own returns
-            const visit = (n: any) => {
-                if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
-                    declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
-                    declaredIn.set (n.name.text, (declaredIn.get (n.name.text) ?? new Set<string> ()).add (key (full)));
-                }
-                if (ts.isMethodDeclaration (n) && n.name !== undefined && ts.isIdentifier (n.name)) {
-                    asyncVoid.set (n.name.text, (asyncVoid.get (n.name.text) ?? true) && !inBase && javaIsAsyncVoidMethod (n));
-                }
-                if (ts.isPropertyAccessExpression (n)) {
-                    const thisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
-                    if (!thisCall) {
-                        mentioned.add (n.name.text);
-                    } else {
-                        const list = calls.get (n.name.text) ?? [];
-                        list.push ({ file: key (full), args: [ ...n.parent.arguments ] });
-                        calls.set (n.name.text, list);
-                    }
-                }
-                if (ts.isStringLiteralLike (n)) {
-                    mentioned.add (n.text);
-                }
-                n.forEachChild (visit);
-            };
-            visit (source);
-        }
-    };
-    visitDir (path.resolve (__dirname, '..', 'ts', 'src'));
+    if (javaRepoMethodIndex !== undefined) { return javaRepoMethodIndex; }
+    const { declared, mentioned, asyncVoid, calls, declaredIn, key } = javaRepoAstBundle ().repo;
     let handWritten: string | undefined;
+    let handWrittenCalls: Set<string> | undefined;
     try {
         const dir = path.resolve (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
         handWritten = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.java'))
             .map ((f: string) => fs.readFileSync (path.join (dir, f), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0]).join ('\n');
+        handWrittenCalls = new Set<string> ();
+        for (const m of handWritten.matchAll (/\b([A-Za-z_$]\w*)\s*\(/g)) { handWrittenCalls.add (m[1]); }
     } catch (e) {
         handWritten = undefined; // no Java tree to consult: the proof stays withheld
+        handWrittenCalls = undefined;
     }
-    javaRepoMethodIndex = { declared, mentioned, asyncVoid, calls, handWritten, key, declaredIn };
+    javaRepoMethodIndex = { declared, mentioned, asyncVoid, calls, handWritten, handWrittenCalls, key, declaredIn };
     return javaRepoMethodIndex;
 }
-
-// Every hand-written Java declaration of a method name in java/lib and java/tests, as parameter type lists; a name
-// with a varargs, generic or multi-line declaration answers undefined (unknown), and so does a missing Java tree.
+// Every hand-written Java declaration of a method name in java/lib and java/tests, as parameter type lists; a name with a varargs, generic or multi-line declaration answers undefi...
 let javaDeclarationIndex: Map<string, string[][] | undefined> | undefined;
 function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
-    if (javaDeclarationIndex !== undefined) {
-        return javaDeclarationIndex;
-    }
+    if (javaDeclarationIndex !== undefined) { return javaDeclarationIndex; }
     // workers load the table the main process wrote once, instead of each scanning the Java tree
     const saved = process.env.CCXT_JAVA_DECLARATIONS_FILE;
     if (saved !== undefined && fs.existsSync (saved)) {
@@ -1649,57 +845,28 @@ function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
     const head = /^\s*(?:(?:public|protected|private|static|final|abstract|default|synchronized)\s+)+(<[^(]*>\s+)?[\w.<>, ?\[\]]+?\s+(\w+)\s*\(([^)]*)(\))?/;
     const bare = /^\s*()(?!return\b|new\b|throw\b|else\b)[\w.<>, ?\[\]]+?\s+(\w+)\s*\(([^)]*)(\))\s*(?:throws\s[\w., ]+)?\s*[;{]\s*$/;
     const visit = (dir: string) => {
-        if (!fs.existsSync (dir)) {
-            return;
-        }
+        if (!fs.existsSync (dir)) { return; }
         for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
             const full = path.join (dir, entry.name);
-            if (entry.isDirectory ()) {
-                visit (full);
-                continue;
-            }
-            if (!entry.name.endsWith ('.java') || /[\\/]io[\\/]github[\\/]ccxt[\\/]exchanges[\\/]/.test (full)) {
-                continue;
-            }
-            // venue classes and the base tiers below the delimiter are counted from their TS declarations
-            // below, so the answer never depends on the tree an earlier print left behind
+            if (entry.isDirectory ()) { visit (full); continue; }
+            if (!entry.name.endsWith ('.java') || /[\\/]io[\\/]github[\\/]ccxt[\\/]exchanges[\\/]/.test (full)) { continue; }
+            // venue classes and the base tiers below the delimiter are counted from their TS declarations below, so the answer never depends on the tree an earlier print left behind
             for (const line of fs.readFileSync (full, 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0].split ('\n')) {
-                if (line.length > 400 || !line.includes ('(')) {
-                    continue;
-                }
+                if (line.length > 400 || !line.includes ('(')) { continue; }
                 // interface members may carry no modifier: a typed head ending the line counts too
                 const m = head.exec (line) ?? bare.exec (line);
-                if (m === null || /\s=\s/.test (line.slice (0, m.index + m[0].indexOf ('(')))) {
-                    continue;
-                }
+                if (m === null || /\s=\s/.test (line.slice (0, m.index + m[0].indexOf ('(')))) { continue; }
                 const name = m[2];
-                if (index.has (name) && index.get (name) === undefined) {
-                    continue;
-                }
-                if (m[1] !== undefined || m[4] === undefined || m[3].includes ('...')) {
-                    index.set (name, undefined);
-                    continue;
-                }
+                if (index.has (name) && index.get (name) === undefined) { continue; }
+                if (m[1] !== undefined || m[4] === undefined || m[3].includes ('...')) { index.set (name, undefined); continue; }
                 const params: string[] = [];
                 let depth = 0;
                 let cur = '';
-                for (const c of m[3]) {
-                    depth += c === '<' ? 1 : (c === '>' ? -1 : 0);
-                    if (c === ',' && depth === 0) {
-                        params.push (cur);
-                        cur = '';
-                    } else {
-                        cur += c;
-                    }
-                }
-                if (cur.trim () !== '') {
-                    params.push (cur);
-                }
+                for (const c of m[3]) { depth += c === '<' ? 1 : (c === '>' ? -1 : 0); if (c === ',' && depth === 0) { params.push (cur); cur = ''; } else { cur += c; } }
+                if (cur.trim () !== '') { params.push (cur); }
                 const types = params.map ((p) => p.trim ().replace (/^final\s+/, '').replace (/\s+\w+$/, '').replace (/\s+/g, '').replace (/\bjava\.(?:util|lang)\./g, ''));
                 const list = index.get (name) ?? [];
-                if (!list.some ((t) => t.join (',') === types.join (','))) {
-                    list.push (types);
-                }
+                if (!list.some ((t) => t.join (',') === types.join (','))) { list.push (types); }
                 index.set (name, list);
             }
         }
@@ -1710,144 +877,94 @@ function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
     javaDeclarationIndex = index;
     return index;
 }
-
 // TS parameter aliases whose Java slot type is fixed; any other spelling stays distinct (keeps the cast)
 const JAVA_TS_PARAMETER_TYPES: Record<string, string> = { 'string': 'String', 'Str': 'String', 'Dict': 'Map<String,Object>', 'NullableDict': 'Map<String,Object>', 'Market': 'Map<String,Object>', 'Int': 'Long', 'any': 'Object' };
-function javaPrintedTypeOfTs (text: string): string {
-    return JAVA_TS_PARAMETER_TYPES[text] ?? ('ts:' + text);
-}
-
-// every non-override ts/src class method is one printed Java declaration per distinct TS parameter-type list;
-// an override prints its ancestor's Java parameter types, so it adds none; two TS spellings count twice (keeps the cast)
+function javaPrintedTypeOfTs (text: string): string { return JAVA_TS_PARAMETER_TYPES[text] ?? ('ts:' + text); }
+// every non-override ts/src class method is one printed Java declaration per distinct TS parameter-type list; an override prints its ancestor's Java parameter types, so it adds no...
 function javaAddPrintedDeclarations (index: Map<string, string[][] | undefined>): void {
     const handWritten = new Set (index.keys ());
-    const visitDir = (dir: string) => {
-        if (!fs.existsSync (dir)) {
-            return;
-        }
-        for (const entry of fs.readdirSync (dir, { withFileTypes: true }).sort ((a, b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)))) {
-            const full = path.join (dir, entry.name);
-            if (entry.isDirectory ()) {
-                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
-                    visitDir (full);
-                }
-                continue;
-            }
-            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
-            if (text === undefined) {
-                continue;
-            }
-            const source: any = ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true);
-            const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full);
-            // top-level class members only: walking every method body materializes the whole ts/src AST
-            const visit = (n: any) => {
-                if (ts.isMethodDeclaration (n) && n.body !== undefined && n.name !== undefined && ts.isIdentifier (n.name)) {
-                    const name = n.name.text;
-                    // a hand-written declaration of another arity (TypeHelper.safeBool) does not hide the printed one
-                    if (inBase && handWritten.has (name) && (index.get (name)?.some ((t) => t.length === n.parameters.length) ?? true)) {
-                        // a base method Java declares by hand is not printed
-                    } else if ((ts.getModifiers (n) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.OverrideKeyword)) {
-                        // an override keeps its ancestor's printed Java parameter types
-                    } else if (index.has (name) && index.get (name) === undefined) {
-                        // unknown stays unknown
-                    } else if (n.parameters.some ((p: any) => p.dotDotDotToken !== undefined)) {
-                        index.set (name, undefined);
-                    } else {
-                        const types = n.parameters.map ((p: any) => javaPrintedTypeOfTs (p.type === undefined ? 'any' : p.type.getText (source).replace (/\s+/g, '')));
-                        const list = index.get (name) ?? [];
-                        if (!list.some ((t) => t.join (',') === types.join (','))) {
-                            list.push (types);
-                        }
-                        index.set (name, list);
-                    }
-                }
-            };
-            for (const statement of source.statements) {
-                if (ts.isClassDeclaration (statement)) {
-                    statement.members.forEach (visit);
+    for (const item of javaTsSrcTree ().entries) {
+        if (item.noOverloads) { continue; }
+        const full = item.full;
+        const source: any = javaCachedSourceFile (full, item.text);
+        const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full);
+        // top-level class members only: walking every method body materializes the whole ts/src AST
+        const visit = (n: any) => {
+            if (ts.isMethodDeclaration (n) && n.body !== undefined && n.name !== undefined && ts.isIdentifier (n.name)) {
+                const name = n.name.text;
+                // a hand-written declaration of another arity (TypeHelper.safeBool) does not hide the printed one
+                if (inBase && handWritten.has (name) && (index.get (name)?.some ((t) => t.length === n.parameters.length) ?? true)) {
+                    // a base method Java declares by hand is not printed
+                } else if ((ts.getModifiers (n) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.OverrideKeyword)) {
+                    // an override keeps its ancestor's printed Java parameter types
+                } else if (index.has (name) && index.get (name) === undefined) {
+                    // unknown stays unknown
+                } else if (n.parameters.some ((p: any) => p.dotDotDotToken !== undefined)) {
+                    index.set (name, undefined);
+                } else {
+                    const types = n.parameters.map ((p: any) => javaPrintedTypeOfTs (p.type === undefined ? 'any' : p.type.getText (source).replace (/\s+/g, '')));
+                    const list = index.get (name) ?? [];
+                    if (!list.some ((t) => t.join (',') === types.join (','))) { list.push (types); }
+                    index.set (name, list);
                 }
             }
-        }
-    };
-    visitDir (path.resolve (__dirname, '..', 'ts', 'src'));
+        };
+        for (const statement of source.statements) { if (ts.isClassDeclaration (statement)) { statement.members.forEach (visit); } }
+    }
 }
-
 // main process only: scan the Java tree once, before any worker starts or any Java file is rewritten
 function javaWriteDeclarationsFile (): void {
-    if (process.env.CCXT_JAVA_DECLARATIONS_FILE !== undefined) {
-        return;
-    }
+    if (process.env.CCXT_JAVA_DECLARATIONS_FILE !== undefined) { return; }
     const file = path.resolve (__dirname, '..', '.cache', 'java-declarations.' + process.pid + '.json');
     fs.mkdirSync (path.dirname (file), { recursive: true });
     fs.writeFileSync (file, JSON.stringify ([ ...javaDeclarationsIndex () ].map (([ name, list ]) => [ name, list ?? null ])));
     process.env.CCXT_JAVA_DECLARATIONS_FILE = file;
 }
-
 export function installJavaRepoMethodUses (transpiler: any): void {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || printer._javaRepoMethodUsesInstalled) {
-        return;
-    }
+    if (!printer || printer._javaRepoMethodUsesInstalled) { return; }
     printer._javaRepoMethodUsesInstalled = true;
     printer.javaDeclarationsOf = (name: string) => javaDeclarationsIndex ().get (name);
     printer.javaRepoMethodUses = (name: string, ownFile: string) => {
         const index = javaRepoMethodUsesIndex ();
-        if (index.handWritten === undefined) {
-            return undefined;
-        }
+        if (index.handWritten === undefined) { return undefined; }
         const own = index.key (ownFile);
+        const allCalls = index.calls.get (name);
+        const declFiles = index.declaredIn.get (name);
+        const calls: any[] = [];
+        let foreignCalls = 0;
+        if (allCalls !== undefined) { for (let i = 0; i < allCalls.length; i++) { const call = allCalls[i]; if (call.file !== own) { calls.push (call.args); } if (!(declFiles?.has (call.file))) { foreignCalls++; } } }
         return {
             declared: index.declared.get (name) ?? 0,
             mentions: index.mentioned.has (name) ? 1 : 0,
-            handWritten: new RegExp (`\\b${name}\\s*\\(`).test (index.handWritten),
+            handWritten: index.handWrittenCalls ? index.handWrittenCalls.has (name) : new RegExp (`\\b${name}\\s*\\(`).test (index.handWritten),
             asyncVoid: index.asyncVoid.get (name) === true,
-            calls: (index.calls.get (name) ?? []).filter ((call: any) => call.file !== own).map ((call: any) => call.args),
+            calls,
             // calls from files that do not declare the name themselves (a venue-private method's foreign callers)
-            foreignCalls: (index.calls.get (name) ?? []).filter ((call: any) => !(index.declaredIn.get (name)?.has (call.file))).length,
+            foreignCalls,
         };
     };
 }
-
-// The single-owner stores of the hand-written BaseExchange.java header, handed to the
-// printer (printer.javaOwnerStoreFields / javaOwnerStoreHandoffs). A field is a store when its
-// declaration is `public Map<String, Object> <name> = new SynchronizedOptions (` (put(k, null)
-// removes the key, the contract of the helper's element write); a hand-off key is a name for which
-// the header declares both `<key>ForLoad()` and `<key>ForLoadOrEmpty()` owner accessors.
-// Installed in the main thread and in every worker; a header that declares none leaves every site on the helper.
+// The single-owner stores of the hand-written BaseExchange.java header, handed to the printer (printer.javaOwnerStoreFields / javaOwnerStoreHandoffs). A field is a store when its ...
 export function installJavaOwnerStores (transpiler: any): void {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || printer._javaOwnerStoresInstalled) {
-        return;
-    }
+    if (!printer || printer._javaOwnerStoresInstalled) { return; }
     printer._javaOwnerStoresInstalled = true;
     let header = '';
     try {
         header = fs.readFileSync (path.join (__dirname, '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'BaseExchange.java'), 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0];
-    } catch (e) {
-        return;
-    }
+    } catch (e) { return; }
     const stores = new Set<string> ();
-    for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+(?:[A-Za-z_][\w.]*\.)?SynchronizedOptions\s*\(/gm)) {
-        stores.add (m[1]);
-    }
+    for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*=\s*new\s+(?:[A-Za-z_][\w.]*\.)?SynchronizedOptions\s*\(/gm)) { stores.add (m[1]); }
     const handoffs: { [key: string]: [ string, string ] } = {};
     for (const m of header.matchAll (/^ {4}public\s+Map<\s*String\s*,\s*Object\s*>\s+(\w+)ForLoad\s*\(\s*\)/gm)) {
-        if (new RegExp (`^ {4}public\\s+Map<\\s*String\\s*,\\s*Object\\s*>\\s+${m[1]}ForLoadOrEmpty\\s*\\(\\s*\\)`, 'm').test (header)) {
-            handoffs[m[1]] = [ m[1] + 'ForLoad', m[1] + 'ForLoadOrEmpty' ];
-        }
+        if (new RegExp (`^ {4}public\\s+Map<\\s*String\\s*,\\s*Object\\s*>\\s+${m[1]}ForLoadOrEmpty\\s*\\(\\s*\\)`, 'm').test (header)) { handoffs[m[1]] = [ m[1] + 'ForLoad', m[1] + 'ForLoadOrEmpty' ]; }
     }
     printer.javaOwnerStoreFields = stores;
     printer.javaOwnerStoreHandoffs = handoffs;
-    // plain caches: `public Map<String, Object> <name> = new HashMap<>();` that the base only ever
-    // reassigns to a fresh HashMap (a put of a null value stores it, exactly like the helper)
-    // the transpiled half of BaseExchange.java is printed from the base methods of ts/src/base/Exchange.ts
-    // (`{}` and createSafeDictionary print a fresh HashMap), so its writes are read there
+    // plain caches: `public Map<String, Object> <name> = new HashMap<>();` that the base only ever reassigns to a fresh HashMap (a put of a null value stores it, exactly like the help...
     let tsBase = '';
-    try {
-        tsBase = fs.readFileSync (path.join (__dirname, '..', 'ts', 'src', 'base', 'Exchange.ts'), 'utf8');
-    } catch (e) {
-        return;
-    }
+    try { tsBase = fs.readFileSync (path.join (__dirname, '..', 'ts', 'src', 'base', 'Exchange.ts'), 'utf8'); } catch (e) { return; }
     const tsDelimiter = tsBase.indexOf ('METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT');
     const tsExchange = tsBase.indexOf ('export default class Exchange extends BaseExchange');
     const tsMethods = (tsDelimiter >= 0 && tsExchange > tsDelimiter) ? tsBase.slice (tsDelimiter, tsExchange) : tsBase;
@@ -1859,8 +976,7 @@ export function installJavaOwnerStores (transpiler: any): void {
         const describedLiteral = new RegExp (`^ {12}'${m[1]}': \\{`, 'm').test (tsMethods);
         const fromDescribe = (x: string) => describedLiteral && x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}")`;
         // a constructor read that defaults to the field itself, when every TS write first reassigns it to `{}`
-        const selfDefault = (x: string) => x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}", this.${m[1]})`
-            && new RegExp (`\\bthis\\.${m[1]}\\s*=\\s*\\{\\s*\\}`).test (tsMethods);
+        const selfDefault = (x: string) => x === `(Map<String, Object>) this.safeValue(extendedProperties, "${m[1]}", this.${m[1]})` && new RegExp (`\\bthis\\.${m[1]}\\s*=\\s*\\{\\s*\\}`).test (tsMethods);
         if (handAssigns.every ((x) => /^(?:new\s+HashMap\b|this\.createSafeDictionary\s*\()/.test (x[1].trim ()) || fromDescribe (x[1].trim ()) || selfDefault (x[1].trim ()))
             && tsAssigns.every ((x) => /^(?:\{\s*\}|this\.createSafeDictionary\s*\()/.test (x[1].trim ()))) {
             caches.add (m[1]);
@@ -1869,20 +985,13 @@ export function installJavaOwnerStores (transpiler: any): void {
     printer.javaPlainCacheFields = caches;
     // every Map<String, Object> field of the header: the printer proves which of them hold nested maps
     const mapFields = new Set<string> ();
-    for (const m of header.matchAll (/^ {4}public\s+(?:volatile\s+)?Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*[=;]/gm)) {
-        mapFields.add (m[1]);
-    }
+    for (const m of header.matchAll (/^ {4}public\s+(?:volatile\s+)?Map<\s*String\s*,\s*Object\s*>\s+(\w+)\s*[=;]/gm)) { mapFields.add (m[1]); }
     printer.javaHeaderMapFields = mapFields;
 }
-
-// install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed
-// LAST in the main thread and in every worker so the declaration observer below sees the
-// final text of the whole local-typing chain.
+// install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed LAST in the main thread and in every worker so the declaration observer below sees the f...
 export function installJavaExpressionTypeResolver (transpiler: any): void {
     const printer = transpiler?.javaTranspiler;
-    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaExpressionTypeResolverInstalled) {
-        return;
-    }
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaExpressionTypeResolverInstalled) { return; }
     const emittedStringLocals = new WeakSet<any> ();
     const emittedDeclaredStringLocals = new WeakSet<any> ();
     const emittedLongLocals = new WeakSet<any> ();
@@ -1904,37 +1013,26 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
                             && lines.some ((line: string) => line.startsWith (`String ${printer.printNode (element.name, 0)} = `))) {
                             emittedStringLocals.add (element);
                         }
-                        if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
-                            && lines.some ((line: string) => line.startsWith (`Long ${printer.printNode (element.name, 0)} = `))) {
-                            emittedLongLocals.add (element);
-                        }
+                        if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier && lines.some ((line: string) => line.startsWith (`Long ${printer.printNode (element.name, 0)} = `))) emittedLongLocals.add (element);
                         // the printer's declared-box arithmetic reads a `Long` / `Integer` / `Double` element from this table
                         const boxLine = element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
                             ? lines.map ((line: string) => /^(Long|Integer|Double) ([\w$]+) = /.exec (line))
                                 .find ((m: any) => m !== null && m[2] === printer.printNode (element.name, 0)) : undefined;
-                        if (boxLine !== undefined && boxLine !== null) {
-                            emittedBindingBoxes.set (element, boxLine[1]);
-                        }
+                        if (boxLine !== undefined && boxLine !== null) { emittedBindingBoxes.set (element, boxLine[1]); }
                     }
                 }
                 if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
-                    // a pro/prediction declaration the ws post-process rewrites back to
-                    // `Object` is not a String at the use sites either (same guard the
-                    // SS-03 `+` acceptance uses: wsPostProcessReverts)
+                    // a pro/prediction declaration the ws post-process rewrites back to `Object` is not a String at the use sites either (same guard the SS-03 `+` acceptance uses: wsPostProcessReverts)
                     const stringMarker = `${printer.getIden (identation)}String ${printer.printNode (declaration.name, 0)} = `;
                     const stringAt = printed.lastIndexOf (stringMarker);
                     if (stringAt !== -1 && (stringAt === 0 || printed.charAt (stringAt - 1) === '\n')) {
                         // the final line is String in every tier; the concat proof still skips the ws-revert shape
                         emittedDeclaredStringLocals.add (declaration);
-                        if (!wsPostProcessReverts (declaration)) {
-                            emittedStringLocals.add (declaration);
-                        }
+                        if (!wsPostProcessReverts (declaration)) { emittedStringLocals.add (declaration); }
                     }
                     const longMarker = `${printer.getIden (identation)}Long ${printer.printNode (declaration.name, 0)} = `;
                     const longAt = printed.lastIndexOf (longMarker);
-                    if (longAt !== -1 && (longAt === 0 || printed.charAt (longAt - 1) === '\n')) {
-                        emittedLongLocals.add (declaration);
-                    }
+                    if (longAt !== -1 && (longAt === 0 || printed.charAt (longAt - 1) === '\n')) { emittedLongLocals.add (declaration); }
                 }
             }
         } catch (e) {
@@ -1953,67 +1051,64 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
     printer.javaBindingElementTypeResolver = (element: any) => emittedBindingBoxes.get (element);
     printer._javaExpressionTypeResolverInstalled = true;
 }
-
-
-// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
-// Override with CCXT_TRANSPILE_PROCESSES.
-function javaWorkerThreads () {
-    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
-    if (requested > 0) {
-        return Math.min (requested, 3);
-    }
-    return Math.max (1, Math.min (2, os.availableParallelism ()));
+// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores. Override with CCXT_TRANSPILE_PROCESSES.
+function javaWorkerThreads () { const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES); if (requested > 0) { return Math.min (requested, 3); } return Math.max (1, Math.min (2, os.availableParallelism ())); }
+// Shared Java hook sequence applied identically on the main thread and every piscina worker.
+const JAVA_ALL_HOOK_INSTALLERS = [
+    patchJavaLocalTypes, installJavaLocalTypes, patchJavaLiteralLocalTypes, installJavaNumericLocalTypes, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts,
+    installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaExpressionTypeResolver, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes,
+    patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaRowAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts,
+    patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals,
+    patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaLongSlots, installJavaMapLocals,
+    patchJavaUntilOmitMapWrites, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaNativeReplace, installJavaStringReturnSites, installJavaFreshObjectMapWrites, installJavaStringCoreArgs,
+    installJavaNativePadStartFirst, installJavaLiteralReplace, installJavaCounterTypes, installJavaMapLocalTypes, installJavaParamTypes, installJavaMapArgAlreadyTyped, installJavaRepoMethodUses,
+    installJavaListLocals, installJavaScalarLocals, installJavaParamTypesPreScan, installJavaStringReturns, installJavaPredictionMapLocals, installJavaListParamSlots, installJavaTypedBaseFields,
+    installJavaNonNullMapPuts, installJavaLocalElementWrites, installJavaStringListIndexOf, installJavaR77j2ConditionalLocals, installJ6ReaderLocals, installJavaJ8CopyLocals,
+    installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals, installJavaH26j01MapRowLists, installJavaR84j2ContainerLocals, installJavaR84j2GuardedListLocals, installJavaR84j2MapConditionalLocals,
+    installJ84j6TrueOnlyLocals, installJ84j6StringListLocals, installJavaR84j8Locals, installJavaR87j2WsLocals, installJavaR87j2UrlLocals, installJavaR87j3SumCounterLocals, installJavaR87j4SplitLists,
+    installJavaR87j5CalleeStringArgs, installJavaR87j8CopyStringResolver, installJavaR90j2ElementListLocals, installJavaR90j2PromiseAllLocals, installJavaR90j2ElementMapLocals, installJavaR90j3NativeSumLocals,
+    installJavaR90j3CounterLoops, installJavaR90j6StringListReaders, installJavaR90j6AsStringListReaders, installJavaR90j6PairLocals, installJavaR90j6ListCopyLocals, installJavaR90j7MapDelete,
+    installJavaR92j3LongDefaultParams, installJavaR92j3LongFixedParams, installJavaR92j3ParseToIntCompare, installJavaR92j3SafeIntegerOperands, installJavaR92j3HexStringCalls, installJavaR90j8OmitParamLocals,
+    installJavaR92j1AssertedStringLocals, installJavaR92j1StringRowLocals, installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders, installJavaR92j2MapSlotHandOff, installJavaR92j2StringSlotLocals,
+    installJavaR93j2ListLocals, installJavaBaseMapCallReturns, installJavaBaseMapReturnSites, installJavaMapCopyLocals, installJavaEventsParamsSlots, installJavaCurrenciesByIdReads,
+    installJavaSourceExchangeReads, installJavaTypedOrderbooksField, installJavaNullSeedStructureLocals,
+];
+export function installAllJavaHooks (transpiler: any, afterOwnerStores?: () => void): void {
+    (transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
+    installJavaOwnerStores (transpiler);
+    if (afterOwnerStores !== undefined) { afterOwnerStores (); }
+    for (const install of JAVA_ALL_HOOK_INSTALLERS) { install (transpiler); }
 }
-
 class NewTranspiler {
-
     transpiler!: Transpiler;
     oldTranspiler = new OldTranspiler();
-    // lazily created in webworkerTranspile and kept alive for the lifetime of the
-    // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
-    // are reused across every stage instead of paying a cold pool per call
+    // lazily created in webworkerTranspile and kept alive for the lifetime of the transpiler, so worker threads (and their warm Transpiler + ts.Program batch) are reused across every ...
     piscina: Piscina | undefined;
     javaCoreHanded: Record<string, Record<string, string[]>> | undefined;
-    // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
-    // trading methods), reused by both the Exchange.java injection and the
-    // PredictionExchange.java convenience-method injection.
+    // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62 trading methods), reused by both the Exchange.java injection and the PredictionExchange.java conven...
     _exchangeTierBody: string | undefined;
-
-    async destroy () {
-        if (this.piscina) {
-            await this.piscina.destroy ();
-            this.piscina = undefined;
-        }
-    }
-
+    async destroy () { if (this.piscina) { await this.piscina.destroy (); this.piscina = undefined; } }
     constructor() {
         javaWriteDeclarationsFile ();
         this.setupTranspiler()
     }
-
-
     getJavaWsRegexes() {
         // Java-specific WS regexes — converts transpiled code for WS exchange classes
         return [
             // Dynamic exception construction: new getValue(x, key)(msg) → this.newException(getValue(x, key), msg)
             [/new\sHelpers\.GetValue\((\w+),\s*(\w+)\)\((\w+)\)/gm, 'this.newException(Helpers.GetValue($1, $2), $3)'],
-
             // Client type casts — transpiled code uses Object client, need to cast to Client
             [/\(Object client,/gm, '(Client client,'],
             [/\(Object client\)/gm, '(Client client)'],
             [/Object client =/gm, 'Client client ='],
-
-            // client.subscriptions / client.futures — these are Object type fields
-            // transpiled code tries to cast them to Map, which works since they're ConcurrentHashMaps
+            // client.subscriptions / client.futures — these are Object type fields transpiled code tries to cast them to Map, which works since they're ConcurrentHashMaps
             [/\(java\.util\.Map<String, Object>\)client\.futures/gm, '(java.util.Map)client.futures'],
             [/\(java\.util\.Map<String, Object>\)client\.subscriptions/gm, '(java.util.Map)client.subscriptions'],
             [/\(java\.util\.Map<String, Object>\)this\.clients/gm, '(java.util.Map)this.clients'],
             // `clients` is the typed Map<String, Client> field: `delete this.clients[k]` needs no cast
             [/\(\((?:java\.util\.)?Map<String,\s?Object>\)this\.clients\)\.remove\(/gm, 'this.clients.remove('],
-
             // new XyzRest() → new Xyz() for instantiating REST parent
             [/new (\w+)Rest\(\)/g, 'new io.github.ccxt.exchanges.$1()'],
-
             // ArrayCache constructor — needs FQN for inner classes + int cast
             [/new ArrayCache\((\w+)\)/gm, 'new ArrayCache(((Number)$1).intValue())'],
             [/new ArrayCacheByTimestamp\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByTimestamp(((Number)$1).intValue())'],
@@ -2026,202 +1121,39 @@ class NewTranspiler {
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
         ]
     }
-
-
-    // a helper to apply an array of regexes and substitutions to text
-    // accepts an array like [ [ regex, substitution ], ... ]
-
-    regexAll(text: string, array: any[]) {
-        for (const [regex, substitution] of array) {
-            text = text.replace(new RegExp(regex, (typeof regex === 'string') ? 'g' : undefined), substitution)
-        }
-        return text
-    }
-
-    // ============================================================================
-
+    // a helper to apply an array of regexes and substitutions to text accepts an array like [ [ regex, substitution ], ... ]
+    regexAll(text: string, array: any[]) { for (const [regex, substitution] of array) { text = text.replace(new RegExp(regex, (typeof regex === 'string') ? 'g' : undefined), substitution) } return text }
     getTranspilerConfig() {
         return {
             "verbose": false,
-            "csharp": {
-                "parser": {
-                    "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
-                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                }
-            },
+            "csharp": { "parser": { "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(", "ELEMENT_ACCESS_WRAPPER_CLOSE": ")", } },
             "java": {
-                // generated async lambdas go through BaseExchange.supplyAsync, which
-                // defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
+                // generated async lambdas go through BaseExchange.supplyAsync, which defaults to VIRTUAL_EXECUTOR so no tier lands on the ForkJoinPool common pool
                 "asyncSupplier": JAVA_ASYNC_SUPPLIER,
                 // library async methods print a private sync <name>Core plus a one-line supplier wrapper
                 "asyncCoreSplit": "/ts/src/(?!test/)",
             },
         }
     }
-
-
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
-        // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
-        (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
-        installJavaOwnerStores(this.transpiler);
-        this.patchJavaPropertyTypes();
-        // the local-typing installers, in order (each is also applied per worker thread in java-worker.ts);
-        // later installers' proofs read the declaration text the earlier ones rewrote
-        const installers = [
-            patchJavaLocalTypes,
-            installJavaLocalTypes,
-            patchJavaLiteralLocalTypes,
-            installJavaNumericLocalTypes,
-            patchJavaConsumerStringCasts,
-            patchJavaMapChannelStringCasts,
-            patchJavaStringReceiverCasts,
-            installJavaDeclaredLocalTypes,
-            installJavaObjectParamPositions,
-            installJavaExpressionTypeResolver,
-            installJavaStringListParamTypes,
-            installJavaNullScalarLocalTypes,
-            patchJavaOmitLocalTypes,
-            patchJavaQualifiedDtoListElementLocals,
-            patchJavaStringAccumulatorLists,
-            patchJavaRowAccumulatorLists,
-            patchJavaTupleHolderElementLocals,
-            patchJavaOrderBookCacheLocals,
-            patchJavaDeclaredMapReceiverCasts,
-            patchJavaBaseMapFieldReceiverCasts,
-            patchJavaFreshMapElementWrites,
-            patchJavaDeclaredBoxLiteralEquality,
-            patchJavaObjectKeysLength,
-            patchJavaMapArgIdentity,
-            patchJavaNonNullStringLocals,
-            patchJavaNonNullLongSubtract,
-            installJavaBooleanParams,
-            installJavaStringDefaultParams,
-            installJavaTuplePairReturns,
-            installJavaStringListArgs,
-            installJavaLongSlots,
-            installJavaMapLocals,
-            patchJavaUntilOmitMapWrites,
-            installJavaBooleanFixedParams,
-            installJavaBooleanWriteLocals,
-            installJavaNativeReplace,
-            installJavaStringReturnSites,
-            installJavaFreshObjectMapWrites,
-            installJavaStringCoreArgs,
-            installJavaNativePadStartFirst,
-            installJavaLiteralReplace,
-            installJavaCounterTypes,
-            installJavaMapLocalTypes,
-            installJavaParamTypes,
-            installJavaMapArgAlreadyTyped,
-            installJavaRepoMethodUses,
-            installJavaListLocals,
-            installJavaScalarLocals,
-            installJavaParamTypesPreScan,
-            installJavaStringReturns,
-            installJavaPredictionMapLocals,
-            installJavaListParamSlots,
-            installJavaTypedBaseFields,
-            installJavaNonNullMapPuts,
-            installJavaLocalElementWrites,
-            installJavaStringListIndexOf,
-            installJavaR77j2ConditionalLocals,
-            installJ6ReaderLocals,
-            installJavaJ8CopyLocals,
-            installJavaR84j1StringElementLocals,
-            installJavaR84j1BoxElementLocals,
-            installJavaH26j01MapRowLists,
-            installJavaR84j2ContainerLocals,
-            installJavaR84j2GuardedListLocals,
-            installJavaR84j2MapConditionalLocals,
-            installJ84j6TrueOnlyLocals,
-            installJ84j6StringListLocals,
-            installJavaR84j8Locals,
-            installJavaR87j2WsLocals,
-            installJavaR87j2UrlLocals,
-            installJavaR87j3SumCounterLocals,
-            installJavaR87j4SplitLists,
-            installJavaR87j5CalleeStringArgs,
-            installJavaR87j8CopyStringResolver,
-            installJavaR90j2ElementListLocals,
-            installJavaR90j2PromiseAllLocals,
-            installJavaR90j2ElementMapLocals,
-            installJavaR90j3NativeSumLocals,
-            installJavaR90j3CounterLoops,
-            installJavaR90j6StringListReaders,
-            installJavaR90j6AsStringListReaders,
-            installJavaR90j6PairLocals,
-            installJavaR90j6ListCopyLocals,
-            installJavaR90j7MapDelete,
-            installJavaR92j3LongDefaultParams,
-            installJavaR92j3LongFixedParams,
-            installJavaR92j3ParseToIntCompare,
-            installJavaR92j3SafeIntegerOperands,
-            installJavaR92j3HexStringCalls,
-            installJavaR90j8OmitParamLocals,
-            installJavaR92j1AssertedStringLocals,
-            installJavaR92j1StringRowLocals,
-            installJavaR92j2MarketTypeParams,
-            installJavaTypedDefaultReaders,
-            installJavaR92j2MapSlotHandOff,
-            installJavaR92j2StringSlotLocals,
-            installJavaR93j2ListLocals,
-            installJavaBaseMapCallReturns,
-            installJavaBaseMapReturnSites,
-            installJavaMapCopyLocals,
-            installJavaEventsParamsSlots,
-            installJavaCurrenciesByIdReads,
-            installJavaSourceExchangeReads,
-            installJavaTypedOrderbooksField,
-            installJavaNullSeedStructureLocals,
-        ];
-        for (const install of installers) {
-            install(this.transpiler);
-        }
+        installAllJavaHooks(this.transpiler, () => this.patchJavaPropertyTypes());
     }
-
-    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
-    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
-    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
-    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
-    //     skippedMethods: Dict = {};
-    // was emitted verbatim as
-    //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
-    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
-    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
-    // for noImplicitAny.
-    //
-    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
-    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
-    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
-    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
-    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)...
     patchJavaPropertyTypes() {
         const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
-        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
-            return;
-        }
+        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) { return; }
         const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
         javaTranspiler.getType = (node: any) => {
             const type = originalGetType(node);
             const replacements = javaTranspiler.VariableTypeReplacements ?? {};
-            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
-                return replacements[type];
-            }
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) { return replacements[type]; }
             return type;
         };
         javaTranspiler._propertyTypesPatched = true;
     }
-
-    createGeneratedHeader() {
-        return [
-            "// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
-            "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
-            ""
-        ]
-    }
-
+    createGeneratedHeader() { return [ "// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:", "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code", "" ] }
     getJavaImports(file: any, ws = false, prediction = false) {
         if (ws) {
             // For WS pro exchanges — no import of REST parent (use FQN to avoid name clash)
@@ -2235,20 +1167,12 @@ class NewTranspiler {
                 'import io.github.ccxt.Client;',
             ];
         }
-        // Prediction-market REST exchanges live in their own package and extend
-        // their own implicit-API class under io.github.ccxt.api.prediction.
+        // Prediction-market REST exchanges live in their own package and extend their own implicit-API class under io.github.ccxt.api.prediction.
         if (prediction) {
-            // prediction exchanges merge REST + WS in one class, so they also need
-            // the WS infrastructure imports (Client, ArrayCache, IOrderBookSide, ...)
+            // prediction exchanges merge REST + WS in one class, so they also need the WS infrastructure imports (Client, ArrayCache, IOrderBookSide, ...)
             return [
-                'package io.github.ccxt.exchanges.prediction;',
-                `import io.github.ccxt.api.prediction.${this.capitalize(file)}Api;`,
-                'import io.github.ccxt.base.Precise;',
-                'import io.github.ccxt.errors.*;',
-                'import io.github.ccxt.Helpers;',
-                JAVA_ASYNC_SUPPLIER_IMPORT,
-                'import io.github.ccxt.ws.*;',
-                'import io.github.ccxt.Client;',
+                'package io.github.ccxt.exchanges.prediction;', `import io.github.ccxt.api.prediction.${this.capitalize(file)}Api;`, 'import io.github.ccxt.base.Precise;', 'import io.github.ccxt.errors.*;',
+                'import io.github.ccxt.Helpers;', JAVA_ASYNC_SUPPLIER_IMPORT, 'import io.github.ccxt.ws.*;', 'import io.github.ccxt.Client;',
             ];
         }
         const values = [
@@ -2264,43 +1188,23 @@ class NewTranspiler {
         ]
         return values;
     }
-
-
     transpileErrorHierarchy(force = true) {
-
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
-
-        // this stage writes one Errors/<Name>.java per node of the hierarchy, so the output
-        // list has to be derived from errorHierarchy itself — same pre-order walk the
-        // intellisense() generator below does (BaseError first, then every descendant)
+        // this stage writes one Errors/<Name>.java per node of the hierarchy, so the output list has to be derived from errorHierarchy itself — same pre-order walk the intellisense() gene...
         const errorNames = [ 'BaseError' ];
-        const walkErrorHierarchy = (map: any) => {
-            for (const key in map) {
-                errorNames.push (key);
-                walkErrorHierarchy (map[key]);
-            }
-        };
+        const walkErrorHierarchy = (map: any) => { for (const key in map) { errorNames.push (key); walkErrorHierarchy (map[key]); } };
         walkErrorHierarchy ((errorHierarchy as any)['BaseError']);
-        if (skipUpToDateStage ('java', 'error hierarchy', force, [ errorHierarchyFilename ], errorNames.map ((name) => ERRORS_FOLDER + this.capitalize (name) + '.java'))) {
-            return;
-        }
-
+        if (skipUpToDateStage ('java', 'error hierarchy', force, [ errorHierarchyFilename ], errorNames.map ((name) => ERRORS_FOLDER + this.capitalize (name) + '.java'))) { return; }
         let js = fs.readFileSync(errorHierarchyPath, 'utf8')
-
         js = this.regexAll(js, [
             // [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
             [/\s*export default[^\n]+;\n/g, ''],
             // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
         ]).trim()
-
         const message = 'Transpiling error hierachy →'
         const root = errorHierarchy['BaseError']
-
-        // a helper to generate a list of exception class declarations
-        // properly derived from corresponding parent classes according
-        // to the error hierarchy
-
+        // a helper to generate a list of exception class declarations properly derived from corresponding parent classes according to the error hierarchy
         function intellisense(map: any, parent: any, generate: any, classes: any) {
             function* generator(map: any, parent: any, generate: any, classes: any): any {
                 for (const key in map) {
@@ -2310,8 +1214,6 @@ class NewTranspiler {
             }
             return Array.from(generator(map, parent, generate, classes))
         }
-
-
         function javaMakeErrorClassFile(name: string, parent: string) {
             const exception =
                 `public class ${name} extends ${parent}
@@ -2322,7 +1224,6 @@ class NewTranspiler {
 }`;
             return exception
         }
-
         const javaBaseError =
             `public class BaseError extends RuntimeException
 {
@@ -2330,7 +1231,6 @@ class NewTranspiler {
     public BaseError(String message) { super(message); }
     public BaseError(String message, Throwable cause) { super(message, cause); }
 }`;
-
         const javaErrors = intellisense(root as any, 'BaseError', javaMakeErrorClassFile, undefined)
         const allErrors = [javaBaseError].concat(javaErrors)
         for (let i = 0; i < allErrors.length; i++) {
@@ -2338,29 +1238,17 @@ class NewTranspiler {
             const groups = error.match(/class (\w+) extends (\w+)/);
             const errorName = groups[1];
             const baseError = groups[2];
-            const file = [
-                'package io.github.ccxt.errors;',
-                this.createGeneratedHeader().join('\n'),
-                error
-            ].join('\n')
-
+            const file = [ 'package io.github.ccxt.errors;', this.createGeneratedHeader().join('\n'), error ].join('\n')
             const fileName = ERRORS_FOLDER + this.capitalize(errorName) + '.java'
             log.bright.cyan(message, (fileName as any).yellow)
             overwriteFileAndFolder(fileName, file)
         }
     }
-
-    // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
-    // output (both the BaseExchange class and the trailing Exchange class). Factored
-    // out so the Exchange-tier body can be re-derived identically from either the
-    // base transpile or a standalone prediction transpile.
+    // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts output (both the BaseExchange class and the trailing Exchange class). Factored out so the Exchange-ti...
     applyExchangeTierJavaFixes(baseClass: string): string {
         // describe() is a dictionary on every tier (TS `describe (): Dict`); overrides are covariant-safe because every tier retypes it
         baseClass = baseClass.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()');
-        // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so
-        // the qualified-this used inside anonymous-class initializers must name the enclosing class
-        // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)
-        // initializers, so this is a no-op there.)
+        // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so the qualified-this used inside anonymous-class initializers must name the enclosing class Ba...
         baseClass = this.applyTierJavaFixes(baseClass, 'BaseExchange', [
             [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
             [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"],
@@ -2376,30 +1264,18 @@ class NewTranspiler {
         baseClass = nativeJavaMapLocalOps(baseClass);
         return baseClass;
     }
-
-    // fixes shared by every transpiled base tier: the qualified-this inside anonymous-class
-    // initializers names the class the methods physically live on (`owner`), Client-typed
-    // params/locals, order-book side casts, then the tier's own `extraRules`
+    // fixes shared by every transpiled base tier: the qualified-this inside anonymous-class initializers names the class the methods physically live on (`owner`), Client-typed params/...
     applyTierJavaFixes(baseClass: string, owner: string, extraRules: any[]): string {
         baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, `$1${owner}.$2`);
-        baseClass = this.regexAll(baseClass, [
-            [/\(Object client, /g, '(Client client, '],
-            [/Object client = (.+)/g, 'Client client = (Client)$1'],
-            [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
-            ...extraRules,
-        ]);
+        baseClass = this.regexAll(baseClass, [ [/\(Object client, /g, '(Client client, '], [/Object client = (.+)/g, 'Client client = (Client)$1'], [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'], ...extraRules, ]);
         // Remove unreachable "return null;" after throw statements / a throwing plain else
         baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
         baseClass = this.removeUnreachableReturnNull(baseClass);
         return this.addDeprecatedAnnotations(baseClass);
     }
-
-    // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends
-    // BaseExchange` class — the 62 symbol-based trading methods. Cached on first call.
+    // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends BaseExchange` class — the 62 symbol-based trading methods. Cached on first call.
     getExchangeTierBody(baseExchangeFile = './ts/src/base/Exchange.ts'): string {
-        if (this._exchangeTierBody !== undefined) {
-            return this._exchangeTierBody;
-        }
+        if (this._exchangeTierBody !== undefined) { return this._exchangeTierBody; }
         const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
         const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
@@ -2408,151 +1284,86 @@ class NewTranspiler {
         this._exchangeTierBody = match ? match[1] : '';
         return this._exchangeTierBody;
     }
-
-    // Method names the prediction layer actually implements — PredictionExchange.ts plus every
-    // ts/src/prediction/*.ts venue. Used to keep only the prediction unified surface when injecting
-    // Exchange-tier methods into PredictionExchange.java: symbol-based trading methods no prediction
-    // venue implements (closePosition, fetchGreeks, createLimitOrder, ...) are dropped, not injected,
-    // so prediction instances never carry them (true parity with the other languages).
+    // Method names the prediction layer actually implements — PredictionExchange.ts plus every ts/src/prediction/*.ts venue. Used to keep only the prediction unified surface when inje...
     getPredictionImplementedNames(): Set<string> {
         const names = new Set<string>();
         const files = [ './ts/src/base/PredictionExchange.ts' ];
         const dir = './ts/src/prediction';
-        if (fs.existsSync(dir)) {
-            for (const f of fs.readdirSync(dir)) {
-                if (f.endsWith('.ts')) {
-                    files.push(dir + '/' + f);
-                }
-            }
-        }
+        if (fs.existsSync(dir)) { for (const f of fs.readdirSync(dir)) { if (f.endsWith('.ts')) { files.push(dir + '/' + f); } } }
         const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
-        for (const file of files) {
-            for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-                const m = line.match(re);
-                if (m) {
-                    names.add(m[1]);
-                }
-            }
-        }
+        for (const file of files) { for (const line of fs.readFileSync(file, 'utf8').split('\n')) { const m = line.match(re); if (m) { names.add(m[1]); } } }
         return names;
     }
-
-    // Names of every method declared directly in a transpiled Java class body
-    // (indentation level 1, e.g. `    public ... foo(...)`).
+    // Names of every method declared directly in a transpiled Java class body (indentation level 1, e.g. ` public ... foo(...)`).
     extractJavaMethodNames(classBody: string): Set<string> {
         const names = new Set<string>();
         const re = /\n {4}(?:@[\w.]+\s*(?:\([^)]*\))?\s*)*(?:public|private|protected)\b[^\n(]*?([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
         let m;
-        while ((m = re.exec(classBody)) !== null) {
-            names.add(m[1]);
-        }
+        while ((m = re.exec(classBody)) !== null) { names.add(m[1]); }
         return names;
     }
-
-    // Remove a whole method (signature + brace-matched body) from a transpiled Java
-    // class body, by method name (first match only — the base tier has no overloaded
-    // trading-method names).
-    // removes every overload of the name (a typed core and its Object... front)
+    // Remove a whole method (signature + brace-matched body) from a transpiled Java class body, by method name (first match only — the base tier has no overloaded trading-method names...
     removeJavaMethod(classBody: string, methodName: string): string {
         let out = this.removeFirstJavaMethod(classBody, methodName);
-        while (out !== classBody) {
-            classBody = out;
-            out = this.removeFirstJavaMethod(classBody, methodName);
-        }
+        while (out !== classBody) { classBody = out; out = this.removeFirstJavaMethod(classBody, methodName); }
         // an async method's private sync core goes with it
         return methodName.endsWith('Core') ? out : this.removeJavaMethod(out, methodName + 'Core');
     }
-
     removeFirstJavaMethod(classBody: string, methodName: string): string {
         const declRe = new RegExp('\\n {4}(?:@[\\w.]+\\s*(?:\\([^)]*\\))?\\s*)*(?:public|private|protected)\\b[^\\n(]*?\\b' + methodName + '\\s*\\(');
         const m = declRe.exec(classBody);
-        if (!m) {
-            return classBody;
-        }
+        if (!m) { return classBody; }
         const start = m.index; // the '\n' before the declaration
         let i = classBody.indexOf('{', m.index + m[0].length);
-        if (i < 0) {
-            return classBody;
-        }
+        if (i < 0) { return classBody; }
         let depth = 0;
         let inStr: string | null = null;
         let j = i;
         for (; j < classBody.length; j++) {
             const ch = classBody[j];
-            if (inStr) {
-                if (ch === '\\') { j++; continue; }
-                if (ch === inStr) inStr = null;
-                continue;
-            }
+            if (inStr) { if (ch === '\\') { j++; continue; } if (ch === inStr) inStr = null; continue; }
             // comments may hold quotes or braces (`it's`)
             if (ch === '/' && classBody[j + 1] === '/') { const e = classBody.indexOf ('\n', j); j = e < 0 ? classBody.length : e; continue; }
             if (ch === '/' && classBody[j + 1] === '*') { const e = classBody.indexOf ('*/', j + 2); j = e < 0 ? classBody.length : e + 1; continue; }
             if (ch === '"' || ch === '\'') { inStr = ch; continue; }
-            if (ch === '{') depth++;
-            else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
+            if (ch === '{') depth++; else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
         }
         return classBody.slice(0, start) + classBody.slice(j);
     }
-
     transpileBaseMethods(baseExchangeFile: string, force = true) {
-        // both generated base files come out of this one pass; `exchanges.json` is listed
-        // as an input too — the wrapper generators keyed off the exchange list live in this
-        // stage, so adding an exchange must invalidate it even when Exchange.ts did not change
-        if (skipUpToDateStage ('java', 'base methods', force, [
-            baseExchangeFile,
-            './ts/src/base/types.ts',
-            './exchanges.json',
-        ], [
-            BASE_METHODS_FILE,
-            EXCHANGE_METHODS_FILE,
-        ])) {
-            return;
-        }
+        // both generated base files come out of this one pass; `exchanges.json` is listed as an input too — the wrapper generators keyed off the exchange list live in this stage, so addin...
+        if (skipUpToDateStage ('java', 'base methods', force, [ baseExchangeFile, './ts/src/base/types.ts', './exchanges.json', ], [ BASE_METHODS_FILE, EXCHANGE_METHODS_FILE, ])) { return; }
         const javaExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
-
         const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
         const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = this.applyExchangeTierJavaFixes(baseFile.content as string);
-
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
-            // ts/src/base/Exchange.ts declares two classes — `class BaseExchange { ... }` and the
-            // `export default class Exchange extends BaseExchange { ...62 trading methods... }` — so
-            // the ast-transpiler appends the whole Exchange class after BaseExchange's closing brace.
-            // Java allows only one public top-level class per file, so the trading methods are injected
-            // into the hand-written Exchange.java below; strip the emitted Exchange class from the
-            // BaseExchange output (keeping BaseExchange's closing brace).
+            // ts/src/base/Exchange.ts declares two classes — `class BaseExchange { ... }` and the `export default class Exchange extends BaseExchange { ...62 trading methods... }` — so the as...
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
-            for (const name of JAVA_HAND_WRITTEN_PAIR_METHODS) {
-                baseMethods = this.removeJavaMethod(baseMethods, name);
-            }
+            for (const name of JAVA_HAND_WRITTEN_PAIR_METHODS) { baseMethods = this.removeJavaMethod(baseMethods, name); }
             baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
             this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);
         }
-
         // Inject the Exchange-tier (62 trading methods) into Exchange.java below its delimiter.
         const match = baseClass.match(/(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{([\s\S]*)\}\s*$/);
         if (match) {
             let exchangeBody = match[1];
             this._exchangeTierBody = exchangeBody;
-            // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
-            // drop the transpiled CompletableFuture version to avoid a redundant overload.
+            // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java; drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
             exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
         }
     }
-
-    // Replace everything below the transpile delimiter of a half hand-written base file
-    // (BaseExchange.java / Exchange.java / PredictionExchange.java) with `body`, shortened to
-    // simple java.util / unified-type names; the hand-written header only gains the imports the body needs.
+    // Replace everything below the transpile delimiter of a half hand-written base file (BaseExchange.java / Exchange.java / PredictionExchange.java) with `body`, shortened to simple ...
     spliceTranspiledJavaBody(filename: string, javaDelimiter: string, restOfFile: string, body: string, literal: boolean) {
         const pattern = new RegExp(javaDelimiter + restOfFile);
         const shortened = shortenJavaReferences(javaBaseNativePasses(this, body, filename));
@@ -2565,25 +1376,13 @@ class NewTranspiler {
         }
         const contents = fs.readFileSync(filename, 'utf8');
         const withImports = nativeJavaInlineCompare(ensureJavaImports(contents, shortened.imports));
-        if (withImports !== contents) {
-            fs.writeFileSync(filename, withImports);
-        }
+        if (withImports !== contents) { fs.writeFileSync(filename, withImports); }
     }
-
     transpilePredictionBaseMethods(predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
-        // PredictionExchange is the base for prediction-market exchanges; it lives in
-        // io.github.ccxt (like Exchange) and is transpiled the same way as the base.
+        // PredictionExchange is the base for prediction-market exchanges; it lives in io.github.ccxt (like Exchange) and is transpiled the same way as the base.
         const javaPredictionBase = './java/lib/src/main/java/io/github/ccxt/PredictionExchange.java';
-        // hidden inputs: the injected Exchange-tier body comes from ts/src/base/Exchange.ts
-        // (via getExchangeTierBody), the typed surface from types.ts, and the kept-method
-        // filter from getPredictionImplementedNames() which reads every ts/src/prediction/*.ts
-        if (skipUpToDateStage ('java', 'prediction base methods', force, [
-            predictionBaseFile,
-            './ts/src/base/Exchange.ts',
-            './ts/src/base/types.ts',
-        ].concat (predictionSourceFiles ()), [ javaPredictionBase ])) {
-            return;
-        }
+        // hidden inputs: the injected Exchange-tier body comes from ts/src/base/Exchange.ts (via getExchangeTierBody), the typed surface from types.ts, and the kept-method filter from get...
+        if (skipUpToDateStage ('java', 'prediction base methods', force, [ predictionBaseFile, './ts/src/base/Exchange.ts', './ts/src/base/types.ts', ].concat (predictionSourceFiles ()), [ javaPredictionBase ])) return;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
         // the base-tier returns just printed here are handed to the venue workers with each task
@@ -2596,36 +1395,20 @@ class NewTranspiler {
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
-            // PredictionExchange extends BaseExchange (NOT Exchange), so it does not inherit the 62
-            // trading methods that were moved to the Exchange tier. PredictionExchange.ts freshly
-            // (re)defines the prediction-specific ones (createOrder/fetchTicker/... → Prediction* types),
-            // but the convenience/fallback methods (editOrder, createLimitOrder, createStopLossOrder,
-            // fetchL2OrderBook, ...) are not re-declared there. The prediction typed wrappers still call
-            // `super.<method>(...)` for the full trading surface, so inject those non-overlapping
-            // Exchange-tier methods here. Each delegates to prediction's own createOrder/cancelOrder/etc.
+            // PredictionExchange extends BaseExchange (NOT Exchange), so it does not inherit the 62 trading methods that were moved to the Exchange tier. PredictionExchange.ts freshly (re)def...
             let predictionBody = parts[1].trim();
             const predictionOwnNames = this.extractJavaMethodNames('\n' + predictionBody);
             let extras = this.getExchangeTierBody();
-            // The ast-transpiler qualifies `this` inside anonymous-class initializers with the
-            // lexically-enclosing TS class name (`Exchange.this.sortBy(...)`). Re-home those to
-            // PredictionExchange, which is where these methods now physically live.
+            // The ast-transpiler qualifies `this` inside anonymous-class initializers with the lexically-enclosing TS class name (`Exchange.this.sortBy(...)`). Re-home those to PredictionExch...
             extras = extras.replace(/\bExchange\.this\b/g, 'PredictionExchange.this');
             // loadOrderBook is WS-snapshot infra prediction never invokes; drop it (mirrors Exchange.java).
             extras = this.removeJavaMethod(extras, 'loadOrderBook');
             // Drop every Exchange-tier method PredictionExchange already declares (avoids duplicate defs).
-            for (const name of predictionOwnNames) {
-                extras = this.removeJavaMethod(extras, name);
-            }
-            // Keep only the tier methods the prediction layer actually implements (createOrder,
-            // fetchTicker, ...); drop the symbol-based surface no prediction venue supports so
-            // PredictionExchange.java doesn't carry (and leak) closePosition/fetchGreeks/etc.
+            for (const name of predictionOwnNames) { extras = this.removeJavaMethod(extras, name); }
+            // Keep only the tier methods the prediction layer actually implements (createOrder, fetchTicker, ...); drop the symbol-based surface no prediction venue supports so PredictionExch...
             const predImplemented = this.getPredictionImplementedNames();
             const extrasNames = this.extractJavaMethodNames('\n' + extras);
-            for (const name of extrasNames) {
-                if (!predImplemented.has(name) && !(name.endsWith('Core') && extrasNames.has(name.slice(0, -4)))) {
-                    extras = this.removeJavaMethod(extras, name);
-                }
-            }
+            for (const name of extrasNames) { if (!predImplemented.has(name) && !(name.endsWith('Core') && extrasNames.has(name.slice(0, -4)))) { extras = this.removeJavaMethod(extras, name); } }
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
@@ -2635,19 +1418,13 @@ class NewTranspiler {
             this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
         }
     }
-
-
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
-
         let inputExchanges: string[] =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const scopedRun = inputExchanges.length > 0;
         if (!inputExchanges || inputExchanges.length === 0) {
             const restExchanges = new Set<string>();
-            for (const f of fs.readdirSync(EXCHANGES_FOLDER)) {
-                if (!f.endsWith('.java')) continue;
-                restExchanges.add(f.replace('.java', '').toLowerCase());
-            }
+            for (const f of fs.readdirSync(EXCHANGES_FOLDER)) { if (!f.endsWith('.java')) continue; restExchanges.add(f.replace('.java', '').toLowerCase()); }
             const wsExchanges = (exchanges as any).ws as string[];
             inputExchanges = wsExchanges.filter((ws: string) => restExchanges.has(ws));
             log.blue('[java-ws] Filtering to exchanges with REST parents:', inputExchanges);
@@ -2658,181 +1435,93 @@ class NewTranspiler {
         }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true)
     }
-
     async transpilePrediction(force = false) {
-        // Prediction-market exchanges (ts/src/prediction/) transpile to classes
-        // under io.github.ccxt.exchanges.prediction. REST + WS are merged into one
-        // class (no separate prediction/pro package).
+        // Prediction-market exchanges (ts/src/prediction/) transpile to classes under io.github.ccxt.exchanges.prediction. REST + WS are merged into one class (no separate prediction/pro ...
         this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts', force);
         const tsFolder = './ts/src/prediction/';
         const outputFolder = EXCHANGES_PREDICTION_FOLDER;
-
         let inputExchanges: string[] = process.argv.slice (2).filter (x => !x.startsWith ('--'));
-        if (!inputExchanges || inputExchanges.length === 0) {
-            inputExchanges = (exchanges as any).prediction;
-        }
+        if (!inputExchanges || inputExchanges.length === 0) { inputExchanges = (exchanges as any).prediction; }
         createFolderRecursively(outputFolder);
         const options = { csharpFolder: outputFolder, exchanges: inputExchanges }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, false, true)
     }
-
     async transpileEverything(force = false, baseOnly = false, examplesOnly = false) {
-
-        const exchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
-            , javaFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src/'
-            , exchangeBase = './ts/src/base/Exchange.ts'
-
+        const exchanges = process.argv.slice(2).filter(x => !x.startsWith('--')) , javaFolder = EXCHANGES_FOLDER , tsFolder = './ts/src/' , exchangeBase = './ts/src/base/Exchange.ts'
         createFolderRecursively(javaFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
         const options = { csharpFolder: javaFolder, exchanges }
-
-        if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force)
-        }
-
-        if (transpilingSingleExchange) {
-            return;
-        }
-
+        if (!baseOnly && !examplesOnly) { await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force) }
+        if (transpilingSingleExchange) { return; }
         this.transpileBaseMethods(exchangeBase, force)
-
-        if (baseOnly) {
-            return;
-        }
-
+        if (baseOnly) { return; }
         if (exchanges.length === 0) {
             // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
             await this.transpilePrediction(force)
         }
-
         await this.transpileTests(force)
-
         this.transpileErrorHierarchy(force)
-
         log.bright.green('Transpiled successfully.')
     }
-
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
-
-        // one shared pool, created lazily and kept alive for the lifetime of the
-        // transpiler: the per-thread Transpiler and its sticky ts.Program batch (see
-        // build/worker-program-batch.ts) only pay off if the threads survive across
-        // calls — a REST run calls this three times (exchanges, then two test stages),
-        // so a fresh pool per call would cold-start the Transpilers every time.
-        // Piscina unrefs idle workers, so the pool never holds the process open.
-        // Threads default to min(2, AP); CCXT_TRANSPILE_PROCESSES overrides.
+        // one shared pool, created lazily and kept alive for the lifetime of the transpiler: the per-thread Transpiler and its sticky ts.Program batch (see build/worker-program-batch.ts) ...
         const maxThreads = javaWorkerThreads ();
-        if (!this.piscina) {
-            this.piscina = new Piscina({
-                filename: resolve(__dirname, 'java-worker.ts'),
-                maxThreads
-            });
-        }
+        if (!this.piscina) { this.piscina = new Piscina({ filename: resolve(__dirname, 'java-worker.ts'), maxThreads }); }
         const piscina = this.piscina;
         const configKey = JSON.stringify(parserConfig);
         const handed = this.javaCoreHanded;
         const handedKey = handed === undefined ? '' : JSON.stringify (handed);
         const baseMapReturns = javaBaseMapCallReturnTable ();
-
-        // One file per task (load-balances; a slow file can't stall others). `roots` is
-        // the FULL stage list on every task so each worker builds ONE sticky ts.Program
-        // (see build/worker-program-batch.ts) and prints each file off that checker.
+        const venueAsyncReturns = javaVenueAsyncReturnSnapshot ();
+        // One file per task (load-balances; a slow file can't stall others). `roots` is the FULL stage list on every task so each worker builds ONE sticky ts.Program (see build/worker-pro...
         const promises: any = [];
         const now = Date.now();
-        for (const file of allFiles) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey, baseMapReturns }));
-        }
+        for (const file of allFiles) { promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey, baseMapReturns, venueAsyncReturns })); }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms (webworkerTranspile @ javaTranspiler.ts)');
-        // Order-preserving flatten: Promise.all resolves in input order; each task returns
-        // one result, so flat() matches allFiles order.
-        const flatResult = workerResult.flat();
-        return flatResult;
+        // Order-preserving flatten: Promise.all resolves in input order; each task returns one result, so flat() matches allFiles order.
+        return workerResult.flat();
     }
-
     async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
-
         // todo normalize jsFolder and other arguments
-
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids: string[] = []
-        try {
-            ids = prediction ? (exchanges as any).prediction : (exchanges as any).ids
-        } catch (e) {
-        }
-
+        try { ids = prediction ? (exchanges as any).prediction : (exchanges as any).ids } catch (e) { }
         const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-
-        // local file list — must NOT clobber the module-level `exchanges` (the parsed
-        // exchanges.json), which transpileWS reads `.ws` off of. Assigning to it worked
-        // only because each stage ran in its own process; --rest-and-ws reuses one.
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed exchanges.json), which transpileWS reads `.ws` off of. Assigning to it worked only because each stage...
         let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
             exchangeFiles = options.exchanges.map((x: string) => x + pattern)
         } else {
             exchangeFiles = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
         }
-
-        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
-        // drop the exchanges whose generated <Name>.java is newer than their ts
-        // source. This has to happen BEFORE the pool is fed, because `allFilesPath`
-        // doubles as the sticky ts.Program root list (see build/worker-program-batch.ts)
-        // — leaving a clean exchange in it would transpile and rewrite it anyway.
-        // `--force` (and any single-exchange run) keeps everything.
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts): drop the exchanges whose generated <Name>.java is newer than their ts source. This has to happen BEFOR...
         exchangeFiles = filterDirtyExchangeFiles('java', exchangeFiles, force, (file: string) => {
             const fileNameNoExt = basename(file, pattern);
             const outputs: string[] = [];
-            if (options.csharpFolder) {
-                outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + '.java');
-            }
+            if (options.csharpFolder) { outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + '.java'); }
             return { 'tsPath': jsFolder + file, 'outputs': outputs };
         })
-
-        if (!exchangeFiles.length) {
-            return {}
-        }
-
+        if (!exchangeFiles.length) { return {} }
         // transpile using webworker
         const allFilesPath = exchangeFiles.map((file: string) => jsFolder + file);
         log.blue('[java] Transpiling [', exchangeFiles.join(', '), ']');
-        // Pool the exchange fan-out across worker threads (one file per task, each
-        // worker reusing a cached Transpiler). A single exchange stays on the main
-        // thread — pooling one file just adds pool-boot latency for no parallelism.
-        const transpiledFiles = (allFilesPath.length > 1)
-            ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
-            : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
-
+        // Pool the exchange fan-out across worker threads (one file per task, each worker reusing a cached Transpiler). A single exchange stays on the main thread — pooling one file just ...
+        const transpiledFiles = (allFilesPath.length > 1) ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig()) : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
         exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
-
         const classes = {}
-
         return classes
     }
-
     createJavaClass(name: string, javaVersion: any, ws = false, prediction = false) {
         const javaImports = this.getJavaImports(name, ws, prediction).join("\n") + "\n\n";
         let content = javaVersion.content;
-
         const className = this.capitalize(name);
-
         // inject constructor
-        const constructor = [
-            '',
-            `   public ${className} () {`,
-            `       super();`,
-            `   }`,
-            '',
-            `   public ${className} (Object options) {`,
-            `       super(options);`,
-            `   }`,
-            ''
-        ].join('\n');
-
+        const constructor = [ '', `   public ${className} () {`, `       super();`, `   }`, '', `   public ${className} (Object options) {`, `       super(options);`, `   }`, '' ].join('\n');
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
@@ -2846,7 +1535,6 @@ class NewTranspiler {
         // Remove unreachable "return null;" after throw statements / a throwing plain else
         content = content.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
         content = this.removeUnreachableReturnNull(content);
-
         // WS fixes
         if (ws) {
             const wsRegexes = this.getJavaWsRegexes();
@@ -2859,25 +1547,16 @@ class NewTranspiler {
             content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
         } else if (prediction) {
-            // prediction merges REST + WS in one class — apply the WS regexes + post-processing
-            // (orderbook/side casts, watch(), resolve/append, ...) so the watch* methods compile,
-            // but keep the REST `extends <Id>Api` (which extends PredictionExchange) and skip the
-            // effectively-final pass (it conflicts with the REST parse* methods, which the
-            // ast-transpiler already handles).
+            // prediction merges REST + WS in one class — apply the WS regexes + post-processing (orderbook/side casts, watch(), resolve/append, ...) so the watch* methods compile, but keep th...
             content = this.regexAll (content, this.getJavaWsRegexes());
             content = this.postProcessWsJava(content, name, true, true);
         }
         if (!ws && !prediction) {
-            // this.delay(ms, this.cb[, args]) also appears in REST files (e.g. the
-            // interactivebrokers gateway keep-alive loop) — turn the method reference into a
-            // string and dispatch through scheduleCallback (same as the WS tier's string form);
-            // the spawn-lambda form is unusable here because a reassigned delay variable is
-            // not effectively final, while scheduleCallback evaluates its arguments eagerly
+            // this.delay(ms, this.cb[, args]) also appears in REST files (e.g. the interactivebrokers gateway keep-alive loop) — turn the method reference into a string and dispatch through s...
             content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)/gm, 'this.delay($1, "$2"');
             content = this.rewriteDelayWithStringCallback(content);
         }
         content = this.addDeprecatedAnnotations(content);
-
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
@@ -2901,32 +1580,15 @@ class NewTranspiler {
         content = nativeJavaNumberDivModNeg(content);
         // Object locals holding only Long boxes retype to Long, then the typed arithmetic/compare passes re-run
         content = nativeJavaLongBoxLocals(content, (c: string) => nativeJavaNumberDivModNeg(nativeJavaIntegralMultiplySubtract(nativeJavaSumLongLocals(nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(nativeJavaParamCompare(nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaTypedArithmetic(c))))))))));
-
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
-
-
-    /**
-     * Insert `@Deprecated` annotation on every method whose preceding JSDoc
-     * block contains an `@deprecated` tag. Silences javac `[dep-ann]` warnings
-     * and lets IDEs surface the deprecation on callers.
-     */
+    // Insert `@Deprecated` annotation on every method whose preceding JSDoc block contains an `@deprecated` tag. Silences javac `[dep-ann]` warnings and lets IDEs surface the deprecat...
     addDeprecatedAnnotations(content: string): string {
         const re = /(\/\*\*(?:[^*]|\*(?!\/))*?@deprecated(?:[^*]|\*(?!\/))*?\*\/)(\s*\n)(?!\s*@Deprecated\b)([ \t]*)(public|protected|private)\b/g;
         return content.replace(re, '$1$2$3@Deprecated\n$3$4');
     }
-
-    /**
-     * Convert `return null;` → `return;` inside `public void` method bodies.
-     * The transpiler emits `return null;` for bare `return;` statements in TS,
-     * which is invalid in Java void context. Tracks brace depth to stay within
-     * the method body only.
-     */
-    /**
-     * Collect every method name defined inside the class body of the given
-     * file. Used for method-reference-as-value rewriting so we don't need a
-     * hardcoded whitelist.
-     */
+    // Convert `return null;` → `return;` inside `public void` method bodies. The transpiler emits `return null;` for bare `return;` statements in TS, which is invalid in Java void con...
+    // Collect every method name defined inside the class body of the given file. Used for method-reference-as-value rewriting so we don't need a hardcoded whitelist.
     collectMethodNamesInClass(content: string): Set<string> {
         const names = new Set<string>();
         const re = /^\s{4}(?:public|private|protected)\s+[^=]+?\s+(\w+)\s*\(/gm;
@@ -2939,13 +1601,7 @@ class NewTranspiler {
         }
         return names;
     }
-
-    /**
-     * Rewrite `this.delay(ms, "methodName", arg1, arg2, ...)` to a spawn-and-sleep
-     * lambda that dispatches the callback via Helpers.callDynamically. Uses
-     * balanced-paren walking to support any number of args and arbitrary nested
-     * expressions.
-     */
+    // Rewrite `this.delay(ms, "methodName", arg1, arg2, ...)` to a spawn-and-sleep lambda that dispatches the callback via Helpers.callDynamically. Uses balanced-paren walking to supp...
     rewriteDelayWithStringCallback(content: string): string {
         const pattern = /this\.delay\(/g;
         let result = '';
@@ -2955,12 +1611,7 @@ class NewTranspiler {
             const openIdx = match.index + match[0].length;
             let depth = 1;
             let i = openIdx;
-            while (i < content.length && depth > 0) {
-                const ch = content[i];
-                if (ch === '(') depth++;
-                else if (ch === ')') depth--;
-                i++;
-            }
+            while (i < content.length && depth > 0) { const ch = content[i]; if (ch === '(') depth++; else if (ch === ')') depth--; i++; }
             const argsRaw = content.substring(openIdx, i - 1);
             const args = this.splitTopLevelArgs(argsRaw);
             if (args.length < 2) continue;
@@ -2979,11 +1630,7 @@ class NewTranspiler {
         result += content.substring(lastIdx);
         return result;
     }
-
-    /**
-     * Split a method-args string by commas at nesting depth 0. Preserves parens,
-     * brackets, and braces in nested expressions.
-     */
+    // Split a method-args string by commas at nesting depth 0. Preserves parens, brackets, and braces in nested expressions.
     splitTopLevelArgs(args: string): string[] {
         const out: string[] = [];
         let depth = 0;
@@ -2992,11 +1639,7 @@ class NewTranspiler {
         let inStr: string | null = null;
         for (let i = 0; i < args.length; i++) {
             const ch = args[i];
-            if (inStr !== null) {
-                if (ch === '\\' && i + 1 < args.length) { i++; continue; }
-                if (ch === inStr) inStr = null;
-                continue;
-            }
+            if (inStr !== null) { if (ch === '\\' && i + 1 < args.length) { i++; continue; } if (ch === inStr) inStr = null; continue; }
             if (ch === '"' || ch === '\'') { inStr = ch; continue; }
             if (ch === '(' || ch === '[' || ch === '{') depth++;
             else if (ch === ')' || ch === ']' || ch === '}') depth--;
@@ -3006,118 +1649,76 @@ class NewTranspiler {
             // heuristic is safe for well-formatted transpiled code.
             else if (ch === '<' && depth === 0 && i + 1 < args.length && /[A-Za-z_<]/.test(args[i + 1])) {
                 angleDepth++;
-            } else if (ch === '>' && angleDepth > 0) {
-                angleDepth--;
-            } else if (ch === ',' && depth === 0 && angleDepth === 0) {
-                out.push(args.substring(start, i));
-                start = i + 1;
-            }
+            } else if (ch === '>' && angleDepth > 0) { angleDepth--; } else if (ch === ',' && depth === 0 && angleDepth === 0) { out.push(args.substring(start, i)); start = i + 1; }
         }
         if (start < args.length) out.push(args.substring(start));
         return out;
     }
-
-
-    // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
-    // the NEAREST PRECEDING declaration of `name` inside the same method must be
-    // `String ...` AND its value must survive the "String type fixes" revert below
-    // (`String x = this.<m>(...)` / `Helpers.<...>(...)` are rewritten back to Object,
-    // so they prove nothing). Used by the ws post-passes: the `(String)` hash cast they
-    // add around `client.future(name)` / `client.reusableFuture(name)` is redundant when
-    // the hash local is already declared String (WsClient.future/reusableFuture take
-    // `String`). A field/param not declared in the file proves nothing -> keep the cast.
-    provablyStringLocal (content: string, name: string, pos: number): boolean {
-        return this.provablyTypedLocal (content, name, pos, 'String');
-    }
-
-    // the same nearest-preceding-declaration proof for any declared Java type: ws locals the printer
-    // declares `io.github.ccxt.ws.Future` (a read out of client.futures) need no checkcast at their uses
+    // true when the text proves the identifier `name` at offset `pos` is Java-`String`: the NEAREST PRECEDING declaration of `name` inside the same method must be `String ...` AND its...
+    provablyStringLocal (content: string, name: string, pos: number): boolean { return this.provablyTypedLocal (content, name, pos, 'String'); }
+    _provablyCache?: { content: string; masked: string; breaks: number[] };
+    // the same nearest-preceding-declaration proof for any declared Java type: ws locals the printer declares `io.github.ccxt.ws.Future` (a read out of client.futures) need no checkca...
     provablyTypedLocal (content: string, name: string, pos: number, type: string): boolean {
-        const masked = maskJavaComments(content);
-        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const before = masked.slice(0, pos);
-        // the enclosing method: the last member-modifier line before `pos`; a use that has
-        // no declaration inside its own method binds to a field/param -> keep the cast
-        const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
-        const windowStart = breaks.length > 0 ? breaks[breaks.length - 1].index : 0;
+        let cached = this._provablyCache;
+        if (cached === undefined || cached.content !== content) {
+            const masked = maskJavaComments(content);
+            const breaks: number[] = [];
+            const breakRe = /^[ \t]*(?:public|private|protected)[ \t]/gm;
+            let bm: RegExpExecArray | null;
+            while ((bm = breakRe.exec(masked)) !== null) { breaks.push(bm.index); }
+            this._provablyCache = cached = { content, masked, breaks };
+        }
+        const { masked, breaks } = cached;
+        let lo = 0, hi = breaks.length - 1, windowStart = 0;
+        while (lo <= hi) { const mid = (lo + hi) >> 1; if (breaks[mid] < pos) { windowStart = breaks[mid]; lo = mid + 1; } else { hi = mid - 1; } }
         const window = masked.slice(windowStart, pos);
+        const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const decl = new RegExp(`\\b(String|Object|Integer|Long|Double|Boolean|var|char|io\\.github\\.ccxt\\.ws\\.Future)\\s+${escaped}\\s*(?=[=;,)])`, 'g');
         let last = null;
         let m;
-        while ((m = decl.exec(window)) !== null) {
-            last = m;
-        }
-        if (last === null || last[1] !== type) {
-            return false;
-        }
+        while ((m = decl.exec(window)) !== null) { last = m; }
+        if (last === null || last[1] !== type) { return false; }
         const rest = window.slice(last.index + last[0].length);
         const value = /^\s*=\s*([^\n;]*)/.exec(rest);
-        if (type === 'String' && value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim())) {
-            return false;
-        }
-        return true;
+        return !(type === 'String' && value !== null && /^(?:this\.[A-Za-z_]\w*\s*\(|Helpers\.)/.test(value[1].trim()));
     }
-
-
     removeUnreachableReturnNull(content: string): string {
+        if (!content.includes('return null;')) { return content; }
         const lines = content.split('\n');
         const result: string[] = [];
+        let lastHead = 0;
+        const headRe = /^ {0,4}(?:public|private|protected) /;
         for (let i = 0; i < lines.length; i++) {
-            // Check if this line is "return null;" and the next is "});" (lambda end)
-            let after = i + 1;
-            while (after < lines.length && lines[after].trim() === '') after++;
-            let head = i;
-            while (head > 0 && !/^ {0,4}(?:public|private|protected) /.test(lines[head])) head--;
-            const coreClose = lines[i].startsWith('        return null;') && lines[after] === '    }' && /^ {0,4}private \S.* \w+Core\(/.test(lines[head]);
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && (isAsyncLambdaClose(lines[i + 1].trim()) || coreClose)) {
-                // Check if the preceding non-empty line is "}" closing an else/else-if block
-                // that contains a throw or return
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    // Look back further to check if the block contains throw or return
-                    let k = j - 1;
-                    while (k >= 0 && lines[k].trim() !== '{') k--;
-                    // Check the else block for throw (guaranteed unconditional termination).
-                    // We don't check for return because return might be inside a nested
-                    // if/for and not guaranteed to execute on all paths.
-                    let hasThrow = false;
-                    for (let l = k; l <= j; l++) {
-                        const trimmed = lines[l].trim();
-                        if (trimmed.startsWith('throw ')) {
-                            hasThrow = true;
-                            break;
-                        }
-                    }
-                    // Only safe with plain "} else" (not "} else if")
-                    let hasPlainElse = false;
-                    if (k > 0) {
-                        const beforeBlock = lines[k - 1].trim();
-                        hasPlainElse = beforeBlock === '} else';
-                    }
-                    if (hasThrow && hasPlainElse) {
-                        // Skip this "return null;" line — it's unreachable
-                        continue;
+            const line = lines[i];
+            if (headRe.test(line)) { lastHead = i; }
+            if (i + 1 < lines.length && line.trim() === 'return null;') {
+                let after = i + 1;
+                while (after < lines.length && lines[after].trim() === '') after++;
+                const coreClose = line.startsWith('        return null;') && lines[after] === '    }' && /^ {0,4}private \S.* \w+Core\(/.test(lines[lastHead]);
+                if (isAsyncLambdaClose(lines[i + 1].trim()) || coreClose) {
+                    let j = i - 1;
+                    while (j >= 0 && lines[j].trim() === '') j--;
+                    if (j >= 0 && lines[j].trim() === '}') {
+                        let k = j - 1;
+                        while (k >= 0 && lines[k].trim() !== '{') k--;
+                        let hasThrow = false;
+                        for (let l = k; l <= j; l++) { if (lines[l].trim().startsWith('throw ')) { hasThrow = true; break; } }
+                        if (hasThrow && k > 0 && lines[k - 1].trim() === '} else') { continue; }
                     }
                 }
             }
-            result.push(lines[i]);
+            result.push(line);
         }
         return result.join('\n');
     }
-
     replaceImportedRestClasses(content: string, imports: any[]) {
         for (const imp of imports) {
-            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
-            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
+            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, } { name: "bequantRest", path: "../bequant.js", isDefault: true, }
             const name = imp.name;
-            if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
-            }
+            if (name.endsWith('Rest')) { content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', '')); }
         }
         return content;
     }
-
     fixVoidReturnNull(content: string): string {
         const lines = content.split('\n');
         let depth = 0;
@@ -3126,26 +1727,15 @@ class NewTranspiler {
         let entryDepth = -1;
         let inBlockComment = false;
         const stripForBraceCount = (raw: string): string => {
-            // Remove line comments, string literals, and block-comment segments so
-            // brace tracking stays accurate. Brace chars inside those contexts
-            // must not affect depth.
+            // Remove line comments, string literals, and block-comment segments so brace tracking stays accurate. Brace chars inside those contexts must not affect depth.
             let s = raw;
             // Handle /* ... */ segments across and within lines
-            if (inBlockComment) {
-                const end = s.indexOf('*/');
-                if (end < 0) return '';
-                s = s.substring(end + 2);
-                inBlockComment = false;
-            }
+            if (inBlockComment) { const end = s.indexOf('*/'); if (end < 0) return ''; s = s.substring(end + 2); inBlockComment = false; }
             while (true) {
                 const start = s.indexOf('/*');
                 if (start < 0) break;
                 const end = s.indexOf('*/', start + 2);
-                if (end < 0) {
-                    inBlockComment = true;
-                    s = s.substring(0, start);
-                    break;
-                }
+                if (end < 0) { inBlockComment = true; s = s.substring(0, start); break; }
                 s = s.substring(0, start) + s.substring(end + 2);
             }
             // Strip string literals (simple; doesn't handle escaped quotes beyond \\)
@@ -3157,142 +1747,75 @@ class NewTranspiler {
         };
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            if (!inVoid && !armed && /^\s*public\s+void\s+\w+\s*\(/.test(line)) {
-                armed = true;
-            }
-            if (inVoid) {
-                lines[i] = line.replace(/\breturn null;/g, 'return;');
-            }
+            if (!inVoid && !armed && /^\s*public\s+void\s+\w+\s*\(/.test(line)) { armed = true; }
+            if (inVoid) { lines[i] = line.replace(/\breturn null;/g, 'return;'); }
             const counted = stripForBraceCount(line);
             for (const ch of counted) {
                 if (ch === '{') {
-                    if (armed && !inVoid) {
-                        inVoid = true;
-                        entryDepth = depth;
-                        armed = false;
-                    }
+                    if (armed && !inVoid) { inVoid = true; entryDepth = depth; armed = false; }
                     depth++;
-                } else if (ch === '}') {
-                    depth--;
-                    if (inVoid && depth === entryDepth) {
-                        inVoid = false;
-                        entryDepth = -1;
-                    }
-                }
+                } else if (ch === '}') { depth--; if (inVoid && depth === entryDepth) { inVoid = false; entryDepth = -1; } }
             }
         }
         return lines.join('\n');
     }
-
     addChainStartsWithString (content: string, addStart: number): boolean {
         const first = jsAddFirstOperand(content, addStart);
-        if (first === undefined) {
-            return false;
-        }
+        if (first === undefined) { return false; }
         const text = first.text.trim();
-        if (text.startsWith('"') || text.startsWith("'")) {
-            return true;
-        }
+        if (text.startsWith('"') || text.startsWith("'")) { return true; }
         const member = /^this\.([A-Za-z_]\w*)$/.exec(text);
-        if (member !== null) {
-            return JS_STRING_MEMBER_FIELDS.has(member[1]);
-        }
-        if (text.startsWith('Helpers.add(')) {
-            const nested = content.indexOf('Helpers.add(', first.start);
-            return nested !== -1 && this.addChainStartsWithString(content, nested);
-        }
-        if (/^[A-Za-z_]\w*$/.test(text)) {
-            return this.provablyStringLocal(content, text, first.start);
-        }
+        if (member !== null) { return JS_STRING_MEMBER_FIELDS.has(member[1]); }
+        if (text.startsWith('Helpers.add(')) { const nested = content.indexOf('Helpers.add(', first.start); return nested !== -1 && this.addChainStartsWithString(content, nested); }
+        if (/^[A-Za-z_]\w*$/.test(text)) { return this.provablyStringLocal(content, text, first.start); }
         return false;
     }
-
     postProcessWsJava(content: string, name: string, skipEffectivelyFinal = false, prediction = false): string {
         const cap = this.capitalize(name);
-
         // ── Fix broken method references: ClassName."methodName" → "methodName" ──
         content = content.replace(new RegExp(`${cap}\\.("\\w+")`, 'gm'), '$1');
-
         // ── Pattern 12: Map casts for client.subscriptions/futures access ──
         content = content.replace(/\(\(Object\)client\)\.subscriptions/gm, '((java.util.Map)client.subscriptions)');
         content = content.replace(/\(\(Object\)client\)\.futures/gm, '((java.util.Map)client.futures)');
-
         // ── Pattern 6: Method reference for ping ──
-        content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
-            `(java.util.function.Function<Client, Object>) ${cap}.this::ping`);
-
-        // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ──
-        // Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x)
-        // SS-04: the (String) hash cast is redundant when the local is already declared String
-        // in this file (WsClient.future/reusableFuture take String)
+        content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'), `(java.util.function.Function<Client, Object>) ${cap}.this::ping`);
+        // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ── Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x) SS-04: t...
         content = content.replace(/Object\s+future\s*=\s*client\.(future|reusableFuture)\((\w+)\)/gm,
-            (_match: string, method: string, hash: string, offset: number) =>
-                `io.github.ccxt.ws.Future future = client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
+            (_match: string, method: string, hash: string, offset: number) => `io.github.ccxt.ws.Future future = client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
-        content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
-            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
-        // Object future = this.safeValue(client.futures, x) → cast to Future
-        // client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path
-        // hands back a Future or null and the checkcast cannot fail
-        content = content.replace(/Object\s+future\s*=\s*this\.safeValue\(client\.futures,\s*([^)]+)\)/gm,
-            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, $1)');
-
-        // WsClient.futures is Map<String, Future> and subscriptions an owner Map<String, Object>:
-        // with a provably-String key, reads/puts print natively (no helper, no checkcast).
-        const wsKeyIsString = (key: string, offset: number): boolean =>
-            /^"[^"\\]*"$/.test (key) || (/^[A-Za-z_]\w*$/.test (key) && this.provablyStringLocal (content, key, offset));
+        content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm, 'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
+        // Object future = this.safeValue(client.futures, x) → cast to Future client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path hands back a Future or null an...
+        content = content.replace(/Object\s+future\s*=\s*this\.safeValue\(client\.futures,\s*([^)]+)\)/gm, 'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, $1)');
+        // WsClient.futures is Map<String, Future> and subscriptions an owner Map<String, Object>: with a provably-String key, reads/puts print natively (no helper, no checkcast).
+        const wsKeyIsString = (key: string, offset: number): boolean => /^"[^"\\]*"$/.test (key) || (/^[A-Za-z_]\w*$/.test (key) && this.provablyStringLocal (content, key, offset));
         content = content.replace(/io\.github\.ccxt\.ws\.Future (\w+) = \(io\.github\.ccxt\.ws\.Future\)this\.safeValue\(client\.futures, ("[^"\\]*"|\w+)\);/gm,
-            (whole: string, local: string, key: string, offset: number) =>
-                wsKeyIsString (key, offset) ? `io.github.ccxt.ws.Future ${local} = client.futures.get(${key});` : whole);
+            (whole: string, local: string, key: string, offset: number) => wsKeyIsString (key, offset) ? `io.github.ccxt.ws.Future ${local} = client.futures.get(${key});` : whole);
         content = content.replace(/^(\s*)Helpers\.addElementToObject\(client\.subscriptions, ("[^"\\]*"|\w+), ([^\n]*)\);$/gm,
             (whole: string, indent: string, key: string, value: string, offset: number) =>
                 wsKeyIsString (key, offset) && (value.split ('(').length === value.split (')').length)
                     ? `${indent}client.subscriptions.put(${key}, ${value});` : whole);
-
-        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
-        // client.future(hash) where the hash local is Object-typed. any
-        // identifier is accepted, not just `messageHash`, so a renamed hash
-        // local cannot silently fall out of the cast — unless the same method's nearest
-        // preceding declaration proves the identifier String (SS-04)
+        // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ── client.future(hash) where the hash local is Object-typed. any identifier is accepted, n...
         content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm,
-            (_match: string, method: string, hash: string, offset: number) =>
-                `client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
+            (_match: string, method: string, hash: string, offset: number) => `client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // idempotence guard: never cast an already-cast argument
         content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
-
-        // ── Pattern 2: future.join() → future.getFuture().join() ──
-        // Only for local `future` variables (not this.xxx)
-        // When future is Object-typed (from safeValue etc), cast to Future first
-        // a `future` the file declares io.github.ccxt.ws.Future (nearest declaration in the method) needs no cast
-        const wsFutureLocal = (name: string, offset: number, _text: string): string =>
-            this.provablyTypedLocal (content, name, offset, WS_FUTURE_TYPE) ? name : `((${WS_FUTURE_TYPE})${name})`;
-        content = content.replace(/(?<!\w)(future)\.getFuture\(\)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
-        content = content.replace(/(?<!\w)(future)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
+        // ── Pattern 2: future.join() → future.getFuture().join() ── Only for local `future` variables (not this.xxx) When future is Object-typed (from safeValue etc), cast to Future firs...
+        const wsFutureLocal = (name: string, offset: number, _text: string): string => this.provablyTypedLocal (content, name, offset, WS_FUTURE_TYPE) ? name : `((${WS_FUTURE_TYPE})${name})`;
+        content = content.replace(/(?<!\w)(future)\.getFuture\(\)\.join\(\)/gm, (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
+        content = content.replace(/(?<!\w)(future)\.join\(\)/gm, (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
         // (future).join() pattern
-        content = content.replace(/\(future\)\.join\(\)/gm,
-            (m: string, offset: number) => `${wsFutureLocal ('future', offset + 1, content)}.getFuture().join()`);
+        content = content.replace(/\(future\)\.join\(\)/gm, (m: string, offset: number) => `${wsFutureLocal ('future', offset + 1, content)}.getFuture().join()`);
         // client.future(...).join() → client.future(...).getFuture().join()
-        content = content.replace(/client\.(future|reusableFuture)\(([^)]+)\)\.join\(\)/gm,
-            'client.$1($2).getFuture().join()');
-        // (client.future(...)).join() → client.future(...).getFuture().join()
-        // Parenthesized form — use balanced parens since args may contain nested parens
+        content = content.replace(/client\.(future|reusableFuture)\(([^)]+)\)\.join\(\)/gm, 'client.$1($2).getFuture().join()');
+        // (client.future(...)).join() → client.future(...).getFuture().join() Parenthesized form — use balanced parens since args may contain nested parens
         content = this.replaceParenthesizedClientFutureJoin(content);
         // But if future is already typed as io.github.ccxt.ws.Future, don't double-cast
         content = content.replace(/\(\(io\.github\.ccxt\.ws\.Future\)(\(io\.github\.ccxt\.ws\.Future\))/gm, '($1');
-
-        // ── Pattern 10: (String) cast on Helpers.add() for exception constructors and client.future() ──
-        // only when the add-chain's FIRST operand is not already String
+        // ── Pattern 10: (String) cast on Helpers.add() for exception constructors and client.future() ── only when the add-chain's FIRST operand is not already String
         content = content.replace(/(throw new \w+\()Helpers\.add\(/gm,
-            (match: string, prefix: string, offset: number) =>
-                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
-                    ? match : `${prefix}(String)Helpers.add(`);
+            (match: string, prefix: string, offset: number) => this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length) ? match : `${prefix}(String)Helpers.add(`);
         content = content.replace(/(client\.(?:future|reusableFuture)\()Helpers\.add\(/gm,
-            (match: string, prefix: string, offset: number) =>
-                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
-                    ? match : `${prefix}(String)Helpers.add(`);
-
+            (match: string, prefix: string, offset: number) => this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length) ? match : `${prefix}(String)Helpers.add(`);
         // ── Pattern 5: ArrayCache .hashmap access ──
         content = this.regexAll(content, [
             // Only match local variables, not this.xxx
@@ -3302,39 +1825,18 @@ class NewTranspiler {
             // Prevent double-wrapping
             [/\(\(io\.github\.ccxt\.ws\.ArrayCache\)\(\(io\.github\.ccxt\.ws\.ArrayCache\)/gm, '((io.github.ccxt.ws.ArrayCache)'],
         ]);
-
         // future.resolve(x) where future is Object → cast
-        content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
+        content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm, (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
         // future.reject(x) on Object
-        content = content.replace(/(?<!\w)future\.reject\(([^)]+)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.reject(${args})`);
+        content = content.replace(/(?<!\w)future\.reject\(([^)]+)\)/gm, (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.reject(${args})`);
         // promise.resolve(x) where promise is Object → cast
-        content = content.replace(/(?<!\w)promise\.resolve\(([^)]*)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('promise', offset, content)}.resolve(${args})`);
-
+        content = content.replace(/(?<!\w)promise\.resolve\(([^)]*)\)/gm, (m: string, args: string, offset: number) => `${wsFutureLocal ('promise', offset, content)}.resolve(${args})`);
         // a resolved ws list is an ArrayCache or a plain list: the typed static answers Long for both
-        content = this.replaceDynamicMethodCall(content, 'getLimit',
-            (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
-
+        content = this.replaceDynamicMethodCall(content, 'getLimit', (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
         // ── Property access on Object-typed variables ──
-        content = this.regexAll(content, [
-            [/(?<![.\w])([a-z]\w+)\.cache\b(?!\()/gm, '((java.util.List<Object>)Helpers.GetValue($1, "cache"))'],
-            [/(?<![.\w])([a-z]\w+)\.nonce\b(?!\()/gm, 'Helpers.GetValue($1, "nonce")'],
-        ]);
-
-        // ── Method references in subscription maps → string name ──
-        // Dynamically detect every method defined in this class, plus a fixed
-        // whitelist of base-class methods used as callback refs (defined on
-        // Exchange/base, so file-local detection can't see them). Rewrite
-        // `this.<method>` / `<ClassName>.this.<method>` used as a value (not a
-        // call, assignment target, or member-access base) to the string literal
-        // `"<method>"`. Dispatch uses Helpers.callDynamically at call-site.
-        const baseClassCallbacks = [
-            'ping', 'negotiate', 'negotiateHelper', 'keepAliveListenKey',
-            'fetchOrderBookSnapshot', 'loadOrderBook', 'loadBalanceSnapshot',
-            'loadPositionsSnapshot',
-        ];
+        content = this.regexAll(content, [ [/(?<![.\w])([a-z]\w+)\.cache\b(?!\()/gm, '((java.util.List<Object>)Helpers.GetValue($1, "cache"))'], [/(?<![.\w])([a-z]\w+)\.nonce\b(?!\()/gm, 'Helpers.GetValue($1, "nonce")'], ]);
+        // ── Method references in subscription maps → string name ── Dynamically detect every method defined in this class, plus a fixed whitelist of base-class methods used as callback r...
+        const baseClassCallbacks = [ 'ping', 'negotiate', 'negotiateHelper', 'keepAliveListenKey', 'fetchOrderBookSnapshot', 'loadOrderBook', 'loadBalanceSnapshot', 'loadPositionsSnapshot', ];
         const methodNames = this.collectMethodNamesInClass(content);
         for (const b of baseClassCallbacks) methodNames.add(b);
         const namesPattern = Array.from(methodNames).join('|');
@@ -3346,26 +1848,18 @@ class NewTranspiler {
             // var = this.method;  → var = "method";
             [new RegExp(`=\\s*this\\.(${namesPattern})\\s*;`, 'gm'), '= "$1";'],
         ]);
-
         // ── .call(this, args) → reflection dispatch — use balanced parens ──
         content = this.replaceCallPattern(content);
-
         // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
         content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
-            (_m, name, args) => this.spawnMethodReference(name, args)
-                ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
+            (_m, name, args) => this.spawnMethodReference(name, args) ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
         // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
         content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm,
-            (_m, name, args) => this.spawnMethodReference(name, args)
-                ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
+            (_m, name, args) => this.spawnMethodReference(name, args) ?? `this.spawn(() -> { try { this.${name}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`);
         // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
         content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm, 'this.$1($2)');
-        // this.spawn("methodName", args) as expression — the method-ref-as-string
-        // pass above has already converted this.methodRef → "methodRef" by the time
-        // we get here. Rewrite to spawnWithResult which returns a Future capturing
-        // the async call's outcome.
+        // this.spawn("methodName", args) as expression — the method-ref-as-string pass above has already converted this.methodRef → "methodRef" by the time we get here. Rewrite to spawnWi...
         content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm, 'this.spawnWithResult("$1", $2)');
-
         // ── watch/watchMultiple missing 5th arg ──
         for (const method of ['watch', 'watchMultiple']) {
             // an optional `<T>` type witness (ws receive locals) stays in front of the name
@@ -3377,19 +1871,11 @@ class NewTranspiler {
                 const startIdx = m2.index + m2[0].length;
                 let depth2 = 1;
                 let j2 = startIdx;
-                while (j2 < content.length && depth2 > 0) {
-                    if (content[j2] === '(') depth2++;
-                    if (content[j2] === ')') depth2--;
-                    j2++;
-                }
+                while (j2 < content.length && depth2 > 0) { if (content[j2] === '(') depth2++; if (content[j2] === ')') depth2--; j2++; }
                 const args2 = content.substring(startIdx, j2 - 1);
                 let topLevelCommas = 0;
                 let d = 0;
-                for (const ch of args2) {
-                    if (ch === '(') d++;
-                    if (ch === ')') d--;
-                    if (ch === ',' && d === 0) topLevelCommas++;
-                }
+                for (const ch of args2) { if (ch === '(') d++; if (ch === ')') d--; if (ch === ',' && d === 0) topLevelCommas++; }
                 const argCount = topLevelCommas + 1;
                 result2 += content.substring(lastIdx2, m2.index);
                 const missing = (argCount >= 2 && argCount <= 4) ? 5 - argCount : 0;
@@ -3399,10 +1885,8 @@ class NewTranspiler {
             result2 += content.substring(lastIdx2);
             content = result2;
         }
-
         // ── Client type handling, Pattern 9: int/long from Object ──
-        const longField = (match: string, field: string, rhs: string) =>
-            (rhs.startsWith('((Number)') || /^\d+L?$/.test(rhs.trim())) ? match : `client.${field} = ((Number)${rhs}).longValue();`;
+        const longField = (match: string, field: string, rhs: string) => (rhs.startsWith('((Number)') || /^\d+L?$/.test(rhs.trim())) ? match : `client.${field} = ((Number)${rhs}).longValue();`;
         content = this.regexAll(content, [
             [/WsClient\b/gm, 'Client'],
             [/\(Object client\)/gm, '(Client client)'],
@@ -3414,13 +1898,10 @@ class NewTranspiler {
             [/Client\s+client\s*=\s*Helpers\.GetValue\((\w+),\s*(\w+)\)/gm, 'Client client = (Client)Helpers.GetValue($1, $2)'],
             [/Client\s+client\s*=\s*this\.(safeValue|safeDict)\(/gm, 'Client client = (Client)this.$1('],
         ]);
-        // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted
-        // local may box an Integer, which a printer `((long) x)` cast would reject at runtime
+        // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted local may box an Integer, which a printer `((long) x)` cast would reject at runtime
         const revertedInts = new Set<string>();
         content = content.replace(/int (\w+) = (?![\d(]|this\.parseTimeframe\()/gm, (_m: string, n: string) => { revertedInts.add(n); return 'Object ' + n + ' = '; });
-        for (const n of revertedInts) {
-            content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()');
-        }
+        for (const n of revertedInts) { content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()'); }
         content = this.regexAll(content, [
             [/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm, 'new ArrayCache(((Number)this.$1).intValue())'],
             [/client\.(lastPong|keepAlive)\s*=\s*([^;]+);/gm, longField],
@@ -3428,38 +1909,26 @@ class NewTranspiler {
             [/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm, 'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })'],
             [/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm, 'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })'],
         ]);
-
-        // ── this.delay → spawn with sleep ──
-        // `this.delay(ms, "methodName", ...args)` where the callback
-        // is already a string literal (the method-ref-as-string rewrite above converts
-        // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
+        // ── this.delay → spawn with sleep ── `this.delay(ms, "methodName", ...args)` where the callback is already a string literal (the method-ref-as-string rewrite above converts `this...
         content = this.rewriteDelayWithStringCallback(content);
-
-        // ── CompletableFuture<Void> → <Object> ──
-        // a declaration the method index marks as returning no value keeps the Void the printer gave it
+        // ── CompletableFuture<Void> → <Object> ── a declaration the method index marks as returning no value keeps the Void the printer gave it
         const voidIndex = javaRepoMethodUsesIndex ();
         content = content.replace(/CompletableFuture<Void>(?=(\s+(\w+)\()?)/gm, (m: string, _d: string, name: string) =>
             (name !== undefined && voidIndex.asyncVoid.get (name) === true && voidIndex.handWritten !== undefined && !new RegExp (`\\b${name}\\s*\\(`).test (voidIndex.handWritten)) ? m : 'CompletableFuture<Object>');
-
         // ── this.lockId()/this.unlockId() → synchronized with scoping fix ──
         content = this.fixSynchronizedScoping(content);
-
         // ── super.describeData() → call WS parent method ──
         content = content.replace(/super\.describeData\(\)/gm, 'new io.github.ccxt.exchanges.pro.Binance().describeData()');
-
         // ── Fix extra args in method calls when definition has fewer params ──
         if (/loadPositionsSnapshot\(Client\s+\w+,\s*Object\s+\w+,\s*Object\s+\w+\)\s*$/m.test(content) && /this\.loadPositionsSnapshot\(\w+,\s*\w+,\s*\w+,\s*\w+\)/.test(content)) {
-            content = content.replace(/loadPositionsSnapshot\(Client\s+(\w+),\s*Object\s+(\w+),\s*Object\s+(\w+)\)\s*$/m,
-                'loadPositionsSnapshot(Client $1, Object $2, Object $3, Object... _extraArgs)');
+            content = content.replace(/loadPositionsSnapshot\(Client\s+(\w+),\s*Object\s+(\w+),\s*Object\s+(\w+)\)\s*$/m, 'loadPositionsSnapshot(Client $1, Object $2, Object $3, Object... _extraArgs)');
         }
-
         content = this.regexAll(content, [
             // ── Bids/Asks class references ──
             [/new Bids\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Bids('],
             [/new Asks\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Asks('],
             // ── Exchange class name capitalization ──
-            [/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm,
-                (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`],
+            [/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm, (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`],
             // ── Assignment to map.get() → Helpers.addElementToObject ──
             [/\(\(java\.util\.HashMap<String, Object>\)(\w+)\)\.get\("(\w+)"\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
             [/\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
@@ -3467,58 +1936,29 @@ class NewTranspiler {
             [/\(\(java\.util\.List<Object>\)\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\)\s*=\s*([^;]+);/gm, 'Helpers.addElementToObject($1, "$2", $3);'],
             [/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm, '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>'],
         ]);
-
         // ── spawn lambdas whose argument is a reassigned local: pass the arguments by value ──
-        if (!skipEffectivelyFinal) {
-            content = this.spawnReassignedArgsByValue(content);
-        }
-
+        if (!skipEffectivelyFinal) { content = this.spawnReassignedArgsByValue(content); }
         // ── Void supplyAsync return null insertion, then `return null;` leakage out of void handlers ──
         content = this.insertReturnNullInSupplyAsync(content);
         content = this.fixVoidReturnNull(content);
-
         return content;
     }
-
-
     fixSynchronizedScoping(content: string): string {
         content = content.replace(/this\.lockId\(\);/gm, 'synchronized (this) {');
         content = content.replace(/this\.unlockId\(\);/gm, '}');
-
         const lines = content.split('\n');
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].trim() === 'synchronized (this) {') {
                 const syncStart = i;
                 let syncEnd = -1;
                 let braceCount = 0;
-                for (let j = i; j < lines.length; j++) {
-                    for (const ch of lines[j]) {
-                        if (ch === '{') braceCount++;
-                        if (ch === '}') braceCount--;
-                    }
-                    if (braceCount === 0) {
-                        syncEnd = j;
-                        break;
-                    }
-                }
+                for (let j = i; j < lines.length; j++) { for (const ch of lines[j]) { if (ch === '{') braceCount++; if (ch === '}') braceCount--; } if (braceCount === 0) { syncEnd = j; break; } }
                 if (syncEnd === -1) continue;
-
                 const declaredVars: {name: string, lineIdx: number}[] = [];
-                for (let j = syncStart + 1; j < syncEnd; j++) {
-                    const declMatch = lines[j].match(/^(\s*)Object\s+(\w+)\s*=\s*/);
-                    if (declMatch) {
-                        declaredVars.push({name: declMatch[2], lineIdx: j});
-                    }
-                }
-
+                for (let j = syncStart + 1; j < syncEnd; j++) { const declMatch = lines[j].match(/^(\s*)Object\s+(\w+)\s*=\s*/); if (declMatch) { declaredVars.push({name: declMatch[2], lineIdx: j}); } }
                 for (const v of declaredVars) {
                     let usedAfter = false;
-                    for (let j = syncEnd + 1; j < Math.min(syncEnd + 5, lines.length); j++) {
-                        if (lines[j].includes(v.name)) {
-                            usedAfter = true;
-                            break;
-                        }
-                    }
+                    for (let j = syncEnd + 1; j < Math.min(syncEnd + 5, lines.length); j++) { if (lines[j].includes(v.name)) { usedAfter = true; break; } }
                     if (usedAfter) {
                         const indent = lines[v.lineIdx].match(/^(\s*)/)?.[1] || '';
                         lines[v.lineIdx] = lines[v.lineIdx].replace(`Object ${v.name} =`, `${v.name} =`);
@@ -3530,19 +1970,14 @@ class NewTranspiler {
         }
         return lines.join('\n');
     }
-
     insertReturnNullInSupplyAsync(content: string): string {
         const lines = content.split('\n');
-
         let inSupplyAsync = 0;
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(') && lines[i].trimEnd().endsWith('{')) inSupplyAsync++;
             if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
-            if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
-                lines[i] = lines[i].replace('return;', 'return null;');
-            }
+            if (inSupplyAsync > 0 && lines[i].trim() === 'return;') { lines[i] = lines[i].replace('return;', 'return null;'); }
         }
-
         // Only the `});` closing an async lambda body qualifies; nested lambdas are tracked by depth.
         let depth = 0;
         for (let i = 0; i < lines.length; i++) {
@@ -3552,63 +1987,38 @@ class NewTranspiler {
             if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
             if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
             if (depth !== 0 || t !== '});') continue;
-
             let lastStmtIdx = i - 1;
             while (lastStmtIdx >= 0 && lines[lastStmtIdx].trim() === '') lastStmtIdx--;
             if (lastStmtIdx < 0) continue;
-
             const stmt = lines[lastStmtIdx].trim();
-
             const isReturn = (s: string) => s.startsWith('return ') || s.startsWith('return(') || s === 'return null;';
             let hasReturn = isReturn(stmt);
-
             if (!hasReturn) {
                 for (let k = lastStmtIdx - 1; k >= Math.max(0, lastStmtIdx - 30); k--) {
                     const kLine = lines[k].trim();
                     if (kLine.includes('-> {')) break;
                     if (kLine.match(/^(?:public|private|protected)\s+/)) break;
-                    if (isReturn(kLine)) {
-                        hasReturn = true;
-                        break;
-                    }
-                    if (kLine.endsWith(';') && !kLine.includes('put(') && !kLine.includes('add(') && !kLine.startsWith('//')) {
-                        break;
-                    }
+                    if (isReturn(kLine)) { hasReturn = true; break; }
+                    if (kLine.endsWith(';') && !kLine.includes('put(') && !kLine.includes('add(') && !kLine.startsWith('//')) { break; }
                 }
             }
-
             if (stmt === '}') {
                 let bd = 0;
                 let openingLine = lastStmtIdx;
                 for (let k = lastStmtIdx; k >= 0; k--) {
-                    for (let ci = lines[k].length - 1; ci >= 0; ci--) {
-                        if (lines[k][ci] === '}') bd++;
-                        if (lines[k][ci] === '{') bd--;
-                        if (bd === 0) {
-                            openingLine = k;
-                            break;
-                        }
-                    }
+                    for (let ci = lines[k].length - 1; ci >= 0; ci--) { if (lines[k][ci] === '}') bd++; if (lines[k][ci] === '{') bd--; if (bd === 0) { openingLine = k; break; } }
                     if (bd === 0) break;
                 }
                 let openingStmt = lines[openingLine].trim();
-                if (openingStmt === '{') {
-                    let prevLine = openingLine - 1;
-                    while (prevLine >= 0 && lines[prevLine].trim() === '') prevLine--;
-                    if (prevLine >= 0) openingStmt = lines[prevLine].trim();
-                }
+                if (openingStmt === '{') { let prevLine = openingLine - 1; while (prevLine >= 0 && lines[prevLine].trim() === '') prevLine--; if (prevLine >= 0) openingStmt = lines[prevLine].trim(); }
                 if (openingStmt.startsWith('} else') || openingStmt.startsWith('else')) {
                     let innerLast = lastStmtIdx - 1;
                     while (innerLast >= 0 && lines[innerLast].trim() === '') innerLast--;
-                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) {
-                        hasReturn = true;
-                    }
+                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) { hasReturn = true; }
                 } else if (openingStmt.includes('catch')) {
                     let innerLast = lastStmtIdx - 1;
                     while (innerLast >= 0 && lines[innerLast].trim() === '') innerLast--;
-                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) {
-                        hasReturn = true;
-                    }
+                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) { hasReturn = true; }
                 }
                 if (openingStmt.startsWith('for ') || openingStmt.startsWith('for(') ||
                     openingStmt.startsWith('while ') || openingStmt.startsWith('while(')) {
@@ -3618,22 +2028,14 @@ class NewTranspiler {
                     hasReturn = true;
                 }
             }
-
-            if (!hasReturn) {
-                const indent = lines[i].match(/^\s*/)?.[0] || '';
-                lines.splice(i, 0, indent + '    return null;');
-                i++;
-            }
+            if (!hasReturn) { const indent = lines[i].match(/^\s*/)?.[0] || ''; lines.splice(i, 0, indent + '    return null;'); i++; }
         }
-
         return lines.join('\n');
     }
-
-    // retypes the raw-text `final Object` hoists and the async-param snapshots to the source
-    // declaration's own emitted type token (never a cast); a later use that is not an audited
-    // fixed-parameter Object position keeps the line as the transpiler printed it
+    // retypes the raw-text `final Object` hoists and the async-param snapshots to the source declaration's own emitted type token (never a cast); a later use that is not an audited fi...
     retypeFinalVarDeclarations (content: string): string {
         const lines = content.split ('\n');
+        let depths: number[] | undefined;
         for (let i = 0; i < lines.length; i++) {
             const match = lines[i].match (RETYPE_COPY_LINE);
             if (match === null) continue;
@@ -3642,56 +2044,40 @@ class NewTranspiler {
             const sourceName = match[3];
             const start = retypeMemberStart (lines, i);
             const end = retypeMemberEnd (lines, i);
-
             // 1. the source type: the nearest preceding declaration of the same name inside the member
             let typeToken: string | undefined;
-            const depths = retypeDepthScan (lines);
+            if (depths === undefined) depths = retypeDepthScan (lines);
             let sawDeclaration = false;
             for (let j = i - 1; j > start; j--) {
                 const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
                 if (decl !== null) {
                     sawDeclaration = true;
-                    // in scope = the declaration's block is still open at the
-                    // hoist (brace depth never drops below it), not the printer's text indent.
+                    // in scope = the declaration's block is still open at the hoist (brace depth never drops below it), not the printer's text indent.
                     let inScope = true;
-                    for (let k = j; k < i; k++) {
-                        if (depths[k] < depths[j]) { inScope = false; break; }
-                    }
+                    for (let k = j; k < i; k++) { if (depths[k] < depths[j]) { inScope = false; break; } }
                     if (!inScope) continue;                 // a closed block: keep scanning outward
                     typeToken = decl[2];
                     break;
                 }
             }
-            // the source may be a fixed parameter (the printed signature
-            // carries its own type) even when no declaration exists in the member.
-            if (typeToken === undefined && !sawDeclaration) {
-                const signature = retypeSignatureLine (lines, start, i - 1);
-                if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
-            }
+            // the source may be a fixed parameter (the printed signature carries its own type) even when no declaration exists in the member.
+            if (typeToken === undefined && !sawDeclaration) { const signature = retypeSignatureLine (lines, start, i - 1); if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName); }
             const reference = retypeReferenceToken (typeToken);
             if (reference === undefined) continue;
-
-            // 2. every later mention of the hoisted name inside the member must be an audited
-            //    fixed-parameter Object position
+            // 2. every later mention of the hoisted name inside the member must be an audited fixed-parameter Object position
             let audited = true;
             for (let j = i + 1; j <= end; j++) {
                 // the copy is not final, so every later write is audited too
                 const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
-                if (write !== null) {
-                    if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
-                    continue;
-                }
+                if (write !== null) { if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; } continue; }
                 if (!retypeUseIsAudited (lines[j], hoistedName, reference)) { audited = false; break; }
             }
             if (!audited) continue;
-
             lines[i] = `${indent}${reference} ${hoistedName} = ${sourceName};`;
         }
         return lines.join ('\n');
     }
-
-    // `this.spawn(this::m, a..)`: BaseExchange's typed spawn overloads take the arguments by value;
-    // a bare `null` would infer Object and miss a narrower parameter, so that shape keeps the lambda
+    // `this.spawn(this::m, a..)`: BaseExchange's typed spawn overloads take the arguments by value; a bare `null` would infer Object and miss a narrower parameter, so that shape keeps...
     spawnMethodReference(name: string, argsText: string): string | undefined {
         const args: string[] = [];
         let depth = 0;
@@ -3699,40 +2085,24 @@ class NewTranspiler {
         for (let k = 0; k < argsText.length; k++) {
             const ch = argsText[k];
             if (ch === '(' || ch === '<' || ch === '{') depth++;
-            else if (ch === ')' || ch === '>' || ch === '}') depth--;
-            else if (ch === ',' && depth === 0) {
-                args.push(argsText.slice(start, k).trim());
-                start = k + 1;
-            }
+            else if (ch === ')' || ch === '>' || ch === '}') depth--; else if (ch === ',' && depth === 0) { args.push(argsText.slice(start, k).trim()); start = k + 1; }
         }
         args.push(argsText.slice(start).trim());
-        if (depth !== 0 || args.length > 6 || args.some((a) => a === '' || a === 'null' || /["']/.test(a))) {
-            return undefined;
-        }
+        if (depth !== 0 || args.length > 6 || args.some((a) => a === '' || a === 'null' || /["']/.test(a))) { return undefined; }
         return `this.spawn(this::${name}, ${args.join(', ')});`;
     }
-
     spawnReassignedArgsByValue(content: string): string {
         const lines = content.split('\n');
-
         for (let i = 0; i < lines.length; i++) {
             const spawnMatch = lines[i].match(/this\.spawn\(\(\)\s*->\s*\{.*this\.(\w+)\(/);
             if (!spawnMatch) continue;
-
-            // the arguments may carry the checkcast a retyped parameter demands
-            // (`(Map<String, Object>) (x)`), whose parens hold commas of their own: take the
-            // raw argument span to the matching close paren, split it at depth 0, and use the
-            // trailing identifier of each argument as the captured-variable candidate
+            // the arguments may carry the checkcast a retyped parameter demands (`(Map<String, Object>) (x)`), whose parens hold commas of their own: take the raw argument span to the matchin...
             let methodOpen = lines[i].indexOf(`this.${spawnMatch[1]}(`, lines[i].indexOf('this.spawn'));
             if (methodOpen === -1) continue;
             methodOpen += spawnMatch[1].length + 5;
             let depth = 1;
             let methodClose = methodOpen + 1;
-            for (; methodClose < lines[i].length && depth > 0; methodClose++) {
-                const ch = lines[i][methodClose];
-                if (ch === '(') depth++;
-                else if (ch === ')') depth--;
-            }
+            for (; methodClose < lines[i].length && depth > 0; methodClose++) { const ch = lines[i][methodClose]; if (ch === '(') depth++; else if (ch === ')') depth--; }
             const argsText = lines[i].slice(methodOpen + 1, methodClose - 1);
             const argOrigin = methodOpen + 1;
             const candidates: { name: string, start: number, end: number }[] = [];
@@ -3740,66 +2110,35 @@ class NewTranspiler {
             depth = 0;
             const addCandidate = (start: number, end: number) => {
                 const nameMatch = argsText.slice(start, end).match(/([a-z]\w*)\s*\)*\s*$/);
-                if (nameMatch !== null) {
-                    candidates.push({ name: nameMatch[1], start: argOrigin + start, end: argOrigin + end });
-                }
+                if (nameMatch !== null) { candidates.push({ name: nameMatch[1], start: argOrigin + start, end: argOrigin + end }); }
             };
             for (let k = 0; k < argsText.length; k++) {
                 const ch = argsText[k];
-                if (ch === ',' && depth === 0) {
-                    addCandidate(argStart, k);
-                    argStart = k + 1;
-                } else if (ch === '(' || ch === '<') {
-                    depth++;
-                } else if (ch === ')' || ch === '>') {
-                    depth--;
-                }
+                if (ch === ',' && depth === 0) { addCandidate(argStart, k); argStart = k + 1; } else if (ch === '(' || ch === '<') { depth++; } else if (ch === ')' || ch === '>') { depth--; }
             }
             addCandidate(argStart, argsText.length);
-
             let methodStart = 0;
-            for (let j = i - 1; j >= 0; j--) {
-                if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) {
-                    methodStart = j;
-                    break;
-                }
-            }
-
+            for (let j = i - 1; j >= 0; j--) { if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) { methodStart = j; break; } }
             const finals: { name: string, start: number, end: number }[] = [];
             for (const candidate of candidates) {
                 const arg = candidate.name;
                 if (finals.some((f) => f.name === arg)) continue;
                 let reassigned = false;
-                for (let j = methodStart; j < i; j++) {
-                    if (new RegExp(`^\\s+${arg}\\s*=\\s`).test(lines[j])) {
-                        reassigned = true;
-                        break;
-                    }
-                }
-                if (reassigned) {
-                    finals.push(candidate);
-                }
+                for (let j = methodStart; j < i; j++) { if (new RegExp(`^\\s+${arg}\\s*=\\s`).test(lines[j])) { reassigned = true; break; } }
+                if (reassigned) { finals.push(candidate); }
             }
             if (finals.length === 0) continue;
-
-            // a lambda cannot capture the reassigned local: hand every argument to
-            // Helpers.task(this::m, ...) by value instead
+            // a lambda cannot capture the reassigned local: hand every argument to Helpers.task(this::m, ...) by value instead
             const lambda = /^(\s*)this\.spawn\(\(\) -> \{ try \{ this\.(\w+)\((.*)\); \} catch\(Exception _e\) \{ throw new RuntimeException\(_e\); \} \}\);$/;
             const shape = lines[i].match(lambda);
             let argCount = 1;
             depth = 0;
-            for (const ch of argsText) {
-                if (ch === '(' || ch === '<') depth++;
-                else if (ch === ')' || ch === '>') depth--;
-                else if (ch === ',' && depth === 0) argCount++;
-            }
+            for (const ch of argsText) { if (ch === '(' || ch === '<') depth++; else if (ch === ')' || ch === '>') depth--; else if (ch === ',' && depth === 0) argCount++; }
             if (shape === null || shape[3] !== argsText || argCount > 6) continue;
             lines[i] = `${shape[1]}this.spawn(Helpers.task(this::${shape[2]}, ${argsText}));`;
         }
-
         return lines.join('\n');
     }
-
     replaceParenthesizedClientFutureJoin(content: string): string {
         const pattern = /\(client\.(future|reusableFuture)\(/g;
         let result = '';
@@ -3810,11 +2149,7 @@ class NewTranspiler {
             const argsStart = match.index + match[0].length;
             let depth = 1;
             let j = argsStart;
-            while (j < content.length && depth > 0) {
-                if (content[j] === '(') depth++;
-                if (content[j] === ')') depth--;
-                j++;
-            }
+            while (j < content.length && depth > 0) { if (content[j] === '(') depth++; if (content[j] === ')') depth--; j++; }
             if (j < content.length && content[j] === ')' && content.substring(j + 1, j + 8) === '.join()') {
                 const args = content.substring(argsStart, j - 1);
                 result += content.substring(lastIdx, match.index);
@@ -3825,7 +2160,6 @@ class NewTranspiler {
         result += content.substring(lastIdx);
         return result;
     }
-
     replaceCallPattern(content: string): string {
         const pattern = /(\w+)\.call\(this,\s*/g;
         let result = '';
@@ -3836,11 +2170,7 @@ class NewTranspiler {
             const startIdx = match.index + match[0].length;
             let depth = 1;
             let i = startIdx;
-            while (i < content.length && depth > 0) {
-                if (content[i] === '(') depth++;
-                if (content[i] === ')') depth--;
-                i++;
-            }
+            while (i < content.length && depth > 0) { if (content[i] === '(') depth++; if (content[i] === ')') depth--; i++; }
             const args = content.substring(startIdx, i - 1);
             result += content.substring(lastIdx, match.index);
             result += `Helpers.callDynamically(this, ${handler}, new Object[] {${args}})`;
@@ -3849,7 +2179,6 @@ class NewTranspiler {
         result += content.substring(lastIdx);
         return result;
     }
-
     replaceDynamicMethodCall(content: string, methodName: string,
         format = (varName: string, args: string) => `Helpers.callDynamically(${varName}, "${methodName}", new Object[]{${args}})`): string {
         const pattern = new RegExp(`(?<=[^\\w.])([a-z]\\w+)\\.${methodName}\\(`, 'g');
@@ -3860,21 +2189,15 @@ class NewTranspiler {
             const varName = match[1];
             const before = content.substring(Math.max(0, match.index - 20), match.index);
             if (/(?:this\.|Helpers\.|new\s|\w\.)$/.test(before)) continue;
-            const skipVars = ['new', 'var', 'for', 'if', 'else', 'return', 'try', 'catch', 'throw',
-                'list', 'channel', 'response', 'request', 'message',
-                'data', 'params', 'options', 'config', 'entry', 'item', 'key', 'value',
-                'client', 'exchange', 'string', 'array', 'map', 'set',
-                'ticker', 'trade', 'order', 'balance', 'position', 'currency', 'market'];
+            const skipVars = [
+                'new', 'var', 'for', 'if', 'else', 'return', 'try', 'catch', 'throw', 'list', 'channel', 'response', 'request', 'message', 'data', 'params', 'options', 'config', 'entry', 'item', 'key', 'value',
+                'client', 'exchange', 'string', 'array', 'map', 'set', 'ticker', 'trade', 'order', 'balance', 'position', 'currency', 'market',
+            ];
             if (skipVars.includes(varName)) continue;
-
             const startIdx = match.index + match[0].length;
             let depth = 1;
             let i = startIdx;
-            while (i < content.length && depth > 0) {
-                if (content[i] === '(') depth++;
-                if (content[i] === ')') depth--;
-                i++;
-            }
+            while (i < content.length && depth > 0) { if (content[i] === '(') depth++; if (content[i] === ')') depth--; i++; }
             const args = content.substring(startIdx, i - 1);
             result += content.substring(lastIdx, match.index);
             result += format(varName, args);
@@ -3883,51 +2206,27 @@ class NewTranspiler {
         result += content.substring(lastIdx);
         return result;
     }
-
     transpileDerivedExchangeFile(tsFolder: string, filename: string, options: any, csharpResult: any, force = false, ws = false, prediction = false) {
-
         const tsPath = tsFolder + filename
-
         const { csharpFolder: javaFolder } = options
-
         const fileNameNoExt = filename.replace('.ts', '')
-
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
         javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'), tsPath))
         const nativePasses = [
-            nativeJavaMapLocalsRetype, nativeJavaCoreArgIdentities, nativeJavaNumberParamCompare, nativeJavaWsOrderBookContainers,
-            nativeJavaBoxLocalsCoreArgs, nativeJavaNumberProvenCompare, nativeJavaMapLocalOps, nativeJavaRemainingCoreArgs,
-            nativeJavaInlineDivModNeg, nativeJavaInlineCompare, nativeJavaContainerOps,
+            nativeJavaMapLocalsRetype, nativeJavaCoreArgIdentities, nativeJavaNumberParamCompare, nativeJavaWsOrderBookContainers, nativeJavaBoxLocalsCoreArgs, nativeJavaNumberProvenCompare,
+            nativeJavaMapLocalOps, nativeJavaRemainingCoreArgs, nativeJavaInlineDivModNeg, nativeJavaInlineCompare, nativeJavaContainerOps,
         ];
-        for (const pass of nativePasses) {
-            javaSource = pass(javaSource)
-        }
-        if (ws) {
-            javaSource = nativeJavaWsHandlerDispatch(javaSource)
-        }
+        for (const pass of nativePasses) { javaSource = pass(javaSource) }
+        if (ws) { javaSource = nativeJavaWsHandlerDispatch(javaSource) }
         const apiPath = path.join(javaFolder ?? '', '..', 'api', this.capitalize(fileNameNoExt) + 'Api.java')
-        if (!ws && !prediction && fs.existsSync(apiPath)) {
-            javaSource = nativeJavaLiteralApiDispatch(javaSource, fs.readFileSync(apiPath, 'utf8'))
-        }
-
-        if (javaFolder) {
-            const outputName = this.capitalize(fileNameNoExt) + '.java';
-            overwriteFileAndFolder(javaFolder + outputName, javaSource)
-        }
+        if (!ws && !prediction && fs.existsSync(apiPath)) { javaSource = nativeJavaLiteralApiDispatch(javaSource, fs.readFileSync(apiPath, 'utf8')) }
+        if (javaFolder) { const outputName = this.capitalize(fileNameNoExt) + '.java'; overwriteFileAndFolder(javaFolder + outputName, javaSource) }
     }
-
-
     transpileCryptoTestsToJava(outDir: string, force = true) {
-
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/TestCryptography.java`;
-
-        if (skipUpToDateStage ('java', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
-            return;
-        }
-
+        if (skipUpToDateStage ('java', 'crypto test', force, testStageInputs (), [ csharpFile ])) { return; }
         log.magenta('[java] Transpiling from', (jsFile as any).yellow)
-
         const java = this.transpiler.transpileJavaByPath(jsFile);
         let content = java.content;
         content = this.regexAll(content, [
@@ -3936,51 +2235,23 @@ class NewTranspiler {
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`], // quick fix to replace twice
             [/assert/g, 'Assert'],
         ]).trim()
-
         const contentLines = content.split('\n');
         const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
-
-        const file = [
-            'package tests.base;',
-            'import tests.BaseTest;',
-            'import io.github.ccxt.Helpers;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public class TestCryptography extends BaseTest {',
-            contentIdented,
-            '}',
-        ].join('\n')
-
+        const file = [ 'package tests.base;', 'import tests.BaseTest;', 'import io.github.ccxt.Helpers;', '', this.createGeneratedHeader().join('\n'), 'public class TestCryptography extends BaseTest {', contentIdented, '}', ].join('\n')
         log.magenta('→', (csharpFile as any).yellow)
-
         overwriteFileAndFolder(csharpFile, file);
     }
-
     transpileBaseTests(outDir: string, force = true) {
-
-        const baseFolders = {
-            ts: './ts/src/test/base/',
-        };
-
+        const baseFolders = { ts: './ts/src/test/base/', };
         let baseFunctionTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
-        // the AUTO_TRANSPILE_ENABLED filter is hoisted out of the write loop below so the
-        // whole-stage gate can name the exact set of files this stage writes
+        // the AUTO_TRANSPILE_ENABLED filter is hoisted out of the write loop below so the whole-stage gate can name the exact set of files this stage writes
         const eligible = baseFunctionTests.filter ((testName) => fs.readFileSync (baseFolders.ts + testName + '.ts').toString ().includes ('// AUTO_TRANSPILE_ENABLED'));
-
-        if (skipUpToDateStage ('java', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/Test${this.capitalize (testName.replace ('test.', '').replace ('tests.', ''))}.java`))) {
-            return;
-        }
-
+        if (skipUpToDateStage ('java', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/Test${this.capitalize (testName.replace ('test.', '').replace ('tests.', ''))}.java`))) { return; }
         for (const testName of eligible) {
             const tsFile = baseFolders.ts + testName + '.ts';
-
             const correctedTestName = 'Test' + this.capitalize(testName.replace('test.', '').replace('tests.', ''))
             const javaFile = `${outDir}/${correctedTestName}.java`;
-
             log.magenta('Transpiling from', (tsFile as any).yellow)
-
             const java = this.transpiler.transpileJavaByPath(tsFile);
             let content = java.content;
             content = this.regexAll(content, [
@@ -3997,67 +2268,33 @@ class NewTranspiler {
             // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
             content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
             // Null-safe Array.isArray (see Helpers.isArray).
-
             if (correctedTestName === 'TestInit') {
-                content = this.regexAll(content, [
-                    [/(test(\w+))\(\)/gm, '(new Test$2()).$1()'],
-                ])
+                content = this.regexAll(content, [ [/(test(\w+))\(\)/gm, '(new Test$2()).$1()'], ])
             } else if (correctedTestName === 'TestSafeMethods') {
                 // we don't support wS structs yet
-
-                content = this.regexAll(content, [
-                    [/\/\/ init array cache tests[\s\S]*?(?=\n\s*public void testSafeMethods\(\))/gm, '}'],
-                ]);
+                content = this.regexAll(content, [ [/\/\/ init array cache tests[\s\S]*?(?=\n\s*public void testSafeMethods\(\))/gm, '}'], ]);
             }
-
             const contentLines = content.split('\n');
             const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
             const usesExchange = java.content.indexOf('ccxt.Exchange') >= 0;
             const usesPrecise = java.content.indexOf('Precise.') >= 0;
             const exchangeImport = usesExchange ? 'import io.github.ccxt.Exchange;\n' : '';
             const preciseImport = usesPrecise ? 'import io.github.ccxt.base.Precise;\n' : '';
             const file = [
-                'package tests.base;',
-                'import tests.BaseTest;',
-                'import io.github.ccxt.Helpers;',
-                JAVA_ASYNC_SUPPLIER_IMPORT,
-                exchangeImport,
-                preciseImport,
-                this.createGeneratedHeader().join('\n'),
-                `public class ${correctedTestName} extends BaseTest`,
-                '{',
-                contentIdented,
-                '}',
+                'package tests.base;', 'import tests.BaseTest;', 'import io.github.ccxt.Helpers;', JAVA_ASYNC_SUPPLIER_IMPORT, exchangeImport, preciseImport, this.createGeneratedHeader().join('\n'),
+                `public class ${correctedTestName} extends BaseTest`, '{', contentIdented, '}',
             ].join('\n')
-
             log.magenta('→', (javaFile as any).yellow)
-
             overwriteFileAndFolder(javaFile, nativeJavaTestCoreArgs(file));
         }
     }
-
-    capitalize(s: string) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-
-    /**
-     * `(exchange.<m>(args)).join()` in
-     * transpiled tests binds a typed TypedSurface default whenever the args are
-     * statically typed (String symbol, literals, zero-arg whitelisted names), which
-     * returns the typed value and has no `.join()`. Casting cannot fix it: an
-     * `(Object)` at an SS-05 String position leaves no applicable method. So every
-     * call to a typed-surface name is late-bound through Helpers.callDynamically,
-     * whose findMethod resolves the single core by name and pads omitted arguments.
-     */
+    capitalize(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    // `(exchange.<m>(args)).join()` in transpiled tests binds a typed TypedSurface default whenever the args are statically typed (String symbol, literals, zero-arg whitelisted names)...
     lateBindTypedSurfaceCalls(content: string): string {
         const typedNames = new Set<string>();
         for (const iface of ['TypedSurface.java', 'PredictionTypedSurface.java']) {
             const path = EXCHANGE_WRAPPER_FOLDER + iface;
-            if (!fs.existsSync(path)) {
-                log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-surface late-binding skipped`);
-                continue;
-            }
+            if (!fs.existsSync(path)) { log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-surface late-binding skipped`); continue; }
             const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
             let m;
             const src = fs.readFileSync(path, 'utf-8');
@@ -4077,12 +2314,7 @@ class NewTranspiler {
             let inStr: string | null = null;
             while (j < content.length && depth > 0) {
                 const ch = content[j];
-                if (inStr !== null) {
-                    if (ch === '\\') j++;
-                    else if (ch === inStr) inStr = null;
-                } else if (ch === '"' || ch === '\'') inStr = ch;
-                else if (ch === '(') depth++;
-                else if (ch === ')') depth--;
+                if (inStr !== null) { if (ch === '\\') j++; else if (ch === inStr) inStr = null; } else if (ch === '"' || ch === '\'') inStr = ch; else if (ch === '(') depth++; else if (ch === ')') depth--;
                 j++;
             }
             if (content[j] !== ')' || content.substring(j + 1, j + 8) !== '.join()') continue;
@@ -4095,27 +2327,19 @@ class NewTranspiler {
         }
         return result + content.substring(lastIdx);
     }
-
     transpileMainTest(files: any) {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
         // by path, so the program includes the base Exchange the `any`-typed receivers bind to
         const java = this.transpiler.transpileJavaByPath(files.tsFile);
         let contentIndentend = java.content;
-
-
         // ad-hoc fixes
         contentIndentend = this.regexAll(contentIndentend, [
             [/Object mockedExchange =/gm, 'var mockedExchange ='],
-            // The shared static-test harness holds either a regular Exchange or a prediction
-            // PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange`
-            // variable as the common base and drive the tested method by reflection. The legacy
-            // request-builders that call a symbol-trading method (createOrder/fetchTicker) directly are
-            // cast back to Exchange below — they run only against regular venues.
+            // The shared static-test harness holds either a regular Exchange or a prediction PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange` variable...
             [/public Object initOfflineExchange/g, 'public BaseExchange initOfflineExchange'],
             [/Object exchange(?=[,)])/g, 'BaseExchange exchange'],
             [/Object exchange =/g, 'BaseExchange exchange ='],
-            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
-            // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
+            // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues, so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
             [/BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
             [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z0-9]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
             [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
@@ -4130,175 +2354,86 @@ class NewTranspiler {
             // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
             [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
             [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
-
         ])
         // Null-safe Array.isArray (see Helpers.isArray).
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
-
         const file = [
-            'package tests.exchange;',
-            'import io.github.ccxt.Helpers;',
-            'import io.github.ccxt.Exchange;',
-            JAVA_ASYNC_SUPPLIER_IMPORT,
-            'import io.github.ccxt.BaseExchange;',
-            'import tests.BaseTest;',
-            'import io.github.ccxt.errors.*;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            contentIndentend,
+            'package tests.exchange;', 'import io.github.ccxt.Helpers;', 'import io.github.ccxt.Exchange;', JAVA_ASYNC_SUPPLIER_IMPORT, 'import io.github.ccxt.BaseExchange;', 'import tests.BaseTest;',
+            'import io.github.ccxt.errors.*;', '', this.createGeneratedHeader().join('\n'), contentIndentend,
         ].join('\n')
-
         overwriteFileAndFolder(files.javaFile, nativeJavaTestCoreArgs(file));
     }
-
     async transpileExchangeTests(force = true) {
-        const baseFolders = {
-            ts: './ts/src/test/Exchange/',
-            tsBase: './ts/src/test/Exchange/base/',
-            javaBase: EXCHANGE_BASE_FOLDER,
-            java: EXCHANGE_GENERATED_FOLDER,
-        };
-
+        const baseFolders = { ts: './ts/src/test/Exchange/', tsBase: './ts/src/test/Exchange/base/', javaBase: EXCHANGE_BASE_FOLDER, java: EXCHANGE_GENERATED_FOLDER, };
         let baseTests = fs.readdirSync(baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
         // ignore throttle test for now
         baseTests = baseTests.filter(filename => filename !== 'test.throttle');
-
         const tests = [] as any;
         baseTests.forEach(baseTest => {
             let correctedName = 'Test' + this.capitalize(baseTest.replace('test.', ''));
             correctedName = correctedName.replace('Ohlcv', 'OHLCV'); // special case
-            tests.push({
-                base: true,
-                name: baseTest,
-                tsFile: baseFolders.tsBase + baseTest + '.ts',
-                javaFile: baseFolders.javaBase + correctedName + '.java',
-            });
+            tests.push({ base: true, name: baseTest, tsFile: baseFolders.tsBase + baseTest + '.ts', javaFile: baseFolders.javaBase + correctedName + '.java', });
         });
         exchangeTests.forEach(test => {
             const correctedName = 'Test' + this.capitalize(test.replace('test.', ''));
-            tests.push({
-                base: false,
-                name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                javaFile: baseFolders.java + correctedName + '.java',
-            });
+            tests.push({ base: false, name: test, tsFile: baseFolders.ts + test + '.ts', javaFile: baseFolders.java + correctedName + '.java', });
         });
-
-        // whole-stage gate — TestMain.java is included because transpileMainTest below writes
-        // it from ./ts/src/test/tests.ts, which is part of testStageInputs(). The tests[] list
-        // is built above the gate only so the output paths are available here.
-        if (skipUpToDateStage ('java', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.javaFile)))) {
-            return;
-        }
-
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'javaFile': BASE_TESTS_FILE,
-        });
-
+        // whole-stage gate — TestMain.java is included because transpileMainTest below writes it from ./ts/src/test/tests.ts, which is part of testStageInputs(). The tests[] list is built...
+        if (skipUpToDateStage ('java', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.javaFile)))) { return; }
+        this.transpileMainTest({ 'tsFile': './ts/src/test/tests.ts', 'javaFile': BASE_TESTS_FILE, });
         await this.transpileAndSaveJavaExchangeTests(tests);
     }
-
     async transpileWsExchangeTests(force = true) {
-
-        const baseFolders = {
-            ts: './ts/src/pro/test/Exchange/',
-            java: EXCHANGE_GENERATED_FOLDER + 'ws/',
-        };
-
+        const baseFolders = { ts: './ts/src/pro/test/Exchange/', java: EXCHANGE_GENERATED_FOLDER + 'ws/', };
         const wsTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
-        if (!fs.existsSync(baseFolders.java)) {
-            fs.mkdirSync(baseFolders.java, { recursive: true });
-        }
-
+        if (!fs.existsSync(baseFolders.java)) { fs.mkdirSync(baseFolders.java, { recursive: true }); }
         const tests = [] as any;
-
         wsTests.forEach(test => {
             const correctedName = 'Test' + this.capitalize(test.replace('test.', ''));
-            tests.push({
-                base: false,
-                name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                javaFile: baseFolders.java + correctedName + '.java',
-            });
+            tests.push({ base: false, name: test, tsFile: baseFolders.ts + test + '.ts', javaFile: baseFolders.java + correctedName + '.java', });
         });
-
-        if (skipUpToDateStage ('java', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.javaFile))) {
-            return;
-        }
-
+        if (skipUpToDateStage ('java', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.javaFile))) { return; }
         await this.transpileAndSaveJavaExchangeTests(tests, true);
     }
-
     async transpileAndSaveJavaExchangeTests(tests: any[], isWs = false) {
         const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile(paths, this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
             const filename = tests[idx].name;
-
-
             let className = 'Test' + this.capitalize(filename.replace('test.', '').replace('tests.', ''));
             if (className === 'TestOhlcv') className = 'TestOHLCV'; // special case
-
             let regexes = [
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
                 [/async public/gm, 'public'],
-                // REST test functions serve BOTH tiers (regular Exchange and prediction
-                // PredictionExchange are siblings under BaseExchange), so type the exchange
-                // param as the common base; the awaited unified-method calls are late-bound
-                // below through Helpers.callDynamically. WS tests only run against regular
-                // venues, keep them statically typed.
+                // REST test functions serve BOTH tiers (regular Exchange and prediction PredictionExchange are siblings under BaseExchange), so type the exchange param as the common base; the awa...
                 [/Object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange'],
                 [/throw new Exception/g, 'throw new RuntimeException'],
                 [/throw e/gm, 'throw new RuntimeException(e)'],
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [/void function/g, 'void'],
-                // Test files transpile TS `exchange.spawn(localFn, args)` where
-                // `localFn` is a top-level async function in the same file
-                // (transpiled as a method on the test class). Java's
-                // Exchange.spawn takes a Runnable, so wrap the call in a
-                // lambda that invokes the method and .join()s its
-                // CompletableFuture, mirroring the lib's spawn pattern.
+                // Test files transpile TS `exchange.spawn(localFn, args)` where `localFn` is a top-level async function in the same file (transpiled as a method on the test class). Java's Exchang...
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn(() -> { try { this.$2($3).join(); } catch(Exception _e) { throw new RuntimeException(_e); } })'],
                 [/exchange.jsonStringifyWithNull/g, 'exchange.json'],
                 [/(response instanceof java.util.Map)/, '(true)'], // in java this check does not really make sense
             ];
-
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
-                // Resolve cross-file static test calls. e.g. testTrade(exchange,...)
-                // is rewritten to TestTrade.testTrade(exchange,...). Skip names
-                // ending in "Helper": ccxt's TS test files declare local helpers
-                // (testWatchTickersHelper, testWatchBidsAsksHelper) inline on the
-                // same class as the public test, so they resolve as instance
-                // method calls without qualification. Without this skip the
-                // rewrite invents nonexistent helper classes.
-                contentIndentend = contentIndentend.replace(
-                    /test(\w+)\(exchange,/g,
-                    (match: string, name: string) =>
-                        name.endsWith('Helper') ? match : `Test${name}.test${name}(exchange,`
-                );
+                // Resolve cross-file static test calls. e.g. testTrade(exchange,...) is rewritten to TestTrade.testTrade(exchange,...). Skip names ending in "Helper": ccxt's TS test files declare...
+                contentIndentend = contentIndentend.replace( /test(\w+)\(exchange,/g, (match: string, name: string) => name.endsWith('Helper') ? match : `Test${name}.test${name}(exchange,` );
             } else {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/testTrade\(exchange\,/, 'TestTrade.testTrade(exchange,'], // quick fix
                 ]);
             }
-
-            // Java's System.out.println accepts a single argument: collapse multi-arg println calls
-            // into one space-separated string (paren-depth and string-literal aware)
+            // Java's System.out.println accepts a single argument: collapse multi-arg println calls into one space-separated string (paren-depth and string-literal aware)
             {
                 let cursor = 0;
                 let rebuilt = '';
                 while (true) {
                     const found = findPrintlnCall(contentIndentend, cursor);
-                    if (!found) {
-                        rebuilt += contentIndentend.slice(cursor);
-                        break;
-                    }
+                    if (!found) { rebuilt += contentIndentend.slice(cursor); break; }
                     rebuilt += contentIndentend.slice(cursor, found.start);
                     const parts = splitTopLevelArgs(found.args);
                     rebuilt += parts.length <= 1 ? `System.out.println(${found.args})` : `System.out.println(${parts.map(p => `String.valueOf(${p.trim()})`).join(' + " " + ')})`;
@@ -4306,15 +2441,9 @@ class NewTranspiler {
                 }
                 contentIndentend = rebuilt;
             }
-
-            //*
-            // In java everything is class-based so we don't ahve independent functions laying around
-            // so let's say we have the test `testFetchLedger`, it will call the aux function `testledgerEntry`
-            // but that function is part of a different class.
-
+            // * In java everything is class-based so we don't ahve independent functions laying around so let's say we have the test `testFetchLedger`, it will call the aux function `testledg...
             contentIndentend = this.regexAll(contentIndentend, regexes)
-            // cast callDynamically to CompletableFuture when .join() is called on the result.
-            // The simple regex form only handles one level of nested parens, so a paren-counting pass follows.
+            // cast callDynamically to CompletableFuture when .join() is called on the result. The simple regex form only handles one level of nested parens, so a paren-counting pass follows.
             contentIndentend = contentIndentend.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
             {
                 const marker = '(Helpers.callDynamically(';
@@ -4328,14 +2457,8 @@ class NewTranspiler {
                     let inStr: string | null = null;
                     while (i < contentIndentend.length && depth > 0) {
                         const ch = contentIndentend[i];
-                        if (inStr) {
-                            if (ch === '\\' && i + 1 < contentIndentend.length) { i += 2; continue; }
-                            if (ch === inStr) inStr = null;
-                            i++; continue;
-                        }
-                        if (ch === '"' || ch === '\'') inStr = ch;
-                        else if (ch === '(') depth++;
-                        else if (ch === ')') depth--;
+                        if (inStr) { if (ch === '\\' && i + 1 < contentIndentend.length) { i += 2; continue; } if (ch === inStr) inStr = null; i++; continue; }
+                        if (ch === '"' || ch === '\'') inStr = ch; else if (ch === '(') depth++; else if (ch === ')') depth--;
                         i++;
                     }
                     // i is one past the inner closing `)`; the outer `).join()` must follow
@@ -4352,10 +2475,7 @@ class NewTranspiler {
             }
             // Null-safe Array.isArray (see Helpers.isArray).
             if (!isWs) {
-                // late-bind awaited unified-method calls: the exchange param is BaseExchange
-                // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
-                // so `(exchange.fetchX(args)).join()` must dispatch reflectively on the runtime
-                // type. Helpers.callDynamically throws unchecked, so no try/catch is needed.
+                // late-bind awaited unified-method calls: the exchange param is BaseExchange (common tier base) but fetchTicker/createOrder/… live on the concrete tiers, so `(exchange.fetchX(args...
                 contentIndentend = contentIndentend.replace(/\(exchange\.(\w+)\((.*)\)\)\.join\(\)/g, (match: string, name: string, callArgs: string) => {
                     const argsArray = callArgs.trim() === '' ? 'new Object[]{}' : `new Object[]{${callArgs}}`;
                     return `((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "${name}", ${argsArray})).join()`;
@@ -4363,22 +2483,11 @@ class NewTranspiler {
             } else {
                 contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
             }
-
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
             const fileHeaders = [
-                `package ${packageName};`,
-                'import tests.BaseTest;',
-                'import io.github.ccxt.Helpers;',
-                'import io.github.ccxt.Exchange;',
-                JAVA_ASYNC_SUPPLIER_IMPORT,
-                'import io.github.ccxt.errors.*;',
-                ...(isWs ? ['import tests.exchange.*;'] : []),
-                preciseImport,
-                '',
-                this.createGeneratedHeader().join('\n'),
-                '',
-                `public class ${className} extends BaseTest {`,
+                `package ${packageName};`, 'import tests.BaseTest;', 'import io.github.ccxt.Helpers;', 'import io.github.ccxt.Exchange;', JAVA_ASYNC_SUPPLIER_IMPORT, 'import io.github.ccxt.errors.*;',
+                ...(isWs ? ['import tests.exchange.*;'] : []), preciseImport, '', this.createGeneratedHeader().join('\n'), '', `public class ${className} extends BaseTest {`,
             ]
             let java: string;
             if (filename === 'test.sharedMethods') {
@@ -4387,36 +2496,21 @@ class NewTranspiler {
                     [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
-                java = [
-                    ...fileHeaders,
-                    contentIndentend,
-                    '}'
-                ].join('\n');
+                java = [ ...fileHeaders, contentIndentend, '}' ].join('\n');
             } else {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void/g, 'public static void'], // make tests static
                     [/async public Task/g, 'async static public Task'], // make tests static
                     [/public object /g, 'public static object '],
                 ])
-                java = [
-                    ...fileHeaders,
-                    contentIndentend,
-                    '}',
-                ].join('\n');
+                java = [ ...fileHeaders, contentIndentend, '}', ].join('\n');
             }
             overwriteFileAndFolder(tests[idx].javaFile, nativeJavaTestCoreArgs(java));
         });
     }
-
     async transpileTests(force = true) {
-        if (!shouldTranspileTests) {
-            log.bright.yellow('Skipping tests transpilation');
-            return;
-        }
-        // each stage is awaited: transpileAndSaveJavaExchangeTests is async, and leaving the
-        // promises floating meant transpileEverything logged "Transpiled successfully" and
-        // runMain started transpileWS with ~84 test files still in flight — three root sets
-        // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
+        if (!shouldTranspileTests) { log.bright.yellow('Skipping tests transpilation'); return; }
+        // each stage is awaited: transpileAndSaveJavaExchangeTests is async, and leaving the promises floating meant transpileEverything logged "Transpiled successfully" and runMain start...
         this.transpileBaseTests(BASE_TESTS_FOLDER, force);
         this.transpileCryptoTestsToJava(BASE_TESTS_FOLDER, force);
         const baseTestsOnly = process.argv.includes('--baseTests')
@@ -4425,19 +2519,7 @@ class NewTranspiler {
         await this.transpileWsExchangeTests(force);
     }
 }
-
-// ===== String-typing audit (`--audit-string-types`) =====
-//
-// Two gates over the generated Java tree, run against a base ref (default origin/master):
-//   1. ternary gate: no ADDED ` ? ` line under java/ that is not a retype of a removed line
-//      (same text modulo the declared type token and `(String)`/`(Object)` casts);
-//   2. diff audit: every changed line in a GENERATED file pairs with a removed line as either
-//      a declaration retype (type token moved) or a cast removal — anything else is 'other'
-//      and fails the run.
-// Plus the tree KPIs the typing work is measured by (Object/String safeString locals, casts).
-//   npx tsx build/javaTranspiler.ts --audit-string-types [--base <ref>] [--target <ref>] [--json]
-//   npx tsx build/javaTranspiler.ts --audit-string-types --self-test
-
+// Two gates over the generated Java tree, run against a base ref (default origin/master): 1. ternary gate: no ADDED ` ? ` line under java/ that is not a retype of a removed line (...
 const AUDIT_GEN_MARKER = 'IT IS GENERATED AND WILL BE OVERWRITTEN';
 const AUDIT_TYPE_WORDS = ['String', 'Object', 'Boolean', 'Integer', 'Long', 'Double', 'Float', 'Number', 'BigInteger', 'BigDecimal', 'CharSequence', 'String\\[\\]', 'Object\\[\\]', 'List', 'Map', 'Set', 'boolean', 'int', 'long', 'double', 'float', 'char', 'byte', 'short', 'var', 'java\\.util\\.List<Object>', 'java\\.util\\.Map<String, Object>'];
 const AUDIT_TYPE_ALT = AUDIT_TYPE_WORDS.join('|');
@@ -4449,14 +2531,8 @@ const AUDIT_KPI_RX = {
     stringCasts: /\(String\)[ \t]*this\.safeString/g,
     wrappedCasts: /\(\(String\)[ \t]*[A-Za-z_$][A-Za-z0-9_$]*\)/g,
 };
-
-function auditGit (repo: string, args: string[]): string {
-    return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
-}
-
-// `<open><balanced-expr>)` -> `<balanced-expr>` per rule in order: `((String)x)` wrappers (`foo((String)x)` is a
-// call, not a wrapper) and the two truthiness wrappers the handle* tuple coercion (build/java-local-types.js
-// section 4b) injects on the element write; the read spellings are untouched, so both sides strip symmetrically
+function auditGit (repo: string, args: string[]): string { return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }); }
+// `<open><balanced-expr>)` -> `<balanced-expr>` per rule in order: `((String)x)` wrappers (`foo((String)x)` is a call, not a wrapper) and the two truthiness wrappers the handle* t...
 const AUDIT_STRIP_WRAPPERS: [string, RegExp | undefined][] = [ [ '((String)', /[A-Za-z0-9_$]/ ], [ 'Boolean.TRUE.equals(', undefined ], [ 'Helpers.isTrue(', undefined ] ];
 function auditStripCasts (s: string): string {
     for (const [ open, word ] of AUDIT_STRIP_WRAPPERS) {
@@ -4468,24 +2544,19 @@ function auditStripCasts (s: string): string {
             for (; j < s.length; j++) {
                 const ch = s[j];
                 if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
-                if (ch === '(') depth++;
-                else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
+                if (ch === '(') depth++; else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
             }
             if (closed === -1) break;
             s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
         }
     }
-    return s
-        .replace(/\(String\)[ \t]*/g, '')
-        .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '')
-        .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
+    return s .replace(/\(String\)[ \t]*/g, '') .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '') .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
 }
 const auditTypeNorm = (s: string) => s.replace(AUDIT_TYPENORM_RX, '<T>');
 const auditStripEq = (r: string, a: string) => auditStripCasts(r).trim() === auditStripCasts(a).trim();
 const auditTypeEq = (r: string, a: string) => auditTypeNorm(auditStripCasts(r)).trim() === auditTypeNorm(auditStripCasts(a)).trim();
 const auditIsDecl = (s: string) => AUDIT_DECL_RX.test(s);
 const auditTernaryKey = (line: string) => auditStripCasts(line.replace(/^(\s*)(?:Object|String|Long|Double|Boolean|Integer|java\.util\.List<Object>|java\.util\.Map<String, Object>)\s+(?=[A-Za-z_$][A-Za-z0-9_$]*\s*=)/, '$1<T> ')).trim();
-
 function auditParseDiff (repo: string, base: string, target: string | null, scope: string) {
     const args = ['diff', '--no-color', '-U0', base];
     if (target) args.push(target);
@@ -4493,25 +2564,14 @@ function auditParseDiff (repo: string, base: string, target: string | null, scop
     const files = new Map<string, any>();
     let cur: any = null, hunk: any = null, newLine = 0;
     for (const raw of auditGit(repo, args).split('\n')) {
-        if (raw.startsWith('+++ ')) {
-            const f = raw.startsWith('+++ b/') ? raw.slice(6) : raw.slice(4).trim();
-            if (!files.has(f)) files.set(f, { path: f, hunks: [] });
-            cur = files.get(f); hunk = null; continue;
-        }
+        if (raw.startsWith('+++ ')) { const f = raw.startsWith('+++ b/') ? raw.slice(6) : raw.slice(4).trim(); if (!files.has(f)) files.set(f, { path: f, hunks: [] }); cur = files.get(f); hunk = null; continue; }
         if (raw.startsWith('--- ')) continue;
-        if (raw.startsWith('@@')) {
-            const m = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-            newLine = m ? parseInt(m[1], 10) : 0;
-            hunk = { removed: [], added: [] }; cur.hunks.push(hunk); continue;
-        }
+        if (raw.startsWith('@@')) { const m = raw.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/); newLine = m ? parseInt(m[1], 10) : 0; hunk = { removed: [], added: [] }; cur.hunks.push(hunk); continue; }
         if (!cur || !hunk) continue;
-        if (raw.startsWith('+')) { hunk.added.push({ text: raw.slice(1), line: newLine }); newLine++; }
-        else if (raw.startsWith('-')) hunk.removed.push({ text: raw.slice(1) });
-        else if (raw.startsWith(' ')) newLine++;
+        if (raw.startsWith('+')) { hunk.added.push({ text: raw.slice(1), line: newLine }); newLine++; } else if (raw.startsWith('-')) hunk.removed.push({ text: raw.slice(1) }); else if (raw.startsWith(' ')) newLine++;
     }
     return files;
 }
-
 function auditKpis (repo: string, scopeRel: string) {
     const out: any = { scope: scopeRel, files: 0, objectLocals: 0, stringLocals: 0, stringCasts: 0, wrappedCasts: 0 };
     const dir = path.join(repo, scopeRel);
@@ -4520,17 +2580,12 @@ function auditKpis (repo: string, scopeRel: string) {
         for (const e of fs.readdirSync(d, { withFileTypes: true })) {
             const p = path.join(d, e.name);
             if (e.isDirectory()) walk(p);
-            else if (e.isFile() && e.name.endsWith('.java')) {
-                const text = fs.readFileSync(p, 'utf8');
-                out.files++;
-                for (const k of Object.keys(AUDIT_KPI_RX)) out[k] += (text.match((AUDIT_KPI_RX as any)[k]) ?? []).length;
-            }
+            else if (e.isFile() && e.name.endsWith('.java')) { const text = fs.readFileSync(p, 'utf8'); out.files++; for (const k of Object.keys(AUDIT_KPI_RX)) out[k] += (text.match((AUDIT_KPI_RX as any)[k]) ?? []).length; }
         }
     };
     walk(dir);
     return out;
 }
-
 function auditTernaries (files: Map<string, any>) {
     const res: any = { addedLines: 0, removedLines: 0, ternaryCount: 0, ternaryLines: [] };
     for (const [file, info] of files) {
@@ -4541,20 +2596,13 @@ function auditTernaries (files: Map<string, any>) {
             for (const r of h.removed) if (r.text.includes(' ? ')) { const k = auditTernaryKey(r.text); pool.set(k, (pool.get(k) ?? 0) + 1); }
             for (const a of h.added) if (a.text.includes(' ? ')) added.push(a.text);
         }
-        for (const text of added) {
-            const k = auditTernaryKey(text); const n = pool.get(k) ?? 0;
-            if (n > 0) { pool.set(k, n - 1); continue; }
-            res.ternaryCount++; res.ternaryLines.push({ file, text });
-        }
+        for (const text of added) { const k = auditTernaryKey(text); const n = pool.get(k) ?? 0; if (n > 0) { pool.set(k, n - 1); continue; } res.ternaryCount++; res.ternaryLines.push({ file, text }); }
     }
     return res;
 }
-
 function auditClassify (repo: string, target: string | null, files: Map<string, any>) {
     const report: any = { files: [], skippedHandwritten: [], totals: { declaration: 0, castRemoval: 0, other: 0 } };
-    const headOf = (file: string) => {
-        try { return target ? auditGit(repo, ['show', `${target}:${file}`]).slice(0, 400) : fs.readFileSync(path.join(repo, file), 'utf8').slice(0, 400); } catch { return ''; }
-    };
+    const headOf = (file: string) => { try { return target ? auditGit(repo, ['show', `${target}:${file}`]).slice(0, 400) : fs.readFileSync(path.join(repo, file), 'utf8').slice(0, 400); } catch { return ''; } };
     for (const [file, info] of files) {
         if (!headOf(file).includes(AUDIT_GEN_MARKER)) { report.skippedHandwritten.push(file); continue; }
         const rec: any = { path: file, declaration: 0, castRemoval: 0, other: 0, otherLines: [] };
@@ -4569,49 +2617,33 @@ function auditClassify (repo: string, target: string | null, files: Map<string, 
             h.added.forEach((a: any, ai: number) => {
                 const ri = unusedR.find((r) => auditStripEq(h.removed[r].text, a.text));
                 if (ri === undefined) return;
-                if (h.removed[ri].text.trim() === a.text.trim()) pair(ri, ai, auditIsDecl(a.text) ? 'declaration' : 'other', a.text);
-                else pair(ri, ai, 'castRemoval');
+                if (h.removed[ri].text.trim() === a.text.trim()) pair(ri, ai, auditIsDecl(a.text) ? 'declaration' : 'other', a.text); else pair(ri, ai, 'castRemoval');
             });
-            h.added.forEach((a: any, ai: number) => {
-                if (takenA.has(ai)) return;
-                const ri = unusedR.find((r) => auditTypeEq(h.removed[r].text, a.text));
-                if (ri !== undefined) pair(ri, ai, 'declaration');
-            });
+            h.added.forEach((a: any, ai: number) => { if (takenA.has(ai)) return; const ri = unusedR.find((r) => auditTypeEq(h.removed[r].text, a.text)); if (ri !== undefined) pair(ri, ai, 'declaration'); });
             h.added.forEach((a: any, ai: number) => {
                 if (takenA.has(ai) || !unusedR.length) return;
                 const ri = unusedR[0];
                 pair(ri, ai, auditStripEq(h.removed[ri].text, a.text) ? 'castRemoval' : auditTypeEq(h.removed[ri].text, a.text) ? 'declaration' : 'other', a.text);
             });
-            h.added.forEach((a: any, ai: number) => {
-                if (takenA.has(ai)) return;
-                const kind = auditIsDecl(a.text) ? 'declaration' : 'other';
-                rec[kind]++; report.totals[kind]++;
-                if (kind === 'other') rec.otherLines.push(a.text);
-            });
+            h.added.forEach((a: any, ai: number) => { if (takenA.has(ai)) return; const kind = auditIsDecl(a.text) ? 'declaration' : 'other'; rec[kind]++; report.totals[kind]++; if (kind === 'other') rec.otherLines.push(a.text); });
         }
         report.files.push(rec);
     }
     return report;
 }
-
-// synthetic repo: the gate must flag an injected ternary and an 'other' edit, and pass a clean retype
-// Writes throwaway ts/src probe files (first one transpiled), lets `check` inspect the Java, then removes them
+// synthetic repo: the gate must flag an injected ternary and an 'other' edit, and pass a clean retype Writes throwaway ts/src probe files (first one transpiled), lets `check` insp...
 function probeSelfTest (files: [string, string[]][], check: (out: string, problems: string[]) => void, threw = 'self-test threw'): string[] {
     const problems: string[] = [];
     const paths = files.map(([ name ]) => path.join(process.cwd(), 'ts', 'src', `${name}${process.pid}.ts`));
     try {
         files.forEach(([ , lines ], i) => fs.writeFileSync(paths[i], lines.join('\n')));
         check(new NewTranspiler().transpiler.transpileJavaByPath(paths[0]).content as string, problems);
-    } catch (e: any) {
-        problems.push(`${threw}: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`${threw}: ${e.message}`); } finally {
         for (const p of paths) fs.rmSync(p, { force: true });
     }
     return problems;
 }
-
 type SnippetCase = [string, string, string | undefined];
-
 // expect set: pass(wrap(body)) must include it and satisfy `extra`; unset: it must equal `unchanged(body)`
 function runSnippetCases (cases: SnippetCase[], wrap: (body: string) => string, pass: (src: string) => string, label: (name: string, out: string) => string, unchanged = wrap, extra = (out: string) => true): string[] {
     const problems: string[] = [];
@@ -4622,23 +2654,17 @@ function runSnippetCases (cases: SnippetCase[], wrap: (body: string) => string, 
     }
     return problems;
 }
-
 // [regex(es), mustMatch, message]: mustMatch fails unless every regex matches, else fails if any matches
 type JavaProbeCheck = [RegExp | RegExp[], boolean, string];
 type JavaProbeSpec = { cls?: string, members?: string[], files?: [string, string[]][], checks: JavaProbeCheck[], threw?: string, output?: boolean };
-
 // probeSelfTest over a binance-derived class `cls` holding `members` (or explicit `files`); `output` appends the Java on failure
 function javaProbeCases (spec: JavaProbeSpec): string[] {
     const files = spec.files ?? [ [ spec.cls ?? '', [ "import Exchange from './abstract/binance.js';", `export default class ${spec.cls} extends Exchange {`, ...spec.members ?? [], '}' ] ] ];
     return probeSelfTest(files, (out, problems) => {
-        for (const [ rx, mustMatch, message ] of spec.checks) {
-            const rxs = Array.isArray(rx) ? rx : [ rx ];
-            if (mustMatch ? !rxs.every((r) => r.test(out)) : rxs.some((r) => r.test(out))) problems.push(message);
-        }
+        for (const [ rx, mustMatch, message ] of spec.checks) { const rxs = Array.isArray(rx) ? rx : [ rx ]; if (mustMatch ? !rxs.every((r) => r.test(out)) : rxs.some((r) => r.test(out))) problems.push(message); }
         if (spec.output && problems.length) problems.push('output:\n' + out);
     }, spec.threw);
 }
-
 function auditSelfTest (): string[] {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'java-string-audit-'));
     const problems: string[] = [];
@@ -4675,91 +2701,26 @@ function auditSelfTest (): string[] {
         ok(!boolWrite('this.safeBool (m, "linear", false)'), 'safeBool write must not admit a Boolean local');
         ok(!boolWrite('this.safeBool2 (p, "postOnly", "post_only", false)'), 'safeBool2 write must not admit a Boolean local');
         ok(boolWrite('false') && boolWrite('undefined') && boolWrite('this.inArray (a, b)'), 'literal/null/boolean-call writes must admit');
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
     const wired = [
-        mapLocalsSelfTest,
-        javaFreshObjectMapWritesSelfTest,
-        javaPredictionMapLocalsSelfTest,
-        javaFreshMapParameterSelfTest,
-        javaCounterLocalsSelfTest,
-        javaMapLocalsSelfTest,
-        javaTypedArithmeticSelfTest,
-        javaParamTypesSelfTest,
-        javaListLocalsSelfTest,
-        javaScalarLocalsSelfTest,
-        javaParamTypesPreScanSelfTest,
-        javaStringReturnsSelfTest,
-        javaNonNullCompareSelfTest,
-        javaParamCompareSelfTest,
-        javaCoreArgIdentitiesSelfTest,
-        javaPrimitiveArithmeticSelfTest,
-        javaNumericLocalsRetypeSelfTest,
-        javaMapLocalsRetypeSelfTest,
-        javaNumberParamCompareSelfTest,
-        javaWsOrderBookContainersSelfTest,
-        javaBoxLocalsCoreArgsSelfTest,
-        javaIntegralMultiplySubtractSelfTest,
-        javaNumberDivModNegSelfTest,
-        javaInlineDivModNegSelfTest,
-        javaInlineCompareSelfTest,
-        javaContainerOpsSelfTest,
-        javaCoreArgHelpersSelfTest,
-        javaIsEqualSelfTest,
-        x21SelfTest,
-        x22SelfTest,
-        javaPaginationCursorSelfTest,
-        javaNonNullMapPutsSelfTest,
-        javaTypedCoreDirectReturnSelfTest,
-        javaR77j2ConditionalLocalsSelfTest,
-        javaNullSeedJoinSelfTest,
-        javaBaseProducerLocalsSelfTest,
-        j6ReaderLocalsSelfTest,
-        javaJ8CopyLocalsSelfTest,
-        javaR84j1StringElementLocalsSelfTest,
-        javaR84j2ContainerLocalsSelfTest,
-        javaR84j2GuardedListLocalsSelfTest,
-        javaR84j2MapConditionalLocalsSelfTest,
-        javaR84j4NullSeedSelfTest,
-        javaR84j5CalleeReturnsSelfTest,
-        javaR87j5CalleeReturnsSelfTest,
-        j84j6TrueOnlyLocalsSelfTest,
-        javaR84j8LocalsSelfTest,
-        javaR87j2WsLocalsSelfTest,
-        javaR87j2LengthListLocalsSelfTest,
-        javaR87j2UrlLocalsSelfTest,
-        javaR87j4SplitSeedSelfTest,
-        javaR87j8LocalsSelfTest,
-        javaR90j2ElementListLocalsSelfTest,
-        javaR90j2PromiseAllLocalsSelfTest,
-        javaR90j2ElementMapLocalsSelfTest,
-        javaR90j2ElementMapSlotSelfTest,
-        javaR90j4NullSeedSelfTest,
-        javaR90j6ReaderLocalsSelfTest,
-        javaR90j8LocalsSelfTest,
-        javaR92j2MarketTypeParamsSelfTest,
-        javaR92j2SlotHandOffSelfTest,
-        javaR92j2ElementMapWritesSelfTest,
-        javaR92j2StringSlotLocalsSelfTest,
-        javaR92j4NullSeedConsumerSelfTest,
-        javaR92j8LocalsSelfTest,
-        javaR93j2ListLocalsSelfTest,
-        javaR93j8LocalsSelfTest,
-        javaAsyncPairReturnSelfTest,
-        javaH26J03AsDictReaderSelfTest,
-        h27J05HoistPureValuesSelfTest,
-        h28J05HoistSelfTest,
-        h29J05HoistSelfTest,
-        h30J05HoistSelfTest,
+        mapLocalsSelfTest, javaFreshObjectMapWritesSelfTest, javaPredictionMapLocalsSelfTest, javaFreshMapParameterSelfTest, javaCounterLocalsSelfTest, javaMapLocalsSelfTest, javaTypedArithmeticSelfTest,
+        javaParamTypesSelfTest, javaListLocalsSelfTest, javaScalarLocalsSelfTest, javaParamTypesPreScanSelfTest, javaStringReturnsSelfTest, javaNonNullCompareSelfTest, javaParamCompareSelfTest,
+        javaCoreArgIdentitiesSelfTest, javaPrimitiveArithmeticSelfTest, javaNumericLocalsRetypeSelfTest, javaMapLocalsRetypeSelfTest, javaNumberParamCompareSelfTest, javaWsOrderBookContainersSelfTest,
+        javaBoxLocalsCoreArgsSelfTest, javaIntegralMultiplySubtractSelfTest, javaNumberDivModNegSelfTest, javaInlineDivModNegSelfTest, javaInlineCompareSelfTest, javaContainerOpsSelfTest,
+        javaCoreArgHelpersSelfTest, javaIsEqualSelfTest, x21SelfTest, x22SelfTest, javaPaginationCursorSelfTest, javaNonNullMapPutsSelfTest, javaTypedCoreDirectReturnSelfTest,
+        javaR77j2ConditionalLocalsSelfTest, javaNullSeedJoinSelfTest, javaBaseProducerLocalsSelfTest, j6ReaderLocalsSelfTest, javaJ8CopyLocalsSelfTest, javaR84j1StringElementLocalsSelfTest,
+        javaR84j2ContainerLocalsSelfTest, javaR84j2GuardedListLocalsSelfTest, javaR84j2MapConditionalLocalsSelfTest, javaR84j4NullSeedSelfTest, javaR84j5CalleeReturnsSelfTest, javaR87j5CalleeReturnsSelfTest,
+        j84j6TrueOnlyLocalsSelfTest, javaR84j8LocalsSelfTest, javaR87j2WsLocalsSelfTest, javaR87j2LengthListLocalsSelfTest, javaR87j2UrlLocalsSelfTest, javaR87j4SplitSeedSelfTest, javaR87j8LocalsSelfTest,
+        javaR90j2ElementListLocalsSelfTest, javaR90j2PromiseAllLocalsSelfTest, javaR90j2ElementMapLocalsSelfTest, javaR90j2ElementMapSlotSelfTest, javaR90j4NullSeedSelfTest, javaR90j6ReaderLocalsSelfTest,
+        javaR90j8LocalsSelfTest, javaR92j2MarketTypeParamsSelfTest, javaR92j2SlotHandOffSelfTest, javaR92j2ElementMapWritesSelfTest, javaR92j2StringSlotLocalsSelfTest, javaR92j4NullSeedConsumerSelfTest,
+        javaR92j8LocalsSelfTest, javaR93j2ListLocalsSelfTest, javaR93j8LocalsSelfTest, javaAsyncPairReturnSelfTest, javaH26J03AsDictReaderSelfTest, h27J05HoistPureValuesSelfTest, h28J05HoistSelfTest,
+        h29J05HoistSelfTest, h30J05HoistSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
-
-// ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
-// a byte[] local handed to a typed slot, an Integer local in a ternary arm and a redeclared producer keep Object
+// ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer); a byte[] local handed to a typed slot, an Integer local in a ternary arm and a ...
 function javaBaseProducerLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zz77j5selftest${process.pid}.ts`);
@@ -4782,9 +2743,7 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/byte\[\] enc = this\.ethEncodeStructuredData\(/.test(out)) problems.push("base producers: 'enc' (ethEncodeStructuredData into an Object slot) must print byte[]");
         if (!/byte\[\] bin = this\.encode\(/.test(out)) problems.push("base producers: 'bin' (encode into hash/binaryLength) must print byte[]");
-        for (const name of [ 'n', 'r', 'q' ]) {
-            if (!new RegExp(`Integer ${name} = this\\.`).test(out)) problems.push(`base producers: '${name}' (int producer) must print Integer`);
-        }
+        for (const name of [ 'n', 'r', 'q' ]) { if (!new RegExp(`Integer ${name} = this\\.`).test(out)) problems.push(`base producers: '${name}' (int producer) must print Integer`); }
         if (!/byte\[\] hb = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hb' (base16ToBinary into a venue Object slot) must print byte[]");
         if (!/byte\[\] hl = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hl' (base16ToBinary into a list literal) must print byte[]");
         if (!/public byte\[\] zzBytesJoin\(/.test(out) || !/byte\[\] m = this\.binaryConcat\(/.test(out)) problems.push("bytes returns: 'zzBytesJoin' (returns a binaryConcat local) must print byte[]");
@@ -4796,16 +2755,12 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         if (!/\bObject r2 = /.test(out)) problems.push("base producers: 'r2' is a ternary arm and must stay Object");
         // base-tier `: Str` methods printed below the transpile delimiter: a String-returning, never redeclared one prints String
         if (!/String pp = this\.parsePrecision\(/.test(out)) problems.push("base producers: 'pp' (base-tier String method) must print String with no checkcast");
-    } catch (e: any) {
-        problems.push(`base producers self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`base producers self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-84j5: base `: Str` callees whose every return prints String (networkCodeToId) print `public String`,
-// so the caller's local is String and its `.toUpperCase ()` is native (no `((String)x)` receiver cast)
+// ral-84j5: base `: Str` callees whose every return prints String (networkCodeToId) print `public String`, so the caller's local is String and its `.toUpperCase ()` is native (no ...
 function javaR84j5CalleeReturnsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zz84j5selftest${process.pid}.ts`);
@@ -4830,14 +2785,11 @@ function javaR84j5CalleeReturnsSelfTest (): string[] {
         // `this.urls['api']` locals read by a string key: Map local, native `.get`; with no element read they stay Object
         if (!/(java\.util\.)?Map<String, Object> bu = \((java\.util\.)?Map<String, Object>\) this\.urls\.get\("api"\);/.test(out) || !/bu\.get\("public"\)/.test(out)) problems.push("ral-84j5: 'bu' (this.urls['api'] read by key) must print Map<String, Object> with a native .get");
         if (!/Object bu2 = /.test(out)) problems.push("ral-84j5: 'bu2' (no element read) must stay Object");
-    } catch (e: any) {
-        problems.push(`ral-84j5 self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`ral-84j5 self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // ral-87j5: venue / base callees whose every return proves the type print it, so their result locals use it natively
 function javaR87j5CalleeReturnsSelfTest (): string[] {
     const problems: string[] = [];
@@ -4867,14 +2819,11 @@ function javaR87j5CalleeReturnsSelfTest (): string[] {
         if (!/String su = this\.getStockWsUrl\(/.test(out) || !/this\.requestId\(su\)/.test(out)) problems.push("ral-87j5: 'su' (String venue callee result) must be passed to a String parameter with no checkcast");
         if (!/(java\.util\.)?List<Object> oh = this\.buildOHLCVC\(/.test(out)) problems.push("ral-87j5: 'oh' (base buildOHLCVC: OHLCVC[]) must print List<Object>");
         if (!/(java\.util\.)?Map<String, Object> fo = this\.findOutcomeInMarket\(/.test(out) || /\(\(Map<String, Object>\)fo\)/.test(out)) problems.push("ral-87j5: 'fo' (venue findOutcomeInMarket: Dict) must print Map<String, Object> with a native use");
-    } catch (e) {
-        problems.push(`ral-87j5 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-87j5 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
 function mapLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -4891,9 +2840,7 @@ function mapLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(selfAnchored).content as string;
         if (!/String url = "\/";/.test(out) || !/url = \(host \+ url\);/.test(out)) problems.push("ral-77j3: 'url' (every write a non-null String, `host + url` self-anchored) must print String with a native concat");
         if (!/Object other = "\/";/.test(out)) problems.push("ral-77j3: 'other' (an `any` left operand) must stay Object");
-    } catch (e: any) {
-        problems.push(`ral-77j3 self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`ral-77j3 self-test threw: ${e.message}`); } finally {
         fs.rmSync(selfAnchored, { force: true });
     }
     // ral-84j3: base encoder writes, const String copies and `<number>.toString ()` keep a non-null String local String
@@ -4912,9 +2859,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/String body = "";/.test(out) || !/String auth = "";/.test(out)) problems.push("ral-84j3: 'body' (urlencode write) and 'auth' (const String copy) must print String");
         if (!/String nonce = "";/.test(out)) problems.push("ral-84j3: 'nonce' (`this.milliseconds ().toString ()` write) must print String");
         if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (implodeParams is declared Object) must stay Object");
-    } catch (e: any) {
-        problems.push(`ral-84j3 self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`ral-84j3 self-test threw: ${e.message}`); } finally {
         fs.rmSync(r84j3, { force: true });
     }
     // ral-87j3 R1: JSON.stringify / toUpperCase / replaceAll-of-self / remove0xPrefix writes keep a non-null String local String
@@ -4935,9 +2880,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/String s = "";/.test(out) || !/\(s\.split\(/.test(out)) problems.push("ral-87j3: 's' (toUpperCase / replaceAll-of-self writes) must print String with a bare split receiver");
         if (!/String h = "";/.test(out)) problems.push("ral-87j3: 'h' (remove0xPrefix write) must print String");
         if (!/Object t = "";/.test(out)) problems.push("ral-87j3: 't' (replaceAll of a nullable Str receiver) must stay Object");
-    } catch (e) {
-        problems.push(`ral-87j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-87j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r87j3, { force: true });
     }
     // ral-87j3 R2: an int-literal counter written only by base this.sum of integral operands prints Long and compares natively
@@ -4963,9 +2906,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Long e = (?:\(Long\) this\.sum\(a, 2\)|\(a \+ 2L\));/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
         if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
         if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
-    } catch (e) {
-        problems.push(`ral-87j3 R2 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-87j3 R2 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r87j3b, { force: true });
     }
     // ral-90j3: base this.sum of two proven non-null longs prints the native long add (no `(Long)` checkcast)
@@ -4996,9 +2937,7 @@ function mapLocalsSelfTest (): string[] {
         if (/Long f = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'f' (const-local sum only put into a map) must not be retyped by R2");
         if (!/for \(long k = s; k < t; k\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'k' (loop between two Long counters) must print a native long header");
         if (/for \(long m = s; m < t; m\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'm' (loop variable written in the body) must keep the helper header");
-    } catch (e) {
-        problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r90j3, { force: true });
     }
     // integer-literal defaulted number slots (buildOHLCVC since / limit) print Long, so call sites pass NL
@@ -5025,9 +2964,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/= \(this\.seconds\(\) \+ this\.safeInteger\(this\.options, "expiry", 600\)\);/.test(out)) problems.push("r92j3 R4: a defaulted safeInteger operand must print the native long add");
         if (!/Long next = \(have \+ java\.util\.Objects\.requireNonNullElse\(n, 1L\)\);/.test(out)) problems.push("r92j3 R4: 'next' (sum of a defaulted safeInteger local and a Long slot) must be a native Long");
         if (!/String s = \(this\.remove0xPrefix\(this\.safeString\(o, "r"\)\) \+ this\.intToBase16\(/.test(out)) problems.push("r92j3 R5: remove0xPrefix + intToBase16 must print the native concat");
-    } catch (e) {
-        problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`r92j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r92j3, { force: true });
     }
     // String / Long temps of inlined helper blobs and literal seeds
@@ -5053,9 +2990,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Long most = \(8L - sz\);/.test(out)) problems.push("r93j3 R4: int literal minus a parseToInt const must print Long");
         if (!/Long f = 1L;/.test(out)) problems.push("r93j3 R5: an int counter written by parseToInt must print Long");
         if (!/i < \(-1 - n\); i\+\+/.test(out)) problems.push("r93j3 R6: a negated int literal minus a Long must print the native compare");
-    } catch (e) {
-        problems.push(`r93j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`r93j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r93j3, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
@@ -5083,14 +3018,10 @@ function mapLocalsSelfTest (): string[] {
         // a null accumulator returned whole from an async method (its supplyAsync lambda) joins its writes; a ternary-arm return keeps Object
         if (!/Map<String, Object> r = null;/.test(out)) problems.push("null accumulator: 'r' returned from an async method must print java.util.Map<String, Object>");
         if (!/\bObject s = null;/.test(out)) problems.push("null accumulator: 's' returned through a ternary arm must stay Object");
-    } catch (e: any) {
-        problems.push(`map locals self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`map locals self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
-    // ral-87j7: a prediction venue's parsePredictionOrder (returns this.safePredictionOrder ({..})) is a
-    // fresh map through base/PredictionExchange.ts: its result local prints Map and the write a native put;
-    // parsePredictionPositions / parsePredictionTrades results print List<Object> read by size()/get
+    // ral-87j7: a prediction venue's parsePredictionOrder (returns this.safePredictionOrder ({..})) is a fresh map through base/PredictionExchange.ts: its result local prints Map and ...
     const r87j7 = path.join(process.cwd(), 'ts', 'src', 'prediction', `zz87j7selftest${process.pid}.ts`);
     try {
         fs.writeFileSync(r87j7, [
@@ -5120,9 +3051,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
         if (!/Map<String, ?Object> position = this\.parsePredictionPosition\(/.test(out) || !/position\.get\("outcome"\)/.test(out)) problems.push("ral-90j7: a parsePredictionPosition result must print Map<String, Object> read by get()");
         if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
-    } catch (e) {
-        problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r87j7, { force: true });
     }
     // ral-90j7 R1: a Map-typed callee result with a `delete x[k]` use prints Map<String, Object> and a bare remove
@@ -5144,9 +3073,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/Map<String, ?Object> request = this\.createOrderRequest\(/.test(out) || !/\brequest\.put\("order_id", id\);/.test(out)) problems.push("ral-90j7: a Map callee result rewritten by this.omit (self, ..) must stay Map<String, Object> with a native put");
         if (!/List<Object> trades = this\.parseWsTrades\(/.test(out) || !/j < trades\.size\(\)/.test(out)) problems.push("ral-90j7: a parseWsTrades result must print List<Object> read by size()");
         if (!/Map<String, ?Object> result = super\.setMarkets\(/.test(out) || !/result\.keySet\(\)/.test(out)) problems.push("ral-90j7: a super.setMarkets result must print Map<String, Object> read by keySet()");
-    } catch (e) {
-        problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r90j7, { force: true });
     }
     // a parse* result typed Map from its declaration (returns this.safePosition ({..})) is read natively
@@ -5162,9 +3089,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7).content as string;
         if (!/Map<String, ?Object> newPosition = this\.parseWsUtaPosition\(/.test(out) || !/newPosition\.remove\(key\);/.test(out)) problems.push("ral-92j7: a parseWsUtaPosition result must print Map<String, Object> with a bare remove");
-    } catch (e) {
-        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r92j7, { force: true });
     }
     // okx parseTradingBalance (returns this.safeBalance (..)) prints Map: its result keys are read natively
@@ -5179,9 +3104,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7b).content as string;
         if (!/Map<String, ?Object> balance = this\.parseTradingBalance\(/.test(out) || !/\(balance\.keySet\(\)\)/.test(out)) problems.push("ral-92j7: a parseTradingBalance result must print Map<String, Object> read by keySet()");
-    } catch (e) {
-        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r92j7b, { force: true });
     }
     // parsePositions / parseDepositAddresses print List<Object>: a result read as a list goes native, a pass-through stays Object
@@ -5200,9 +3123,7 @@ function mapLocalsSelfTest (): string[] {
         if (!/List<Object> allAddresses = this\.parseDepositAddresses\(/.test(out) || !/i < allAddresses\.size\(\)/.test(out)) problems.push("ral-92j7: a parseDepositAddresses result read by length must print List<Object> with a native size()");
         if (!/List<Object> positions = this\.parsePositions\(/.test(out) || !/= positions\.size\(\);/.test(out)) problems.push("ral-92j7: a parsePositions result read by length must print List<Object> with a native size()");
         if (!/\bObject passed = this\.parsePositions\(/.test(out)) problems.push("ral-92j7: a pass-through parsePositions result must stay Object");
-    } catch (e) {
-        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r92j7c, { force: true });
     }
     // parseTickers prints Map (filterByArrayTickers -> indexBy): a result handed to a Map parameter needs no cast
@@ -5217,9 +3138,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r92j7d).content as string;
         if (!/Map<String, ?Object> result = this\.parseTickers\(/.test(out) || !/removeKeysFromDict\(result, keys\)/.test(out)) problems.push("ral-92j7: a parseTickers result handed to a Map parameter must print Map<String, Object> with no cast");
-    } catch (e) {
-        problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-92j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r92j7d, { force: true });
     }
     // bitfinex parseOrderFlags prints List<Object> (safeList with a list default): its result is read natively
@@ -5233,9 +3152,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7a).content as string;
         if (!/List<Object> flags = this\.parseOrderFlags\(/.test(out) || !/i < flags\.size\(\)/.test(out)) problems.push("ral-93j7: a parseOrderFlags result must print List<Object> with a native size()");
-    } catch (e) {
-        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r93j7a, { force: true });
     }
     // parseSettlements is List<Object> on every declaration: its result local takes no declaration cast
@@ -5250,9 +3167,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7b).content as string;
         if (!/List<Object> settlements = this\.parseSettlements\(/.test(out) || !/= settlements\.size\(\)|return settlements\.size\(\)/.test(out)) problems.push("ral-93j7: a parseSettlements result must print List<Object> without a cast and a native size()\n" + out.split('\n').filter((l) => l.includes('settlements')).join('\n'));
-    } catch (e) {
-        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r93j7b, { force: true });
     }
     // an awaited List<Object> venue fetch rewritten by a List<Object> venue filter stays List: its length is native
@@ -5268,9 +3183,7 @@ function mapLocalsSelfTest (): string[] {
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7c).content as string;
         if (!/List<Object> rawMarkets = \(this\.fetchRawMarketsPaged\(/.test(out) || !/= rawMarkets\.size\(\);/.test(out)) problems.push("ral-93j7: a venue List fetch rewritten by a venue List filter must print List<Object> with a native size()\n" + out.split('\n').filter((l) => /rawMarkets|zzFixture/.test(l)).join('\n'));
-    } catch (e) {
-        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r93j7c, { force: true });
     }
     // prediction parseEvent (returns this.extend (..)) prints Map: its result is read and written natively
@@ -5287,14 +3200,11 @@ function mapLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r93j7d).content as string;
         if (!/Map<String, ?Object> ev = this\.parseEvent\(/.test(out) || !/\bev\.put\("markets"/.test(out)) problems.push("ral-93j7: a parseEvent result must print Map<String, Object> with a native put\n" + out.split('\n').filter((l) => /\bev\b/.test(l)).join('\n'));
         if ((out.match(/return \(\((java\.util\.)?Map<String, ?Object>\) this\.extend\(/g) ?? []).length !== 2) problems.push("ral-93j7: a parseEvent `return this.extend ({..})` must print the ((Map) call) form the literal hoist accepts\n" + out.split('\n').filter((l) => /return|mapLiteral/.test(l)).join('\n'));
-    } catch (e) {
-        problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-93j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(r93j7d, { force: true });
     }
     return problems;
 }
-
 // A fresh map local printed Object puts natively; null, published or merged receivers keep the helper
 function javaFreshObjectMapWritesSelfTest (): string[] {
     const problems: string[] = [];
@@ -5319,14 +3229,11 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
         }
         // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
         if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("'b' is unproven and must not take the cast put");
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // a prediction-venue const fed by a fresh-map producer up the abstract chain types Map and puts natively
 function javaPredictionMapLocalsSelfTest (): string[] {
     const M = '(?:java\\.util\\.)?Map<String, Object>';
@@ -5345,7 +3252,6 @@ function javaPredictionMapLocalsSelfTest (): string[] {
         [ /Helpers\.addElementToObject\(e, /, true, "prediction map locals: 'e' (any key) must keep the helper" ],
     ] });
 }
-
 // a never-written Dict parameter fed only const object literals from its own file puts natively
 function javaFreshMapParameterSelfTest (): string[] {
     const cls = 'zzfreshparamselftest';
@@ -5362,7 +3268,6 @@ function javaFreshMapParameterSelfTest (): string[] {
         [ /zzBuildC[\s\S]*?Helpers\.addElementToObject\(request, "k", v\)/, true, "fresh param: 'zzBuildC' (written param) must keep the helper" ],
     ] });
 }
-
 // a declared-Map receiver written with a never-null value puts natively; a nullable value keeps the helper
 function javaNonNullMapPutsSelfTest (): string[] {
     const cls = 'zznonnullputselftest';
@@ -5374,7 +3279,6 @@ function javaNonNullMapPutsSelfTest (): string[] {
         [ [ /Helpers\.addElementToObject\(parameters, "n", /, /Helpers\.addElementToObject\(parameters, "q", / ], true, "non-null puts: nullable values must keep the helper" ],
     ], output: true });
 }
-
 function runStringTypeAudit (): void {
     const argv = process.argv.slice(2);
     const flag = (name: string) => { const i = argv.indexOf(name); return i === -1 ? undefined : argv[i + 1]; };
@@ -5404,15 +3308,10 @@ function runStringTypeAudit (): void {
     }
     process.exit(pass ? 0 : 1);
 }
-
 async function runMain() {
-    if (process.argv.includes('--audit-string-types')) {
-        runStringTypeAudit();
-        return;
-    }
+    if (process.argv.includes('--audit-string-types')) { runStringTypeAudit(); return; }
     const ws = process.argv.includes('--ws')
-    // bare prediction-only ids (e.g. `javaTranspiler.ts kalshi`) auto-route to the
-    // prediction namespace so scoped CI steps don't need to know it
+    // bare prediction-only ids (e.g. `javaTranspiler.ts kalshi`) auto-route to the prediction namespace so scoped CI steps don't need to know it
     const cliExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
     const allArePredictionOnly = cliExchanges.length > 0 && cliExchanges.every(x => (exchanges.prediction || []).includes(x) && !exchangeIds.includes(x))
     const prediction = process.argv.includes('--prediction') || allArePredictionOnly
@@ -5421,9 +3320,7 @@ async function runMain() {
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
     const baseClassOnly = process.argv.includes('--baseClass')
-    // single-process REST+WS (default via npm run transpileJava / CI): keeps the one
-    // piscina pool (and its warm per-thread Transpilers) alive across both stages
-    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    // single-process REST+WS (default via npm run transpileJava / CI): keeps the one piscina pool (and its warm per-thread Transpilers) alive across both stages instead of paying a se...
     const restAndWs = process.argv.includes('--rest-and-ws')
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
     log.bright.green({ force })
@@ -5437,24 +3334,13 @@ async function runMain() {
             await transpiler.transpileWS(force)
         } else if (prediction) {
             await transpiler.transpilePrediction(force)
-        } else if (ws) {
-            await transpiler.transpileWS(force)
-        } else if (test || baseTestsOnly) {
-            await transpiler.transpileTests()
-        } else {
-            await transpiler.transpileEverything(force, false, examples)
-        }
+        } else if (ws) { await transpiler.transpileWS(force) } else if (test || baseTestsOnly) { await transpiler.transpileTests() } else { await transpiler.transpileEverything(force, false, examples) }
     } finally {
         await transpiler.destroy();
     }
 }
-
-// Native top-level newMap (declaration initializer / return value)
-// `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and
-// `return Helpers.newMap(...);` -> a block filling a file-unique temp. Helpers.newMap is exactly a
-// plain HashMap filled in argument order; the map is unreachable until filled, so order is moot.
+// Native top-level newMap (declaration initializer / return value) `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and `return Helpers....
 const JAVA_NEW_MAP_DECL_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
-
 // top-level args of the call opened at `start` (index after `(`) + end index after `)`; comments fail closed
 function newMapScanArgs (src: string, start: number): { args: string[], end: number } | undefined {
     const args: string[] = [];
@@ -5462,17 +3348,7 @@ function newMapScanArgs (src: string, start: number): { args: string[], end: num
     let buf = '';
     for (let i = start; i < src.length; i++) {
         const ch = src[i];
-        if (ch === '"' || ch === '\'') {
-            let j = i + 1;
-            while (j < src.length && src[j] !== ch) {
-                if (src[j] === '\\') j++;
-                if (src[j] === '\n') return undefined;
-                j++;
-            }
-            buf += src.slice (i, j + 1);
-            i = j;
-            continue;
-        }
+        if (ch === '"' || ch === '\'') { let j = i + 1; while (j < src.length && src[j] !== ch) { if (src[j] === '\\') j++; if (src[j] === '\n') return undefined; j++; } buf += src.slice (i, j + 1); i = j; continue; }
         if (ch === '/' && (src[i + 1] === '*' || src[i + 1] === '/')) return undefined;
         // a type argument list (`HashMap<String, Object>(`, `(Map<String, Object>) x`) is one atom
         const generic = ch === '<' && /[\w$]$/.test (buf) ? /^<[\w$.?, <>]*>(?=[(\[)])/.exec (src.slice (i, i + 200)) : null;
@@ -5481,33 +3357,24 @@ function newMapScanArgs (src: string, start: number): { args: string[], end: num
         else if (ch === ')' || ch === ']' || ch === '}') {
             if (depth === 0) {
                 if (ch !== ')') return undefined;
-                if (buf.trim () !== '') args.push (buf);
-                else if (args.length > 0) return undefined; // trailing comma
+                if (buf.trim () !== '') args.push (buf); else if (args.length > 0) return undefined; // trailing comma
                 return { args, end: i + 1 };
             }
             depth--;
         }
-        if (ch === ',' && depth === 0) {
-            args.push (buf);
-            buf = '';
-            continue;
-        }
+        if (ch === ',' && depth === 0) { args.push (buf); buf = ''; continue; }
         buf += ch;
     }
     return undefined;
 }
-
-// the even-arity, literal-keyed `Helpers.newMap(` call whose args open at `head` on lines[i] and end in `;` + EOL:
-// trimmed args + the number of lines it spans, else undefined (fail closed)
+// the even-arity, literal-keyed `Helpers.newMap(` call whose args open at `head` on lines[i] and end in `;` + EOL: trimmed args + the number of lines it spans, else undefined (fai...
 function newMapPairsAt (lines: string[], i: number, head: number): { pairs: string[], consumed: number } | undefined {
     const rest = lines.slice (i).join ('\n');
     const scan = newMapScanArgs (rest, head);
     const tail = scan === undefined ? null : /^;[ \t]*(?=\n|$)/.exec (rest.slice (scan.end));
-    if (scan === undefined || tail === null || scan.args.length === 0 || scan.args.length % 2 !== 0) return undefined;
-    if (!scan.args.every ((a, k) => k % 2 === 1 || /^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a))) return undefined;
+    if (scan === undefined || tail === null || scan.args.length === 0 || scan.args.length % 2 !== 0 || !scan.args.every ((a, k) => k % 2 === 1 || /^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a))) return undefined;
     return { pairs: scan.args.map ((a) => a.trim ()), consumed: rest.slice (0, scan.end + tail[0].length).split ('\n').length };
 }
-
 export function nativeJavaTopLevelNewMap (content: string): string {
     const lines = content.split ('\n');
     const out: string[] = [];
@@ -5527,61 +3394,36 @@ export function nativeJavaTopLevelNewMap (content: string): string {
     }
     return out.join ('\n');
 }
-
-// Native GetValue reads on declared List/String/TypedMap locals
-// `Helpers.GetValue(x, k)` where x's printed declaration is List<T>, String or a types/ TypedMap view
-// -> the helper's own branch; its null receiver/key and out-of-range answers stay explicit
+// Native GetValue reads on declared List/String/TypedMap locals `Helpers.GetValue(x, k)` where x's printed declaration is List<T>, String or a types/ TypedMap view -> the helper's...
 const ELEMENT_READ_LIST_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$/;
 const JAVA_TYPED_MAP_VIEWS = new Set([ 'Tickers', 'OpenInterests', 'MarginModes', 'FundingRates', 'LeverageTiers', 'Currencies', 'Balances', 'OrderBooks', 'LastPrices', 'TradingFees', 'CrossBorrowRates', 'IsolatedBorrowRates', 'DepositAddresses', 'DepositWithdrawFees', 'Leverages', 'MarketMarginModes', 'PredictionTickers' ]);
-
 function elementReadDeclaredTypeOf (lines: string[], lineIndex: number, name: string): string | undefined {
     const any = new RegExp('(?:^|[\\s(,])(?:final\\s+)?([A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?:=|;|:|,|\\))');
     for (let i = lineIndex; i >= 0; i--) {
-        if (!/^\s*(?:\/\/|\*)/.test(lines[i])) {
-            const m = any.exec(lines[i]);
-            if (m && m[1] !== 'return' && m[1] !== 'new' && m[1] !== 'else') {
-                return m[1].replace(/\s+/g, ' ');
-            }
-        }
-        if (JAVA_MEMBER_START_RE.test(lines[i])) {
-            return undefined;
-        }
+        if (!/^\s*(?:\/\/|\*)/.test(lines[i])) { const m = any.exec(lines[i]); if (m && m[1] !== 'return' && m[1] !== 'new' && m[1] !== 'else') { return m[1].replace(/\s+/g, ' '); } }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) { return undefined; }
     }
     return undefined;
 }
-
 // int-valued index expression and its null guard (the helper's toInt is intValue for Integer/Long)
 function elementReadIntIndex (lines: string[], i: number, key: string): { guard: string, idx: string } | undefined {
-    if (/^\d+$/.test(key)) {
-        return { guard: '', idx: key };
-    }
-    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key) || /^\(\(\(\(Number\) [A-Za-z_]\w*\)\.longValue\(\)\) - 1L\)$/.test(key)) {
-        return { guard: '', idx: '((int) ' + key + ')' };
-    }
-    if (!/^[A-Za-z_]\w*$/.test(key)) {
-        return undefined;
-    }
-    if (javaIntCounterIndex(lines, i, key)) {
-        return { guard: '', idx: key };
-    }
+    if (/^\d+$/.test(key)) { return { guard: '', idx: key }; }
+    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key) || /^\(\(\(\(Number\) [A-Za-z_]\w*\)\.longValue\(\)\) - 1L\)$/.test(key)) { return { guard: '', idx: '((int) ' + key + ')' }; }
+    if (!/^[A-Za-z_]\w*$/.test(key)) { return undefined; }
+    if (javaIntCounterIndex(lines, i, key)) { return { guard: '', idx: key }; }
     const t = elementReadDeclaredTypeOf(lines, i, key);
     if (t === 'long') return { guard: '', idx: '((int) ' + key + ')' };
     if (t === 'Long' || t === 'Integer') return { guard: key + ' == null || ', idx: key + '.intValue()' };
     return undefined;
 }
-
 export function nativeJavaElementReads (content: string): string {
-    if (!content.includes('Helpers.GetValue(')) {
-        return content;
-    }
+    if (!content.includes('Helpers.GetValue(')) { return content; }
     const lines = content.split('\n');
     const call = /Helpers\.GetValue\(([A-Za-z_]\w*), (\d+|[A-Za-z_]\w*|\(\(\(long\) [A-Za-z_]\w*\) - 1L\)|\(\(\(\(Number\) [A-Za-z_]\w*\)\.longValue\(\)\) - 1L\))\)/g;
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
-            continue;
-        }
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) { continue; }
         const next = line.replace(call, (whole, r, key) => {
             if (r === 'this' || r === key) return whole;
             const cls = elementReadDeclaredTypeOf(lines, i, r);
@@ -5595,62 +3437,31 @@ export function nativeJavaElementReads (content: string): string {
                 return `(${r} == null || ${ix.guard}${low}${ix.idx} >= ${len} ? null : ${get})`;
             }
             const view = cls.replace(/^io\.github\.ccxt\.types\./, '');
-            if (JAVA_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && elementReadDeclaredTypeOf(lines, i, key) === 'String') {
-                return `(${r} == null || ${key} == null ? null : ${r}.get(${key}))`;
-            }
+            if (JAVA_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && elementReadDeclaredTypeOf(lines, i, key) === 'String') { return `(${r} == null || ${key} == null ? null : ${r}.get(${key}))`; }
             return whole;
         });
-        if (next !== line) {
-            lines[i] = next;
-            changed = true;
-        }
+        if (next !== line) { lines[i] = next; changed = true; }
     }
     return changed ? lines.join('\n') : content;
 }
-
-// Native `+` for Helpers.add with a statically-String first operand
-// javac binds such a call to add(String, String|Object) = `a + String.valueOf(b)`, which is
-// exactly Java's native concat; anything else (Object/number first) keeps the helper.
+// Native `+` for Helpers.add with a statically-String first operand javac binds such a call to add(String, String|Object) = `a + String.valueOf(b)`, which is exactly Java's native...
 const JAVA_STRING_PRODUCER_CALLS = /^this\.(safeString|safeString2|safeStringN|safeStringUpper|safeStringLower|urlencode|json|numberToString|uuid)\(/;
-
 // mask string/char literals and comments with spaces (same length)
+const JAVA_MASK_TOKENS_RE = /\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$)|"(?:\\[^\n]|[^"\\\n])*"?|'(?:\\[^\n]|[^'\\\n])*'?/g;
 function stringAddMask (s: string): string {
-    let out = '';
-    for (let i = 0; i < s.length; i++) {
-        const ch = s[i];
-        if (ch === '"' || ch === '\'') {
-            let j = i + 1;
-            while (j < s.length && s[j] !== ch && s[j] !== '\n') { j += s[j] === '\\' ? 2 : 1; }
-            out += ch + ' '.repeat(Math.max(0, Math.min(j, s.length - 1) - i - 1)) + (j < s.length ? ch : '');
-            i = Math.min(j, s.length - 1);
-            continue;
-        }
-        if (ch === '/' && s[i + 1] === '/') {
-            let j = s.indexOf('\n', i); if (j < 0) { j = s.length; }
-            out += ' '.repeat(j - i); i = j - 1; continue;
-        }
-        if (ch === '/' && s[i + 1] === '*') {
-            let j = s.indexOf('*/', i + 2); j = j < 0 ? s.length : j + 2;
-            out += s.slice(i, j).replace(/[^\n]/g, ' '); i = j - 1; continue;
-        }
-        out += ch;
-    }
-    return out;
+    return s.replace (JAVA_MASK_TOKENS_RE, (tok) => {
+        const c = tok[0];
+        if (c === '"' || c === '\'') { const closed = tok.length > 1 && tok[tok.length - 1] === c; return c + ' '.repeat (tok.length - (closed ? 2 : 1)) + (closed ? c : ''); }
+        return tok.includes ('\n') ? tok.replace (/[^\n]/g, ' ') : ' '.repeat (tok.length);
+    });
 }
-
 // end index (exclusive) of the balanced group opened at `open`, over masked text
 function stringAddClose (m: string, open: number): number {
     let depth = 0;
-    for (let i = open; i < m.length; i++) {
-        const c = m[i];
-        if (c === '(' || c === '[' || c === '{') { depth++; }
-        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i + 1; } }
-    }
+    for (let i = open; i < m.length; i++) { const c = m[i]; if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i + 1; } } }
     return -1;
 }
-
-// split masked expression at top-level occurrences; undefined when it holds any other
-// top-level operator (ternary, comparison, arithmetic, assignment, lambda, ...)
+// split masked expression at top-level occurrences; undefined when it holds any other top-level operator (ternary, comparison, arithmetic, assignment, lambda, ...)
 function stringAddPlusTerms (m: string): Array<[number, number]> | undefined {
     const terms: Array<[number, number]> = [];
     let depth = 0; let start = 0;
@@ -5659,30 +3470,19 @@ function stringAddPlusTerms (m: string): Array<[number, number]> | undefined {
         if (c === '(' || c === '[' || c === '{') { depth++; continue; }
         if (c === ')' || c === ']' || c === '}') { depth--; continue; }
         if (depth !== 0) { continue; }
-        if (c === '+') {
-            if (m[i + 1] === '+' || m[i + 1] === '=' || m.slice(start, i).trim() === '') { return undefined; }
-            terms.push([start, i]); start = i + 1; continue;
-        }
-        if (/[-*\/%?:=<>!&|^~,;]/.test(c)) {
-            return undefined;
-        }
+        if (c === '+') { if (m[i + 1] === '+' || m[i + 1] === '=' || m.slice(start, i).trim() === '') { return undefined; } terms.push([start, i]); start = i + 1; continue; }
+        if (/[-*\/%?:=<>!&|^~,;]/.test(c)) { return undefined; }
     }
     terms.push([start, m.length]);
     return terms;
 }
-
 // is the whole (trimmed) masked term one primary expression (no top-level operators)?
-function stringAddIsPrimary (m: string): boolean {
-    const t = stringAddPlusTerms(m);
-    return t !== undefined && t.length === 1;
-}
-
+function stringAddIsPrimary (m: string): boolean { const t = stringAddPlusTerms(m); return t !== undefined && t.length === 1; }
 function stringAddStripParens (raw: string, m: string): [string, string] {
     let r = raw.trim(); let k = m.trim();
     while (k.startsWith('(') && stringAddClose(k, 0) === k.length) { r = r.slice(1, -1).trim(); k = k.slice(1, -1).trim(); }
     return [r, k];
 }
-
 // nearest same-member declaration of `name` before `pos` is `String` (params included)
 function stringAddStringLocal (masked: string, name: string, pos: number): boolean {
     const before = masked.slice(0, pos);
@@ -5695,33 +3495,24 @@ function stringAddStringLocal (masked: string, name: string, pos: number): boole
     while ((mm = decl.exec(window)) !== null) { last = mm[1]; }
     return last === 'String' || last === 'java.lang.String';
 }
-
 function stringAddIsString (raw: string, m: string, masked: string, pos: number, ownMethods: Set<string>): boolean {
     const [r, k] = stringAddStripParens(raw, m);
     const terms = stringAddPlusTerms(k);
     if (terms === undefined || k === '') { return false; }
-    if (terms.length > 1) {
-        return terms.some(([a, b]) => stringAddIsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
-    }
+    if (terms.length > 1) { return terms.some(([a, b]) => stringAddIsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods)); }
     if (/^"/.test(r) && k.length === r.length && /^"\s*"$/.test(k)) { return true; }
     const field = /^this\.([A-Za-z_]\w*)$/.exec(k);
     if (field !== null) { return JS_STRING_MEMBER_FIELDS.has(field[1]) && !ownMethods.has('field:' + field[1]); }
     const call = JAVA_STRING_PRODUCER_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
-    if (call !== null) {
-        const open = k.indexOf('(');
-        return stringAddClose(k, open) === k.length && !ownMethods.has(call[1]);
-    }
+    if (call !== null) { const open = k.indexOf('('); return stringAddClose(k, open) === k.length && !ownMethods.has(call[1]); }
     if (/^[A-Za-z_]\w*$/.test(k)) { return stringAddStringLocal(masked, k, pos); }
     return false;
 }
-
 export function nativeJavaStringAdd (content: string): string {
     if (content.indexOf('Helpers.add(') === -1) { return content; }
     // a class that (re)declares one of the anchored members fails closed for that member
     const ownMethods = new Set<string>();
-    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
-        ownMethods.add(d[2] === '(' ? d[1] : 'field:' + d[1]);
-    }
+    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) { ownMethods.add(d[2] === '(' ? d[1] : 'field:' + d[1]); }
     let masked = stringAddMask(content);
     let from = masked.length;
     for (;;) {
@@ -5751,56 +3542,37 @@ export function nativeJavaStringAdd (content: string): string {
     }
     return content;
 }
-
-// Native ordered comparisons over declared numeric operands
-// Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual -> `> < >= <=` when both
-// operands are int literals or locals/params the final text declares Long/Integer/long/int/Double; a
-// boxed operand gets the helper's null table. Double pairs only for `>` (the others go through isEqual).
+// Native ordered comparisons over declared numeric operands Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual -> `> < >= <=` when both operands are int liter...
 const ORDERED_COMPARE_CALL = /Helpers\.is(GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)\(/g;
 const ORDERED_COMPARE_OPS: Record<string, string> = { GreaterThan: '>', LessThan: '<', GreaterThanOrEqual: '>=', LessThanOrEqual: '<=' };
 const ORDERED_COMPARE_TYPES: Record<string, { kind: string, boxed: boolean }> = {
     Long: { kind: 'long', boxed: true }, Integer: { kind: 'long', boxed: true }, long: { kind: 'long', boxed: false },
     int: { kind: 'long', boxed: false }, Double: { kind: 'double', boxed: true }, double: { kind: 'double', boxed: false },
 };
-
 function orderedCompareSplitArgs (text: string, start: number): { args: string[], end: number } | undefined {
     const args: string[] = [];
     let depth = 0, cur = '', quote = '';
     for (let i = start; i < text.length; i++) {
         const c = text[i];
-        if (quote !== '') {
-            cur += c;
-            if (c === '\\') { cur += text[++i]; continue; }
-            if (c === quote) quote = '';
-            continue;
-        }
+        if (quote !== '') { cur += c; if (c === '\\') { cur += text[++i]; continue; } if (c === quote) quote = ''; continue; }
         if (c === '"' || c === '\'') { quote = c; cur += c; continue; }
         if (c === '(' || c === '[' || c === '{') depth++;
-        if (c === ')' || c === ']' || c === '}') {
-            if (depth === 0) { args.push (cur.trim ()); return { args, end: i }; }
-            depth--;
-        }
+        if (c === ')' || c === ']' || c === '}') { if (depth === 0) { args.push (cur.trim ()); return { args, end: i }; } depth--; }
         if (c === ',' && depth === 0) { args.push (cur.trim ()); cur = ''; continue; }
         if (c === '\n') return undefined;
         cur += c;
     }
     return undefined;
 }
-
 function orderedCompareStripParens (text: string): string {
     while (text.startsWith ('(') && text.endsWith (')')) {
         let depth = 0, wraps = true;
-        for (let i = 0; i < text.length - 1; i++) {
-            if (text[i] === '(') depth++;
-            if (text[i] === ')') depth--;
-            if (depth === 0) { wraps = false; break; }
-        }
+        for (let i = 0; i < text.length - 1; i++) { if (text[i] === '(') depth++; if (text[i] === ')') depth--; if (depth === 0) { wraps = false; break; } }
         if (!wraps) break;
         text = text.slice (1, -1).trim ();
     }
     return text;
 }
-
 // the one declaration of `name` in the member (none elsewhere, no lambda param, no class field)
 function orderedCompareDeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
     if (fields.has (name)) return undefined;
@@ -5813,30 +3585,21 @@ function orderedCompareDeclaredType (member: string, name: string, fields: Set<s
         if (/^(return|else|new|case|throw|instanceof)$/.test (m[1])) continue;
         found.push (m[1] + (m[1] === 'var' ? member.slice (m.index + m[0].length).match (/^\s*(-?\d+);/)?.[1] ?? '?' : ''));
     }
-    if (new RegExp ('(?:\\(|,\\s*)' + esc + '\\s*(?:,[\\w\\s,]*)?\\)\\s*->|\\b' + esc + '\\s*->').test (member)) return undefined;
-    if (found.length !== 1) return undefined;
+    if (new RegExp ('(?:\\(|,\\s*)' + esc + '\\s*(?:,[\\w\\s,]*)?\\)\\s*->|\\b' + esc + '\\s*->').test (member) || found.length !== 1) return undefined;
     const t = found[0].replace (/^final /, '');
     if (/^var-?\d+$/.test (t)) return { kind: 'long', boxed: false }; // `var i = 0` counter: int
     return ORDERED_COMPARE_TYPES[t];
 }
-
 function orderedCompareOperand (text: string, member: string, fields: Set<string>): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
     const inner = orderedCompareStripParens (text);
     if (/^-?\d{1,15}L?$/.test (inner)) return { kind: 'long', boxed: false, text: inner, literal: true };
     if (/^-?\d{1,15}\.\d{1,15}$/.test (inner)) return { kind: 'double', boxed: false, text: inner, literal: true };
-    if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
-        const t = orderedCompareDeclaredType (member, inner, fields);
-        return t === undefined ? undefined : { ...t, text: inner };
-    }
+    if (/^[A-Za-z_$][\w$]*$/.test (inner)) { const t = orderedCompareDeclaredType (member, inner, fields); return t === undefined ? undefined : { ...t, text: inner }; }
     // `(x + 1L)` / `(x - 1L)` over a declared long: the operand unboxes (or throws) before the helper runs
     const arith = inner.match (/^([A-Za-z_$][\w$]*) ([+-]) (\d+L?)$/);
-    if (arith !== null) {
-        const t = orderedCompareDeclaredType (member, arith[1], fields);
-        if (t !== undefined && t.kind === 'long') return { kind: 'long', boxed: false, text: '(' + inner + ')' };
-    }
+    if (arith !== null) { const t = orderedCompareDeclaredType (member, arith[1], fields); if (t !== undefined && t.kind === 'long') return { kind: 'long', boxed: false, text: '(' + inner + ')' }; }
     return undefined;
 }
-
 function orderedCompareNative (helper: string, l, r): string | undefined {
     // `>=` adds isEqual, exact for a double only against a small literal; `< <=` are true for NaN (keep)
     const longs = l.kind === 'long' && r.kind === 'long';
@@ -5858,17 +3621,12 @@ function orderedCompareNative (helper: string, l, r): string | undefined {
     }
     return undefined;
 }
-
 // names of the fields a printed Java class declares (4-space member lines ending in `=` or `;`)
 function javaClassFields (lines: string[]): Set<string> {
     const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
+    for (const line of lines) { const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/); if (f !== null) fields.add (f[1]); }
     return fields;
 }
-
 // line indexes of the printed class's member heads; `withParen` keeps only method/ctor heads
 function javaMemberStarts (lines: string[], withParen = false, from = 0): number[] {
     const head = withParen ? /^    (?:public|private|protected)\b.*\(/ : /^    (?:public|private|protected)\b/;
@@ -5876,7 +3634,6 @@ function javaMemberStarts (lines: string[], withParen = false, from = 0): number
     for (let i = from; i < lines.length; i++) if (head.test (lines[i])) starts.push (i);
     return starts;
 }
-
 // rewrites each member of a printed class; text before the first member is kept. undefined: no member
 function mapJavaMembers (content: string, withParen: boolean, rewrite: (member: string) => string): string | undefined {
     const lines = content.split ('\n');
@@ -5887,9 +3644,7 @@ function mapJavaMembers (content: string, withParen: boolean, rewrite: (member: 
     for (let s = 0; s + 1 < starts.length; s++) parts.push (rewrite (lines.slice (starts[s], starts[s + 1]).join ('\n')));
     return parts.join ('\n');
 }
-
-// innermost-last rewrite of the two-argument helper calls `re` finds on one printed line: the line is
-// re-scanned after every rewrite; comment lines are kept
+// innermost-last rewrite of the two-argument helper calls `re` finds on one printed line: the line is re-scanned after every rewrite; comment lines are kept
 function rewriteHelperCalls (line: string, re: RegExp, native: (m: RegExpExecArray, args: string[], line: string) => string | undefined): string {
     const trimmed = line.trim ();
     if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) return line;
@@ -5909,7 +3664,6 @@ function rewriteHelperCalls (line: string, re: RegExp, native: (m: RegExpExecArr
     }
     return line;
 }
-
 // the per-member compare skeleton: every method whose text matches `memberRe` gets its `re` calls rewritten
 function rewriteMemberHelperCalls (content: string, re: RegExp, memberRe: RegExp, native: (m: RegExpExecArray, args: string[], member: string, fields: Set<string>) => string | undefined): string {
     const lines = content.split ('\n');
@@ -5923,7 +3677,6 @@ function rewriteMemberHelperCalls (content: string, re: RegExp, memberRe: RegExp
     }
     return lines.join ('\n');
 }
-
 export function nativeJavaOrderedComparisons (content: string): string {
     if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
     return rewriteMemberHelperCalls (content, ORDERED_COMPARE_CALL, /Helpers\.is/, (m, args, member, fields) => {
@@ -5932,80 +3685,35 @@ export function nativeJavaOrderedComparisons (content: string): string {
         return l === undefined || r === undefined ? undefined : orderedCompareNative (m[1], l, r);
     });
 }
-
-// Native promiseAll / objectValues / opNeg (post-print text pass)
-// index of the `)` closing the `(` at `open`, skipping string/char literals; -1 when unbalanced
+// Native promiseAll / objectValues / opNeg (post-print text pass) index of the `)` closing the `(` at `open`, skipping string/char literals; -1 when unbalanced
 function promiseAllClose (s: string, open: number): number {
     let depth = 0;
     for (let k = open; k < s.length; k++) {
         const ch = s[k];
-        if (ch === '"' || ch === '\'') {
-            for (k++; k < s.length && s[k] !== ch; k++) if (s[k] === '\\') k++;
-        } else if (ch === '(') depth++;
-        else if (ch === ')' && --depth === 0) return k;
+        if (ch === '"' || ch === '\'') { for (k++; k < s.length && s[k] !== ch; k++) if (s[k] === '\\') k++; } else if (ch === '(') depth++; else if (ch === ')' && --depth === 0) return k;
     }
     return -1;
 }
-
-// Nested / argument Helpers.newMap literals -> hoisted native HashMap
-// A `Helpers.newMap("k", v, ...)` used as a call argument or literal value (not the whole RHS of a
-// declaration/assignment/return, handled by the top-level newMap pass) becomes a preceding `HashMap` local filled by `put`s,
-// only when everything Java evaluates before it in the statement commutes with its values.
+// Nested / argument Helpers.newMap literals -> hoisted native HashMap A `Helpers.newMap("k", v, ...)` used as a call argument or literal value (not the whole RHS of a declaration/...
 export function javaNestedNewMapStats (): Record<string, number> { return (globalThis as any).__javaNestedNewMapStats ??= {}; }
 function nestedNewMapCount (k: string) { const s = javaNestedNewMapStats (); s[k] = (s[k] || 0) + 1; }
 // base readers that write no state (BaseExchange.java / Exchange.java / java.util)
 const NESTED_NEW_MAP_PURE_SAFE = [ 'String', 'StringLower', 'StringUpper', 'Integer', 'IntegerProduct', 'Number', 'Float', 'Value', 'Bool', 'Dict', 'List', 'String2', 'Integer2', 'Number2', 'Value2', 'Bool2', 'Dict2', 'List2', 'StringN', 'IntegerN', 'NumberN', 'ValueN', 'Timestamp', 'Timestamp2', 'TimestampN' ];
 const NESTED_NEW_MAP_PURE_CALL = new RegExp ('^(?:this\\.(?:safe(?:' + NESTED_NEW_MAP_PURE_SAFE.join ('|') + ')|iso8601|parseNumber|numberToString|omitZero)|java\\.util\\.Objects\\.equals|java\\.util\\.Objects\\.requireNonNullElse|Helpers\\.newMap|Precise\\.string(?:Abs|Mul|Add|Sub|Div))$');
 function nestedNewMapPureCall (n: string): boolean { return NESTED_NEW_MAP_PURE_CALL.test (n); }
-
 // blank string/char literals and comments (length-preserving) so brackets can be matched
 function nestedNewMapMask (s: string): string {
-    const out = s.split ('');
-    let i = 0;
-    while (i < s.length) {
-        const c = s[i];
-        if (c === '/' && s[i + 1] === '/') {
-            while (i < s.length && s[i] !== '\n') out[i++] = ' ';
-        } else if (c === '/' && s[i + 1] === '*') {
-            const e = s.indexOf ('*/', i + 2);
-            const end = e < 0 ? s.length : e + 2;
-            for (; i < end; i++) if (s[i] !== '\n') out[i] = ' ';
-        } else if (c === '"' || c === '\'') {
-            i++;
-            while (i < s.length && s[i] !== c && s[i] !== '\n') {
-                if (s[i] === '\\') out[i++] = ' ';
-                out[i++] = ' ';
-            }
-            i++;
-        } else i++;
-    }
     // generic type arguments (`HashMap<String, Object>(`, `(Map<String, Object>)x`): hide their commas
-    return out.join ('').replace (/(?<=[A-Za-z_$])<[\w$.?<>, ]*>(?=\s*[({)\[])/g, (g) => g.replace (/,/g, ' '));
+    return stringAddMask (s).replace (/(?<=[A-Za-z_$])<[\w$.?<>, ]*>(?=\s*[({)\[])/g, (g) => g.replace (/,/g, ' '));
 }
-
-function nestedNewMapClose (m: string, open: number): number {
-    let d = 0;
-    for (let k = open; k < m.length; k++) {
-        const c = m[k];
-        if (c === '(' || c === '[' || c === '{') d++;
-        else if (c === ')' || c === ']' || c === '}') { d--; if (d === 0) return k; }
-    }
-    return -1;
-}
-
+function nestedNewMapClose (m: string, open: number): number { const end = stringAddClose (m, open); return end === -1 ? -1 : end - 1; }
 function nestedNewMapArgs (m: string, from: number, to: number): Array<[number, number]> {
     const spans: Array<[number, number]> = [];
     let d = 0, s = from;
-    for (let k = from; k < to; k++) {
-        const c = m[k];
-        if (c === '(' || c === '[' || c === '{') d++;
-        else if (c === ')' || c === ']' || c === '}') d--;
-        else if (c === ',' && d === 0) { spans.push ([s, k]); s = k + 1; }
-    }
+    for (let k = from; k < to; k++) { const c = m[k]; if (c === '(' || c === '[' || c === '{') d++; else if (c === ')' || c === ']' || c === '}') d--; else if (c === ',' && d === 0) { spans.push ([s, k]); s = k + 1; } }
     if (m.slice (s, to).trim () !== '') spans.push ([s, to]);
     return spans;
 }
-
 // names of the calls in m[a,b) that complete before b (i.e. are evaluated before position b)
 function nestedNewMapCalls (m: string, a: number, b: number): string[] | undefined {
     const names: string[] = [];
@@ -6024,11 +3732,9 @@ function nestedNewMapCalls (m: string, a: number, b: number): string[] | undefin
     }
     return names;
 }
-
 // `new C(` keeps its args unevaluated; a cast `(T)` is a parenthesised group with no call name
 function nestedNewMapMutates (t: string): boolean { return /\+\+|--|(?<![=!<>+\-*/%&|^])=(?!=)|[+\-*/%&|^]=|->/.test (t); }
 function nestedNewMapAllPure (names: string[]): boolean { return names.every ((n) => nestedNewMapPureCall (n)); }
-
 function nestedNewMapEmit (raw: string, m: string, open: number, close: number, name: string, indent: string, fresh: () => string, out: string[]): boolean {
     const spans = nestedNewMapArgs (m, open + 1, close);
     if (spans.length === 0 || spans.length % 2 !== 0) return false;
@@ -6056,8 +3762,7 @@ function nestedNewMapEmit (raw: string, m: string, open: number, close: number, 
     out.push (...lines);
     return true;
 }
-
-function nestedNewMapRewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, next: number } | undefined {
+function nestedNewMapRewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, mask: string, next: number } | undefined {
     let i = m.indexOf ('Helpers.newMap(', from);
     for (; i >= 0; i = m.indexOf ('Helpers.newMap(', i + 1)) {
         if (i > 0 && /[\w$.]/.test (m[i - 1])) continue;
@@ -6070,12 +3775,7 @@ function nestedNewMapRewriteOnce (content: string, m: string, from: number, take
         for (; k >= 0; k--) {
             const c = m[k];
             if (c === '}' && d === 0) break;
-            if (c === ')' || c === ']' || c === '}') d++;
-            else if (c === '(' || c === '[' || c === '{') {
-                if (d > 0) { d--; continue; }
-                if (c === '{') break;
-                path.push (k);
-            } else if (c === ';' && d === 0) break;
+            if (c === ')' || c === ']' || c === '}') d++; else if (c === '(' || c === '[' || c === '{') { if (d > 0) { d--; continue; } if (c === '{') break; path.push (k); } else if (c === ';' && d === 0) break;
         }
         if (k < 0) continue;
         let first = k + 1;
@@ -6110,41 +3810,27 @@ function nestedNewMapRewriteOnce (content: string, m: string, from: number, take
             nestedNewMapCount ('keep:effectful-values-after-heap-read'); continue;
         }
         const indent = content.slice (lineStart, first);
-        const fresh = () => {
-            let n = taken.size;
-            let name: string;
-            do { name = 'mapLiteral' + (++n); } while (taken.has (name));
-            taken.add (name);
-            return name;
-        };
+        const fresh = () => { let n = taken.size; let name: string; do { name = 'mapLiteral' + (++n); } while (taken.has (name)); taken.add (name); return name; };
         const lines: string[] = [];
         const snapshot = new Set (taken);
         const name = fresh ();
-        if (!nestedNewMapEmit (content, m, open, close, name, indent, fresh, lines)) {
-            taken.clear (); snapshot.forEach ((x) => taken.add (x));
-            nestedNewMapCount ('keep:non-literal-key-or-multiline-value'); continue;
-        }
+        if (!nestedNewMapEmit (content, m, open, close, name, indent, fresh, lines)) { taken.clear (); snapshot.forEach ((x) => taken.add (x)); nestedNewMapCount ('keep:non-literal-key-or-multiline-value'); continue; }
         nestedNewMapCount ('hoisted');
-        const out = content.slice (0, lineStart) + lines.join ('\n') + '\n' + content.slice (lineStart, i) + name + content.slice (close + 1);
-        return { content: out, next: lineStart };
+        const ins = lines.join ('\n') + '\n';
+        const out = content.slice (0, lineStart) + ins + content.slice (lineStart, i) + name + content.slice (close + 1);
+        const nextMask = m.slice (0, lineStart) + nestedNewMapMask (ins) + m.slice (lineStart, i) + name + m.slice (close + 1);
+        return { content: out, mask: nextMask, next: lineStart };
     }
     return undefined;
 }
-
 export function nativeJavaNestedNewMaps (content: string): string {
     if (content.indexOf ('Helpers.newMap(') < 0) return content;
     const taken = new Set<string> (content.match (/\bmapLiteral\d+\b/g) || []);
+    let mask = nestedNewMapMask (content);
     let from = 0;
-    for (;;) {
-        const r = nestedNewMapRewriteOnce (content, nestedNewMapMask (content), from, taken);
-        if (r === undefined) return content;
-        content = r.content;
-        from = r.next;
-    }
+    for (;;) { const r = nestedNewMapRewriteOnce (content, mask, from, taken); if (r === undefined) return content; content = r.content; mask = r.mask; from = r.next; }
 }
-
-// `x = Helpers.newMap("k", v, ...);` -> a block filling a fresh HashMap, then `x = tmp;`
-// (newMap is a plain HashMap put in argument order; values still read the old x)
+// `x = Helpers.newMap("k", v, ...);` -> a block filling a fresh HashMap, then `x = tmp;` (newMap is a plain HashMap put in argument order; values still read the old x)
 export function nativeJavaReassignedNewMap (content: string): string {
     if (content.indexOf ('Helpers.newMap(') < 0) return content;
     const head = /^(\s*)([A-Za-z_$][\w$]*) = Helpers\.newMap\(/;
@@ -6167,19 +3853,13 @@ export function nativeJavaReassignedNewMap (content: string): string {
     }
     return out.join ('\n');
 }
-
 // base readers the h30-J05 hoist treats as write-free (declared before the main entry runs)
 const H30J05_READERS = /^(?:(?:this|\w+\.this)\.(?:safeString|safeString2|safeBool|safeNumber|safeInteger|arrayConcat)|Precise\.stringAdd|(?:io\.github\.ccxt\.)?Helpers\.(?:GetValue|newMap)|java\.util\.Objects\.equals|Arrays\.asList)$/;
 // after the pass constants above: they are consts, so the entry must not run before their initialization
 if (isMainEntry(metaUrl)) {
-    // Deliberately not `await runMain()`: build/java-worker.ts imports this module
-    // for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS
-    // require hook, whose esbuild transform rejects top-level await ("not supported
-    // with the cjs output format"). A rejection is still fatal here — an unhandled
-    // rejection exits 1, exactly like the awaited form did.
+    // Deliberately not `await runMain()`: build/java-worker.ts imports this module for patchJavaLocalTypes, and piscina loads worker modules through tsx's CJS require hook, whose esbu...
     runMain();
 }
-
 // Integer-literal counters print `long`; a counter read as a value (map literal, call argument) or captured stays Object
 function javaCounterLocalsSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj10selftest', members: [
@@ -6191,7 +3871,6 @@ function javaCounterLocalsSelfTest (): string[] {
         ...[ 'c', 'd', 'e' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' is read as a value or captured and must stay Object` ]),
     ] });
 }
-
 // Object locals whose init and every write are Maps print Map<String, Object>; any other write keeps Object
 function javaMapLocalsSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj11selftest', members: [
@@ -6209,7 +3888,6 @@ function javaMapLocalsSelfTest (): string[] {
         ...[ 'e', 'f', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default and must stay Object` ]),
     ] });
 }
-
 // Snippet checks for the native arithmetic pass (`--audit-string-types --self-test`)
 function javaTypedArithmeticSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
@@ -6233,9 +3911,7 @@ function javaTypedArithmeticSelfTest (): string[] {
     if (problems.length) problems.push (`arithmetic: ${problems.length} !== 0`);
     return problems;
 }
-
-// Venue-only methods called with typed arguments print typed parameters; a written,
-// mistyped, `+`-left or name-referenced parameter keeps Object
+// Venue-only methods called with typed arguments print typed parameters; a written, mistyped, `+`-left or name-referenced parameter keeps Object
 function javaParamTypesSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj12selftest', members: [
         "    run (r: any) { const s = this.safeString (r, 'a'); this.zzjA (s, s === 'b', this.safeList (r, 'l', [])); this.zzjB (s); this.zzjC (s); this.zzjD (r); const f = this.zzjE; return f; }",
@@ -6247,13 +3923,10 @@ function javaParamTypesSelfTest (): string[] {
     ], checks: [
         [ /zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/, true, 'zzjA must print String/Boolean/List<Object> params' ],
         [ /this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/, true, 'zzjA call must pass the String local bare and checkcast the List' ],
-        // A plain `string` annotation prints String on a generated venue method whether the
-        // parameter is written, `+`-left or handed an unproven caller, because writes are cast and the
-        // caller carries the checkcast
+        // A plain `string` annotation prints String on a generated venue method whether the parameter is written, `+`-left or handed an unproven caller, because writes are cast and the ca...
         ...[ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ].map((n): JavaProbeCheck => [ new RegExp(`${n}\\(String code\\)`), true, `java param types self test: ${n} must print String code` ]),
     ] });
 }
-
 // Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
 function javaListLocalsSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj13selftest', output: true, members: [
@@ -6288,7 +3961,6 @@ function javaListLocalsSelfTest (): string[] {
         [ /List<Object> g = /, false, "'g' has no List write and must not print List<Object>" ],
     ] });
 }
-
 // r77j2: conditional initialisers whose arms prove one box print it; an Integer-only or unproven arm keeps Object
 function javaR77j2ConditionalLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -6315,14 +3987,11 @@ function javaR77j2ConditionalLocalsSelfTest (): string[] {
         if (/\bLong f = |\bObject f = (?!.*\? 1 : 2)/.test(out)) problems.push("'f' (int : int) is not this family's");
         if (!/\bObject g = /.test(out)) problems.push("'g' (any : int) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
 function javaScalarLocalsSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj14selftest', members: [
@@ -6340,7 +4009,6 @@ function javaScalarLocalsSelfTest (): string[] {
         ...[ 'e', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default/arm and must stay Object` ]),
     ] });
 }
-
 // r77-j4: `let x = undefined` seeds joined over copy / sync-core writes print the written box
 function javaNullSeedJoinSelfTest (): string[] {
     const problems: string[] = [];
@@ -6366,16 +4034,12 @@ function javaNullSeedJoinSelfTest (): string[] {
         if (!/String net = null/.test(out)) problems.push("'net' (base core printed String) must print String");
         if (!/String c = null/.test(out)) problems.push("'c' (copies of String locals) must print String");
         if (!/\bObject m = null/.test(out)) problems.push("'m' (String and Map writes) must stay Object");
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// 77j8: copies of a default-valued scalar parameter print its box; `[]` locals written only inside an
-// `Array.isArray (v)` branch print List<Object>; an unproven write keeps Object
+// 77j8: copies of a default-valued scalar parameter print its box; `[]` locals written only inside an `Array.isArray (v)` branch print List<Object>; an unproven write keeps Object
 function javaJ8CopyLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzj8selftest${process.pid}.ts`);
@@ -6398,20 +4062,14 @@ function javaJ8CopyLocalsSelfTest (): string[] {
         if (!/a = \(Long\) /.test(out) && !/a = \(this\.milliseconds\(\) - \(+30L \* 24L\)/.test(out)) problems.push("'a' Long-arithmetic write needs a Long checkcast or native long arithmetic");
         if (!/Long b = limit;/.test(out) || !/b = 200L;/.test(out)) problems.push("'b' (Long copy + int literal write) must print Long and a 200L write");
         if (!/List<Object> d = /.test(out) || !/d = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'d' (Array.isArray-guarded write) must print List<Object> with a checkcast");
-        for (const name of [ 'c', 'e' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write and must stay Object`);
-        }
+        for (const name of [ 'c', 'e' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write and must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// Scalar-proven locals compared to each other print a value compare; a typed-param callee declared above its caller
-// still reads the caller's typed local
+// Scalar-proven locals compared to each other print a value compare; a typed-param callee declared above its caller still reads the caller's typed local
 function javaParamTypesPreScanSelfTest (): string[] {
     return javaProbeCases({ cls: 'zzj15selftest', output: true, members: [
         "    zzjHelper (code: string) { return code.length; }",
@@ -6456,7 +4114,6 @@ function javaStringReturnsSelfTest (): string[] {
         [ /public Object over\(/, true, "over is redeclared by a descendant and must stay Object" ],
     ] });
 }
-
 // Ordered comparisons / Math.max-min over non-null numeric expressions (runs after the typed arithmetic + long-limit passes)
 function nonNullCompareSplitTop (text: string): { left: string, op: string, right: string } | undefined {
     let depth = 0, quote = '', at = -1, op = '';
@@ -6476,17 +4133,13 @@ function nonNullCompareSplitTop (text: string): { left: string, op: string, righ
     if (at === -1) return undefined;
     return { left: text.slice (0, at).trim (), op, right: text.slice (at + 3).trim () };
 }
-
 export function nonNullCompareOperand (text: string, member: string, fields: Set<string>, content: string, depth = 0): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
     const base = orderedCompareOperand (text, member, fields);
     if (base !== undefined || depth > 8) return base;
     const inner = orderedCompareStripParens (text);
     const prim = (kind: string) => ({ kind, boxed: false, text: '(' + inner + ')' });
     const cast = inner.match (/^\((long|int|double)\) ?(.+)$/);
-    if (cast !== null) {
-        const o = nonNullCompareOperand (cast[2], member, fields, content, depth + 1);
-        return o === undefined ? undefined : prim (cast[1] === 'double' ? 'double' : 'long');
-    }
+    if (cast !== null) { const o = nonNullCompareOperand (cast[2], member, fields, content, depth + 1); return o === undefined ? undefined : prim (cast[1] === 'double' ? 'double' : 'long'); }
     // requireNonNullElse(<declared numeric>, <literal of the same kind>) is that kind, never null
     const rnn = inner.match (/^java\.util\.Objects\.requireNonNullElse\(/);
     if (rnn !== null && promiseAllClose (inner, rnn[0].length - 1) === inner.length - 1) {
@@ -6505,8 +4158,7 @@ export function nonNullCompareOperand (text: string, member: string, fields: Set
     }
     // hand-written base members returning a non-null long / int (no venue redeclaration)
     const call = inner.match (/^this\.(milliseconds|seconds|parseTimeframe)\(/);
-    if (call !== null && promiseAllClose (inner, call[0].length - 1) === inner.length - 1
-        && !new RegExp ('^    (?:public|private|protected)[^\\n(]* ' + call[1] + '\\(', 'm').test (content)) return prim ('long');
+    if (call !== null && promiseAllClose (inner, call[0].length - 1) === inner.length - 1 && !new RegExp ('^    (?:public|private|protected)[^\\n(]* ' + call[1] + '\\(', 'm').test (content)) return prim ('long');
     if (/^Helpers\.getArrayLength\(/.test (inner) && promiseAllClose (inner, 'Helpers.getArrayLength'.length) === inner.length - 1) return prim ('long');
     if (/\.(?:size|length)\(\)$/.test (inner) && !/\s/.test (inner.replace (/\([^()]*\)/g, ''))) return prim ('long');
     const mm = inner.match (/^Math\.(?:min|max)\(/);
@@ -6519,7 +4171,6 @@ export function nonNullCompareOperand (text: string, member: string, fields: Set
     }
     return undefined;
 }
-
 // the expression's Java type is long (Long box once stored): the result box of a native Math.max/min
 function nonNullCompareLongValued (text: string, member: string, depth = 0): boolean {
     const e = orderedCompareStripParens (text);
@@ -6532,17 +4183,14 @@ function nonNullCompareLongValued (text: string, member: string, depth = 0): boo
     const bin = nonNullCompareSplitTop (e);
     return bin !== undefined && (nonNullCompareLongValued (bin.left, member, depth + 1) || nonNullCompareLongValued (bin.right, member, depth + 1));
 }
-
 // Helpers.mathMax/mathMin hand back one operand's box: native only for two non-null long-valued operands
 function nonNullCompareMathNative (helper: string, l, r, args: string[], member: string): string | undefined {
     if (l.kind !== 'long' || r.kind !== 'long' || l.boxed || r.boxed) return undefined;
     const wide = (o) => (o.literal && !/L$/.test (o.text) ? o.text + 'L' : o.text);
     // an int-valued non-literal side would turn the helper's Integer result into a Long
-    if (!args.every ((a, k) => [ l, r ][k].literal || nonNullCompareLongValued (a, member))) return undefined;
-    if (!args.some ((a) => nonNullCompareLongValued (a, member))) return undefined;
+    if (!args.every ((a, k) => [ l, r ][k].literal || nonNullCompareLongValued (a, member)) || !args.some ((a) => nonNullCompareLongValued (a, member))) return undefined;
     return `Math.${helper === 'mathMax' ? 'max' : 'min'}(${wide (l)}, ${wide (r)})`;
 }
-
 export function nativeJavaNonNullCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
     const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)|mathMin|mathMax)\(/g;
@@ -6553,7 +4201,6 @@ export function nativeJavaNonNullCompare (content: string): string {
         return m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, args, member) : orderedCompareNative (m[1].replace (/^is/, ''), l, r);
     });
 }
-
 function javaNonNullCompareSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
@@ -6577,9 +4224,7 @@ function javaNonNullCompareSelfTest (): string[] {
     ];
     return runSnippetCases(cases, member, nativeJavaNonNullCompare, (name, out) => `compare ${name}: ${out.slice (0, 400)}`);
 }
-
-// The unwritten first parameter of parseWsOrderStatus compared to,
-// divided or mod-ed with an integer literal prints a double compare carrying the helper's null arm
+// The unwritten first parameter of parseWsOrderStatus compared to, divided or mod-ed with an integer literal prints a double compare carrying the helper's null arm
 function javaParamCompareSelfTest (): string[] {
     const problems: string[] = [];
     const head = '    public Object parseWsOrderStatus(Object code, Object reason)\n    {\n';
@@ -6593,19 +4238,13 @@ function javaParamCompareSelfTest (): string[] {
         [ '        Object t = Helpers.mod(1000, code);', '(code == null ? null : ((double) 1000) % ((Number) code).doubleValue())' ],
     ];
     for (const [ body, expect ] of pos) if (!run (body).includes (expect)) problems.push (`java param compare self test expected ${expect} in\n${run (body)}`);
-    const neg = [
-        '        code = this.safeInteger(reason, "c");\n        if (Helpers.isEqual(code, 418)) {}',
-        '        if (Helpers.isEqual(reason, 418)) {}',
-        '        if (Helpers.isEqual(code, other)) {}',
-    ];
+    const neg = [ '        code = this.safeInteger(reason, "c");\n        if (Helpers.isEqual(code, 418)) {}', '        if (Helpers.isEqual(reason, 418)) {}', '        if (Helpers.isEqual(code, other)) {}', ];
     for (const body of neg) if (run (body) !== head + body + '\n    }\n') problems.push (`must keep the helper in\n${body}`);
     const other = '    public Object fetchX(Object code)\n    {\n        if (Helpers.isEqual(code, 1)) {}\n    }\n';
     if (nativeJavaParamCompare (other) !== other) problems.push ('other methods keep the helper');
     return problems;
 }
-
-// The transpiled bodies of BaseExchange.java / Exchange.java / PredictionExchange.java
-// get the same native post-passes createJavaClass runs on exchange files, in the same order
+// The transpiled bodies of BaseExchange.java / Exchange.java / PredictionExchange.java get the same native post-passes createJavaClass runs on exchange files, in the same order
 function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: string): string {
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
@@ -6628,9 +4267,7 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     content = nativeJavaInlineCompare(nativeJavaInlineDivModNeg(content));
     return content;
 }
-
-// the single declared type of a name in a printed member (params included); undefined when the name
-// is shadowed by a lambda parameter or declared with mixed types. Memoised per member.
+// the single declared type of a name in a printed member (params included); undefined when the name is shadowed by a lambda parameter or declared with mixed types. Memoised per me...
 function memberDeclaredTypeOf (member: string, skipYield = false): (name: string) => string | undefined {
     const typeCache = new Map<string, string | undefined> ();
     const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', ...(skipYield ? [ 'yield' ] : []) ];
@@ -6638,19 +4275,14 @@ function memberDeclaredTypeOf (member: string, skipYield = false): (name: string
         if (typeCache.has (name)) return typeCache.get (name);
         const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
         const types = new Set<string> ();
-        for (const m of member.matchAll (re)) {
-            const t = m[1].replace (/^final /, '');
-            if (!keywords.includes (t)) types.add (t);
-        }
+        for (const m of member.matchAll (re)) { const t = m[1].replace (/^final /, ''); if (!keywords.includes (t)) types.add (t); }
         const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
         const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
         typeCache.set (name, out);
         return out;
     };
 }
-
-// Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already
-// prints the slot type: a name the member declares that type only, or a base call that returns it.
+// Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already prints the slot type: a name the member declares that type only, or a base call ...
 export function nativeJavaCoreArgIdentities (content: string): string {
     const H = /Helpers\.(toMapArg|toStringArg|toLongOrNull|toStringListArg)\(/;
     if (!H.test (content)) return content;
@@ -6667,8 +4299,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
         for (let k = open; k < text.length; k++) {
             const c = text[k];
             if (c === '"') { for (k++; k < text.length && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
-            if (c === '(') depth++;
-            else if (c === ')' && --depth === 0) return k;
+            if (c === '(') depth++; else if (c === ')' && --depth === 0) return k;
         }
         return -1;
     };
@@ -6720,17 +4351,12 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                 at = close + 1;
                 re.lastIndex = close + 1;
             }
-            if (at > 0) {
-                lines[i] = out + line.slice (at);
-                changed = true;
-            }
+            if (at > 0) { lines[i] = out + line.slice (at); changed = true; }
         }
     }
     return changed ? lines.join ('\n') : content;
 }
-
-// Test printer: Map-locals retype + core-arg passes over generated test classes (members sit one level deeper than in exchanges),
-// and a list literal handed to callDynamically already is a List, so its toStringListArg is dropped.
+// Test printer: Map-locals retype + core-arg passes over generated test classes (members sit one level deeper than in exchanges), and a list literal handed to callDynamically alre...
 export function nativeJavaTestCoreArgs (content: string): string {
     if (!/Helpers\.(?:toMapArg|toStringListArg)\(/.test (content)) return content;
     const lines = content.split ('\n');
@@ -6741,12 +4367,9 @@ export function nativeJavaTestCoreArgs (content: string): string {
     if (done.length !== lines.length) return content;
     return done.map ((l, i) => {
         l = deep[i] ? '    ' + l : l;
-        return l.includes ('Helpers.callDynamically(')
-            ? l.replace (/Helpers\.toStringListArg\((new (?:java\.util\.)?ArrayList<Object>\((?:java\.util\.)?Arrays\.asList\(\w+\)\))\)/g, '$1')
-            : l;
+        return l.includes ('Helpers.callDynamically(') ? l.replace (/Helpers\.toStringListArg\((new (?:java\.util\.)?ArrayList<Object>\((?:java\.util\.)?Arrays\.asList\(\w+\)\))\)/g, '$1') : l;
     }).join ('\n');
 }
-
 function javaCoreArgIdentitiesSelfTest (): string[] {
     const problems: string[] = [];
     const body = [
@@ -6774,7 +4397,6 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
     if (!sd.includes ('return this.h(this.safeDict(p, "k", null), Helpers.toMapArg(this.safeDict(p, "k", d)));')) problems.push('only a null-default safeDict drops its toMapArg wrapper');
     return problems;
 }
-
 // Snippet checks for the extended native arithmetic pass (`--audit-string-types --self-test`)
 function javaPrimitiveArithmeticSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s, Double d)\n    {\n${body}\n    }\n`;
@@ -6802,7 +4424,6 @@ function javaPrimitiveArithmeticSelfTest (): string[] {
     ];
     return runSnippetCases(cases, member, nativeJavaPrimitiveArithmetic, (name, out) => `arithmetic: ${name}\n${out}`);
 }
-
 // Snippet checks for the Object-local retype that lets the primitive arithmetic go native
 function javaNumericLocalsRetypeSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s)\n    {\n        Long now = this.milliseconds();\n        int duration = 60;\n${body}\n    }\n`;
@@ -6819,34 +4440,24 @@ function javaNumericLocalsRetypeSelfTest (): string[] {
     ];
     return runSnippetCases(cases, member, nativeJavaNumericLocalsRetype, (name, out) => `arithmetic: ${name}\n${out}`);
 }
-
-// Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared
-// name, a 2-arg extend, omit of a Map, Pair.second() of a Map slot, or slot 1 of an audited tuple
-// producer) print `java.util.Map<String, Object>`; the core-arg pass then drops their toMapArg identity wrappers.
-// tuple producers -> index of the params argument slot 1 echoes (or omits from); -1 = always a Map
+// Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared name, a 2-arg extend, omit of a Map, Pair.second() of a Map slot, or slot 1 of ...
 function slotOneMapProducers (): Record<string, { params: number, venue?: string }> {
     return {
-    handlePostOnly: { params: 2 }, handleParamBool: { params: 0 }, handleParamBool2: { params: 0 },
-    handleParamString: { params: 0 }, handleParamString2: { params: 0 },
-    handleOptionAndParams: { params: 0 }, handleOptionAndParams2: { params: 0 },
-    handleProductTypeAndParams: { params: -1, venue: 'Bitget' }, handleUTAAndParams: { params: -1, venue: 'Bitget' },
-    handleDeriveSubaccountId: { params: -1, venue: 'Derive' }, parseCreateEditOrderArgs: { params: -1, venue: 'Hyperliquid' },
-    requestWalletHistoryRows: { params: -1, venue: 'Btse' }, prepareRequest: { params: -1, venue: 'Gate' },
-    handleApiKeyIndex: { params: 0, venue: 'Lighter' }, handleAccountIndex: { params: 0, venue: 'Lighter' },
+        handlePostOnly: { params: 2 }, handleParamBool: { params: 0 }, handleParamBool2: { params: 0 }, handleParamString: { params: 0 }, handleParamString2: { params: 0 }, handleOptionAndParams: { params: 0 },
+        handleOptionAndParams2: { params: 0 }, handleProductTypeAndParams: { params: -1, venue: 'Bitget' }, handleUTAAndParams: { params: -1, venue: 'Bitget' },
+        handleDeriveSubaccountId: { params: -1, venue: 'Derive' }, parseCreateEditOrderArgs: { params: -1, venue: 'Hyperliquid' }, requestWalletHistoryRows: { params: -1, venue: 'Btse' },
+        prepareRequest: { params: -1, venue: 'Gate' }, handleApiKeyIndex: { params: 0, venue: 'Lighter' }, handleAccountIndex: { params: 0, venue: 'Lighter' },
     };
 }
-
 function memberCloseParen (text: string, open: number): number {
     let depth = 0;
     for (let k = open; k < text.length; k++) {
         const c = text[k];
         if (c === '"') { for (k++; k < text.length && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if ((c === ')' || c === ']' || c === '}') && --depth === 0) return k;
+        if (c === '(' || c === '[' || c === '{') depth++; else if ((c === ')' || c === ']' || c === '}') && --depth === 0) return k;
     }
     return -1;
 }
-
 // end of the statement starting at `from` (a depth-0 `;`), strings, `//` comments and `{{ }}` bodies skipped
 function memberStatementEnd (text: string, from: number): number {
     let depth = 0;
@@ -6854,19 +4465,11 @@ function memberStatementEnd (text: string, from: number): number {
         const c = text[k];
         if (c === '"') { for (k++; k < text.length && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
         if (c === '/' && text[k + 1] === '/') { while (k < text.length && text[k] !== '\n') k++; continue; }
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') { if (--depth < 0) return -1; }
-        else if (c === ';' && depth === 0) return k;
+        if (c === '(' || c === '[' || c === '{') depth++; else if (c === ')' || c === ']' || c === '}') { if (--depth < 0) return -1; } else if (c === ';' && depth === 0) return k;
     }
     return -1;
 }
-
-function memberStripParens (e: string): string {
-    e = e.trim ();
-    while (e.startsWith ('(') && memberCloseParen (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
-    return e;
-}
-
+function memberStripParens (e: string): string { e = e.trim (); while (e.startsWith ('(') && memberCloseParen (e, 0) === e.length - 1) e = e.slice (1, -1).trim (); return e; }
 // top-level arguments of the call whose `(` is at text[open]
 function memberCallArgs (text: string, open: number): string[] | undefined {
     const close = memberCloseParen (text, open);
@@ -6877,14 +4480,12 @@ function memberCallArgs (text: string, open: number): string[] | undefined {
         const c = text[k];
         if (c === '"') { for (k++; k < close && text[k] !== '"'; k++) if (text[k] === '\\') k++; continue; }
         if (c === '(' || c === '[' || c === '{' || c === '<') depth++;
-        else if (c === ')' || c === ']' || c === '}' || (c === '>' && text[k - 1] !== '-')) depth--;
-        else if (c === ',' && depth === 0) { out.push (text.slice (at, k).trim ()); at = k + 1; }
+        else if (c === ')' || c === ']' || c === '}' || (c === '>' && text[k - 1] !== '-')) depth--; else if (c === ',' && depth === 0) { out.push (text.slice (at, k).trim ()); at = k + 1; }
     }
     const last = text.slice (at, close).trim ();
     if (last !== '') out.push (last);
     return out;
 }
-
 function memberSplitTernary (e: string): [string, string, string] | undefined {
     let depth = 0, q = -1;
     for (let k = 0; k < e.length; k++) {
@@ -6892,20 +4493,14 @@ function memberSplitTernary (e: string): [string, string, string] | undefined {
         if (c === '"') { for (k++; k < e.length && e[k] !== '"'; k++) if (e[k] === '\\') k++; continue; }
         if (c === '(' || c === '[' || c === '{') depth++;
         else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === '?' && depth === 0 && q === -1) q = k;
-        else if (c === ':' && depth === 0 && q !== -1) return [ e.slice (0, q), e.slice (q + 1, k), e.slice (k + 1) ];
+        else if (c === '?' && depth === 0 && q === -1) q = k; else if (c === ':' && depth === 0 && q !== -1) return [ e.slice (0, q), e.slice (q + 1, k), e.slice (k + 1) ];
     }
     return undefined;
 }
-
 // greatest fixpoint: drop every assumed name with a write `proves` rejects under the current set
 function shrinkAssumed<W> (assumed: Set<string>, writes: Map<string, W[]>, proves: (w: W, assumed: Set<string>) => boolean): void {
-    for (let changed = true; changed;) {
-        changed = false;
-        for (const n of [ ...assumed ]) if (!(writes.get (n) ?? []).every ((w) => proves (w, assumed))) { assumed.delete (n); changed = true; }
-    }
+    for (let changed = true; changed;) { changed = false; for (const n of [ ...assumed ]) if (!(writes.get (n) ?? []).every ((w) => proves (w, assumed))) { assumed.delete (n); changed = true; } }
 }
-
 function mapLocalsRetypeMember (member: string, className: string): string {
     if (!member.includes ('Helpers.toMapArg(')) return member;
     const header = member.split ('\n', 1)[0];
@@ -6921,15 +4516,11 @@ function mapLocalsRetypeMember (member: string, className: string): string {
     }
     const lambdaShadow = (n: string) => new RegExp (`(?:\\(|, )${n}\\) ->|(?<![\\w.])${n} ->`).test (member);
     const isParam = (n: string) => new RegExp (`[(,] ?(?:final )?[\\w.<>, ?]+ ${n}[,)]`).test (header);
-    const declaredMap = (n: string) => {
-        const t = declTypes.get (n);
-        return t !== undefined && t.length >= 1 && t.every ((x) => /^(?:java\.util\.)?Map<String, Object>$/.test (x)) && !lambdaShadow (n);
-    };
+    const declaredMap = (n: string) => { const t = declTypes.get (n); return t !== undefined && t.length >= 1 && t.every ((x) => /^(?:java\.util\.)?Map<String, Object>$/.test (x)) && !lambdaShadow (n); };
     // candidates: one `Object`/`var` declaration in the body, not a parameter, not lambda-shadowed
     const candidates = new Set<string> ();
     for (const [ n, t ] of declTypes) {
-        if (t.length === 1 && (t[0] === 'Object' || t[0] === 'var') && !isParam (n) && !lambdaShadow (n)
-            && new RegExp (`(?:^|[\\s;{])(?:Object|var) ${n} = `, 'm').test (member)) candidates.add (n);
+        if (t.length === 1 && (t[0] === 'Object' || t[0] === 'var') && !isParam (n) && !lambdaShadow (n) && new RegExp (`(?:^|[\\s;{])(?:Object|var) ${n} = `, 'm').test (member)) candidates.add (n);
     }
     if (candidates.size === 0) return member;
     // every write `[Object |var ]n = <rhs>;` of each candidate
@@ -6944,19 +4535,15 @@ function mapLocalsRetypeMember (member: string, className: string): string {
             if (end === -1) { ok = false; break; }
             list.push ({ start, end, rhs: member.slice (start, end) });
         }
-        // no inconvertible casts / instanceof on the local
-        // any cast but a Map one (or an instanceof) on the local could stop compiling or change meaning
-        for (const c of member.matchAll (new RegExp (`\\(([\\w.<>, ?]+)\\)\\s*\\(?\\s*${n}(?![\\w(])`, 'g'))) {
-            if (!/^(?:java\.util\.)?Map<(?:String, Object|\?, \?)>$/.test (c[1])) ok = false;
-        }
+        // no inconvertible casts / instanceof on the local any cast but a Map one (or an instanceof) on the local could stop compiling or change meaning
+        for (const c of member.matchAll (new RegExp (`\\(([\\w.<>, ?]+)\\)\\s*\\(?\\s*${n}(?![\\w(])`, 'g'))) { if (!/^(?:java\.util\.)?Map<(?:String, Object|\?, \?)>$/.test (c[1])) ok = false; }
         if (new RegExp (`(?<![\\w.])${n} instanceof `).test (member)) ok = false;
         if (ok && list.length > 0) writes.set (n, list); else candidates.delete (n);
     }
     // the holder `<h> = <producer call>` of a `((List<Object>) h).get(1)` read
     const holderCall = (h: string): { name: string, args: string[] } | undefined => {
         const m = new RegExp (`(?:^|[\\s;{])(?:var|List<Object>|java\\.util\\.List<Object>) ${h} = (?:\\((?:java\\.util\\.)?List<Object>\\) )?\\(?(this\\.(\\w+)\\()`, 'm').exec (member);
-        if (m === null) return undefined;
-        if ((declTypes.get (h) ?? []).length !== 1) return undefined;
+        if (m === null || (declTypes.get (h) ?? []).length !== 1) return undefined;
         const open = m.index + m[0].length - 1;
         const args = memberCallArgs (member, open);
         return args === undefined ? undefined : { name: m[2], args };
@@ -6979,10 +4566,7 @@ function mapLocalsRetypeMember (member: string, className: string): string {
             return false;
         }
         const second = /^([A-Za-z_]\w*)\.second\(\)$/.exec (e);
-        if (second !== null) {
-            const t2 = declTypes.get (second[1]);
-            return t2 !== undefined && t2.length === 1 && /^(?:io\.github\.ccxt\.types\.)?Pair<[\w.<>, ?]+, (?:java\.util\.)?Map<String, Object>>$/.test (t2[0]);
-        }
+        if (second !== null) { const t2 = declTypes.get (second[1]); return t2 !== undefined && t2.length === 1 && /^(?:io\.github\.ccxt\.types\.)?Pair<[\w.<>, ?]+, (?:java\.util\.)?Map<String, Object>>$/.test (t2[0]); }
         const slot = /^\(\((?:java\.util\.)?List<Object>\) ([A-Za-z_]\w*)\)\.get\(1\)$/.exec (e);
         if (slot !== null) {
             const holder = holderCall (slot[1]);
@@ -6999,11 +4583,7 @@ function mapLocalsRetypeMember (member: string, className: string): string {
     shrinkAssumed (assumed, writes, (w, a) => proves (w.rhs, a));
     // retype the toMapArg names and the candidates their proofs read (static omit/arg types must line up)
     const wanted = new Set<string> ();
-    const visit = (n: string) => {
-        if (wanted.has (n) || !assumed.has (n)) return;
-        wanted.add (n);
-        for (const w of writes.get (n) ?? []) for (const m of w.rhs.matchAll (/[A-Za-z_]\w*/g)) visit (m[0]);
-    };
+    const visit = (n: string) => { if (wanted.has (n) || !assumed.has (n)) return; wanted.add (n); for (const w of writes.get (n) ?? []) for (const m of w.rhs.matchAll (/[A-Za-z_]\w*/g)) visit (m[0]); };
     for (const m of member.matchAll (/Helpers\.toMapArg\(([A-Za-z_]\w*)\)/g)) visit (m[1]);
     if (wanted.size === 0) return member;
     const edits: { at: number, end: number, text: string }[] = [];
@@ -7025,14 +4605,12 @@ function mapLocalsRetypeMember (member: string, className: string): string {
     for (const e of edits) out = out.slice (0, e.at) + e.text + out.slice (e.end);
     return out;
 }
-
 export function nativeJavaMapLocalsRetype (content: string): string {
     if (!content.includes ('Helpers.toMapArg(')) return content;
     const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
     const className = cls === null ? '' : cls[1];
     return mapJavaMembers (content, false, (member) => mapLocalsRetypeMember (member, className)) ?? content;
 }
-
 // Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
 function javaMapLocalsRetypeSelfTest (): string[] {
     const cls = (body: string) => `public class Bitget extends BitgetApi\n{\n    public Object m(Map<String, Object> parameters, Object p)\n    {\n${body}\n    }\n}`;
@@ -7055,30 +4633,24 @@ function javaMapLocalsRetypeSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, (src) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (src)), (name, out) => `map locals: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
-
-// ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
-// or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
-// a declared Long/Integer/long/int/Double. Forms keep the helper's null table and its NaN answers (LT/LE true, GT/GE false).
+// ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method) or a `this.sum(..)` (Generic.sum: a non-null Long/Double...
 function numberParamTable (): Record<string, Record<string, string[]>> {
     return {
         'pro/Paradex': {
-            sbeReadUint: [ 'length' ], sbeReadVarStrings: [ 'count', 'frameLength' ], parseSbeTrade: [ 'blockLength' ],
-            parseSbeOrderBook: [ 'blockLength' ], parseSbeMarketSummary: [ 'blockLength' ], parseSbeFundingData: [ 'blockLength' ],
-            parseSbeOrder: [ 'blockLength' ], parseSbeFill: [ 'blockLength' ], parseSbePosition: [ 'blockLength' ], parseSbeAccount: [ 'blockLength' ],
+            sbeReadUint: [ 'length' ], sbeReadVarStrings: [ 'count', 'frameLength' ], parseSbeTrade: [ 'blockLength' ], parseSbeOrderBook: [ 'blockLength' ], parseSbeMarketSummary: [ 'blockLength' ],
+            parseSbeFundingData: [ 'blockLength' ], parseSbeOrder: [ 'blockLength' ], parseSbeFill: [ 'blockLength' ], parseSbePosition: [ 'blockLength' ], parseSbeAccount: [ 'blockLength' ],
         },
         'prediction/Opinion': { opinionOrderRawAmounts: [ 'decimals' ] },
         'prediction/Myriad': { fromWeiWithDecimals: [ 'decimals' ] },
         'prediction/Hyperliquid': { calculatePricePrecision: [ 'midPx' ] },
     };
 }
-
 function numberParamClassKey (content: string): string | undefined {
     const pkg = content.match (/^package io\.github\.ccxt\.exchanges(\.pro|\.prediction)?;$/m);
     const cls = content.match (/^public class (\w+) extends/m);
     if (pkg === null || cls === null) return undefined;
     return (pkg[1] === '.pro' ? 'pro/' : pkg[1] === '.prediction' ? 'prediction/' : '') + cls[1];
 }
-
 function nullSafeCompareNative (helper: string, l: { text: string, nullName?: string }, r: { text: string, nullName?: string }): string {
     const ln = l.nullName !== undefined ? `${l.nullName} == null` : undefined;
     const rn = r.nullName !== undefined ? `${r.nullName} == null` : undefined;
@@ -7096,7 +4668,6 @@ function nullSafeCompareNative (helper: string, l: { text: string, nullName?: st
     default: return wrap (or (ln, wrap (and (rnn, `!(${l.text} > ${r.text})`))));
     }
 }
-
 export function nativeJavaNumberParamCompare (content: string): string {
     if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
     const key = numberParamClassKey (content);
@@ -7125,23 +4696,16 @@ export function nativeJavaNumberParamCompare (content: string): string {
             const sum = inner.match (/^this\.sum\(/);
             if (sum !== null && !sumOverridden && promiseAllClose (inner, sum[0].length - 1) === inner.length - 1) return { text: `((Number) ${inner}).doubleValue()`, mine: true };
             if (/^-?\d{1,15}L?$/.test (inner)) return { text: inner, mine: false };
-            if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
-                const t = orderedCompareDeclaredType (member, inner, fields);
-                if (t !== undefined) return { text: inner, nullName: t.boxed ? inner : undefined, mine: false };
-            }
+            if (/^[A-Za-z_$][\w$]*$/.test (inner)) { const t = orderedCompareDeclaredType (member, inner, fields); if (t !== undefined) return { text: inner, nullName: t.boxed ? inner : undefined, mine: false }; }
             return undefined;
         };
         for (let k = i + 1; k < end; k++) {
-            lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
-                const l = operand (args[0]), r = operand (args[1]);
-                return l === undefined || r === undefined || !(l.mine || r.mine) ? undefined : nullSafeCompareNative (m[1], l, r);
-            });
+            lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => { const l = operand (args[0]), r = operand (args[1]); return l === undefined || r === undefined || !(l.mine || r.mine) ? undefined : nullSafeCompareNative (m[1], l, r); });
         }
         i = end;
     }
     return lines.join ('\n');
 }
-
 function javaNumberParamCompareSelfTest (): string[] {
     const cls = (pkg: string, name: string, member: string) => `package io.github.ccxt.exchanges${pkg};\n\npublic class ${name} extends X\n{\n${member}    }\n}\n`;
     const sbe = (body: string) => cls ('.pro', 'Paradex', `    public Map<String, Object> parseSbeTrade(Object frameHex, Object blockLength, Object frameLength)\n    {\n${body}\n`);
@@ -7160,9 +4724,7 @@ function javaNumberParamCompareSelfTest (): string[] {
     ];
     return runSnippetCases(cases, (src) => src, nativeJavaNumberParamCompare, (name, out) => `compare ${name}: ${out.slice (0, 600)}`);
 }
-
-// Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration
-// is io.github.ccxt.ws.WsOrderBook (a synchronized Map) or a List<String> read at a `for (var i` counter.
+// Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration is io.github.ccxt.ws.WsOrderBook (a synchronized Map) or a List<String> read at a `f...
 export function nativeJavaWsOrderBookContainers (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (content)) return content;
     const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
@@ -7176,8 +4738,7 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (member)) continue;
         const declaredType = memberDeclaredTypeOf (member);
-        const counter = (name: string): boolean => declaredType (name) === 'var'
-            && new RegExp (`\\bfor \\(var ${name} = \\d+;`).test (member);
+        const counter = (name: string): boolean => declaredType (name) === 'var' && new RegExp (`\\bfor \\(var ${name} = \\d+;`).test (member);
         for (let i = from; i < to; i++) {
             const line = lines[i];
             if (/^\s*(?:\/\/|\*)/.test (line)) continue;
@@ -7191,12 +4752,8 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
             next = next.replace (/Helpers\.GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)/g, (whole, recv, key) => {
                 const rt = declaredType (recv) ?? '';
                 // the helper reads a Map only for a String key it contains, else null
-                if (WS_BOOK.test (rt) && declaredType (key) === 'String') {
-                    return `(${recv} == null || ${key} == null || !${recv}.containsKey(${key}) ? null : ${recv}.get(${key}))`;
-                }
-                if (LIST_STRING.test (rt) && counter (key)) {
-                    return `(${recv} == null || ${key} < 0 || ${key} >= ${recv}.size() ? null : ${recv}.get(${key}))`;
-                }
+                if (WS_BOOK.test (rt) && declaredType (key) === 'String') { return `(${recv} == null || ${key} == null || !${recv}.containsKey(${key}) ? null : ${recv}.get(${key}))`; }
+                if (LIST_STRING.test (rt) && counter (key)) { return `(${recv} == null || ${key} < 0 || ${key} >= ${recv}.size() ? null : ${recv}.get(${key}))`; }
                 return whole;
             });
             if (next !== line) { lines[i] = next; changed = true; }
@@ -7204,7 +4761,6 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
     }
     return changed ? lines.join ('\n') : content;
 }
-
 // Snippet checks for the WsOrderBook / List<String> container pass (`--audit-string-types --self-test`)
 function javaWsOrderBookContainersSelfTest (): string[] {
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public void m(${sig})\n    {\n${body}\n    }\n}`;
@@ -7224,22 +4780,15 @@ function javaWsOrderBookContainersSelfTest (): string[] {
     const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
     return runSnippetCases(wrapped, (src) => src, nativeJavaWsOrderBookContainers, (name, out) => `containers: ${name}\n${out}`);
 }
-
-// Object/var locals whose every write proves one box: String / Long (`this.sum` of Long-or-int operands) /
-// List<String> retype so the core-arg pass drops toStringArg / toLongOrNull / toStringListArg; Boolean- and Integer-proven
-// locals turn isTrue / isEqual(x, intLiteral) into Boolean.TRUE.equals / Objects.equals.
+// Object/var locals whose every write proves one box: String / Long (`this.sum` of Long-or-int operands) / List<String> retype so the core-arg pass drops toStringArg / toLongOrNul...
 function boxLocalsBaseReturnTypes (): Record<string, string> {
     const s = 'String', l = 'Long';
     return {
-        safeString: s, safeString2: s, safeStringN: s, safeStringUpper: s, safeStringUpper2: s, safeStringLower: s,
-        safeStringLower2: s, symbol: s, marketId: s, safeSymbol: s, safeCurrencyCode: s, findTimeframe: s,
-        numberToString: s, iso8601: s, uuid: s, networkIdToCode: s,
-        safeInteger: l, safeInteger2: l, safeIntegerN: l, safeTimestamp: l, safeTimestamp2: l, parseToInt: l,
-        milliseconds: l, seconds: l, nonce: l, safeIntegerProduct: l,
-        marketSymbols: 'List<String>',
+        safeString: s, safeString2: s, safeStringN: s, safeStringUpper: s, safeStringUpper2: s, safeStringLower: s, safeStringLower2: s, symbol: s, marketId: s, safeSymbol: s, safeCurrencyCode: s,
+        findTimeframe: s, numberToString: s, iso8601: s, uuid: s, networkIdToCode: s, safeInteger: l, safeInteger2: l, safeIntegerN: l, safeTimestamp: l, safeTimestamp2: l, parseToInt: l, milliseconds: l,
+        seconds: l, nonce: l, safeIntegerProduct: l, marketSymbols: 'List<String>',
     };
 }
-
 function boxLocalsCoreArgsMember (member: string, content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (member)) return member;
     const header = member.split ('\n', 1)[0];
@@ -7254,10 +4803,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
     }
     const lambdaShadow = (n: string) => new RegExp (`(?:\\(|, )${n}\\) ->|(?<![\\w.])${n} ->`).test (member);
     const isParam = (n: string) => new RegExp (`[(,] ?(?:final )?[\\w.<>, ?]+ ${n}[,)]`).test (header);
-    const declaredAs = (n: string, re: RegExp) => {
-        const t = declTypes.get (n);
-        return t !== undefined && t.length === 1 && re.test (t[0]) && !lambdaShadow (n);
-    };
+    const declaredAs = (n: string, re: RegExp) => { const t = declTypes.get (n); return t !== undefined && t.length === 1 && re.test (t[0]) && !lambdaShadow (n); };
     // a base method name answers its table type only when this class declares no other return type for it
     const baseTypes = boxLocalsBaseReturnTypes ();
     const callType = (name: string): string | undefined => {
@@ -7268,8 +4814,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
     };
     const candidates = new Set<string> ();
     for (const [ n, t ] of declTypes) {
-        if (t.length === 1 && (t[0] === 'Object' || t[0] === 'var') && !isParam (n) && !lambdaShadow (n)
-            && new RegExp (`(?:^|[\\s;{])(?:Object|var) ${n}(?: = |;)`, 'm').test (member)) candidates.add (n);
+        if (t.length === 1 && (t[0] === 'Object' || t[0] === 'var') && !isParam (n) && !lambdaShadow (n) && new RegExp (`(?:^|[\\s;{])(?:Object|var) ${n}(?: = |;)`, 'm').test (member)) candidates.add (n);
     }
     const writes = new Map<string, string[]> ();
     const castsOf = new Map<string, string[]> ();
@@ -7305,9 +4850,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         if (t !== undefined) return depth < 4 && proves (kind, t[1], assumed, depth + 1) && proves (kind, t[2], assumed, depth + 1);
         if (kind === 'String' && /^"(?:[^"\\]|\\.)*"$/.test (e)) return true;
         if (kind === 'Integer') return INT_LIT.test (e) || (/\.size\(\)$/.test (e) && /^\(\(\(?(?:java\.util\.)?List<\?>\)\s*[A-Za-z_]\w*\)\)?\.size\(\)$|^[A-Za-z_]\w*\.size\(\)$/.test (e));
-        if (kind === 'Boolean') {
-            return e.startsWith ('!') && !e.startsWith ('!=');
-        }
+        if (kind === 'Boolean') { return e.startsWith ('!') && !e.startsWith ('!='); }
         const call = /^this\.(\w+)\(/.exec (e);
         if (call === null || memberCloseParen (e, call[0].length - 1) !== e.length - 1) return false;
         if (kind === 'Long' && call[1] === 'sum') {
@@ -7317,9 +4860,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         return callType (call[1]) === kind;
     };
     const kindOf: Record<string, Kind> = { toStringArg: 'String', toLongOrNull: 'Long', toStringListArg: 'List<String>' };
-    const castOk: Record<string, RegExp> = {
-        'String': /^String$/, 'Long': /^Long$/, 'List<String>': /^(?:java\.util\.)?List<(?:\?|String)>$/,
-    };
+    const castOk: Record<string, RegExp> = { 'String': /^String$/, 'Long': /^Long$/, 'List<String>': /^(?:java\.util\.)?List<(?:\?|String)>$/, };
     const edits: { at: number, end: number, text: string }[] = [];
     const retyped = new Set<string> ();
     for (const helper of Object.keys (kindOf)) {
@@ -7327,11 +4868,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         const assumed = new Set ([ ...candidates ].filter ((n) => !retyped.has (n) && (castsOf.get (n) ?? []).every ((c) => castOk[kind].test (c))));
         shrinkAssumed (assumed, writes, (w, a) => proves (kind, w, a));
         const wanted = new Set<string> ();
-        const visit = (n: string) => {
-            if (wanted.has (n) || !assumed.has (n)) return;
-            wanted.add (n);
-            for (const w of writes.get (n) ?? []) for (const m of w.matchAll (/[A-Za-z_]\w*/g)) visit (m[0]);
-        };
+        const visit = (n: string) => { if (wanted.has (n) || !assumed.has (n)) return; wanted.add (n); for (const w of writes.get (n) ?? []) for (const m of w.matchAll (/[A-Za-z_]\w*/g)) visit (m[0]); };
         for (const m of member.matchAll (new RegExp (`Helpers\\.${helper}\\(([A-Za-z_]\\w*)\\)`, 'g'))) visit (m[1]);
         for (const n of wanted) {
             const decl = new RegExp (`(^|[\\s;{])(Object|var) ${n}(?= = |;)`, 'm').exec (member);
@@ -7340,12 +4877,7 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
             edits.push ({ at, end: at + decl[2].length, text: kind === 'List<String>' ? 'java.util.List<String>' : kind });
             retyped.add (n);
             // a Long-proven `this.sum(..)` write is an Object-typed call: checkcast the known Long box
-            if (kind === 'Long') {
-                for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*=\\s*(?=this\\.sum\\()`, 'g'))) {
-                    const p = m.index + m[0].length;
-                    edits.push ({ at: p, end: p, text: '(Long) ' });
-                }
-            }
+            if (kind === 'Long') { for (const m of member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*=\\s*(?=this\\.sum\\()`, 'g'))) { const p = m.index + m[0].length; edits.push ({ at: p, end: p, text: '(Long) ' }); } }
         }
     }
     edits.sort ((a, b) => b.at - a.at);
@@ -7357,20 +4889,14 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
     shrinkAssumed (bAssumed, writes, (w, a) => proves ('Boolean', w, a));
     shrinkAssumed (iAssumed, writes, (w, a) => proves ('Integer', w, a));
     out = out.replace (/Helpers\.isTrue\(([A-Za-z_]\w*)\)/g, (all, n) => (bAssumed.has (n) || declaredAs (n, /^Boolean$/)) ? `Boolean.TRUE.equals(${n})` : all);
-    out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), (-?\d+)\)/g, (all, n, lit) => {
-        if (iAssumed.has (n) || declaredAs (n, /^Integer$/)) return `java.util.Objects.equals(${n}, ${lit})`;
-        if (declaredAs (n, /^Long$/)) return `(${n} != null && ${n} == ${lit}L)`;
-        return all;
-    });
+    out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), (-?\d+)\)/g, (all, n, lit) => { if (iAssumed.has (n) || declaredAs (n, /^Integer$/)) return `java.util.Objects.equals(${n}, ${lit})`; if (declaredAs (n, /^Long$/)) return `(${n} != null && ${n} == ${lit}L)`; return all; });
     return out;
 }
-
 export function nativeJavaBoxLocalsCoreArgs (content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (content)) return content;
     const out = mapJavaMembers (content, false, (member) => boxLocalsCoreArgsMember (member, content));
     return out === undefined ? content : nativeJavaCoreArgIdentities (out);
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaBoxLocalsCoreArgsSelfTest (): string[] {
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n)\n    {\n${body}\n    }\n}`;
@@ -7392,7 +4918,6 @@ function javaBoxLocalsCoreArgsSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaBoxLocalsCoreArgs, (name, out) => `java box locals core args: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
-
 // Snippet checks for multiply/subtract over Long/Integer/integral-Object locals (`--audit-string-types --self-test`)
 function javaIntegralMultiplySubtractSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Object o, Long since, Long limit, String s)\n    {\n        int duration = 60;\n${body}\n    }\n`;
@@ -7410,7 +4935,6 @@ function javaIntegralMultiplySubtractSelfTest (): string[] {
     ];
     return runSnippetCases(cases, member, nativeJavaIntegralMultiplySubtract, (name, out) => `arithmetic: ${name}\n${out}`);
 }
-
 // Snippet checks for native divide / mod / opNeg (`--audit-string-types --self-test`)
 function javaNumberDivModNegSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Long since, Object p, Double d)\n    {\n${body}\n    }\n`;
@@ -7431,19 +4955,14 @@ function javaNumberDivModNegSelfTest (): string[] {
     if (nativeJavaNumberDivModNeg (overridden) !== overridden) problems.push ('an overridden sum keeps the helper');
     return problems;
 }
-
-// ordered compares / mathMin / mathMax whose operands are Number-proven: Object/var locals whose every write is a number
-// literal, null, this.sum / milliseconds / parseToInt / safeInteger.. (base, not redeclared), a declared numeric, native
-// arithmetic, a Number-proven local or a ternary of those. Compares keep the helper's null/NaN table (nullSafeCompareNative).
+// ordered compares / mathMin / mathMax whose operands are Number-proven: Object/var locals whose every write is a number literal, null, this.sum / milliseconds / parseToInt / safe...
 function numberProvenCalls (): Record<string, boolean> {
     // name -> may return null
     return {
-        sum: false, milliseconds: false, seconds: false, parseTimeframe: false, parseToInt: true,
-        safeInteger: true, safeInteger2: true, safeIntegerN: true, safeTimestamp: true, safeTimestamp2: true,
+        sum: false, milliseconds: false, seconds: false, parseTimeframe: false, parseToInt: true, safeInteger: true, safeInteger2: true, safeIntegerN: true, safeTimestamp: true, safeTimestamp2: true,
         safeNumber: true, safeNumber2: true, safeNumberN: true,
     };
 }
-
 function numberProvenCompareMember (member: string, content: string, fields: Set<string>): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (member)) return member;
     const header = member.split ('\n', 1)[0];
@@ -7488,16 +5007,9 @@ function numberProvenCompareMember (member: string, content: string, fields: Set
         if (depth > 6) return undefined;
         if (e === 'null' || e === '(Object) null') return true;
         if (/^-?\d{1,15}L?$/.test (e) || /^-?\d{1,15}\.\d{1,15}$/.test (e)) return false;
-        if (/^[A-Za-z_$][\w$]*$/.test (e)) {
-            if (state.has (e)) return state.get (e);
-            const t = orderedCompareDeclaredType (member, e, fields);
-            return t === undefined ? undefined : t.boxed;
-        }
+        if (/^[A-Za-z_$][\w$]*$/.test (e)) { if (state.has (e)) return state.get (e); const t = orderedCompareDeclaredType (member, e, fields); return t === undefined ? undefined : t.boxed; }
         const tern = memberSplitTernary (e);
-        if (tern !== undefined) {
-            const a = prove (tern[1], depth + 1), b = prove (tern[2], depth + 1);
-            return a === undefined || b === undefined ? undefined : a || b;
-        }
+        if (tern !== undefined) { const a = prove (tern[1], depth + 1), b = prove (tern[2], depth + 1); return a === undefined || b === undefined ? undefined : a || b; }
         const call = /^this\.(\w+)\(/.exec (e);
         if (call !== null && memberCloseParen (e, call[0].length - 1) === e.length - 1) return callNullable (call[1]);
         const h = /^(?:Helpers\.(?:add|subtract|multiply|mathMin|mathMax)|java\.util\.Objects\.requireNonNullElse)\(/.exec (e);
@@ -7556,13 +5068,11 @@ function numberProvenCompareMember (member: string, content: string, fields: Set
     }
     return lines.join ('\n');
 }
-
 export function nativeJavaNumberProvenCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (content)) return content;
     const fields = javaClassFields (content.split ('\n'));
     return mapJavaMembers (content, true, (member) => numberProvenCompareMember (member, content, fields)) ?? content;
 }
-
 // Every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
 function urlsIsPlainMap (content: string): boolean {
     for (const m of content.matchAll (/\bthis\.urls\s*=(?!=)\s*([^;]*);/g)) {
@@ -7573,9 +5083,7 @@ function urlsIsPlainMap (content: string): boolean {
     }
     return !/\bConcurrentHashMap<[^>]*>\s*\([^)]*\)[^;]*\burls\b/.test (content);
 }
-
-// The cursor is written into a list element and the element stored back at its own index
-// (TS `first[k] = cursor; data[0] = first`). Inside the `cursor != null` / `size > 0` guards both helper calls are plain Map.put / List.set.
+// The cursor is written into a list element and the element stored back at its own index (TS `first[k] = cursor; data[0] = first`). Inside the `cursor != null` / `size > 0` guards...
 export function nativeJavaPaginationCursorPuts (content: string): string {
     if (!/\baddPaginationCursorToResult\(/.test (content)) return content;
     const lines = content.split ('\n');
@@ -7620,7 +5128,6 @@ export function nativeJavaPaginationCursorPuts (content: string): string {
     }
     return changed ? lines.join ('\n') : content;
 }
-
 export function javaPaginationCursorSelfTest (): string[] {
     const cls = (sig: string, body: string) => `public class X\n{\n    public List<Object> addPaginationCursorToResult(${sig})\n    {\n${body}\n        return data;\n    }\n}\n`;
     const guard = '        Integer dataLength = ((List<?>)data).size();\n        if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))\n        {\n';
@@ -7635,9 +5142,7 @@ export function javaPaginationCursorSelfTest (): string[] {
     const keepsHelper = (out: string) => out.includes ('Helpers.addElementToObject(first, "k", cursor)');
     return wrapped.flatMap ((c) => runSnippetCases ([ c ], (src) => src, nativeJavaPaginationCursorPuts, (name, out) => `pagination ${name}\n${out}`, (src) => src, c[0] === 'unguarded cursor keeps helper' ? keepsHelper : () => true));
 }
-
-// Helpers.addElementToObject / GetValue / inOp / objectKeys on locals declared once per member as Map<String, Object>.
-// put keeps the helper's ConcurrentHashMap null-remove semantics: a nullable value needs a provably fresh (non-concurrent) map.
+// Helpers.addElementToObject / GetValue / inOp / objectKeys on locals declared once per member as Map<String, Object>. put keeps the helper's ConcurrentHashMap null-remove semanti...
 export function nativeJavaMapLocalOps (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (content)) return content;
     const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
@@ -7678,9 +5183,7 @@ export function nativeJavaMapLocalOps (content: string): string {
                 const rhs = memberStripParens (member.slice (start, end).replace (/^\s*\((?:java\.util\.)?Map<String, Object>\)\s*/, ''));
                 writes++;
                 const call = /^this\.(extend|keysort|account)\(/.exec (rhs);
-                // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain
-                // raw.put on that LinkedHashMap/HashMap (safeTrade already puts natively into it), never a ConcurrentHashMap, so the helper's null-remove arm cannot fire.
-                // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
+                // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain raw.put on that LinkedHashMap/HashMap (safeTrade alre...
                 const typedCall = /^(?:this|super)\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade|safeMarketStructure)\(/.exec (rhs); // MarketInterface view over a fresh deepExtend LinkedHashMap
                 const typedView = typedCall !== null && memberCloseParen (rhs, typedCall[0].length - 1) === rhs.length - 1
                     && !new RegExp (`public (?!(?:io\\.github\\.ccxt\\.types\\.)?(?:${typedCall[1] === 'safeMarketStructure' ? 'MarketInterface' : 'Order|Trade'})\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
@@ -7773,9 +5276,7 @@ export function nativeJavaMapLocalOps (content: string): string {
     }
     return changed ? lines.filter ((l) => l !== '\u0000').join ('\n') : content;
 }
-
-// Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked,
-// isEqual on two integral-proven operands, isTrue on Java-boolean expressions, toMapArg on outcome() Map locals.
+// Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked, isEqual on two integral-proven operands,...
 function splitLineComment (line: string): [string, string] {
     for (let k = 0; k < line.length; k++) {
         const c = line[k];
@@ -7784,7 +5285,6 @@ function splitLineComment (line: string): [string, string] {
     }
     return [ line, '' ];
 }
-
 function commentMaskedRerun (content: string): string {
     const lines = content.split ('\n');
     const split = lines.map (splitLineComment);
@@ -7796,7 +5296,6 @@ function commentMaskedRerun (content: string): string {
     if (outLines.length !== lines.length) return content;
     return outLines.map ((l, i) => l + split[i][1]).join ('\n');
 }
-
 // Java expressions that are boolean by construction (`!x`, `&&`, `||`, `==`, `!=`, instanceof, boolean helpers)
 function isJavaBooleanExpr (e: string): boolean {
     e = memberStripParens (e);
@@ -7814,7 +5313,6 @@ function isJavaBooleanExpr (e: string): boolean {
     }
     return top || (e.startsWith ('!') && !e.startsWith ('!='));
 }
-
 function remainingCoreArgsMember (member: string, content: string): string {
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (member)) return member;
     const declTypes = new Map<string, string[]> ();
@@ -7846,26 +5344,17 @@ function remainingCoreArgsMember (member: string, content: string): string {
         && new RegExp (`(?:^|[\\s;{])Object ${n}(?: = |;)`, 'm').test (member)
         && !new RegExp (`(?<![\\w.])${n} instanceof |Helpers\\.add\\([^;]*(?<![\\w.])${n}(?![\\w(])`).test (member);
     // `for (var i = <int>; ..; i++)` counters only ever hold an int
-    const counter = (n: string) => single (n) === 'var' && new RegExp (`for \\(var ${n} = -?\\d+;`).test (member)
-        && writeOps (n).every ((m, k) => (k === 0 && m[1] === '=') || m[1] === '++');
+    const counter = (n: string) => single (n) === 'var' && new RegExp (`for \\(var ${n} = -?\\d+;`).test (member) && writeOps (n).every ((m, k) => (k === 0 && m[1] === '=') || m[1] === '++');
     const baseTypes = boxLocalsBaseReturnTypes ();
-    const longCall = (name: string) => {
-        if (baseTypes[name] !== 'Long') return false;
-        return !new RegExp (`^    (?:public|protected|private) (?!Long )[\\w.<>, ?]+ ${name}\\(`, 'm').test (content);
-    };
-    const mapCall = (name: string) => (name === 'outcome' || name === 'loadOutcome')
-        && !new RegExp (`^    (?:public|protected|private) [\\w.<>, ?]+ ${name}\\(`, 'm').test (content);
+    const longCall = (name: string) => { if (baseTypes[name] !== 'Long') return false; return !new RegExp (`^    (?:public|protected|private) (?!Long )[\\w.<>, ?]+ ${name}\\(`, 'm').test (content); };
+    const mapCall = (name: string) => (name === 'outcome' || name === 'loadOutcome') && !new RegExp (`^    (?:public|protected|private) [\\w.<>, ?]+ ${name}\\(`, 'm').test (content);
     // integral proof: 'p' primitive long/int, 'L' nullable Long, 'N' nullable Integer/Object, 'n' non-null Integer/Object
     type IK = 'p' | 'L' | 'N' | 'n';
     const INT = /^-?\d+$/;
     const intKind = new Map<string, IK> ();
     const objAssumed = new Set<string> ();
     const writesCache = new Map<string, string[]> ();
-    for (const [ n ] of declTypes) {
-        if (!candidate (n)) continue;
-        const w = writesOf (n);
-        if (w !== undefined && w.length > 0) { objAssumed.add (n); writesCache.set (n, w); }
-    }
+    for (const [ n ] of declTypes) { if (!candidate (n)) continue; const w = writesOf (n); if (w !== undefined && w.length > 0) { objAssumed.add (n); writesCache.set (n, w); } }
     const nameKind = (n: string): IK | undefined => {
         if (intKind.has (n)) return intKind.get (n);
         const t = single (n);
@@ -7882,11 +5371,7 @@ function remainingCoreArgsMember (member: string, content: string): string {
         if (INT.test (e) || /^-?\d+L$/.test (e)) return false;
         if (/^[A-Za-z_]\w*$/.test (e)) { const k = nameKind (e); return k === undefined ? undefined : (k === 'L' || k === 'N'); }
         const t = memberSplitTernary (e);
-        if (t !== undefined) {
-            if (depth > 3) return undefined;
-            const a = exprNullable (t[1], depth + 1), b = exprNullable (t[2], depth + 1);
-            return a === undefined || b === undefined ? undefined : (a || b);
-        }
+        if (t !== undefined) { if (depth > 3) return undefined; const a = exprNullable (t[1], depth + 1), b = exprNullable (t[2], depth + 1); return a === undefined || b === undefined ? undefined : (a || b); }
         if (/^\(\(\(?(?:java\.util\.)?List<[\w?]+>\)\s*\(?[\w.]+\)\)?\.size\(\)$|^[A-Za-z_]\w*\.size\(\)$/.test (e)) return false;
         const arith = /^([A-Za-z_]\w*) [*+-] \d+L$/.exec (e);
         if (arith !== null) { const k = nameKind (arith[1]); return k === 'p' || k === 'L' ? false : undefined; }
@@ -7901,8 +5386,7 @@ function remainingCoreArgsMember (member: string, content: string): string {
         for (const n of [ ...objAssumed ]) {
             const ks = writesCache.get (n)!.map ((w) => exprNullable (w));
             const k: IK | undefined = ks.some ((x) => x === undefined) ? undefined : ks.some ((x) => x) ? 'N' : 'n';
-            if (k === undefined) { objAssumed.delete (n); intKind.delete (n); changed = true; }
-            else if (intKind.get (n) !== k) { intKind.set (n, k); changed = true; }
+            if (k === undefined) { objAssumed.delete (n); intKind.delete (n); changed = true; } else if (intKind.get (n) !== k) { intKind.set (n, k); changed = true; }
         }
     }
     const operand = (raw: string): { prim: string, boxed: string } | undefined => {
@@ -7933,8 +5417,7 @@ function remainingCoreArgsMember (member: string, content: string): string {
             out = out.slice (0, i) + text + out.slice (close + 1);
         }
         // this.rateLimit / this.rollingWindowSize are hand-written `double` fields: `==` matches the numeric compare
-        out = out.replace (/Helpers\.isEqual\(this\.(rateLimit|rollingWindowSize), (-?\d+)\)/g, (all, f, lit) =>
-            new RegExp (`^    (?:public |protected |private )?(?!double )[\\w.<>]+ ${f}\\b`, 'm').test (content) ? all : `(this.${f} == ${lit})`);
+        out = out.replace (/Helpers\.isEqual\(this\.(rateLimit|rollingWindowSize), (-?\d+)\)/g, (all, f, lit) => new RegExp (`^    (?:public |protected |private )?(?!double )[\\w.<>]+ ${f}\\b`, 'm').test (content) ? all : `(this.${f} == ${lit})`);
     }
     if (out.includes ('Helpers.toMapArg(')) {
         // Object locals written only from outcome()/loadOutcome().join() (Map<String, Object>) or null retype to Map
@@ -7956,21 +5439,16 @@ function remainingCoreArgsMember (member: string, content: string): string {
             if (w !== undefined && w.length > 0 && w.every (mapWrite) && casts.every ((c) => /^(?:Object|(?:java\.util\.)?Map<(?:String, Object|\?, \?)>)$/.test (c))) retype.add (n);
         }
         for (const n of retype) out = out.replace (new RegExp (`(^|[\\s;{])Object ${n}(?= = |;)`, 'm'), `$1java.util.Map<String, Object> ${n}`);
-        out = out.replace (/Helpers\.toMapArg\(\(\(Object\)([A-Za-z_]\w*)\)\)/g, (all, n) => {
-            const t = retype.has (n) ? 'java.util.Map<String, Object>' : single (n);
-            return t !== undefined && /^(?:java\.util\.)?Map<String, Object>$/.test (t) ? n : all;
-        });
+        out = out.replace (/Helpers\.toMapArg\(\(\(Object\)([A-Za-z_]\w*)\)\)/g, (all, n) => { const t = retype.has (n) ? 'java.util.Map<String, Object>' : single (n); return t !== undefined && /^(?:java\.util\.)?Map<String, Object>$/.test (t) ? n : all; });
     }
     return out;
 }
-
 export function nativeJavaRemainingCoreArgs (content: string): string {
     const out = commentMaskedRerun (content);
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
     const parts = mapJavaMembers (out, false, (member) => remainingCoreArgsMember (member, out));
     return parts === undefined ? out : nativeJavaCoreArgIdentities (parts);
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaInlineDivModNegSelfTest (): string[] {
     const member = (body: string) => `    public Object m(Object p, Object d)\n    {\n${body}\n    }\n`;
@@ -7986,9 +5464,7 @@ function javaInlineDivModNegSelfTest (): string[] {
     if (nativeJavaInlineDivModNeg (other) !== other) problems.push ('a foreign divide must stay');
     return problems;
 }
-
-// Every remaining Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual/mathMin/mathMax
-// call prints as an inline lambda that replays the helper's own dispatch (null, Integer->Long, isNumber, NaN, String, original box).
+// Every remaining Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual/mathMin/mathMax call prints as an inline lambda that replays the helper's own dispatch (n...
 function inlineCompareLambda (helper: string, a: string, b: string): string {
     const num = 'java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } };';
     const dbl = 'java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } };';
@@ -8002,20 +5478,15 @@ function inlineCompareLambda (helper: string, a: string, b: string): string {
     const ret = { isGreaterThan: 'j38g', ['is' + 'LessThan']: '!j38g && !j38e', isGreaterThanOrEqual: 'j38g || j38e', isLessThanOrEqual: '(!j38g && !j38e) || j38e' }[helper];
     return `((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { ${num} ${dbl} ${gt}${helper === 'isGreaterThan' ? '' : ' ' + eq} return ${ret}; }).test(${a}, ${b})`;
 }
-
 export function nativeJavaInlineCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
     const re = /\bHelpers\.(isGreaterThanOrEqual|isLessThanOrEqual|isGreaterThan|isLessThan|mathMin|mathMax)\(/g;
     const lines = content.split ('\n');
     for (let i = 0; i < lines.length; i++) {
-        lines[i] = rewriteHelperCalls (lines[i], re, (m, args, line) => {
-            const before = line.slice (0, m.index);
-            return before.includes ('//') || (before.split ('"').length - 1) % 2 === 1 ? undefined : inlineCompareLambda (m[1], args[0], args[1]);
-        });
+        lines[i] = rewriteHelperCalls (lines[i], re, (m, args, line) => { const before = line.slice (0, m.index); return before.includes ('//') || (before.split ('"').length - 1) % 2 === 1 ? undefined : inlineCompareLambda (m[1], args[0], args[1]); });
     }
     return lines.join ('\n');
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaInlineCompareSelfTest (): string[] {
     const cases: [string, string][] = [
@@ -8028,37 +5499,28 @@ function javaInlineCompareSelfTest (): string[] {
     if (nativeJavaInlineCompare (cases[0][0]).includes ('Helpers.')) problems.push ('nested helper left behind');
     return problems;
 }
-
-// getArrayLength / inOp / objectKeys / newMap -> inline Java with the exact dispatch of Helpers.java; addElementToObject /
-// GetValue -> native Map/List operations on receivers declared Map<String, Object> / List<Object> (fields, locals, casts).
+// getArrayLength / inOp / objectKeys / newMap -> inline Java with the exact dispatch of Helpers.java; addElementToObject / GetValue -> native Map/List operations on receivers decl...
 function javaMapCacheFields (): Set<string> {
     return new Set ([ 'options', 'urls', 'has', 'features', 'api', 'exceptions', 'headers', 'commonCurrencies', 'markets_by_id', 'baseCurrencies', 'quoteCurrencies', 'transformedApi', 'userAgents' ]);
 }
-
 // end of the string / char literal or comment starting at k (index of its last char), or -1 when text[k] starts none
 function containerOpsSkipLiteral (t: string, k: number): number {
     const c = t[k];
-    if (c === '"' || c === '\'') {
-        for (let j = k + 1; j < t.length; j++) { if (t[j] === '\\') j++; else if (t[j] === c) return j; }
-        return t.length - 1;
-    }
+    if (c === '"' || c === '\'') { for (let j = k + 1; j < t.length; j++) { if (t[j] === '\\') j++; else if (t[j] === c) return j; } return t.length - 1; }
     if (c === '/' && t[k + 1] === '/') { const e = t.indexOf ('\n', k); return e === -1 ? t.length - 1 : e - 1; }
     if (c === '/' && t[k + 1] === '*') { const e = t.indexOf ('*/', k + 2); return e === -1 ? t.length - 1 : e + 1; }
     return -1;
 }
-
 function containerOpsClose (t: string, open: number): number {
     let depth = 0;
     for (let k = open; k < t.length; k++) {
         const s = containerOpsSkipLiteral (t, k);
         if (s !== -1) { k = s; continue; }
         const c = t[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if ((c === ')' || c === ']' || c === '}') && --depth === 0) return k;
+        if (c === '(' || c === '[' || c === '{') depth++; else if ((c === ')' || c === ']' || c === '}') && --depth === 0) return k;
     }
     return -1;
 }
-
 // top-level comma split of t; generic argument lists (`HashMap<String, Object>`) are one token
 function containerOpsSplitArgs (t: string): string[] {
     const out: string[] = [];
@@ -8067,27 +5529,15 @@ function containerOpsSplitArgs (t: string): string[] {
         const s = containerOpsSkipLiteral (t, k);
         if (s !== -1) { k = s; continue; }
         const c = t[k];
-        if (c === '<' && /[\w]/.test (t[k - 1] ?? '')) {
-            const g = /^<[\w.?,\s<>]*>/.exec (t.slice (k));
-            if (g !== null) { k += g[0].length - 1; continue; }
-        }
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ',' && depth === 0) { out.push (t.slice (at, k).trim ()); at = k + 1; }
+        if (c === '<' && /[\w]/.test (t[k - 1] ?? '')) { const g = /^<[\w.?,\s<>]*>/.exec (t.slice (k)); if (g !== null) { k += g[0].length - 1; continue; } }
+        if (c === '(' || c === '[' || c === '{') depth++; else if (c === ')' || c === ']' || c === '}') depth--; else if (c === ',' && depth === 0) { out.push (t.slice (at, k).trim ()); at = k + 1; }
     }
     const last = t.slice (at).trim ();
     if (last !== '' || out.length > 0) out.push (last);
     return out;
 }
-
-function containerOpsUnparen (e: string): string {
-    e = e.trim ();
-    while (e.startsWith ('(') && containerOpsClose (e, 0) === e.length - 1) e = e.slice (1, -1).trim ();
-    return e;
-}
-
-// A newMap literal whose statement evaluates nothing before it (only casts, first-argument call openers and
-// local/literal leading args; no field reads that the values could reorder) becomes statement-level puts on a fresh local instead of a `switch (0)` blob.
+function containerOpsUnparen (e: string): string { e = e.trim (); while (e.startsWith ('(') && containerOpsClose (e, 0) === e.length - 1) e = e.slice (1, -1).trim (); return e; }
+// A newMap literal whose statement evaluates nothing before it (only casts, first-argument call openers and local/literal leading args; no field reads that the values could reorde...
 function containerOpsHoistPrefix (): RegExp {
     const pureArg = String.raw`(?:"(?:[^"\\]|\\.)*"|\d+L?|(?:\(String\))?[A-Za-z_]\w*), `;
     return new RegExp (String.raw`^[ \t]*(?:return |[\w.]+(?:<[\w.?, <>]*>)? [A-Za-z_]\w* = |[A-Za-z_]\w* = )?`
@@ -8110,16 +5560,10 @@ function containerOpsHoistStatement (t: string, at: number, close: number, args:
     lines.push (`${prefix}${n}`);
     return { text: lines.join ('\n'), end: close + 1 };
 }
-
 function containerOpsNextNewMap (t: string, from: number): number {
-    for (let k = from; k < t.length; k++) {
-        const s = containerOpsSkipLiteral (t, k);
-        if (s !== -1) { k = s; continue; }
-        if (t.startsWith ('Helpers.newMap(', k) && !/[\w.]/.test (t[k - 1] ?? '')) return k;
-    }
+    for (let k = from; k < t.length; k++) { const s = containerOpsSkipLiteral (t, k); if (s !== -1) { k = s; continue; } if (t.startsWith ('Helpers.newMap(', k) && !/[\w.]/.test (t[k - 1] ?? '')) return k; }
     return -1;
 }
-
 function containerOpsMember (member: string, fresh: () => string): string {
     const declaredType = memberDeclaredTypeOf (member, true);
     const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false)$/.test (e);
@@ -8139,15 +5583,9 @@ function containerOpsMember (member: string, fresh: () => string): string {
         const declared = ident (args[0] ?? '') ? declaredType (args[0]) : undefined;
         const listLike = declared !== undefined && /^(?:(?:java\.util\.)?(?:List|ArrayList)<[\w.?<>, ]*>|(?:io\.github\.ccxt\.ws\.)?ArrayCache)$/.test (declared);
         const mapLike = declared !== undefined && /^(?:java\.util\.)?(?:Map|HashMap)<String, Object>$/.test (declared);
-        if (helper === 'getArrayLength' && args.length === 1 && (listLike || declared === 'String')) {
-            return `(${args[0]} == null ? 0 : ${args[0]}.${listLike ? 'size' : 'length'}())`;
-        }
-        if (helper === 'objectKeys' && args.length === 1 && mapLike) {
-            return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`;
-        }
-        if (helper === 'inOp' && args.length === 2 && strLit (args[1]) && (mapLike || listLike)) {
-            return `(${args[0]} != null && ${args[0]}.${mapLike ? 'containsKey' : 'contains'}(${args[1]}))`;
-        }
+        if (helper === 'getArrayLength' && args.length === 1 && (listLike || declared === 'String')) { return `(${args[0]} == null ? 0 : ${args[0]}.${listLike ? 'size' : 'length'}())`; }
+        if (helper === 'objectKeys' && args.length === 1 && mapLike) { return `(${args[0]} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${args[0]}.keySet()))`; }
+        if (helper === 'inOp' && args.length === 2 && strLit (args[1]) && (mapLike || listLike)) { return `(${args[0]} != null && ${args[0]}.${mapLike ? 'containsKey' : 'contains'}(${args[1]}))`; }
         if (helper === 'getArrayLength' && args.length === 1) {
             const l = fresh (), s = fresh (), o = fresh ();
             return `(switch ((Object)(${args[0]})) { case null -> 0; case java.util.List<?> ${l} -> ${l}.size(); case String ${s} -> ${s}.length(); case Object ${o} -> ${o}.getClass().isArray() ? java.lang.reflect.Array.getLength(${o}) : 0; })`;
@@ -8221,7 +5659,6 @@ function containerOpsMember (member: string, fresh: () => string): string {
     }
     return out;
 }
-
 export function nativeJavaContainerOps (content: string): string {
     if (!/Helpers\.(?:GetValue|addElementToObject|getArrayLength|inOp|objectKeys|newMap)\(/.test (content)) return content;
     const prefix = /\bj39[a-z]\d/.test (content) ? 'j39z' : 'j39';
@@ -8233,7 +5670,6 @@ export function nativeJavaContainerOps (content: string): string {
     for (let s = 0; s + 1 < starts.length; s++) parts.push (containerOpsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
     return parts.join ('\n');
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaContainerOpsSelfTest (): string[] {
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
@@ -8264,26 +5700,15 @@ function javaContainerOpsSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `java container ops self test: ${name}\n${out}`);
 }
-
-// Core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches
-// that replay the Helpers.java branches exactly (null, Integer->Long, Double, String, Float/BigDecimal).
-function coreArgLiteral (raw: string): string | undefined {
-    const t = raw.trim().replace(/^\((-?\d+L?)\)$/, '$1');
-    if (/^-?\d{1,15}L?$/.test(t)) { return t.replace(/L$/, ''); }
-    return undefined;
-}
-
+// Core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches that replay the Helpers.java branches exactly (null, Integer->Long, Double, String, Flo...
+function coreArgLiteral (raw: string): string | undefined { const t = raw.trim().replace(/^\((-?\d+L?)\)$/, '$1'); if (/^-?\d{1,15}L?$/.test(t)) { return t.replace(/L$/, ''); } return undefined; }
 // a String literal no Double.parseDouble / BigDecimal parse accepts (Helpers.isNumber is false)
 function isUnparseableNumberLiteral (lit: string): boolean {
     if (!/^"(?:[^"\\]|\\.)*"$/.test(lit) || /\\/.test(lit)) { return false; }
     return !/^\s*[+-]?(?:NaN|Infinity|0[xX][0-9a-fA-F.]*(?:[pP][+-]?\d+)?|[\d.]+(?:[eE][+-]?\d+)?)[fFdD]?\s*$/.test(lit.slice(1, -1));
 }
-
 // the literal holds a character no numeric text can contain anywhere, so any concatenation stays unparseable
-function poisonsNumberAdd (lit: string): boolean {
-    return /^"(?:[^"\\]|\\.)*"$/.test(lit) && /[^0-9A-Za-z.+\-\s\\]/.test(lit.slice(1, -1));
-}
-
+function poisonsNumberAdd (lit: string): boolean { return /^"(?:[^"\\]|\\.)*"$/.test(lit) && /[^0-9A-Za-z.+\-\s\\]/.test(lit.slice(1, -1)); }
 // nearest same-member declaration type of `name` before `pos` (params included)
 function coreArgDeclType (masked: string, name: string, pos: number): string | undefined {
     const before = masked.slice(0, pos);
@@ -8296,21 +5721,16 @@ function coreArgDeclType (masked: string, name: string, pos: number): string | u
     while ((mm = decl.exec(window)) !== null) { if (!/,$/.test(mm[1]) && !/^(?:return|new|else|case|throw)$/.test(mm[1])) { last = mm[1]; } }
     return last;
 }
-
 // every declaration of `name` in this file returns Long (at least one)
 function coreArgOnlyLongMethod (masked: string, name: string): boolean {
     const decls = [ ...masked.matchAll(new RegExp(`^[ \\t]*(?:public|private|protected)[ \\t]+(?:static[ \\t]+)?([\\w.<>?,\\[\\] ]+?)[ \\t]+${name}\\(`, 'gm')) ];
     return decls.length > 0 && decls.every((d) => d[1] === 'Long');
 }
-
 interface CoreArgHelperCtx { masked: string, pos: number, fields: Set<string>, methods: Set<string> }
-
 function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n: number, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
     const v = 'hx4J40v' + n;
     const x = args[0] === undefined ? '' : args[0].trim();
-    if (name === 'toStringArg' || name === 'toString') {
-        return args.length === 1 ? `java.util.Objects.toString(${x}, null)` : undefined;
-    }
+    if (name === 'toStringArg' || name === 'toString') { return args.length === 1 ? `java.util.Objects.toString(${x}, null)` : undefined; }
     if (name === 'toMapArg' || name === 'toStringListArg') {
         if (args.length !== 1) { return undefined; }
         const [ t, w, msg ] = name === 'toMapArg' ? [ 'java.util.Map<String, Object>', 'java.util.Map<?, ?>', 'a dictionary' ] : [ 'java.util.List<String>', 'java.util.List<?>', 'a list of strings' ];
@@ -8363,17 +5783,20 @@ function coreArgHelperRewrite (name: string, args: string[], argsM: string[], n:
     const x0 = a; const y0 = b;
     return `((java.util.function.BinaryOperator<Object>) (${v}A, ${v}B) -> { Object ${v}P = ${v}A instanceof Integer ${v}i ? (Object) Long.valueOf(${v}i.longValue()) : ${v}A; Object ${v}Q = ${v}B instanceof Integer ${v}i ? (Object) Long.valueOf(${v}i.longValue()) : ${v}B; if (${v}P instanceof Long ${v}l && ${v}Q instanceof Long ${v}r) { return ${v}l + ${v}r; } if (${v}P instanceof Double || ${v}Q instanceof Double) { java.util.function.ToDoubleFunction<Object> ${v}D = ${v}o -> { if (${v}o instanceof Double || ${v}o instanceof Float || ${v}o instanceof Long || ${v}o instanceof Integer || ${v}o instanceof java.math.BigDecimal) { return ((Number) ${v}o).doubleValue(); } try { return Double.parseDouble(String.valueOf(${v}o)); } catch (NumberFormatException ${v}e) { return 0.0; } }; return ${v}D.applyAsDouble(${v}P) + ${v}D.applyAsDouble(${v}Q); } if (${v}P instanceof String || ${v}Q instanceof String) { return String.valueOf(${v}P) + String.valueOf(${v}Q); } return null; }).apply(${x0}, ${y0})`;
 }
-
 export function nativeJavaCoreArgHelpers (content: string): string {
     const re = /Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|add)\($/;
     if (!/Helpers\.(isEqual|isTrue|toMapArg|toStringArg|toStringListArg|toLongOrNull|toString|add)\(/.test(content)) { return content; }
     const intConsts = new Set([ 'TICK_SIZE', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS' ]);
     for (const c of [ ...intConsts ]) { if (new RegExp(`\\b(?:int|long|Object|var|Long|Integer)\\s+${c}\\b`).test(content)) { intConsts.delete(c); } }
     const fields = new Set<string>(); const methods = new Set<string>();
-    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
-        (d[2] === '(' ? methods : fields).add(d[1]);
-    }
+    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) { (d[2] === '(' ? methods : fields).add(d[1]); }
     let masked = stringAddMask(content);
+    const breaks: number[] = [];
+    {
+        const bRe = /^[ \t]*(?:public|private|protected)[ \t]/gm;
+        let bm: RegExpExecArray | null;
+        while ((bm = bRe.exec(masked)) !== null) breaks.push(bm.index);
+    }
     let from = masked.length;
     // binding names stay unique when the pass re-runs over its own output
     let n = 1 + Math.max(-1, ...[ ...content.matchAll(/hx4J40v(\d+)/g) ].map((m) => Number(m[1])));
@@ -8392,14 +5815,13 @@ export function nativeJavaCoreArgHelpers (content: string): string {
         const argsM = splitTopLevelArgs(masked.slice(open + 1, end - 1));
         const args: string[] = []; let p = open + 1;
         for (const m of argsM) { args.push(content.slice(p, p + m.length)); p += m.length + 1; }
-        const repl = coreArgHelperRewrite(head[1], args, argsM, n++, intConsts, { masked, pos: at, fields, methods });
+        const repl = coreArgHelperRewrite(head[1], args, argsM, n++, intConsts, { masked, pos: at, fields, methods, breaks } as any);
         if (repl === undefined) { continue; }
         content = content.slice(0, at) + repl + content.slice(end);
-        masked = stringAddMask(content);
+        masked = masked.slice(0, at) + stringAddMask(repl) + masked.slice(end);
     }
     return content;
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaCoreArgHelpersSelfTest (): string[] {
     const isTrueCls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
@@ -8440,15 +5862,21 @@ function javaCoreArgHelpersSelfTest (): string[] {
     const isTrue = runSnippetCases(isTrueCases, isTrueCls, nativeJavaCoreArgHelpers, (name, out) => `java is true self test: ${name}\n${out}`, isTrueCls, (out) => !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
     return isTrue.concat(runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java core arg helpers self: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.')));
 }
-
-// Truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
-// order, so a native test is only correct on a proven boolean (`x`) or Boolean (`Boolean.TRUE.equals(x)`).
-// Every other operand keeps the plain helper call; no inline pattern switch is ever emitted.
-function isTrueDeclTypes (masked: string, name: string, pos: number): string[] {
+// Truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in order, so a native test is only correct on a proven boolean (`x`) or Boolean (`Boolea...
+function memberBreakBefore (masked: string, pos: number, breaks?: number[]): number {
+    if (breaks !== undefined) {
+        let lo = 0, hi = breaks.length - 1, hit = -1;
+        while (lo <= hi) { const mid = (lo + hi) >> 1; if (breaks[mid] < pos) { hit = breaks[mid]; lo = mid + 1; } else { hi = mid - 1; } }
+        return hit;
+    }
     const before = masked.slice(0, pos);
-    const breaks = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
-    if (breaks.length === 0) { return []; }
-    const window = before.slice(breaks[breaks.length - 1].index);
+    const all = [ ...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
+    return all.length === 0 ? -1 : all[all.length - 1].index;
+}
+function isTrueDeclTypes (masked: string, name: string, pos: number, breaks?: number[]): string[] {
+    const start = memberBreakBefore(masked, pos, breaks);
+    if (start === -1) { return []; }
+    const window = masked.slice(start, pos);
     const out: string[] = [];
     for (const mm of window.matchAll(new RegExp(`(?:^|[\\s(,])((?:final )?[\\w.<>?,\\[\\]]+)\\s+${name}\\s*(?=[=;,)])`, 'g'))) {
         const t = mm[1].replace(/^final /, '');
@@ -8459,10 +5887,7 @@ function isTrueDeclTypes (masked: string, name: string, pos: number): string[] {
     if (new RegExp(`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test(window)) { return []; }
     return out;
 }
-
-// A Bool field of the TS MarketInterface only holds true/false/null, so `Boolean.TRUE.equals` equals isTrue.
-// The receiver must be one local declared once as a Market (MarketInterface, or a Map from this.market/safeMarket).
-// a function, not a const Set: the transpile entry point runs before this line is evaluated
+// A Bool field of the TS MarketInterface only holds true/false/null, so `Boolean.TRUE.equals` equals isTrue. The receiver must be one local declared once as a Market (MarketInterf...
 function isMarketBoolKey (k: string): boolean {
     return [ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ].includes (k);
 }
@@ -8470,24 +5895,21 @@ function isMarketBoolRead (e: string, ctx: CoreArgHelperCtx): boolean {
     const m = /^(?:([A-Za-z_]\w*)|\(\(Map<String, Object>\)([A-Za-z_]\w*)\))\.get\("(\w+)"\)$/.exec (e);
     if (m === null || !isMarketBoolKey (m[3])) { return false; }
     const name = m[1] ?? m[2];
-    const before = ctx.masked.slice (0, ctx.pos);
-    const breaks = [ ...before.matchAll (/^[ \t]*(?:public|private|protected)[ \t]/gm) ];
-    if (breaks.length === 0) { return false; }
-    const window = before.slice (breaks[breaks.length - 1].index);
+    const start = memberBreakBefore (ctx.masked, ctx.pos, (ctx as any).breaks);
+    if (start === -1) { return false; }
+    const window = ctx.masked.slice (start, ctx.pos);
     if (new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (window)) { return false; }
     if (new RegExp (`(?<![\\w.])${name}\\s*(?:=(?!=)|\\+=)`).test (window.replace (new RegExp (`(?:MarketInterface|Map<String, Object>) ${name} = `, 'g'), ''))) { return false; }
     const decls = [ ...window.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.<>?,\\[\\]]+(?: <[^>]*>)?)\\s+${name}\\s*(?=[=;,)])`, 'g')) ];
     if (decls.length !== 1) { return false; }
-    const init = new RegExp (`(?:MarketInterface|Map<String, Object>) ${name} = (?:\\(\\w+\\) )?this\\.(?:market|safeMarket|parseMarket)\\(`).test (window);
-    return init;
+    return new RegExp (`(?:MarketInterface|Map<String, Object>) ${name} = (?:\\(\\w+\\) )?this\\.(?:market|safeMarket|parseMarket)\\(`).test (window);
 }
-
 function isTrueOperandType (e: string, ctx: CoreArgHelperCtx): 'boolean' | 'Boolean' | undefined {
     let t = e.trim();
     while (/^\(.*\)$/s.test(t) && stringAddClose(t, 0) === t.length) { t = t.slice(1, -1).trim(); }
     if (/^[A-Za-z_]\w*$/.test(t)) {
         if (ctx.fields.has(t) || /^(?:true|false|null|this)$/.test(t)) { return t === 'true' || t === 'false' ? 'boolean' : undefined; }
-        const decls = isTrueDeclTypes(ctx.masked, t, ctx.pos);
+        const decls = isTrueDeclTypes(ctx.masked, t, ctx.pos, (ctx as any).breaks);
         if (decls.length === 0) { return undefined; }
         if (decls.every((d) => d === 'boolean')) { return 'boolean'; }
         if (decls.every((d) => d === 'boolean' || d === 'Boolean' || d === 'java.lang.Boolean')) { return 'Boolean'; }
@@ -8500,7 +5922,6 @@ function isTrueOperandType (e: string, ctx: CoreArgHelperCtx): 'boolean' | 'Bool
     if (isJavaBooleanExpr(t) || isTopLevelLogic(t)) { return 'boolean'; }
     return undefined;
 }
-
 // a top-level `&&` / `||` (no top-level `?:` or assignment) is a Java boolean: both operands must be boolean
 function isTopLevelLogic (e: string): boolean {
     let depth = 0, logic = false;
@@ -8509,45 +5930,34 @@ function isTopLevelLogic (e: string): boolean {
         if (c === '"' || c === '\'') { for (k++; k < e.length && e[k] !== c; k++) if (e[k] === '\\') k++; continue; }
         if (c === '(' || c === '[' || c === '{') depth++;
         else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (depth === 0) {
-            if (c === '?' || (c === '=' && e[k + 1] !== '=' && !'=!<>'.includes (e[k - 1]))) return false;
-            if (e.startsWith ('&&', k) || e.startsWith ('||', k)) logic = true;
-        }
+        else if (depth === 0) { if (c === '?' || (c === '=' && e[k + 1] !== '=' && !'=!<>'.includes (e[k - 1]))) return false; if (e.startsWith ('&&', k) || e.startsWith ('||', k)) logic = true; }
         if (depth < 0) return false;
     }
     return logic && depth === 0;
 }
-
 function nativeIsTrue (x: string, ctx: CoreArgHelperCtx): string | undefined {
     const t = isTrueOperandType(x, ctx);
     if (t === 'boolean') { return stringAddIsPrimary(x) ? x : `(${x})`; }
     if (t === 'Boolean') { return `Boolean.TRUE.equals(${x})`; }
     return undefined;
 }
-
-// Literal equality. Exactly two outcomes per Helpers.isEqual site:
-// a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched.
-// `==` is only emitted between proven primitives (boxed `==` is reference identity, and the helper
-// compares numbers across widths and handles null); `.equals` only on a non-null String receiver.
+// Literal equality. Exactly two outcomes per Helpers.isEqual site: a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched. `==` is onl...
 function nativeIsEqual (a: string, b: string, intConsts: Set<string>, ctx: CoreArgHelperCtx): string | undefined {
     // isEqual(x, null) is x == null for every x
     if (b === 'null') { return `(((Object) (${a})) == null)`; }
     const strLit = (t: string) => /^"(?:[^"\\]|\\.)*"$/.test(t);
-    // primitive long/int/double: a declared local/param, a numeric literal, a static final int constant,
-    // or a `((double) x) op ((double) y)` expression
+    // primitive long/int/double: a declared local/param, a numeric literal, a static final int constant, or a `((double) x) op ((double) y)` expression
     const prim = (t: string): boolean => /^-?\d{1,15}L?$/.test(t) || /^\(-?\d{1,15}L?\)$/.test(t)
         || intConsts.has(t)
         || /^[A-Za-z_]\w*$/.test(t) && [ 'long', 'int', 'double', 'short', 'byte' ].includes(coreArgDeclType(ctx.masked, t, ctx.pos) ?? '')
         || /^\(\(\(double\) \w+\) [-+*/%] \(\(double\) \w+\)\)$/.test(t);
     const isLit = (t: string) => /^\(?-?\d{1,15}L?\)?$/.test(t) || intConsts.has(t);
     if (prim(a) && prim(b) && !(isLit(a) && isLit(b))) { return `(${a} == ${b})`; }
-    // the literal is a non-null String receiver; a number-shaped literal is equal to numbers too,
-    // so it only goes native against a declared String operand
+    // the literal is a non-null String receiver; a number-shaped literal is equal to numbers too, so it only goes native against a declared String operand
     const isStr = (t: string) => /^[A-Za-z_]\w*$/.test(t) && coreArgDeclType(ctx.masked, t, ctx.pos) === 'String';
     if (strLit(b) && !strLit(a) && (isUnparseableNumberLiteral(b) || isStr(a))) { return `${b}.equals(${a})`; }
     return undefined;
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function javaIsEqualSelfTest (): string[] {
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n, long k, double d)\n    {\n${body}\n    }\n}`;
@@ -8569,9 +5979,7 @@ function javaIsEqualSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java is equal self test: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
 }
-
-// Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
-// callees) print their concrete type; any unproven write or producer keeps Object
+// Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map callees) print their concrete type; any unproven write or producer keeps Object
 function x21SelfTest (): string[] {
     const body = [
         "import Exchange from './abstract/binance.js';",
@@ -8595,22 +6003,11 @@ function x21SelfTest (): string[] {
         if (!/Map<String, Object> e = /.test(out)) problems.push("'e' (venue omit-of-handle-element-1 callee) must print Map");
         // a venue method's proven Dict return is typed, so a local off zzxLoose is a Map too
         if (!/Map<String, Object> f = /.test(out)) problems.push("'f' (venue Dict-returning callee) must print Map");
-        for (const name of [ 'c' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/producer and must stay Object`);
-        }
+        for (const name of [ 'c' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/producer and must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
     });
 }
-
-// Helpers.GetValue / Helpers.addElementToObject inside nativeJavaContainerOps. Exactly two outcomes per site:
-//   * receiver + key proven -> the plain Map/List op (`m.get(k)`, `m.put(k, v);`, `l.get(N)`), with only the null
-//     guard the helper's own contract needs (GetValue answers null for a null receiver / key / out-of-range index);
-//   * anything else -> the helper call, untouched; no inline pattern-match or
-//     ConcurrentHashMap null-remove replay is emitted.
-// put is native only on a FRESH local (every write is `new [Linked]HashMap<String, Object>(...)`, not a parameter):
-// such a map is never a ConcurrentHashMap (put(k, null) would throw where the helper removes), never null, and
-// unshared, so the helper's `synchronized (m)` pairing with objectKeys has no reader. Fields (this.options is a
-// ConcurrentHashMap; this.urls / this.has are read by other threads) always keep the put helper.
+// Helpers.GetValue / Helpers.addElementToObject inside nativeJavaContainerOps. Exactly two outcomes per site: * receiver + key proven -> the plain Map/List op (`m.get(k)`, `m.put(...
 function x22MapRewrite (helper: string, args: string[], statement: boolean, declaredType: (name: string) => string | undefined, member: string): string | undefined {
     const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false|new)$/.test (e);
     const strLit = (e: string) => /^"(?:[^"\\]|\\.)*"$/.test (e);
@@ -8633,8 +6030,7 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
     if (helper === 'GetValue' && args.length === 2 && !statement) {
         const [ t, k ] = args;
         const fieldMap = /^this\.([A-Za-z_]\w*)$/.exec (t);
-        // GetValue does not synchronize: a plain get on a declared-Map base field is the same read
-        // markets_by_id is volatile and reset to null by other threads: the guard's double read could NPE, keep the helper
+        // GetValue does not synchronize: a plain get on a declared-Map base field is the same read markets_by_id is volatile and reset to null by other threads: the guard's double read co...
         const mapRecv = (ident (t) && isMap (declaredType (t))) || (fieldMap !== null && fieldMap[1] !== 'markets_by_id' && javaMapCacheFields ().has (fieldMap[1]));
         if (mapRecv && stringKey (k)) {
             const recvNonNull = ident (t) && fresh (t);
@@ -8644,10 +6040,7 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
             const guard = [ recvNull, keyNull ].filter ((g) => g !== '').join (' || ');
             return guard === '' ? `${t}.get(${k})` : `(${guard} ? null : ${t}.get(${k}))`;
         }
-        if (ident (t) && isList (declaredType (t)) && /^\d+L?$/.test (k)) {
-            const n = k.replace (/L$/, '');
-            return `(${t} == null || ${n} >= ${t}.size() ? null : ${t}.get(${n}))`;
-        }
+        if (ident (t) && isList (declaredType (t)) && /^\d+L?$/.test (k)) { const n = k.replace (/L$/, ''); return `(${t} == null || ${n} >= ${t}.size() ? null : ${t}.get(${n}))`; }
         return undefined;
     }
     if (helper === 'addElementToObject' && args.length === 3 && statement) {
@@ -8657,7 +6050,6 @@ function x22MapRewrite (helper: string, args: string[], statement: boolean, decl
     }
     return undefined;
 }
-
 // Snippet checks (`--audit-string-types --self-test`)
 function x22SelfTest (): string[] {
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
@@ -8687,8 +6079,6 @@ function x22SelfTest (): string[] {
         return runSnippetCases ([ c ], cls, nativeJavaContainerOps, (name, o) => `java selftest: ${name}\n${o}`, cls, (o) => !/j39|switch|synchronized/.test (o)).concat (idempotent);
     });
 }
-
-
 // 77j6: a base safeDict / safeList local whose default argument is a proven Map / List prints the box
 function j6ReaderLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -8711,17 +6101,12 @@ function j6ReaderLocalsSelfTest (): string[] {
         if (!/Map<String, Object> opts = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("j6 reader: 'opts' (createSafeDictionary default) must print Map<String, Object>");
         if (!/\bObject inner = /.test(out)) problems.push("j6 reader: 'inner' (any default) must stay Object");
         if (!/\bObject ids = /.test(out)) problems.push("j6 reader: 'ids' (.join receiver) must stay Object");
-    } catch (e: any) {
-        problems.push(`j6 reader self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`j6 reader self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-84j1: string elements of a String-only list (Object.keys copy, ecdsa r/s) print String, and their
-// String-method / delete-key / String-argument uses lose the checkcast; an any element or a list of
-// unproven elements stays Object
+// ral-84j1: string elements of a String-only list (Object.keys copy, ecdsa r/s) print String, and their String-method / delete-key / String-argument uses lose the checkcast; an an...
 function javaR84j1StringElementLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
@@ -8779,18 +6164,13 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/String ot93 = /.test(out) || !/\bot93\.toUpperCase\(/.test(out)) problems.push("93j1 r6: 'ot93' (OrderRequest type field) must print String with a native toUpperCase");
         if (!/List<\?> pp93 = \(java\.util\.List<\?>\) /.test(out) || !/\bii < pp93\.size\(\)/.test(out) || /\(\(List<\?>\)pp93\)/.test(out)) problems.push("93j1 r3: 'pp93' (array row of an awaited Promise.all list) must print List<?> with native size / get");
         if (!/String b = \(String\) \(xs == null/.test(out) || !/\bb\.toUpperCase\(/.test(out)) problems.push("90j1 r1: 'b' (element of an unwritten `string[]` parameter) must print String with a native toUpperCase");
-        for (const name of [ 'a', 'ro' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
-        }
+        for (const name of [ 'a', 'ro' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`84j1 self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`84j1 self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // r84j2: element-read locals used at once as a List (push) / Map (string-key write) print the box with one checkcast
 function javaR84j2ContainerLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -8811,18 +6191,13 @@ function javaR84j2ContainerLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out) || !/\ba\.add\(v\)/.test(out)) problems.push("'a' (m[k] then a.push) must print List<Object> with a native add");
         if (!/Map<String, Object> b = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bb\.put\("id", "x"\)/.test(out)) problems.push("'b' (m[k] then b['id'] = string) must print Map with a native put");
-        for (const name of [ 'c', 'd', 'f' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (nullable put value / late first use / call argument) must stay Object`);
-        }
+        for (const name of [ 'c', 'd', 'f' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (nullable put value / late first use / call argument) must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // r84j2 R2: List conditionals whose Object arm an Array.isArray guard or a T[] parameter proves print List<Object>
 function javaR84j2GuardedListLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -8842,18 +6217,13 @@ function javaR84j2GuardedListLocalsSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> a = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'a' (isArray-guarded r : safeList) must print List<Object> with a checkcast");
         if (!/List<Object> b = \(java\.util\.List<Object>\) \(/.test(out)) problems.push("'b' ([] : Strings param) must print List<Object> with a checkcast");
-        for (const name of [ 'c', 'd' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (unguarded any arm / no element read) must stay Object`);
-        }
+        for (const name of [ 'c', 'd' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (unguarded any arm / no element read) must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // r84j2 R3: Map conditionals over base Map fields / Dict parameters print Map<String, Object> when a use is native
 function javaR84j2MapConditionalLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -8871,21 +6241,14 @@ function javaR84j2MapConditionalLocalsSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> a = /.test(out)) problems.push("'a' (this.timeframes : Dict param, Object.keys use) must print Map<String, Object>");
-        for (const name of [ 'b', 'c' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (no native use / unproven any arm) must stay Object`);
-        }
+        for (const name of [ 'b', 'c' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (no native use / unproven any arm) must stay Object`); }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// r84-j4: null seeds written from native String producers (literal-bound slice, toLowerCase, join) print
-// String when a use hands them to a fixed String core parameter; the same writes with only Object-slot
-// uses keep Object
+// r84-j4: null seeds written from native String producers (literal-bound slice, toLowerCase, join) print String when a use hands them to a fixed String core parameter; the same wr...
 function javaR84j4NullSeedSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j4seed${process.pid}.ts`);
@@ -8904,16 +6267,12 @@ function javaR84j4NullSeedSelfTest (): string[] {
         if (!/String quoteId = null/.test(out)) problems.push("'quoteId' (join write, String core argument) must print String");
         if (!/\bObject k = null/.test(out)) problems.push("'k' (only an Object-slot use) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-84j6: a reader / handleOption local compared only against `true` prints `boolean x = Boolean.TRUE.equals(..)`
-// and native `x` / `!x` tests; a local with any other use or a write keeps Object
+// ral-84j6: a reader / handleOption local compared only against `true` prints `boolean x = Boolean.TRUE.equals(..)` and native `x` / `!x` tests; a local with any other use or a wr...
 function j84j6TrueOnlyLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zz84j6selftest${process.pid}.ts`);
@@ -8940,14 +6299,11 @@ function j84j6TrueOnlyLocalsSelfTest (): string[] {
         if (!/\bObject bb = /.test(out)) problems.push("ral-84j6: 'bb' (non-null list default) must stay Object");
         if (!/\bObject nn = /.test(out)) problems.push("ral-84j6: 'nn' has a value use and must stay Object");
         if (!/\bObject ww = /.test(out)) problems.push("ral-84j6: 'ww' is written and must stay Object");
-    } catch (e: any) {
-        problems.push(`ral-84j6 self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`ral-84j6 self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // 84j8: balance-map literals merged into themselves and per-binding Object.keys lists
 function javaR84j8LocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -8982,16 +6338,12 @@ function javaR84j8LocalsSelfTest (): string[] {
         if (!/\bObject ys = /.test(out)) problems.push("'ys' (copy of a safeValue const) must stay Object");
         if (/\(java\.util\.List<String>\)keys\)/.test(out) || !/String\.join\(", ", keys\)/.test(out)) problems.push("'keys' join must read the declared List<String> without a checkcast");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
+    } catch (e: any) { problems.push(`self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-87j2 R1: a ws order-book side read off a WsOrderBook local, and a guarded ws cache read, print the
-// hand-written ws class with one checkcast and a native store / append; a side with no store keeps Object
+// ral-87j2 R1: a ws order-book side read off a WsOrderBook local, and a guarded ws cache read, print the hand-written ws class with one checkcast and a native store / append; a si...
 function javaR87j2WsLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr87j2ws${process.pid}.ts`);
@@ -9010,16 +6362,12 @@ function javaR87j2WsLocalsSelfTest (): string[] {
         if (!/io\.github\.ccxt\.ws\.ArrayCache arr = \(io\.github\.ccxt\.ws\.ArrayCache\) /.test(out) || !/\barr\.append\(trade\)/.test(out)) problems.push("ral-87j2: 'arr' (guarded this.trades read, append use) must print ArrayCache with a native append");
         if (!/\bObject t = /.test(out)) problems.push("ral-87j2: 't' (no store use) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-87j2 R3: an Array.isArray-guarded List conditional whose only native use is `x.length` prints List<Object>
-// with a native size(); the same local with only call-argument uses keeps Object
+// ral-87j2 R3: an Array.isArray-guarded List conditional whose only native use is `x.length` prints List<Object> with a native size(); the same local with only call-argument uses ...
 function javaR87j2LengthListLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2len${process.pid}.ts`);
@@ -9036,16 +6384,12 @@ function javaR87j2LengthListLocalsSelfTest (): string[] {
         if (!/List<Object> rows = \(java\.util\.List<Object>\) /.test(out) || !/< rows\.size\(\)/.test(out)) problems.push("ral-87j2: 'rows' (isArray-guarded, .length use) must print List<Object> with a native size()");
         if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (only a safe* argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-87j2 R4: a conditional of describe() urls string leaves handed to a String core parameter prints String with
-// one checkcast and a bare argument; the same conditional with a non-string leaf keeps Object
+// ral-87j2 R4: a conditional of describe() urls string leaves handed to a String core parameter prints String with one checkcast and a bare argument; the same conditional with a n...
 function javaR87j2UrlLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2url${process.pid}.ts`);
@@ -9065,16 +6409,12 @@ function javaR87j2UrlLocalsSelfTest (): string[] {
         if (!/this\.open\(url\)/.test(out) || /this\.open\(\(String\) ?\(?url\)?\)/.test(out)) problems.push("ral-87j2 R4: 'url' must reach the String parameter as a bare `this.open(url)` (no checkcast)");
         if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (a non-string urls leaf) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// r87-j4: a null seed written from a literal-index read of a const native split prints String (the split
-// local goes List<String>) when it reaches a String core parameter; a seed with only Object-slot uses stays Object
+// r87-j4: a null seed written from a literal-index read of a const native split prints String (the split local goes List<String>) when it reaches a String core parameter; a seed w...
 function javaR87j4SplitSeedSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j4seed${process.pid}.ts`);
@@ -9095,16 +6435,12 @@ function javaR87j4SplitSeedSelfTest (): string[] {
         if (!/\bObject k = null/.test(out)) problems.push("r87-j4: 'k' (only an Object-slot use) must stay Object");
         if (!/String orderCost = null/.test(out) || !/getAmount2\(orderCost\)/.test(out)) problems.push("r87-j4 R2: 'orderCost' (copy of a later-declared Precise const, String core argument) must print String");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`r87-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`r87-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// 90j4: null seeds written from a typed handle*AndParams Pair slot, native String uses (ws tier, where
-// the earlier sections leave such a seed Object)
+// 90j4: null seeds written from a typed handle*AndParams Pair slot, native String uses (ws tier, where the earlier sections leave such a seed Object)
 function javaR90j4NullSeedSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr90j4seed${process.pid}.ts`);
@@ -9127,14 +6463,11 @@ function javaR90j4NullSeedSelfTest (): string[] {
         if (!/Map<String, Object> parsed = null;[^]*?String symbol = \(String\) parsed\.get\("symbol"\)/.test(out)) problems.push("r90-j4 R2: 'parsed' (Trade core writes, string-key read) must print Map<String, Object> with an uncast get");
         if (!/public Object h4\([^]*?\bObject parsed = null/.test(out)) problems.push("r90-j4 R2: 'parsed' with no native use must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`r90-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`r90-j4 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // 87j8: String accumulators whose pushed String locals are declared after the list
 function javaR87j8LocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9163,14 +6496,11 @@ function javaR87j8LocalsSelfTest (): string[] {
         if (!/public String gen2Id\(/.test(out) || !/List<String> ids = new java\.util\.ArrayList<String>\(java\.util\.Arrays\.asList\(\)\);\s*for[^]*?ids\.add\(this\.gen2Id\(/.test(out)) problems.push("'ids' (pushes of an internal method the printer declares String) must print List<String> with a bare add");
         if (!/\bObject keys = /.test(out)) problems.push("'keys' (push of a local with a same-named sibling binding) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // ral-90j2 R1: an element-read List local is decided per checker binding, so a same-named sibling never refuses it
 function javaR90j2ElementListLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9190,14 +6520,11 @@ function javaR90j2ElementListLocalsSelfTest (): string[] {
         if (!/List<Object> g = \(java\.util\.List<Object>\)\(/.test(out) || !/g\.size\(\)/.test(out)) problems.push("ral-90j2 R1: the second 'g' (m[k] as any[] then g.length) must print List<Object> with a native size()");
         if (!/\bObject h = /.test(out)) problems.push("ral-90j2 R1: 'h' (only a safe* argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // ral-90j2 R2: `await Promise.all (xs)` in two sibling branches: each binding read by `.length` prints List<Object>
 function javaR90j2PromiseAllLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9214,14 +6541,11 @@ function javaR90j2PromiseAllLocalsSelfTest (): string[] {
         if (!/List<Object> rs = /.test(out) || !/= rs\.size\(\)/.test(out)) problems.push("ral-90j2 R2: the first 'rs' (.length use) must print List<Object> with a native size()");
         if (!/\bObject rs = /.test(out)) problems.push("ral-90j2 R2: the second 'rs' (only a safe* argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // ral-90j2 R3: an element-read Map-structure local read by a literal key in the next statement prints Map with one checkcast
 function javaR90j2ElementMapLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9240,14 +6564,11 @@ function javaR90j2ElementMapLocalsSelfTest (): string[] {
         if (!/Map<String, Object> t = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bt\.get\("info"\)/.test(out)) problems.push("ral-90j2 R3: 't' (ts[s] then t['info']) must print Map with a native get");
         if (!/\bObject u = /.test(out)) problems.push("ral-90j2 R3: 'u' (only a call argument) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // ral-90j2 R4: an element-read Map-structure local handed first to a Map<String, Object> core slot prints Map, and the argument binds bare
 function javaR90j2ElementMapSlotSelfTest (): string[] {
     const problems: string[] = [];
@@ -9264,16 +6585,12 @@ function javaR90j2ElementMapSlotSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> p = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/parsePosition\(p, /.test(out)) problems.push("ral-90j2 R4: 'p' (rs[id] handed to parsePosition's Map slot) must print Map and bind bare");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ral-90j6: reader results with native uses: R1 safeList* used by length/join -> List<String>; R2 `as string[]`
-// safeList read by length/index -> List<String>; R4 safeList* re-written from a const list literal -> List<Object>. Written / value-used locals keep Object.
+// ral-90j6: reader results with native uses: R1 safeList* used by length/join -> List<String>; R2 `as string[]` safeList read by length/index -> List<String>; R4 safeList* re-writ...
 function javaR90j6ReaderLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zz90j6selftest${process.pid}.ts`);
@@ -9293,14 +6610,11 @@ function javaR90j6ReaderLocalsSelfTest (): string[] {
         if (!/java\.util\.List<String> ok = \(java\.util\.List<String>\)\(this\.safeList\(/.test(out) || !/i < ok\.size\(\)/.test(out)) problems.push("ral-90j6 R2: 'ok' (as string[] reader read by length/index) must print List<String> with a native size()");
         if (!/java\.util\.List<Object> ll = \(java\.util\.List<Object>\) this\.safeList\(/.test(out) || !/i < ll\.size\(\)/.test(out)) problems.push("ral-90j6 R4: 'll' (safeList re-written from a const list) must print List<Object> with a native size()");
         if (!/\bObject ww = /.test(out)) problems.push("ral-90j6: 'ww' (re-written from safeValue) must stay Object");
-    } catch (e) {
-        problems.push(`ral-90j6 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`ral-90j6 self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // 90j8: lane rules for copies / omit results / literals
 function javaR90j8LocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9335,16 +6649,12 @@ function javaR90j8LocalsSelfTest (): string[] {
         if (!/List<String> parsed = new java\.util\.ArrayList<String>\(/.test(out) || !/\bparsed\.add\(sid\)/.test(out)) problems.push("'parsed' (pushes of a const x.toString () local) must print List<String> with a bare add");
         if (!/\bObject raw = /.test(out)) problems.push("'raw' (written from a venue method that returns an awaited response) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// 92j2 R1: a read-only `marketType: MarketType` slot of the base parse* family prints String,
-// so its `x === undefined ? 'swap' : x` local and the safeMarket hand-off print native
+// 92j2 R1: a read-only `marketType: MarketType` slot of the base parse* family prints String, so its `x === undefined ? 'swap' : x` local and the safeMarket hand-off print native
 function javaR92j2MarketTypeParamsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mt${process.pid}.ts`);
@@ -9371,16 +6681,12 @@ function javaR92j2MarketTypeParamsSelfTest (): string[] {
         if (!/\bString marketTypeResolved = /.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must print String");
         if (!/this\.safeMarket\([^;]*, marketTypeResolved\)/.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must reach safeMarket bare");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// 92j2 R2: a conditional / element-read local handed once, in the next statement, to a fixed
-// Map parameter takes the slot's checkcast on its declaration and passes bare
+// 92j2 R2: a conditional / element-read local handed once, in the next statement, to a fixed Map parameter takes the slot's checkcast on its declaration and passes bare
 function javaR92j2SlotHandOffSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2so${process.pid}.ts`);
@@ -9401,14 +6707,11 @@ function javaR92j2SlotHandOffSelfTest (): string[] {
         if (!/Map<String, Object> g = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/this\.zzBal\(g\)/.test(out)) problems.push("92j2 R2: 'g' (element read handed to a Dict slot next) must print Map and pass bare");
         if (!/\bObject later = /.test(out)) problems.push("92j2 R2: 'later' (hand-off not in the next statement) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // 92j2 R3: an element-read Map local whose later literal-key writes the printer already prints as Map puts
 function javaR92j2ElementMapWritesSelfTest (): string[] {
     const problems: string[] = [];
@@ -9425,14 +6728,11 @@ function javaR92j2ElementMapWritesSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> fee = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bfee\.put\("withdraw", result\)/.test(out)) problems.push("92j2 R3: 'fee' (element read, literal-key read next, Map put later) must print Map with a native put");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // 92j2 R4: a Str conditional whose every use is a printed String slot takes that slot's conversion once
 function javaR92j2StringSlotLocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9454,16 +6754,12 @@ function javaR92j2StringSlotLocalsSelfTest (): string[] {
         if (!/String sym = \(String\) \(/.test(out) || !/this\.zzFixed\(sym,/.test(out)) problems.push("92j2 R4: 'sym' (only a fixed String slot) must print String and pass bare");
         if (!/\bObject both = /.test(out)) problems.push("92j2 R4: 'both' (core and fixed slots) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// a read-only array conditional / element read takes one List<?> checkcast and reads natively; a literal
-// index only (tuple cast kept) stays Object
+// a read-only array conditional / element read takes one List<?> checkcast and reads natively; a literal index only (tuple cast kept) stays Object
 function javaR93j2ListLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr93j2ls${process.pid}.ts`);
@@ -9490,16 +6786,12 @@ function javaR93j2ListLocalsSelfTest (): string[] {
         if (!/List<\?> points = \((java\.util\.)?List<\?>\) \(/.test(out) || !/i < points\.size\(\)/.test(out)) problems.push("93j2 R1: 'points' (array conditional read by length / index) must print List<?> and read natively");
         if (!/\bObject rows = /.test(out)) problems.push("93j2 R1: 'rows' (literal index only) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// null seeds handed to a typed core slot: a Map seed written from a later `this.market (..)` const reaches a Map
-// parameter, and two String seeds written from each other reach String parameters, with no argument checkcast
+// null seeds handed to a typed core slot: a Map seed written from a later `this.market (..)` const reaches a Map parameter, and two String seeds written from each other reach Stri...
 function javaR92j4NullSeedConsumerSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr92j4seed${process.pid}.ts`);
@@ -9542,14 +6834,11 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         if (!/String baseId = null/.test(out) || !/this\.safeCurrencyCode\(baseId, /.test(out)) problems.push("r92-j4: 'baseId' (safeString / integral-bound slice writes, String slot) must print String with a bare argument");
         if (!/\bObject mixed = null/.test(out)) problems.push("r92-j4: 'mixed' (one Object element write) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 // venue list fetchers: `let x: List = []` targets and fetchers returning another proven fetcher's awaited result
 function javaR92j8LocalsSelfTest (): string[] {
     const problems: string[] = [];
@@ -9582,16 +6871,12 @@ function javaR92j8LocalsSelfTest (): string[] {
         if (!/Map<String, Object> signed = sorted;/.test(out) || !/\bsigned\.size\(\)/.test(out)) problems.push("'signed' (copy of a keysort Map local, published as Map<String,Object>) must print Map<String, Object> with a native size()");
         if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// an async venue method declared `Promise<[Str, Dict]>` whose every return is a proven pair prints the
-// future of the Pair; awaited destructurings read first() / second(); an unproven return keeps Object
+// an async venue method declared `Promise<[Str, Dict]>` whose every return is a proven pair prints the future of the Pair; awaited destructurings read first() / second(); an unpro...
 function javaAsyncPairReturnSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzasyncpairselftest${process.pid}.ts`);
@@ -9622,84 +6907,28 @@ function javaAsyncPairReturnSelfTest (): string[] {
         if (/\(\(java\.util\.List<Object>\) idrestVariable\)/.test(out)) problems.push("the awaited pair holder must not be read through a List cast");
         if (!/CompletableFuture<Object> zzLoose\(/.test(out)) problems.push("'zzLoose' (an unproven Object element) must keep CompletableFuture<Object>");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
 function javaR93j8LocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzr93j8selftest${process.pid}.ts`);
     const body = [
-        "import Exchange from './abstract/binance.js';",
-        "import type { Dict, Str } from './base/types.js';",
-        'export default class zzr93j8selftest extends Exchange {',
-        "    chunked (symbols: string[]) {",
-        "        const tickers: string[] = [];",
-        "        for (let i = 0; i < symbols.length; i++) {",
-        "            const s = symbols[i];",
-        "            let base: Str = s;",
-        "            if (s.endsWith ('-NO')) {",
-        "                base = s.slice (0, -3);",
-        "            }",
-        "            tickers.push (base);",
-        "        }",
-        "        const n = tickers.length;",
-        "        let chunk: string[] = [];",
-        "        const out: Dict[] = [];",
-        "        for (let ti = 0; ti < n; ti++) {",
-        "            chunk.push (tickers[ti]);",
-        "            const chunkLength = chunk.length;",
-        "            if (chunkLength < 10) {",
-        "                continue;",
-        "            }",
-        "            out.push ({ 'tickers': chunk.join (',') });",
-        "            chunk = [];",
-        "        }",
-        "        return out;",
-        "    }",
-        "    pushedIds (symbols: string[]) {",
-        "        const ids: string[] = [];",
-        "        for (let i = 0; i < symbols.length; i++) {",
-        "            const id = this.market (symbols[i])['id'] as string;",
-        "            ids.push (id);",
-        "        }",
-        "        return ids.join (',');",
-        "    }",
-        "    tail (ids: string[]) {",
-        "        const first = this.safeString (ids, 0, '');",
-        "        const n = first.length;",
-        "        let suffix = first;",
-        "        if (n > 6) {",
-        "            suffix = first.slice (n - 6);",
-        "        }",
-        "        return suffix.toUpperCase ();",
-        "    }",
-        "    keyedAll (symbols: string[]) {",
-        "        let all: string[] = Object.keys (this.markets as Dict);",
-        "        if (symbols !== undefined) {",
-        "            all = this.marketSymbols (symbols);",
-        "        }",
-        "        return all.length;",
-        "    }",
-        "    keyed (symbols: string[], byId: Dict) {",
-        "        let ids: string[] = [];",
-        "        if (symbols.length === 0) {",
-        "            const m: Dict = this.safeDict (byId, 'a', {});",
-        "            ids = Object.keys (m);",
-        "        } else {",
-        "            ids = this.marketIds (symbols);",
-        "        }",
-        "        const out: Dict = {};",
-        "        for (let i = 0; i < ids.length; i++) {",
-        "            out[ids[i]] = true;",
-        "        }",
-        "        return out;",
-        "    }",
-        '}',
+        "import Exchange from './abstract/binance.js';", "import type { Dict, Str } from './base/types.js';", 'export default class zzr93j8selftest extends Exchange {', "    chunked (symbols: string[]) {",
+        "        const tickers: string[] = [];", "        for (let i = 0; i < symbols.length; i++) {", "            const s = symbols[i];", "            let base: Str = s;",
+        "            if (s.endsWith ('-NO')) {", "                base = s.slice (0, -3);", "            }", "            tickers.push (base);", "        }", "        const n = tickers.length;",
+        "        let chunk: string[] = [];", "        const out: Dict[] = [];", "        for (let ti = 0; ti < n; ti++) {", "            chunk.push (tickers[ti]);",
+        "            const chunkLength = chunk.length;", "            if (chunkLength < 10) {", "                continue;", "            }", "            out.push ({ 'tickers': chunk.join (',') });",
+        "            chunk = [];", "        }", "        return out;", "    }", "    pushedIds (symbols: string[]) {", "        const ids: string[] = [];", "        for (let i = 0; i < symbols.length; i++) {",
+        "            const id = this.market (symbols[i])['id'] as string;", "            ids.push (id);", "        }", "        return ids.join (',');", "    }", "    tail (ids: string[]) {",
+        "        const first = this.safeString (ids, 0, '');", "        const n = first.length;", "        let suffix = first;", "        if (n > 6) {", "            suffix = first.slice (n - 6);", "        }",
+        "        return suffix.toUpperCase ();", "    }", "    keyedAll (symbols: string[]) {", "        let all: string[] = Object.keys (this.markets as Dict);", "        if (symbols !== undefined) {",
+        "            all = this.marketSymbols (symbols);", "        }", "        return all.length;", "    }", "    keyed (symbols: string[], byId: Dict) {", "        let ids: string[] = [];",
+        "        if (symbols.length === 0) {", "            const m: Dict = this.safeDict (byId, 'a', {});", "            ids = Object.keys (m);", "        } else {",
+        "            ids = this.marketIds (symbols);", "        }", "        const out: Dict = {};", "        for (let i = 0; i < ids.length; i++) {", "            out[ids[i]] = true;", "        }",
+        "        return out;", "    }", '}',
     ].join('\n');
     try {
         fs.writeFileSync(probe, body);
@@ -9711,32 +6940,22 @@ function javaR93j8LocalsSelfTest (): string[] {
         if (!/List<String> all = new java\.util\.ArrayList<String>\(\(\(java\.util\.Map<String, Object>\)this\.markets\)\.keySet\(\)\);/.test(out) || !/\ball\.size\(\)/.test(out)) problems.push("'all' (String list from Object.keys (this.markets as Dict) and marketSymbols) must print List<String> with a native size()");
         if (!/List<String> chunk = /.test(out) || !/\bchunk\.size\(\)/.test(out)) problems.push("'chunk' (String list fed by elements of a list of String copy locals) must print List<String> with a native size()");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e) {
-        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
+    } catch (e) { problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ws handler dispatch: `Helpers.callDynamically(this, m, new Object[] {args})` where every write of `m` is null, a
-// handler-name literal or a read of a local name table becomes a `switch` of direct calls (table retyped String).
-// Each name has one declaration in the class (reflection picks it too); missing args are padded like padArgs.
+// ws handler dispatch: `Helpers.callDynamically(this, m, new Object[] {args})` where every write of `m` is null, a handler-name literal or a read of a local name table becomes a `...
 function nativeJavaWsHandlerDispatch (content: string): string {
     const esc = (s: string) => s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
     const sigs = new Map<string, string[][]> ();
     const splitTop = (text: string) => {
         const out: string[] = [];
         let depth = 0, cur = '';
-        for (const c of text) {
-            depth += c === '<' || c === '(' ? 1 : c === '>' || c === ')' ? -1 : 0;
-            if (c === ',' && depth === 0) { out.push (cur.trim ()); cur = ''; } else { cur += c; }
-        }
+        for (const c of text) { depth += c === '<' || c === '(' ? 1 : c === '>' || c === ')' ? -1 : 0; if (c === ',' && depth === 0) { out.push (cur.trim ()); cur = ''; } else { cur += c; } }
         return cur.trim () ? [ ...out, cur.trim () ] : out;
     };
-    for (const m of content.matchAll (/^ {4}public [\w.<>, ]+? (\w+)\(([^)]*)\)\s*$/gm)) {
-        sigs.set (m[1], [ ...(sigs.get (m[1]) ?? []), splitTop (m[2]).map ((p) => p.replace (/\s+\w+$/, '')) ]);
-    }
+    for (const m of content.matchAll (/^ {4}public [\w.<>, ]+? (\w+)\(([^)]*)\)\s*$/gm)) { sigs.set (m[1], [ ...(sigs.get (m[1]) ?? []), splitTop (m[2]).map ((p) => p.replace (/\s+\w+$/, '')) ]); }
     const norm = (t: string) => t.replace (/java\.util\./g, '').replace (/\s+/g, ' ');
     const edits: { from: number, to: number, text: string }[] = [];
     const masked = content.replace (/^[ \t]*\/\/.*$/gm, (c) => ' '.repeat (c.length));
@@ -9843,8 +7062,7 @@ function nativeJavaWsHandlerDispatch (content: string): string {
         for (const [ a, b ] of retypes) {
             const at = newBody.includes (a) ? start : content.indexOf (a, memberFrom);
             if (at < 0 || at > start) { ok = false; break; }
-            if (at < start) outer.push ({ from: at, to: at + a.length, text: b });
-            else newBody = newBody.replace (a, b);
+            if (at < start) outer.push ({ from: at, to: at + a.length, text: b }); else newBody = newBody.replace (a, b);
         }
         if (!ok) continue;
         edits.push ({ from: start, to: end, text: newBody }, ...outer);
@@ -9853,9 +7071,7 @@ function nativeJavaWsHandlerDispatch (content: string): string {
     for (const e of edits.sort ((a, b) => b.from - a.from)) out = out.slice (0, e.from) + e.text + out.slice (e.to);
     return out;
 }
-
-// `this[name] (args)` on a String local bound once to a literal that names a generated implicit-API method
-// (varargs, declared only in api/<X>Api.java): a direct call, which is what reflection resolves to.
+// `this[name] (args)` on a String local bound once to a literal that names a generated implicit-API method (varargs, declared only in api/<X>Api.java): a direct call, which is wha...
 function nativeJavaLiteralApiDispatch (content: string, apiSource: string): string {
     const re = /\(\((?:java\.util\.concurrent\.)?CompletableFuture<Object>\)(?:io\.github\.ccxt\.)?Helpers\.callDynamically\(this, (\w+), new Object\[\] \{ ([^{}\n]*) \}\)\)\.join\(\)/g;
     return content.replace (re, (whole, v, args) => {
@@ -9868,7 +7084,6 @@ function nativeJavaLiteralApiDispatch (content: string, apiSource: string): stri
         return `(this.${name}(${args})).join()`;
     });
 }
-
 // ===== h26-J03: a `safeDict (..) as Dict` reader with a Dict default prints the 77j6 Map local
 function javaH26J03AsDictReaderSelfTest (): string[] {
     const problems: string[] = [];
@@ -9886,18 +7101,12 @@ function javaH26J03AsDictReaderSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Map<String, Object> o1 = this\.safeDict\(/.test(out)) problems.push("h26-J03: 'o1' (as Dict, Dict default) must print Map<String, Object> (Map-default overload, no checkcast)");
-        for (const name of [ 'o2', 'o3', 'o4' ]) {
-            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`h26-J03: '${name}' must stay Object`);
-        }
-    } catch (e: any) {
-        problems.push(`h26-J03 self-test threw: ${e.message}`);
-    } finally {
+        for (const name of [ 'o2', 'o3', 'o4' ]) { if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`h26-J03: '${name}' must stay Object`); }
+    } catch (e: any) { problems.push(`h26-J03 self-test threw: ${e.message}`); } finally {
         fs.rmSync(probe, { force: true });
     }
     return problems;
 }
-
-// ===== h27-J05: a newMap literal whose values are only member-declared locals/params or literals is hoisted
 // before its statement even after calls: a callee cannot write a Java local, so the values read the same.
 function h27J05HoistPureValues (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     const prefix = t.slice (lineStart, at);
@@ -9911,11 +7120,7 @@ function h27J05HoistPureValues (t: string, at: number, close: number, args: stri
     const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ];
     const declared = (name: string) => [ ...t.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g')) ]
         .some ((m) => !keywords.includes (m[1].replace (/^final /, '')));
-    const pure = (e: string): boolean => {
-        e = containerOpsUnparen (e);
-        if (/^(?:null|true|false|-?\d+(?:\.\d+)?[LD]?|"(?:[^"\\]|\\.)*")$/.test (e)) return true;
-        return /^[A-Za-z_]\w*$/.test (e) && e !== 'this' && declared (e);
-    };
+    const pure = (e: string): boolean => { e = containerOpsUnparen (e); if (/^(?:null|true|false|-?\d+(?:\.\d+)?[LD]?|"(?:[^"\\]|\\.)*")$/.test (e)) return true; return /^[A-Za-z_]\w*$/.test (e) && e !== 'this' && declared (e); };
     if (args.some ((a, i) => i % 2 === 1 && !pure (a))) return undefined;
     const n = fresh ();
     const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
@@ -9938,9 +7143,6 @@ function h27J05HoistPureValuesSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h27-J05 hoist self test: ${name}\n${out}`);
 }
-// ===== end h27-J05
-
-// ===== h28-J05: a newMap value may also be parseNumber of a local/literal: a static, side-effect-free reader
 // of its own argument, so after the earlier calls it returns the same value as in place.
 function h28J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     const pn = /^(?:this|BaseExchange)\.parseNumber\(([A-Za-z_]\w*|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?)\)$/;
@@ -9965,9 +7167,6 @@ function h28J05HoistSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h28-J05 hoist self test: ${name}\n${out}`);
 }
-// ===== end h28-J05
-
-// ===== h29-J05: (1) a string literal in the statement prefix is masked before the h27/h28 proofs (it cannot read or write);
 // (2) the base pure-prefix rule may follow whole-line `//` comments or a statement ending in a trailing `//` comment.
 function h29J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     const prefix = t.slice (lineStart, at);
@@ -10001,14 +7200,8 @@ function h29J05HoistSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h29-J05 hoist self test: ${name}\n${out}`);
 }
-// ===== end h29-J05
-
-// ===== h30-J05: (1) values and the already-evaluated part of the prefix are both write-free (base readers,
-// GetValue, Objects.equals, fresh HashMap / ArrayList), so they commute; (2) after any call, values built only from
-// member-declared locals and literals; (3) `T x = c ? null : newMap(..);` becomes `T x = null; if (!(c)) {..}`.
-function h30J05Mask (e: string): string {
-    return e.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
-}
+// GetValue, Objects.equals, fresh HashMap / ArrayList), so they commute; (2) after any call, values built only from member-declared locals and literals; (3) `T x = c ? null : newM...
+function h30J05Mask (e: string): string { return e.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length)); }
 function h30J05WriteFree (e: string, anonPut: boolean, mapLocal: (n: string) => boolean): boolean {
     const m = h30J05Mask (e);
     if (m.includes ('"') || /->|\+\+|--|\bswitch\b|\byield\b|[^=!<>]=(?!=)/.test (m)) return false;
@@ -10027,15 +7220,9 @@ function h30J05WriteFree (e: string, anonPut: boolean, mapLocal: (n: string) => 
 function h30J05Evaluated (prefix: string): string {
     const m = h30J05Mask (prefix);
     const open: number[] = [];
-    for (let k = 0; k < m.length; k++) {
-        if (m[k] === '(') open.push (k);
-        else if (m[k] === ')') open.pop ();
-    }
+    for (let k = 0; k < m.length; k++) { if (m[k] === '(') open.push (k); else if (m[k] === ')') open.pop (); }
     let out = m;
-    for (const k of open.reverse ()) {
-        const name = /(?:\.?[A-Za-z_]\w*)+$/.exec (out.slice (0, k));
-        if (name !== null) out = out.slice (0, k - name[0].length) + ' '.repeat (name[0].length) + out.slice (k);
-    }
+    for (const k of open.reverse ()) { const name = /(?:\.?[A-Za-z_]\w*)+$/.exec (out.slice (0, k)); if (name !== null) out = out.slice (0, k - name[0].length) + ' '.repeat (name[0].length) + out.slice (k); }
     return out;
 }
 function h30J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
@@ -10064,8 +7251,7 @@ function h30J05HoistStatement (t: string, at: number, close: number, args: strin
     const evaluated = h30J05Evaluated (prefix.slice (lead.length));
     let flat = evaluated;
     for (let k = 0; k < 20 && /\([^()]*\)/.test (flat); k++) flat = flat.replace (/\([^()]*\)/g, 'X');
-    if (/\?|->|\binstanceof\b/.test (flat)) return undefined;
-    if (/[^=!<>]=(?!=)|\+\+|--/.test (evaluated)) return undefined;
+    if (/\?|->|\binstanceof\b/.test (flat) || /[^=!<>]=(?!=)|\+\+|--/.test (evaluated)) return undefined;
     const declared = memberDeclaredTypeOf (t, true);
     const localOnly = (e: string) => {
         const m = h30J05Mask (e);
@@ -10098,4 +7284,3 @@ function h30J05HoistSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h30-J05 hoist self test: ${name}\n${out}`);
 }
-// ===== end h30-J05

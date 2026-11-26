@@ -1,70 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaExpressionTypeResolver, installJavaOwnerStores, installJavaRepoMethodUses } from './javaTranspiler.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaRowAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
-import { javaCoreSetHandedSpellings } from './java-local-types.js';
-import { javaSetBaseMapCallReturnTable } from './java-local-types.js';
-import { installJavaFreshObjectMapWrites } from './java-local-types.js';
-import { installJavaStringCoreArgs } from './java-local-types.js';
-import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
-import { installJavaCounterTypes } from './java-local-types.js';
-import { installJavaMapLocalTypes } from './java-local-types.js';
-import { installJavaParamTypes } from './java-local-types.js';
-import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
-import { installJavaTypedBaseFields } from './java-local-types.js';
-import { installJavaListLocals } from './java-local-types.js';
-import { installJavaJ8CopyLocals } from './java-local-types.js';
-import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
-import { installJavaH26j01MapRowLists } from './java-local-types.js';
-import { installJavaR84j2ContainerLocals } from './java-local-types.js';
-import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
-import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
-import { installJavaR84j8Locals } from './java-local-types.js';
-import { installJavaR87j2WsLocals } from './java-local-types.js';
-import { installJavaR87j2UrlLocals } from './java-local-types.js';
-import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
-import { installJavaR90j3NativeSumLocals } from './java-local-types.js';
-import { installJavaR90j3CounterLoops } from './java-local-types.js';
-import { installJavaR87j4SplitLists } from './java-local-types.js';
-import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
-import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
-import { installJavaR90j2ElementListLocals } from './java-local-types.js';
-import { installJavaR90j2PromiseAllLocals } from './java-local-types.js';
-import { installJavaR90j2ElementMapLocals } from './java-local-types.js';
-import { installJavaR90j6StringListReaders } from './java-local-types.js';
-import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
-import { installJavaR90j6PairLocals } from './java-local-types.js';
-import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
-import { installJavaR90j7MapDelete } from './java-local-types.js';
-import { installJavaR92j3LongDefaultParams } from './java-local-types.js';
-import { installJavaR92j3LongFixedParams } from './java-local-types.js';
-import { installJavaR92j3ParseToIntCompare } from './java-local-types.js';
-import { installJavaR92j3SafeIntegerOperands } from './java-local-types.js';
-import { installJavaR92j3HexStringCalls } from './java-local-types.js';
-import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
-import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
-import { installJavaR92j1StringRowLocals } from './java-local-types.js';
-import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
-import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
-import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
-import { installJavaR93j2ListLocals } from './java-local-types.js';
-import { installJavaBaseMapCallReturns } from './java-local-types.js';
-import { installJavaBaseMapReturnSites } from './java-local-types.js';
-import { installJavaScalarLocals } from './java-local-types.js';
-import { installJavaStringReturns } from './java-local-types.js';
-import { installJavaParamTypesPreScan } from './java-local-types.js';
-import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
-import { installJ6ReaderLocals } from './java-local-types.js';
-import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
-import { installJ84j6StringListLocals } from './java-local-types.js';
-import { installJavaPredictionMapLocals } from './java-local-types.js';
-import { installJavaListParamSlots } from './java-local-types.js';
-import { installJavaEventsParamsSlots, installJavaCurrenciesByIdReads, installJavaSourceExchangeReads, installJavaTypedOrderbooksField, installJavaNullSeedStructureLocals } from './java-local-types.js';
-import { installJavaNonNullMapPuts } from './java-local-types.js';
-import { installJavaLocalElementWrites } from './java-local-types.js';
-import { installJavaStringListIndexOf } from './java-local-types.js';
-import { installJavaMapCopyLocals } from './java-local-types.js';
+import { installAllJavaHooks } from './javaTranspiler.js';
+import { javaCoreSetHandedSpellings, javaSetBaseMapCallReturnTable, javaSetVenueAsyncReturnSnapshot } from './java-local-types.js';
 import log from 'ololog'
 import { readFileSync, existsSync } from 'fs';
 import { dirname, resolve as resolvePath } from 'path';
@@ -122,6 +59,7 @@ interface JavaWorkerTask {
     handed?: Record<string, Record<string, string[]>>;
     handedKey?: string;
     baseMapReturns?: Record<string, string[]>;
+    venueAsyncReturns?: { entries: [string, string][], tuples: string[] };
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
@@ -142,130 +80,16 @@ let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
-export default async ({ transpilerConfig, configKey, file, files, roots, handed, handedKey, baseMapReturns }: JavaWorkerTask) => {
+export default async ({ transpilerConfig, configKey, file, files, roots, handed, handedKey, baseMapReturns, venueAsyncReturns }: JavaWorkerTask) => {
     javaCoreSetHandedSpellings (handedKey ?? '', handed);
     javaSetBaseMapCallReturnTable (baseMapReturns);
+    javaSetVenueAsyncReturnSnapshot (venueAsyncReturns);
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
         if (!programCache) programCache = Transpiler.createProgramCache ();
         cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode (false);
-        // same strict effectively-final rule as the main thread's setupTranspiler()
-        (cachedTranspiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
-        installJavaOwnerStores (cachedTranspiler);
-        // same printer hook the main thread installs in setupTranspiler(); the
-        // batch below prints through this very javaTranspiler instance
-        patchJavaLocalTypes (cachedTranspiler);
-        installJavaLocalTypes (cachedTranspiler);
-        patchJavaLiteralLocalTypes (cachedTranspiler);
-        installJavaNumericLocalTypes (cachedTranspiler);
-        // SS-06 / SS-09 / SS-12 cast-removal slices: same order as the main thread's
-        // setupTranspiler so both print paths emit byte-identical Java
-        patchJavaConsumerStringCasts (cachedTranspiler);
-        patchJavaMapChannelStringCasts (cachedTranspiler);
-        patchJavaStringReceiverCasts (cachedTranspiler);
-        // java-09: last-installed declaration observer (same order as the main thread)
-        installJavaDeclaredLocalTypes (cachedTranspiler);
-        // Same row-builder parameter boxing as the main thread's setupTranspiler()
-        installJavaObjectParamPositions (cachedTranspiler);
-        // java-13: the same printed-Java String proof the main thread installs at the end
-        // of setupTranspiler() — both print paths must emit byte-identical Java
-        installJavaExpressionTypeResolver (cachedTranspiler);
-        installJavaStringListParamTypes (cachedTranspiler);
-        installJavaNullScalarLocalTypes (cachedTranspiler);
-        patchJavaOmitLocalTypes (cachedTranspiler);
-        patchJavaQualifiedDtoListElementLocals (cachedTranspiler);
-        patchJavaStringAccumulatorLists (cachedTranspiler);
-        patchJavaRowAccumulatorLists (cachedTranspiler);
-        patchJavaTupleHolderElementLocals (cachedTranspiler);
-        patchJavaOrderBookCacheLocals (cachedTranspiler);
-        patchJavaDeclaredMapReceiverCasts (cachedTranspiler);
-        patchJavaBaseMapFieldReceiverCasts (cachedTranspiler);
-        patchJavaFreshMapElementWrites (cachedTranspiler);
-        patchJavaDeclaredBoxLiteralEquality (cachedTranspiler);
-        patchJavaObjectKeysLength (cachedTranspiler);
-        patchJavaMapArgIdentity (cachedTranspiler);
-        patchJavaNonNullStringLocals (cachedTranspiler);
-        patchJavaNonNullLongSubtract (cachedTranspiler);
-        installJavaBooleanParams (cachedTranspiler);
-        installJavaStringDefaultParams (cachedTranspiler);
-        installJavaTuplePairReturns (cachedTranspiler);
-        installJavaStringListArgs (cachedTranspiler);
-        installJavaLongSlots (cachedTranspiler);
-        installJavaMapLocals (cachedTranspiler);
-        patchJavaUntilOmitMapWrites (cachedTranspiler);
-        installJavaBooleanFixedParams (cachedTranspiler);
-        installJavaBooleanWriteLocals (cachedTranspiler);
-        installJavaNativeReplace (cachedTranspiler);
-        installJavaStringReturnSites (cachedTranspiler);
-        installJavaFreshObjectMapWrites (cachedTranspiler);
-        installJavaStringCoreArgs (cachedTranspiler);
-        installJavaNativePadStartFirst (cachedTranspiler);
-        installJavaLiteralReplace (cachedTranspiler);
-        installJavaCounterTypes (cachedTranspiler);
-        installJavaMapLocalTypes (cachedTranspiler);
-        installJavaParamTypes (cachedTranspiler);
-        installJavaMapArgAlreadyTyped (cachedTranspiler);
-        installJavaRepoMethodUses (cachedTranspiler);
-        installJavaListLocals (cachedTranspiler);
-        installJavaScalarLocals (cachedTranspiler);
-        installJavaParamTypesPreScan (cachedTranspiler);
-        installJavaStringReturns (cachedTranspiler);
-        installJavaPredictionMapLocals (cachedTranspiler);
-        installJavaListParamSlots (cachedTranspiler);
-        installJavaTypedBaseFields (cachedTranspiler);
-        installJavaNonNullMapPuts (cachedTranspiler);
-        installJavaLocalElementWrites (cachedTranspiler);
-        installJavaStringListIndexOf (cachedTranspiler);
-        installJavaR77j2ConditionalLocals (cachedTranspiler);
-        installJ6ReaderLocals (cachedTranspiler);
-        installJavaJ8CopyLocals (cachedTranspiler);
-        installJavaR84j1StringElementLocals (cachedTranspiler);
-        installJavaR84j1BoxElementLocals (cachedTranspiler);
-        installJavaH26j01MapRowLists (cachedTranspiler);
-        installJavaR84j2ContainerLocals (cachedTranspiler);
-        installJavaR84j2GuardedListLocals (cachedTranspiler);
-        installJavaR84j2MapConditionalLocals (cachedTranspiler);
-        installJ84j6TrueOnlyLocals (cachedTranspiler);
-        installJ84j6StringListLocals (cachedTranspiler);
-        installJavaR84j8Locals (cachedTranspiler);
-        installJavaR87j2WsLocals (cachedTranspiler);
-        installJavaR87j2UrlLocals (cachedTranspiler);
-        installJavaR87j3SumCounterLocals (cachedTranspiler);
-        installJavaR87j4SplitLists (cachedTranspiler);
-        installJavaR87j5CalleeStringArgs (cachedTranspiler);
-        installJavaR87j8CopyStringResolver (cachedTranspiler);
-        installJavaR90j2ElementListLocals (cachedTranspiler);
-        installJavaR90j2PromiseAllLocals (cachedTranspiler);
-        installJavaR90j2ElementMapLocals (cachedTranspiler);
-        installJavaR90j3NativeSumLocals (cachedTranspiler);
-        installJavaR90j3CounterLoops (cachedTranspiler);
-        installJavaR90j6StringListReaders (cachedTranspiler);
-        installJavaR90j6AsStringListReaders (cachedTranspiler);
-        installJavaR90j6PairLocals (cachedTranspiler);
-        installJavaR90j6ListCopyLocals (cachedTranspiler);
-        installJavaR90j7MapDelete (cachedTranspiler);
-        installJavaR92j3LongDefaultParams (cachedTranspiler);
-        installJavaR92j3LongFixedParams (cachedTranspiler);
-        installJavaR92j3ParseToIntCompare (cachedTranspiler);
-        installJavaR92j3SafeIntegerOperands (cachedTranspiler);
-        installJavaR92j3HexStringCalls (cachedTranspiler);
-        installJavaR90j8OmitParamLocals (cachedTranspiler);
-        installJavaR92j1AssertedStringLocals (cachedTranspiler);
-        installJavaR92j1StringRowLocals (cachedTranspiler);
-        installJavaR92j2MarketTypeParams (cachedTranspiler);
-        installJavaTypedDefaultReaders (cachedTranspiler);
-        installJavaR92j2MapSlotHandOff (cachedTranspiler);
-        installJavaR92j2StringSlotLocals (cachedTranspiler);
-        installJavaR93j2ListLocals (cachedTranspiler);
-        installJavaBaseMapCallReturns (cachedTranspiler);
-        installJavaBaseMapReturnSites (cachedTranspiler);
-        installJavaMapCopyLocals (cachedTranspiler);
-        installJavaEventsParamsSlots (cachedTranspiler);
-        installJavaCurrenciesByIdReads (cachedTranspiler);
-        installJavaSourceExchangeReads (cachedTranspiler);
-        installJavaTypedOrderbooksField (cachedTranspiler);
-        installJavaNullSeedStructureLocals (cachedTranspiler);
+        installAllJavaHooks (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

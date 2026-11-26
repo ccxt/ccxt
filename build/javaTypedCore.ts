@@ -75,7 +75,10 @@ export function baseTierDeclaredNames(): Set<string> {
  * to Prediction* except for names declared on BaseExchange (shared with the REST tier) and
  * keeps the WS families (prediction venues merge their watch* methods into the same class).
  */
+const typedReturnTableCache = new Map<JavaTier, Map<string, MethodInfo>>();
 export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
+    const cached = typedReturnTableCache.get(tier);
+    if (cached !== undefined) return cached;
     const table = new Map<string, MethodInfo>();
     const list = tier === 'prediction' ? predictionMethods().concat(toPredictionMethods(wsMethods())) : restMethods().concat(wsMethods());
     for (const m of list) {
@@ -96,6 +99,7 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
         const raw = LOAD_SOURCE_CORES[m.name];
         if (raw !== undefined) table.set(m.name, { ...m, javaReturnType: raw, isArray: false, elementType: null, surface: m } as MethodInfo);
     }
+    typedReturnTableCache.set(tier, table);
     return table;
 }
 
