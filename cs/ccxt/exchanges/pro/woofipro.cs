@@ -680,8 +680,8 @@ public partial class woofipro : ccxt.woofipro
         string messageHash = "authenticated";
         string eventVar = "auth";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string ts = this.nonce().ToString();
             object secret = this.secret;

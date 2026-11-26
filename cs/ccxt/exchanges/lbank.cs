@@ -1369,7 +1369,7 @@ public partial class lbank : Exchange
             sinceResolved = since;
             parsedSince = this.parseToInt(((double?)since / 1000));
         }
-        object parsedLimit = mathMin((limitResolved + 1), 2000); // max 2000;
+        object parsedLimit = Math.Min((limitResolved.GetValueOrDefault() + 1), 2000); // max 2000;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },

@@ -2124,8 +2124,8 @@ public partial class kucoin : ccxt.kucoin
         string? subscriptionHash = this.safeString(client.subscriptions, id);
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
         ((IDictionary<string,object>)client.subscriptions).Remove(id);
-        object method = this.safeValue(subscription, "method");
-        if (((subscription != null)) && ((method != null)))
+        bool method = (this.safeValue(subscription, "method")) != null;
+        if (((subscription != null)) && (method))
         {
             this.handleOrderBookSubscription(client, message, subscription);
         }

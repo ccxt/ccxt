@@ -1688,7 +1688,13 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 this.handleAuthenticationMessage(client, message);
                 return;
             }
-            client.resolve(this.safeValue(message, "result", message), requestId);
+            if ((message != null && message.ContainsKey("result")))
+            {
+                client.resolve(this.safeValue(message, "result"), requestId);
+            } else
+            {
+                client.resolve(message, requestId);
+            }
         }
     }
 

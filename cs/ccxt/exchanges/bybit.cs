@@ -3195,7 +3195,7 @@ public partial class bybit : Exchange
             symbol = ((((bs + "/") + quote) + ":") + settle);
             if ((expiry != null))
             {
-                symbol = ((symbol + "-") + this.yymmdd(expiry));
+                symbol = ((((((bs + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry));
             }
             double? contractSize = inverse ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
             Dictionary<string, object> costLimits = new Dictionary<string, object>() {
@@ -4438,31 +4438,37 @@ public partial class bybit : Exchange
         if ((feeCostString != null))
         {
             string? feeRateString = this.safeString(trade, "feeRate");
-            object feeCurrencyCode = null;
+            string? feeCurrencyCode = null;
             if ((this.safeBool(marketResolved, "spot", false) == true))
             {
                 if (Precise.stringGt(feeCostString, "0"))
                 {
                     if (side == "buy")
                     {
-                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+                        feeCurrencyCode = this.safeString(marketResolved, "base");
                     } else
                     {
-                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+                        feeCurrencyCode = this.safeString(marketResolved, "quote");
                     }
                 } else
                 {
                     if (side == "buy")
                     {
-                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+                        feeCurrencyCode = this.safeString(marketResolved, "quote");
                     } else
                     {
-                        feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+                        feeCurrencyCode = this.safeString(marketResolved, "base");
                     }
                 }
             } else
             {
-                feeCurrencyCode = (this.safeBool(marketResolved, "inverse", false) == true) ? (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null) : (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null);
+                if ((this.safeBool(marketResolved, "inverse", false) == true))
+                {
+                    feeCurrencyCode = this.safeString(marketResolved, "base");
+                } else
+                {
+                    feeCurrencyCode = this.safeString(marketResolved, "settle");
+                }
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
@@ -7477,7 +7483,7 @@ public partial class bybit : Exchange
         string? networkCode = networkCodeparamsOmitedVariable.Item1;
         IDictionary<string, object> paramsOmited = ((IDictionary<string, object>)networkCodeparamsOmitedVariable.Item2);
         Dictionary<string, object> indexedAddresses = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsOmited));
-        string? selectedNetworkCode = this.selectNetworkKeyFromNetworks((currency.ContainsKey("code") ? currency["code"] : null), networkCode, indexedAddresses, true);
+        string? selectedNetworkCode = this.selectNetworkKeyFromNetworks(this.safeString(currency, "code", ""), networkCode, indexedAddresses, true);
         return ccxt.BaseExchange.ToDepositAddress(this.safeDict(indexedAddresses, selectedNetworkCode));
     }
 

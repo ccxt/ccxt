@@ -1778,8 +1778,8 @@ public partial class cex : ccxt.cex
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             this.checkRequiredCredentials();
             string nonce = this.seconds().ToString();

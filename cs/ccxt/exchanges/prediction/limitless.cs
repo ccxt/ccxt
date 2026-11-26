@@ -358,7 +358,7 @@ public partial class limitless : PredictionExchange
             double cappedPages = Math.Ceiling(Convert.ToDouble(((double?)maxMarkets / pageSize)));
             Int64? knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
             Int64? allPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)knownTotal / pageSize))));
-            for (int i = 2; i <= allPages; i++)
+            for (int i = 2; i <= allPages.GetValueOrDefault(); i++)
             {
                 if ((i > cappedPages))
                 {

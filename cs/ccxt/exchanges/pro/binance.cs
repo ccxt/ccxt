@@ -4305,8 +4305,8 @@ public partial class binance : ccxt.binance
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))["info"] = message;
         IDictionary<string, object> balance = this.safeDict(this.balance, accountType, new Dictionary<string, object>() {});
+        balance["info"] = message;
         string? eventVar = this.safeString(message, "e");
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         IDictionary<string, object> balanceMessage = this.safeDict(message, "a", message);

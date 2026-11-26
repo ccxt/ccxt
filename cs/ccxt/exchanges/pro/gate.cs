@@ -2795,8 +2795,8 @@ public partial class gate : ccxt.gate
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             return await this.requestPrivate(url, new Dictionary<string, object>() {}, channel, messageHash);
         }

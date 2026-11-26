@@ -1187,10 +1187,7 @@ public partial class onetrading : ccxt.onetrading
             }
         }
         IDictionary<string, object> marketTimeframes = this.safeDict(subscription, marketId, new Dictionary<string, object>() {});
-        if ((timeframeVar != null))
-        {
-            marketTimeframes[timeframeVar] = true;
-        }
+        marketTimeframes[timeframeVar] = true;
         subscription[(string)marketId] = marketTimeframes;
         List<object> properties = new List<object>() {};
         List<object> marketIds = new List<object>(subscription.Keys);

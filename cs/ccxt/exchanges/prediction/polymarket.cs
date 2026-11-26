@@ -683,7 +683,7 @@ public partial class polymarket : PredictionExchange
             if ((resultLimit != null))
             {
                 Int64? limitPages = this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)resultLimit / pageSize))));
-                if ((totalPages != null && (limitPages == null || limitPages < totalPages)))
+                if (limitPages.GetValueOrDefault() < totalPages)
                 {
                     totalPages = limitPages;
                 }

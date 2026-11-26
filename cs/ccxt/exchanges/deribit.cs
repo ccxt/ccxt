@@ -3819,8 +3819,7 @@ public partial class deribit : Exchange
         Int64 duration = (this.parseTimeframe(eachItemDuration) * 1000L);
         Int64 now = this.milliseconds();
         Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
-        Int64 defaultSince = (now - month);
-        Int64? sinceResolved = ((since == null)) ? defaultSince : since;
+        Int64? sinceResolved = ((since == null)) ? ((now - month)) : since;
         Int64? time = now;
         if ((since != null))
         {

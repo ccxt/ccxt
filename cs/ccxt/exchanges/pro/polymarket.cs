@@ -702,8 +702,8 @@ public partial class polymarket : ccxt.polymarket
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 id = this.requestId();
             Dictionary<string, object> pending = new Dictionary<string, object>() {

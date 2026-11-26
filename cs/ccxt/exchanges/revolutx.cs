@@ -616,7 +616,7 @@ public partial class revolutx : Exchange
             {
                 string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
-                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+                marketIds.Add(this.safeString(market, "id", ""));
             }
             request["symbols"] = String.Join(",", marketIds.ToArray());
         }

@@ -696,8 +696,8 @@ public partial class modetrade : ccxt.modetrade
         string messageHash = "authenticated";
         string eventVar = "auth";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string ts = this.nonce().ToString();
             object secret = this.secret;
@@ -1014,9 +1014,8 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string? topic = this.safeString(message, "topic", "");
-        object data = this.safeValue(message, "data");
-        bool dataIsArray = ((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (dataIsArray)
+        List<object> dataRows = this.safeList(message, "data");
+        if ((dataRows != null))
         {
             // algoexecutionreport
             List<object> dataList = this.safeList(message, "data", new List<object>() {});
@@ -1024,7 +1023,7 @@ public partial class modetrade : ccxt.modetrade
             for (int i = 0; i < dataListLength; i++)
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)(dataList != null && i < dataList.Count ? dataList[i] : null));
-                string? tradeIdStr = this.safeString(data, "tradeId");
+                string? tradeIdStr = this.safeString(dataRows, "tradeId");
                 string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))
                 {
@@ -1035,13 +1034,13 @@ public partial class modetrade : ccxt.modetrade
         } else
         {
             // executionreport
-            string? tradeIdStr = this.safeString(data, "tradeId");
+            IDictionary<string, object> dataDict = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            string? tradeIdStr = this.safeString(dataDict, "tradeId");
             string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
             if ((tradeId != null))
             {
-                this.handleMyTrade(client, data);
+                this.handleMyTrade(client, dataDict);
             }
-            IDictionary<string, object> dataDict = this.safeDict(message, "data", new Dictionary<string, object>() {});
             this.handleOrder(client, dataDict, topic);
         }
     }
@@ -1083,7 +1082,7 @@ public partial class modetrade : ccxt.modetrade
         }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

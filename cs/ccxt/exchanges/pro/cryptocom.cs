@@ -1655,8 +1655,8 @@ public partial class cryptocom : ccxt.cryptocom
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string method = "public/auth";
             Int64? nonceValue = this.incrementingNonce();

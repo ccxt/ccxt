@@ -1312,7 +1312,7 @@ public partial class nado : Exchange
         {
             ordersRequest["limit"] = Math.Min(limit.Value, 500);
         }
-        IList<object> ordersRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001);
+        IList<object> ordersRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", ordersRequest, paramsSubaccount, 0.001d);
         Dictionary<string, object> ordersRequestUntil = (Dictionary<string, object>)ordersRequestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)ordersRequestUntilparamsUntilVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1433,7 +1433,7 @@ public partial class nado : Exchange
         {
             matchesRequest["limit"] = Math.Min(limit.Value, 500);
         }
-        IList<object> matchesRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001);
+        IList<object> matchesRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", matchesRequest, paramsSubaccount, 0.001d);
         Dictionary<string, object> matchesRequestUntil = (Dictionary<string, object>)matchesRequestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)matchesRequestUntilparamsUntilVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1600,7 +1600,7 @@ public partial class nado : Exchange
         {
             eventsRequest["product_ids"] = new List<object> {this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null))};
         }
-        IList<object> eventsRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", eventsRequest, paramsSubaccount, 0.001);
+        IList<object> eventsRequestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("max_time", eventsRequest, paramsSubaccount, 0.001d);
         Dictionary<string, object> eventsRequestUntil = (Dictionary<string, object>)eventsRequestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)eventsRequestUntilparamsUntilVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3371,11 +3371,11 @@ public partial class nado : Exchange
         {
             string paddedLeft = (zeros + value);
             object start = (paddedLeft.Length - (this.parseToInt(length)));
-            return ((string?)((object)(slice(paddedLeft, start, paddedLeft.Length))));
+            return slice(paddedLeft, start, paddedLeft.Length);
         }
         string paddedRight = (value + zeros);
         Int64? end = this.parseToInt(length);
-        return ((string?)((object)(((paddedRight == null) ? null : paddedRight.Substring(0, ((int)Math.Max(Math.Min(((end ?? 0L) < 0 ? ((Int64)paddedRight.Length) + ((end ?? 0L)) : (end ?? 0L)), ((Int64)paddedRight.Length)), 0L)))))));
+        return ((paddedRight == null) ? null : paddedRight.Substring(0, ((int)Math.Max(Math.Min(((end ?? 0L) < 0 ? ((Int64)paddedRight.Length) + ((end ?? 0L)) : (end ?? 0L)), ((Int64)paddedRight.Length)), 0L))));
     }
 
     public virtual string? signOrder(IDictionary<string, object> order, Int64? productId, string? chainId)
@@ -3504,7 +3504,7 @@ public partial class nado : Exchange
         }
         if (marketId.EndsWith("-PERP"))
         {
-            return ((string?)((object)(((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0))))));
+            return ((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0)));
         }
         return ((string?)((object)(marketId)));
     }

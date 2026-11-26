@@ -622,7 +622,8 @@ public partial class bigone : Exchange
             type = "fiat";
         } else if ((chainLength == 0))
         {
-            if (this.isLeveragedCurrency(id))
+            string? leveragedId = this.safeString(rawCurrency, "symbol", "");
+            if (this.isLeveragedCurrency(leveragedId))
             {
                 type = "leveraged";
             } else

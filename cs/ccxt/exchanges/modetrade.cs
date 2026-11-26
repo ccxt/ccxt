@@ -1370,7 +1370,7 @@ public partial class modetrade : Exchange
         {
             request["start_t"] = since;
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_t", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end_t", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil));

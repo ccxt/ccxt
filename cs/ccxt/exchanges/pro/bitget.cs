@@ -686,10 +686,11 @@ public partial class bitget : ccxt.bitget
             messageHash = ("kline" + symbol);
         } else
         {
-            channel = ("candle" + interval);
+            string? intervalValue = this.safeString(timeframes, timeframeVar, "");
+            channel = ("candle" + intervalValue);
             args["channel"] = channel;
             args["instId"] = (market.ContainsKey("id") ? market["id"] : null);
-            messageHash = ("candles:" + interval);
+            messageHash = ("candles:" + intervalValue);
         }
         return await this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", paramsRequest);
     }
@@ -3098,8 +3099,8 @@ public partial class bitget : ccxt.bitget
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string timestamp = this.seconds().ToString();
             string auth = ((timestamp + "GET") + "/user/verify");

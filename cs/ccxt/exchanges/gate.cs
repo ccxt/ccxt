@@ -2918,7 +2918,8 @@ public partial class gate : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         string type = "crypto";
-        if (this.isLeveragedCurrency(currencyId))
+        string? leveragedId = this.safeString(rawCurrency, "currency", "");
+        if (this.isLeveragedCurrency(leveragedId))
         {
             type = "leveraged";
         }
@@ -3297,9 +3298,8 @@ public partial class gate : Exchange
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> chainsIndexedByIdRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, paramsNetworkCode));
-        Dictionary<string, object> chainsIndexedById = chainsIndexedByIdRaw;
-        string? selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedById, selectedNetworkIdOrCode));
+        string? selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedByIdRaw, true);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeDict(chainsIndexedByIdRaw, selectedNetworkIdOrCode));
     }
 
     public override Dictionary<string, object> parseDepositAddress(IDictionary<string, object> depositAddress, Dictionary<string, object> currency = null)
@@ -5267,7 +5267,7 @@ public partial class gate : Exchange
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         List<object> response = await this.privateWalletGetDeposits(this.extend(requestUntil, paramsUntil));
@@ -5318,7 +5318,7 @@ public partial class gate : Exchange
             request["from"] = start;
             request["to"] = this.sum(start, (((30L * 24L) * 60) * 60));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         List<object> response = await this.privateWalletGetWithdrawals(this.extend(requestUntil, paramsUntil));
@@ -7341,13 +7341,13 @@ public partial class gate : Exchange
         {
             market = this.market(symbol);
         }
-        object defaultSettle = null;
+        string? defaultSettle = null;
         if ((market == null))
         {
             defaultSettle = "usdt";
         } else
         {
-            defaultSettle = (market.ContainsKey("settle") ? market["settle"] : null);
+            defaultSettle = this.safeString(market, "settle");
         }
         string? settle = this.safeStringLower(parameters, "settle", defaultSettle);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters);

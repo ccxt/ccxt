@@ -808,8 +808,8 @@ public partial class bit2me : ccxt.bit2me
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             // the token is valid for one minute, it is only used to open the session
             Dictionary<string, object> response = await this.privatePostV1SigninApikey(parameters);

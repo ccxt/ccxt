@@ -4580,7 +4580,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> response = null;
         if (((marginMode != null)) || (isMargin == true) || (marketType == "margin"))
         {
-            object parsedSymbols = null;
+            string? parsedSymbols = null;
             string? symbol = this.safeString(paramsOmitted2, "symbol");
             if ((symbol == null))
             {
@@ -4593,7 +4593,7 @@ public partial class mexc : Exchange
             } else
             {
                 Dictionary<string, object> market = this.market(symbol);
-                parsedSymbols = (market.ContainsKey("id") ? market["id"] : null);
+                parsedSymbols = this.safeString(market, "id");
             }
             this.checkRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols");
             marketType = "margin";

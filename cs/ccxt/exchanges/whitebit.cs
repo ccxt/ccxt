@@ -4522,7 +4522,7 @@ public partial class whitebit : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, parameters, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("to", request, parameters, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil));
@@ -4891,7 +4891,7 @@ public partial class whitebit : Exchange
         {
             request["startDate"] = Math.Round(Convert.ToDouble(((double?)since / 1000)));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endDate", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endDate", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))

@@ -12496,10 +12496,10 @@ public partial class binance : Exchange
             }
             string fromId = ((string)this.convertTypeToAccount(fromAccount)).ToUpper();
             string toId = ((string)this.convertTypeToAccount(toAccount)).ToUpper();
-            object isolatedSymbol = null;
+            string? isolatedSymbol = null;
             if ((market != null))
             {
-                isolatedSymbol = (market.ContainsKey("id") ? market["id"] : null);
+                isolatedSymbol = this.safeString(market, "id");
             }
             if (fromId == "ISOLATED")
             {

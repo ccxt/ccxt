@@ -3148,7 +3148,7 @@ public partial class kalshi : PredictionExchange
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
             int tradeApiIndex = (baseUrl?.IndexOf("/trade-api", StringComparison.Ordinal) ?? -1);
             string? versionPrefix = ((baseUrl == null) ? null : baseUrl.Substring(Math.Max(Math.Min((tradeApiIndex < 0 ? baseUrl.Length + (tradeApiIndex) : tradeApiIndex), baseUrl.Length), 0)));
-            string? pathForSigning = ((string)(versionPrefix == null ? null : versionPrefix + "/" + implodedPath));
+            string? pathForSigning = ((string)((versionPrefix + "/") + implodedPath));
             string payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();

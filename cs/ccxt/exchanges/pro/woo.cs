@@ -1058,8 +1058,8 @@ public partial class woo : ccxt.woo
         string messageHash = "authenticated";
         string eventVar = "auth";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string ts = this.nonce().ToString();
             string auth = ("|" + ts);
@@ -1928,8 +1928,8 @@ public partial class woo : ccxt.woo
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-        object method = this.safeValue(subscription, "method");
-        if ((method != null))
+        bool method = (this.safeValue(subscription, "method")) != null;
+        if (method)
         {
             this.handleOrderBookSubscription(client, message, subscription);
         }

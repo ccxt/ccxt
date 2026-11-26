@@ -313,7 +313,7 @@ public partial class bitflyer : Exchange
         {
             return null;
         }
-        return this.parse8601((expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z"));
+        return this.parse8601((((((expiryYear + "-") + month) + "-") + day) + "T00:00:00Z"));
     }
 
     public override Dictionary<string, object> safeMarket(string marketId = null, IDictionary<string, object> market = null, string? delimiter = null, string marketType = null)

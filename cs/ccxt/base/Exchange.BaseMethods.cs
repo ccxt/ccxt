@@ -4928,7 +4928,7 @@ public partial class BaseExchange
         {
             IDictionary<string, object> trade = this.safeDict(trades, i, new Dictionary<string, object>() {});
             Int64? ts = this.safeInteger(trade, "timestamp");
-            object price = (trade != null && trade.ContainsKey("price") ? trade["price"] : null);
+            double? price = this.safeNumber(trade, "price");
             if (((ts == null)) || ((price == null)))
             {
                 continue;
@@ -4952,14 +4952,14 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " buildOHLCVC() requires a price argument")) ;
             }
-            if ((skipZeroPrices == true) && !(isGreaterThan(price, 0)) && !(isLessThan(price, 0)))
+            if ((skipZeroPrices == true) && !((price > 0)) && !((!(price >= 0))))
             {
                 continue;
             }
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328001 && i_timestamp < ohlcvsSlot328001.Count ? ohlcvsSlot328001[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328019 && i_timestamp < ohlcvsSlot328019.Count ? ohlcvsSlot328019[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -6605,11 +6605,11 @@ public partial class BaseExchange
     {
         //
         omitParams ??= true;
-        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         string? triggerPriceStr = null;
-        string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         string? stopLossPriceStr = null;
-        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         string? takeProfitPriceStr = null;
         //
         List<object> keysToOmit = new List<object>() {};
@@ -7799,7 +7799,7 @@ public partial class BaseExchange
         return newDict;
     }
 
-    public virtual List<object> handleUntilOption(string? key, object request, object parameters, object multiplier = null)
+    public virtual List<object> handleUntilOption(string? key, object request, object parameters, double? multiplier = null)
     {
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");

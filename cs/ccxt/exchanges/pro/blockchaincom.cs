@@ -868,8 +868,8 @@ public partial class blockchaincom : ccxt.blockchaincom
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object isAuthenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((isAuthenticated == null))
+        bool isAuthenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!isAuthenticated)
         {
             this.checkRequiredCredentials();
             Dictionary<string, object> request = new Dictionary<string, object>() {

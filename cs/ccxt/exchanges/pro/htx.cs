@@ -3043,8 +3043,8 @@ public partial class htx : ccxt.htx
         string? messageHash = this.safeString2(message, "ch", "topic");
         if ((messageHash != null))
         {
-            object data = this.safeValue(message, "data");
-            if ((data != null))
+            bool data = (this.safeValue(message, "data")) != null;
+            if (data)
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
@@ -3378,8 +3378,8 @@ public partial class htx : ccxt.htx
         string relativePath = url.Replace(("wss://" + hostname), (string)"");
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string timestamp = this.ymdhms(this.milliseconds(), "T");
             Dictionary<string, object> signatureParams = null;

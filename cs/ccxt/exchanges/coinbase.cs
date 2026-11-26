@@ -1829,7 +1829,7 @@ public partial class coinbase : Exchange
         List<object> futureData = this.safeList(expiringFutures, "products", new List<object>() {});
         for (int i = 0; i < futureData.Count; i++)
         {
-            Dictionary<string, object> futureMarket = this.parseContractMarket(futureData[i]);
+            Dictionary<string, object> futureMarket = this.parseContractMarket(this.safeDict(futureData, i, new Dictionary<string, object>() {}));
             if ((futureMarket != null))
             {
                 result.Add(futureMarket);
@@ -1838,7 +1838,7 @@ public partial class coinbase : Exchange
         List<object> perpetualData = this.safeList(perpetualFutures, "products", new List<object>() {});
         for (int i = 0; i < perpetualData.Count; i++)
         {
-            Dictionary<string, object> perpetualMarket = this.parseContractMarket(perpetualData[i]);
+            Dictionary<string, object> perpetualMarket = this.parseContractMarket(this.safeDict(perpetualData, i, new Dictionary<string, object>() {}));
             if ((perpetualMarket != null))
             {
                 result.Add(perpetualMarket);
@@ -1968,7 +1968,7 @@ public partial class coinbase : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(object market, IDictionary<string, object>? feeTier = null)
+    public virtual Dictionary<string, object> parseContractMarket(IDictionary<string, object> market, IDictionary<string, object>? feeTier = null)
     {
         // expiring
         //

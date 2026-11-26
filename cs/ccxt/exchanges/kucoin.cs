@@ -2436,8 +2436,7 @@ public partial class kucoin : Exchange
             string type = "swap";
             if (future)
             {
-                string expirySuffix = ("-" + this.yymmdd(expiry, ""));
-                symbol = (symbol + expirySuffix);
+                symbol = ((((((bs + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry, ""));
                 type = "future";
             }
             bool? inverse = this.safeBool(market, "isInverse");
@@ -5069,8 +5068,8 @@ public partial class kucoin : Exchange
         {
             throw new BadRequest ((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
-        object iceberg = this.safeValue(paramsOmitted, "iceberg");
-        if (((iceberg != null)) && (!(iceberg is false)))
+        bool? iceberg = this.safeBool(paramsOmitted, "iceberg", false);
+        if ((iceberg == true))
         {
             string? visibleSize = this.safeString(paramsOmitted, "visibleSize");
             if ((visibleSize == null))
@@ -6189,10 +6188,10 @@ public partial class kucoin : Exchange
         {
             request["symbol"] = this.marketId(symbol);
         }
-        object trigger = this.safeValue2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
-        if (((trigger != null)) && (!(trigger is false)))
+        if ((trigger == true))
         {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, paramsOmitted));
         } else
@@ -6312,7 +6311,7 @@ public partial class kucoin : Exchange
         (bool?, IDictionary<string, object>) utaparamsRequestVariable = this.handleOptionBoolAndParams(parameters, "fetchOrdersByStatus", "uta", uta);
         uta = utaparamsRequestVariable.Item1;
         paramsRequest = utaparamsRequestVariable.Item2;
-        object marketType = null;
+        string? marketType = null;
         if ((symbol == null))
         {
             string? type = this.safeString(paramsRequest, "type"); // exchange has specific param for order type
@@ -6336,7 +6335,7 @@ public partial class kucoin : Exchange
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            marketType = (market.ContainsKey("type") ? market["type"] : null);
+            marketType = this.safeString(market, "type");
         }
         if ((uta == true))
         {

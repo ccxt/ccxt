@@ -5426,7 +5426,8 @@ public partial class hyperliquid : Exchange
             if ((this.safeString(record, "type") == "vaultDeposit"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
-                if ((this.safeString(delta, "vault", "") == ("0x" + vaultAddress)))
+                string? deltaVault = this.safeString(delta, "vault", "");
+                if ((deltaVault == ("0x" + vaultAddress)))
                 {
                     deposits.Add(record);
                 }
@@ -5505,7 +5506,8 @@ public partial class hyperliquid : Exchange
             if ((this.safeString(record, "type") == "vaultWithdraw"))
             {
                 IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
-                if ((this.safeString(delta, "vault", "") == ("0x" + vaultAddress)))
+                string? deltaVault = this.safeString(delta, "vault", "");
+                if ((deltaVault == ("0x" + vaultAddress)))
                 {
                     withdrawals.Add(record);
                 }

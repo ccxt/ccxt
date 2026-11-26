@@ -292,7 +292,7 @@ public partial class sxbet : PredictionExchange
             page = (page + 1);
             int rawMarketsCount = (rawMarkets?.Count ?? 0);
             Int64? collectedLength = this.parseToInt(rawMarketsCount);
-            if ((pageMarketsLength < pageSize.GetValueOrDefault()) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
+            if ((pageMarketsLength < pageSize.GetValueOrDefault()) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && (collectedLength.GetValueOrDefault() >= collectCap.Value)))
             {
                 break;
             }
@@ -857,7 +857,8 @@ public partial class sxbet : PredictionExchange
     public async virtual Task<IDictionary<string, object>> fetchSxbetProxy()
     {
         Dictionary<string, object> response = await this.sxbetPrivateGetUserProxy();
-        return this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return data;
     }
 
     /**
@@ -2070,7 +2071,8 @@ public partial class sxbet : PredictionExchange
             { "marketHash", marketHash },
         };
         Dictionary<string, object> response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
-        return this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return data;
     }
 
     /**
@@ -2883,8 +2885,8 @@ public partial class sxbet : PredictionExchange
                 {
                     continue;
                 }
-                object outcomeObj = this.outcome(sym);
-                Dictionary<string, object> ticker = this.parsePredictionTicker(raw,((IDictionary<string, object>)outcomeObj));
+                IDictionary<string, object> outcomeObj = this.outcome(sym);
+                Dictionary<string, object> ticker = this.parsePredictionTicker(raw, outcomeObj);
                 this.setWsOption("wsTickers", sym, ((object)ticker));
                 client.resolve(ticker, ("ticker::" + sym));
             }

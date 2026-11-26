@@ -1494,7 +1494,7 @@ public partial class myriad : PredictionExchange
         }
         if (dotIndex > -1)
         {
-            return ((string?)((object)(((scaled == null) ? null : scaled.Substring(0, Math.Max(Math.Min((dotIndex < 0 ? scaled.Length + (dotIndex) : dotIndex), scaled.Length), 0))))));
+            return ((scaled == null) ? null : scaled.Substring(0, Math.Max(Math.Min((dotIndex < 0 ? scaled.Length + (dotIndex) : dotIndex), scaled.Length), 0)));
         }
         return scaled;
     }
@@ -3406,10 +3406,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154905_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154905_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154905_0, hxauTask154905_1);
-            List<object> responses = new List<object> { hxauTask154905_0.Result, hxauTask154905_1.Result };
+            var hxauTask154907_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154907_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154907_0, hxauTask154907_1);
+            List<object> responses = new List<object> { hxauTask154907_0.Result, hxauTask154907_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3430,10 +3430,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155883_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155883_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155883_0, hxauTask155883_1);
-                List<object> listResponses = new List<object> { hxauTask155883_0.Result, hxauTask155883_1.Result };
+                var hxauTask155885_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155885_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155885_0, hxauTask155885_1);
+                List<object> listResponses = new List<object> { hxauTask155885_0.Result, hxauTask155885_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3447,10 +3447,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156696_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156696_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156696_0, hxauTask156696_1);
-                List<object> responses = new List<object> { hxauTask156696_0.Result, hxauTask156696_1.Result };
+                var hxauTask156698_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156698_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156698_0, hxauTask156698_1);
+                List<object> responses = new List<object> { hxauTask156698_0.Result, hxauTask156698_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }

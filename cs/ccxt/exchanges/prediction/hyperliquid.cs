@@ -2541,12 +2541,11 @@ public partial class hyperliquid : PredictionExchange
         {
             return null;
         }
-        string? normalized = address;
-        if (normalized.StartsWith("0x") || normalized.StartsWith("0X"))
+        if (address.StartsWith("0x") || address.StartsWith("0X"))
         {
-            normalized = ((normalized == null) ? null : normalized.Substring(Math.Min(2, normalized.Length)));
+            return ((string)((address == null) ? null : address.Substring(Math.Min(2, address.Length)))).ToLower();
         }
-        return normalized.ToLower();
+        return address.ToLower();
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

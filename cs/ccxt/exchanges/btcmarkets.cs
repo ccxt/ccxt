@@ -977,13 +977,13 @@ public partial class btcmarkets : Exchange
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? marketId = this.safeString(trade, "marketId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        object feeCurrencyCode = null;
+        string? feeCurrencyCode = null;
         if ((((marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) as string) == "AUD"))
         {
-            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+            feeCurrencyCode = this.safeString(marketResolved, "quote");
         } else
         {
-            feeCurrencyCode = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+            feeCurrencyCode = this.safeString(marketResolved, "base");
         }
         string? side = this.safeString(trade, "side");
         if (side == "Bid")

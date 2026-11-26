@@ -5030,7 +5030,7 @@ public partial class weex : Exchange
         }
         if (marketId.EndsWith("SUSDT"))
         {
-            return ((string?)((object)((((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0))) + "USDT"))));
+            return (((marketId == null) ? null : marketId.Substring(0, Math.Max(marketId.Length - 5, 0))) + "USDT");
         }
         return ((string?)((object)(marketId)));
     }

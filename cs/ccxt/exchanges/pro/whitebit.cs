@@ -1110,8 +1110,8 @@ public partial class whitebit : ccxt.whitebit
             await client.future(messageHash);
             return authorized;
         }
-        object authenticated = this.safeValue(client.subscriptions, subscribeHash);
-        if ((authenticated != null))
+        bool authenticated = (this.safeValue(client.subscriptions, subscribeHash)) != null;
+        if (authenticated)
         {
             // a previous flight already completed the handshake on the client
             return authorized;
@@ -1276,8 +1276,8 @@ public partial class whitebit : ccxt.whitebit
                 Int64? subId = this.safeInteger(subscription, "id");
                 if (((subId != null)) && ((subId == id)))
                 {
-                    object method = this.safeValue(subscription, "method");
-                    if ((method != null))
+                    bool method = (this.safeValue(subscription, "method")) != null;
+                    if (method)
                     {
                         this.handleAuthenticate(client, message);
                         return;

@@ -586,8 +586,8 @@ public partial class derive : ccxt.derive
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 requestId = this.requestId(url);
             string? now = this.numberToString(this.nonce());

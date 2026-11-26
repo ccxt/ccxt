@@ -96,8 +96,8 @@ public partial class hitbtc : ccxt.hitbtc
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 timestamp = this.milliseconds();
             string? timestampString = this.numberToString(timestamp);

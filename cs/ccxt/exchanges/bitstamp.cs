@@ -2651,7 +2651,7 @@ public partial class bitstamp : Exchange
         {
             request["since_timestamp"] = Math.Round(Convert.ToDouble(((double?)since / 1000)));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, paramsPaginate, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))
@@ -2850,7 +2850,7 @@ public partial class bitstamp : Exchange
         string? currencyId = this.getCurrencyIdFromTransaction(transaction);
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? feeCost = this.safeString(transaction, "fee");
-        object feeCurrency = null;
+        string? feeCurrency = null;
         string? amount = null;
         string? transactionAmount = this.safeString(transaction, "amount");
         if ((transactionAmount != null))
@@ -2859,7 +2859,7 @@ public partial class bitstamp : Exchange
         } else if ((currency != null))
         {
             amount = this.safeString(transaction, (currency != null && currency.ContainsKey("id") ? currency["id"] : null));
-            feeCurrency = (currency != null && currency.ContainsKey("code") ? currency["code"] : null);
+            feeCurrency = this.safeString(currency, "code");
         } else if (((code != null)) && ((currencyId != null)))
         {
             amount = this.safeString(transaction, currencyId);

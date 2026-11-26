@@ -1162,8 +1162,8 @@ public partial class bitfinex : ccxt.bitfinex
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             Int64? nonce = this.incrementingNonce();

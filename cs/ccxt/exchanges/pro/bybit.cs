@@ -1820,24 +1820,17 @@ public partial class bybit : ccxt.bybit
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<object> fetchFunctions = new List<object> {this.FetchPositions(null, new Dictionary<string, object>() {
-    { "type", "swap" },
-    { "subType", "linear" },
-}), this.FetchPositions(null, new Dictionary<string, object>() {
-    { "type", "swap" },
-    { "subType", "inverse" },
-})};
-        List<object> promises = await promiseAll(fetchFunctions);
+        List<object> linearPositions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", "swap" }, { "subType", "linear" }, }));
+        List<object> inversePositions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", "swap" }, { "subType", "inverse" }, }));
         this.positions = new ArrayCacheBySymbolBySide();
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
-        for (int i = 0; i < (promises?.Count ?? 0); i++)
+        for (int i = 0; i < (linearPositions?.Count ?? 0); i++)
         {
-            object positions = promises[i];
-            for (int ii = 0; ii < getArrayLength(positions); ii++)
-            {
-                IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
-                cache.append(position);
-            }
+            cache.append(linearPositions[i]);
+        }
+        for (int i = 0; i < (inversePositions?.Count ?? 0); i++)
+        {
+            cache.append(inversePositions[i]);
         }
         // don't remove the future from the .futures cache
         if ((client.futures != null && client.futures.ContainsKey(messageHash)))
@@ -2031,7 +2024,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88715 && ((hxArr88715 is IList<object>) || (hxArr88715 is not null && hxArr88715.GetType().IsGenericType && hxArr88715.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88629 && ((hxArr88629 is IList<object>) || (hxArr88629 is not null && hxArr88629.GetType().IsGenericType && hxArr88629.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2794,8 +2787,8 @@ public partial class bybit : ccxt.bybit
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             Int64 expiresInt = (this.milliseconds() + 10000);
             string? expires = this.numberToString(expiresInt);

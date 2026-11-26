@@ -680,8 +680,8 @@ public partial class alpaca : ccxt.alpaca
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             object request = new Dictionary<string, object>() {
                 { "action", "auth" },

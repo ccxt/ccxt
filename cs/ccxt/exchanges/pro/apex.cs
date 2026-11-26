@@ -909,17 +909,12 @@ public partial class apex : ccxt.apex
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, string messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<object> fetchFunctions = new List<object> {this.FetchPositions()};
-        List<object> promises = await promiseAll(fetchFunctions);
+        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
-        for (int i = 0; i < (promises?.Count ?? 0); i++)
+        for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            object positions = promises[i];
-            for (int ii = 0; ii < getArrayLength(positions); ii++)
-            {
-                cache.append(getValue(positions, ii));
-            }
+            cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
         if ((client.futures != null && client.futures.ContainsKey(messageHash)))
@@ -1010,8 +1005,8 @@ public partial class apex : ccxt.apex
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             // auth sign
             Dictionary<string, object> message = new Dictionary<string, object>() {

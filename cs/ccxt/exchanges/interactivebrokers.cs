@@ -12,7 +12,7 @@ public partial class interactivebrokers : Exchange
             { "name", "Interactive Brokers" },
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
-            { "rateLimit", multiply(100, 1.2) },
+            { "rateLimit", 120 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -1212,7 +1212,7 @@ public partial class interactivebrokers : Exchange
     public virtual Int64? ibkrGatewayRegainDelay()
     {
         double? seconds = this.safeNumber(this.options, "autoRegainSession", 0);
-        if (((seconds == null)) || (isLessThanOrEqual(seconds, 0)))
+        if (((seconds == null)) || ((!(seconds > 0))))
         {
             return 0;
         }
@@ -1783,8 +1783,7 @@ public partial class interactivebrokers : Exchange
         }
         List<object> results = await promiseAll(promises);
         List<object> markets = this.arraysConcat(results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return ccxt.BaseExchange.ToMarketInterfaceList(this.toArray(this.ibkrDisambiguateContractSymbols(markets)));
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.ibkrDisambiguateContractSymbols(markets));
     }
 
     /**
@@ -3046,7 +3045,7 @@ public partial class interactivebrokers : Exchange
             string? maturityDate = this.safeString(market, "maturityDate"); // 20270131
             if ((maturityDate != null))
             {
-                bs = ((object)(bs == null ? null : bs + "-" + (string)(object)(((maturityDate == null) ? null : maturityDate.Substring(Math.Min(2, maturityDate.Length), Math.Min(8, maturityDate.Length) - Math.Min(2, maturityDate.Length))))));
+                bs = ((object)(bs == null ? null : bs + "-" + ((maturityDate == null) ? null : maturityDate.Substring(Math.Min(2, maturityDate.Length), Math.Min(8, maturityDate.Length) - Math.Min(2, maturityDate.Length)))));
             }
         } else if (isStock || isCfd)
         {
@@ -3071,10 +3070,10 @@ public partial class interactivebrokers : Exchange
         {
             settleId = quoteId;
             settle = quote;
-            symbol = ((object)(symbol == null ? null : symbol + ":" + settle));
+            symbol = ((object)(bs == null ? null : bs + "." + microNanoPrefix + listingExchange + "/" + quote + ":" + settle));
             if (isFuture)
             {
-                symbol = ((object)(symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry))));
+                symbol = ((object)(bs == null ? null : bs + "." + microNanoPrefix + listingExchange + "/" + quote + ":" + settle + "-" + (string)(object)(this.yymmdd(expiry))));
             }
         }
         string marketType = "spot";
@@ -5091,7 +5090,7 @@ public partial class interactivebrokers : Exchange
         string encoded = this.urlencode(new Dictionary<string, object>() {
             { "v", value },
         });
-        return ((string?)((object)(((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length))))));  // strip the 'v=' prefix
+        return ((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length)));  // strip the 'v=' prefix
     }
 
     public virtual string? ibkrBaseString(string? method, string url, IDictionary<string, object> parameters, string? prepend = null)

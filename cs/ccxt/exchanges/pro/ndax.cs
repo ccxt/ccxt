@@ -603,8 +603,8 @@ public partial class ndax : ccxt.ndax
         IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
-            object method = this.safeValue(subscription, "method");
-            if ((method != null))
+            bool method = (this.safeValue(subscription, "method")) != null;
+            if (method)
             {
                 this.handleOrderBookSubscription(client, message, subscription);
             }

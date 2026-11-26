@@ -424,8 +424,8 @@ public partial class paradex : ccxt.paradex
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture("authenticated");
-        object authenticated = this.safeValue(client.subscriptions, messageHash);
-        if ((authenticated == null))
+        bool authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (!authenticated)
         {
             string? token = await this.authenticateRest();
             Int64 requestId = this.requestId();
@@ -2429,7 +2429,7 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < 63; i++)
         {
             Int64 next = (i + 1L);
-            if (!isEqual(((raw == null) ? null : raw[(int)(i < 0 ? raw.Length + i : i)..Math.Min((int)(next < 0 ? raw.Length + next : next), raw.Length)]), "0"))
+            if ((((raw == null) ? null : raw[(int)(i < 0 ? raw.Length + i : i)..Math.Min((int)(next < 0 ? raw.Length + next : next), raw.Length)]) != "0"))
             {
                 start = i;
                 break;

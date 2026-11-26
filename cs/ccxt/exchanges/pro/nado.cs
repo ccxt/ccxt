@@ -1188,8 +1188,8 @@ public partial class nado : ccxt.nado
             { "symbol", this.safeString(market, "symbol") },
         };
         var client = this.client(url);
-        object clientSubscription = this.safeValue(client.subscriptions, subscribeHash);
-        if ((clientSubscription == null))
+        bool clientSubscription = (this.safeValue(client.subscriptions, subscribeHash)) != null;
+        if (!clientSubscription)
         {
             ((IDictionary<string,object>)client.subscriptions)[(string)("subscription:" + this.safeString(request, "id", ""))] = new Dictionary<string, object>() {
                 { "subscribeHash", subscribeHash },
@@ -1204,8 +1204,8 @@ public partial class nado : ccxt.nado
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
         var client = this.client(url);
-        object clientSubscription = this.safeValue(client.subscriptions, messageHash);
-        if ((clientSubscription != null))
+        bool clientSubscription = (this.safeValue(client.subscriptions, messageHash)) != null;
+        if (clientSubscription)
         {
             return await this.watch<T>(url, messageHash);
         }
@@ -1343,16 +1343,16 @@ public partial class nado : ccxt.nado
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {
             string? messageHash = this.safeString(messageHashes, i, "");
-            object clientSubscription = this.safeValue(client.subscriptions, messageHash);
-            if ((clientSubscription == null))
+            bool clientSubscription = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!clientSubscription)
             {
                 object market = (markets != null && i < markets.Count ? markets[i] : null);
                 Int64 id = this.requestId();
                 object requestParams = ((subscriptionParams == null)) ? parameters : (subscriptionParams != null && i < subscriptionParams.Count ? subscriptionParams[i] : null);
                 Dictionary<string, object> request = this.createPublicSubscriptionRequest("subscribe", streamType, market, id, requestParams);
                 string subscribeHash = ("subscribe:" + this.json((request != null && request.ContainsKey("stream") ? request["stream"] : null)));
-                object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);
-                if ((streamSubscription == null))
+                bool streamSubscription = (this.safeValue(client.subscriptions, subscribeHash)) != null;
+                if (!streamSubscription)
                 {
                     Dictionary<string, object> subscription = new Dictionary<string, object>() {
                         { "streamType", streamType },
@@ -1931,8 +1931,8 @@ public partial class nado : ccxt.nado
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                 }
             }
-            object subscriptionMsg = client.getSubscription(messageHash);
-            if ((subscriptionMsg != null))
+            bool subscriptionMsg = (client.getSubscription(messageHash)) != null;
+            if (subscriptionMsg)
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
@@ -1972,8 +1972,8 @@ public partial class nado : ccxt.nado
             return;
         }
         string messageHash = ("execute:" + id);
-        object subscription = client.getSubscription(messageHash);
-        if ((subscription != null))
+        bool subscription = (client.getSubscription(messageHash)) != null;
+        if (subscription)
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }
@@ -2152,9 +2152,9 @@ public partial class nado : ccxt.nado
 
     public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        object error = this.safeValue(message, "error");
+        bool error = (this.safeValue(message, "error")) != null;
         string? status = this.safeString(message, "status");
-        if (((error == null)) && (status != "failure"))
+        if ((!error) && (status != "failure"))
         {
             return false;
         }
@@ -2163,8 +2163,8 @@ public partial class nado : ccxt.nado
         if ((id != null))
         {
             string executeHash = ("execute:" + id);
-            object executeSubscription = client.getSubscription(executeHash);
-            if ((executeSubscription != null))
+            bool executeSubscription = (client.getSubscription(executeHash)) != null;
+            if (executeSubscription)
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(executeHash);
                 client.reject(feedback, executeHash);

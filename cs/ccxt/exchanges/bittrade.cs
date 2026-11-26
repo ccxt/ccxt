@@ -1828,13 +1828,13 @@ public partial class bittrade : Exchange
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
         {
-            object feeCurrency = null;
+            string? feeCurrency = null;
             if (side == "sell")
             {
-                feeCurrency = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
+                feeCurrency = this.safeString(marketResolved, "quote");
             } else
             {
-                feeCurrency = (marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null);
+                feeCurrency = this.safeString(marketResolved, "base");
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

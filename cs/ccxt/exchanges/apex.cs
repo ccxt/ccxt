@@ -929,7 +929,7 @@ public partial class apex : Exchange
         // default is 200 when requested with `since`, max 200
         Int64? limitResolved = ((limit == null) || limit > 200) ? 200 : limit;
         request["limit"] = limitResolved;
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001d);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
@@ -1572,7 +1572,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && symbolChar != "-")
         {
-            return ((string?)((object)(((((symbol == null) ? null : ((string)symbol).Substring(0, Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0))) + "-") + ((symbol == null) ? null : ((string)symbol).Substring(Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0)))))));
+            return ((((symbol == null) ? null : ((string)symbol).Substring(0, Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0))) + "-") + ((symbol == null) ? null : ((string)symbol).Substring(Math.Max(Math.Min((index < 0 ? ((string)symbol).Length + (index) : index), ((string)symbol).Length), 0))));
         }
         return ((string?)((object)(symbol)));
     }
