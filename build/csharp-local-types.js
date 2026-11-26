@@ -224,6 +224,7 @@ export const CORE_NUMERIC_ARGS = {
     'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
     'buildOHLCVC': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPaginatedCallCursor': { 2: 'Int64?' },
 };
 
 // retype-cs-divide-arith: numeric parameters used in divide(p, N)/divide(N, p) take the C# twin of
