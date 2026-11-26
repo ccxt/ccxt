@@ -11649,6 +11649,10 @@ function nullScalarWriteType (printer, node) {
     if (literalDefault !== undefined) {
         return literalDefault;
     }
+    // `parts[N]` of a native-split List<String> const prints `parts.get(N)`: String with no cast, so no native use is needed
+    if (nullSeedSplitElementWrite (printer, value)) {
+        return JAVA_DATAFLOW_STRING;
+    }
     const r84 = nullSeedWriteType (printer, value);
     if (r84 !== undefined) {
         NULL_SEED_R84_WRITES.add (node);
