@@ -155,8 +155,7 @@ func (this *Bullish) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], url s
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var wsUrls map[string]any = this.UrlsApiSections["ws"]
-	var wsUrl *string = this.SafeString(wsUrls, "public")
+	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " unsubscribePublic() has no public websocket url"))
 	}
@@ -217,7 +216,7 @@ func (this *Bullish) HandleUnSubscription(client ccxt.ClientInterface, subscript
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, subHashIsPrefix)
 	this.CleanCache(subscription)
 	var requestId string = *this.SafeString(subscription, "id", "")
-	if this.SafeDictMap(client.SubscriptionsSnapshot(), requestId) != nil {
+	if client.SubscriptionHas(requestId) {
 		client.SubscriptionDel(requestId)
 	}
 }
@@ -293,11 +292,7 @@ func (this *Bullish) unsubscribePrivateBody(ch chan ccxt.AsyncResult[any], topic
 	_ = request
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var wsUrls map[string]any = this.UrlsApiSections["ws"]
-	var url *string = this.SafeString(wsUrls, "private")
-	if url == nil {
-		panic(ccxt.ExchangeError(this.Id + " unsubscribePrivate() has no private websocket url"))
-	}
+	var url *string = this.UrlsApiSectionStrings["ws"]["private"]
 
 	r := <-this.HandleTokenAsync()
 	if r.Err != nil {
@@ -959,11 +954,11 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 		var orders ccxt.WsArrayCache = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawOrders); i++ {
-			rawOrdersDict67453, _ := rawOrders[i].(map[string]any)
-			if rawOrdersDict67453 == nil {
-				rawOrdersDict67453 = map[string]any{}
+			rawOrdersDict66953, _ := rawOrders[i].(map[string]any)
+			if rawOrdersDict66953 == nil {
+				rawOrdersDict66953 = map[string]any{}
 			}
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict67453))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict66953))
 			orders.Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {
@@ -1488,11 +1483,11 @@ func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[st
 	var positions ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		rawPositionsDict100149, _ := rawPositions[i].(map[string]any)
-		if rawPositionsDict100149 == nil {
-			rawPositionsDict100149 = map[string]any{}
+		rawPositionsDict99649, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict99649 == nil {
+			rawPositionsDict99649 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict100149))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict99649))
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}
@@ -1567,7 +1562,7 @@ func (this *Bullish) HandleUnSubscriptionError(client ccxt.ClientInterface, mess
 	//     }
 	//
 	var messageId *string = this.SafeString(message, "id")
-	if messageId == nil {
+	if (messageId == nil) || !(client.SubscriptionHas(messageId)) {
 		return
 	}
 	var subscription map[string]any = client.SubscriptionDict(messageId)
@@ -1619,7 +1614,7 @@ func (this *Bullish) HandleMessage(client ccxt.ClientInterface, message map[stri
 			this.HandlePong(client, message)
 		}
 		var messageId *string = this.SafeString(message, "id")
-		if messageId != nil {
+		if (messageId != nil) && (client.SubscriptionHas(messageId)) {
 			var subscription map[string]any = client.SubscriptionDict(messageId)
 			if (subscription != nil) && (*this.SafeBool(subscription, "unsubscribe", false)) {
 				this.HandleUnSubscription(client, subscription)
