@@ -3921,7 +3921,7 @@ class paradex extends paradex$1["default"] {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [paginationCalls, paramsCalls] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             const until = this.safeInteger(paramsCalls, 'until');
-            const pageSpan = this.parseToInt(paginationCalls * 5000 * rowSpacing);
+            const pageSpan = this.parseToInt(paginationCalls * 25000000); // 5000 rows per page * 5000ms rowSpacing
             const sinceEnd = this.sum(since, pageSpan);
             let endAt = this.milliseconds();
             if (sinceEnd < endAt) {

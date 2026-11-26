@@ -287,7 +287,10 @@ export default class woo extends wooRest {
         this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
-        const symbol = this.safeString(subscription, 'symbol');
+        const symbol = this.safeString(subscription, 'symbol', '');
+        if (symbol === '') {
+            return;
+        }
         const messageHash = this.safeString(message, 'topic');
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
@@ -315,9 +318,7 @@ export default class woo extends wooRest {
                     this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
             }
-            if (symbol !== undefined) {
-                this.orderbooks[symbol] = orderbook;
-            }
+            this.orderbooks[symbol] = orderbook;
             client.resolve(orderbook, messageHash);
         }
         catch (e) {

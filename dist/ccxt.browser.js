@@ -490077,7 +490077,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [paginationCalls, paramsCalls] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             const until = this.safeInteger(paramsCalls, 'until');
-            const pageSpan = this.parseToInt(paginationCalls * 5000 * rowSpacing);
+            const pageSpan = this.parseToInt(paginationCalls * 25000000); // 5000 rows per page * 5000ms rowSpacing
             const sinceEnd = this.sum(since, pageSpan);
             let endAt = this.milliseconds();
             if (sinceEnd < endAt) {
@@ -507741,7 +507741,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         return this.safeDict(outcomesList, 0, {});
     }
     parseOutcomeInputSideHint(outcomeInput) {
-        if (outcomeInput === undefined || outcomeInput === '') {
+        if (outcomeInput === '') {
             return undefined;
         }
         const colonIndex = outcomeInput.indexOf(':');
@@ -578894,7 +578894,10 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             const parts = subscription.split('_');
             const timeframeId = this.safeString(parts, 0);
             const timeframe = this.findTimeframe(timeframeId);
-            const prefix = timeframe + '_';
+            let prefix = '';
+            if (timeframe !== undefined) {
+                prefix = timeframe + '_';
+            }
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
             let parsed = this.parseOHLCV(ohlcv);
@@ -628826,7 +628829,10 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         this.spawn(this.fetchOrderBookSnapshot, client, message, subscription);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
-        const symbol = this.safeString(subscription, 'symbol');
+        const symbol = this.safeString(subscription, 'symbol', '');
+        if (symbol === '') {
+            return;
+        }
         const messageHash = this.safeString(message, 'topic');
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
@@ -628853,9 +628859,7 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
                     this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
             }
-            if (symbol !== undefined) {
-                this.orderbooks[symbol] = orderbook;
-            }
+            this.orderbooks[symbol] = orderbook;
             client.resolve(orderbook, messageHash);
         } catch (e) {
             if (messageHash !== undefined) {

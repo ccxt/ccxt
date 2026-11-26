@@ -1134,7 +1134,7 @@ export default class Exchange extends BaseExchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    fetchRestOrderBookSafe(symbol: any, limit?: Int, params?: Dict): Promise<OrderBook | undefined>;
+    fetchRestOrderBookSafe(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook | undefined>;
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
     fetchL2OrderBook(symbol: string, limit?: Int, params?: Dict): Promise<any>;
