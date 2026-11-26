@@ -1817,7 +1817,10 @@ impl Gate {
             let parts: crate::value::List = crate::value::List::new(subscription.split("_").map(Value::from).collect());
             let timeframeId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let prefix: String = format!("{}{}", timeframe.as_deref().unwrap_or("null"), "_");
+            let mut prefix: String = "".to_string();
+            if (timeframe.is_some()) {
+                prefix = format!("{}{}", timeframe.as_deref().unwrap_or("null"), "_");
+            }
             let marketId: String = subscription.replace(prefix.as_str(), "");
             let symbol: Value = self.safe_symbol(Some(marketId.as_str()), None, &[Value::Str("_".into()), Value::from(marketType.as_str())]);
             let mut parsed: Value = Value::Arr(self.parse_ohlcv(Value::from(&ohlcv), None));

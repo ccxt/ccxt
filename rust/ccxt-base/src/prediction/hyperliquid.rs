@@ -1794,7 +1794,7 @@ impl Hyperliquid {
 
     pub fn parse_outcome_input_side_hint(&self, outcomeInput: &str) -> Option<String> {
         let outcomeInput: Value = outcomeInput.into();
-        if (outcomeInput == Value::Null) || (outcomeInput.as_str() == Some("")) {
+        if (outcomeInput.as_str() == Some("")) {
             return None;
         }
         let colonIndex: i64 = (if let (Some(__h), Some(__n)) = (Some(outcomeInput.as_str().unwrap_or_default().to_string().as_str()), Some(":")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });

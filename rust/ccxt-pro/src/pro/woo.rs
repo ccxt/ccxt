@@ -554,13 +554,16 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 
     pub async fn fetch_order_book_snapshot(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
+        let symbol: String = self.safe_string_k(&subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (symbol == "") {
+            return;
+        }
         let messageHash: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         {
             let defaultLimit: i64 = self.safe_integer_k(&self.options, "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             let mut params: Option<crate::value::Dict> = self.safe_dict_k_o(&subscription, "params");
-            let snapshot: Value = self.fetch_rest_order_book_safe(Value::from(symbol.as_deref()), &[Value::from(limit), params.map_or(Value::Null, Value::Dict)]).await;
+            let snapshot: Value = self.fetch_rest_order_book_safe(Value::from(symbol.as_str()), &[Value::from(limit), params.map_or(Value::Null, Value::Dict)]).await;
             if (self.orderbooks.lookup(&symbol).is_none()) {
                 return;
             }
@@ -584,10 +587,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 }
             }
             }
-            if (symbol.is_some()) {
-                CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
-            }
-            client.resolve(Value::from(&orderbook), messageHash.as_deref());
+            let __resolved_orderbook = Value::from(&orderbook);
+            CacheStore::put(&mut self.orderbooks, &symbol, orderbook);
+            client.resolve(__resolved_orderbook, messageHash.as_deref());
         }
 }
 

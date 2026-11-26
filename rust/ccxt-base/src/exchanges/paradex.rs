@@ -5678,7 +5678,7 @@ impl Paradex {
             let paginationCalls: Option<i64> = paginationCallsparamsCallsVariable.0;
             let paramsCalls: crate::value::Dict = paginationCallsparamsCallsVariable.1;
             let until: Option<i64> = self.safe_integer_k(&paramsCalls, "until", &[]).as_i64();
-            let pageSpan: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = paginationCalls { Some(__l * 5000) } else { None })) { Some(__l * rowSpacing) } else { None })));
+            let pageSpan: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = paginationCalls { Some(__l * 25000000) } else { None }))); // 5000 rows per page * 5000ms rowSpacing
             let sinceEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since, pageSpan) { Some((__m0 + __m1)) } else { None });
             let mut endAt: Option<i64> = Some(self.milliseconds());
             if (sinceEnd.is_some() && endAt.is_some() && sinceEnd < endAt) {
