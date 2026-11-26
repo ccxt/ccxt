@@ -97,6 +97,8 @@ export function accountRequiredResult (tool: string) {
     });
 }
 
+export const NOAUTH = Object.freeze ([ Object.freeze ({ 'type': 'noauth' }) ]);
+
 // what a strict public schema accepts as `context` when the PostHog SDK does not inject it
 const CONTEXT_ARGUMENT = 'optional: a few words on why this tool is being called';
 
@@ -157,7 +159,16 @@ export class HostedToolProfile implements ToolProfile {
         if (HOSTED_TOOLS[tool] === 'account') {
             description = ACCOUNT_PREFIX + description;
         }
-        return { ...config, inputSchema, description };
+        // OpenAI reads per-tool auth from securitySchemes; the SDK lists only _meta of the
+        // extra keys, which OpenAI documents as the mirror it reads too. Phase 1 is anonymous
+        // for every tool (account stubs answer ACCOUNT_REQUIRED); phase 2 gives account tools
+        // oauth2 here without changing which tools exist
+        const meta = { ...(config._meta ?? {}), 'securitySchemes': [ ...NOAUTH ] };
+        // the account stubs reach nothing outside this server until sign-in exists (they
+        // answer ACCOUNT_REQUIRED from here), so they are not open-world on the hosted
+        // server; listing/ANNOTATIONS.md states each value's justification for the directory
+        const annotations = (HOSTED_TOOLS[tool] === 'account') ? { ...(config.annotations ?? {}), 'openWorldHint': false } : config.annotations;
+        return { ...config, inputSchema, description, annotations, '_meta': meta };
     }
 
     replace (tool: string, access: AccessClass): ((args: any, request: any) => any) | undefined {

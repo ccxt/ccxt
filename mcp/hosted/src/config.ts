@@ -58,6 +58,10 @@ export interface HostedConfig {
     };
     hostRanges: { anthropic: string[], openai: readonly string[] };
     uiWhenUnknown: 'attach' | 'omit';
+    // ChatGPT's dedicated origin for the views (_meta.ui.domain on resources/read contents),
+    // sent only to callers from OpenAI's egress ranges: Claude derives its own from a hash of
+    // the connector URL, so it gets none. undefined = never sent (UI_DOMAIN_OPENAI=off)
+    uiDomainOpenai: string | undefined;
     openaiAppsChallenge: string | undefined;
     drainTimeoutMs: number;
     version: string;
@@ -147,6 +151,27 @@ export function checkLiveConfig (live: HostedConfig['live']): void {
     }
 }
 
+// UI_DOMAIN_OPENAI: unset or empty = the PUBLIC_BASE_URL origin (OpenAI: "required for
+// plugins with UI, must be unique per plugin", and embedding is allowed from the MCP
+// server's registrable domain); "off" = never sent; otherwise an https origin, no path
+export function parseUiDomain (raw: string | undefined, publicBaseUrl: string): string | undefined {
+    const value = (raw ?? '').trim ();
+    if (value.toLowerCase () === 'off') {
+        return undefined;
+    }
+    const candidate = (value.length > 0) ? value : new URL (publicBaseUrl).origin;
+    let url: URL;
+    try {
+        url = new URL (candidate);
+    } catch (e) {
+        throw new Error ('UI_DOMAIN_OPENAI must be an https origin or "off", got ' + JSON.stringify (value));
+    }
+    if (url.protocol !== 'https:' || url.origin !== candidate.replace (/\/+$/, '')) {
+        throw new Error ('UI_DOMAIN_OPENAI must be an https origin with no path (e.g. https://docs.ccxt.com) or "off", got ' + JSON.stringify (candidate));
+    }
+    return url.origin;
+}
+
 export function loadConfig (env: Record<string, string | undefined> = process.env, version = '0.0.0'): HostedConfig {
     const publicBaseUrl = (env['PUBLIC_BASE_URL'] ?? 'https://docs.ccxt.com').replace (/\/+$/, '');
     try {
@@ -165,6 +190,7 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
         throw new Error ('UI_WHEN_UNKNOWN must be "attach" or "omit"');
     }
     const challenge = (env['OPENAI_APPS_CHALLENGE'] ?? '').trim ();
+    const uiDomainOpenai = parseUiDomain (env['UI_DOMAIN_OPENAI'], publicBaseUrl);
     const config: HostedConfig = {
         'port': int (env, 'PORT', 8080, 0),
         'host': env['HOST'] ?? '127.0.0.1',
@@ -243,6 +269,7 @@ export function loadConfig (env: Record<string, string | undefined> = process.en
         },
         'hostRanges': { 'anthropic': ANTHROPIC_EGRESS_RANGES, 'openai': OPENAI_CONNECTOR_RANGES },
         'uiWhenUnknown': uiWhenUnknown as 'attach' | 'omit',
+        uiDomainOpenai,
         'openaiAppsChallenge': (challenge.length > 0) ? challenge : undefined,
         'drainTimeoutMs': int (env, 'DRAIN_TIMEOUT_MS', 25000, 0),
         version,

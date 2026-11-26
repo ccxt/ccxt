@@ -78,6 +78,7 @@ All configuration comes from environment variables. [`.env.example`](.env.exampl
 | `LIVE_MAX_CONCURRENT` | `32` | `live_update` calls in flight at once, beside `MAX_CONCURRENT_REQUESTS` (polls cannot take the tool calls' slots). |
 | `LIVE_STATS_INTERVAL_MS` | `60000` | Period of the `live hub stats` log line (0 = never). Its counters are totals since start; `*_delta` fields are per interval. |
 | `UI_WHEN_UNKNOWN` | `attach` | What a `show_*` result does when the client did not state its capabilities: attach the view payload, or omit it. |
+| `UI_DOMAIN_OPENAI` | the `PUBLIC_BASE_URL` origin | ChatGPT's dedicated origin for the views (`_meta.ui.domain` on `resources/read`), sent only to requests from OpenAI's egress ranges. `off` sends none. |
 | `CCXT_MCP_UI` | `auto` | View mode for `show_*` results: `auto` (follow the client's stated capabilities, else `UI_WHEN_UNKNOWN`), `always` (send the dataset to every client, reported as `displayed`) or `off`. Any other value falls back to `auto`. |
 | `OPENAI_APPS_CHALLENGE` | unset | Token served at `/.well-known/openai-apps-challenge`. |
 | `DRAIN_TIMEOUT_MS` | `25000` | How long in-flight calls get after SIGTERM. |

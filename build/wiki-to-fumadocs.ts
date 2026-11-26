@@ -29,6 +29,9 @@ const GUIDES: Record<string, { route: string; title: string }> = {
     'Install.md':                      { route: 'install',                     title: 'Install' },
     'CLI.md':                          { route: 'cli',                         title: 'CLI' },
     'MCP.md':                          { route: 'mcp',                         title: 'MCP Server' },
+    // the hosted MCP server's legal pages; both plugin manifests link these exact URLs
+    'MCP-Privacy.md':                  { route: 'mcp-privacy',                 title: 'Hosted MCP Server Privacy Policy' },
+    'MCP-Terms.md':                    { route: 'mcp-terms',                   title: 'Hosted MCP Server Terms of Service' },
     'Examples.md':                     { route: 'examples-overview',           title: 'Examples Overview' },
     'FAQ.md':                          { route: 'faq',                         title: 'FAQ' },
     'Requirements.md':                 { route: 'requirements',                title: 'Requirements' },

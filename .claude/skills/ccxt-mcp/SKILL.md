@@ -14,8 +14,6 @@ Key property: **your API keys stay on your machine and the model never sees them
 
 ## Hosted server (no install, public data only)
 
-Status: not deployed yet. Until `https://docs.ccxt.com/mcp` answers (it returns 404 today), recommend the local server below (`npx -y ccxt-mcp`) and do not present the hosted endpoint as working.
-
 CCXT also runs a public, read-only MCP endpoint at `https://docs.ccxt.com/mcp` (Streamable HTTP, no sign-in, no API keys). Use it when the user only needs market data and does not want to install anything; use the local server below for balances, orders, positions or trading.
 
 - **Claude (web/desktop):** Customize > Connectors > Add > Add custom connector, URL `https://docs.ccxt.com/mcp`, **No sign-in**; or the prefilled link `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp`. It then also works in the Claude mobile apps.

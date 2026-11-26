@@ -27,8 +27,6 @@ One honest caveat: any local agent with filesystem access could read the config 
 
 ### Hosted server (no install)
 
-> **Status: not deployed yet.** Until `https://docs.ccxt.com/mcp` answers, use the local server below (`npx -y ccxt-mcp`). This note is removed at launch.
-
 `https://docs.ccxt.com/mcp` is a public, read-only, stateless MCP endpoint (Streamable HTTP) run by CCXT. No install, no sign-in, no API keys. Status: phase 1, public market data only; signing in with your own exchange accounts is planned for later.
 
 - **Claude (web, desktop):** [add it as a custom connector](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp) (prefilled link; you confirm), or Customize > Connectors > Add > Add custom connector, then choose **No sign-in**. A connector added there also works in the Claude mobile apps.

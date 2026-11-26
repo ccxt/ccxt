@@ -96,6 +96,9 @@ export interface BuildServerOptions {
     // when show_* results carry their view payload. mode defaults to CCXT_MCP_UI; whenUnknown
     // to "attach" on the hosted server and "omit" on stdio (see UiWhenUnknown in ./ui.ts)
     ui?: Partial<UiPolicy>;
+    // extra _meta merged into each view's resources/read contents, decided per request (the
+    // hosted server sends ChatGPT its _meta.ui.domain this way); undefined adds nothing
+    resourceMeta?: () => Record<string, any> | undefined;
     // a deployment's own server instructions (the hosted server describes a narrower surface);
     // defaults to SERVER_INSTRUCTIONS, trimmed to the named tool profile
     instructions?: string;
@@ -152,6 +155,7 @@ export function buildServer (shared: SharedState, options: BuildServerOptions = 
                 'whenUnknown': options.ui?.whenUnknown ?? (hosted ? 'attach' : 'omit'),
             },
             'views': shared.views,
+            'resourceMeta': options.resourceMeta,
         },
         'toolProfile': profile,
         'elicitationSupported': () => {

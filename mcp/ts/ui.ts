@@ -128,7 +128,20 @@ export function uiToolMeta (view: UiView): Record<string, any> {
 // hosted server it may be cached publicly for a day.
 export const VIEW_CACHE_HINT = Object.freeze ({ 'ttlMs': 86400000, 'cacheScope': 'public' as const });
 
-export function registerUiResources (server: McpServer, catalog: ViewCatalog, options: { publicCache?: boolean } = {}): void {
+// Deep-merges per-request extras into a view's contents _meta: { ui: { prefersBorder } } plus,
+// e.g., { ui: { domain } } stays one "ui" object
+export function viewContentsMeta (base: Record<string, any>, extra: Record<string, any> | undefined): Record<string, any> {
+    if (extra === undefined) {
+        return base;
+    }
+    const merged: Record<string, any> = { ...base, ...extra };
+    if (base['ui'] !== undefined && extra['ui'] !== undefined) {
+        merged['ui'] = { ...base['ui'], ...extra['ui'] };
+    }
+    return merged;
+}
+
+export function registerUiResources (server: McpServer, catalog: ViewCatalog, options: { publicCache?: boolean, resourceMeta?: () => Record<string, any> | undefined } = {}): void {
     for (const view of Object.values (catalog)) {
         // the views are self-contained (no network, no external assets), so no csp block is
         // declared and the host applies its most restrictive default
@@ -140,7 +153,7 @@ export function registerUiResources (server: McpServer, catalog: ViewCatalog, op
             '_meta': meta,
             ...(options.publicCache ? { 'cacheHint': { ...VIEW_CACHE_HINT } } : {}),
         }, async (uri) => ({
-            'contents': [ { 'uri': uri.href, 'mimeType': UI_MIME_TYPE, 'text': view.html, '_meta': meta } ],
+            'contents': [ { 'uri': uri.href, 'mimeType': UI_MIME_TYPE, 'text': view.html, '_meta': viewContentsMeta (meta, options.resourceMeta?.()) } ],
         }));
     }
 }

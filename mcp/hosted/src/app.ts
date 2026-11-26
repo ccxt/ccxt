@@ -207,6 +207,9 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
             'authInfo': request.authInfo,
             'instructions': HOSTED_INSTRUCTIONS,
             'ui': { 'whenUnknown': config.uiWhenUnknown },
+            // ChatGPT reads the views' dedicated origin from resources/read; Claude computes
+            // its own, so the key goes only to requests from OpenAI's ranges
+            'resourceMeta': () => ((config.uiDomainOpenai !== undefined && currentCallScope ()?.host === 'openai') ? { 'ui': { 'domain': config.uiDomainOpenai } } : undefined),
         });
         telemetry.instrument (server);
         return server;
@@ -414,6 +417,7 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
             requestId,
             'clientKey': identity.key,
             'clientBudget': identity.budget,
+            'host': identity.host,
             deadlineAt,
             'signal': AbortSignal.any (signals),
             'upstreamCalls': 0,

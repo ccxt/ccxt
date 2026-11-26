@@ -97,7 +97,7 @@ export interface ServerContext {
     // through requestAuthInfo (), which also sees a per-request ctx.http.authInfo
     authInfo?: AuthInfo;
     // when show_* results carry their view payload, and the views (versioned URIs + HTML)
-    ui: { policy: UiPolicy, views: ViewCatalog };
+    ui: { policy: UiPolicy, views: ViewCatalog, resourceMeta?: () => Record<string, any> | undefined };
     // which tools this server instance registers (get_safety_status reports it)
     toolProfile: ToolProfile;
     // whether the client declared form elicitation — read per request, because on the

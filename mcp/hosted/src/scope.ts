@@ -10,6 +10,7 @@ export interface CallScope {
     requestId: string;
     clientKey: string;
     clientBudget?: 'client' | 'host'; // 'host': an address every user of a host shares
+    host?: 'anthropic' | 'openai'; // the request came from that host's published egress ranges
     deadlineAt: number; // epoch ms; upstream waits end here with TIMEOUT
     signal: AbortSignal; // aborted on client disconnect or at the deadline
     upstreamCalls: number; // cache misses started by this call (bounded per call)

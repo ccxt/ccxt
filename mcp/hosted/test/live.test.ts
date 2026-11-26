@@ -197,7 +197,7 @@ test ('live: tools/list is identical with and without hub activity', async () =>
         const during = await rpc (h.url, 'tools/list', {});
         assert.deepEqual (during.body.result, before.body.result);
         const tool = before.body.result.tools.find ((entry: any) => entry.name === 'live_update');
-        assert.deepEqual (tool._meta, { 'ui': { 'visibility': [ 'app' ] }, 'openai/visibility': 'private', 'openai/widgetAccessible': true });
+        assert.deepEqual (tool._meta, { 'ui': { 'visibility': [ 'app' ] }, 'openai/visibility': 'private', 'openai/widgetAccessible': true, 'securitySchemes': [ { 'type': 'noauth' } ] });
         assert.equal (tool.inputSchema.additionalProperties, false, 'strict');
         assert.equal (tool.inputSchema.properties.context?.type, 'string');
         assert.ok (!(tool.inputSchema.required ?? []).includes ('context'));

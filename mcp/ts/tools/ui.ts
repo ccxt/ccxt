@@ -307,7 +307,7 @@ export function viewToolMeta (ctx: ServerContext, view: ViewName): Record<string
 const READ_ONLY = { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true };
 
 export function registerUiTools (server: McpServer, ctx: ServerContext): void {
-    registerUiResources (server, ctx.ui.views, { 'publicCache': ctx.hosted });
+    registerUiResources (server, ctx.ui.views, { 'publicCache': ctx.hosted, 'resourceMeta': ctx.ui.resourceMeta });
     const respond = uiResponder (server, ctx);
 
     server.registerTool ('show_chart', {

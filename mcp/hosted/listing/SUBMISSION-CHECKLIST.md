@@ -1,16 +1,17 @@
 # Directory submission checklist — hosted CCXT MCP server
 
-Everything the Anthropic and OpenAI directories ask for, for the hosted server at `https://docs.ccxt.com/mcp` and its plugin in `mcp/hosted/plugin/`. Each row names its source; quotes were read on 2026-11-25. Re-read the sources before submitting: both directories change their forms often.
+Everything the Anthropic and OpenAI directories ask for, for the hosted server at `https://docs.ccxt.com/mcp` and its plugin in `mcp/hosted/plugin/`. Each row names its source; quotes were read on 2026-11-25 and rechecked on 2026-11-26. Re-read the sources before submitting: both directories change their forms often.
 
 **Do not submit to either directory before the policy questions in [POLICY-RISKS.md](POLICY-RISKS.md) are answered.** Both directories have written rules that a crypto market-data connector may not pass.
 
-**Do not merge the hosted-server change into master before `POST https://docs.ccxt.com/mcp` answers 200 and `https://docs.ccxt.com/docs/mcp-privacy` and `/docs/mcp-terms` are live.** The marketplaces (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`) and the `ccxt-mcp` skill are read from master, so merging is what makes `/plugin install ccxt@ccxt` and the skill's hosted instructions reach users.
+**Do not merge the hosted-server change into master before legal review has approved [`wiki/MCP-Privacy.md`](../../../wiki/MCP-Privacy.md) and [`wiki/MCP-Terms.md`](../../../wiki/MCP-Terms.md) and removed their draft banners.** Merging publishes them at `https://docs.ccxt.com/docs/mcp-privacy` and `/docs/mcp-terms` (routes in `build/wiki-to-fumadocs.ts`). The marketplaces (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`) and the `ccxt-mcp` skill are read from master too, so merging is what makes `/plugin install ccxt@ccxt` and the skill's hosted instructions reach users. `POST https://docs.ccxt.com/mcp` answers 200 since 2026-11-25.
 
-## Launch steps (once the endpoint and both pages answer)
+## Launch steps
 
-1. Add `"remotes": [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` back to `mcp/server.json` (the tests accept it; every ccxt-mcp release publishes that file to the MCP Registry, which is why it is not there before launch).
-2. Remove the "not deployed yet" status lines from `wiki/MCP.md`, `mcp/README.md`, `.claude/skills/ccxt-mcp/SKILL.md` and `mcp/hosted/plugin/README.md`.
-3. Recheck the rows below marked BLOCKED (deployment).
+1. DONE (2026-11-26): `"remotes": [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` is back in `mcp/server.json`. The next ccxt-mcp release publishes it to the MCP Registry.
+2. DONE (2026-11-26): the "not deployed yet" status lines are gone from `wiki/MCP.md`, `mcp/README.md`, `.claude/skills/ccxt-mcp/SKILL.md` and `mcp/hosted/plugin/README.md`.
+3. Legal review approves the two legal pages and removes their draft banners; then merge (see above).
+4. Put the OpenAI domain-verification token in `OPENAI_APPS_CHALLENGE` in the VM's `.env` and run `docker compose up -d` (README, Deploy).
 
 Status values:
 
@@ -24,16 +25,16 @@ Status values:
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Server deployed at `https://docs.ccxt.com/mcp` | BLOCKED (deployment) | On 2026-11-25 `POST https://docs.ccxt.com/mcp` answered 404 from this sandbox: not deployed yet. |
+| Server deployed at `https://docs.ccxt.com/mcp` | DONE | Deployed 2026-11-25 on the docs.ccxt.com machine (container on `127.0.0.1:8099`, `HOST_PORT`). `node scripts/smoke.mjs --url https://docs.ccxt.com/mcp --live` passed in both protocol eras on 2026-11-26; `live_update` served from the shared stream. `DEPLOYMENT_ENV` is still `staging`: set `production` at launch. |
 | The URL is final | DECIDE | It is Claude's `_meta.ui.domain` hash input, the phase-2 OAuth audience and the registry `remotes[].url`. OpenAI: "To change an existing MCP server's URL, contact support" ([submission](https://developers.openai.com/plugins/deploy/submission)). Pinned by `mcp/test/schema/hosted-plugin.test.ts`. |
-| Privacy policy published at `https://docs.ccxt.com/docs/mcp-privacy` | TODO | Draft: [PRIVACY-POLICY.draft.md](PRIVACY-POLICY.draft.md), awaiting legal review. The URL is in both manifests but not live (404). Publishing it needs a `wiki/` page plus a route in `PAGE_TO_ROUTE` of `build/wiki-to-fumadocs.ts`. Do not point the manifests at `https://ccxt.com/privacy`: that page is the CCXT Terminal privacy policy, a different product. |
-| Terms of service published at `https://docs.ccxt.com/docs/mcp-terms` | TODO | Draft: [TERMS.draft.md](TERMS.draft.md). Same notes as the privacy policy (`https://ccxt.com/terms` is the CCXT Terminal terms). |
+| Privacy policy published at `https://docs.ccxt.com/docs/mcp-privacy` | TODO (legal) | Text: [`wiki/MCP-Privacy.md`](../../../wiki/MCP-Privacy.md), route `mcp-privacy` wired; reviewer notes in [PRIVACY-POLICY.notes.md](PRIVACY-POLICY.notes.md). Awaiting legal review (the **[bracketed]** items, then the draft banner comes off). The URL is in both manifests but not live (404). Publishing it needs a `wiki/` page plus a route in `PAGE_TO_ROUTE` of `build/wiki-to-fumadocs.ts`. Do not point the manifests at `https://ccxt.com/privacy`: that page is the CCXT Terminal privacy policy, a different product. |
+| Terms of service published at `https://docs.ccxt.com/docs/mcp-terms` | TODO (legal) | Text: [`wiki/MCP-Terms.md`](../../../wiki/MCP-Terms.md), route `mcp-terms` wired; notes in [TERMS.notes.md](TERMS.notes.md). Same notes as the privacy policy (`https://ccxt.com/terms` is the CCXT Terminal terms). |
 | Public documentation | DONE once the docs deploy | `wiki/MCP.md`, section "Hosted server (no install)", served at `https://docs.ccxt.com/docs/mcp`. |
 | Support contact | DONE | `https://github.com/ccxt/ccxt/issues` in both manifests. A support email may be expected by the Claude form ("support contact"). DECIDE whether to add one. |
 | Icon and logo | DONE | `mcp/hosted/plugin/assets/`: `logo.png` 1024×1024 (the website logo, re-rendered from `docs/website/src/app/icon.svg` geometry), `icon.svg` / `icon-dark.svg` (the favicon mark with fixed colours). Checked by `hosted-plugin.test.ts` and `claude plugin validate --strict`. |
 | Review prompts and cases | DONE (draft) | [REVIEW-CASES.md](REVIEW-CASES.md); OpenAI's cases are also in `plugin.json`. The markets they use were checked live on 2026-11-25. |
-| Screenshots and demo video | TODO | [SCREENSHOTS.md](SCREENSHOTS.md). Needs the deployed server. |
-| Exchange reachability from the production machine | TODO | `mcp/hosted/scripts/check-exchanges.mjs` (hosted runtime). An exchange that cannot be reached comes off the allowlist; the review cases avoid Binance and Bybit for that reason. |
+| Screenshots and demo video | TODO | [SCREENSHOTS.md](SCREENSHOTS.md). The server is deployed; record in Claude and ChatGPT (desktop and mobile). |
+| Exchange reachability from the production machine | DONE | All 10 allowlisted exchanges reachable from the VM on 2026-11-25 (`docker compose run --rm hosted node /app/check-exchanges.mjs`). An exchange that cannot be reached comes off the allowlist; the review cases avoid Binance and Bybit for that reason. |
 
 ## Anthropic — Connectors Directory (remote MCP connector)
 
@@ -42,9 +43,9 @@ Sources: [submission](https://claude.com/docs/connectors/building/submission), [
 | Requirement | Source | Status | Notes |
 |---|---|---|---|
 | Written permission for crypto software | Policy §4.A | BLOCKED (policy) | "We do not generally allow cryptocurrency software in our directory." See POLICY-RISKS.md. |
-| Public `https://` URL, Streamable HTTP | building/index | BLOCKED (deployment) | The server speaks stateless Streamable HTTP (hosted runtime). |
+| Public `https://` URL, Streamable HTTP | building/index | DONE | The server speaks stateless Streamable HTTP (hosted runtime). |
 | Public IPv4 `A` record ("Connectors are IPv4-only") | building/troubleshooting | DONE, recheck | `docs.ccxt.com` resolved to an A record from this sandbox on 2026-11-25. Recheck from outside after deploy. |
-| No WAF or CDN block on Anthropic egress (`160.79.104.0/21`); no strict `Origin` check | building/authentication; [IP addresses](https://platform.claude.com/docs/en/api/ip-addresses) | TODO (after deploy) | The runtime gives these ranges a higher budget (`mcp/hosted/src/config.ts`). Check docs.ccxt.com's nginx and any CDN in front of it. |
+| No WAF or CDN block on Anthropic egress (`160.79.104.0/21`); no strict `Origin` check | building/authentication; [IP addresses](https://platform.claude.com/docs/en/api/ip-addresses) | DONE (config), verify with Claude | No CDN in front of docs.ccxt.com; nginx exempts the Anthropic and OpenAI ranges from its per-address limits (`deploy/nginx/ccxt-mcp-http.conf`) and the app gives them a host budget. Confirm by adding the connector in Claude. |
 | Every tool has a `title` and `readOnlyHint` / `destructiveHint` | review criteria; Policy §5.E | DONE | Pinned for the hosted tool list by `mcp/hosted/test/protocol.test.ts` (15/15 passed on 2026-11-25). |
 | Tool names ≤ 64 characters; no tool mixes safe and unsafe methods | review criteria | DONE | 15 tools (live_update is app-only), longest `describe_exchange`. |
 | Results ≤ ~150,000 characters; ≤ 240 s per call | building/index | DONE | Results are capped by the shared tools; per-call deadline 20 s (`REQUEST_DEADLINE_MS`). |
@@ -54,7 +55,7 @@ Sources: [submission](https://claude.com/docs/connectors/building/submission), [
 | Use cases, prerequisites, read/write | submission, step 4 | TODO | Answer: market data and charts; no account or plan needed; reads only. |
 | Company name, website, primary contact | submission, step 5 | TODO | |
 | Data handling: "your own, proxied from a partner with permission, or a third party's you don't control" | submission, step 7 | BLOCKED (policy) | Honest answer: third parties' public APIs. Conflicts with "Your server must call your own first-party APIs, or APIs you legitimately proxy" (review criteria) and Policy §3.F. See POLICY-RISKS.md. |
-| Every tool run by the submitter (MCP Inspector or a custom connector) | submission, step 8 | TODO | After deploy. |
+| Every tool run by the submitter (MCP Inspector or a custom connector) | submission, step 8 | TODO | The server is deployed: add it as a custom connector and run every tool once. |
 | Seven compliance acknowledgments (incl. "first-party API usage", "financial transactions", "conversation data collection") | submission, step 9 | BLOCKED (policy) | |
 | MCP Apps carousel: PNG, ≥ 1000 px wide, 3–5 images, cropped to the app response, prompts supplied separately, no video or GIF | submission | TODO | SCREENSHOTS.md. |
 | Allowed link URIs | submission | N/A | The views do not call `ui/open-link`. |
@@ -78,6 +79,7 @@ Sources: [pre-submission checklist](https://claude.com/docs/plugins/pre-submissi
 | Icon: square PNG or JPEG, 512–2048 px, under 2 MB, taken only on the first save in the portal | DONE | `assets/logo.png`, 1024 px. |
 | `documentationUrl`, `supportUrl`, `privacyPolicyUrl`, `termsOfServiceUrl` | TODO | Set in `.claude-plugin/plugin.json`; the privacy and terms pages are not live. |
 | Same policy questions as the connector | BLOCKED (policy) | |
+| Contact and limits | — | Plugin questions: `directory@anthropic.com` ("replies can be delayed") or Get help in the portal. At most 10 submissions per organization per 24 hours ([submit](https://claude.com/docs/plugins/submit)). |
 
 ## OpenAI — Plugins Directory (ChatGPT and Codex)
 
@@ -89,13 +91,15 @@ Sources: [submission](https://developers.openai.com/plugins/deploy/submission), 
 | Verified individual or business identity; org owner or "Apps Management Write"; the OpenAI project is not on EU data residency ("For now, projects with EU data residency cannot submit plugins with MCP servers for review") | TODO | Applies to the OpenAI Platform organisation, not to where PostHog stores data. |
 | ZIP with root `plugin.json` (Agent Plugins schema) and root `mcp.json`, exactly one remote server, no lifecycle hooks, no `apps` / `.app.json` | DONE | Valid against `https://agent-plugins.org/schemas/1.0.0/{plugin,mcp}.schema.json` with ajv on 2026-11-25. Zip the folder contents; the `.claude-plugin/` and `.mcp.json` files are Claude's. Whether the portal accepts those extra files is UNVERIFIED. |
 | "public submission rejects nonempty server headers" | DONE | No headers. |
-| No auth declaration in `mcp.json` | DONE | The documented `extensions["com.openai"].auth` block fails the published schema (`additionalProperties: false`), so it is omitted, as in OpenAI's own no-auth example. Authentication "No authentication" is chosen in the portal. |
-| Domain verification: the exact token, plain text, at `https://docs.ccxt.com/.well-known/openai-apps-challenge` | TODO (after deploy) | The runtime serves it from `OPENAI_APPS_CHALLENGE` (`mcp/hosted/src/app.ts`); nginx must proxy the path. 404 on 2026-11-25. |
+| No auth declaration in `mcp.json` | DONE, recheck at upload | [Build plugins](https://developers.openai.com/plugins/build/plugins) says "Declare authentication under each server's `extensions["com.openai"].auth` object" (`auth.type: "none"`), but the published `mcp.schema.json` (rechecked 2026-11-26) has `additionalProperties: false` on Streamable HTTP servers, so that block fails validation. It is omitted, and "No authentication" is chosen in the portal. If the portal's validator asks for it, add `"extensions": { "com.openai": { "auth": { "type": "none" } } }` to the server entry. |
+| Domain verification: the exact token, plain text, at `https://docs.ccxt.com/.well-known/openai-apps-challenge` | TODO (token) | nginx proxies the path and the app serves `OPENAI_APPS_CHALLENGE` (`mcp/hosted/src/app.ts`); it answers 404 until the token from the portal is in the VM's `.env` (launch step 4). |
 | Every tool: explicit `readOnlyHint`, `destructiveHint`, `openWorldHint` booleans | DONE | `mcp/hosted/test/protocol.test.ts`. |
+| A justification for each annotation value on every tool | DONE | [ANNOTATIONS.md](ANNOTATIONS.md), ready to paste. [Submission errors](https://developers.openai.com/plugins/deploy/submission-errors) require it (`justification_required`); plugin guidelines §6.3 say "Annotation justifications are no longer required". The account stubs are `openWorldHint: false` on the hosted server (they contact nothing). Pinned against `tools/list` by `test/directory.test.ts`. |
+| The ZIP contains at least one valid skill (`plugin_runtime_surface_missing`) | DONE | `skills/ccxt/SKILL.md`, an immediate child of `skills/`, with `name` and `description` front matter and a non-empty body. |
 | `outputSchema` on every tool that returns `structuredContent` | DONE (hosted runtime) | Declared by the shared tools. |
-| Per-tool `securitySchemes` (`noauth`) | TODO (hosted runtime) | Recommended now, needed for phase-2 mixed auth ([auth](https://developers.openai.com/plugins/build/auth)). Not set today. |
-| `_meta.ui.domain` for UI resources: "required when submitting a plugin with UI; must be unique per plugin" | TODO (hosted runtime) | Value format not documented; the Claude value has a different format. Not set today. |
-| `interface.displayName` ≤ 30 (`CCXT`), `shortDescription` ≤ 30, `longDescription` ≤ 4,000, `developerName` ≤ 80, `category` | DONE | Checked by `hosted-plugin.test.ts`. "Finance" as a dashboard category title is UNVERIFIED. |
+| Per-tool `securitySchemes` (`noauth`) | DONE | `_meta.securitySchemes: [{"type": "noauth"}]` on every hosted tool (`src/profile.ts`; the SDK lists only `_meta` of the extra keys, which the [reference](https://developers.openai.com/plugins/reference) calls the mirror clients read). Pinned by `test/directory.test.ts`. |
+| `_meta.ui.domain` for UI resources: "required when submitting a plugin with UI; must be unique per plugin" | DONE | `https://docs.ccxt.com` (the server's own registrable domain, `UI_DOMAIN_OPENAI`), in the `resources/read` contents `_meta.ui`, sent only to requests from OpenAI's egress ranges: Claude derives its own value from a hash of the connector URL. Pinned by `test/directory.test.ts`. |
+| `interface.displayName` ≤ 30 (`CCXT`), `shortDescription` ≤ 30, `longDescription` ≤ 4,000, `developerName` ≤ 80, `category` | DONE | Checked by `hosted-plugin.test.ts`. "Finance" is one of the categories listed in [submission errors](https://developers.openai.com/plugins/deploy/submission-errors) (`plugin_category_unknown`). |
 | `websiteURL`, `supportURL`, `privacyPolicyURL`, `termsOfServiceURL`: "all four listing URLs are required"; "Public URLs must be accessible and identify the same publisher" | TODO | Privacy and terms not live. |
 | Privacy policy covers data categories, purposes, recipients, retention and user controls (§4.1) | TODO | The draft leaves retention and controls open: legal review. |
 | `logo` (square, ≥ 48 px) and `composerIcon` | DONE | |
@@ -112,8 +116,8 @@ Source: [registry remote servers](https://modelcontextprotocol.io/registry/remot
 
 | Requirement | Status | Notes |
 |---|---|---|
-| `remotes: [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` in `mcp/server.json` | TODO (launch step 1) | Valid against the schema with ajv on 2026-11-25. Removed again until launch: `mcp-release.yml` publishes `server.json` on every ccxt-mcp release, which would list a remote that answers 404. `server-json.test.ts` accepts it once added. |
-| "A remote server MUST be publicly accessible at its specified URL" | BLOCKED (deployment) | Publish the registry entry (`mcp-publisher publish`) only after the endpoint is live. The registry does not check URL ownership. |
+| `remotes: [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` in `mcp/server.json` | DONE (launch step 1) | Valid against the schema with ajv on 2026-11-25. Removed again until launch: `mcp-release.yml` publishes `server.json` on every ccxt-mcp release, which would list a remote that answers 404. `server-json.test.ts` accepts it once added. |
+| "A remote server MUST be publicly accessible at its specified URL" | DONE | Publish the registry entry (`mcp-publisher publish`) only after the endpoint is live. The registry does not check URL ownership. |
 | Listing in the registry does not make the server discoverable in Claude | — | "Only a directory listing makes your connector discoverable inside Claude" ([directory vs custom](https://claude.com/docs/connectors/building/directory-vs-custom)). |
 
 ## Listing copy (drafts)
