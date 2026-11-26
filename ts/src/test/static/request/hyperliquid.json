@@ -16,6 +16,50 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchLeverageTiers": [
+            {
+                "description": "leverage tiers of the main dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "SOL/USDC:USDC",
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            },
+            {
+                "description": "hip3 leverage tiers are requested from the symbols' dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta",
+                    "dex": "xyz"
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "leverage tiers of a single market",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "fetch leverage of a swap market",

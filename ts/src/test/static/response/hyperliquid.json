@@ -2860,6 +2860,243 @@
                 }
             }
         ],
+        "fetchLeverageTiers": [
+            {
+                "description": "tiered tables and a single tier asset without a listed table",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC",
+                        "MEME/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "universe": [
+                        {
+                            "szDecimals": 5,
+                            "name": "BTC",
+                            "maxLeverage": 40,
+                            "marginTableId": 56
+                        },
+                        {
+                            "szDecimals": 2,
+                            "name": "SOL",
+                            "maxLeverage": 20,
+                            "marginTableId": 54
+                        },
+                        {
+                            "szDecimals": 0,
+                            "name": "MEME",
+                            "maxLeverage": 3,
+                            "marginTableId": 3
+                        }
+                    ],
+                    "marginTables": [
+                        [
+                            54,
+                            {
+                                "description": "tiered 20x (2)",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 20
+                                    },
+                                    {
+                                        "lowerBound": "70000000.0",
+                                        "maxLeverage": 10
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            56,
+                            {
+                                "description": "tiered 40x",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 40
+                                    },
+                                    {
+                                        "lowerBound": "150000000.0",
+                                        "maxLeverage": 20
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    "collateralToken": 0
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": 150000000,
+                            "maintenanceMarginRate": 0.0125,
+                            "maxLeverage": 40,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 40
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 150000000,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.025,
+                            "maxLeverage": 20,
+                            "info": {
+                                "lowerBound": "150000000.0",
+                                "maxLeverage": 20
+                            }
+                        }
+                    ],
+                    "SOL/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "SOL/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": 70000000,
+                            "maintenanceMarginRate": 0.025,
+                            "maxLeverage": 20,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 20
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "SOL/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 70000000,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.05,
+                            "maxLeverage": 10,
+                            "info": {
+                                "lowerBound": "70000000.0",
+                                "maxLeverage": 10
+                            }
+                        }
+                    ],
+                    "MEME/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "MEME/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.16666666666666666,
+                            "maxLeverage": 3,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 3
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "leverage tiers of a single market",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "universe": [
+                        {
+                            "szDecimals": 5,
+                            "name": "BTC",
+                            "maxLeverage": 40,
+                            "marginTableId": 56
+                        },
+                        {
+                            "szDecimals": 2,
+                            "name": "SOL",
+                            "maxLeverage": 20,
+                            "marginTableId": 54
+                        },
+                        {
+                            "szDecimals": 0,
+                            "name": "MEME",
+                            "maxLeverage": 3,
+                            "marginTableId": 3
+                        }
+                    ],
+                    "marginTables": [
+                        [
+                            54,
+                            {
+                                "description": "tiered 20x (2)",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 20
+                                    },
+                                    {
+                                        "lowerBound": "70000000.0",
+                                        "maxLeverage": 10
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            56,
+                            {
+                                "description": "tiered 40x",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 40
+                                    },
+                                    {
+                                        "lowerBound": "150000000.0",
+                                        "maxLeverage": 20
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    "collateralToken": 0
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "SOL/USDC:USDC",
+                        "currency": "USDC",
+                        "minNotional": 0,
+                        "maxNotional": 70000000,
+                        "maintenanceMarginRate": 0.025,
+                        "maxLeverage": 20,
+                        "info": {
+                            "lowerBound": "0.0",
+                            "maxLeverage": 20
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "SOL/USDC:USDC",
+                        "currency": "USDC",
+                        "minNotional": 70000000,
+                        "maxNotional": null,
+                        "maintenanceMarginRate": 0.05,
+                        "maxLeverage": 10,
+                        "info": {
+                            "lowerBound": "70000000.0",
+                            "maxLeverage": 10
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchLeverage": [
             {
                 "description": "cross leverage",

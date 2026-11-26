@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Leverage, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -79,10 +79,10 @@ export default class hyperliquid extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': undefined,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': true,
@@ -4178,6 +4178,121 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+     * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    override async fetchLeverageTiers (symbols: Strings = undefined, params: Dict = {}): Promise<LeverageTiers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const request: Dict = {
+            'type': 'meta',
+        };
+        const dexName = this.getDexFromSymbols ('fetchLeverageTiers', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "universe": [
+        //             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        //             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        //         ],
+        //         "marginTables": [
+        //             [
+        //                 54,
+        //                 {
+        //                     "description": "tiered 20x (2)",
+        //                     "marginTiers": [
+        //                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        //                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //                     ]
+        //                 }
+        //             ]
+        //         ],
+        //         "collateralToken": 0
+        //     }
+        //
+        const universe = this.safeList (response, 'universe', []);
+        const marginTables = this.safeList (response, 'marginTables', []);
+        const tablesById: Dict = {};
+        for (let i = 0; i < marginTables.length; i++) {
+            const marginTable = this.safeList (marginTables, i, []);
+            const tableId = this.safeString (marginTable, 0, '');
+            tablesById[tableId] = this.safeDict (marginTable, 1, {});
+        }
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        const tiers: Dict = {};
+        for (let i = 0; i < universe.length; i++) {
+            const asset = this.safeDict (universe, i, {});
+            // the coin name resolves to the unified symbol, delisted assets have no market
+            const symbol = this.coinToMarketId (this.safeString (asset, 'name')) as string;
+            const market = this.safeDict (this.markets, symbol);
+            if (market === undefined) {
+                continue;
+            }
+            if ((symbolsLength > 0) && !this.inArray (symbol, symbolsNormalized as string[])) {
+                continue;
+            }
+            const assetTable = this.safeDict (tablesById, this.safeString (asset, 'marginTableId'), {});
+            let marginTiers = this.safeList (assetTable, 'marginTiers');
+            if (marginTiers === undefined) {
+                // margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                marginTiers = [ { 'lowerBound': '0.0', 'maxLeverage': this.safeInteger (asset, 'maxLeverage') } ];
+            }
+            tiers[symbol] = this.parseMarketLeverageTiers (this.extend (asset, { 'marginTiers': marginTiers }), market as Market);
+        }
+        return tiers as LeverageTiers;
+    }
+
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+        //
+        //     {
+        //         "szDecimals": 2,
+        //         "name": "SOL",
+        //         "maxLeverage": 20,
+        //         "marginTableId": 54,
+        //         "marginTiers": [
+        //             { "lowerBound": "0.0", "maxLeverage": 20 },
+        //             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //         ]
+        //     }
+        //
+        const marginTiers = this.safeList (info, 'marginTiers', []);
+        const tiers: List = [];
+        for (let i = 0; i < marginTiers.length; i++) {
+            const tier = this.safeDict (marginTiers, i, {});
+            const nextTier = this.safeDict (marginTiers, i + 1, {});
+            const maxLeverage = this.safeString (tier, 'maxLeverage');
+            // the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            const maintenanceMarginRate = Precise.stringDiv ('1', Precise.stringMul ('2', maxLeverage));
+            tiers.push ({
+                'tier': i + 1,
+                'symbol': this.safeString (market, 'symbol'),
+                'currency': this.safeString (market, 'settle'),
+                'minNotional': this.safeNumber (tier, 'lowerBound'),
+                'maxNotional': this.safeNumber (nextTier, 'lowerBound'),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (maxLeverage),
+                'info': tier,
+            });
+        }
+        return tiers as LeverageTier[];
     }
 
     /**
