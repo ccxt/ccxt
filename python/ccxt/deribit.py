@@ -3165,8 +3165,7 @@ class deribit(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(eachItemDuration) * 1000
         now = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
-        defaultSince = now - month
-        sinceResolved = defaultSince if (since is None) else since
+        sinceResolved = (now - month) if (since is None) else since
         time = now
         if since is not None:
             time = self.parse_to_int(since + month)

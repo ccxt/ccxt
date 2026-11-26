@@ -709,7 +709,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :returns dict} the raw proxy data({obv3ProxyWalletAddress, deployed, multisigSafeAddress:)
         """
         response = await self.sxbetPrivateGetUserProxy()
-        return self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
+        return data
 
     async def approve(self, params: dict = {}) -> object:
         """
@@ -1661,7 +1662,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         request = {'marketHash': marketHash}
         response = await self.sxbetPublicGetOrderbookV3Snapshot(request)
-        return self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
+        return data
 
     async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """

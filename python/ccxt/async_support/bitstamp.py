@@ -2063,7 +2063,7 @@ class bitstamp(Exchange, ImplicitAPI):
             amount = transactionAmount
         elif currency is not None:
             amount = self.safe_string(transaction, currency['id'])
-            feeCurrency = currency['code']
+            feeCurrency = self.safe_string(currency, 'code')
         elif (code is not None) and (currencyId is not None):
             amount = self.safe_string(transaction, currencyId)
             feeCurrency = code

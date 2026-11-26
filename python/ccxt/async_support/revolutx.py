@@ -527,7 +527,7 @@ class revolutx(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
-                marketIds.append(market['id'])
+                marketIds.append(self.safe_string(market, 'id', ''))
             request['symbols'] = ','.join(marketIds)
         region = self.safe_string_2(params, 'region', 'region', self.options['region'])
         if region is not None:

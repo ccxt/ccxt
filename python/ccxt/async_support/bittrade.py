@@ -1414,9 +1414,9 @@ class bittrade(Exchange, ImplicitAPI):
         if feeCost is not None:
             feeCurrency = None
             if side == 'sell':
-                feeCurrency = marketResolved['quote']
+                feeCurrency = self.safe_string(marketResolved, 'quote')
             else:
-                feeCurrency = marketResolved['base']
+                feeCurrency = self.safe_string(marketResolved, 'base')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,

@@ -1539,12 +1539,12 @@ class coinbase(Exchange, ImplicitAPI):
                 result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
         for i in range(0, len(futureData)):
-            futureMarket = self.parse_contract_market(futureData[i])
+            futureMarket = self.parse_contract_market(self.safe_dict(futureData, i, {}))
             if futureMarket is not None:
                 result.append(futureMarket)
         perpetualData = self.safe_list(perpetualFutures, 'products', [])
         for i in range(0, len(perpetualData)):
-            perpetualMarket = self.parse_contract_market(perpetualData[i])
+            perpetualMarket = self.parse_contract_market(self.safe_dict(perpetualData, i, {}))
             if perpetualMarket is not None:
                 result.append(perpetualMarket)
         newMarkets = []

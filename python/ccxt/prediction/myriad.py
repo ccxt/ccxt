@@ -1811,7 +1811,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             scale = scale + '0'
         return Precise.string_div(decimalString, scale)
 
-    def parse_trade_tx(self, txHash: Str, quote: dict, market: dict, side: str) -> PredictionOrder:
+    def parse_trade_tx(self, txHash: Str, quote: dict, market: Market, side: str) -> PredictionOrder:
         return self.safe_prediction_order({
             'id': txHash,
             'clientOrderId': None,

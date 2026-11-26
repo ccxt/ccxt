@@ -1297,7 +1297,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             if requestId == authRequestId:
                 self.handle_authentication_message(client, message)
                 return
-            client.resolve(self.safe_value(message, 'result', message), requestId)
+            if 'result' in message:
+                client.resolve(self.safe_value(message, 'result'), requestId)
+            else:
+                client.resolve(message, requestId)
 
     def handle_authentication_message(self, client: Client, message: dict):
         #

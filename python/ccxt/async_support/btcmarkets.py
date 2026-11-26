@@ -842,9 +842,9 @@ class btcmarkets(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, '-')
         feeCurrencyCode = None
         if marketResolved['quote'] == 'AUD':
-            feeCurrencyCode = marketResolved['quote']
+            feeCurrencyCode = self.safe_string(marketResolved, 'quote')
         else:
-            feeCurrencyCode = marketResolved['base']
+            feeCurrencyCode = self.safe_string(marketResolved, 'base')
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'

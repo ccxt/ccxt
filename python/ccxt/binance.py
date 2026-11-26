@@ -9645,7 +9645,7 @@ class binance(Exchange, ImplicitAPI):
             toId = self.convert_type_to_account(toAccount).upper()
             isolatedSymbol = None
             if market is not None:
-                isolatedSymbol = market['id']
+                isolatedSymbol = self.safe_string(market, 'id')
             if fromId == 'ISOLATED':
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' transfer () requires params["symbol"] when fromAccount is ' + fromAccount)

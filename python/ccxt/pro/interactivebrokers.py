@@ -561,14 +561,16 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         lastHistoryTimestamp = None
         for i in range(0, len(data)):
             parsed = self.parse_ohlcv(data[i], market)
-            timestamp = parsed[0]
-            if timestamp is None:
+            if self.safe_integer(parsed, 0) is None:
                 continue
+            timestamp = self.safe_integer(parsed, 0, 0)
             if timestamp < 100000000000:
                 timestamp = timestamp * 1000  # seconds
                 parsed[0] = timestamp
             bars.append(parsed)
-            if (lastHistoryTimestamp is None) or (timestamp > lastHistoryTimestamp):
+            if lastHistoryTimestamp is None:
+                lastHistoryTimestamp = timestamp
+            elif timestamp > lastHistoryTimestamp:
                 lastHistoryTimestamp = timestamp
         # the live candles built from smd before the history arrived are kept only when they are newer than the history
         for i in range(0, len(stored)):

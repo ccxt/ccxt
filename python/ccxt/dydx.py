@@ -1179,7 +1179,7 @@ class dydx(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: str, privateKey: object) -> dict:
+    def sign_hash(self, hash: str, privateKey: str) -> dict:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = self.safe_string(signature, 'r', '')
         s = self.safe_string(signature, 's', '')
@@ -1210,7 +1210,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: dict, memo: Str, chainId: Str, account: dict, authenticators: object, fee: dict = None) -> str:
+    def sign_dydx_tx(self, privateKey: str, message: dict, memo: Str, chainId: Str, account: dict, authenticators: object, fee: dict = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         signatureR = self.safe_string(signature, 'r', '')
@@ -1475,7 +1475,8 @@ class dydx(Exchange, ImplicitAPI):
         orderId = orderRequestRes[0]
         orderRequest = orderRequestRes[1]
         chainName = self.safe_string(self.options, 'chainName')
-        signedTx = self.sign_dydx_tx(self.safe_string(credentials, 'privateKey'), orderRequest, '', chainName, account, None)
+        privateKey = self.safe_string(credentials, 'privateKey', '')
+        signedTx = self.sign_dydx_tx(privateKey, orderRequest, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1576,7 +1577,8 @@ class dydx(Exchange, ImplicitAPI):
             'value': cancelPayload,
         }
         chainName = self.safe_string(self.options, 'chainName')
-        signedTx = self.sign_dydx_tx(self.safe_string(credentials, 'privateKey'), signingPayload, '', chainName, account, None)
+        privateKey = self.safe_string(credentials, 'privateKey', '')
+        signedTx = self.sign_dydx_tx(privateKey, signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1641,7 +1643,8 @@ class dydx(Exchange, ImplicitAPI):
             'value': cancelPayload,
         }
         chainName = self.safe_string(self.options, 'chainName')
-        signedTx = self.sign_dydx_tx(self.safe_string(credentials, 'privateKey'), signingPayload, '', chainName, account, None)
+        privateKey = self.safe_string(credentials, 'privateKey', '')
+        signedTx = self.sign_dydx_tx(privateKey, signingPayload, '', chainName, account, None)
         request = {
             'tx': signedTx,
         }
@@ -1897,7 +1900,8 @@ class dydx(Exchange, ImplicitAPI):
             }
         txFee = self.estimate_tx_fee(signingPayload, '', account)
         chainName = self.safe_string(self.options, 'chainName')
-        signedTx = self.sign_dydx_tx(self.safe_string(credentials, 'privateKey'), signingPayload, '', chainName, account, None, txFee)
+        privateKey = self.safe_string(credentials, 'privateKey', '')
+        signedTx = self.sign_dydx_tx(privateKey, signingPayload, '', chainName, account, None, txFee)
         request = {
             'tx': signedTx,
         }
@@ -2076,7 +2080,8 @@ class dydx(Exchange, ImplicitAPI):
         }
         txFee = self.estimate_tx_fee(signingPayload, tag, account)
         chainName = self.safe_string(self.options, 'chainName')
-        signedTx = self.sign_dydx_tx(self.safe_string(credentials, 'privateKey'), signingPayload, tag, chainName, account, None, txFee)
+        privateKey = self.safe_string(credentials, 'privateKey', '')
+        signedTx = self.sign_dydx_tx(privateKey, signingPayload, tag, chainName, account, None, txFee)
         request = {
             'tx': signedTx,
         }

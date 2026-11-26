@@ -3218,7 +3218,8 @@ class paradex(Exchange, ImplicitAPI):
         leverage = leverageOption
         if leverage is None:
             # the endpoint always sets the leverage too, keep the current one instead of resetting it
-            currentLeverage = await self.fetch_leverage(symbol)
+            leverageSymbol = self.safe_string(market, 'symbol', '')
+            currentLeverage = await self.fetch_leverage(leverageSymbol)
             leverage = self.safe_integer(currentLeverage, 'longLeverage')
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a params.leverage argument, the current leverage of ' + market['symbol'] + ' could not be fetched')

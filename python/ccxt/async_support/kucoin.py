@@ -1955,8 +1955,7 @@ class kucoin(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             type = 'swap'
             if future:
-                expirySuffix = '-' + self.yymmdd(expiry, '')
-                symbol = symbol + expirySuffix
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
                 type = 'future'
             inverse = self.safe_bool(market, 'isInverse')
             status = self.safe_string(market, 'status')
@@ -4221,8 +4220,8 @@ class kucoin(Exchange, ImplicitAPI):
         hidden = self.safe_value(paramsOmitted, 'hidden')
         if (postOnly) and (hidden is not None):
             raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
-        iceberg = self.safe_value(paramsOmitted, 'iceberg')
-        if (iceberg is not None) and (iceberg is not False):
+        iceberg = self.safe_bool(paramsOmitted, 'iceberg', False)
+        if iceberg:
             visibleSize = self.safe_string(paramsOmitted, 'visibleSize')
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
@@ -5089,10 +5088,10 @@ class kucoin(Exchange, ImplicitAPI):
         request = {}
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
-        trigger = self.safe_value_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         response: dict
-        if (trigger is not None) and (trigger is not False):
+        if trigger:
             response = await self.futuresPrivateDeleteStopOrders(self.extend(request, paramsOmitted))
         else:
             response = await self.futuresPrivateDeleteOrders(self.extend(request, paramsOmitted))
@@ -5205,7 +5204,7 @@ class kucoin(Exchange, ImplicitAPI):
                     marketType = methodDefaultType
         else:
             market = self.market(symbol)
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         if uta:
             paramsRequest = self.omit(paramsRequest, 'uta')
             paramsRequest = self.extend(paramsRequest, {'marketType': marketType})

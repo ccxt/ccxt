@@ -3411,8 +3411,8 @@ class binance(ccxt.async_support.binance):
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
         balance = self.safe_dict(self.balance, accountType, {})
+        balance['info'] = message
         event = self.safe_string(message, 'e')
         # balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         balanceMessage = self.safe_dict(message, 'a', message)

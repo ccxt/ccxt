@@ -32,7 +32,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             'name': 'Interactive Brokers',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100 * 1.2,  # the client portal gateway allows ~10 requests per second
+            'rateLimit': 120,  # the client portal gateway allows ~10 requests per second
             'pro': True,
             'has': {
                 'CORS': None,
@@ -1239,8 +1239,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             promises.append(self.fetch_bond_markets(params))
         results = await asyncio.gather(*promises)
         markets = self.arrays_concat(results)
-        # toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return self.to_array(self.ibkr_disambiguate_contract_symbols(markets))
+        return self.ibkr_disambiguate_contract_symbols(markets)
 
     def ibkr_disambiguate_contract_symbols(self, markets: list[Market]) -> list[Market]:
         """
@@ -2369,9 +2368,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if isContract:
             settleId = quoteId
             settle = quote
-            symbol = symbol + ':' + settle
+            symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle
             if isFuture:
-                symbol = symbol + '-' + self.yymmdd(expiry)
+                symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry)
         marketType = 'spot'
         if isPerp:
             marketType = 'swap'

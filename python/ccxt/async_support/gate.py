@@ -2068,7 +2068,8 @@ class gate(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId)
         # check leveraged tokens (e.g. BTC3S, ETH5L)
         type = 'crypto'
-        if self.is_leveraged_currency(currencyId):
+        leveragedId = self.safe_string(rawCurrency, 'currency', '')
+        if self.is_leveraged_currency(leveragedId):
             type = 'leveraged'
         chains = self.safe_list(rawCurrency, 'chains', [])
         networks = {}
@@ -2398,9 +2399,8 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         chainsIndexedByIdRaw = await self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
-        chainsIndexedById = chainsIndexedByIdRaw
-        selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
-        return self.safe_dict(chainsIndexedById, selectedNetworkIdOrCode)
+        selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedByIdRaw, True)
+        return self.safe_dict(chainsIndexedByIdRaw, selectedNetworkIdOrCode)
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
@@ -5665,7 +5665,7 @@ class gate(Exchange, ImplicitAPI):
         if market is None:
             defaultSettle = 'usdt'
         else:
-            defaultSettle = market['settle']
+            defaultSettle = self.safe_string(market, 'settle')
         settle = self.safe_string_lower(params, 'settle', defaultSettle)
         type, paramsMarketType = self.handle_market_type_and_params('cancelOrders', market, params)
         isSpot = (type == 'spot')

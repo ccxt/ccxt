@@ -6139,7 +6139,7 @@ class BaseExchange(object):
         for i in range(0, oldest):
             trade = self.safe_dict(trades, i, {})
             ts = self.safe_integer(trade, 'timestamp')
-            price = trade['price']
+            price = self.safe_number(trade, 'price')
             if (ts is None) or (price is None):
                 continue
             if ts < since:
@@ -6809,7 +6809,7 @@ class BaseExchange(object):
     def create_expired_option_market(self, symbol: str):
         raise NotSupported(self.id + ' createExpiredOptionMarket () is not supported yet')
 
-    def is_leveraged_currency(self, currencyCode: object, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
+    def is_leveraged_currency(self, currencyCode: str, checkBaseCoin: Bool = False, existingCurrencies: dict = None):
         leverageSuffixes = [
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S',  # Leveraged Tokens (LT)
             'UP', 'DOWN',  # exchange-specific (e.g. BLVT)
@@ -7149,11 +7149,11 @@ class BaseExchange(object):
 
     def handle_trigger_prices_and_params(self, symbol: object, params: dict, omitParams=True):
         #
-        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         triggerPriceStr = None
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
         stopLossPriceStr = None
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         takeProfitPriceStr = None
         #
         keysToOmit = []

@@ -581,10 +581,11 @@ class bitget(ccxt.async_support.bitget):
             args['interval'] = interval
             messageHash = 'kline' + symbol
         else:
-            channel = 'candle' + interval
+            intervalValue = self.safe_string(timeframes, timeframe, '')
+            channel = 'candle' + intervalValue
             args['channel'] = channel
             args['instId'] = market['id']
-            messageHash = 'candles:' + interval
+            messageHash = 'candles:' + intervalValue
         return await self.un_watch_channel(symbol, channel, messageHash, 'watchOHLCV', paramsRequest)
 
     def handle_ohlcv(self, client: Client, message: dict):

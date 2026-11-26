@@ -1027,7 +1027,7 @@ class PredictionExchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchSettlements() is not supported yet')
 
-    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj: dict | None = None):
+    def safe_prediction_order(self, outcomeOrder: dict, outcomeObj: Market = None):
         # build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         # ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         # never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1278,7 +1278,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_open_interest(self, interest: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
 
-    def parse_prediction_trades(self, trades: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_prediction_trades(self, trades: list[object], outcomeObj: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1303,7 +1303,7 @@ class PredictionExchange(BaseExchange):
         outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', False)
 
-    def parse_prediction_orders(self, orders: list[object], outcomeObj: object = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def parse_prediction_orders(self, orders: list[object], outcomeObj: Market = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
  @ignore
         parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders

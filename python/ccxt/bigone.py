@@ -573,7 +573,8 @@ class bigone(Exchange, ImplicitAPI):
         if self.safe_bool(rawCurrency, 'is_fiat', False):
             type = 'fiat'
         elif chainLength == 0:
-            if self.is_leveraged_currency(id):
+            leveragedId = self.safe_string(rawCurrency, 'symbol', '')
+            if self.is_leveraged_currency(leveragedId):
                 type = 'leveraged'
             else:
                 type = 'other'

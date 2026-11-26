@@ -1075,8 +1075,7 @@ class onetrading(ccxt.async_support.onetrading):
             else:
                 subscription = {}
         marketTimeframes = self.safe_dict(subscription, marketId, {})
-        if timeframe is not None:
-            marketTimeframes[timeframe] = True
+        marketTimeframes[timeframe] = True
         subscription[marketId] = marketTimeframes
         properties = []
         marketIds = list(subscription.keys())

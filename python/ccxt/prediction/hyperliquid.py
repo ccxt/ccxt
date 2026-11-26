@@ -1987,10 +1987,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
     def format_vault_address(self, address: Str = None) -> Str:
         if address is None:
             return None
-        normalized = address
-        if normalized.startswith('0x') or normalized.startswith('0X'):
-            normalized = normalized[2:]
-        return normalized.lower()
+        if address.startswith('0x') or address.startswith('0X'):
+            return address[2:].lower()
+        return address.lower()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'POST', params: dict = {}):
         apiGroup = api[0]

@@ -6067,7 +6067,7 @@ class htx(Exchange, ImplicitAPI):
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
+        selectedNetworkCode = self.select_network_key_from_networks(self.safe_string(currency, 'code', ''), networkCode, indexedAddresses, True)
         return self.safe_dict(indexedAddresses, selectedNetworkCode)
 
     def fetch_withdraw_addresses(self, code: str, note: Str = None, networkCode: Str = None, params: dict = {}) -> list[DepositAddress]:

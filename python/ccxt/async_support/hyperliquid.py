@@ -4534,7 +4534,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             record = records[i]
             if self.safe_string(record, 'type') == 'vaultDeposit':
                 delta = self.safe_dict(record, 'delta', {})
-                if self.safe_string(delta, 'vault', '') == '0x' + vaultAddress:
+                deltaVault = self.safe_string(delta, 'vault', '')
+                if deltaVault == '0x' + vaultAddress:
                     deposits.append(record)
         return self.parse_transactions(deposits, None, since, limit)
 
@@ -4591,7 +4592,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             record = records[i]
             if self.safe_string(record, 'type') == 'vaultWithdraw':
                 delta = self.safe_dict(record, 'delta', {})
-                if self.safe_string(delta, 'vault', '') == '0x' + vaultAddress:
+                deltaVault = self.safe_string(delta, 'vault', '')
+                if deltaVault == '0x' + vaultAddress:
                     withdrawals.append(record)
         return self.parse_transactions(withdrawals, None, since, limit)
 

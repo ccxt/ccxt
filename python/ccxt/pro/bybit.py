@@ -5,7 +5,6 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-import asyncio
 import hashlib
 from ccxt.base.types import Balances, Bool, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
@@ -1530,18 +1529,14 @@ class bybit(ccxt.async_support.bybit):
 
     async def load_positions_snapshot(self, client: Client, messageHash: str):
         # as only one ws channel gives positions for all types, for snapshot must load all positions
-        fetchFunctions = [
-            self.fetch_positions(None, {'type': 'swap', 'subType': 'linear'}),
-            self.fetch_positions(None, {'type': 'swap', 'subType': 'inverse'}),
-        ]
-        promises = await asyncio.gather(*fetchFunctions)
+        linearPositions = await self.fetch_positions(None, {'type': 'swap', 'subType': 'linear'})
+        inversePositions = await self.fetch_positions(None, {'type': 'swap', 'subType': 'inverse'})
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
-        for i in range(0, len(promises)):
-            positions = promises[i]
-            for ii in range(0, len(positions)):
-                position = positions[ii]
-                cache.append(position)
+        for i in range(0, len(linearPositions)):
+            cache.append(linearPositions[i])
+        for i in range(0, len(inversePositions)):
+            cache.append(inversePositions[i])
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
             future = client.futures[messageHash]

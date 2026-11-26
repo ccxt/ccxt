@@ -3924,7 +3924,7 @@ class mexc(Exchange, ImplicitAPI):
                     parsedSymbols = ','.join(symbolIds)
             else:
                 market = self.market(symbol)
-                parsedSymbols = market['id']
+                parsedSymbols = self.safe_string(market, 'id')
             self.check_required_argument('fetchBalance', parsedSymbols, 'symbol or symbols')
             marketType = 'margin'
             request['symbols'] = parsedSymbols

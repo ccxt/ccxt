@@ -2209,7 +2209,7 @@ class bybit(Exchange, ImplicitAPI):
             expiryDatetime = self.iso8601(expiry)
             symbol = base + '/' + quote + ':' + settle
             if expiry is not None:
-                symbol = symbol + '-' + self.yymmdd(expiry)
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
             costLimits = {
                 'min': None,
@@ -3279,16 +3279,19 @@ class bybit(Exchange, ImplicitAPI):
             if self.safe_bool(marketResolved, 'spot', False):
                 if Precise.string_gt(feeCostString, '0'):
                     if side == 'buy':
-                        feeCurrencyCode = marketResolved['base']
+                        feeCurrencyCode = self.safe_string(marketResolved, 'base')
                     else:
-                        feeCurrencyCode = marketResolved['quote']
+                        feeCurrencyCode = self.safe_string(marketResolved, 'quote')
                 else:
                     if side == 'buy':
-                        feeCurrencyCode = marketResolved['quote']
+                        feeCurrencyCode = self.safe_string(marketResolved, 'quote')
                     else:
-                        feeCurrencyCode = marketResolved['base']
+                        feeCurrencyCode = self.safe_string(marketResolved, 'base')
             else:
-                feeCurrencyCode = marketResolved['base'] if (self.safe_bool(marketResolved, 'inverse', False)) else marketResolved['settle']
+                if self.safe_bool(marketResolved, 'inverse', False):
+                    feeCurrencyCode = self.safe_string(marketResolved, 'base')
+                else:
+                    feeCurrencyCode = self.safe_string(marketResolved, 'settle')
             fee = {
                 'cost': feeCostString,
                 'currency': self.safe_string(trade, 'feeCoin', feeCurrencyCode),
@@ -5761,7 +5764,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
-        selectedNetworkCode = self.select_network_key_from_networks(currency['code'], networkCode, indexedAddresses, True)
+        selectedNetworkCode = self.select_network_key_from_networks(self.safe_string(currency, 'code', ''), networkCode, indexedAddresses, True)
         return self.safe_dict(indexedAddresses, selectedNetworkCode)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
