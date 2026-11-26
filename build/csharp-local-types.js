@@ -2915,8 +2915,8 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
 // matching arm builds: `From<Family>(<Family> value)` -> Dictionary<string, object>,
 // `From<Family>List(List<Family> values)` -> List<object> (the generated families are structs, so
 // the matching arm is the only reachable one; a null List passes through as null), plus the
-// hand-written identities FromDict / FromDictList / FromOHLCVDict / FromOHLCVList / FromInt64 /
-// FromStringValue / FromStringList in Exchange.TranspileHelpers.cs. The box is read from those
+// hand-written FromDictList / FromOHLCVDict / FromOHLCVList in Exchange.TranspileHelpers.cs (the
+// identity helpers are never printed; their box is their own type). The box is read from those
 // base files — the files the C# compiler compiles — so the declaration below can only name a type
 // the emitted call really carries, and a site the funnel pass never visits (a non-`public async`
 // method, a file without typed cores) has no on-disk funnel line and keeps its local `object`.
@@ -2925,6 +2925,8 @@ const CSHARP_TYPED_CORE_FILES = ['Exchange.TypedCores.cs', 'Exchange.TranspileHe
 const CSHARP_TYPED_CORE_BOXES = ['Dictionary<string, object>', 'List<object>', 'List<string>', 'Int64', 'string'];
 const CSHARP_TYPED_CORE_OVERLOAD = /^\s*public static ([A-Za-z0-9_<>,. ]+?) (From[A-Za-z0-9]+)\(([A-Za-z0-9_<>,. ]+?) [A-Za-z_]\w*\)/;
 const CSHARP_EXCHANGE_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'exchanges');
+const CSHARP_IDENTITY_FUNNEL_BOXES = { 'FromInt64': 'Int64', 'FromStringValue': 'string', 'FromDict': 'Dictionary<string, object>', 'FromStringList': 'List<string>' };
+const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 let csharpTypedCoreFunnels;
 function csharpTypedCoreFunnelTypes () {
     if (csharpTypedCoreFunnels !== undefined) {
@@ -2945,6 +2947,10 @@ function csharpTypedCoreFunnelTypes () {
             }
             table.set (match[2], match[1]);
         }
+    }
+    // the identity From* helpers are never printed (csharpHelperIsIdentity): their box is their own type
+    for (const [ helper, box ] of Object.entries (CSHARP_IDENTITY_FUNNEL_BOXES)) {
+        table.set (helper, box);
     }
     csharpTypedCoreFunnels = table;
     return table;
@@ -3113,7 +3119,6 @@ function typedCoreListFunnelWriteBox (csharp, declaration, value) {
     return (helper !== undefined && csharpTypedCoreFunnelTypes ().get (helper) === 'List<object>') ? 'List<object>' : undefined;
 }
 
-const CSHARP_IDENTITY_FUNNEL_HELPERS = [ 'FromInt64', 'FromStringValue', 'FromDict' ];
 function csharpIdentityCoreBox (content, core, table) {
     const boxes = new Set (CSHARP_IDENTITY_FUNNEL_HELPERS.map ((helper) => table.get (helper)));
     const signature = new RegExp ('^[ \\t]*public async (?:virtual |override )+Task<([^\\n]+)> ' + core + '\\(', 'i');

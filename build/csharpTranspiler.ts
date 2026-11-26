@@ -2244,11 +2244,17 @@ function csharpBookLimitReturnsSelf (): boolean {
 }
 
 
-// `From<T>(T value) { return value; }` declared in the runtime: the typed core's `T` is handed back as is
+// the From* helpers whose reverse conversion is the identity for their typed core's own type:
+// the consumer keeps the bare value, so no call is printed and no runtime definition is needed
+const CSHARP_IDENTITY_FROM_HELPERS: Record<string, string> = {
+    'FromDict': 'Dictionary<string, object>',
+    'FromInt64': 'Int64',
+    'FromStringValue': 'string',
+    'FromStringList': 'List<string>',
+}
 function csharpHelperIsIdentity (helper: string, type: string): boolean {
-    const declared = csharpRuntimeDeclarations ().get (helper.replace (/^ccxt\.BaseExchange\./, '')) ?? []
-    return declared.some ((d) => d.params.length === 1 && d.ret === type && d.params[0].type === type
-        && d.body === '{ return ' + d.params[0].name + '; }')
+    const name = helper.replace (/^ccxt\.BaseExchange\./, '')
+    return Object.prototype.hasOwnProperty.call (CSHARP_IDENTITY_FROM_HELPERS, name) && (CSHARP_IDENTITY_FROM_HELPERS[name] === type)
 }
 
 // the declared C# type of a return operand: a local / parameter bound exactly once in the method
