@@ -205,6 +205,7 @@ export async function startTestMcp (telemetry: Telemetry): Promise<TestMcp> {
             'authState': 'anonymous',
             ip,
             'groupSessions': request.headers.get ('x-test-group-sessions') === '1',
+            'identity': (request.headers.get ('x-test-group-sessions') === '1') ? 'address' : 'host_shared',
         };
         const started = Date.now ();
         const response = await telemetry.runWithRequest (info, () => handler.fetch (request));

@@ -59,6 +59,7 @@ The events come from [`@posthog/mcp`](https://posthog.com/docs/mcp-analytics), p
 | `$mcp_session_source`, `$mcp_duration_ms`, `$mcp_source`, `$mcp_interface`, `$lib`, `$lib_version`, `$is_server`, `$geoip_disable` | SDK bookkeeping. GeoIP is disabled. |
 | `client_family` | Every tool call: `chatgpt`, `codex`, `claude`, `claude_code`, `cursor`, `vscode`, `gemini`, `internal`, `other` or `unknown`, from the declared client name, else the User-Agent (2025-era stateless requests carry no client name). |
 | `session_scope` | `client` or `request`: whether this call's session groups a client's calls (above). |
+| `client_identity` | What `client_hash` is derived from: `openai_subject` (one ChatGPT user), `address` (the caller's own address, e.g. Claude Code calling directly) or `host_shared` (an address of Claude's or ChatGPT's servers, shared by many users and rotating, so it does not count people). Count active clients as distinct `client_hash` per day over `openai_subject` and `address` only, without `internal_test`. |
 | `internal_test` | `true` for this repository's own smoke checks (User-Agent `ccxt-mcp-smoke/...`), so dashboards can leave them out. |
 | `error_class` | Failed calls only: `account_required` (the account stubs), `invalid_input`, `rate_limited`, `upstream` or `server`. Error rates that matter: `server` and `upstream`. |
 | `ui_status` | Successful `show_*` calls: `displayed`, `attached`, `unsupported`, `unknown` or `off`, as the tool reported it. |

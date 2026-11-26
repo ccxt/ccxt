@@ -35,6 +35,9 @@ export interface RequestInfo {
     // the caller is one client (a ChatGPT user's openai/subject, or its own address), not an
     // address every user of a host shares: its requests can share an analytics session
     groupSessions?: boolean;
+    // what client_hash is derived from: a ChatGPT user's anonymised id, an address every user
+    // of a host shares, or the caller's own address (never the value itself)
+    identity?: 'openai_subject' | 'host_shared' | 'address';
 }
 
 export interface RequestSummary {
@@ -330,6 +333,7 @@ export async function createTelemetry (partial: Partial<TelemetryConfig> = {}): 
                     'deployment': config.deployment,
                     'sample_rate': config.sampleRate,
                     'session_scope': (state?.info.groupSessions === true) ? 'client' : 'request',
+                    'client_identity': state?.info.identity ?? null,
                     // this repository's own smoke checks (scripts/smoke.mjs, deploy/remote-deploy.sh)
                     // say so in their User-Agent, so dashboards can leave them out
                     'internal_test': isInternalTest (state?.info.userAgent),

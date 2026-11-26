@@ -98,7 +98,7 @@ const SUCCESS_TOOL_CALL_PROPERTIES = [
     '$mcp_interface', '$mcp_is_error', '$mcp_parameters', '$mcp_protocol_version', '$mcp_resource_name',
     '$mcp_server_name', '$mcp_server_version', '$mcp_session_source', '$mcp_source', '$mcp_tool_description',
     '$mcp_tool_name',
-    'auth_state', 'cache', 'client_family', 'client_hash', 'deployment', 'effective_sample_rate', 'exchange', 'internal_test', 'request_id', 'response_bytes', 'sample_rate', 'session_scope',
+    'auth_state', 'cache', 'client_family', 'client_hash', 'client_identity', 'deployment', 'effective_sample_rate', 'exchange', 'internal_test', 'request_id', 'response_bytes', 'sample_rate', 'session_scope',
 ].sort ();
 
 test ('events: exact events and properties for success, expected and unexpected errors', async () => {
@@ -519,6 +519,8 @@ test ('sessions: one client\'s calls share a session until a 30-minute gap; shar
             assert.equal (event.distinct_id, event.session_id, id + ': anonymous, the distinct id is the session id');
         }
         assert.equal (session ('s1-a')!.properties.session_scope, 'client');
+        assert.equal (session ('s1-a')!.properties.client_identity, 'address');
+        assert.equal (session ('shared-a')!.properties.client_identity, 'host_shared');
         assert.equal (session ('shared-a')!.properties.session_scope, 'request');
         assert.equal (session ('s1-a')!.properties.client_family, 'chatgpt');
         assert.equal (session ('s3-a')!.properties.internal_test, true);

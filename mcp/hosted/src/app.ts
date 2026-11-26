@@ -361,7 +361,7 @@ export function createHostedApp (deps: HostedAppDeps): HostedApp {
         const facts = messageFacts (body, c.req.raw.headers, exchanges.allowlist);
         // 5. per-client rate limit
         const identity = identifyClient (ip, facts.subject, ranges);
-        const info = { requestId, 'clientKey': identity.key, 'clientHash': '', 'userAgent': c.req.header ('user-agent')?.slice (0, 200), 'authState': 'anonymous' as const, ip, 'groupSessions': identity.budget === 'client' };
+        const info = { requestId, 'clientKey': identity.key, 'clientHash': '', 'userAgent': c.req.header ('user-agent')?.slice (0, 200), 'authState': 'anonymous' as const, ip, 'groupSessions': identity.budget === 'client', 'identity': (identity.key.startsWith ('openai-subject:') ? 'openai_subject' : ((identity.budget === 'host') ? 'host_shared' : 'address')) as 'openai_subject' | 'host_shared' | 'address' };
         // a request answered before the MCP handler still gets its summary line, under the
         // same request identity (client hash, user agent) as a served one
         const early = (summary: RequestSummary) => telemetry.runWithRequest (info, async () => telemetry.requestDone (summary));
