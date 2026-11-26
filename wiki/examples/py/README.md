@@ -391,6 +391,10 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Hyperliquid Load Hip3 Dexes](./examples/py/hyperliquid-load-hip3-dexes.md)
 
+- [Hyperliquid Priority Fees](./examples/py/hyperliquid-priority-fees.md)
+
+- [Hyperliquid Trailing Order](./examples/py/hyperliquid-trailing-order.md)
+
 - [Ibkr Trade Bonds](./examples/py/ibkr-trade-bonds.md)
 
 - [Ibkr Trade Crypto](./examples/py/ibkr-trade-crypto.md)
