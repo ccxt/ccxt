@@ -11603,7 +11603,8 @@ function nullScalarWriteType (printer, node) {
         // that box for the conditional (JLS 15.25, no unboxing between two equal reference types)
         return nullScalarCopyTernaryType (printer, value, arms);
     }
-    const numeric = numericFamilyCallType (printer, value) ?? numericNativeArithmeticWrite (printer, value);
+    const numeric = numericFamilyCallType (printer, value) ?? numericNativeArithmeticWrite (printer, value)
+        ?? (r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined ? 'Long' : undefined);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
     }
@@ -13984,7 +13985,10 @@ function longMultiplyMemberCtx (lines, from, to) {
                 continue;
             }
             declared = declared || decl.test (lines[j]);
-            ok = longMultiplyNonNullValue (ctx, m[1].trim (), (n) => nonNull (n, seen));
+            // `Long x = this.sum(..)` with no checkcast binds the base `Long sum(Long, Long)`: never null
+            const v = m[1].trim ();
+            const longSum = ctx.declType (name) === 'Long' && /^this\.sum\(/.test (v) && longMultiplyArgSpans (longMultiplyMask (v), 'this.sum'.length)?.close === v.length - 1;
+            ok = longSum || longMultiplyNonNullValue (ctx, v, (n) => nonNull (n, seen));
         }
         ok = ok && declared;
         writes.set (name, ok);
@@ -18904,6 +18908,11 @@ function javaScalarLocalValue (printer, node, declaration, type, depth = 0) {
         }
         const fallback = cast.defaultAt < 0 ? undefined : value.arguments[cast.defaultAt];
         return fallback === undefined || isNullishInitializer (fallback) ? { cast: `(${type})` } : undefined;
+    }
+    // base `this.sum (a, b)` of two Long operands binds the hand-written `Long sum (Long, Long)`;
+    // whole initializer only, and not a sum the native long add already prints
+    if (type === 'Long' && depth === 0 && r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined) {
+        return { cast: '' };
     }
     // a sync callee whose Java declaration (hand-written base or generated core) already returns T
     const declared = syncCoreCallType (printer, value);

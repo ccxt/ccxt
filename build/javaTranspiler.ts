@@ -7711,10 +7711,10 @@ export function nativeJavaMapLocalOps (content: string): string {
                     (/^\(\(long\) ([A-Za-z_]\w*)\) [-+] \d+L$/.exec (v))
                 || (/^[A-Za-z_]\w*$/.test (v) && declaredType (v) === 'Long' && soleSumWrite (v));
         };
-        // `Long x = (Long) this.sum(a, b);` with no other write: the base sum boxes a long/double, never null
+        // `Long x = (Long) this.sum(a, b);` (or the Long overload, no cast) with no other write: never null
         const soleSumWrite = (n: string): boolean => {
             const writes = [ ...member.matchAll (new RegExp (`(?<![\\w.])${n}\\s*(?:=(?!=)|\\+=|-=|\\+\\+|--)`, 'g')) ];
-            return writes.length === 1 && new RegExp (`\\bLong ${n} = \\(Long\\) this\\.sum\\([^;]*\\);`).test (member)
+            return writes.length === 1 && new RegExp (`\\bLong ${n} = (?:\\(Long\\) )?this\\.sum\\([^;]*\\);`).test (member)
                 && !/public [\w.<>]+ sum\(/.test (content.replace (/^[\s\S]*?\bclass \w+ extends Exchange\b/, '')) ;
         };
         const stringKey = (k: string) => /^"(?:[^"\\]|\\.)*"$/.test (k);
