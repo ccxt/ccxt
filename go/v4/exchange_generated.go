@@ -5042,12 +5042,12 @@ func (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs ..
 	}
 	return results
 }
-func (this *BaseExchange) Fetch2Async(path any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) Fetch2Async(path string, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetch2Body(ch, path, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
+func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -5061,7 +5061,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 	var config map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = config
 	if this.EnableRateLimit {
-		var cost any = this.CalculateRateLimiterCost(api, method, StringArg(path), params, config)
+		var cost any = this.CalculateRateLimiterCost(api, method, path, params, config)
 
 		<-this.Throttle(cost)
 	}
@@ -5127,7 +5127,7 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 				// try block:
 				this.SetLastRestRequestTimestamp()
 
-				var request map[string]any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
+				var request map[string]any = this.DerivedExchange.Sign(path, api, method, paramsMaxRetriesOnFailureDelay)
 				if fetchData != nil {
 					fetchData["request"] = request
 				}
@@ -6720,7 +6720,7 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 func (this *BaseExchange) CreateExpiredOptionMarket(symbol any) any {
 	panic(NotSupported(this.Id + " createExpiredOptionMarket () is not supported yet"))
 }
-func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...any) bool {
+func (this *BaseExchange) IsLeveragedCurrency(currencyCode string, optionalArgs ...any) bool {
 	var checkBaseCoin bool = GetArgBool(optionalArgs, 0, false)
 	_ = checkBaseCoin
 	var existingCurrencies map[string]any = GetArgMap(optionalArgs, 1, nil)
@@ -6728,13 +6728,13 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	var leverageSuffixes []string = []string{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
 	for i := 0; i < len(leverageSuffixes); i++ {
 		var leverageSuffix string = leverageSuffixes[i]
-		var endsWithSuffix bool = EndsWith(currencyCode, leverageSuffix)
+		var endsWithSuffix bool = strings.HasSuffix(currencyCode, leverageSuffix)
 		if endsWithSuffix {
 			if !(checkBaseCoin == true) {
 				return true
 			} else {
 				// check if base currency is inside dict
-				var baseCurrencyCode string = Replace(currencyCode, leverageSuffix, "")
+				var baseCurrencyCode string = strings.Replace(currencyCode, leverageSuffix, "", 1)
 				if _, ok := existingCurrencies[baseCurrencyCode]; (existingCurrencies != nil) && ok {
 					return true
 				}
@@ -10677,12 +10677,12 @@ func (this *Exchange) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	_ = params
 	panic(NotSupported(this.Id + " fetchOrderBook() is not supported yet"))
 }
-func (this *Exchange) FetchRestOrderBookSafeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+func (this *Exchange) FetchRestOrderBookSafeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
 	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchRestOrderBookSafeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[OrderBook], symbol any, optionalArgs ...any) any {
+func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	chSent := false
@@ -10712,7 +10712,7 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[OrderBook],
 				}()
 				// try block:
 
-				r := <-this.DerivedExchange.(IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol), limit, fetchParams)
+				r := <-this.DerivedExchange.(IFetchOrderBook).FetchOrderBookAsync(symbol, limit, fetchParams)
 				if r.Err != nil {
 					panic(r.Err)
 				}

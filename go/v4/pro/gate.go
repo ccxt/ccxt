@@ -1799,12 +1799,11 @@ func (this *Gate) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		var parts []string = strings.Split(subscription, "_")
 		var timeframeId *string = this.SafeString(parts, 0)
 		var timeframe *string = this.FindTimeframe(timeframeId)
-		var prefix *string = nil
+		var prefix string = ""
 		if timeframe != nil {
-			prefixValue := *timeframe + "_"
-			prefix = &prefixValue
+			prefix = *timeframe + "_"
 		}
-		var marketId string = ccxt.Replace(subscription, prefix, "")
+		var marketId string = strings.Replace(subscription, prefix, "", 1)
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
 		if marketType == "spot" {

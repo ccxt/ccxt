@@ -1322,7 +1322,7 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			// todo: this is a synch blocking call - make it async
 			// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
 
-			r := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
+			r := <-this.FetchRestOrderBookSafeAsync(*symbol, limit, params)
 			if r.Err != nil {
 				panic(r.Err)
 			}

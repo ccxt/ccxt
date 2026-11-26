@@ -2571,7 +2571,7 @@ func (this *Exchange) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 	var res OrderBook = r.Value
 	return res, nil
 }
-func (this *Exchange) FetchRestOrderBookSafe(symbol any, options ...FetchRestOrderBookSafeOptions) (OrderBook, error) {
+func (this *Exchange) FetchRestOrderBookSafe(symbol string, options ...FetchRestOrderBookSafeOptions) (OrderBook, error) {
 
 	opts := FetchRestOrderBookSafeOptionsStruct{}
 

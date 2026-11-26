@@ -5747,7 +5747,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		// end_at is set to as many full pages from since as the calls allow, so the rows begin at since
 		paginationCalls, paramsCalls := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10)
 		var until *int64 = this.SafeInteger(paramsCalls, "until")
-		var pageSpan int64 = this.ParseToInt((paginationCalls * 5000) * int64(rowSpacing))
+		var pageSpan int64 = this.ParseToInt(paginationCalls * 25000000) // 5000 rows per page * 5000ms rowSpacing
 		var sinceEnd int64 = *since + pageSpan
 		var endAt int64 = this.Milliseconds()
 		if sinceEnd < endAt {

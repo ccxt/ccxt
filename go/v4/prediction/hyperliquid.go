@@ -1440,18 +1440,18 @@ func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs
 	}
 	return this.SafeDict(outcomesList, 0, map[string]any{})
 }
-func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput *string) any {
-	if (outcomeInput == nil) || (outcomeInput != nil && *outcomeInput == "") {
+func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput string) any {
+	if outcomeInput == "" {
 		return nil
 	}
-	var colonIndex int = strings.Index(*outcomeInput, ":")
-	if (colonIndex > -1) && (colonIndex < ccxt.GetLength(outcomeInput)-1) {
-		var side string = strings.ToUpper((*outcomeInput)[colonIndex+1:])
+	var colonIndex int = strings.Index(outcomeInput, ":")
+	if (colonIndex > -1) && (colonIndex < len(outcomeInput)-1) {
+		var side string = strings.ToUpper(outcomeInput[colonIndex+1:])
 		if (side == "YES") || (side == "NO") {
 			return side
 		}
 	}
-	var lower string = strings.ToLower(*outcomeInput)
+	var lower string = strings.ToLower(outcomeInput)
 	if strings.HasSuffix(lower, "-yes") {
 		return "YES"
 	}
@@ -1467,7 +1467,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput string) any {
 	if (this.Outcomes == nil) || (this.Outcomes_by_id == nil) {
 		panic(ccxt.ExchangeError(this.Id + " outcomes not loaded"))
 	}
-	var sideHint any = this.ParseOutcomeInputSideHint(&outcomeInput)
+	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
 	var candidates []string = []string{outcomeInput}
 	if strings.HasPrefix(outcomeInput, "+") {
 		candidates = append(candidates, "#"+outcomeInput[1:])

@@ -414,7 +414,11 @@ func (this *Woo) FetchOrderBookSnapshotAsync(client ccxt.ClientInterface, messag
 func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var symbol *string = this.SafeString(subscription, "symbol")
+	var symbol string = *this.SafeString(subscription, "symbol", "")
+	if symbol == "" {
+
+		return nil
+	}
 	var messageHash *string = this.SafeString(message, "topic")
 
 	{
@@ -447,11 +451,11 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			if !ccxt.StructAbsent(r.Value) {
 				snapshot = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 			}
-			if this.Orderbooks[*symbol] == nil {
+			if this.Orderbooks[symbol] == nil {
 
 				return nil
 			}
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			orderbook.Reset(snapshot)
 			var messages []any = orderbook.GetCache()
 			for i := 0; i < len(messages); i++ {
@@ -470,9 +474,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 					this.HandleOrderBookMessage(client, messageItem, orderbook)
 				}
 			}
-			if symbol != nil {
-				this.Orderbooks[*symbol] = orderbook
-			}
+			this.Orderbooks[symbol] = orderbook
 			client.Resolve(orderbook, messageHash)
 			return nil
 		}(this)
@@ -1746,17 +1748,17 @@ func (this *Woo) HandleOrderUpdate(client ccxt.ClientInterface, message map[stri
 		for i := 0; i < len(dataList); i++ {
 			var tradeId *string = this.OmitZero(this.SafeString(dataList, "tradeId"))
 			if tradeId != nil {
-				dataListDict123248, _ := dataList[i].(map[string]any)
-				if dataListDict123248 == nil {
-					dataListDict123248 = map[string]any{}
+				dataListDict123348, _ := dataList[i].(map[string]any)
+				if dataListDict123348 == nil {
+					dataListDict123348 = map[string]any{}
 				}
-				this.HandleMyTrade(client, dataListDict123248)
+				this.HandleMyTrade(client, dataListDict123348)
 			}
-			dataListDict123442, _ := dataList[i].(map[string]any)
-			if dataListDict123442 == nil {
-				dataListDict123442 = map[string]any{}
+			dataListDict123542, _ := dataList[i].(map[string]any)
+			if dataListDict123542 == nil {
+				dataListDict123542 = map[string]any{}
 			}
-			this.HandleOrder(client, dataListDict123442, topic)
+			this.HandleOrder(client, dataListDict123542, topic)
 		}
 	} else {
 		var data map[string]any
@@ -2030,11 +2032,11 @@ func (this *Woo) HandlePositions(client ccxt.ClientInterface, message map[string
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		rawPositionsDict144549, _ := rawPositions[marketId].(map[string]any)
-		if rawPositionsDict144549 == nil {
-			rawPositionsDict144549 = map[string]any{}
+		rawPositionsDict144649, _ := rawPositions[marketId].(map[string]any)
+		if rawPositionsDict144649 == nil {
+			rawPositionsDict144649 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict144549, market))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict144649, market))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
