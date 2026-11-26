@@ -10620,7 +10620,13 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
         // divide(object, object) converts a re-boxed Int64 product back to the same double, so a product with a
         // double operand that is divide's first argument needs no re-box either
         const intoDivide = /(?<![\w.])divide\($/.test (text.slice (0, m.index)) && (text[close + 1] === ',') && t.every ((x) => numeric.includes (x)) && t.some ((x) => x.startsWith ('double'));
-        if ((bind === 'object') && (m[1] === 'multiply') && (intoParseToInt || intoDivide)) {
+        // `x = multiply(a, b);` into a declared double? local over two double / double? names: the lifted operator
+        const target = /^[ ]*([A-Za-z_]\w*) = $/.exec (text.slice (0, m.index));
+        const doubleNames = args.every ((a) => /^[A-Za-z_]\w*$/.test (a.trim ())) && t.every ((x) => (x === 'double') || (x === 'double?'));
+        const intoDoubleLocal = (target !== null) && doubleNames && (text.slice (close + 1).trim () === ';') && (typeOfName (target[1]) === 'double?');
+        if ((bind === 'object') && (m[1] === 'multiply') && intoDoubleLocal) {
+            native = '(' + args[0].trim () + ' * ' + args[1].trim () + ')';
+        } else if ((bind === 'object') && (m[1] === 'multiply') && (intoParseToInt || intoDivide)) {
             native = '((double?)' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
         } else if (bind === 'object') {
             native = subMulHelperBody (m[1]) + '(' + args[0].trim () + ', ' + args[1].trim () + ')';
@@ -10707,6 +10713,7 @@ function typedSubtractMultiplySnippetChecks (): string[] {
     check ('double product as divide divisor keeps body', '        double? a = this.safeNumber(o, "a");\n        double c = 10;\n        object r = divide(c, multiply(a, 3));', 'divide(c, ' + subMulHelperBody ('multiply') + '(a, 3))');
     check ('object operand into parseToInt keeps body', '        object v = getValue(o, "a");\n        Int64? r = this.parseToInt(multiply(v, 2));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(v, 2))');
     check ('non-literal double product into parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        double b = 2.5;\n        Int64? r = this.parseToInt(multiply(a, b));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(a, b))');
+    check ('double? product into a double? local', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        double? r = null;\n        r = multiply(a, b);', 'r = (a * b);');
     check ('double? product outside parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        object r = multiply(a, 2);', 'object r = ' + subMulHelperBody ('multiply') + '(a, 2);');
     keep ('unknown operand', '        object r = subtract(this.foo(), 1);');
     const tests = wrap ('        object r = subtract(since, 1);', 'Tests');

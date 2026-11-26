@@ -7570,6 +7570,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         ?? funnelListWriteType (declaration, parent.right)
                         ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined)
                         ?? int64CopySumWriteType (csharp, declaration, csharpType, parent.right, context)
+                        ?? numDoubleProductWriteType (csharp, declaration, csharpType, parent.right, context)
                         ?? ((csharpType === 'Int64' || csharpType === 'Int64?') ? nativeIntegralMinMaxArmType (csharp, stripParens (parent.right)) : undefined);
                     if (!assignable (csharpType, written)) {
                         if ((csharpType === 'Int64?' || csharpType === 'Int64') && h28c04SelfMinMaxWriteType (csharp, declaration, parent.right) === 'Int64') { break; }
@@ -13908,6 +13909,19 @@ function sumOfIntLocalsInitializer (declaration) {
         scope?.forEachChild (visit);
         return found === 1 && annotated;
     });
+}
+
+// a `Num` local (double?) written `a * b` over two double / double? operands: the final pass prints the
+// lifted double operator for that write (subMulRewrite), whose static type is the declaration's
+function numDoubleProductWriteType (csharp, declaration, type, node, context) {
+    const product = stripParens (node);
+    if (type !== 'double?' || annotationType (declaration) !== 'double?' || product?.kind !== ts.SyntaxKind.BinaryExpression
+            || product.operatorToken.kind !== ts.SyntaxKind.AsteriskToken) {
+        return undefined;
+    }
+    const doubles = [ 'double', 'double?' ];
+    const ok = [ product.left, product.right ].every ((x) => x.kind === ts.SyntaxKind.Identifier && doubles.includes (csharpTypeOfValue (csharp, x, context)));
+    return ok ? 'double?' : undefined;
 }
 
 // a write into an `Int` local: the Int64 sum twin, Math.Min/Max over two Int64 locals, or a lifted Int64? `-`/`*` chain
