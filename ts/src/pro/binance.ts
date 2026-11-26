@@ -3767,8 +3767,8 @@ export default class binance extends binanceRest {
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
         }
-        this.balance[accountType]['info'] = message;
         const balance = this.safeDict (this.balance, accountType, {});
+        balance['info'] = message;
         const event = this.safeString (message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         const balanceMessage = this.safeDict (message, 'a', message);
