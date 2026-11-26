@@ -15042,7 +15042,7 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		var leverage int64 = this.ParseToInt(leverageString)
-		var rational bool = this.IsRoundNumber(1000 % leverage)
+		var rational bool = this.IsRoundNumber(float64(1000 % leverage))
 		if !rational {
 			initialMarginPercentageString = Precise.StringDiv(Precise.StringAdd(initialMarginPercentageString, "1e-8"), "1", 8)
 		}
@@ -15404,7 +15404,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var leverageString *string = this.OmitZero(this.SafeString(position, "leverage")) // portfolio-margin accounts may return leverage "0", see #29244
 	if leverageString != nil {
 		var leverage int64 = this.ParseToInt(leverageString)
-		var rational bool = this.IsRoundNumber(1000 % leverage)
+		var rational bool = this.IsRoundNumber(float64(1000 % leverage))
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if !rational {
 			initialMarginPercentageString = Precise.StringAdd(initialMarginPercentageString, "1e-8")

@@ -111,7 +111,7 @@ func HelperFetchOHLCVChecker(exchange ccxt.ICoreExchange, skippedProperties any,
 				var diffBetweenCurrentAndPrevious any = Subtract(barTs, previousBarTs)
 				Assert(IsGreaterThan(diffBetweenCurrentAndPrevious, 0), Add("Difference between current bar timestamp ("+ToString(barTs)+") and previous bar timestamp ("+ToString(previousBarTs)+") should be positive", logText))
 				// ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-				var isRoundNumber any = exchange.IsRoundNumber(Divide(diffBetweenCurrentAndPrevious, durationMs))
+				var isRoundNumber any = exchange.IsRoundNumber(Float64Arg(Divide(diffBetweenCurrentAndPrevious, durationMs)))
 				Assert(isRoundNumber, Add("Difference between current bar timestamp ("+ToString(barTs)+") and previous bar timestamp ("+ToString(previousBarTs)+") is not multiplier of duration ("+strconv.FormatInt(durationMs, 10)+")", logText))
 			}
 		}

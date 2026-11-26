@@ -3748,7 +3748,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}
 	if limit != nil {
 		// both hosts accept only these depths, anything else is rejected with 24104
-		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 150}, limit)
+		request["limit"] = this.FindNearestCeiling([]int64{5, 10, 20, 50, 100, 150}, *limit)
 	}
 	if *this.SafeBool(market, "contract", false) {
 

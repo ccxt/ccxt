@@ -2337,7 +2337,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 		if marketType != nil && *marketType == "spot" {
 			request["limit"] = min(*limit, 1000) // api maximum 1000
 		} else {
-			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
+			request["limit"] = this.FindNearestCeiling([]int64{5, 10, 20, 50, 100, 500, 1000}, *limit)
 		}
 	}
 	if marketType != nil && *marketType == "spot" {

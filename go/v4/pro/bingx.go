@@ -417,17 +417,17 @@ func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) ma
 	}, marketResolved))
 }
 func (this *Bingx) GetOrderBookLimitByMarketType(marketType string, optionalArgs ...any) any {
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	if limit == nil {
 		return 100
 	}
 	if (marketType == "swap") || (marketType == "future") {
-		return this.FindNearestCeiling([]any{5, 10, 20, 50, 100}, limit)
+		return this.FindNearestCeiling([]int64{5, 10, 20, 50, 100}, *limit)
 	} else if marketType == "spot" {
-		return this.FindNearestCeiling([]any{20, 100}, limit)
+		return this.FindNearestCeiling([]int64{20, 100}, *limit)
 	}
-	return limit
+	return *limit
 }
 func (this *Bingx) GetMessageHash(unifiedChannel string, optionalArgs ...any) string {
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

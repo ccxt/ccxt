@@ -1410,7 +1410,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		limitResolved = *limit
 	}
 	if (limit == nil) || (*limit <= 500) {
-		request["depth"] = this.FindNearestCeiling([]any{10, 50, 100, 500}, limitResolved)
+		request["depth"] = this.FindNearestCeiling([]int64{10, 50, 100, 500}, limitResolved)
 	}
 
 	r1 := <-this.PublicMarketPostFullV1Book(this.Extend(request, params))

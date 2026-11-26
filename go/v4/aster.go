@@ -1986,7 +1986,7 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	}
 	var response map[string]any = nil
 	if limit != nil {
-		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
+		request["limit"] = this.FindNearestCeiling([]int64{5, 10, 20, 50, 100, 500, 1000}, *limit)
 	}
 	if market.Swap {
 
@@ -4961,7 +4961,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var leverageString *string = this.SafeString(position, "leverage")
 	if leverageString != nil {
 		var leverage int64 = this.ParseToInt(leverageString)
-		var rational bool = this.IsRoundNumber(1000 % leverage)
+		var rational bool = this.IsRoundNumber(float64(1000 % leverage))
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if !rational {
 			initialMarginPercentageString = Precise.StringAdd(initialMarginPercentageString, "1e-8")
@@ -5217,7 +5217,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	if leverageString != nil {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		var leverage int64 = this.ParseToInt(leverageString)
-		var rational bool = this.IsRoundNumber(1000 % leverage)
+		var rational bool = this.IsRoundNumber(float64(1000 % leverage))
 		if !rational {
 			initialMarginPercentageString = Precise.StringDiv(Precise.StringAdd(initialMarginPercentageString, "1e-8"), "1", 8)
 		}

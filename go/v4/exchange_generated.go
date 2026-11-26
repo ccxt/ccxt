@@ -1844,10 +1844,10 @@ func (this *BaseExchange) ParseToNumeric(number any) any {
 	}
 	return ParseInt(stringVersion)
 }
-func (this *BaseExchange) IsRoundNumber(value any) bool {
+func (this *BaseExchange) IsRoundNumber(value float64) bool {
 	// this method is similar to isInteger, but this is more loyal and does not check for types.
 	// i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-	var res any = this.ParseToNumeric((Mod(value, 1)))
+	var res any = this.ParseToNumeric((math.Mod(value, 1)))
 	return (res == int64(0))
 }
 func (this *BaseExchange) IsEmptyString(value any) bool {
@@ -3245,12 +3245,12 @@ func (this *BaseExchange) ParseFeeNumeric(fee any) any {
 	}
 	return result
 }
-func (this *BaseExchange) FindNearestCeiling(arr []any, providedValue any) any {
+func (this *BaseExchange) FindNearestCeiling(arr []int64, providedValue int64) any {
 	//  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
 	var length int = len(arr)
 	for i := 0; i < length; i++ {
-		var current any = GetValue(arr, i)
-		if IsLessThanOrEqual(providedValue, current) {
+		var current int64 = arr[i]
+		if providedValue <= current {
 			return current
 		}
 	}
