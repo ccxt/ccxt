@@ -3036,7 +3036,7 @@ public partial class kraken : Exchange
         {
             if (((this.last_http_response != null)) && (!(this.last_http_response is "")))
             {
-                if (getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
+                if ((this.last_http_response?.IndexOf("EOrder:Unknown order", StringComparison.Ordinal) ?? -1) >= 0)
                 {
                     throw new OrderNotFound ((string)((this.id + " cancelOrder() error ") + (this.last_http_response))) ;
                 }

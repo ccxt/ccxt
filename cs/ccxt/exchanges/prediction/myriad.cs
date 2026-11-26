@@ -748,7 +748,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string side, double? amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(string outcome, string side, double? amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);

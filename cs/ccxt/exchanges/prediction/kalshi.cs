@@ -478,21 +478,21 @@ public partial class kalshi : PredictionExchange
      * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
      * @returns {object} the resolved outcome object
      */
-    public async override Task<IDictionary<string, object>> FetchOutcome(object outcomeSymbol)
+    public async override Task<IDictionary<string, object>> FetchOutcome(string? outcomeSymbol)
     {
         // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
         // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
-        if (((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal) < 0)
+        if (outcomeSymbol.IndexOf(":", StringComparison.Ordinal) < 0)
         {
             // endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
-            bool isNo = ((string)outcomeSymbol).EndsWith("-NO");
-            object baseTicker = outcomeSymbol;
+            bool isNo = outcomeSymbol.EndsWith("-NO");
+            string? baseTicker = outcomeSymbol;
             if (isNo)
             {
-                baseTicker = ((outcomeSymbol == null) ? null : ((string)outcomeSymbol).Substring(0, Math.Max(((string)outcomeSymbol).Length - 3, 0)));
+                baseTicker = ((outcomeSymbol == null) ? null : outcomeSymbol.Substring(0, Math.Max(outcomeSymbol.Length - 3, 0)));
             }
             Dictionary<string, object> response = null;
             try
@@ -534,7 +534,7 @@ public partial class kalshi : PredictionExchange
             // series tickers are single alphanumeric segments, so the handle's first '_' token is
             // its series ticker — fetch that series' open events (server-side filter, one page in
             // the common case) and re-check the cache for the exact handle
-            List<object> handleParts = ((string)outcomeSymbol).Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
+            List<object> handleParts = outcomeSymbol.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? marketPart = this.safeString(handleParts, 0, "");
             List<object> parts = marketPart.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? seriesTicker = this.safeString(parts, 0);

@@ -910,12 +910,12 @@ public partial class PredictionExchange : BaseExchange
     {
         for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
+            await this.FetchOutcome(this.safeString(outcomeSymbols, i, ""));
         }
         return this.outcomes;
     }
 
-    public async virtual Task<IDictionary<string, object>> loadOutcome(object outcomeSymbol, bool? reload = null)
+    public async virtual Task<IDictionary<string, object>> loadOutcome(string? outcomeSymbol, bool? reload = null)
     {
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -964,24 +964,24 @@ public partial class PredictionExchange : BaseExchange
         return ((IDictionary<string, object>)((object)(await this.FetchOutcome(outcomeSymbol))));
     }
 
-    public virtual string? outcomeSearchQuery(object outcomeSymbol)
+    public virtual string? outcomeSearchQuery(string? outcomeSymbol)
     {
         // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
         // cache miss can be resolved through the venue's scoped search instead of a bulk listing
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
-        object marketPart = outcomeSymbol;
-        int colonIndex = ((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal);
+        string? marketPart = outcomeSymbol;
+        int colonIndex = outcomeSymbol.IndexOf(":", StringComparison.Ordinal);
         if (colonIndex >= 0)
         {
-            marketPart = ((outcomeSymbol == null) ? null : ((string)outcomeSymbol).Substring(0, Math.Max(Math.Min((colonIndex < 0 ? ((string)outcomeSymbol).Length + (colonIndex) : colonIndex), ((string)outcomeSymbol).Length), 0)));
+            marketPart = ((outcomeSymbol == null) ? null : outcomeSymbol.Substring(0, Math.Max(Math.Min((colonIndex < 0 ? outcomeSymbol.Length + (colonIndex) : colonIndex), outcomeSymbol.Length), 0)));
         }
-        if ((getIndexOf(marketPart, "0x") == 0))
+        if (((marketPart?.IndexOf("0x", StringComparison.Ordinal) ?? -1) == 0))
         {
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        string normalized = ((string)marketPart).ToLower().Replace("-", (string)"_");
+        string normalized = ((string)marketPart.ToLower()).Replace("-", (string)"_");
         List<object> rawWords = normalized.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         List<object> words = new List<object>() {};
         bool hasLetters = false;
@@ -1023,7 +1023,7 @@ public partial class PredictionExchange : BaseExchange
         return String.Join(" ", words.ToArray());
     }
 
-    public async virtual Task<IDictionary<string, object>> FetchOutcome(object outcomeSymbol)
+    public async virtual Task<IDictionary<string, object>> FetchOutcome(string? outcomeSymbol)
     {
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
@@ -1051,7 +1051,7 @@ public partial class PredictionExchange : BaseExchange
                 return this.safeOutcome(outcomeSymbol);
             }
         }
-        throw new BadSymbol ((((this.id + " could not resolve outcome ") + (outcomeSymbol)) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
+        throw new BadSymbol ((((this.id + " could not resolve outcome ") + outcomeSymbol) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;
     }
 
     /**

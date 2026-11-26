@@ -2133,11 +2133,11 @@ public partial class binance : PredictionExchange
         {
             extendedParams["recvWindow"] = defaultRecvWindow;
         }
-        string querystring = this.urlencodeNested(extendedParams);
-        querystring = querystring.Replace("%5B", (string)"[");
-        querystring = querystring.Replace("%5D", (string)"]");
-        string signature = this.hmac(querystring, this.secret, sha256);
-        querystring = ((querystring + "&signature=") + signature);
+        string rawQuery = this.urlencodeNested(extendedParams);
+        string bracketedQuery = rawQuery.Replace("%5B", (string)"[");
+        string cleanQuery = bracketedQuery.Replace("%5D", (string)"]");
+        string signature = this.hmac(cleanQuery, this.secret, sha256);
+        string querystring = ((cleanQuery + "&signature=") + signature);
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },
         };

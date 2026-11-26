@@ -6016,7 +6016,7 @@ public partial class kucoin : Exchange
         marginMode = marginModeparamsOmittedVariable.Item1;
         paramsOmitted = marginModeparamsOmittedVariable.Item2;
         bool isUnified = (accountMode == "unified");
-        string? tradeType = this.handleTradeType((market.ContainsKey("contract") ? market["contract"] : null), marginMode, isUnified, paramsOmitted);
+        string? tradeType = this.handleTradeType(this.safeBool(market, "contract", false), marginMode, isUnified, paramsOmitted);
         request["tradeType"] = tradeType;
         Dictionary<string, object> response = await this.utaPrivatePostAccountModeOrderCancel(this.extend(request, paramsOmitted));
         //
@@ -7174,7 +7174,7 @@ public partial class kucoin : Exchange
         marginMode = marginModeparamsOmittedVariable.Item1;
         paramsOmitted = marginModeparamsOmittedVariable.Item2;
         bool isUnified = (accountMode == "unified");
-        string? tradeType = this.handleTradeType((market.ContainsKey("contract") ? market["contract"] : null), marginMode, isUnified, paramsOmitted);
+        string? tradeType = this.handleTradeType(this.safeBool(market, "contract", false), marginMode, isUnified, paramsOmitted);
         request["tradeType"] = tradeType;
         Dictionary<string, object> response = await this.utaPrivateGetAccountModeOrderDetail(this.extend(request, paramsOmitted));
         //
@@ -7222,7 +7222,7 @@ public partial class kucoin : Exchange
         return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
-    public virtual string? handleTradeType(object isContractMarket = null, string? marginMode = null, bool? isUnified = null, object parameters = null)
+    public virtual string? handleTradeType(bool? isContractMarket = null, string? marginMode = null, bool? isUnified = null, object parameters = null)
     {
         isContractMarket ??= false;
         isUnified ??= false;
@@ -7230,7 +7230,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(parameters, "tradeType");
         if ((tradeType == null))
         {
-            if (isTrue(isContractMarket))
+            if (isContractMarket == true)
             {
                 tradeType = "FUTURES";
             } else if ((marginMode != null))
@@ -8106,13 +8106,13 @@ public partial class kucoin : Exchange
         string? marketType = this.safeString(paramsRequest, "marketType");
         object paramsOmitted = ((marketType != null)) ? this.omit(paramsRequest, "marketType") : paramsRequest;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object isContract = false;
+        bool? isContract = false;
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            isContract = (market.ContainsKey("contract") ? market["contract"] : null);
+            isContract = this.safeBool(market, "contract", false);
         } else if ((marketType == "spot") || (marketType == "margin"))
         {
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;

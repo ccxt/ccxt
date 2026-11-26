@@ -138,14 +138,7 @@ public partial class luno : ccxt.luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        string? symbol = null;
-        if ((market == null))
-        {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
-        }
+        string? symbol = this.safeString(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", null },

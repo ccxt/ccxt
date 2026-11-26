@@ -3040,7 +3040,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
      * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
-    public async virtual Task<object> approve(object outcome = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> approve(string? outcome = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.privateKey == null))

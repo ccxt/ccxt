@@ -2166,8 +2166,9 @@ public partial class sxbet : PredictionExchange
         Dictionary<string, object> seenHashes = new Dictionary<string, object>() {};
         for (int i = 0; i < outcomesLength; i++)
         {
-            await this.loadOutcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
-            IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
+            string? outcomeItem = this.safeString(outcomesList, i, "");
+            await this.loadOutcome(outcomeItem);
+            IDictionary<string, object> outcomeObj = this.outcome(outcomeItem);
             string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash", "");
             if ((this.safeBool(seenHashes, marketHash) == null))
             {
