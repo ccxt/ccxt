@@ -35,6 +35,8 @@ test ('deploy: compose takes the image repository, tag and loopback port from th
     assert.match (compose, /"127\.0\.0\.1:\$\{HOST_PORT:-8080\}:8080"/);
     assert.match (compose, /^  hosted:$/m);
     assert.match (compose, /^  autoheal:$/m);
+    // autoheal gets the Docker socket: its image is pinned by digest, not only by tag
+    assert.match (compose, /image: willfarrell\/autoheal:[\w.-]+@sha256:[0-9a-f]{64}$/m);
     // the script starts, filters and stops containers by these service names
     assert.match (script, /up -d --no-build --no-deps --pull never hosted/);
     assert.match (script, /com\.docker\.compose\.service=hosted/);
@@ -59,7 +61,12 @@ test ('deploy: the workflow uses the docs deploy secrets and ships what the scri
     const mcpWorkflow = fs.readFileSync (path.join (repo, '.github', 'workflows', 'mcp.yml'), 'utf8');
     assert.match (mcpWorkflow, /^name: MCP$/m, 'the workflow_run trigger names this workflow');
     // the script's inputs are the ones the workflow passes
-    for (const input of [ 'IMAGE', 'BUILD_ID', 'RELEASE_DIR', 'DEPLOY_DIR', 'GHCR_USER', 'GHCR_TOKEN' ]) {
+    // the registry token travels over stdin, never as a VAR=value on the ssh command line
+    assert.ok (!/GHCR_TOKEN="\$\{GHCR_TOKEN\}"/.test (workflow), 'no GHCR_TOKEN on the remote command line');
+    assert.match (workflow, /printf '%s\\n' "\$GHCR_TOKEN" \| ssh /);
+    assert.ok (workflow.includes ('GHCR_TOKEN_STDIN=1'));
+    assert.match (script, /if \[ "\$\{GHCR_TOKEN_STDIN:-\}" = 1 \]; then\n\s+# [^\n]*\n\s+IFS= read -r GHCR_TOKEN/);
+    for (const input of [ 'IMAGE', 'BUILD_ID', 'RELEASE_DIR', 'DEPLOY_DIR', 'GHCR_USER', 'GHCR_TOKEN_STDIN' ]) {
         assert.ok (workflow.includes (input + '='), 'workflow passes ' + input);
         assert.ok (script.includes (input), 'script reads ' + input);
     }

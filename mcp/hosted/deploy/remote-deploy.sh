@@ -21,7 +21,9 @@
 #   BUILD_ID     the tag to deploy (the short commit sha)
 #   RELEASE_DIR  this release's docker-compose.yml and deploy/ files, unpacked on the machine
 #   DEPLOY_DIR   default /srv/ccxt-mcp-hosted; holds the .env (secrets, never in git)
-#   GHCR_USER / GHCR_TOKEN  optional: registry login for the pull
+#   GHCR_USER / GHCR_TOKEN  optional: registry login for the pull. With GHCR_TOKEN_STDIN=1 the
+#                token is read from the first line of stdin instead (the workflow does this, so
+#                the token never sits in a process's argv or environment on this machine)
 #   PUBLIC_HOST  default docs.ccxt.com; the Host header the smoke test sends
 set -euo pipefail
 
@@ -68,6 +70,10 @@ docker image prune -f >/dev/null 2>&1 || true
 df -h / | tail -1
 
 # ---- the image ---------------------------------------------------------------------------
+if [ "${GHCR_TOKEN_STDIN:-}" = 1 ]; then
+    # a shell variable, not exported: it reaches docker login through a pipe only
+    IFS= read -r GHCR_TOKEN || true
+fi
 if [ -n "${GHCR_TOKEN:-}" ]; then
     echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USER:?GHCR_USER is required with GHCR_TOKEN}" --password-stdin >/dev/null
 fi

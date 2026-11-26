@@ -125,11 +125,13 @@ jobs:
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BUILD_ID: ${{ steps.build.outputs.id }}
+        # the registry token goes over stdin, never on the remote command line, where any user
+        # on the shared docs machine could read it from the process list during the deploy
         run: |
-          ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
+          printf '%s\n' "$GHCR_TOKEN" | ssh -i ~/.ssh/id_deploy "${DEPLOY_USER}@${HOST}" \
             IMAGE="${IMAGE}" BUILD_ID="${BUILD_ID}" DEPLOY_DIR="${DEPLOY_DIR}" \
             RELEASE_DIR="${DEPLOY_DIR}/releases/${BUILD_ID}" \
-            GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" \
+            GHCR_USER="${GHCR_USER}" GHCR_TOKEN_STDIN=1 \
             "bash '${DEPLOY_DIR}/releases/${BUILD_ID}/deploy/remote-deploy.sh'"
 
       # the public path end to end: DNS, TLS, nginx, the new container
