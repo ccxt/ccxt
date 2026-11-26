@@ -6003,9 +6003,8 @@ function requestIdLocalInitializer (method, name) {
 // venue's declaration of the same name boxes something else, so a name-keyed table cannot
 // express them. The same proof retypes the definition's signature (csharpMethodReturnType)
 // and answers the call sites in the declaring file (callReturnType) — no cast on either side.
-//   convertFromRawQuantity — bitmex's 4 return paths are all this.parseNumber (...)
-//     (Exchange.cs `double?`); pro/bitrue's own declaration returns its rawQuantity param and
-//     `rawQuantity * contractSize` and stays `object`.
+//   convertFromRawQuantity — pro/bitrue returns null, its `Num` rawQuantity param and
+//     `rawQuantity * contractSize` (two double? operands): `double?` (doubleReturnOperandsProve).
 export const CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS = {
     'convertFromRawQuantity': 'double?',
 };
@@ -6043,7 +6042,29 @@ function numericReturnExpressionProves (csharp, expression, mapped) {
     if (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined') {
         return true;
     }
+    if (mapped === 'double?' && doubleReturnOperandsProve (csharp, node)) {
+        return true;
+    }
     return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (node) === mapped;
+}
+
+// a `Num` / `number` parameter never written in its method, a local declared double / double?, or
+// `a * b` over two of them (the final pass prints the lifted double operator for that return)
+function doubleReturnOperandsProve (csharp, expression) {
+    const node = stripParens (expression);
+    const doubles = [ 'double', 'double?' ];
+    if (node?.kind === ts.SyntaxKind.BinaryExpression && node.operatorToken.kind === ts.SyntaxKind.AsteriskToken) {
+        return [ node.left, node.right ].every ((x) => x.kind === ts.SyntaxKind.Identifier && doubleReturnOperandsProve (csharp, x));
+    }
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const reference = resolveReference (csharp, node);
+    if (reference?.kind === ts.SyntaxKind.Parameter) {
+        return reference.parent?.kind === ts.SyntaxKind.MethodDeclaration && annotationType (reference) === 'double?'
+            && reference.initializer === undefined && !csharpParameterIsWritten (csharp, reference.parent, reference);
+    }
+    return doubles.includes (identifierType (csharp, node));
 }
 
 const sameFileNumericTypes = new WeakMap ();
@@ -16831,6 +16852,9 @@ function needsUnboxingWrap (csharp, expression, mapped) {
         return false;
     }
     if (callReturnIsMapped (csharp, expression, mapped)) {
+        return false;
+    }
+    if (mapped === 'double?' && doubleReturnOperandsProve (csharp, expression)) {
         return false;
     }
     // an int-typed value (an int counter, `(x?.Count ?? 0)`) reaches Int64 / Int64? through the

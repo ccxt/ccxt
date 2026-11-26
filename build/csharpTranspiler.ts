@@ -10579,7 +10579,7 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
     return undefined;
 }
 
-function subMulRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>, file: string): string {
+function subMulRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>, file: string, returnsDouble = false): string {
     let out = '';
     let last = 0;
     const callRe = /(?<![A-Za-z0-9_.])(subtract|multiply)\(/g;
@@ -10619,7 +10619,9 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
         const target = /^[ ]*([A-Za-z_]\w*) = $/.exec (text.slice (0, m.index));
         const doubleNames = args.every ((a) => /^[A-Za-z_]\w*$/.test (a.trim ())) && t.every ((x) => (x === 'double') || (x === 'double?'));
         const intoDoubleLocal = (target !== null) && doubleNames && (text.slice (close + 1).trim () === ';') && (typeOfName (target[1]) === 'double?');
-        if ((bind === 'object') && (m[1] === 'multiply') && intoDoubleLocal) {
+        // `return multiply(a, b);` in a method declared double? over two double / double? names
+        const intoDoubleReturn = returnsDouble && doubleNames && /^[ ]*return $/.test (text.slice (0, m.index)) && (text.slice (close + 1).trim () === ';');
+        if ((bind === 'object') && (m[1] === 'multiply') && (intoDoubleLocal || intoDoubleReturn)) {
             native = '(' + args[0].trim () + ' * ' + args[1].trim () + ')';
         } else if ((bind === 'object') && (m[1] === 'multiply') && (intoParseToInt || intoDivide)) {
             native = '((double?)' + subMulAtom (args[0]) + ' * ' + subMulAtom (args[1]) + ')';
@@ -10671,7 +10673,8 @@ export function csharpTypedSubtractMultiply (objectNull: boolean, content: strin
             const opaque = lines[i].replace (/"(?:[^"\\]|\\.)*"/g, (s) => '\u0001' + (strings.push (s) - 1) + '\u0001');
             const restored = (s: string) => s.replace (/\u0001(\d+)\u0001/g, (_, k) => strings[Number (k)]);
             // operand typing sees the string literals (dictionary keys), emission keeps them verbatim
-            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content));
+            const returnsDouble = /^[ ]*(?:public|protected|private|internal)[ \w]*[ ]double\?[ ]+[A-Za-z_]\w*\(/.test (masked[start]);
+            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content, returnsDouble));
             if (next !== lines[i]) {
                 lines[i] = next;
                 changed = true;
@@ -10709,6 +10712,11 @@ function typedSubtractMultiplySnippetChecks (): string[] {
     check ('object operand into parseToInt keeps body', '        object v = getValue(o, "a");\n        Int64? r = this.parseToInt(multiply(v, 2));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(v, 2))');
     check ('non-literal double product into parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        double b = 2.5;\n        Int64? r = this.parseToInt(multiply(a, b));', 'this.parseToInt(' + subMulHelperBody ('multiply') + '(a, b))');
     check ('double? product into a double? local', '        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        double? r = null;\n        r = multiply(a, b);', 'r = (a * b);');
+    const wrapD = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual double? f(string s, double? q)\n    {\n' + body + '\n    }\n}\n';
+    const dOut = csharpTypedSubtractMultiply (true, wrapD ('        double? c = this.safeNumber(o, "c");\n        return multiply(q, c);'));
+    if (!dOut.includes ('return (q * c);')) problems.push ('typed subtract multiply snippet checks: double? product returned from a double? method');
+    const oOut = csharpTypedSubtractMultiply (true, wrap ('        double? a = this.safeNumber(o, "a");\n        double? b = this.safeNumber(o, "b");\n        return multiply(a, b);'));
+    if (oOut.includes ('return (a * b);')) problems.push ('typed subtract multiply snippet checks: object method return keeps body');
     check ('double? product outside parseToInt keeps body', '        double? a = this.safeNumber(o, "a");\n        object r = multiply(a, 2);', 'object r = ' + subMulHelperBody ('multiply') + '(a, 2);');
     keep ('unknown operand', '        object r = subtract(this.foo(), 1);');
     const tests = wrap ('        object r = subtract(since, 1);', 'Tests');
