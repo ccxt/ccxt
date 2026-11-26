@@ -3136,7 +3136,7 @@ public partial class xt : Exchange
         }
     }
 
-    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateSpotOrder(object symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))

@@ -3014,10 +3014,8 @@ public partial class predictfun : PredictionExchange
         string payload = ("02" + this.rlpEncodeList(fields));
         string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
-        string? rHex = this.safeString(signature, "r");
-        string? sHex = this.safeString(signature, "s");
-        rHex = this.padHexToEven(rHex);
-        sHex = this.padHexToEven(sHex);
+        string? rHex = this.padHexToEven(this.safeString(signature, "r", ""));
+        string? sHex = this.padHexToEven(this.safeString(signature, "s", ""));
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = this.arrayConcat(fields, new List<object> {this.rlpEncodeBytes(this.intToRlpHex(yParity)), this.rlpEncodeBytes(rHex), this.rlpEncodeBytes(sHex)});
         return ("0x02" + this.rlpEncodeList(signedFields));
@@ -3683,7 +3681,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3679_32) ? cachedValue3679_32 : null);
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3677_32) ? cachedValue3677_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

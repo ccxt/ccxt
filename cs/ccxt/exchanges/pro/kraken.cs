@@ -1403,7 +1403,7 @@ public partial class kraken : ccxt.kraken
         return this.safeString(subscription, "token");
     }
 
-    public async virtual Task<IList<object>> watchPrivate(string name, string? symbol = null, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<IList<object>> watchPrivate(string name, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1431,10 +1431,10 @@ public partial class kraken : ccxt.kraken
             subscribe["params"] = this.deepExtend(subscribe["params"], parameters);
         }
         ccxt.pro.ArrayCache result = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, subscribe, subscriptionHash));
-        object limitResolved = limit;
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = result.getLimit(symbolResolved, limit);
+            limitResolved = ((Int64?)result.getLimit(symbolResolved, limit));
         }
         return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbolResolved, since, limitResolved, true))));
     }

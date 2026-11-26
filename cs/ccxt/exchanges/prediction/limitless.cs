@@ -2604,8 +2604,8 @@ public partial class limitless : PredictionExchange
         string payload = ("02" + this.rlpEncodeList(fields));
         string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
-        string? rHex = this.padHexToEven(this.safeString(signature, "r"));
-        string? sHex = this.padHexToEven(this.safeString(signature, "s"));
+        string? rHex = this.padHexToEven(this.safeString(signature, "r", ""));
+        string? sHex = this.padHexToEven(this.safeString(signature, "s", ""));
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
         for (int i = 0; i < (fields?.Count ?? 0); i++)

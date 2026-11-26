@@ -2064,7 +2064,7 @@ public partial class opinion : PredictionExchange
     public async virtual Task seedOrderBook(string? outcome, string? sym, Int64? limit = null)
     {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome,ccxt.BaseExchange.ToInt64Arg(limit)));
+        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome, limit));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;

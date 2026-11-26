@@ -4413,7 +4413,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> fetchOrdersByStatusFilter(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -4735,7 +4735,7 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async virtual Task<object> fetchMyTradesFromTransactions(IDictionary<string, object> market, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> fetchMyTradesFromTransactions(IDictionary<string, object> market, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((market == null))
@@ -4752,7 +4752,7 @@ public partial class interactivebrokers : Exchange
         Int64? days = this.safeInteger(options, "transactionsDays", 90);
         if ((since != null))
         {
-            object daysPassed = divide((subtract(this.milliseconds(), since)), 86400000);
+            object daysPassed = ((double?)((this.milliseconds() - since)) / 86400000);
             days = Math.Max(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

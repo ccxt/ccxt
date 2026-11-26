@@ -1955,7 +1955,7 @@ public partial class PredictionExchange : BaseExchange
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     public virtual string? padHexToEven(string? hex)
     {
-        if ((hex == null))
+        if ((hex == ""))
         {
             return "";
         }
@@ -1981,10 +1981,6 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual string? rlpEncodeBytes(string? hex)
     {
-        if ((hex == null))
-        {
-            return "";
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Int64? byteLength = this.parseToInt(((double)hex.Length / 2));
         if ((byteLength == null))

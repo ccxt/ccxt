@@ -2965,7 +2965,7 @@ public partial class backpack : Exchange
      * @param {int} [params.clientOrderId] requester client identifier
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<Dictionary<string, object>> createRfqOrder(object symbol, object type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> createRfqOrder(object symbol, object type, object side, object amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

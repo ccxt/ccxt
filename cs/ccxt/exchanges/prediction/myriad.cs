@@ -850,26 +850,18 @@ public partial class myriad : PredictionExchange
         string payload = ("02" + this.rlpEncodeList(fields));
         string hashHex = ((string)this.hash(this.base16ToBinary(payload), keccak, "hex"));
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
-        string? rHex = this.safeString(signature, "r");
-        string? sHex = this.safeString(signature, "s");
-        if ((rHex == null))
+        string? rHexRaw = this.safeString(signature, "r", "");
+        if (rHexRaw == "")
         {
             throw new ExchangeError ((this.id + " signEvmTransaction() missing rHex")) ;
         }
-        int rHexLength = rHex.Length;
-        if (((Int64)rHexLength % 2L != 0))
-        {
-            rHex = ("0" + rHex);
-        }
-        if ((sHex == null))
+        string? sHexRaw = this.safeString(signature, "s", "");
+        if (sHexRaw == "")
         {
             throw new ExchangeError ((this.id + " signEvmTransaction() missing sHex")) ;
         }
-        int sHexLength = sHex.Length;
-        if (((Int64)sHexLength % 2L != 0))
-        {
-            sHex = ("0" + sHex);
-        }
+        string? rHex = this.padHexToEven(rHexRaw);
+        string? sHex = this.padHexToEven(sHexRaw);
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
         for (int i = 0; i < (fields?.Count ?? 0); i++)
@@ -3406,10 +3398,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154907_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154907_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154907_0, hxauTask154907_1);
-            List<object> responses = new List<object> { hxauTask154907_0.Result, hxauTask154907_1.Result };
+            var hxauTask154811_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154811_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154811_0, hxauTask154811_1);
+            List<object> responses = new List<object> { hxauTask154811_0.Result, hxauTask154811_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3430,10 +3422,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155885_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155885_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155885_0, hxauTask155885_1);
-                List<object> listResponses = new List<object> { hxauTask155885_0.Result, hxauTask155885_1.Result };
+                var hxauTask155789_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155789_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155789_0, hxauTask155789_1);
+                List<object> listResponses = new List<object> { hxauTask155789_0.Result, hxauTask155789_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3447,10 +3439,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156698_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156698_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156698_0, hxauTask156698_1);
-                List<object> responses = new List<object> { hxauTask156698_0.Result, hxauTask156698_1.Result };
+                var hxauTask156602_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156602_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156602_0, hxauTask156602_1);
+                List<object> responses = new List<object> { hxauTask156602_0.Result, hxauTask156602_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -3776,7 +3768,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task seedOrderBook(string? outcome, string? sym, Int64? limit = null)
     {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
-        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome,ccxt.BaseExchange.ToInt64Arg(limit)));
+        Dictionary<string, object> snapshot = ccxt.BaseExchange.FromPredictionOrderBook(await this.FetchOrderBook(outcome, limit));
         ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
         (orderbook as IOrderBook).reset(snapshot);
         ((IDictionary<string,object>)this.orderbooks)[(string)sym] = orderbook;
