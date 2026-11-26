@@ -994,8 +994,9 @@ export default class kraken extends Exchange {
     parseTradingFee (fee: Dict, market: MarketInterface): TradingFeeInterface {
         const makerFees = this.safeDict (fee, 'fees_maker', {});
         const takerFees = this.safeDict (fee, 'fees', {});
-        const symbolMakerFee = this.safeDict (makerFees, market['id'], {});
-        const symbolTakerFee = this.safeDict (takerFees, market['id'], {});
+        const marketId: string = this.safeString (market, 'id', '');
+        const symbolMakerFee = this.safeDict (makerFees, marketId, {});
+        const symbolTakerFee = this.safeDict (takerFees, marketId, {});
         return {
             'info': fee,
             'symbol': market['symbol'],
