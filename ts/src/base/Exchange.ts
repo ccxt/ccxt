@@ -10520,7 +10520,7 @@ export default class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((this.options['createMarketBuyOrderRequiresPrice'] === true) || (this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false)) {
+        if (this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', false) || (this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false)) {
             return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -10536,7 +10536,7 @@ export default class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((this.options['createMarketSellOrderRequiresPrice'] === true) || (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false)) {
+        if (this.safeBool (this.options, 'createMarketSellOrderRequiresPrice', false) || (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false)) {
             return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
