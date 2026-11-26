@@ -766,7 +766,8 @@ export default class sxbet extends Exchange {
      */
     async fetchSxbetProxy (): Promise<Dict> {
         const response = await this.sxbetPrivateGetUserProxy ();
-        return this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
+        return data;
     }
 
     /**
@@ -1818,7 +1819,8 @@ export default class sxbet extends Exchange {
     async fetchSxbetBookSnapshot (marketHash: Str): Promise<Dict> {
         const request: Dict = { 'marketHash': marketHash };
         const response = await this.sxbetPublicGetOrderbookV3Snapshot (request);
-        return this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
+        return data;
     }
 
     /**
