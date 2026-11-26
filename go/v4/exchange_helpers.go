@@ -1809,17 +1809,6 @@ func Replace(input any, old any, new any) string {
 	return strings.ReplaceAll(str, oldStr, newStr)
 }
 
-// PadEnd pads the input string on the right with padStr until it reaches the specified length
-func PadEnd(input any, length2 any, padStr any) string {
-	length := int(ParseInt(length2))
-	str := ToString(input)
-	pad := ToString(padStr)
-	for len(str) < length {
-		str += pad
-	}
-	return str[:length]
-}
-
 // PadStart pads the input string on the left with padStr until it reaches the specified length
 func PadStart(input any, length2 any, padStr any) string {
 	length := int(ParseInt(length2))

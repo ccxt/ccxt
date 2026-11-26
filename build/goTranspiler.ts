@@ -14771,6 +14771,26 @@ function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefin
 
 function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[], masked?: string): { text: string, pkg: string } | undefined {
     if (helper === 'Slice') { return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked)); }
+    if ((helper === 'PadStart') || (helper === 'PadEnd')) {
+        // one printable pad byte and a literal or side-effect-free int/int64 width on a deref'd identifier
+        if ((ops.length !== 3) || (ops[0]?.kind !== 'string') || (ops[2]?.kind !== 'string') || !/^\*?[A-Za-z_]\w*$/.test (ops[0].text) || !/^"[ !#-[\]-~]"$/.test (rawArgs[2])) { return undefined; }
+        let n: string | undefined = GO_SMALL_INT_LITERAL_RX ().test (rawArgs[1]) ? rawArgs[1] : undefined;
+        if ((n === undefined) && (masked !== undefined)) {
+            const wm = /^(\*?)([A-Za-z_]\w*)(?:\s*\+\s*(\d{1,6}))?$/.exec (rawArgs[1]);
+            if (wm !== null) {
+                const k = (wm[1] === '*')
+                    ? goStringOperandDeclaredType (masked.replace (new RegExp ('\\bvar ' + wm[2] + ' \\*int64 ', 'g'), 'var ' + wm[2] + ' PTRint64 '), wm[2])
+                    : goStringOperandDeclaredType (masked, wm[2]);
+                if (((wm[1] === '*') && (k === 'PTRint64')) || ((wm[1] === '') && ((k === 'int') || (k === 'int64')))) {
+                    n = (k === 'int') ? rawArgs[1] : 'int(' + rawArgs[1] + ')';
+                }
+            }
+        }
+        if (n === undefined) { return undefined; }
+        const s = ops[0].text;
+        const pad = 'strings.Repeat(' + rawArgs[2] + ', max(' + n + '-len(' + s + '), 0))';
+        return (helper === 'PadStart') ? { text: '(' + pad + ' + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' } : { text: '(' + s + ' + ' + pad + ')[:' + n + ']', pkg: 'strings' };
+    }
     if (ops.some ((o) => o === undefined)) { return undefined; }
     const o = ops as { kind: string, text: string }[];
     const str = (i: number) => (o[i].kind === 'string');
@@ -14800,15 +14820,6 @@ function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } 
         if (str (0)) { return { text: 'strings.Index(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' }; }
         if (o[0].kind === '[]string') { return { text: 'slices.Index(' + t[0] + ', ' + t[1] + ')', pkg: 'slices' }; }
         return undefined;
-    case 'PadStart':
-    case 'PadEnd': {
-        // one printable pad byte and a literal width on a deref'd identifier (read twice, no side effect)
-        if ((o.length !== 3) || !str (0) || !/^\*?[A-Za-z_]\w*$/.test (t[0]) || !GO_SMALL_INT_LITERAL_RX ().test (rawArgs[1]) || !/^"[ !#-[\]-~]"$/.test (rawArgs[2])) { return undefined; }
-        const s = t[0];
-        const n = rawArgs[1];
-        const pad = 'strings.Repeat(' + rawArgs[2] + ', max(' + n + '-len(' + s + '), 0))';
-        return (helper === 'PadStart') ? { text: '(' + pad + ' + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' } : { text: '(' + s + ' + ' + pad + ')[:' + n + ']', pkg: 'strings' };
-    }
     }
     return undefined;
 }
@@ -14998,6 +15009,7 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar ks []string = nil\n\treturn Trim(ks[0])\n').indexOf ('strings.TrimSpace(ks[0])') >= 0, '[]string element goes native');
     ok (f ('\treturn GetIndexOf(this.Secret, "K")\n').indexOf ('GetIndexOf(this.Secret') >= 0, 'any field keeps the helper');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn PadEnd(t, 6, "0")\n').indexOf ('(*t + strings.Repeat("0", max(6-len(*t), 0)))[:6]') >= 0, 'PadEnd goes native');
+    ok (f ('\tvar decimals *int64 = this.SafeInteger(m, "d")\n\tvar one string = "1"\n\treturn PadEnd(one, *decimals+1, "0")\n').indexOf ('(one + strings.Repeat("0", max(int(*decimals+1)-len(one), 0)))[:int(*decimals+1)]') >= 0, 'PadEnd int64 width expr goes native');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('import "strings"') >= 0, 'import added');
     ok (goTypedStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'func f() any {\n\treturn Trim(ks[0])\n}\n').indexOf ('Trim(ks[0])') >= 0, 'base file untouched');
     ok (goTypedStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'import "strings"\n\nfunc f() any {\n\tvar ks []string = nil\n\treturn Trim(ks[0])\n}\n').indexOf ('strings.TrimSpace(ks[0])') >= 0, 'base file importing strings goes native');

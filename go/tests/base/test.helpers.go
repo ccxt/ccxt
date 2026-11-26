@@ -336,10 +336,6 @@ func Replace(input interface{}, old interface{}, new interface{}) string {
 	return ccxt.Replace(input, old, new)
 }
 
-func PadEnd(input interface{}, length int, padStr interface{}) string {
-	return ccxt.PadEnd(input, length, padStr)
-}
-
 func PadStart(input interface{}, length int, padStr interface{}) string {
 	return ccxt.PadStart(input, length, padStr)
 }
