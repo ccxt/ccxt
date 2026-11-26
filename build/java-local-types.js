@@ -70,6 +70,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'arraysConcat',
     // every parseFundingHistories (: FundingHistory[]) returns filterBySinceLimit / filterBySymbolSinceLimit
     'parseFundingHistories',
+    // base-only filterByOutcomeSinceLimit returns filterByValueSinceLimit; base-only parsePredictionOrders returns it
+    'filterByOutcomeSinceLimit', 'parsePredictionOrders',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
