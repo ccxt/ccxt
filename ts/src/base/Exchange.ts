@@ -4289,25 +4289,40 @@ export class BaseExchange {
         // of the message header when the walletAddress credential is configured
         let slotIndex = 0;
         if (this.walletAddress !== undefined) {
-            const walletHex = this.binaryToBase16 (this.base58ToBinary (this.walletAddress));
-            // versioned messages carry a prefix byte with the 0x80 bit set before the header
-            const prefixByte = this.parseHexByte (messageHex.slice (0, 2));
-            const headerOffset = (prefixByte >= 128) ? 2 : 0;
-            const headerEnd = this.sum (headerOffset, 2);
-            const numRequired = this.parseHexByte (messageHex.slice (headerOffset, headerEnd));
-            // the account list starts after the 3 header bytes and its compact-u16 length byte
-            const countOffset = this.sum (headerOffset, 6);
-            const countEnd = this.sum (countOffset, 2);
-            const accountsCount = this.parseHexByte (messageHex.slice (countOffset, countEnd));
-            const accountsOffset = this.sum (countOffset, 2);
-            if (numRequired > 0 && numRequired <= numSignatures && accountsCount < 128) {
-                for (let i = 0; i < numRequired; i++) {
-                    const accountStart = this.sum (accountsOffset, i * 64);
-                    const accountEnd = this.sum (accountStart, 64);
-                    const accountHex = messageHex.slice (accountStart, accountEnd);
-                    if (accountHex === walletHex) {
-                        slotIndex = i;
-                        break;
+            // validate the address alphabet explicitly: an invalid walletAddress (e.g. offline test
+            // placeholders) must fall back to the fee-payer slot instead of throwing inside base58ToBinary,
+            // and exception types differ per language (PHP raises an uncatchable-as-Exception TypeError)
+            const base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            const walletChars = this.stringToCharsArray (this.walletAddress);
+            const walletCharsLength = walletChars.length;
+            let walletIsBase58 = walletCharsLength > 0;
+            for (let i = 0; i < walletCharsLength; i++) {
+                if (base58Alphabet.indexOf (walletChars[i]) < 0) {
+                    walletIsBase58 = false;
+                    break;
+                }
+            }
+            if (walletIsBase58) {
+                const walletHex = this.binaryToBase16 (this.base58ToBinary (this.walletAddress));
+                // versioned messages carry a prefix byte with the 0x80 bit set before the header
+                const prefixByte = this.parseHexByte (messageHex.slice (0, 2));
+                const headerOffset = (prefixByte >= 128) ? 2 : 0;
+                const headerEnd = this.sum (headerOffset, 2);
+                const numRequired = this.parseHexByte (messageHex.slice (headerOffset, headerEnd));
+                // the account list starts after the 3 header bytes and its compact-u16 length byte
+                const countOffset = this.sum (headerOffset, 6);
+                const countEnd = this.sum (countOffset, 2);
+                const accountsCount = this.parseHexByte (messageHex.slice (countOffset, countEnd));
+                const accountsOffset = this.sum (countOffset, 2);
+                if (numRequired > 0 && numRequired <= numSignatures && accountsCount < 128) {
+                    for (let i = 0; i < numRequired; i++) {
+                        const accountStart = this.sum (accountsOffset, i * 64);
+                        const accountEnd = this.sum (accountStart, 64);
+                        const accountHex = messageHex.slice (accountStart, accountEnd);
+                        if (accountHex === walletHex) {
+                            slotIndex = i;
+                            break;
+                        }
                     }
                 }
             }

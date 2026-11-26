@@ -4123,6 +4123,37 @@
                     "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAFDENiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudS0ZDTksDyyZvmM3OT7eaey3aEdM6uHsDTV77DQEzv0qGsVlSDopEqdbf52D6CIesOTdUh1Ap+GSzWtbO0anJMcIMC40EFTvbcrF+6i82PQ/zWugrfrqyCz1dDq1tD0R4u0/XPZ52iltScDNdzBt1VTgInhk38Qe0HnGrjtnsvL+3M2lvHTbiapC/yV1nbK5+xKJVPoolGS2t1Xjr/pNOg3+eHfAmdJy3ebBD1pfj+rqOG6LOaLYKyWzCoxGRSKUt0AwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAK/h+TIqeh0cNmHWcXkcqbMNMgLx4f1oc6d8zccY8RM1e7U4rtqLmVV1acW4xtOLyvJ416LdwcacBQZmRR9p7cRdPg2tPPrMU8vUxoyMnNyXJgVUF5zL0m0c2rJklHrOGnjB7ywRemS5oyM4s8+gdk6Ee+KviW/D9GfONIa9chZ+IBZjYfJT1K9liceuaRPGsG0rXKpcvUuMKnSKtl6PJsAgcABQLAXBUACCcAAQIICAgVDBYXCQMKDQ0EBAUODxARGBkSEwgIGhscHR0eHwsGFBQx2WrQY3SXKoeg/238////////////////AAAAAAAAAAAAAAAAAAAAAAEBAwAAAAEBAgEnPU8l4n1LMD8g/Es4NkgTrbgk/lSsQnvvIm6Xe5iU6wkCNgYHCAkqKxoLAQMECgsMLDcuLy0="
                 }
             }
+        ],
+        "submitPool": [
+            {
+                "description": "submitPool parses the documented dbc-pool submit response (live capture requires a Studio API key)",
+                "method": "submitPool",
+                "input": [
+                    {
+                        "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzb2xhbmEtdGVzdC1tZXNzYWdlLWJ5dGVz",
+                        "owner": "wallet"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "mint": "TokenMintAddressExample111111111111111111111",
+                        "configKey": "ConfigKeyAddressExample11111111111111111111"
+                    }
+                },
+                "parsedResponse": {
+                    "mint": "TokenMintAddressExample111111111111111111111",
+                    "configKey": "ConfigKeyAddressExample11111111111111111111",
+                    "id": null,
+                    "signature": null,
+                    "poolId": null,
+                    "owner": "wallet",
+                    "info": {
+                        "mint": "TokenMintAddressExample111111111111111111111",
+                        "configKey": "ConfigKeyAddressExample11111111111111111111"
+                    }
+                }
+            }
         ]
     }
 }

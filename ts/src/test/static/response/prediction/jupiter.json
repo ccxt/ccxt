@@ -6027,6 +6027,52 @@
                     }
                 }
             }
+        ],
+        "redeemPosition": [
+            {
+                "description": "redeemPosition returns the documented claim payload (schema example populated with the live POLY-6353936 position; claiming live requires a settled market)",
+                "method": "redeemPosition",
+                "input": [
+                    "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                    {}
+                ],
+                "httpResponse": {
+                    "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzb2xhbmEtdGVzdC1tZXNzYWdlLWJ5dGVz",
+                    "txMeta": {
+                        "blockhash": "DzfXchZJoLMG3cNftcf2sw7qatkkuwQf4xH15N5wkKAb",
+                        "lastValidBlockHeight": 325443222
+                    },
+                    "position": {
+                        "positionPubkey": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                        "marketPubkey": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "isYes": true,
+                        "contracts": "55",
+                        "contractsMicro": "55720000",
+                        "contractsDecimal": "55.72",
+                        "payoutAmountUsd": "55720000"
+                    }
+                },
+                "parsedResponse": {
+                    "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABzb2xhbmEtdGVzdC1tZXNzYWdlLWJ5dGVz",
+                    "txMeta": {
+                        "blockhash": "DzfXchZJoLMG3cNftcf2sw7qatkkuwQf4xH15N5wkKAb",
+                        "lastValidBlockHeight": 325443222
+                    },
+                    "position": {
+                        "positionPubkey": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                        "marketPubkey": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "isYes": true,
+                        "contracts": "55",
+                        "contractsMicro": "55720000",
+                        "contractsDecimal": "55.72",
+                        "payoutAmountUsd": "55720000"
+                    }
+                }
+            }
         ]
     }
 }

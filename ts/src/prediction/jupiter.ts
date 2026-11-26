@@ -19,7 +19,7 @@ export default class jupiter extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
                 'margin': undefined,
                 'swap': undefined,
                 'future': undefined,

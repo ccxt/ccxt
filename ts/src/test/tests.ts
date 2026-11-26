@@ -2415,6 +2415,11 @@ class testMainClass {
             // Ed25519 requires a base64-encoded 32-byte seed, not the generic dummy secret.
             options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
         }
+        if (exchangeName === 'jupiter' || exchangeName === 'raydium') {
+            // solana signing requires a base58-encoded secret key, not the generic hex dummy.
+            // this is the fixed throwaway seed from test.signSolanaTransaction (32 bytes of 0x1a)
+            options['privateKey'] = 'XGYVy6Jre3qrc6Gv8QzEayQK3kyA4bZ3T1m33bJZfZiLXipBzZztvXEYEi7vn9G1RPvt2AAh1VSnZabJDD4VZur';
+        }
         const exchange = initExchange (exchangeName, options, isWs);
         if (currencies !== undefined) {
             exchange.currencies = currencies;

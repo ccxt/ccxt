@@ -207,7 +207,7 @@ export default class jupiter extends Exchange {
         if ((transaction === undefined) || (owner === undefined)) {
             throw new ArgumentsRequired (this.id + ' submitPool() requires params.transaction and params.owner or params.wallet');
         }
-        if (params['headerImage'] !== undefined) {
+        if ('headerImage' in params) {
             throw new NotSupported (this.id + ' submitPool() does not support binary headerImage uploads; upload the image separately');
         }
         const request: Dict = {
