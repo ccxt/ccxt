@@ -1935,11 +1935,11 @@ export default class binance extends Exchange {
         if (defaultRecvWindow !== undefined) {
             extendedParams['recvWindow'] = defaultRecvWindow;
         }
-        let querystring = this.urlencodeNested (extendedParams);
-        querystring = querystring.replaceAll ('%5B', '[');
-        querystring = querystring.replaceAll ('%5D', ']');
-        const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
-        querystring = querystring + '&signature=' + signature;
+        const rawQuery = this.urlencodeNested (extendedParams);
+        const bracketedQuery = rawQuery.replaceAll ('%5B', '[');
+        const cleanQuery = bracketedQuery.replaceAll ('%5D', ']');
+        const signature = this.hmac (this.encode (cleanQuery), this.encode (this.secret), sha256);
+        const querystring = cleanQuery + '&signature=' + signature;
         const headersValue: any = {
             'X-MBX-APIKEY': this.apiKey,
         };

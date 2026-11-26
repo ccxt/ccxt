@@ -259,11 +259,6 @@ impl Value {
     pub fn into_opt_list(self) -> Option<List> {
         if let Value::Arr(a) = self { Some(a) } else { None }
     }
-    /// The string an optional string local holds, moved out of the box: `Some` for a `Str` (an owned string moves,
-    /// a borrowed literal is copied once), `None` for anything else, exactly as `as_str()` reads it.
-    pub fn into_opt_string(self) -> Option<String> {
-        if let Value::Str(s) = self { Some(s.into_owned()) } else { None }
-    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -2987,39 +2982,6 @@ mod nested_slot_insert_tests {
         for n in 0..6 {
             assert_eq!(Value::Dict(typed(slot(inner(n)), Value::Str("v".into()))), boxed(slot(inner(n)), Value::Str("v".into())));
         }
-    }
-}
-
-#[cfg(test)]
-mod into_opt_string_tests {
-    use super::*;
-
-    // each case is built twice (one copy read by `as_str`, one moved into `into_opt_string`)
-    fn case(k: u8) -> Value {
-        match k {
-            0 => Value::Null, 1 => Value::Bool(true), 2 => Value::Bool(false), 3 => Value::Int(0), 4 => Value::Int(7), 5 => Value::Float(1.5),
-            6 => Value::Str("".into()), 7 => Value::Str("lit".into()), 8 => Value::Str(Cow::Owned("owned".to_string())),
-            9 => Value::Map(HashMap::new()), _ => Value::List(vec![Value::Str("x".into())]),
-        }
-    }
-
-    #[test]
-    fn into_opt_string_matches_the_borrowed_string_read() {
-        for k in 0..=10u8 {
-            let read = case(k);
-            let borrowed = read.as_str().map(str::to_owned);
-            assert_eq!(case(k).into_opt_string(), borrowed, "{:?}", read);
-            assert_eq!(Value::from(case(k).into_opt_string()), Value::from(read.as_str()), "{:?}", read);
-        }
-    }
-
-    #[test]
-    fn into_opt_string_moves_an_owned_string() {
-        let s = String::from("BTC/USDT");
-        let at = s.as_ptr();
-        let out = Value::Str(Cow::Owned(s)).into_opt_string().unwrap();
-        assert_eq!(out.as_ptr(), at);
-        assert_eq!(out, "BTC/USDT");
     }
 }
 
