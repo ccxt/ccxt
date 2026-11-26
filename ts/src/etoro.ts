@@ -2783,10 +2783,8 @@ export default class etoro extends Exchange {
         let ledgerType = rawType;
         if (rawType === 'internaltransfer') {
             ledgerType = 'transfer';
-        } else if (rawType === 'banktransfer') {
-            ledgerType = (direction === 'in') ? 'deposit' : 'withdrawal';
-        } else if (rawType === 'balanceadjustment') {
-            ledgerType = 'adjustment';
+        } else if ((rawType === 'banktransfer') || (rawType === 'balanceadjustment')) {
+            ledgerType = 'transaction';
         }
         const rawStatus = this.safeStringLower (item, 'status');
         let status = rawStatus;
