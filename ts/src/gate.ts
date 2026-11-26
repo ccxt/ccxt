@@ -6032,7 +6032,7 @@ export default class gate extends Exchange {
         if (market === undefined) {
             defaultSettle = 'usdt';
         } else {
-            defaultSettle = market['settle'];
+            defaultSettle = this.safeString (market, 'settle');
         }
         const settle = this.safeStringLower (params, 'settle', defaultSettle);
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);

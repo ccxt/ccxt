@@ -4138,7 +4138,7 @@ export default class mexc extends Exchange {
                 }
             } else {
                 const market = this.market (symbol);
-                parsedSymbols = market['id'];
+                parsedSymbols = this.safeString (market, 'id');
             }
             this.checkRequiredArgument ('fetchBalance', parsedSymbols, 'symbol or symbols');
             marketType = 'margin';

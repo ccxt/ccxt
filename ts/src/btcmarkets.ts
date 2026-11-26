@@ -877,9 +877,9 @@ export default class btcmarkets extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
         let feeCurrencyCode: Str = undefined;
         if (marketResolved['quote'] === 'AUD') {
-            feeCurrencyCode = marketResolved['quote'];
+            feeCurrencyCode = this.safeString (marketResolved, 'quote');
         } else {
-            feeCurrencyCode = marketResolved['base'];
+            feeCurrencyCode = this.safeString (marketResolved, 'base');
         }
         let side = this.safeString (trade, 'side');
         if (side === 'Bid') {

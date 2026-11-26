@@ -3400,19 +3400,23 @@ export default class bybit extends Exchange {
             if (this.safeBool (marketResolved, 'spot', false)) {
                 if (Precise.stringGt (feeCostString, '0')) {
                     if (side === 'buy') {
-                        feeCurrencyCode = marketResolved['base'];
+                        feeCurrencyCode = this.safeString (marketResolved, 'base');
                     } else {
-                        feeCurrencyCode = marketResolved['quote'];
+                        feeCurrencyCode = this.safeString (marketResolved, 'quote');
                     }
                 } else {
                     if (side === 'buy') {
-                        feeCurrencyCode = marketResolved['quote'];
+                        feeCurrencyCode = this.safeString (marketResolved, 'quote');
                     } else {
-                        feeCurrencyCode = marketResolved['base'];
+                        feeCurrencyCode = this.safeString (marketResolved, 'base');
                     }
                 }
             } else {
-                feeCurrencyCode = (this.safeBool (marketResolved, 'inverse', false)) ? marketResolved['base'] : marketResolved['settle'];
+                if (this.safeBool (marketResolved, 'inverse', false)) {
+                    feeCurrencyCode = this.safeString (marketResolved, 'base');
+                } else {
+                    feeCurrencyCode = this.safeString (marketResolved, 'settle');
+                }
             }
             fee = {
                 'cost': feeCostString,

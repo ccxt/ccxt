@@ -5500,7 +5500,7 @@ export default class kucoin extends Exchange {
             }
         } else {
             const market = this.market (symbol);
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         if (uta) {
             paramsRequest = this.omit (paramsRequest, 'uta');
