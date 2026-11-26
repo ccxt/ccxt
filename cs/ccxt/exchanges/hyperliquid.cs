@@ -204,6 +204,7 @@ public partial class hyperliquid : Exchange
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                     { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
                     { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
+                    { "Insufficient delegatable balance for priority order", typeof(InsufficientFunds) },
                     { "TWAP order value too small. Min is $1200, which is $10 per minute.", typeof(InvalidOrder) },
                     { "TWAP was never placed, already canceled, or filled.", typeof(OrderNotFound) },
                     { "Too many cumulative requests sent", typeof(RateLimitExceeded) },
@@ -2363,6 +2364,7 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2377,6 +2379,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
      * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
@@ -2574,8 +2577,10 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
@@ -2756,10 +2761,11 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "priorityFee"});
         Int64? nonce = this.incrementingNonce();
         List<object> orderReq = new List<object>() {};
         string? grouping = "na";
+        Int64? priorityFee = this.safeInteger(parameters, "priorityFee");
         for (int i = 0; i < ordersLength; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -2771,6 +2777,15 @@ public partial class hyperliquid : Exchange
             string? amount = this.safeString(rawOrder, "amount");
             string? price = this.safeString(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            Int64? orderPriorityFee = this.safeInteger(orderParams, "priorityFee");
+            if ((orderPriorityFee != null))
+            {
+                if (((priorityFee != null)) && ((priorityFee != orderPriorityFee)))
+                {
+                    throw new BadRequest ((this.id + " createOrders() all orders must use the same priorityFee, it is applied to the whole request")) ;
+                }
+                priorityFee = orderPriorityFee;
+            }
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             orderParams["slippage"] = slippage;
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
@@ -2836,10 +2851,43 @@ public partial class hyperliquid : Exchange
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
+        object groupingValue = grouping;
+        if ((priorityFee != null))
+        {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if (grouping != "na")
+            {
+                throw new NotSupported ((this.id + " createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders")) ;
+            }
+            bool allIoc = true;
+            bool allPostOnly = true;
+            for (int i = 0; i < (orderReq?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> builtOrder = this.safeDict(orderReq, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderType = this.safeDict(builtOrder, "t", new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderLimit = this.safeDict(builtOrderType, "limit", new Dictionary<string, object>() {});
+                string? builtOrderTif = this.safeString(builtOrderLimit, "tif");
+                if (builtOrderTif != "Ioc")
+                {
+                    allIoc = false;
+                }
+                if ((builtOrderTif != "Alo") || (this.safeBool(builtOrder, "r", false) == true))
+                {
+                    allPostOnly = false;
+                }
+            }
+            if (!allIoc && !allPostOnly)
+            {
+                throw new InvalidOrder ((this.id + " createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only")) ;
+            }
+            groupingValue = new Dictionary<string, object>() {
+                { "p", priorityFee },
+            };
+        }
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
-            { "grouping", grouping },
+            { "grouping", groupingValue },
         };
         if ((this.safeBool(this.options, "approvedBuilderFee", false) == true))
         {
