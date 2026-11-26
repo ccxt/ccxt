@@ -1221,7 +1221,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: string, privateKey: any): Dict {
+    signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = this.safeString (signature, 'r', '');
         const s = this.safeString (signature, 's', '');
@@ -1256,7 +1256,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: Str, message: Dict, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: NullableDict = undefined): string {
+    signDydxTx (privateKey: string, message: Dict, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: NullableDict = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         const signatureR = this.safeString (signature, 'r', '');
@@ -1553,7 +1553,8 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, orderRequest, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1664,7 +1665,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -1735,7 +1737,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2016,7 +2019,8 @@ export default class dydx extends Exchange {
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, '', chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
@@ -2206,7 +2210,8 @@ export default class dydx extends Exchange {
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const chainName = this.safeString (this.options, 'chainName');
-        const signedTx = this.signDydxTx (this.safeString (credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
+        const privateKey: string = this.safeString (credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx (privateKey, signingPayload, tag, chainName, account, undefined, txFee);
         const request: Dict = {
             'tx': signedTx,
         };
