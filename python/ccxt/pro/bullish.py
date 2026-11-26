@@ -114,8 +114,7 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
-        wsUrl = self.safe_string(wsUrls, 'public')
+        wsUrl = self.safe_string(self.urls['api']['ws'], 'public')
         if wsUrl is None:
             raise ExchangeError(self.id + ' unsubscribePublic() has no public websocket url')
         requestId = str(self.request_id())
@@ -157,7 +156,7 @@ class bullish(ccxt.async_support.bullish):
         self.clean_unsubscription(client, subHash, unsubHash, subHashIsPrefix)
         self.clean_cache(subscription)
         requestId = self.safe_string(subscription, 'id', '')
-        if self.safe_dict(client.subscriptions, requestId) is not None:
+        if requestId in client.subscriptions:
             del client.subscriptions[requestId]
 
     async def watch_private(self, messageHash: str, subscribeHash: str, request={}, params={}) -> object:
@@ -191,10 +190,7 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id the subscription was opened with
         :returns any: status of the unwatch request
         """
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
-        url = self.safe_string(wsUrls, 'private')
-        if url is None:
-            raise ExchangeError(self.id + ' unsubscribePrivate() has no private websocket url')
+        url = self.urls['api']['ws']['private']
         token = await self.handleToken()
         cookies = {
             'JWT_COOKIE': token,
@@ -964,7 +960,7 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         messageId = self.safe_string(message, 'id')
-        if messageId is None:
+        if (messageId is None) or not (messageId in client.subscriptions):
             return
         subscription = self.safe_dict(client.subscriptions, messageId)
         if (subscription is None) or not self.safe_bool(subscription, 'unsubscribe', False):
@@ -992,7 +988,7 @@ class bullish(ccxt.async_support.bullish):
             if response == 'Keep alive pong':
                 self.handle_pong(client, message)
             messageId = self.safe_string(message, 'id')
-            if messageId is not None:
+            if (messageId is not None) and (messageId in client.subscriptions):
                 subscription = self.safe_dict(client.subscriptions, messageId)
                 if (subscription is not None) and self.safe_bool(subscription, 'unsubscribe', False):
                     self.handle_un_subscription(client, subscription)
