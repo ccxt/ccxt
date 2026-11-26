@@ -11155,7 +11155,7 @@ function javaBooleanParamTable () {
     return {
         'extended.ts': { getExtendedStarkAmount: [ 2 ] },
         'hyperliquid.ts': { constructPhantomAgent: [ 1 ], isUnifiedEnabled: [ 2 ] },
-        'kucoin.ts': { handleTradeType: [ 2 ] },
+        'kucoin.ts': { handleTradeType: [ 0, 2 ] },
         'binance.ts': { parseBalanceCustom: [ 3 ] },
         'cex.ts': { parseTradingFees: [ 1 ] },
         'paradex.ts': { signOrderRequest: [ 1 ] },

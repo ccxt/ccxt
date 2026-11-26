@@ -11507,7 +11507,7 @@ export const CSHARP_BOOLEAN_PARAMS = {
     'filterByOutcomeSinceLimit': { 4: 'bool?' }, 'filterByOutcomesSinceLimit': { 4: 'bool?' }, 'filterBySinceLimit': { 4: 'bool?' }, 'filterBySymbolSinceLimit': { 4: 'bool?' },
     'filterBySymbolsSinceLimit': { 4: 'bool?' }, 'filterByValueSinceLimit': { 6: 'bool?' }, 'filterOutByArray': { 3: 'bool?' }, 'filterTransfersByType': { 2: 'bool?' }, 'getInstType': { 2: 'bool?' },
     'getListenKey': { 0: 'bool' }, 'getMarginMode': { 0: 'bool?' }, 'getSymbolsForMarketType': { 2: 'bool?', 3: 'bool?' }, 'handleParamBool': { 2: 'bool?' }, 'handleParamBool2': { 3: 'bool?' },
-    'handlePostOnly': { 0: 'bool', 1: 'bool?' }, 'handleTradeType': { 2: 'bool?' }, 'handleTriggerDirectionAndParams': { 2: 'bool?' }, 'handleTriggerOptionAndParams': { 2: 'bool?' },
+    'handlePostOnly': { 0: 'bool', 1: 'bool?' }, 'handleTradeType': { 0: 'bool?', 2: 'bool?' }, 'handleTriggerDirectionAndParams': { 2: 'bool?' }, 'handleTriggerOptionAndParams': { 2: 'bool?' },
     'handleTriggerPricesAndParams': { 2: 'bool?' }, 'handleUTAAndParams': { 2: 'bool?' }, 'isLeveragedCurrency': { 1: 'bool?' }, 'isPostOnly': { 0: 'bool', 1: 'bool?' }, 'loadAccountSettings': { 0: 'bool?' },
     'loadAccounts': { 0: 'bool?' }, 'loadEvents': { 0: 'bool?' }, 'loadEventsHelper': { 0: 'bool?' }, 'loadLeverageBrackets': { 0: 'bool?' }, 'loadMarkets': { 0: 'bool?' },
     'loadMigrationStatus': { 0: 'bool?' }, 'loadOutcome': { 1: 'bool?' }, 'loadOutcomes': { 1: 'bool?' }, 'loadTradingLimits': { 1: 'bool?' }, 'marketSymbols': { 2: 'bool?', 3: 'bool?', 4: 'bool?' },
