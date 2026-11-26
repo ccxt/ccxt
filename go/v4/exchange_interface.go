@@ -264,7 +264,7 @@ type ICoreExchange interface {
 	NumberToString(num any) *string
 	Base16ToBinary(str any) []byte
 	ParseToNumeric(value any) any
-	IsRoundNumber(value any) bool
+	IsRoundNumber(value float64) bool
 	LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any]
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any

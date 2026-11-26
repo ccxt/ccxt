@@ -165,10 +165,6 @@ func IsLessThanOrEqual(a, b interface{}) bool {
 	return ccxt.IsLessThanOrEqual(a, b)
 }
 
-func Mod(a, b interface{}) interface{} {
-	return ccxt.Mod(a, b)
-}
-
 func IsEqual(a, b interface{}) bool {
 	return ccxt.IsEqual(a, b)
 }
@@ -258,6 +254,10 @@ func Contains(v interface{}, substr interface{}) bool {
 
 func StringArg(v interface{}) string {
 	return ccxt.StringArg(v)
+}
+
+func Float64Arg(v interface{}) float64 {
+	return ccxt.Float64Arg(v)
 }
 
 func ToString(v interface{}) string {
@@ -438,10 +438,6 @@ func CallInternalMethod(cache map[string]any, itf interface{}, name2 string, arg
 
 func PanicOnError(msg interface{}) interface{} {
 	return ccxt.PanicOnError(msg)
-}
-
-func getCallerName() string {
-	return ccxt.GetCallerName()
 }
 
 func setDefaults(p interface{}) {

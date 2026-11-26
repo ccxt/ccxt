@@ -392,9 +392,10 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const receiver = takeType (name);
         if (receiver === undefined) return;
         // the helper's IList<object> branch: an index at or past Count reads null, a negative one throws in both forms; only an `int` local or a non-negative int literal is a C# index
-        if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type) || (receiver.type === 'List<string>')) {
+        if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type) || (receiver.type === 'List<string>') || (receiver.type === 'IList<Int64>') || (receiver.type === 'List<Int64>')) {
             if (!(/^\d{1,9}$/.test (keyMask) || takeIndexType (keyMask))) return;
-            edits.push ({ start, end, text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : null)` });
+            const fallback = ((receiver.type === 'IList<Int64>') || (receiver.type === 'List<Int64>')) ? '(Int64?)null' : 'null';
+            edits.push ({ start, end, text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : ${fallback})` });
             return;
         }
         // the helper's dictionary branch hands back the boxed value; a value-typed dictionary (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries

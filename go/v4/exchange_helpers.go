@@ -683,33 +683,6 @@ func IsLessThanOrEqual(a, b any) bool {
 	return IsLessThan(a, b) || IsEqual(a, b)
 }
 
-// Mod performs a modulus operation on a and b
-func Mod(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-	if a == nil || b == nil {
-		return nil
-	}
-
-	aFloat := ToFloat64(a)
-	bFloat := ToFloat64(b)
-
-	if aFloat == math.NaN() || bFloat == math.NaN() {
-		return nil
-	}
-	res := math.Mod(aFloat, bFloat)
-	if IsInteger(res) {
-		return ParseInt(res)
-	}
-	return res
-	// aVal, bVal, ok := NormalizeAndConvert(a, b)
-	// if !ok || bVal.Float() == 0 {
-	// 	return nil
-	// }
-
-	// return float64(int(aVal.Float()) % int(bVal.Float()))
-}
-
 // IsEqual checks for equality of a and b with dynamic type support
 func IsEqual(a, b any) bool {
 	a = derefScalar(a)
@@ -3154,25 +3127,6 @@ func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
 			ch <- EndpointResult[T]{Err: RecoveredError(r)}
 		}
 	}
-}
-
-func GetCallerName() string {
-	return getCallerName()
-}
-
-func getCallerName() string {
-	// Skip 2 levels to get the name of the caller of the function that called this one
-	pc, _, _, ok := runtime.Caller(3)
-	if !ok {
-		return "Unknown"
-	}
-
-	fn := runtime.FuncForPC(pc)
-	if fn == nil {
-		return "Unknown"
-	}
-
-	return fn.Name()
 }
 
 func Print(v any) {

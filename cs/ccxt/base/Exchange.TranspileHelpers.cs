@@ -280,45 +280,6 @@ public partial class BaseExchange
         return isLessThan(a, b) || isEqual(a, b);
     }
 
-    public static object mod(object a, object b)
-    {
-        if (a == null || b == null)
-        {
-            return null;
-        }
-
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int) || a.GetType() == typeof(double))
-        {
-            var res = (Convert.ToDouble(a)) % (Convert.ToDouble(b));
-            return Convert.ToInt64(res);
-        }
-
-        return null;
-
-        // return add(a, b);
-    }
-
-    // mod's twins mirror its numeric branch exactly -- the DOUBLE modulo converted with
-    // Convert.ToInt64 (`x % 0.0` is NaN -> OverflowException, not DivideByZeroException)
-    // -- plus the object overload's null operand -> null for the nullable twin.
-    public static Int64 mod(Int64 a, Int64 b)
-    {
-        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
-    }
-
-    public static Int64 mod(double a, double b)
-    {
-        return Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
-    }
-
-    public static Int64? mod(Int64? a, Int64? b)
-    {
-        return (a == null || b == null) ? null : Convert.ToInt64(Convert.ToDouble(a) % Convert.ToDouble(b));
-    }
-
     public static object add(object a, object b)
     {
         a = normalizeIntIfNeeded(a);

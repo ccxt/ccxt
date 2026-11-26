@@ -81,14 +81,6 @@ public partial class BaseTest
     // bridges to make auxiliary methods available in tests
     //
 
-    // the S57 typed twins mirror Exchange.TranspileHelpers.cs: a generated test file's
-    // numerically typed residue must resolve exactly like the library's copy of the
-    // same expression (the bridge is what the tests' bare calls bind to)
-    public static object mod(object a, object b) => Exchange.mod(a, b);
-    public static Int64 mod(Int64 a, Int64 b) => Exchange.mod(a, b);
-    public static Int64 mod(double a, double b) => Exchange.mod(a, b);
-    public static Int64? mod(Int64? a, Int64? b) => Exchange.mod(a, b);
-
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
     public static Task<List<object>> promiseAll(object a) => ccxt.Exchange.PromiseAll(a);

@@ -59,6 +59,8 @@ export const CORE_NUMERIC_ARGS = {
     'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
     'createStopLossOrderWs': { 3: 'double', 4: 'double?' },
     'createStopMarketOrderWs': { 2: 'double' },
+    'findNearestCeiling': { 1: 'Int64' },
+    'isRoundNumber': { 0: 'double?' },
     'createStopOrderWs': { 3: 'double', 4: 'double?' },
     'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
@@ -8965,8 +8967,8 @@ function installCsharpListIndexReads (csharp) {
         const receiver = node.expression;
         const index = node.argumentExpression;
         if (receiver?.kind !== ts.SyntaxKind.Identifier || index?.kind !== ts.SyntaxKind.Identifier) { return undefined; }
-        const receiverType = printedLocalType (csharp, printedDeclarationTypes, receiver);
-        if ((receiverType !== 'List<object>') && (receiverType !== 'IList<object>')) { return undefined; }
+        const receiverType = printedLocalType (csharp, printedDeclarationTypes, receiver) ?? csharp.csharpTypedLocalType?.(receiver);
+        if ((receiverType !== 'List<object>') && (receiverType !== 'IList<object>') && (receiverType !== 'IList<Int64>')) { return undefined; }
         const indexType = printedLocalType (csharp, printedDeclarationTypes, index);
         if (indexType !== 'int') { return undefined; }
         return { receiver: receiverType, index: 'int' };
@@ -11032,9 +11034,10 @@ export const CORE_LIST_ARGS = {
     'watchStockMarketStream': { 1: 'IList<object>' },
     'watchTopics': { 1: 'IList<object>' },
     'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
+    'findNearestCeiling': { 0: 'IList<Int64>' },
 };
 // The list targets of CORE_LIST_ARGS; a list parameter keeps the `object` shadow only where a body write cannot be attributed to a list producer (see bodyWritesAreListTyped there).
-export const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];
+export const CORE_LIST_TARGET_TYPES = [ 'IList<object>', 'IList<Int64>' ];
 // Venue list parameters read through `.length`: every declaration prints `object` at that position and every caller (tests and hand-written base included) passes a list or null; m...
 const CORE_LIST_ARGS_LENGTH_READS = {
     'parseFeeTiers': 0, 'parseBorrowRateHistories': 0, 'parseAccountSettings': 0, 'insertMissingCandles': 0, 'watchTopics': 2, 'parseBidsAsksCustom': 0, 'parsePublicDepositWithdrawFees': 0, 'ordersToTrades': 0,
