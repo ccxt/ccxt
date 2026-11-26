@@ -516,7 +516,7 @@ export default class blofin extends blofinRest {
         const data = this.safeList (message, 'data') as List;
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const interval = (channelName as string).replace ('candle', '');
         const unifiedTimeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
