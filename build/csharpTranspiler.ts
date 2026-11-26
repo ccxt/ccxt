@@ -7783,6 +7783,10 @@ function csharpNullableIntegerComparisonText (helper: string, left, right, leftT
     if ((token === '<') && (left.kind === 'name') && [ 'double', 'double?' ].includes (left.type) && (right.kind === 'integer-literal')) {
         return `(!(${leftText} >= ${rightText}))`;
     }
+    // `double(?) <= N`: the helper is isLessThan || isEqual, true for null and NaN like `!(x > N)`
+    if ((token === '<=') && (left.kind === 'name') && [ 'double', 'double?' ].includes (left.type) && (right.kind === 'integer-literal')) {
+        return `(!(${leftText} > ${rightText}))`;
+    }
     const nullable = (o) => (o.kind === 'name') && [ 'Int64?', 'long?' ].includes (o.type);
     const integer = (o) => nullable (o) || (o.kind === 'integer-literal') || ((o.kind === 'name') && [ 'int', 'Int64', 'long' ].includes (o.type));
     if ((token === undefined) || !integer (left) || !integer (right) || (!nullable (left) && !nullable (right))) {
@@ -8404,6 +8408,8 @@ export function csharpNativeEmissionSelfTest (): string[] {
         [ 'if (isGreaterThanOrEqual(5, limit)) { }', '((limit == null || 5 >= limit))' ],
         [ 'if (isLessThan(5, limit)) { }', '((5 < limit))' ],
         [ 'double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }', '((!(x >= 0)))' ],
+        [ 'double? x = this.safeNumber(parameters, "x");\nif (isLessThanOrEqual(x, 0)) { }', '((!(x > 0)))' ],
+        [ 'double? x = this.safeNumber(parameters, "x");\nif (isLessThanOrEqual(x, 0.5)) { }', undefined ],
         [ 'object x = this.safeValue(parameters, "x");\nif (isLessThan(x, limit)) { }', undefined ],
         [ 'if (isLessThan(this.safeInteger(parameters, \"a\"), limit)) { }', undefined ],
         [ 'if (isLessThan(limit, 1.5)) { }', undefined ],
