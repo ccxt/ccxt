@@ -8826,7 +8826,7 @@ export class BaseExchange {
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any[]> {
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', 10);
         const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', 3);
-        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsMaxRetries, method, 'removeRepeated', removeRepeated);
+        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionBoolAndParams (paramsMaxRetries, method, 'removeRepeated', removeRepeated);
         const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionStringAndParams (paramsRemoveRepeated, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         let result: any[] = [];
