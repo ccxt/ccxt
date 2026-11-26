@@ -514,7 +514,7 @@ export default class sxbet extends Exchange {
      * @returns {string[]} the outcome handles whose books were refreshed
      */
     applySxbetWsSnapshot(snapshot: Dict): string[];
-    handleOrderBook(client: Client, rows: any[]): void;
+    handleOrderBook(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchTicker
@@ -547,7 +547,7 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     parseSxbetV3PublicTrade(trade: Dict): PredictionTrade;
-    handleTrades(client: Client, rows: any[]): void;
+    handleTrades(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchMyTrades
@@ -560,7 +560,7 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
-    handleMyTrade(client: Client, rows: any[]): void;
+    handleMyTrade(client: Client, rows: Dict[]): void;
     /**
      * @method
      * @name sxbet#watchOrders
@@ -573,7 +573,7 @@ export default class sxbet extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
-    handleOrder(client: Client, rows: any[]): void;
+    handleOrder(client: Client, rows: Dict[]): void;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool;
     /**
      * @ignore

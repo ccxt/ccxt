@@ -326,7 +326,7 @@ export default class limitless extends Exchange {
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
-    getPositionFromClobEntry(label: Str, entry?: NullableDict): PredictionPosition | undefined;
+    getPositionFromClobEntry(label: Str, entry: Dict): PredictionPosition | undefined;
     /**
      * @ignore
      * @method

@@ -1964,19 +1964,19 @@ class paradex extends paradex$1["default"] {
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         const frameHex = this.binaryToBase16(message);
         const frameLength = this.parseToInt(frameHex.length / 2);
         if (frameLength < 8) {
-            return undefined;
+            return {};
         }
         const blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         const templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         const schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
         if ((schemaId !== 1) || (frameLength < this.sum(blockLength, 8))) {
-            return undefined;
+            return {};
         }
         let channel = undefined;
         let data = undefined;
@@ -2028,7 +2028,7 @@ class paradex extends paradex$1["default"] {
             channel = 'account';
         }
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         return {
             'sbe': true,
@@ -2599,10 +2599,9 @@ class paradex extends paradex$1["default"] {
     }
     handleBinaryMessage(client, message) {
         const parsedMessage = this.parseSbeMessage(client, message);
-        if (parsedMessage === undefined) {
-            return;
+        if ('params' in parsedMessage) {
+            this.handleStreamMessage(client, parsedMessage);
         }
-        this.handleStreamMessage(client, parsedMessage);
     }
     handleMessage(client, message) {
         this.handleStreamMessage(client, message);

@@ -985,8 +985,9 @@ class kraken extends kraken$1["default"] {
     parseTradingFee(fee, market) {
         const makerFees = this.safeDict(fee, 'fees_maker', {});
         const takerFees = this.safeDict(fee, 'fees', {});
-        const symbolMakerFee = this.safeDict(makerFees, market['id'], {});
-        const symbolTakerFee = this.safeDict(takerFees, market['id'], {});
+        const marketId = this.safeString(market, 'id', '');
+        const symbolMakerFee = this.safeDict(makerFees, marketId, {});
+        const symbolTakerFee = this.safeDict(takerFees, marketId, {});
         return {
             'info': fee,
             'symbol': market['symbol'],

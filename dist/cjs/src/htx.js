@@ -3684,8 +3684,8 @@ class htx extends htx$1["default"] {
         //         "ts": 1770293281344
         //     }
         //
-        const finalResponse = response;
-        let result = { 'info': finalResponse };
+        let result = { 'info': response };
+        const dataRows = this.safeList(response, 'data', []);
         const data = this.safeValue(response, 'data');
         if (isMultiAssetMode || (linear && (swap || future))) {
             const details = this.safeList(data, 'details', []);
@@ -3704,8 +3704,8 @@ class htx extends htx$1["default"] {
         }
         else if (spot || margin) {
             if (isolated) {
-                for (let i = 0; i < data.length; i++) {
-                    const entry = this.safeDict(data, i);
+                for (let i = 0; i < dataRows.length; i++) {
+                    const entry = this.safeDict(dataRows, i);
                     const balances = this.safeList(entry, 'list', []);
                     const subResult = {};
                     for (let j = 0; j < balances.length; j++) {
@@ -3738,8 +3738,8 @@ class htx extends htx$1["default"] {
             }
         }
         else if (inverse) {
-            for (let i = 0; i < data.length; i++) {
-                const balance = this.safeDict(data, i);
+            for (let i = 0; i < dataRows.length; i++) {
+                const balance = this.safeDict(dataRows, i);
                 const currencyId = this.safeString(balance, 'symbol');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();

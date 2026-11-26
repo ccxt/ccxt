@@ -2117,11 +2117,12 @@ export default class sxbet extends Exchange {
         if (existing === undefined) {
             this.options['requestId'] = this.createSafeDictionary();
         }
-        const options = this.options['requestId'];
+        const options = this.safeDict(this.options, 'requestId', {});
         const previousValue = this.safeInteger(options, url, 0);
         const newValue = this.sum(previousValue, 1);
         if (url !== undefined) {
-            this.options['requestId'][url] = newValue;
+            options[url] = newValue;
+            this.options['requestId'] = options;
         }
         return newValue;
     }

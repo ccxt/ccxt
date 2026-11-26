@@ -416,7 +416,7 @@ export default class paradex extends paradexRest {
     watchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     handleFundingRate(client: Client, message: Dict): void;
     parseFundingRateWs(contract: Dict, market?: Market): FundingRate;
-    parseSbeMessage(client: Client, message: any): any;
+    parseSbeMessage(client: Client, message: any): Dict;
     sbeReadUint(frameHex: string, offset: number, length: number): int;
     sbeReadInt64(frameHex: string, offset: number): Str;
     sbeReadDecimal(frameHex: string, offset: number): Str;

@@ -1616,6 +1616,9 @@ class bybit extends bybit$1["default"] {
         }
         const strike = this.safeString(optionParts, 2, '');
         const optionType = this.safeString(optionParts, 3, '');
+        if (expiry === undefined) {
+            throw new errors.BadSymbol(this.id + ' createExpiredOptionMarket() missing expiry');
+        }
         const datetime = this.convertExpireDate(expiry);
         let amountPrecision = undefined;
         let pricePrecision = undefined;
@@ -1633,6 +1636,9 @@ class bybit extends bybit$1["default"] {
             pricePrecision = this.parseNumber('0.01');
         }
         const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
+        if (convertedExpireDate === undefined) {
+            throw new errors.BadSymbol(this.id + ' createExpiredOptionMarket() invalid expiry');
+        }
         return {
             'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': baseName + '/' + quote + ':' + quote + '-' + expiry + '-' + strike + '-' + optionType,
@@ -4509,8 +4515,7 @@ class bybit extends bybit$1["default"] {
                     orderCost = cost;
                 }
                 else {
-                    const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    orderCost = quoteAmount;
+                    orderCost = Precise["default"].stringMul(amountString, priceString);
                 }
                 request['qty'] = this.getCost(symbolValue, orderCost);
             }

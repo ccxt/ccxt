@@ -2998,11 +2998,8 @@ export default class polymarket extends Exchange {
     }
     handleListMessage(client, message) {
         for (let i = 0; i < message.length; i++) {
-            const event = message[i];
-            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
-                continue;
-            }
-            this.handleMessageEvent(client, event);
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            this.handleMessageEvent(client, this.safeDict(message, i, {}));
         }
     }
     handleMessageEvent(client, event) {

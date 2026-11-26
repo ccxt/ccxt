@@ -6310,8 +6310,8 @@ class BaseExchange {
             else {
                 // still processing the same timeframe -> update opening trade
                 const prevCandle = this.safeList(ohlcvs, candle);
-                const prevHigh = this.safeValue(prevCandle, i_high);
-                const prevLow = this.safeValue(prevCandle, i_low);
+                const prevHigh = this.safeNumber(prevCandle, 2);
+                const prevLow = this.safeNumber(prevCandle, 3);
                 ohlcvs[candle][i_high] = Math.max((prevHigh === undefined) ? price : prevHigh, price);
                 ohlcvs[candle][i_low] = Math.min((prevLow === undefined) ? price : prevLow, price);
                 ohlcvs[candle][i_close] = price;
@@ -8151,7 +8151,7 @@ class BaseExchange {
             if (since === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
-            const requiredCalls = Math.ceil((until - since) / step);
+            const requiredCalls = this.parseToInt(Math.ceil((until - since) / step));
             if (requiredCalls > maxCallsLimit) {
                 throw new errors.BadRequest(this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsLimit.toString() + ' required calls is ' + requiredCalls.toString());
             }
@@ -9602,7 +9602,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((this.options['createMarketBuyOrderRequiresPrice'] === true) || (this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false)) {
+        if (this.safeBool(this.options, 'createMarketBuyOrderRequiresPrice', false) || (this.has['createMarketBuyOrderWithCost'] !== undefined && this.has['createMarketBuyOrderWithCost'] !== false)) {
             return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is not supported yet');
@@ -9617,7 +9617,7 @@ class Exchange extends BaseExchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((this.options['createMarketSellOrderRequiresPrice'] === true) || (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false)) {
+        if (this.safeBool(this.options, 'createMarketSellOrderRequiresPrice', false) || (this.has['createMarketSellOrderWithCost'] !== undefined && this.has['createMarketSellOrderWithCost'] !== false)) {
             return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
         }
         throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() is not supported yet');

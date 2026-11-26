@@ -402,21 +402,21 @@ class bitrue extends bitrue$1["default"] {
         }
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeDict(message, 'tick', {});
-        let parseable = tick;
-        if (isFutures) {
-            const rawAsks = this.safeList(tick, 'asks', []);
-            const rawBuys = this.safeList(tick, 'buys', []);
-            parseable = {
-                'asks': this.parseContractBidsAsks(rawAsks, symbol),
-                'buys': this.parseContractBidsAsks(rawBuys, symbol),
-            };
-        }
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook(parseable, symbol, timestamp, 'buys', 'asks');
-        orderbook.reset(snapshot);
+        if (isFutures) {
+            const rawAsks = this.safeList(tick, 'asks', []);
+            const rawBuys = this.safeList(tick, 'buys', []);
+            orderbook.reset(this.parseOrderBook({
+                'asks': this.parseContractBidsAsks(rawAsks, symbol),
+                'buys': this.parseContractBidsAsks(rawBuys, symbol),
+            }, symbol, timestamp, 'buys', 'asks'));
+        }
+        else {
+            orderbook.reset(this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks'));
+        }
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }

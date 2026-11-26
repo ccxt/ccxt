@@ -164,11 +164,8 @@ class poloniex extends poloniex$1["default"] {
                 name,
             ],
         };
-        let marketIds = [];
-        if (this.isEmpty(symbols)) {
-            marketIds.push('all');
-        }
-        else {
+        let marketIds = ['all'];
+        if (!this.isEmpty(symbols)) {
             if (symbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }

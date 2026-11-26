@@ -228,7 +228,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-        if ((checksum) && (receivedSnapshot)) {
+        if ((checksum === true) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;

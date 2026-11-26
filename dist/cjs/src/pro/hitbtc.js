@@ -1512,10 +1512,10 @@ class hitbtc extends hitbtc$1["default"] {
             if ((result === true) && !('id' in message)) {
                 this.handleAuthenticate(client, message);
             }
-            if (Array.isArray(result)) {
+            const rows = this.safeList(message, 'result');
+            if (rows !== undefined) {
                 // to do improve this, not very reliable right now
-                const first = this.safeDict(result, 0, {});
-                const rows = this.safeList(message, 'result', []);
+                const first = this.safeDict(rows, 0, {});
                 const arrayLength = rows.length;
                 if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest(client, message);

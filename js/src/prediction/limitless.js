@@ -2810,10 +2810,9 @@ export default class limitless extends Exchange {
         const result = [];
         const labels = ['yes', 'no'];
         for (let i = 0; i < clob.length; i++) {
-            const entry = this.safeDict(clob, i);
             for (let j = 0; j < labels.length; j++) {
                 const label = this.safeString(labels, j);
-                const position = this.getPositionFromClobEntry(label, entry);
+                const position = this.getPositionFromClobEntry(label, this.safeDict(clob, i, {}));
                 if (position !== undefined) {
                     result.push(position);
                 }
@@ -2821,10 +2820,7 @@ export default class limitless extends Exchange {
         }
         return result;
     }
-    getPositionFromClobEntry(label, entry = undefined) {
-        if (entry === undefined) {
-            return undefined;
-        }
+    getPositionFromClobEntry(label, entry) {
         const tokensBalance = this.safeDict(entry, 'tokensBalance');
         const contracts = this.omitZero(this.safeString(tokensBalance, label));
         if (contracts === undefined) {

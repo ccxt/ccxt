@@ -165,11 +165,8 @@ export default class poloniex extends poloniexRest {
                 name,
             ],
         };
-        let marketIds = [];
-        if (this.isEmpty(symbols)) {
-            marketIds.push('all');
-        }
-        else {
+        let marketIds = ['all'];
+        if (!this.isEmpty(symbols)) {
             if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' subscribe() symbols is required');
             }
