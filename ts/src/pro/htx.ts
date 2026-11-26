@@ -166,7 +166,8 @@ export default class htx extends htxRest {
             throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
         }
         const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
-        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket);
         return await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
     }
 
@@ -269,7 +270,8 @@ export default class htx extends htxRest {
         const symbolValue: Str = this.safeString (market, 'symbol');
         const marketId: Str = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.trade.detail';
-        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket);
         const trades: ArrayCache = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -369,7 +371,8 @@ export default class htx extends htxRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const marketId: Str = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.kline.' + interval;
-        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket);
         const ohlcv: ArrayCacheByTimestamp = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -485,7 +488,8 @@ export default class htx extends htxRest {
         } else {
             messageHash = 'market.' + marketId + '.depth.size_' + limitResolved.toString () + '.high_freq';
         }
-        const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket, false, true);
         let method: any = this.handleOrderBookSubscription;
         let paramsExtended: Dict = params;
         if (!this.safeBool (market, 'spot', false)) {
@@ -630,7 +634,8 @@ export default class htx extends htxRest {
         const params = this.safeDict (subscription, 'params');
         const attempts = this.safeInteger (subscription, 'numAttempts', 0);
         const market = this.market (symbol);
-        const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket, false, true);
         const requestId: int = this.requestId ();
         const request: Dict = {
             'req': messageHash,
@@ -2955,7 +2960,8 @@ export default class htx extends htxRest {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' unsubscribePublic() market is required');
         }
-        const url = this.getUrlByMarketType (market['type'], market['linear'], false, isFeed);
+        const isLinearMarket: boolean = (market['linear'] === true);
+        const url = this.getUrlByMarketType (market['type'], isLinearMarket, false, isFeed);
         const subscription: Dict = {
             'unsubscribe': true,
             'id': requestId.toString (),
