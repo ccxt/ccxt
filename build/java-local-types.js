@@ -72,6 +72,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseFundingHistories',
     // base-only filterByOutcomeSinceLimit returns filterByValueSinceLimit; base-only parsePredictionOrders returns it
     'filterByOutcomeSinceLimit', 'parsePredictionOrders',
+    // base-only parseTransfers returns filterByCurrencySinceLimit (List<Object>); no override in ts/src
+    'parseTransfers',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -11610,6 +11612,10 @@ function nullScalarWriteType (printer, node) {
         ?? (r97j3TypedLongSum (printer, value) && r90j3NativeSum (printer, value) === undefined ? 'Long' : undefined);
     if (numeric === 'Long' || numeric === 'Double') {
         return numeric;
+    }
+    // base `this.sum (a, b)` of two Long/long operands binds hand-written `Long sum(Long, Long)`
+    if (r97j3TypedLongSum (printer, value)) {
+        return 'Long';
     }
     if (literalTypeOfValue (printer, value)?.type === LITERAL_BOOLEAN_TYPE) {
         return 'Boolean';
