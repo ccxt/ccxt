@@ -5482,6 +5482,526 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
+    buildApproveAgentSig (message: Dict): Dict {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:ApproveAgent': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'agentAddress', 'type': 'address' },
+                { 'name': 'agentName', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveAgent
+     * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+     * @param {string} agentAddress the address of the API wallet to approve
+     * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async approveAgent (agentAddress: string, agentName: Str = undefined, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const hyperliquidChain = (isSandboxMode) ? 'Testnet' : 'Mainnet';
+        // the name is always part of the signed message, it is empty for the unnamed API wallet
+        const payload: Dict = {
+            'hyperliquidChain': hyperliquidChain,
+            'agentAddress': agentAddress,
+            'agentName': (agentName === undefined) ? '' : agentName,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveAgentSig (payload);
+        const action: Dict = {
+            'hyperliquidChain': hyperliquidChain,
+            'signatureChainId': '0x66eee',
+            'agentAddress': agentAddress,
+            'nonce': nonce,
+            'type': 'approveAgent',
+        };
+        if (agentName !== undefined) {
+            action['agentName'] = agentName;
+        }
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#noop
+     * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+     * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    async noop (nonce: Int = undefined, params: Dict = {}): Promise<Dict> {
+        const action: Dict = {
+            'type': 'noop',
+        };
+        return await this.postL1Action (action, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#claimRewards
+     * @description claims the rewards earned by the account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async claimRewards (params: Dict = {}): Promise<Dict> {
+        const action: Dict = {
+            'type': 'claimRewards',
+        };
+        return await this.postL1Action (action, undefined, params);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postL1Action
+     * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+     * @param {object} action the action to sign and send
+     * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    async postL1Action (action: Dict, nonce: Int = undefined, params: Dict = {}): Promise<Dict> {
+        const requestNonce = (nonce === undefined) ? this.incrementingNonce () : nonce;
+        const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
+        const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
+        const signature = this.signL1Action (action, requestNonce, vaultAddress);
+        const request: Dict = {
+            'action': action,
+            'nonce': requestNonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, paramsVault));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#usdSend
+     * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+     * @param {float} amount the amount of USDC to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async usdSend (amount: number, address: string, params: Dict = {}): Promise<Dict> {
+        this.checkAddress (address);
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'destination', 'type': 'string' },
+            { 'name': 'amount', 'type': 'string' },
+            { 'name': 'time', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'destination': address,
+            'amount': this.numberToString (amount),
+            'time': nonce,
+        };
+        return await this.postUserSignedAction ('usdSend', 'HyperliquidTransaction:UsdSend', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#spotSend
+     * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+     * @param {string} code unified currency code of the asset to send
+     * @param {float} amount the amount to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async spotSend (code: string, amount: number, address: string, params: Dict = {}): Promise<Dict> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const currencyInfo = this.safeDict (currency, 'info', {});
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'destination', 'type': 'string' },
+            { 'name': 'token', 'type': 'string' },
+            { 'name': 'amount', 'type': 'string' },
+            { 'name': 'time', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'destination': address,
+            'token': this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', ''),
+            'amount': this.numberToString (amount),
+            'time': nonce,
+        };
+        return await this.postUserSignedAction ('spotSend', 'HyperliquidTransaction:SpotSend', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingDeposit
+     * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+     * @param {float} amount the amount of HYPE to move into staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async stakingDeposit (amount: number, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'wei': this.hypeToWei (amount),
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('cDeposit', 'HyperliquidTransaction:CDeposit', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingWithdraw
+     * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+     * @param {float} amount the amount of HYPE to move out of staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async stakingWithdraw (amount: number, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'wei': this.hypeToWei (amount),
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('cWithdraw', 'HyperliquidTransaction:CWithdraw', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#tokenDelegate
+     * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+     * @param {string} validator the address of the validator
+     * @param {float} amount the amount of HYPE to delegate or undelegate
+     * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async tokenDelegate (validator: string, amount: number, isUndelegate: boolean = false, params: Dict = {}): Promise<Dict> {
+        this.checkAddress (validator);
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'validator', 'type': 'address' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'isUndelegate', 'type': 'bool' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'validator': validator,
+            'wei': this.hypeToWei (amount),
+            'isUndelegate': isUndelegate,
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('tokenDelegate', 'HyperliquidTransaction:TokenDelegate', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hyperliquidChainName
+     * @description the chain name that user-signed actions are signed for
+     * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+     */
+    hyperliquidChainName (): string {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        return (isSandboxMode) ? 'Testnet' : 'Mainnet';
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hypeToWei
+     * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+     * @param {float} amount the amount of HYPE
+     * @returns {int} the amount in wei
+     */
+    hypeToWei (amount: number): int {
+        return this.parseToInt (Precise.stringMul (this.numberToString (amount), '100000000'));
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postUserSignedAction
+     * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+     * @param {string} actionType the type of the action
+     * @param {string} primaryType the EIP-712 primary type of the message
+     * @param {object[]} messageTypes the EIP-712 fields of the message
+     * @param {object} message the message to sign, its fields are sent as the action
+     * @param {int} nonce the nonce of the request
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async postUserSignedAction (actionType: string, primaryType: string, messageTypes: List, message: Dict, nonce: int, params: Dict = {}): Promise<Dict> {
+        const types: Dict = {};
+        types[primaryType] = messageTypes;
+        const signature = this.signUserSignedAction (types, message);
+        const action = this.extend (message, {
+            'signatureChainId': '0x66eee',
+            'type': actionType,
+        });
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchApprovedBuilders
+     * @description fetch the addresses of the builders the user approved a builder fee for
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {string[]} a list of builder addresses
+     */
+    async fetchApprovedBuilders (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchApprovedBuilders', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchApprovedBuilders', params), 1, {});
+        const request: Dict = {
+            'type': 'approvedBuilders',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchVaultDetails
+     * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+     * @param {string} vaultAddress the address of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+     * @returns {object} the vault details as returned by the exchange
+     */
+    async fetchVaultDetails (vaultAddress: string, params: Dict = {}): Promise<Dict> {
+        const request: Dict = {
+            'type': 'vaultDetails',
+            'vaultAddress': vaultAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "name": "Test",
+        //         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        //         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        //         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        //         "portfolio": [
+        //             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        //         ],
+        //         "apr": 0.36387129259090006,
+        //         "followerState": null,
+        //         "leaderFraction": 0.0007904828725729887,
+        //         "leaderCommission": 0,
+        //         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        //         "maxDistributable": 94856870.164485,
+        //         "maxWithdrawable": 742557.680863,
+        //         "isClosed": false,
+        //         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        //         "allowDeposits": true,
+        //         "alwaysCloseOnWithdraw": false
+        //     }
+        //
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingDelegations
+     * @description fetch the amounts of HYPE the user delegated to each validator
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of delegations as returned by the exchange
+     */
+    async fetchStakingDelegations (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingDelegations', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingDelegations', params), 1, {});
+        const request: Dict = {
+            'type': 'delegations',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //             "amount": "12060.16529862",
+        //             "lockedUntilTimestamp": 1735466781353
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingSummary
+     * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} the staking summary as returned by the exchange
+     */
+    async fetchStakingSummary (params: Dict = {}): Promise<Dict> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingSummary', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingSummary', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorSummary',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "delegated": "12060.16529862",
+        //         "undelegated": "0.0",
+        //         "totalPendingWithdrawal": "0.0",
+        //         "nPendingWithdrawals": 0
+        //     }
+        //
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingHistory
+     * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking events as returned by the exchange
+     */
+    async fetchStakingHistory (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingHistory', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingHistory', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorHistory',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1735380381353,
+        //             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        //             "delta": {
+        //                 "delegate": {
+        //                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //                     "amount": "10000.0",
+        //                     "isUndelegate": false
+        //                 }
+        //             }
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingRewards
+     * @description fetch the staking rewards earned by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking rewards as returned by the exchange
+     */
+    async fetchStakingRewards (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingRewards', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingRewards', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorRewards',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1736726400073,
+        //             "source": "delegation",
+        //             "totalAmount": "0.73117184"
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchAccounts
@@ -5633,11 +6153,12 @@ export default class hyperliquid extends Exchange {
         if (tokenName !== undefined) {
             return this.safeCurrencyCode (tokenName);
         }
-        // the cache is filled by fetchCurrencies, look the index up in the currencies when they were set from elsewhere
+        // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            if (this.safeString (this.currencies[code], 'id') === tokenIndex) {
+            const currencyInfo = this.safeDict (this.currencies[code], 'info', {});
+            if (this.safeString (currencyInfo, 'index') === tokenIndex) {
                 return code;
             }
         }

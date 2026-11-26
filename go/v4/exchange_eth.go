@@ -212,6 +212,12 @@ type TwapCancelMessage struct {
 	T    int    `json:"t" msgpack:"t"`
 }
 
+// Actions that only carry their type (noop, claimRewards)
+
+type TypeOnlyMessage struct {
+	Type string `json:"type" msgpack:"type"`
+}
+
 // ScheduleCancel message
 
 type ScheduleCancelMessage struct {
@@ -662,6 +668,15 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		return msgpackEncode(msg)
 	case "twapCancel":
 		var msg TwapCancelMessage
+
+		err := decodeHyperliquidMessage(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		return msgpackEncode(msg)
+	case "noop", "claimRewards":
+		var msg TypeOnlyMessage
 
 		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {

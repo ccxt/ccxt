@@ -3320,6 +3320,260 @@
                 ]
             }
         ],
+        "fetchApprovedBuilders": [
+            {
+                "description": "builders approved by a user",
+                "method": "fetchApprovedBuilders",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    "0x476fa87b4d3818f437f38f1263bee508d7672d82"
+                ],
+                "parsedResponse": [
+                    "0x476fa87b4d3818f437f38f1263bee508d7672d82"
+                ]
+            }
+        ],
+        "fetchVaultDetails": [
+            {
+                "description": "details of a vault",
+                "method": "fetchVaultDetails",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                ],
+                "httpResponse": {
+                    "name": "Test",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+                    "description": "This community-owned vault provides liquidity to Hyperliquid",
+                    "portfolio": [
+                        [
+                            "day",
+                            {
+                                "accountValueHistory": [
+                                    [
+                                        1734397526634,
+                                        "329265410.90790099"
+                                    ]
+                                ],
+                                "pnlHistory": [
+                                    [
+                                        1734397526634,
+                                        "0.0"
+                                    ]
+                                ],
+                                "vlm": "0.0"
+                            }
+                        ]
+                    ],
+                    "apr": 0.36387129259090006,
+                    "followerState": null,
+                    "leaderFraction": 0.0007904828725729887,
+                    "leaderCommission": 0,
+                    "followers": [
+                        {
+                            "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c",
+                            "vaultEquity": "714491.71026243",
+                            "pnl": "3203.43553709",
+                            "allTimePnl": "79843.74476046",
+                            "daysFollowing": 388,
+                            "vaultEntryTime": 1700926145201,
+                            "lockupUntil": 1734824439201
+                        }
+                    ],
+                    "maxDistributable": 94856870.164485,
+                    "maxWithdrawable": 742557.680863,
+                    "isClosed": false,
+                    "relationship": {
+                        "type": "parent",
+                        "data": {
+                            "childAddresses": [
+                                "0x010461c14e146ac35fe42271bdc1134ee31c703a"
+                            ]
+                        }
+                    },
+                    "allowDeposits": true,
+                    "alwaysCloseOnWithdraw": false
+                },
+                "parsedResponse": {
+                    "name": "Test",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+                    "description": "This community-owned vault provides liquidity to Hyperliquid",
+                    "portfolio": [
+                        [
+                            "day",
+                            {
+                                "accountValueHistory": [
+                                    [
+                                        1734397526634,
+                                        "329265410.90790099"
+                                    ]
+                                ],
+                                "pnlHistory": [
+                                    [
+                                        1734397526634,
+                                        "0.0"
+                                    ]
+                                ],
+                                "vlm": "0.0"
+                            }
+                        ]
+                    ],
+                    "apr": 0.36387129259090006,
+                    "followerState": null,
+                    "leaderFraction": 0.0007904828725729887,
+                    "leaderCommission": 0,
+                    "followers": [
+                        {
+                            "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c",
+                            "vaultEquity": "714491.71026243",
+                            "pnl": "3203.43553709",
+                            "allTimePnl": "79843.74476046",
+                            "daysFollowing": 388,
+                            "vaultEntryTime": 1700926145201,
+                            "lockupUntil": 1734824439201
+                        }
+                    ],
+                    "maxDistributable": 94856870.164485,
+                    "maxWithdrawable": 742557.680863,
+                    "isClosed": false,
+                    "relationship": {
+                        "type": "parent",
+                        "data": {
+                            "childAddresses": [
+                                "0x010461c14e146ac35fe42271bdc1134ee31c703a"
+                            ]
+                        }
+                    },
+                    "allowDeposits": true,
+                    "alwaysCloseOnWithdraw": false
+                }
+            }
+        ],
+        "fetchStakingDelegations": [
+            {
+                "description": "staking delegations of a user",
+                "method": "fetchStakingDelegations",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "amount": "12060.16529862",
+                        "lockedUntilTimestamp": 1735466781353
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "amount": "12060.16529862",
+                        "lockedUntilTimestamp": 1735466781353
+                    }
+                ]
+            }
+        ],
+        "fetchStakingSummary": [
+            {
+                "description": "staking summary of a user",
+                "method": "fetchStakingSummary",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "delegated": "12060.16529862",
+                    "undelegated": "0.0",
+                    "totalPendingWithdrawal": "0.0",
+                    "nPendingWithdrawals": 0
+                },
+                "parsedResponse": {
+                    "delegated": "12060.16529862",
+                    "undelegated": "0.0",
+                    "totalPendingWithdrawal": "0.0",
+                    "nPendingWithdrawals": 0
+                }
+            }
+        ],
+        "fetchStakingHistory": [
+            {
+                "description": "staking history of a user",
+                "method": "fetchStakingHistory",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1735380381353,
+                        "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+                        "delta": {
+                            "delegate": {
+                                "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                                "amount": "10000.0",
+                                "isUndelegate": false
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "time": 1735380381353,
+                        "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+                        "delta": {
+                            "delegate": {
+                                "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                                "amount": "10000.0",
+                                "isUndelegate": false
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchStakingRewards": [
+            {
+                "description": "staking rewards of a user",
+                "method": "fetchStakingRewards",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1736726400073,
+                        "source": "delegation",
+                        "totalAmount": "0.73117184"
+                    },
+                    {
+                        "time": 1736726400073,
+                        "source": "commission",
+                        "totalAmount": "130.76445876"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "time": 1736726400073,
+                        "source": "delegation",
+                        "totalAmount": "0.73117184"
+                    },
+                    {
+                        "time": 1736726400073,
+                        "source": "commission",
+                        "totalAmount": "130.76445876"
+                    }
+                ]
+            }
+        ],
         "fetchAccounts": [
             {
                 "description": "two sub-accounts",
