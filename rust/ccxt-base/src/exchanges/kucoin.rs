@@ -10841,7 +10841,7 @@ impl Kucoin {
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut request).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            isContract = matches!(market, Some(crate::types::Market { contract: true, .. }));
+            isContract = self.safe_bool_k_opt(&market, "contract", &[Value::Bool(false)]).unwrap_or(false);
         }  else if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")));
         }  else {

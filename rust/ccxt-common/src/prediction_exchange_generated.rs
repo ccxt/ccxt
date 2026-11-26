@@ -1013,7 +1013,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
             while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (outcomeSymbols.len() as i64) } {
-            self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
+            self.fetch_outcome(self.safe_string(outcomeSymbols, Value::Int(i), &[Value::Str("".into())])).await;
         }
         }
         return Value::from(&self.pred().outcomes);

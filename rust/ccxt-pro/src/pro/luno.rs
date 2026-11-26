@@ -65,12 +65,7 @@ impl crate::exchange::DerivedExchange for Luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let mut symbol: Option<String> = None;
-        if (market.is_none()) {
-            symbol = None;
-        }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
-        }
+        let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());

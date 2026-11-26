@@ -2868,8 +2868,9 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_26: bool = true;
             while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < outcomesLength } {
-            self.load_outcome((outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str(), &[]).await;
-            let outcomeObj: Option<crate::types::Market> = self.outcome((outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
+            let outcomeItem: String = self.safe_string(&outcomesList, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            self.load_outcome(Some(outcomeItem.as_str()), &[]).await;
+            let outcomeObj: Option<crate::types::Market> = self.outcome(Some(outcomeItem.as_str()));
             let marketHash: Value = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]);
             if (self.safe_bool(&seenHashes, marketHash.clone(), &[]) == Value::Null) {
                 seenHashes.insert(crate::runtime::stringify_param(&marketHash), Value::Bool(true));
