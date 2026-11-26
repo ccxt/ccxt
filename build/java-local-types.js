@@ -19690,6 +19690,11 @@ export function installJavaStringReturns (transpiler) {
             return printer.javaExpressionPrintsType (node.whenTrue, target) && printer.javaExpressionPrintsType (node.whenFalse, target);
         }
         try {
+            // `a * b` (also - and /) of two Double locals prints a null-guarded double product, boxed to Double
+            if (target === 'Double' && ts.isBinaryExpression (node) && [ ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.SlashToken ].includes (node.operatorToken.kind)
+                && [ node.left, node.right ].every ((o) => ts.isIdentifier (o) && printer.printNode (o, 0) === o.text && printer.javaDeclaredTypeOf (o) === 'Double')) {
+                return /^\(\(\w+ == null \|\| \w+ == null\) \? null : \(\(\(double\) \w+\) [*\/-] \(\(double\) \w+\)\)\)$/.test (printer.printNode (node, 0));
+            }
             if (ts.isIdentifier (node)) {
                 return printer.printNode (node, 0) === node.text && printer.javaDeclaredTypeOf (node) === target;
             }
