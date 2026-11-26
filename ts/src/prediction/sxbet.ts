@@ -1062,7 +1062,7 @@ export default class sxbet extends Exchange {
             'amount': amount,
             'fee': undefined,
             'trades': [],
-        }, outcomeObj as any);
+        }, outcomeObj);
     }
 
     /**
@@ -2513,7 +2513,7 @@ export default class sxbet extends Exchange {
                 if (this.safeString (watchedTickers, sym) !== marketHash) {
                     continue;
                 }
-                const outcomeObj = this.outcome (sym) as any;
+                const outcomeObj = this.outcome (sym);
                 const ticker = this.parsePredictionTicker (raw, outcomeObj);
                 this.setWsOption ('wsTickers', sym, ticker as any);
                 client.resolve (ticker, 'ticker::' + sym);

@@ -1266,7 +1266,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchSettlements() is not supported yet');
     }
 
-    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Dict | undefined = undefined): PredictionOrder {
+    safePredictionOrder (outcomeOrder: Dict, outcomeObj: Market = undefined): PredictionOrder {
         // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
         // ~a dozen derivatives fields — stopPrice/triggerPrice/reduceOnly noise — the prediction type
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
@@ -1567,7 +1567,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parsePredictionTrades (trades: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): PredictionTrade[] {
+    parsePredictionTrades (trades: any[], outcomeObj: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): PredictionTrade[] {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
         // instead — and an outcome object rebuilt from cached markets may still hold a legacy
@@ -1596,7 +1596,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parsePredictionOrders (orders: any[], outcomeObj: any = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): PredictionOrder[] {
+    parsePredictionOrders (orders: any[], outcomeObj: Market = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): PredictionOrder[] {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         const rows = this.toArray (orders);
         let results: PredictionOrder[] = [];

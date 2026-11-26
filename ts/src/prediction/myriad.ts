@@ -2011,7 +2011,7 @@ export default class myriad extends Exchange {
         return Precise.stringDiv (decimalString, scale);
     }
 
-    parseTradeTx (txHash: Str, quote: Dict, market: Dict, side: string): PredictionOrder {
+    parseTradeTx (txHash: Str, quote: Dict, market: Market, side: string): PredictionOrder {
         return this.safePredictionOrder ({
             'id': txHash,
             'clientOrderId': undefined,

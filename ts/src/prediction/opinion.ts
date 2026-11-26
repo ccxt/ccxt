@@ -756,7 +756,7 @@ export default class opinion extends Exchange {
             const priceResponse = this.safeDict (responses, priceIndex);
             const bookResponse = this.safeDict (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
-            const ticker = this.parsePredictionTicker (response, outcomeObj as any);
+            const ticker = this.parsePredictionTicker (response, outcomeObj);
             const symbolKey = this.safeString (ticker, 'outcome');
             if (symbolKey !== undefined) {
                 result[symbolKey] = ticker;
@@ -1198,7 +1198,7 @@ export default class opinion extends Exchange {
             'filled': this.safeNumber (order, 'filledShares'),
             'fee': undefined,
             'trades': [],
-        }, market as any);
+        }, market);
     }
 
     /**
@@ -2069,7 +2069,7 @@ export default class opinion extends Exchange {
             'filled': this.safeNumber (message, 'filledShares'),
             'fee': undefined,
             'trades': [],
-        }, outcomeObj);
+        }, outcomeObj as Market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheByOutcomeById (limit);
