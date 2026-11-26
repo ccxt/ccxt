@@ -343,7 +343,7 @@ type ICoreExchange interface {
 	Extend(aa any, bb ...any) map[string]any
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
-	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) string
+	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...int) string
 	NetworkCodeToId(networkCode any, optionalArgs ...any) *string
 	NetworkIdToCode(optionalArgs ...any) *string
 	SafeValueN(obj any, keys any, defaultValue ...any) any
