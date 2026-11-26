@@ -5566,6 +5566,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     [ {"0":"IOrderBookSide","1":"[]any"}, 'handleDeltas' ],
     [ {"1":"[]string","2":"[]string"}, 'watchTopics' ],
     [ {"3":"[]string","4":"[]string","5":"[]string"}, 'unWatchTopics' ],
+    [ {"0":"[]any"}, 'setEvents' ],
 ]);
 const GO_WRAPPER_SLICE_CONVERSIONS: { [tsType: string]: string } = { 'OrderRequest[]': 'ConvertOrderRequestListToArray', 'CancellationRequest[]': 'ConvertCancellationRequestListToArray', 'string[][]': 'ConvertStringMatrixToArray', 'string[]': 'StringSliceToList' };
 const GO_UNCALLED_STRING_PARAMS: { [method: string]: number[] } = { 'bingx.getOrderBookLimitByMarketType': [ 0 ], 'hitbtc.convertCurrencyNetwork': [ 2, 3 ], 'hyperliquid.resolveOutcomeInput': [ 0 ] };
