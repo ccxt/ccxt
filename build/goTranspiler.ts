@@ -14682,7 +14682,40 @@ function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: s
         const writes = (masked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ?? []);
         return (writes.length === 1) && (writes[0].trim ().endsWith ('++')) ? { kind: 'int', nonneg: true } : { kind: 'int', nonneg: false };
     }
-    return ((kind === 'int') || (kind === 'int64')) ? { kind, nonneg: false } : undefined;
+    if ((kind !== 'int') && (kind !== 'int64')) { return undefined; }
+    return { kind, nonneg: (m[2] === undefined) ? goSliceNonNegLocal (m[1], masked, new Set ()) : false };
+}
+
+// every write of a once-declared int local is a len(), a non-negative literal, a sum of those, a proven local,
+// or `x = y` directly under `if y >= 0 {` with y such a local proven by its own writes or a single write
+function goSliceNonNegLocal (name: string, masked: string, seen: Set<string>): boolean {
+    if (seen.has (name) || (seen.size > 6)) { return false; }
+    seen.add (name);
+    const kind = goStringOperandDeclaredType (masked, name);
+    if ((kind !== 'int') && (kind !== 'int64')) { return false; }
+    const n = name.replace (/\$/g, '\\$');
+    if (new RegExp ('&' + n + '\\b|(?<![\\w.])' + n + '\\s*(?:[-+*/%|&^]=|\\+\\+|--)').test (masked)) { return false; }
+    const leaf = (e: string): boolean => {
+        if (/^(?:int64\()?\d{1,9}\)?$/.test (e) || /^(?:int64\()?len\(\(?\*?[A-Za-z_][\w.]*\)?\)\)?$/.test (e)) { return true; }
+        const l = /^(?:int64\()?([A-Za-z_]\w*)\)?$/.exec (e);
+        return (l !== null) && goSliceNonNegLocal (l[1], masked, new Set (seen));
+    };
+    const expr = (e: string): boolean => e.split ('+').every ((p) => leaf (p.trim ()));
+    const lines = masked.split ('\n');
+    let writes = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const d = new RegExp ('^\\s*var ' + n + ' \\w+(?: = (.*))?$').exec (lines[i]);
+        const w = new RegExp ('(?<![\\w.])' + n + ' = (.*)$').exec (lines[i]);
+        if ((d === null) && (w === null)) { continue; }
+        writes++;
+        const rhs = (d !== null) ? d[1] : w[1];
+        if ((rhs === undefined) || expr (rhs.trim ())) { continue; }
+        const g = /^([A-Za-z_]\w*)$/.exec (rhs.trim ());
+        const guard = (g !== null) && (i > 0) && new RegExp ('^\\s*if ' + g[1] + ' >= 0 \\{$').test (lines[i - 1]);
+        if (!guard || !/^\s*var /.test (masked.split ('\n').find ((x) => new RegExp ('^\\s*var ' + g[1] + ' ').test (x)) ?? '')
+            || new RegExp ('(?<![\\w.])' + g[1] + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)|&' + g[1] + '\\b').test (masked)) { return false; }
+    }
+    return writes > 0;
 }
 
 // `Slice(s, a, b)` with int-typed bounds: a negative bound counts from the end (indicator min(max(-x, 0), 1)),
@@ -14926,6 +14959,11 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s string = "ab"\n\tvar e int64 = int64(len(s)) - 1\n\treturn Slice(s, 0, e)\n').includes ('s[0:min(e+int64(len(s))*min(max(-e, 0), 1), int64(len(s)))]'), 'int64 bound local clamps natively');
     ok (f ('\tvar s string = "ab"\n\tfor i := 0; i < 2; i++ {\n\t\t_ = Slice(s, i, nil)\n\t}\n\treturn nil\n').includes ('_ = s[i:]'), 'for counter start is non-negative');
     ok (f ('\tvar s string = "ab"\n\tvar e any = 1\n\treturn Slice(s, 0, e)\n').includes ('Slice(s, 0, e)'), 'any bound keeps the helper');
+    ok (f ('\tvar s string = "ab"\n\tvar a int = len(s)\n\tvar i int = strings.Index(s, "?")\n\tvar e int\n\tif i >= 0 {\n\t\te = i\n\t} else {\n\t\te = a + 1\n\t}\n\treturn Slice(s, a, e)\n').includes ('s[a:min(e, len(s))]'), 'len and guarded index bounds slice plainly');
+    ok (f ('\tvar s string = "ab"\n\tvar i int = strings.Index(s, "?")\n\treturn Slice(s, 0, i)\n').includes ('min(max(-i, 0), 1)'), 'unguarded index bound keeps the clamp');
+    ok (f ('\tvar s string = "ab"\n\tvar e int64 = int64(len(s)) - 3\n\treturn Slice(s, 0, e)\n').includes ('min(max(-e, 0), 1)'), 'difference bound keeps the clamp');
+    ok (goTypedStrNativeStringHelpers ('x/foo.go', 'package ccxt\n\n' + GO_CONTRIBUTING_HEADER () + '\n\nfunc (this *X) f(e int) any {\n\tvar s string = "ab"\n\treturn Slice(s, 0, e)\n}\n').indexOf ('s[0:min(e, len(s))]') < 0, 'parameter bound is not proven');
+    ok (f ('\tvar s string = "ab"\n\tvar e int = len(s)\n\te -= 3\n\treturn Slice(s, 0, e)\n').includes ('min(max(-e, 0), 1)'), 'decremented local keeps the clamp');
     ok (f ('\tvar t *string = this.SafeString(m, "k")\n\treturn Split(t, ".")\n').indexOf ('Split(t, ".")') >= 0, 'nullable SafeString keeps the helper');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\tt = this.SafeString(m, "j")\n\treturn Split(t, ".")\n').indexOf ('strings.Split') < 0, 'rewritten local keeps the helper');
     ok (f ('\tvar n *int64 = this.SafeInteger(m, "k", 100)\n\treturn ToString(n)\n').indexOf ('strconv.FormatInt(*n, 10)') >= 0, 'defaulted SafeInteger goes native');
