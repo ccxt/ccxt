@@ -1794,17 +1794,6 @@ func Replace(input any, old any, new any) string {
 	return strings.ReplaceAll(str, oldStr, newStr)
 }
 
-// PadStart pads the input string on the left with padStr until it reaches the specified length
-func PadStart(input any, length2 any, padStr any) string {
-	length := int(ParseInt(length2))
-	str := ToString(input)
-	pad := ToString(padStr)
-	for len(str) < length {
-		str = pad + str
-	}
-	return str[len(str)-length:]
-}
-
 // DateNow returns the current date and time as a string
 func DateNow() string {
 	return time.Now().Format(time.RFC3339)

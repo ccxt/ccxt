@@ -3271,10 +3271,12 @@ export default class grvt extends Exchange {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.hash (ethEncodedMessage, keccak, 'hex'), privateKeyWithoutZero, secp256k1, undefined);
+        const rHex = this.safeString (signature, 'r', '');
+        const sHex = this.safeString (signature, 's', '');
         const signatureEntry: Dict = {
             'signer': undefined,
-            'r': this.formatSignatureRS (signature['r']),
-            's': this.formatSignatureRS (signature['s']),
+            'r': this.formatSignatureRS (rHex),
+            's': this.formatSignatureRS (sHex),
             'v': this.sum (27, signature['v']),
             'expiration': requestSignature['expiration'],
             'nonce': requestSignature['nonce'],

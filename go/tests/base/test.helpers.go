@@ -332,10 +332,6 @@ func Replace(input interface{}, old interface{}, new interface{}) string {
 	return ccxt.Replace(input, old, new)
 }
 
-func PadStart(input interface{}, length int, padStr interface{}) string {
-	return ccxt.PadStart(input, length, padStr)
-}
-
 func DateNow() string {
 	return ccxt.DateNow()
 }

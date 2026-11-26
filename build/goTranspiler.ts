@@ -14626,6 +14626,8 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
         const last = parsed.args[parsed.args.length - 1];
         // the method returns the default when the key is absent, so a literal default is never nil
         if ((strOperandKind === '*string') && (goTypedStrSafeStringArity ()[call[1]] === parsed.args.length) && GO_STRING_LITERAL_RX ().test (last)) { return { kind: 'string', text: '*' + arg }; }
+        // NumberToString of a value-typed int/int64/float64 local never returns nil
+        if ((strOperandKind === '*string') && (call[1] === 'NumberToString') && (parsed.args.length === 1) && [ 'int', 'int64', 'float64' ].includes (goStringOperandDeclaredType (masked, parsed.args[0]) ?? '')) { return { kind: 'string', text: '*' + arg }; }
         if ((strOperandKind === '*int64') && (call[1] === 'SafeInteger') && (parsed.args.length === 3) && GO_SMALL_INT_LITERAL_RX ().test (last)) { return { kind: 'int64', text: '*' + arg }; }
         return undefined;
     }
