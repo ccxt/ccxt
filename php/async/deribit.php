@@ -3473,8 +3473,7 @@ class deribit extends Exchange {
         $duration = $this->parse_timeframe($eachItemDuration) * 1000;
         $now = $this->milliseconds();
         $month = 30 * 24 * 60 * 60 * 1000;
-        $defaultSince = $now - $month;
-        $sinceResolved = ($since === null) ? $defaultSince : $since;
+        $sinceResolved = ($since === null) ? ($now - $month) : $since;
         $time = $now;
         if ($since !== null) {
             $time = $this->parse_to_int($since . $month);

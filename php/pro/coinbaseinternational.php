@@ -1605,7 +1605,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 $this->handle_authentication_message($client, $message);
                 return;
             }
-            $client->resolve($this->safe_value($message, 'result', $message), $requestId);
+            if (is_array($message) && array_key_exists('result' ?? '', $message)) {
+                $client->resolve($this->safe_value($message, 'result'), $requestId);
+            } else {
+                $client->resolve($message, $requestId);
+            }
         }
     }
 

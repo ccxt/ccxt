@@ -538,7 +538,7 @@ class revolutx extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $marketIds[] = $market['id'];
+                $marketIds[] = $this->safe_string($market, 'id', '');
             }
             $request['symbols'] = implode(',', $marketIds);
         }

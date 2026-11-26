@@ -2244,7 +2244,7 @@ class bybit extends Exchange {
             $expiryDatetime = $this->iso8601($expiry);
             $symbol = $base . '/' . $quote . ':' . $settle;
             if ($expiry !== null) {
-                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry);
             }
             $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
             $costLimits = array(
@@ -3388,19 +3388,23 @@ class bybit extends Exchange {
             if ($this->safe_bool($marketResolved, 'spot', false)) {
                 if (Precise::string_gt($feeCostString, '0')) {
                     if ($side === 'buy') {
-                        $feeCurrencyCode = $marketResolved['base'];
+                        $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
                     } else {
-                        $feeCurrencyCode = $marketResolved['quote'];
+                        $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
                     }
                 } else {
                     if ($side === 'buy') {
-                        $feeCurrencyCode = $marketResolved['quote'];
+                        $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
                     } else {
-                        $feeCurrencyCode = $marketResolved['base'];
+                        $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
                     }
                 }
             } else {
-                $feeCurrencyCode = ($this->safe_bool($marketResolved, 'inverse', false)) ? $marketResolved['base'] : $marketResolved['settle'];
+                if ($this->safe_bool($marketResolved, 'inverse', false)) {
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
+                } else {
+                    $feeCurrencyCode = $this->safe_string($marketResolved, 'settle');
+                }
             }
             $fee = array(
                 'cost' => $feeCostString,
@@ -6097,7 +6101,7 @@ class bybit extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = $this->fetch_deposit_addresses_by_network($code, $paramsOmited);
-        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
+        $selectedNetworkCode = $this->select_network_key_from_networks($this->safe_string($currency, 'code', ''), $networkCode, $indexedAddresses, true);
         return $this->safe_dict($indexedAddresses, $selectedNetworkCode);
     }
 

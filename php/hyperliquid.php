@@ -4862,7 +4862,8 @@ class hyperliquid extends Exchange {
             $record = $records[$i];
             if ($this->safe_string($record, 'type') === 'vaultDeposit') {
                 $delta = $this->safe_dict($record, 'delta', array());
-                if ($this->safe_string($delta, 'vault', '') === '0x' . $vaultAddress) {
+                $deltaVault = $this->safe_string($delta, 'vault', '');
+                if ($deltaVault === '0x' . $vaultAddress) {
                     $deposits[] = $record;
                 }
             }
@@ -4927,7 +4928,8 @@ class hyperliquid extends Exchange {
             $record = $records[$i];
             if ($this->safe_string($record, 'type') === 'vaultWithdraw') {
                 $delta = $this->safe_dict($record, 'delta', array());
-                if ($this->safe_string($delta, 'vault', '') === '0x' . $vaultAddress) {
+                $deltaVault = $this->safe_string($delta, 'vault', '');
+                if ($deltaVault === '0x' . $vaultAddress) {
                     $withdrawals[] = $record;
                 }
             }

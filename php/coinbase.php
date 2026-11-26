@@ -1591,14 +1591,14 @@ class coinbase extends Exchange {
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $futureMarket = $this->parse_contract_market($futureData[$i]);
+            $futureMarket = $this->parse_contract_market($this->safe_dict($futureData, $i, array()));
             if ($futureMarket !== null) {
                 $result[] = $futureMarket;
             }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $perpetualMarket = $this->parse_contract_market($perpetualData[$i]);
+            $perpetualMarket = $this->parse_contract_market($this->safe_dict($perpetualData, $i, array()));
             if ($perpetualMarket !== null) {
                 $result[] = $perpetualMarket;
             }

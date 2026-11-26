@@ -1538,7 +1538,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         throw new NotSupported($this->id . ' parsePredictionOpenInterest() is not supported yet');
     }
 
-    public function parse_prediction_trades(array $trades, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_prediction_trades(array $trades, ?array $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
          * parses a list of raw $trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
@@ -1565,7 +1565,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->filter_by_value_since_limit($results, 'outcome', $outcomeHandle, $since, $limit, 'timestamp', false);
     }
 
-    public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_prediction_orders(array $orders, ?array $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
          * parses a list of raw $orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders

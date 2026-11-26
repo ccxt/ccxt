@@ -780,10 +780,11 @@ class sxbet extends Exchange {
          *
          * @see https://docs.sx.bet/api-reference/get-user-proxy
          *
-         * @return {array} the raw proxy data (array(obv3ProxyWalletAddress, deployed, multisigSafeAddress))
+         * @return {array} the raw proxy $data (array(obv3ProxyWalletAddress, deployed, multisigSafeAddress))
          */
         $response = Async\await($this->sxbetPrivateGetUserProxy());
-        return $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
+        return $data;
     }
 
     public function approve($params = array()): PromiseInterface {
@@ -1875,11 +1876,12 @@ class sxbet extends Exchange {
          * @see https://docs.sx.bet/api-reference/get-orderbook-snapshot
          *
          * @param {string} $marketHash the market hash
-         * @return {array} the raw snapshot data
+         * @return {array} the raw snapshot $data
          */
         $request = array( 'marketHash' => $marketHash );
         $response = Async\await($this->sxbetPublicGetOrderbookV3Snapshot($request));
-        return $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
+        return $data;
     }
 
     public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {

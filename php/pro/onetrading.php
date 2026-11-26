@@ -1163,9 +1163,7 @@ class onetrading extends \ccxt\async\onetrading {
             }
         }
         $marketTimeframes = $this->safe_dict($subscription, $marketId, array());
-        if ($timeframe !== null) {
-            $marketTimeframes[$timeframe] = true;
-        }
+        $marketTimeframes[$timeframe] = true;
         $subscription[$marketId] = $marketTimeframes;
         $properties = array();
         $marketIds = is_array($subscription) ? array_keys($subscription) : array();

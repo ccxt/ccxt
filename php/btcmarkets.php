@@ -871,9 +871,9 @@ class btcmarkets extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, '-');
         $feeCurrencyCode = null;
         if ($marketResolved['quote'] === 'AUD') {
-            $feeCurrencyCode = $marketResolved['quote'];
+            $feeCurrencyCode = $this->safe_string($marketResolved, 'quote');
         } else {
-            $feeCurrencyCode = $marketResolved['base'];
+            $feeCurrencyCode = $this->safe_string($marketResolved, 'base');
         }
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {

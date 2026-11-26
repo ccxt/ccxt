@@ -1955,8 +1955,7 @@ class kucoin extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             $type = 'swap';
             if ($future) {
-                $expirySuffix = '-' . $this->yymmdd($expiry, '');
-                $symbol = $symbol . $expirySuffix;
+                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
                 $type = 'future';
             }
             $inverse = $this->safe_bool($market, 'isInverse');
@@ -4380,8 +4379,8 @@ class kucoin extends Exchange {
         if (($postOnly) && ($hidden !== null)) {
             throw new BadRequest($this->id . ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
-        $iceberg = $this->safe_value($paramsOmitted, 'iceberg');
-        if (($iceberg !== null) && ($iceberg !== false)) {
+        $iceberg = $this->safe_bool($paramsOmitted, 'iceberg', false);
+        if ($iceberg) {
             $visibleSize = $this->safe_string($paramsOmitted, 'visibleSize');
             if ($visibleSize === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a visibleSize parameter for iceberg orders');
@@ -5353,9 +5352,9 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $request['symbol'] = $this->market_id($symbol);
         }
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
-        if (($trigger !== null) && ($trigger !== false)) {
+        if ($trigger) {
             $response = $this->futuresPrivateDeleteStopOrders($this->extend($request, $paramsOmitted));
         } else {
             $response = $this->futuresPrivateDeleteOrders($this->extend($request, $paramsOmitted));
@@ -5478,7 +5477,7 @@ class kucoin extends Exchange {
             }
         } else {
             $market = $this->market($symbol);
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         if ($uta) {
             $paramsRequest = $this->omit($paramsRequest, 'uta');

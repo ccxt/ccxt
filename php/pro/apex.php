@@ -11,7 +11,6 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NetworkError;
 use React\Async;
-use React\Promise;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
@@ -884,17 +883,11 @@ class apex extends \ccxt\async\apex {
 
     private function do_load_positions_snapshot(Client $client, string $messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        $fetchFunctions = array(
-            $this->fetch_positions(),
-        );
-        $promises = Async\await(Promise\all($fetchFunctions));
+        $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
-        for ($i = 0; $i < count($promises); $i++) {
-            $positions = $promises[$i];
-            for ($ii = 0; $ii < count($positions); $ii++) {
-                $cache->append($positions[$ii]);
-            }
+        for ($i = 0; $i < count($positions); $i++) {
+            $cache->append($positions[$i]);
         }
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {

@@ -13,7 +13,6 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
-use React\Promise;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
 use ccxt\pro\ArrayCacheBySymbolById;
@@ -1767,19 +1766,15 @@ class bybit extends \ccxt\async\bybit {
 
     private function do_load_positions_snapshot(Client $client, string $messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        $fetchFunctions = array(
-            $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
-            $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )),
-        );
-        $promises = Async\await(Promise\all($fetchFunctions));
+        $linearPositions = Async\await($this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )));
+        $inversePositions = Async\await($this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )));
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
-        for ($i = 0; $i < count($promises); $i++) {
-            $positions = $promises[$i];
-            for ($ii = 0; $ii < count($positions); $ii++) {
-                $position = $positions[$ii];
-                $cache->append($position);
-            }
+        for ($i = 0; $i < count($linearPositions); $i++) {
+            $cache->append($linearPositions[$i]);
+        }
+        for ($i = 0; $i < count($inversePositions); $i++) {
+            $cache->append($inversePositions[$i]);
         }
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {

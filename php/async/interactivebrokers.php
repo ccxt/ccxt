@@ -31,7 +31,7 @@ class interactivebrokers extends Exchange {
             'name' => 'Interactive Brokers',
             'countries' => array( 'US' ),
             'version' => 'v1',
-            'rateLimit' => 100 * 1.2, // the client portal gateway allows ~10 requests per second
+            'rateLimit' => 120, // the client portal gateway allows ~10 requests per second
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -1370,8 +1370,7 @@ class interactivebrokers extends Exchange {
         }
         $results = Async\await(Promise\all($promises));
         $markets = $this->arrays_concat($results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return $this->to_array($this->ibkr_disambiguate_contract_symbols($markets));
+        return $this->ibkr_disambiguate_contract_symbols($markets);
     }
 
     public function ibkr_disambiguate_contract_symbols(array $markets): array {
@@ -2616,9 +2615,9 @@ class interactivebrokers extends Exchange {
         if ($isContract) {
             $settleId = $quoteId;
             $settle = $quote;
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '.' . $microNanoPrefix . $listingExchange . '/' . $quote . ':' . $settle;
             if ($isFuture) {
-                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $symbol = $base . '.' . $microNanoPrefix . $listingExchange . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry);
             }
         }
         $marketType = 'spot';

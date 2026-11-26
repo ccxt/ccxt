@@ -4488,7 +4488,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < $oldest; $i++) {
             $trade = $this->safe_dict($trades, $i, array());
             $ts = $this->safe_integer($trade, 'timestamp');
-            $price = $trade['price'];
+            $price = $this->safe_number($trade, 'price');
             if (($ts === null) || ($price === null)) {
                 continue;
             }
@@ -5382,7 +5382,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' createExpiredOptionMarket () is not supported yet');
     }
 
-    public function is_leveraged_currency(mixed $currencyCode, ?bool $checkBaseCoin = false, ?array $existingCurrencies = null) {
+    public function is_leveraged_currency(string $currencyCode, ?bool $checkBaseCoin = false, ?array $existingCurrencies = null) {
         $leverageSuffixes = array(
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
             'UP', 'DOWN', // exchange-specific (e.g. BLVT)
@@ -5814,11 +5814,11 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function handle_trigger_prices_and_params(mixed $symbol, array $params, $omitParams = true) {
         //
-        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $triggerPriceStr = null;
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $stopLossPriceStr = null;
-        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
         $takeProfitPriceStr = null;
         //
         $keysToOmit = array();

@@ -643,10 +643,11 @@ class bitget extends \ccxt\async\bitget {
             $args['interval'] = $interval;
             $messageHash = 'kline' . $symbol;
         } else {
-            $channel = 'candle' . $interval;
+            $intervalValue = $this->safe_string($timeframes, $timeframe, '');
+            $channel = 'candle' . $intervalValue;
             $args['channel'] = $channel;
             $args['instId'] = $market['id'];
-            $messageHash = 'candles:' . $interval;
+            $messageHash = 'candles:' . $intervalValue;
         }
         return Async\await($this->un_watch_channel($symbol, $channel, $messageHash, 'watchOHLCV', $paramsRequest));
     }

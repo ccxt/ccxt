@@ -4263,7 +4263,7 @@ class mexc extends Exchange {
                 }
             } else {
                 $market = $this->market($symbol);
-                $parsedSymbols = $market['id'];
+                $parsedSymbols = $this->safe_string($market, 'id');
             }
             $this->check_required_argument('fetchBalance', $parsedSymbols, 'symbol or symbols');
             $marketType = 'margin';

@@ -2277,11 +2277,10 @@ class hyperliquid extends Exchange {
         if ($address === null) {
             return null;
         }
-        $normalized = $address;
-        if (str_starts_with($normalized, '0x') || str_starts_with($normalized, '0X')) {
-            $normalized = mb_substr($normalized, 2);
+        if (str_starts_with($address, '0x') || str_starts_with($address, '0X')) {
+            return strtolower(mb_substr($address, 2));
         }
-        return strtolower($normalized);
+        return strtolower($address);
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'POST', $params = array()) {

@@ -2176,7 +2176,7 @@ class bitstamp extends Exchange {
             $amount = $transactionAmount;
         } elseif ($currency !== null) {
             $amount = $this->safe_string($transaction, $currency['id']);
-            $feeCurrency = $currency['code'];
+            $feeCurrency = $this->safe_string($currency, 'code');
         } elseif (($code !== null) && ($currencyId !== null)) {
             $amount = $this->safe_string($transaction, $currencyId);
             $feeCurrency = $code;

@@ -671,16 +671,18 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $lastHistoryTimestamp = null;
         for ($i = 0; $i < count($data); $i++) {
             $parsed = $this->parse_ohlcv($data[$i], $market);
-            $timestamp = $parsed[0];
-            if ($timestamp === null) {
+            if ($this->safe_integer($parsed, 0) === null) {
                 continue;
             }
+            $timestamp = $this->safe_integer($parsed, 0, 0);
             if ($timestamp < 100000000000) {
                 $timestamp = $timestamp * 1000; // seconds
                 $parsed[0] = $timestamp;
             }
             $bars[] = $parsed;
-            if (($lastHistoryTimestamp === null) || ($timestamp > $lastHistoryTimestamp)) {
+            if ($lastHistoryTimestamp === null) {
+                $lastHistoryTimestamp = $timestamp;
+            } elseif ($timestamp > $lastHistoryTimestamp) {
                 $lastHistoryTimestamp = $timestamp;
             }
         }

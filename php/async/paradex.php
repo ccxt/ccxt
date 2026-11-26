@@ -3587,7 +3587,8 @@ class paradex extends Exchange {
         $leverage = $leverageOption;
         if ($leverage === null) {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
-            $currentLeverage = Async\await($this->fetch_leverage($symbol));
+            $leverageSymbol = $this->safe_string($market, 'symbol', '');
+            $currentLeverage = Async\await($this->fetch_leverage($leverageSymbol));
             $leverage = $this->safe_integer($currentLeverage, 'longLeverage');
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a params.leverage argument, the current leverage of ' . $market['symbol'] . ' could not be fetched');

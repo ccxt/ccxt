@@ -995,15 +995,14 @@ class modetrade extends \ccxt\async\modetrade {
         //     }
         //
         $topic = $this->safe_string($message, 'topic', '');
-        $data = $this->safe_value($message, 'data');
-        $dataIsArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($dataIsArray) {
+        $dataRows = $this->safe_list($message, 'data');
+        if ($dataRows !== null) {
             // algoexecutionreport
             $dataList = $this->safe_list($message, 'data', array());
             $dataListLength = count($dataList);
             for ($i = 0; $i < $dataListLength; $i++) {
                 $order = $dataList[$i];
-                $tradeIdStr = $this->safe_string($data, 'tradeId');
+                $tradeIdStr = $this->safe_string($dataRows, 'tradeId');
                 $tradeId = ($tradeIdStr === null) ? null : $this->omit_zero($tradeIdStr);
                 if ($tradeId !== null) {
                     $this->handle_my_trade($client, $order);
@@ -1012,12 +1011,12 @@ class modetrade extends \ccxt\async\modetrade {
             }
         } else {
             // executionreport
-            $tradeIdStr = $this->safe_string($data, 'tradeId');
+            $dataDict = $this->safe_dict($message, 'data', array());
+            $tradeIdStr = $this->safe_string($dataDict, 'tradeId');
             $tradeId = ($tradeIdStr === null) ? null : $this->omit_zero($tradeIdStr);
             if ($tradeId !== null) {
-                $this->handle_my_trade($client, $data);
+                $this->handle_my_trade($client, $dataDict);
             }
-            $dataDict = $this->safe_dict($message, 'data', array());
             $this->handle_order($client, $dataDict, $topic);
         }
     }

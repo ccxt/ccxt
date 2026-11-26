@@ -2166,7 +2166,8 @@ class gate extends Exchange {
         $code = $this->safe_currency_code($currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         $type = 'crypto';
-        if ($this->is_leveraged_currency($currencyId)) {
+        $leveragedId = $this->safe_string($rawCurrency, 'currency', '');
+        if ($this->is_leveraged_currency($leveragedId)) {
             $type = 'leveraged';
         }
         $chains = $this->safe_list($rawCurrency, 'chains', array());
@@ -2535,9 +2536,8 @@ class gate extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $chainsIndexedByIdRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsNetworkCode));
-        $chainsIndexedById = $chainsIndexedByIdRaw;
-        $selectedNetworkIdOrCode = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedById, true);
-        return $this->safe_dict($chainsIndexedById, $selectedNetworkIdOrCode);
+        $selectedNetworkIdOrCode = $this->select_network_key_from_networks($code, $networkCode, $chainsIndexedByIdRaw, true);
+        return $this->safe_dict($chainsIndexedByIdRaw, $selectedNetworkIdOrCode);
     }
 
     public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
@@ -6192,7 +6192,7 @@ class gate extends Exchange {
         if ($market === null) {
             $defaultSettle = 'usdt';
         } else {
-            $defaultSettle = $market['settle'];
+            $defaultSettle = $this->safe_string($market, 'settle');
         }
         $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);

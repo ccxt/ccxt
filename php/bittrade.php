@@ -1481,9 +1481,9 @@ class bittrade extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($side === 'sell') {
-                $feeCurrency = $marketResolved['quote'];
+                $feeCurrency = $this->safe_string($marketResolved, 'quote');
             } else {
-                $feeCurrency = $marketResolved['base'];
+                $feeCurrency = $this->safe_string($marketResolved, 'base');
             }
             $fee = array(
                 'cost' => $feeCost,

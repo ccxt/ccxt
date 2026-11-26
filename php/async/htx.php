@@ -6662,7 +6662,7 @@ class htx extends Exchange {
         $currency = $this->currency($code);
         list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
         $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
-        $selectedNetworkCode = $this->select_network_key_from_networks($currency['code'], $networkCode, $indexedAddresses, true);
+        $selectedNetworkCode = $this->select_network_key_from_networks($this->safe_string($currency, 'code', ''), $networkCode, $indexedAddresses, true);
         return $this->safe_dict($indexedAddresses, $selectedNetworkCode);
     }
 

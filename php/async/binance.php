@@ -10390,7 +10390,7 @@ class binance extends Exchange {
             $toId = strtoupper($this->convert_type_to_account($toAccount));
             $isolatedSymbol = null;
             if ($market !== null) {
-                $isolatedSymbol = $market['id'];
+                $isolatedSymbol = $this->safe_string($market, 'id');
             }
             if ($fromId === 'ISOLATED') {
                 if ($symbol === null) {

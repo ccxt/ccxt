@@ -1389,9 +1389,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $this->balance[$account] = array();
         }
         $this->balance[$account]['info'] = $info;
-        $this->balance[$account]['timestamp'] = $timestamp;
-        $this->balance[$account]['datetime'] = $this->iso8601($timestamp);
         $accountEntry = $this->safe_dict($this->balance, $account, array());
+        $accountEntry['timestamp'] = $timestamp;
+        $accountEntry['datetime'] = $this->iso8601($timestamp);
         $this->balance[$account] = $this->safe_balance($accountEntry);
         if ($topic !== null) {
             $messageHash = $topic . '::balance';

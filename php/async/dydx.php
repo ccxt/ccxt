@@ -1266,7 +1266,7 @@ class dydx extends Exchange {
         return $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(string $hash, mixed $privateKey): array {
+    public function sign_hash(string $hash, string $privateKey): array {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $this->safe_string($signature, 'r', '');
         $s = $this->safe_string($signature, 's', '');
@@ -1301,7 +1301,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(?string $privateKey, array $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, ?array $fee = null): string {
+    public function sign_dydx_tx(string $privateKey, array $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, ?array $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         $signatureR = $this->safe_string($signature, 'r', '');
@@ -1610,7 +1610,8 @@ class dydx extends Exchange {
         $orderId = $orderRequestRes[0];
         $orderRequest = $orderRequestRes[1];
         $chainName = $this->safe_string($this->options, 'chainName');
-        $signedTx = $this->sign_dydx_tx($this->safe_string($credentials, 'privateKey'), $orderRequest, '', $chainName, $account, null);
+        $privateKey = $this->safe_string($credentials, 'privateKey', '');
+        $signedTx = $this->sign_dydx_tx($privateKey, $orderRequest, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
         );
@@ -1725,7 +1726,8 @@ class dydx extends Exchange {
             'value' => $cancelPayload,
         );
         $chainName = $this->safe_string($this->options, 'chainName');
-        $signedTx = $this->sign_dydx_tx($this->safe_string($credentials, 'privateKey'), $signingPayload, '', $chainName, $account, null);
+        $privateKey = $this->safe_string($credentials, 'privateKey', '');
+        $signedTx = $this->sign_dydx_tx($privateKey, $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
         );
@@ -1798,7 +1800,8 @@ class dydx extends Exchange {
             'value' => $cancelPayload,
         );
         $chainName = $this->safe_string($this->options, 'chainName');
-        $signedTx = $this->sign_dydx_tx($this->safe_string($credentials, 'privateKey'), $signingPayload, '', $chainName, $account, null);
+        $privateKey = $this->safe_string($credentials, 'privateKey', '');
+        $signedTx = $this->sign_dydx_tx($privateKey, $signingPayload, '', $chainName, $account, null);
         $request = array(
             'tx' => $signedTx,
         );
@@ -2093,7 +2096,8 @@ class dydx extends Exchange {
         }
         $txFee = Async\await($this->estimate_tx_fee($signingPayload, '', $account));
         $chainName = $this->safe_string($this->options, 'chainName');
-        $signedTx = $this->sign_dydx_tx($this->safe_string($credentials, 'privateKey'), $signingPayload, '', $chainName, $account, null, $txFee);
+        $privateKey = $this->safe_string($credentials, 'privateKey', '');
+        $signedTx = $this->sign_dydx_tx($privateKey, $signingPayload, '', $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,
         );
@@ -2289,7 +2293,8 @@ class dydx extends Exchange {
         );
         $txFee = Async\await($this->estimate_tx_fee($signingPayload, $tag, $account));
         $chainName = $this->safe_string($this->options, 'chainName');
-        $signedTx = $this->sign_dydx_tx($this->safe_string($credentials, 'privateKey'), $signingPayload, $tag, $chainName, $account, null, $txFee);
+        $privateKey = $this->safe_string($credentials, 'privateKey', '');
+        $signedTx = $this->sign_dydx_tx($privateKey, $signingPayload, $tag, $chainName, $account, null, $txFee);
         $request = array(
             'tx' => $signedTx,
         );

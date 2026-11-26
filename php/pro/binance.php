@@ -3936,8 +3936,8 @@ class binance extends \ccxt\async\binance {
         if ($this->balance[$accountType] === null) {
             $this->balance[$accountType] = array();
         }
-        $this->balance[$accountType]['info'] = $message;
         $balance = $this->safe_dict($this->balance, $accountType, array());
+        $balance['info'] = $message;
         $event = $this->safe_string($message, 'e');
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         $balanceMessage = $this->safe_dict($message, 'a', $message);
