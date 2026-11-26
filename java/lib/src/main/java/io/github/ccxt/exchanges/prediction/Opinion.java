@@ -1277,7 +1277,7 @@ public class Opinion extends OpinionApi
         Map<String, Object> outcomeObj = (this.loadOutcome(outcome, false)).join();
         String tokenId = this.safeString(outcomeObj, "outcomeId");
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
-        String sideStr = ((String)((String)side)).toUpperCase();
+        String sideStr = side.toUpperCase();
         if (java.util.Objects.equals(price, null))
         {
             if (!Boolean.TRUE.equals(isMarket))

@@ -6315,7 +6315,7 @@ public class Kucoin extends KucoinApi
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
-        String tradeType = this.handleTradeType(market.get("contract"), marginMode, isUnified, paramsOmitted);
+        String tradeType = this.handleTradeType((Boolean) this.safeBool(market, "contract", false), marginMode, isUnified, paramsOmitted);
         request.put("tradeType", tradeType);
         Map<String, Object> response = (this.utaPrivatePostAccountModeOrderCancel(this.extend(request, paramsOmitted))).join();
         //
@@ -7561,7 +7561,7 @@ public class Kucoin extends KucoinApi
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
-        String tradeType = this.handleTradeType(market.get("contract"), marginMode, isUnified, paramsOmitted);
+        String tradeType = this.handleTradeType((Boolean) this.safeBool(market, "contract", false), marginMode, isUnified, paramsOmitted);
         request.put("tradeType", tradeType);
         Map<String, Object> response = (this.utaPrivateGetAccountModeOrderDetail(this.extend(request, paramsOmitted))).join();
         //
@@ -7610,12 +7610,12 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public String handleTradeType(Object isContractMarket, String marginMode, Boolean isUnified, Map<String, Object> parameters)
+    public String handleTradeType(Boolean isContractMarket, String marginMode, Boolean isUnified, Map<String, Object> parameters)
     {
         String tradeType = this.safeString(parameters, "tradeType");
         if (java.util.Objects.equals(tradeType, null))
         {
-            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isContractMarket, false)))
+            if (java.util.Objects.requireNonNullElse(isContractMarket, false))
             {
                 tradeType = "FUTURES";
             } else if (!java.util.Objects.equals(marginMode, null))
@@ -8522,13 +8522,13 @@ public class Kucoin extends KucoinApi
         String marketType = this.safeString(paramsRequest, "marketType");
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(marketType, null)))) ? this.omit(paramsRequest, "marketType") : paramsRequest;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Object isContract = false;
+        Boolean isContract = false;
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
             request.put("symbol", market.get("id"));
-            isContract = market.get("contract");
+            isContract = (Boolean) this.safeBool(market, "contract", false);
         } else if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
         {
             throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
@@ -13240,7 +13240,7 @@ public class Kucoin extends KucoinApi
             marginMode = marginModeparamsRequestVariable.first();
             paramsRequest = marginModeparamsRequestVariable.second();
             Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
-            String tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, paramsRequest);
+            String tradeType = this.handleTradeType((Boolean) isContractMarket, marginMode, isUnified, paramsRequest);
             request.put("tradeType", tradeType);
             request.put("cancelOrderList", ordersRequests);
             response = (this.utaPrivatePostAccountModeOrderCancelBatch(this.extend(request, paramsRequest))).join();

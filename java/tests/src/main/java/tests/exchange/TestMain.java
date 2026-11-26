@@ -3501,7 +3501,7 @@ public class TestMain extends BaseTest
             Object inverseConditionalBatchOrder = exchange.safeDict(inverseConditionalBatchOrders, 0, new HashMap<String, Object>() {{}});
             String inverseConditionalClientOrderId = exchange.safeString(inverseConditionalBatchOrder, "newClientOrderId");
             Assert(!java.util.Objects.equals(inverseConditionalClientOrderId, null), "binance createOrders - inverse conditional order must send newClientOrderId");
-            Assert(inverseConditionalClientOrderId.startsWith(((String)inverseSwapId)), ((("binance createOrders - inverse conditional clientOrderId: " + inverseConditionalClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+            Assert(inverseConditionalClientOrderId.startsWith(inverseSwapId), ((("binance createOrders - inverse conditional clientOrderId: " + inverseConditionalClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
             // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
             Object linearFutureOrderRequest = new HashMap<String, Object>() {{}};
             try
@@ -3534,7 +3534,7 @@ public class TestMain extends BaseTest
             }
             String optionClientOrderId = exchange.safeString(optionOrderRequest, "clientOrderId");
             Assert(!java.util.Objects.equals(optionClientOrderId, null), "binance - option order must send clientOrderId");
-            Assert(optionClientOrderId.startsWith(((String)inverseSwapId)), ((("binance - option clientOrderId: " + optionClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
+            Assert(optionClientOrderId.startsWith(inverseSwapId), ((("binance - option clientOrderId: " + optionClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
             // the implicit order endpoints inject the broker id of their api section
             // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
             if (!Helpers.isTrue(isSync()))
@@ -3577,7 +3577,7 @@ public class TestMain extends BaseTest
                 Object implicitDapiBatchOrder = exchange.safeDict(implicitDapiBatchOrders, 0, new HashMap<String, Object>() {{}});
                 String implicitDapiBatchClientOrderId = exchange.safeString(implicitDapiBatchOrder, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitDapiBatchClientOrderId, null), "binance - implicit dapi batch order must inject newClientOrderId");
-                Assert(implicitDapiBatchClientOrderId.startsWith(((String)inverseSwapId)), ((("binance - implicit dapi batch clientOrderId: " + implicitDapiBatchClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                Assert(implicitDapiBatchClientOrderId.startsWith(inverseSwapId), ((("binance - implicit dapi batch clientOrderId: " + implicitDapiBatchClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
                 // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
                 Object implicitFapiAlgoOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3598,7 +3598,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitFapiClientAlgoId = exchange.safeString(implicitFapiAlgoOrderRequest, "clientAlgoId");
                 Assert(!java.util.Objects.equals(implicitFapiClientAlgoId, null), "binance - implicit fapi algo order must inject clientAlgoId");
-                Assert(implicitFapiClientAlgoId.startsWith(((String)swapId)), ((("binance - implicit fapi clientAlgoId: " + implicitFapiClientAlgoId) + " does not start with swapId") + swapId));
+                Assert(implicitFapiClientAlgoId.startsWith(swapId), ((("binance - implicit fapi clientAlgoId: " + implicitFapiClientAlgoId) + " does not start with swapId") + swapId));
                 // the papi order endpoints resolve the broker id from the path, not from the api section
                 Object implicitPapiUmOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3617,7 +3617,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiUmClientOrderId = exchange.safeString(implicitPapiUmOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiUmClientOrderId, null), "binance - implicit papi um order must inject newClientOrderId");
-                Assert(implicitPapiUmClientOrderId.startsWith(((String)swapId)), ((("binance - implicit papi um clientOrderId: " + implicitPapiUmClientOrderId) + " does not start with swapId") + swapId));
+                Assert(implicitPapiUmClientOrderId.startsWith(swapId), ((("binance - implicit papi um clientOrderId: " + implicitPapiUmClientOrderId) + " does not start with swapId") + swapId));
                 Object implicitPapiCmOrderRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3635,7 +3635,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiCmClientOrderId = exchange.safeString(implicitPapiCmOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiCmClientOrderId, null), "binance - implicit papi cm order must inject newClientOrderId");
-                Assert(implicitPapiCmClientOrderId.startsWith(((String)inverseSwapId)), ((("binance - implicit papi cm clientOrderId: " + implicitPapiCmClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
+                Assert(implicitPapiCmClientOrderId.startsWith(inverseSwapId), ((("binance - implicit papi cm clientOrderId: " + implicitPapiCmClientOrderId) + " does not start with inverseSwapId") + inverseSwapId));
                 Object implicitPapiMarginOrderRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3653,7 +3653,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiMarginClientOrderId = exchange.safeString(implicitPapiMarginOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitPapiMarginClientOrderId, null), "binance - implicit papi margin order must inject newClientOrderId");
-                Assert(implicitPapiMarginClientOrderId.startsWith(((String)spotId)), ((("binance - implicit papi margin clientOrderId: " + implicitPapiMarginClientOrderId) + " does not start with spotId") + spotId));
+                Assert(implicitPapiMarginClientOrderId.startsWith(spotId), ((("binance - implicit papi margin clientOrderId: " + implicitPapiMarginClientOrderId) + " does not start with spotId") + spotId));
                 Object implicitSapiMarginOrderRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3671,7 +3671,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitSapiMarginClientOrderId = exchange.safeString(implicitSapiMarginOrderRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(implicitSapiMarginClientOrderId, null), "binance - implicit sapi margin order must inject newClientOrderId");
-                Assert(implicitSapiMarginClientOrderId.startsWith(((String)spotId)), ((("binance - implicit sapi margin clientOrderId: " + implicitSapiMarginClientOrderId) + " does not start with spotId") + spotId));
+                Assert(implicitSapiMarginClientOrderId.startsWith(spotId), ((("binance - implicit sapi margin clientOrderId: " + implicitSapiMarginClientOrderId) + " does not start with spotId") + spotId));
                 // the papi um algo order endpoint takes clientAlgoId
                 Object implicitPapiUmAlgoOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3692,7 +3692,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiUmClientAlgoId = exchange.safeString(implicitPapiUmAlgoOrderRequest, "clientAlgoId");
                 Assert(!java.util.Objects.equals(implicitPapiUmClientAlgoId, null), "binance - implicit papi um algo order must inject clientAlgoId");
-                Assert(implicitPapiUmClientAlgoId.startsWith(((String)swapId)), ((("binance - implicit papi um clientAlgoId: " + implicitPapiUmClientAlgoId) + " does not start with swapId") + swapId));
+                Assert(implicitPapiUmClientAlgoId.startsWith(swapId), ((("binance - implicit papi um clientAlgoId: " + implicitPapiUmClientAlgoId) + " does not start with swapId") + swapId));
                 // the papi cm conditional order endpoint takes newClientStrategyId
                 Object implicitPapiCmConditionalOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3712,7 +3712,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiCmStrategyId = exchange.safeString(implicitPapiCmConditionalOrderRequest, "newClientStrategyId");
                 Assert(!java.util.Objects.equals(implicitPapiCmStrategyId, null), "binance - implicit papi cm conditional order must inject newClientStrategyId");
-                Assert(implicitPapiCmStrategyId.startsWith(((String)inverseSwapId)), ((("binance - implicit papi cm newClientStrategyId: " + implicitPapiCmStrategyId) + " does not start with inverseSwapId") + inverseSwapId));
+                Assert(implicitPapiCmStrategyId.startsWith(inverseSwapId), ((("binance - implicit papi cm newClientStrategyId: " + implicitPapiCmStrategyId) + " does not start with inverseSwapId") + inverseSwapId));
                 Object implicitPapiUmConditionalOrderRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3731,7 +3731,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitPapiUmStrategyId = exchange.safeString(implicitPapiUmConditionalOrderRequest, "newClientStrategyId");
                 Assert(!java.util.Objects.equals(implicitPapiUmStrategyId, null), "binance - implicit papi um conditional order must inject newClientStrategyId");
-                Assert(implicitPapiUmStrategyId.startsWith(((String)swapId)), ((("binance - implicit papi um newClientStrategyId: " + implicitPapiUmStrategyId) + " does not start with swapId") + swapId));
+                Assert(implicitPapiUmStrategyId.startsWith(swapId), ((("binance - implicit papi um newClientStrategyId: " + implicitPapiUmStrategyId) + " does not start with swapId") + swapId));
                 // the eapi order endpoints take clientOrderId
                 Object implicitEapiOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3749,7 +3749,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitEapiClientOrderId = exchange.safeString(implicitEapiOrderRequest, "clientOrderId");
                 Assert(!java.util.Objects.equals(implicitEapiClientOrderId, null), "binance - implicit eapi order must inject clientOrderId");
-                Assert(implicitEapiClientOrderId.startsWith(((String)inverseSwapId)), ((("binance - implicit eapi clientOrderId: " + implicitEapiClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
+                Assert(implicitEapiClientOrderId.startsWith(inverseSwapId), ((("binance - implicit eapi clientOrderId: " + implicitEapiClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
                 Object implicitEapiBatchRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3770,7 +3770,7 @@ public class TestMain extends BaseTest
                 Object implicitEapiBatchOrder = exchange.safeDict(implicitEapiBatchOrders, 0, new HashMap<String, Object>() {{}});
                 String implicitEapiBatchClientOrderId = exchange.safeString(implicitEapiBatchOrder, "clientOrderId");
                 Assert(!java.util.Objects.equals(implicitEapiBatchClientOrderId, null), "binance - implicit eapi batch order must inject clientOrderId");
-                Assert(implicitEapiBatchClientOrderId.startsWith(((String)inverseSwapId)), ((("binance - implicit eapi batch clientOrderId: " + implicitEapiBatchClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
+                Assert(implicitEapiBatchClientOrderId.startsWith(inverseSwapId), ((("binance - implicit eapi batch clientOrderId: " + implicitEapiBatchClientOrderId) + " does not start with the option broker id ") + inverseSwapId));
                 // the equity order endpoint takes clientOrderId
                 Object implicitEquityOrderRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3789,7 +3789,7 @@ public class TestMain extends BaseTest
                 }
                 String implicitEquityClientOrderId = exchange.safeString(implicitEquityOrderRequest, "clientOrderId");
                 Assert(!java.util.Objects.equals(implicitEquityClientOrderId, null), "binance - implicit equity order must inject clientOrderId");
-                Assert(implicitEquityClientOrderId.startsWith(((String)spotId)), ((("binance - implicit equity clientOrderId: " + implicitEquityClientOrderId) + " does not start with spotId") + spotId));
+                Assert(implicitEquityClientOrderId.startsWith(spotId), ((("binance - implicit equity clientOrderId: " + implicitEquityClientOrderId) + " does not start with spotId") + spotId));
                 // the order list endpoints inject a listClientOrderId and one client order id per leg
                 Object implicitOcoListRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3811,9 +3811,9 @@ public class TestMain extends BaseTest
                 String ocoAboveClientOrderId = exchange.safeString(implicitOcoListRequest, "aboveClientOrderId");
                 String ocoBelowClientOrderId = exchange.safeString(implicitOcoListRequest, "belowClientOrderId");
                 Assert(!java.util.Objects.equals(ocoListClientOrderId, null), "binance - implicit oco list must inject listClientOrderId");
-                Assert(ocoListClientOrderId.startsWith(((String)spotId)), ((("binance - implicit oco listClientOrderId: " + ocoListClientOrderId) + " does not start with spotId") + spotId));
-                Assert((!java.util.Objects.equals(ocoAboveClientOrderId, null)) && (ocoAboveClientOrderId.startsWith(((String)spotId))), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(ocoBelowClientOrderId, null)) && (ocoBelowClientOrderId.startsWith(((String)spotId))), "binance - implicit oco belowClientOrderId must inject the spot broker id");
+                Assert(ocoListClientOrderId.startsWith(spotId), ((("binance - implicit oco listClientOrderId: " + ocoListClientOrderId) + " does not start with spotId") + spotId));
+                Assert((!java.util.Objects.equals(ocoAboveClientOrderId, null)) && (ocoAboveClientOrderId.startsWith(spotId)), "binance - implicit oco aboveClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(ocoBelowClientOrderId, null)) && (ocoBelowClientOrderId.startsWith(spotId)), "binance - implicit oco belowClientOrderId must inject the spot broker id");
                 Object implicitOtocoListRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3837,9 +3837,9 @@ public class TestMain extends BaseTest
                 String otocoWorkingClientOrderId = exchange.safeString(implicitOtocoListRequest, "workingClientOrderId");
                 String otocoPendingAboveClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingAboveClientOrderId");
                 String otocoPendingBelowClientOrderId = exchange.safeString(implicitOtocoListRequest, "pendingBelowClientOrderId");
-                Assert((!java.util.Objects.equals(otocoWorkingClientOrderId, null)) && (otocoWorkingClientOrderId.startsWith(((String)spotId))), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(otocoPendingAboveClientOrderId, null)) && (otocoPendingAboveClientOrderId.startsWith(((String)spotId))), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(otocoPendingBelowClientOrderId, null)) && (otocoPendingBelowClientOrderId.startsWith(((String)spotId))), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otocoWorkingClientOrderId, null)) && (otocoWorkingClientOrderId.startsWith(spotId)), "binance - implicit otoco workingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otocoPendingAboveClientOrderId, null)) && (otocoPendingAboveClientOrderId.startsWith(spotId)), "binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otocoPendingBelowClientOrderId, null)) && (otocoPendingBelowClientOrderId.startsWith(spotId)), "binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id");
                 Object implicitSapiMarginOcoRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3856,8 +3856,8 @@ public class TestMain extends BaseTest
                 }
                 String sapiMarginOcoLimitClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "limitClientOrderId");
                 String sapiMarginOcoStopClientOrderId = exchange.safeString(implicitSapiMarginOcoRequest, "stopClientOrderId");
-                Assert((!java.util.Objects.equals(sapiMarginOcoLimitClientOrderId, null)) && (sapiMarginOcoLimitClientOrderId.startsWith(((String)spotId))), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(sapiMarginOcoStopClientOrderId, null)) && (sapiMarginOcoStopClientOrderId.startsWith(((String)spotId))), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(sapiMarginOcoLimitClientOrderId, null)) && (sapiMarginOcoLimitClientOrderId.startsWith(spotId)), "binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(sapiMarginOcoStopClientOrderId, null)) && (sapiMarginOcoStopClientOrderId.startsWith(spotId)), "binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id");
                 Object implicitPapiMarginOcoRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3873,11 +3873,11 @@ public class TestMain extends BaseTest
                     implicitPapiMarginOcoRequest = this.urlencodedToDict((String) (exchange.last_request_body));
                 }
                 String papiMarginOcoListClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "listClientOrderId");
-                Assert((!java.util.Objects.equals(papiMarginOcoListClientOrderId, null)) && (papiMarginOcoListClientOrderId.startsWith(((String)spotId))), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(papiMarginOcoListClientOrderId, null)) && (papiMarginOcoListClientOrderId.startsWith(spotId)), "binance - implicit papi margin oco listClientOrderId must inject the spot broker id");
                 String papiMarginOcoLimitClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "limitClientOrderId");
                 String papiMarginOcoStopClientOrderId = exchange.safeString(implicitPapiMarginOcoRequest, "stopClientOrderId");
-                Assert((!java.util.Objects.equals(papiMarginOcoLimitClientOrderId, null)) && (papiMarginOcoLimitClientOrderId.startsWith(((String)spotId))), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(papiMarginOcoStopClientOrderId, null)) && (papiMarginOcoStopClientOrderId.startsWith(((String)spotId))), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(papiMarginOcoLimitClientOrderId, null)) && (papiMarginOcoLimitClientOrderId.startsWith(spotId)), "binance - implicit papi margin oco limitClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(papiMarginOcoStopClientOrderId, null)) && (papiMarginOcoStopClientOrderId.startsWith(spotId)), "binance - implicit papi margin oco stopClientOrderId must inject the spot broker id");
                 Object implicitLegacyOcoRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3895,9 +3895,9 @@ public class TestMain extends BaseTest
                 String legacyOcoListClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "listClientOrderId");
                 String legacyOcoLimitClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "limitClientOrderId");
                 String legacyOcoStopClientOrderId = exchange.safeString(implicitLegacyOcoRequest, "stopClientOrderId");
-                Assert((!java.util.Objects.equals(legacyOcoListClientOrderId, null)) && (legacyOcoListClientOrderId.startsWith(((String)spotId))), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(legacyOcoLimitClientOrderId, null)) && (legacyOcoLimitClientOrderId.startsWith(((String)spotId))), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(legacyOcoStopClientOrderId, null)) && (legacyOcoStopClientOrderId.startsWith(((String)spotId))), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(legacyOcoListClientOrderId, null)) && (legacyOcoListClientOrderId.startsWith(spotId)), "binance - implicit legacy oco listClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(legacyOcoLimitClientOrderId, null)) && (legacyOcoLimitClientOrderId.startsWith(spotId)), "binance - implicit legacy oco limitClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(legacyOcoStopClientOrderId, null)) && (legacyOcoStopClientOrderId.startsWith(spotId)), "binance - implicit legacy oco stopClientOrderId must inject the spot broker id");
                 Object implicitOtoListRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3918,9 +3918,9 @@ public class TestMain extends BaseTest
                 String otoListClientOrderId = exchange.safeString(implicitOtoListRequest, "listClientOrderId");
                 String otoWorkingClientOrderId = exchange.safeString(implicitOtoListRequest, "workingClientOrderId");
                 String otoPendingClientOrderId = exchange.safeString(implicitOtoListRequest, "pendingClientOrderId");
-                Assert((!java.util.Objects.equals(otoListClientOrderId, null)) && (otoListClientOrderId.startsWith(((String)spotId))), "binance - implicit oto listClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(otoWorkingClientOrderId, null)) && (otoWorkingClientOrderId.startsWith(((String)spotId))), "binance - implicit oto workingClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(otoPendingClientOrderId, null)) && (otoPendingClientOrderId.startsWith(((String)spotId))), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otoListClientOrderId, null)) && (otoListClientOrderId.startsWith(spotId)), "binance - implicit oto listClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otoWorkingClientOrderId, null)) && (otoWorkingClientOrderId.startsWith(spotId)), "binance - implicit oto workingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(otoPendingClientOrderId, null)) && (otoPendingClientOrderId.startsWith(spotId)), "binance - implicit oto pendingClientOrderId must inject the spot broker id");
                 Object implicitOpoListRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3941,9 +3941,9 @@ public class TestMain extends BaseTest
                 String opoListClientOrderId = exchange.safeString(implicitOpoListRequest, "listClientOrderId");
                 String opoWorkingClientOrderId = exchange.safeString(implicitOpoListRequest, "workingClientOrderId");
                 String opoPendingClientOrderId = exchange.safeString(implicitOpoListRequest, "pendingClientOrderId");
-                Assert((!java.util.Objects.equals(opoListClientOrderId, null)) && (opoListClientOrderId.startsWith(((String)spotId))), "binance - implicit opo listClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(opoWorkingClientOrderId, null)) && (opoWorkingClientOrderId.startsWith(((String)spotId))), "binance - implicit opo workingClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(opoPendingClientOrderId, null)) && (opoPendingClientOrderId.startsWith(((String)spotId))), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opoListClientOrderId, null)) && (opoListClientOrderId.startsWith(spotId)), "binance - implicit opo listClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opoWorkingClientOrderId, null)) && (opoWorkingClientOrderId.startsWith(spotId)), "binance - implicit opo workingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opoPendingClientOrderId, null)) && (opoPendingClientOrderId.startsWith(spotId)), "binance - implicit opo pendingClientOrderId must inject the spot broker id");
                 Object implicitOpocoListRequest = new HashMap<String, Object>() {{}};
                 try
                 {
@@ -3968,10 +3968,10 @@ public class TestMain extends BaseTest
                 String opocoWorkingClientOrderId = exchange.safeString(implicitOpocoListRequest, "workingClientOrderId");
                 String opocoPendingAboveClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingAboveClientOrderId");
                 String opocoPendingBelowClientOrderId = exchange.safeString(implicitOpocoListRequest, "pendingBelowClientOrderId");
-                Assert((!java.util.Objects.equals(opocoListClientOrderId, null)) && (opocoListClientOrderId.startsWith(((String)spotId))), "binance - implicit opoco listClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(opocoWorkingClientOrderId, null)) && (opocoWorkingClientOrderId.startsWith(((String)spotId))), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(opocoPendingAboveClientOrderId, null)) && (opocoPendingAboveClientOrderId.startsWith(((String)spotId))), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
-                Assert((!java.util.Objects.equals(opocoPendingBelowClientOrderId, null)) && (opocoPendingBelowClientOrderId.startsWith(((String)spotId))), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opocoListClientOrderId, null)) && (opocoListClientOrderId.startsWith(spotId)), "binance - implicit opoco listClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opocoWorkingClientOrderId, null)) && (opocoWorkingClientOrderId.startsWith(spotId)), "binance - implicit opoco workingClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opocoPendingAboveClientOrderId, null)) && (opocoPendingAboveClientOrderId.startsWith(spotId)), "binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id");
+                Assert((!java.util.Objects.equals(opocoPendingBelowClientOrderId, null)) && (opocoPendingBelowClientOrderId.startsWith(spotId)), "binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id");
                 // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
                 Object implicitCancelReplaceRequest = new HashMap<String, Object>() {{}};
                 try
@@ -3992,7 +3992,7 @@ public class TestMain extends BaseTest
                 }
                 String cancelReplaceClientOrderId = exchange.safeString(implicitCancelReplaceRequest, "newClientOrderId");
                 Assert(!java.util.Objects.equals(cancelReplaceClientOrderId, null), "binance - implicit cancel-replace must inject newClientOrderId");
-                Assert(cancelReplaceClientOrderId.startsWith(((String)spotId)), ((("binance - implicit cancel-replace newClientOrderId: " + cancelReplaceClientOrderId) + " does not start with spotId") + spotId));
+                Assert(cancelReplaceClientOrderId.startsWith(spotId), ((("binance - implicit cancel-replace newClientOrderId: " + cancelReplaceClientOrderId) + " does not start with spotId") + spotId));
             }
             if (!Helpers.isTrue(isSync()))
             {

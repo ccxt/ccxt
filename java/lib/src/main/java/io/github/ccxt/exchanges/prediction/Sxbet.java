@@ -2364,8 +2364,9 @@ public class Sxbet extends SxbetApi
         Map<String, Object> seenHashes = new HashMap<String, Object>() {{}};
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))), false)).join();
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
+            String outcomeItem = this.safeString(outcomesList, i, "");
+            (this.loadOutcome(outcomeItem, false)).join();
+            Map<String, Object> outcomeObj = this.outcome(outcomeItem);
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
             if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, null), null))
             {

@@ -10599,7 +10599,7 @@ public Map<String, Object> describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    String baseCurrencyCode = Helpers.replace(((String)currencyCode), leverageSuffix, "");
+                    String baseCurrencyCode = (currencyCode == null ? null : currencyCode.replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(leverageSuffix, "")), ""));
                     if ((!java.util.Objects.equals(existingCurrencies, null)) && (((Map<?, ?>)existingCurrencies).containsKey(baseCurrencyCode)))
                     {
                         return true;
@@ -11824,7 +11824,7 @@ public Map<String, Object> describe()
                     // UNTIL filtering is required in order to work
                     if (!java.util.Objects.equals(paginationTimestamp, null))
                     {
-                        Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
+                        Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", (paginationTimestamp - 1L));
                     }
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                     Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v16 -> j39v16.size(); case String j39v17 -> j39v17.length(); case Object j39v18 -> j39v18.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v18) : 0; });

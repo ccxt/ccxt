@@ -2500,7 +2500,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
-            put( "side", ((String)((String)side)).toUpperCase() );
+            put( "side", side.toUpperCase() );
         }};
         Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice", null);
         Pair<Map<String, Object>, Map<String, Object>> requestValueparamsValueVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
@@ -4232,7 +4232,7 @@ public class Poloniex extends PoloniexApi
                     for (var j = 0; j < childChains.size(); j++)
                     {
                         String rawNetworkId = this.safeString(childChains, j, "");
-                        String networkId = (rawNetworkId == null ? null : ((String)rawNetworkId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(code, "")), ""));
+                        String networkId = (rawNetworkId == null ? null : rawNetworkId.replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(code, "")), ""));
                         String networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
                         Map<String, Object> networkInfo = this.safeDict(feesById, networkId, null);
                         Map<String, Object> networkObject = new HashMap<String, Object>() {{}};

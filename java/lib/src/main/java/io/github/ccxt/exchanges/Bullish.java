@@ -2205,7 +2205,7 @@ public class Bullish extends BullishApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "commandType", "V3CreateOrder" );
             put( "symbol", market.get("id") );
-            put( "side", ((String)((String)side)).toUpperCase() );
+            put( "side", side.toUpperCase() );
             put( "quantity", Bullish.this.amountToPrecision(symbol, amount) );
             put( "tradingAccountId", tradingAccountId );
         }};

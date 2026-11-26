@@ -165,29 +165,22 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        String symbol = null;
-        if (java.util.Objects.equals(market, null))
-        {
-            symbol = null;
-        } else
-        {
-            symbol = java.util.Objects.toString(market.get("symbol"), null);
-        }
-        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-        mapLiteral1.put("info", trade);
-        mapLiteral1.put("id", null);
-        mapLiteral1.put("timestamp", null);
-        mapLiteral1.put("datetime", null);
-        mapLiteral1.put("symbol", symbol);
-        mapLiteral1.put("order", null);
-        mapLiteral1.put("type", null);
-        mapLiteral1.put("side", null);
-        mapLiteral1.put("takerOrMaker", null);
-        mapLiteral1.put("price", null);
-        mapLiteral1.put("amount", this.safeString(trade, "base"));
-        mapLiteral1.put("cost", this.safeString(trade, "counter"));
-        mapLiteral1.put("fee", null);
-        return this.safeTrade(mapLiteral1, market);
+        String symbol = this.safeString(market, "symbol");
+        return this.safeTrade(new HashMap<String, Object>() {{
+            put( "info", trade );
+            put( "id", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "symbol", symbol );
+            put( "order", null );
+            put( "type", null );
+            put( "side", null );
+            put( "takerOrMaker", null );
+            put( "price", null );
+            put( "amount", Luno.this.safeString(trade, "base") );
+            put( "cost", Luno.this.safeString(trade, "counter") );
+            put( "fee", null );
+        }}, market);
     }
 
     /**

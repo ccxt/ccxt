@@ -1117,8 +1117,8 @@ public class Coinone extends CoinoneApi
     private Object createOrderCore(String symbol, String type, String side, Double amount, Double price, Map<String, Object> parameters)
     {
 
-        String orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-        String orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
+        String orderType = type.toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        String orderSide = side.toUpperCase(); // unified lowercase order sides, same override rule
         if (!java.util.Objects.equals(orderType, "LIMIT"))
         {
             throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;

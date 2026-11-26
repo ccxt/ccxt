@@ -891,7 +891,7 @@ public class Gemini extends GeminiApi
             String pricePrecisionString = cell3.replaceFirst("<td>", "");
             List<Object> pricePrecisionParts = new ArrayList<Object>(Arrays.asList(((String)pricePrecisionString).split(java.util.regex.Pattern.quote(" "))));
             String quoteId = this.safeStringLower(pricePrecisionParts, 1, (marketId == null ? null : marketId.substring((int) Math.min(Math.min(Math.max(startingIndex < 0 ? marketId.length() + startingIndex : startingIndex, 0), marketId.length()), Math.min(idLength, marketId.length())), (int) Math.min(idLength, marketId.length()))));
-            String baseId = this.safeStringLower(amountPrecisionParts, 1, (marketId == null ? null : ((String)marketId).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(quoteId, "")), "")));
+            String baseId = this.safeStringLower(amountPrecisionParts, 1, (marketId == null ? null : marketId.replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(quoteId, "")), "")));
             String base = this.safeCurrencyCode(baseId, null);
             String quote = this.safeCurrencyCode(quoteId, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -1184,7 +1184,7 @@ public class Gemini extends GeminiApi
                 for (var i = 0; i < (switch ((Object)(quoteCurrencies)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     String quoteCurrency = this.safeString(quoteCurrencies, i, "");
-                    if (marketIdWithoutPerp.endsWith(((String)quoteCurrency)))
+                    if (marketIdWithoutPerp.endsWith(quoteCurrency))
                     {
                         Long quoteLength = this.parseToInt((((long) (-1)) * quoteCurrency.length()));
                         baseId = (marketIdWithoutPerp == null ? null : marketIdWithoutPerp.substring(0, (int) Math.min(quoteLength < 0 ? marketIdWithoutPerp.length() + quoteLength : quoteLength, marketIdWithoutPerp.length())));

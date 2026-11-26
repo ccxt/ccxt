@@ -672,7 +672,7 @@ public Map<String, Object> describe()
             String replacementValue = this.safeString(replacements, replacementKey);
             if (!java.util.Objects.equals(replacementValue, null))
             {
-                s = Helpers.replaceAll(((String)s), replacementKey, replacementValue);
+                s = (s == null ? null : (java.util.Objects.toString(replacementKey, "").isEmpty() ? s : s.replace(java.util.Objects.toString(replacementKey, ""), java.util.Objects.toString(replacementValue, ""))));
             }
         }
         List<Object> rawParts = new ArrayList<Object>(Arrays.asList(s.split(java.util.regex.Pattern.quote("-"))));
@@ -964,7 +964,7 @@ public Map<String, Object> describe()
 
         for (var i = 0; i < outcomeSymbols.size(); i++)
         {
-            (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= outcomeSymbols.size() ? null : outcomeSymbols.get(i)))).join();
+            (this.fetchOutcome(this.safeString(outcomeSymbols, i, ""))).join();
         }
         return this.outcomes;
 

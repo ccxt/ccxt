@@ -878,7 +878,7 @@ public class Bitflyer extends BitflyerApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "product_code", Bitflyer.this.marketId(symbol) );
             put( "child_order_type", type.toUpperCase() );
-            put( "side", ((String)((String)side)).toUpperCase() );
+            put( "side", side.toUpperCase() );
             put( "price", price );
             put( "size", amount );
         }};

@@ -1030,7 +1030,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                     for (var i = 0; i < pendingHashes.size(); i++)
                     {
                         String pendingHash = (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
-                        if (pendingHash.startsWith(((String)scopedPrefix)))
+                        if (pendingHash.startsWith(scopedPrefix))
                         {
                             client.reject(exception, pendingHash);
                         }

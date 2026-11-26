@@ -2478,7 +2478,7 @@ public class Derive extends DeriveApi
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
         Boolean postOnly = this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
-        String orderSide = ((String)((String)side)).toLowerCase();
+        String orderSide = side.toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         String nonce = this.nonceString();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
@@ -2655,7 +2655,7 @@ public class Derive extends DeriveApi
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
         Boolean postOnly = this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
-        String orderSide = ((String)((String)side)).toLowerCase();
+        String orderSide = side.toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         String nonce = this.nonceString();
         Double signatureExpiry = this.safeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));

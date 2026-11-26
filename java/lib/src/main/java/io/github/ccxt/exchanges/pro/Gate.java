@@ -1537,7 +1537,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String timeframeId = this.safeString(parts, 0);
             String timeframe = this.findTimeframe(timeframeId, null);
             String prefix = (timeframe + "_");
-            String marketId = (subscription == null ? null : ((String)subscription).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(prefix, "")), ""));
+            String marketId = (subscription == null ? null : subscription.replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(prefix, "")), ""));
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
             List<Object> parsed = this.parseOHLCV(ohlcv, null);
             if (java.util.Objects.equals(marketType, "spot"))

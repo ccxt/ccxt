@@ -2314,11 +2314,11 @@ public class Binance extends BinanceApi
         {
             extendedParams.put("recvWindow", defaultRecvWindow);
         }
-        String querystring = this.urlencodeNested(extendedParams);
-        querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));
-        querystring = (querystring == null ? null : ((String)querystring).replace("%5D", "]"));
-        String signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
-        querystring = ((querystring + "&signature=") + signature);
+        String rawQuery = this.urlencodeNested(extendedParams);
+        String bracketedQuery = (rawQuery == null ? null : ((String)rawQuery).replace("%5B", "["));
+        String cleanQuery = (bracketedQuery == null ? null : ((String)bracketedQuery).replace("%5D", "]"));
+        String signature = this.hmac(this.encode(cleanQuery), this.encode(this.secret), sha256());
+        String querystring = ((cleanQuery + "&signature=") + signature);
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "X-MBX-APIKEY", Binance.this.apiKey );
         }};

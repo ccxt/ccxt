@@ -2856,7 +2856,7 @@ public class Paradex extends ParadexApi
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
         }
-        Boolean isMarket = (!java.util.Objects.equals(type, null)) && (java.util.Objects.equals(((String)((String)type)).toUpperCase(), "MARKET"));
+        Boolean isMarket = (!java.util.Objects.equals(type, null)) && (java.util.Objects.equals(type.toUpperCase(), "MARKET"));
         if ((java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isMarket))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires a price argument for limit orders")) ;
@@ -4720,7 +4720,7 @@ public class Paradex extends ParadexApi
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol", "");
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
-            if (marketId.startsWith(((String)prefix)))
+            if (marketId.startsWith(prefix))
             {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 Map<String, Object> market = this.safeMarket(marketId, null, null, null);

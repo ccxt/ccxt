@@ -6455,7 +6455,7 @@ public class Bingx extends BingxApi
         {
             if (!java.util.Objects.equals(network, null))
             {
-                code = (code == null ? null : ((String)code).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(network, "")), ""));
+                code = (code == null ? null : code.replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(network, "")), ""));
             }
         }
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)

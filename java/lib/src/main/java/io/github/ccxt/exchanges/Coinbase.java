@@ -3729,7 +3729,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("client_order_id", ((id + "-") + this.uuid()));
         request.put("product_id", market.get("id"));
-        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("side", side.toUpperCase());
         Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (Boolean.TRUE.equals(reduceOnly))
         {

@@ -1837,7 +1837,7 @@ public class Woo extends WooApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = side.toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", orderSide);

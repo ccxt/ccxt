@@ -2289,7 +2289,7 @@ public class Bitrue extends BitrueApi
         Object data = new HashMap<String, Object>() {{}};
         String uppercaseType = type.toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("side", side.toUpperCase());
         request.put("type", uppercaseType);
         if (java.util.Objects.equals(uppercaseType, "LIMIT"))
         {
