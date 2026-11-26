@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/NethermindEth/juno v0.14.0
+	github.com/coder/websocket v1.8.15
 	github.com/consensys/gnark-crypto v0.18.1
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/elliottech/lighter-go v1.0.6

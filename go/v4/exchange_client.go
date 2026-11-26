@@ -923,6 +923,20 @@ func (this *Client) storeCall(kind storeKind, hash string, value any) storeReply
 	return this.storeTable().call(kind, hash, value)
 }
 
+// wsConn is the transport handle the conn owner serializes. The default
+// transport is gorilla/websocket; an exchange that opts into permessage-deflate
+// through its `options.ws.compress` flag gets the coder/websocket transport,
+// because gorilla v1.5.3 rejects a server that answers `permessage-deflate`
+// without both no-context-takeover parameters (nado's gateway does exactly that).
+// Both transports expose the same minimal surface the owner needs.
+type wsConn interface {
+	ReadMessage() (messageType int, p []byte, err error)
+	WriteMessage(messageType int, data []byte) error
+	WriteControl(messageType int, data []byte, deadline time.Time) error
+	SetPongHandler(h func(appData string) error)
+	Close() error
+}
+
 // connOwner is the one goroutine holding a client's transport handle: every
 // hand-off, write, control frame and close goes through it, so no two paths touch
 // the socket at once and the handle needs no lock.
@@ -943,13 +957,13 @@ const (
 
 type connOp struct {
 	kind  connKind
-	conn  *websocket.Conn
+	conn  wsConn
 	data  []byte
 	reply chan connReply
 }
 
 type connReply struct {
-	conn *websocket.Conn
+	conn wsConn
 	ok   bool
 	err  error
 }
@@ -963,7 +977,7 @@ func newConnOwner() *connOwner {
 // own is the only function that holds the handle; the write path blocks here, as
 // it blocked on the old lock, and the read loop gets its own reference on adopt.
 func (this *connOwner) own() {
-	var conn *websocket.Conn
+	var conn wsConn
 	for op := range this.req {
 		switch op.kind {
 		case connAdopt:
@@ -1021,7 +1035,7 @@ func (this *Client) connTable() *connOwner {
 
 // AdoptConnection hands a freshly dialed handle to the owner; the caller keeps at
 // most a read reference and must not write or close it.
-func (this *Client) AdoptConnection(conn *websocket.Conn) {
+func (this *Client) AdoptConnection(conn wsConn) {
 	this.connTable().call(connOp{kind: connAdopt, conn: conn})
 }
 
@@ -1052,7 +1066,7 @@ func (this *Client) closeConnection() (bool, error) {
 
 // ReleaseConnection closes a handle the caller still refers to, but only while it
 // is the current one: a handle the owner already replaced is left alone.
-func (this *Client) ReleaseConnection(conn *websocket.Conn) {
+func (this *Client) ReleaseConnection(conn wsConn) {
 	this.connTable().call(connOp{kind: connRelease, conn: conn})
 }
 
