@@ -24,11 +24,16 @@ Current feature list:
 - ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
+[![Bithumb](https://github.com/user-attachments/assets/c1440b76-27c7-4578-a7f8-a05868fe7479)](https://feed.bithumb.com/notice/1653746)
+
+[![Bithumb](https://github.com/user-attachments/assets/4127d4b3-284c-41bc-906f-adaef5cf180a)](https://feed.bithumb.com/notice/1653910)
+
 ## CCXT Terminal
 
 [![CCXT Terminal: One App. Every Market. High-performance trading with real-time sync](https://github.com/user-attachments/assets/11f1ead4-24bb-49d5-bb67-cd8f4be35ad6)](https://terminal.ccxt.com/?utm_source=github&utm_medium=referral&utm_campaign=web_terminal_launch&utm_content=readme_banner)
 
 [**CCXT Terminal**](https://terminal.ccxt.com/?utm_source=github&utm_medium=referral&utm_campaign=web_terminal_launch&utm_content=readme_text_link) is a non-custodial trading platform built on the same open-source CCXT library you already use. It takes you from market analysis to order execution in one place, pairing a scalper DOM and real-time liquidity visualization with low-latency order routing across multiple exchanges.
+
 
 ## See Also
 
