@@ -2448,7 +2448,7 @@ function csharpArithmeticOperandKind (csharp, node, context) {
         // `x.length` prints getArrayLength(x) / ((string)x).Length — int on every shape
         return (node.name?.text === 'length') ? 'int' : undefined;
     case ts.SyntaxKind.Identifier:
-    case ts.SyntaxKind.CallExpression: return arithmeticKindOfType (csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node));
+    case ts.SyntaxKind.CallExpression: return arithmeticKindOfType (csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node) ?? (integerOverloadCallType (node) !== undefined ? integerBoxCastType (csharp, node, context) : undefined));
     case ts.SyntaxKind.BinaryExpression:
         // a nested `+` is an add(...) call too: its own typed result is what the enclosing arithmetic operator sees as an operand
         return (node.operatorToken?.kind === ts.SyntaxKind.PlusToken) ? csharpAddExpressionKind (csharp, node, context) : csharpArithmeticExpressionKind (csharp, node, context);
