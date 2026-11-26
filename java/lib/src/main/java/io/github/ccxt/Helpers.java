@@ -1,7 +1,6 @@
 package io.github.ccxt;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -526,20 +525,6 @@ public class Helpers {
         return value.toString();
     }
 
-
-    // This function is the salient bit here
-    public Object newException(Object exception, Object message) {
-        return NewException((Class<?>) exception, (String) message);
-    }
-
-    public static Exception NewException(Class<?> exception, String message) {
-        try {
-            Constructor<?> ctor = exception.getConstructor(String.class);
-            return (Exception) ctor.newInstance(message);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
