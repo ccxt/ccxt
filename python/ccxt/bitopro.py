@@ -1147,7 +1147,7 @@ class bitopro(Exchange, ImplicitAPI):
             else:
                 request['condition'] = condition
         paramsOmitted = self.omit(params, ['triggerPrice', 'stopPrice']) if (orderType == 'STOP_LIMIT') else params
-        postOnly = self.is_post_only(orderType == 'MARKET', None, paramsOmitted)
+        postOnly = self.is_post_only(orderType == 'MARKET', False, paramsOmitted)
         if postOnly:
             request['timeInForce'] = 'POST_ONLY'
         response = self.privatePostOrdersPair(self.extend(request, paramsOmitted))

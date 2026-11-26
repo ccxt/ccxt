@@ -2717,7 +2717,7 @@ class aster(Exchange, ImplicitAPI):
                 uppercaseType = 'TAKE_PROFIT_MARKET'
             elif isLimitOrder:
                 uppercaseType = 'TAKE_PROFIT'
-        postOnly = self.is_post_only(isMarketOrder, None, params)
+        postOnly = self.is_post_only(isMarketOrder, False, params)
         if postOnly:
             request['timeInForce'] = 'GTX'
         # additional required fields per order type

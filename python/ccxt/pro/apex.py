@@ -6,7 +6,6 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-import json
 from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
@@ -833,7 +832,7 @@ class apex(ccxt.async_support.apex):
             # auth sign
             message = {
                 'op': 'login',
-                'args': [json.dumps({
+                'args': [self.json({
                     'type': 'login',
                     'topics': ['ws_zk_accounts_v3'],
                     'httpMethod': http_method,

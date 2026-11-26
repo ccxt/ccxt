@@ -1318,7 +1318,7 @@ class hollaex(Exchange, ImplicitAPI):
         meta = self.safe_dict(params, 'meta', {})
         exchangeSpecificParam = self.safe_bool(meta, 'post_only', False)
         isMarketOrder = type == 'market'
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam is True, params)
         if not isMarketOrder:
             request['price'] = self.price_to_precision(symbol, price)
         if triggerPrice is not None:

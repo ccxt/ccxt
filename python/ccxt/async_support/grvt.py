@@ -1976,7 +1976,7 @@ class grvt(Exchange, ImplicitAPI):
             # 'state': null,
         }
         timeInForce = self.safe_string_upper(paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME')
-        postOnly = self.is_post_only(isMarketOrder, None, paramsOmitted3)
+        postOnly = self.is_post_only(isMarketOrder, False, paramsOmitted3)
         if postOnly:
             orderRequest['post_only'] = True
         if timeInForce is None:
@@ -3114,10 +3114,12 @@ class grvt(Exchange, ImplicitAPI):
         secretOrPrivkey = self.privateKey if usesPrivKey else self.secret
         privateKeyWithoutZero = self.remove0x_prefix(secretOrPrivkey)
         signature = self.ecdsa(self.hash(ethEncodedMessage, 'keccak', 'hex'), privateKeyWithoutZero, 'secp256k1', None)
+        rHex = self.safe_string(signature, 'r', '')
+        sHex = self.safe_string(signature, 's', '')
         signatureEntry = {
             'signer': None,
-            'r': self.format_signature_rs(signature['r']),
-            's': self.format_signature_rs(signature['s']),
+            'r': self.format_signature_rs(rHex),
+            's': self.format_signature_rs(sHex),
             'v': self.sum(27, signature['v']),
             'expiration': requestSignature['expiration'],
             'nonce': requestSignature['nonce'],

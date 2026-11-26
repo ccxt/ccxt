@@ -2347,7 +2347,7 @@ class hitbtc(Exchange, ImplicitAPI):
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        isPostOnly = self.is_post_only(type == 'market', None, params)
+        isPostOnly = self.is_post_only(type == 'market', False, params)
         resolvedMarketType = self.safe_string(market, 'type')
         request = {
             'type': type,

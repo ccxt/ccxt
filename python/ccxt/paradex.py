@@ -1954,7 +1954,7 @@ class paradex(Exchange, ImplicitAPI):
         isStopLossOrder = (stopLossPrice is not None)
         isStopOrder = (triggerPrice is not None) or isTakeProfitOrder or isStopLossOrder
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
+        postOnly = self.is_post_only(isMarket, False, params)
         instruction = 'GTC'
         if timeInForce is not None:
             instruction = self.encode_time_in_force(timeInForce)

@@ -875,7 +875,7 @@ class hibachi(Exchange, ImplicitAPI):
             'signature': signature,
             'maxFeesPercent': self.number_to_string(feeRate),
         }
-        postOnly = self.is_post_only(type.upper() == 'MARKET', None, params)
+        postOnly = self.is_post_only(type.upper() == 'MARKET', False, params)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')

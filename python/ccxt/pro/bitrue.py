@@ -11,6 +11,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
+from ccxt.base.precise import Precise
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -821,8 +822,8 @@ class bitrue(ccxt.async_support.bitrue):
         baseVolume = self.convert_from_raw_quantity(symbol, rawVol)
         quoteVolume = self.convert_from_raw_quantity(symbol, rawAmount)
         close = self.safe_number(tick, 'close')
-        rose = self.safe_number(tick, 'rose')
-        percentage = None if (rose is None) else rose * 100
+        rose = self.safe_string(tick, 'rose')
+        percentage = Precise.string_mul(rose, '100')
         return self.safe_ticker({
             'info': tick,
             'symbol': symbol,

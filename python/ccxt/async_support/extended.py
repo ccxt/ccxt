@@ -2513,7 +2513,7 @@ class extended(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument')
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
-        postOnly = self.is_post_only(uppercaseType == 'MARKET', None, params)
+        postOnly = self.is_post_only(uppercaseType == 'MARKET', False, params)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if timeInForce is None:

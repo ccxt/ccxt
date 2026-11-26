@@ -768,7 +768,7 @@ class lighter(Exchange, ImplicitAPI):
         isConditional = ((stopLossPrice is not None) or (takeProfitPrice is not None))
         isMarketOrder = (orderType == 'MARKET')
         timeInForce = self.safe_string_lower(paramsOrderExpiry, 'timeInForce', 'gtt')
-        postOnly = self.is_post_only(isMarketOrder, None, paramsOrderExpiry)
+        postOnly = self.is_post_only(isMarketOrder, False, paramsOrderExpiry)
         paramsOmitted = self.omit(paramsOrderExpiry, ['stopLoss', 'takeProfit', 'timeInForce'])
         orderTypeNum = None
         timeInForceNum = None

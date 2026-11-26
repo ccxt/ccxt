@@ -1297,7 +1297,7 @@ class dydx(Exchange, ImplicitAPI):
         isConditional = triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_upper(paramsSubAccountId, 'timeInForce', 'GTT')
-        postOnly = self.is_post_only(isMarket, None, paramsSubAccountId)
+        postOnly = self.is_post_only(isMarket, False, paramsSubAccountId)
         amountStr = self.amount_to_precision(symbol, amount)
         priceStr = self.price_to_precision(symbol, price)
         marketInfo = self.safe_dict(market, 'info', {})
@@ -1819,12 +1819,17 @@ class dydx(Exchange, ImplicitAPI):
         else:
             gasPrice = self.safe_string(feeDenom, 'CHAINTOKEN_GAS_PRICE')
             denom = self.safe_string(feeDenom, 'CHAINTOKEN_DENOM')
-        gasLimit = int(math.ceil(self.parse_to_numeric(Precise.string_mul(gasUsed, defaultFeeMultiplier))))
+        gasLimitNum = self.parse_number(Precise.string_mul(gasUsed, defaultFeeMultiplier))
+        if gasLimitNum is None:
+            raise ExchangeError(self.id + ' estimateTxFee() missing gasLimit')
+        gasLimit = int(math.ceil(gasLimitNum))
         feeAmount = Precise.string_mul(self.number_to_string(gasLimit), gasPrice)
         if feeAmount is None:
             raise ExchangeError(self.id + ' estimateTxFee() missing feeAmount')
         if feeAmount.find('.') >= 0:
-            feeAmount = self.number_to_string(int(math.ceil(self.parse_to_numeric(feeAmount))))
+            feeAmountNum = self.parse_number(feeAmount)
+            if feeAmountNum is not None:
+                feeAmount = self.number_to_string(int(math.ceil(feeAmountNum)))
         feeObj = {
             'amount': feeAmount,
             'denom': denom,

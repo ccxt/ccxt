@@ -3807,7 +3807,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         month = self.safe_string(months, parts[1])
         if month is None:
             return None
-        dayPart = parts[2]
+        dayPart = self.safe_string(parts, 2, '')
         day = dayPart.rjust(2, '0')
         offset = self.safe_string(offsets, parts[4], '+00:00')
         return self.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset)

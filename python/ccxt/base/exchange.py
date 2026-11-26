@@ -7203,7 +7203,7 @@ class BaseExchange(object):
         # for backwards compatibility
         return self.handle_trigger_and_params(params)
 
-    def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam: Bool, params: dict = {}):
+    def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam: bool, params: dict = {}):
         """
  @ignore
         :param str type: Order type

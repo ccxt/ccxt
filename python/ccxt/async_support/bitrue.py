@@ -2019,7 +2019,7 @@ class bitrue(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'swap', False):
             isMarket = uppercaseType == 'MARKET'
             timeInForce = self.safe_string_lower(params, 'timeInForce')
-            postOnly = self.is_post_only(isMarket, None, params)
+            postOnly = self.is_post_only(isMarket, False, params)
             if postOnly:
                 request['type'] = 'POST_ONLY'
             elif timeInForce == 'fok':

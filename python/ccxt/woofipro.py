@@ -1785,7 +1785,7 @@ class woofipro(Exchange, ImplicitAPI):
         isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
+        postOnly = self.is_post_only(isMarket, False, params)
         orderQtyKey = 'quantity' if isConditional else 'order_quantity'
         priceKey = 'price' if isConditional else 'order_price'
         typeKey = 'type' if isConditional else 'order_type'
@@ -2017,7 +2017,7 @@ class woofipro(Exchange, ImplicitAPI):
             orderType = type.upper()
             timeInForce = self.safe_string_lower(paramsOmitted, 'timeInForce')
             isMarket = orderType == 'MARKET'
-            postOnly = self.is_post_only(isMarket, None, paramsOmitted)
+            postOnly = self.is_post_only(isMarket, False, paramsOmitted)
             if postOnly:
                 request['order_type'] = 'POST_ONLY'
             elif timeInForce == 'fok':

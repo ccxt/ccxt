@@ -2059,7 +2059,7 @@ class deribit(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
         isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
         exchangeSpecificPostOnly = self.safe_bool(params, 'post_only')
-        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly, params)
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly is True, params)
         if isLimitOrder:
             request['type'] = 'limit'
             request['price'] = self.price_to_precision(symbol, price)

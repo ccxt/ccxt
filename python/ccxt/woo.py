@@ -1382,7 +1382,7 @@ class woo(Exchange, ImplicitAPI):
         isConditional = isTrailing or triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_list(paramsMarginMode, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(paramsMarginMode, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, paramsMarginMode)
+        postOnly = self.is_post_only(isMarket, False, paramsMarginMode)
         clientOrderIdKey = 'clientOrderId'
         if isConditional:
             clientOrderIdKey = 'clientAlgoOrderId'

@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
-import json
 from ccxt.base.types import Balances, BorrowInterest, Bool, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4396,7 +4395,7 @@ class digifinex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencoded = ''
         if signed and (pathPart == '/swap/v2') and (method == 'POST'):
-            urlencoded = json.dumps(params)
+            urlencoded = self.json(params)
         else:
             urlencoded = self.urlencode(self.keysort(query))
         if signed:

@@ -1454,7 +1454,7 @@ class apex(Exchange, ImplicitAPI):
         if isMarket and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, None, params)
+        postOnly = self.is_post_only(isMarket, False, params)
         if timeInForce is None:
             timeInForce = 'GOOD_TIL_CANCEL'
         if not isMarket:
