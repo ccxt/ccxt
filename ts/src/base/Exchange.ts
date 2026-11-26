@@ -5783,6 +5783,7 @@ export class BaseExchange {
             if (response === undefined) {
                 throw new NullResponse (this.id + ' fetchWebEndpoint() returned empty content');
             }
+            // eslint-disable-next-line ccxt-safe/one-shape
             if (typeof response !== 'string') {
                 if ((startRegex !== undefined) || (endRegex !== undefined)) {
                     throw new BadResponse (this.id + ' fetchWebEndpoint() returned non-string content');
