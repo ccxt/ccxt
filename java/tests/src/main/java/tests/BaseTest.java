@@ -124,10 +124,6 @@ public class BaseTest {
         return isEqual(a, b);
     }
 
-    public static Object mod(Object a, Object b) {
-        return Helpers.mod(a, b);
-    }
-
     public static CompletableFuture<List<Object>> promiseAll(Object a) {
         return Helpers.promiseAll(a);
     }
@@ -138,10 +134,6 @@ public class BaseTest {
 
     public static boolean inOp(Object a, Object b) {
         return Helpers.inOp(a, b);
-    }
-
-    public static int getIndexOf(Object a, Object b) {
-        return Helpers.getIndexOf(a, b);
     }
 
     public static Object getArrayLength(Object a) {

@@ -185,17 +185,6 @@ public class Helpers {
         }
     }
 
-    /**
-     * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
-     * emits `Helpers.isArray(x)`. Null-safe like JS
-     * Array.isArray: false for null.
-     */
-    public static boolean isArray(Object a) {
-        if (a == null) return false;
-        if (a instanceof List<?>) return true;
-        return a.getClass().isArray();
-    }
-
     public static boolean isEqual(Object a, Object b) {
         try {
             if (a == null && b == null) return true;
@@ -264,16 +253,6 @@ public class Helpers {
 
     public static boolean isLessThanOrEqual(Object a, Object b) {
         return isLessThan(a, b) || isEqual(a, b);
-    }
-
-    public static Object mod(Object a, Object b) {
-        if (a == null || b == null) return null;
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-        if (a instanceof String || a instanceof Long || a instanceof Integer || a instanceof Double) {
-            return toDouble(a) % toDouble(b);
-        }
-        return null;
     }
 
     public static Object add(Object a, Object b) {
@@ -399,16 +378,6 @@ public class Helpers {
         double first = toDouble(a);
         double second = toDouble(b);
         return (first > second) ? a : b;
-    }
-
-    public static int getIndexOf(Object str, Object target) {
-        if (str instanceof List<?>) {
-            return ((List<?>) str).indexOf(target);
-        } else if (str instanceof String && target instanceof String) {
-            return ((String) str).indexOf((String) target);
-        } else {
-            return -1;
-        }
     }
 
     // generic getValue to replace elementAccesses
@@ -630,30 +599,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             } else return false;
         } else {
             return false;
-        }
-    }
-
-    // Printed by javaTranspiler's x.concat(y) arm; keep at 0 call sites.
-    public static Object concat(Object a, Object b) {
-        if (a == null && b == null) return null;
-        if (a == null) return b;
-        if (b == null) return a;
-
-        if (a instanceof List && b instanceof List) {
-            List result = new ArrayList((List) a);
-            result.addAll((List) b);
-            return result;
-        } else if (a instanceof List && !(b instanceof List)) {
-            List result = new ArrayList((List) a);
-            result.add(b);
-            return result;
-        } else if (!(a instanceof List) && b instanceof List) {
-            List result = new ArrayList();
-            result.add(a);
-            result.addAll((List) b);
-            return result;
-        } else {
-            throw new IllegalStateException("Unsupported types for concatenation.");
         }
     }
 
