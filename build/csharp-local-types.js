@@ -7371,7 +7371,8 @@ function resolveLocalReadType (csharp, context, identifier) {
     const declarations = index.declarations.get (name);
     if (!declarations || declarations.length === 0) {
         if (index.parameterNames.has (name)) {
-            return listCoreParameterReadType (csharp, context.scope, name) ?? coreParameterCopyReadType (csharp, context.scope, identifier);
+            return listCoreParameterReadType (csharp, context.scope, name) ?? coreParameterCopyReadType (csharp, context.scope, identifier)
+                ?? printedListParameterReadType (csharp, context.scope, identifier);
         }
         return destructuredElementReadType (csharp, context, identifier); // not a plain local
     }
@@ -21423,6 +21424,16 @@ function coreParameterCopyReadType (csharp, scope, identifier) {
     }
     const type = coreArgParamType (csharp, identifier);
     return (type === undefined || type === 'object') ? undefined : type;
+}
+
+// a read of an unwritten parameter whose printed signature is a list (`IList<object>` / `IList<object>?`)
+// in its own method body: the read is that reference, so a copy local can name the list interface
+function printedListParameterReadType (csharp, scope, identifier) {
+    if (c5ParameterProofDepth > 0 || scope?.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope) {
+        return undefined;
+    }
+    const type = printedUnwrittenParameterType (csharp, identifier);
+    return (type === 'IList<object>' || type === 'IList<object>?') ? 'IList<object>' : undefined;
 }
 
 // (4) signatures belong to lane 77c1: while the call-site parameter proof
