@@ -335,6 +335,46 @@
                     }
                 ]
             }
+        ],
+        "executePredictionTransaction": [
+            {
+                "description": "executePredictionTransaction submits the signed order transaction, captured live",
+                "method": "executePredictionTransaction",
+                "url": "https://api.jup.ag/prediction/v1/execute",
+                "input": [
+                    "AmkpCMXm+yIPOxX74o894no1oUF/YTlycIrQKKoA51eOwkTbah3Kk1hfE4HuyXBP1r8xYq8mxSESwKDu1aH24gzHMy9zvSvbrjsPGPCVJcPjXMcw7axW/VNaGEUXXCVUDCIPanw1XK3k8SF0zhvGV06wJeIKe1OaAzX8RBGza7gGgAIBBQ1DYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUopI+E5Qg1NtOawuU241JvUbkDGLCMTmdMsZd8yesS2gOOJaruB5nVNAEaiY5Xs+G3fbPCyIBQE1Dhv8corUlXJeVMJhco+8NoEZxwc0LvEsnudnokrJ67A8lfw+JIrkqoOuL4Zijq55XOICe0gA4KO4EU2nyzGEdRI0XXrohMLvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHDAE8A3CfIcHYn9erYFVXLrzjrBZH0drXo2MXPH/00eQOWDxYV5arsXNMKef2Tv8fxys5M9vCt40u0FIgH8YfdBKFDpXoQ4F2vOoClv3C4/Pekvt7Unt/yfK8Wc4K8/EMomDyo5Ib7v0YpssyPyQPaDsYXYzpxmnPmExGNVoy9tIYyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwgEv0K5nQYn8YY9ny+AdGkYyP59oGKNWWYRl+hjugmqBQsACQNQwwAAAAAAAAsABQKwcQsACgYAAwAUFxYBAQwcAAUDExQWFgwZDBUQBg0RBQMUEw4VABYWEhUPDCe7ZPrMMcSvFAiDYAAAAAAAj4BgAAAAAAAKAAAAAAABAAAAJhAnAAEJDQAAARgCBAgDFAcWChdtlu0RPTvAfDQgAAAAMzg4ODcwMzkyNjcwNGY4NWIzYzQxZTZiMTgwMWExMTAgAAAAZWE0NjhmODU5ZjIyNTA3MjllNTIzYzBkNDY0OTk5OWEBAXCtUgMAAAAAsK0BAAAAAADaZ2AAAAAAAAAAAAIh7Brqmrlu0y8NDuAloitaCSskVbwDpNs7gsxLnALfTQXCxr7BxQXKDcjHDFL8u2U4Uipt4emGr4VTAQhqeK2WIw2h/AGbVt2Vy6i6AAMFAQQ=",
+                    {
+                        "type": "create_order"
+                    }
+                ],
+                "output": "{\"signedTransaction\":\"AmkpCMXm+yIPOxX74o894no1oUF/YTlycIrQKKoA51eOwkTbah3Kk1hfE4HuyXBP1r8xYq8mxSESwKDu1aH24gzHMy9zvSvbrjsPGPCVJcPjXMcw7axW/VNaGEUXXCVUDCIPanw1XK3k8SF0zhvGV06wJeIKe1OaAzX8RBGza7gGgAIBBQ1DYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUopI+E5Qg1NtOawuU241JvUbkDGLCMTmdMsZd8yesS2gOOJaruB5nVNAEaiY5Xs+G3fbPCyIBQE1Dhv8corUlXJeVMJhco+8NoEZxwc0LvEsnudnokrJ67A8lfw+JIrkqoOuL4Zijq55XOICe0gA4KO4EU2nyzGEdRI0XXrohMLvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHDAE8A3CfIcHYn9erYFVXLrzjrBZH0drXo2MXPH/00eQOWDxYV5arsXNMKef2Tv8fxys5M9vCt40u0FIgH8YfdBKFDpXoQ4F2vOoClv3C4/Pekvt7Unt/yfK8Wc4K8/EMomDyo5Ib7v0YpssyPyQPaDsYXYzpxmnPmExGNVoy9tIYyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwgEv0K5nQYn8YY9ny+AdGkYyP59oGKNWWYRl+hjugmqBQsACQNQwwAAAAAAAAsABQKwcQsACgYAAwAUFxYBAQwcAAUDExQWFgwZDBUQBg0RBQMUEw4VABYWEhUPDCe7ZPrMMcSvFAiDYAAAAAAAj4BgAAAAAAAKAAAAAAABAAAAJhAnAAEJDQAAARgCBAgDFAcWChdtlu0RPTvAfDQgAAAAMzg4ODcwMzkyNjcwNGY4NWIzYzQxZTZiMTgwMWExMTAgAAAAZWE0NjhmODU5ZjIyNTA3MjllNTIzYzBkNDY0OTk5OWEBAXCtUgMAAAAAsK0BAAAAAADaZ2AAAAAAAAAAAAIh7Brqmrlu0y8NDuAloitaCSskVbwDpNs7gsxLnALfTQXCxr7BxQXKDcjHDFL8u2U4Uipt4emGr4VTAQhqeK2WIw2h/AGbVt2Vy6i6AAMFAQQ=\",\"context\":{\"type\":\"create_order\"}}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder resolves an in-flight signed order, captured live",
+                "method": "fetchOrder",
+                "url": "https://api.jup.ag/prediction/v1/orders/9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                "input": [
+                    "9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                    "POLY-6353936:YES"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition for a held POLY-1273034 outcome, captured live",
+                "method": "fetchPosition",
+                "url": "https://api.jup.ag/prediction/v1/positions?ownerPubkey=5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                "input": [
+                    "POLY-6353936:YES",
+                    {
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o"
+                    }
+                ],
+                "output": null
+            }
         ]
     }
 }

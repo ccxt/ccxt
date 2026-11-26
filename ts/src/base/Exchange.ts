@@ -4249,9 +4249,25 @@ export class BaseExchange {
     }
 
     /**
+     * @ignore
+     * @description parses one hex byte pair into its integer value, -1 when the pair is not valid hex
+     * @param {string} hexPair two lowercase hex characters
+     * @returns {int} the byte value, or -1
+     */
+    parseHexByte (hexPair: string): number {
+        const hexDigits = '0123456789abcdef';
+        const high = hexDigits.indexOf (hexPair.slice (0, 1));
+        const low = hexDigits.indexOf (hexPair.slice (1, 2));
+        if (high < 0 || low < 0) {
+            return -1;
+        }
+        return this.sum (high * 16, low);
+    }
+
+    /**
      * @method
      * @name exchange#signSolanaTransaction
-     * @description signs a base64-encoded solana transaction with the privateKey credential, filling the first (fee payer) signature slot and preserving any other slots
+     * @description signs a base64-encoded solana transaction with the privateKey credential, placing the signature in the slot of the walletAddress signer (gasless transactions carry a sponsor in the first slot) and preserving all other slots
      * @param {string} transaction base64-encoded unsigned solana transaction
      * @returns {string} the base64-encoded signed transaction
      */
@@ -4259,22 +4275,50 @@ export class BaseExchange {
         const seedHex = this.solanaSeedHex ();
         const txHex = this.binaryToBase16 (this.base64ToBinary (transaction));
         // solana wire format: [compact-u16 signature count][64-byte signature slots...][message]
-        const hexDigits = '0123456789abcdef';
-        const high = hexDigits.indexOf (txHex.slice (0, 1));
-        const low = hexDigits.indexOf (txHex.slice (1, 2));
-        const numSignatures = this.sum (high * 16, low);
-        if (high < 0 || low < 0 || high >= 8 || numSignatures < 1) {
+        const numSignatures = this.parseHexByte (txHex.slice (0, 2));
+        if (numSignatures < 1 || numSignatures >= 128) {
             // a set 0x80 continuation bit would imply a multi-byte compact-u16 count, solana transactions cannot carry that many signatures
             throw new NotSupported (this.id + ' signSolanaTransaction() could not parse the transaction signature count');
         }
         const slotsHexLength = numSignatures * 128;
         const slotsHexEnd = this.sum (2, slotsHexLength);
         const countHex = txHex.slice (0, 2);
-        const otherSlotsHex = txHex.slice (130, slotsHexEnd);
         const messageHex = txHex.slice (slotsHexEnd);
+        // the wallet is usually the fee payer in the first slot, but sponsored (gasless)
+        // transactions put the sponsor first — locate the wallet among the required signers
+        // of the message header when the walletAddress credential is configured
+        let slotIndex = 0;
+        if (this.walletAddress !== undefined) {
+            const walletHex = this.binaryToBase16 (this.base58ToBinary (this.walletAddress));
+            // versioned messages carry a prefix byte with the 0x80 bit set before the header
+            const prefixByte = this.parseHexByte (messageHex.slice (0, 2));
+            const headerOffset = (prefixByte >= 128) ? 2 : 0;
+            const headerEnd = this.sum (headerOffset, 2);
+            const numRequired = this.parseHexByte (messageHex.slice (headerOffset, headerEnd));
+            // the account list starts after the 3 header bytes and its compact-u16 length byte
+            const countOffset = this.sum (headerOffset, 6);
+            const countEnd = this.sum (countOffset, 2);
+            const accountsCount = this.parseHexByte (messageHex.slice (countOffset, countEnd));
+            const accountsOffset = this.sum (countOffset, 2);
+            if (numRequired > 0 && numRequired <= numSignatures && accountsCount < 128) {
+                for (let i = 0; i < numRequired; i++) {
+                    const accountStart = this.sum (accountsOffset, i * 64);
+                    const accountEnd = this.sum (accountStart, 64);
+                    const accountHex = messageHex.slice (accountStart, accountEnd);
+                    if (accountHex === walletHex) {
+                        slotIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
         const signatureBase64 = eddsa (this.base16ToBinary (messageHex), this.base16ToBinary (seedHex), ed25519);
         const signatureHex = this.binaryToBase16 (this.base64ToBinary (signatureBase64));
-        return this.binaryToBase64 (this.base16ToBinary (countHex + signatureHex + otherSlotsHex + messageHex));
+        const slotStart = this.sum (2, slotIndex * 128);
+        const slotEnd = this.sum (slotStart, 128);
+        const beforeSlots = txHex.slice (2, slotStart);
+        const afterSlots = txHex.slice (slotEnd, slotsHexEnd);
+        return this.binaryToBase64 (this.base16ToBinary (countHex + beforeSlots + signatureHex + afterSlots + messageHex));
     }
 
     /**

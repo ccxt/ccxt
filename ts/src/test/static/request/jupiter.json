@@ -204,6 +204,213 @@
                 ],
                 "output": null
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "createConvertTrade executes a signed swap, captured live (SOL to JUP)",
+                "method": "createConvertTrade",
+                "url": "https://api.jup.ag/swap/v2/execute",
+                "input": [
+                    "01a21210-884a-7166-8cd0-c0188254ef58",
+                    "SOL",
+                    "JUP",
+                    0.01,
+                    {
+                        "signedTransaction": "AZx0t6JFLuI/MhCvHXLFGOE+e/3DWvFV9nqwdzSosaGDFN3BYUZZnueGznkvs7HNIby/MCR08NgfP461OgD5YgyAAQADC0NiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudSENYwirN+CqbwXK8/Rd64ucLRY88xCJz7xy0grRu9lrEgETukNnJrgIDezmEaqMxEqtAiAULMB/7LQvRo3K8dSaGe7kf+aWyEEWtw+eNb2M7C8TilZparAjJPcREiU7ELrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHC4KFDr2lCPGHo97lKL+hreGj5B4AkdJbmcIHALM3rWx9GQ05LA8smb5jNzk+3mnst2hHTOrh7A01e+w0BM79Kh806FhQ0udrDUxuNn/v1U3Sk0q5yQhhpCUSe2sZnU/coDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAALXjShTivHNIaQ7h9a9d7tZVOECjbaq4YLBQYHO9wDwQCvHDQyGIyjpjUTWhOhiVGs69Wp9gPah4XggYYopFo3dj2fPsviQ9TAKz3BRNC7Z39ry/N3y30bkz9XBinCstCAQIAAUCJjMDAAgACQPREAAAAAAAAAkGAAYbHRgWEC8+m6yDzSXJgJaYAAAAAAAJJx0YFgAXCQkcHgkJCiAbGRARDQsPDA4SBgQfHQATARQEFQUDBwIhGpIB+MaekeF1h8gFAAAAJT0Hi2Anel0TIfUK5AWdMjlS9iENEuk6zRbqt9U0IOWky7HM9ruiWateoyoqVeHHUv3GbwOyYGoAaeyfF8NmRgllETwcAAB0hpMAAAAxAgAAALhi/wMAAAAACbNgRgAAAAAABi02gJaYAAAAAAADAP5QCgAAAAAAAAE39y8AAAAAADIAAAADFASotUqpoowbQQL99GKJc4wcRItRF4w6yRvI6/WL+voACgAKB77EvQEFBhIVMzWZi/xXoOj2y4LnS3o1x2FDy2W0cweIdxONgggluggABAgFAhITBgEMCt3s6WeJOuSTufcUVGubBJCvtaiJX0mzaFa6TKroRwwD6uzrAe0="
+                    }
+                ],
+                "output": "{\"requestId\":\"01a21210-884a-7166-8cd0-c0188254ef58\",\"signedTransaction\":\"AZx0t6JFLuI/MhCvHXLFGOE+e/3DWvFV9nqwdzSosaGDFN3BYUZZnueGznkvs7HNIby/MCR08NgfP461OgD5YgyAAQADC0NiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudSENYwirN+CqbwXK8/Rd64ucLRY88xCJz7xy0grRu9lrEgETukNnJrgIDezmEaqMxEqtAiAULMB/7LQvRo3K8dSaGe7kf+aWyEEWtw+eNb2M7C8TilZparAjJPcREiU7ELrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHC4KFDr2lCPGHo97lKL+hreGj5B4AkdJbmcIHALM3rWx9GQ05LA8smb5jNzk+3mnst2hHTOrh7A01e+w0BM79Kh806FhQ0udrDUxuNn/v1U3Sk0q5yQhhpCUSe2sZnU/coDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAALXjShTivHNIaQ7h9a9d7tZVOECjbaq4YLBQYHO9wDwQCvHDQyGIyjpjUTWhOhiVGs69Wp9gPah4XggYYopFo3dj2fPsviQ9TAKz3BRNC7Z39ry/N3y30bkz9XBinCstCAQIAAUCJjMDAAgACQPREAAAAAAAAAkGAAYbHRgWEC8+m6yDzSXJgJaYAAAAAAAJJx0YFgAXCQkcHgkJCiAbGRARDQsPDA4SBgQfHQATARQEFQUDBwIhGpIB+MaekeF1h8gFAAAAJT0Hi2Anel0TIfUK5AWdMjlS9iENEuk6zRbqt9U0IOWky7HM9ruiWateoyoqVeHHUv3GbwOyYGoAaeyfF8NmRgllETwcAAB0hpMAAAAxAgAAALhi/wMAAAAACbNgRgAAAAAABi02gJaYAAAAAAADAP5QCgAAAAAAAAE39y8AAAAAADIAAAADFASotUqpoowbQQL99GKJc4wcRItRF4w6yRvI6/WL+voACgAKB77EvQEFBhIVMzWZi/xXoOj2y4LnS3o1x2FDy2W0cweIdxONgggluggABAgFAhITBgEMCt3s6WeJOuSTufcUVGubBJCvtaiJX0mzaFa6TKroRwwD6uzrAe0=\"}"
+            }
+        ],
+        "verifyTriggerChallenge": [
+            {
+                "description": "verifyTriggerChallenge exchanges a signed challenge for trigger tokens, captured live",
+                "method": "verifyTriggerChallenge",
+                "url": "https://api.jup.ag/trigger/v2/auth/verify",
+                "input": [
+                    "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    {
+                        "type": "message",
+                        "signature": "3FYeKJGHdu31dj2x28cd5utgZbxKtfeN2Cd5ePgSgifs33wjMXFqCTuPZP6PSf247QkuqYW8uoo2ics1oxbjgd6R",
+                        "authMode": "access_refresh"
+                    }
+                ],
+                "output": "{\"type\":\"message\",\"signature\":\"3FYeKJGHdu31dj2x28cd5utgZbxKtfeN2Cd5ePgSgifs33wjMXFqCTuPZP6PSf247QkuqYW8uoo2ics1oxbjgd6R\",\"authMode\":\"access_refresh\",\"walletPubkey\":\"5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o\"}"
+            }
+        ],
+        "refreshTriggerToken": [
+            {
+                "description": "refreshTriggerToken rotates the trigger tokens, captured live",
+                "method": "refreshTriggerToken",
+                "url": "https://api.jup.ag/trigger/v2/auth/refresh",
+                "input": [
+                    "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1"
+                ],
+                "output": "{\"refreshToken\":\"01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1\"}"
+            }
+        ],
+        "createTriggerDeposit": [
+            {
+                "description": "createTriggerDeposit crafts an unsigned dca vault deposit, captured live",
+                "method": "createTriggerDeposit",
+                "url": "https://api.jup.ag/trigger/v2/deposit/craft",
+                "input": [
+                    {
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "userAddress": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "amount": "315000000",
+                        "orderType": "dca"
+                    }
+                ],
+                "output": "{\"inputMint\":\"So11111111111111111111111111111111111111112\",\"outputMint\":\"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\"userAddress\":\"5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o\",\"amount\":\"315000000\",\"orderType\":\"dca\"}"
+            }
+        ],
+        "createDcaOrder": [
+            {
+                "description": "createDcaOrder submits a dca order with the signed deposit, captured live",
+                "method": "createDcaOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/dca",
+                "input": [
+                    {
+                        "depositRequestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+                        "depositSignedTx": "AxdRvvsu2v9z042tMRLJY0zYZ0/aZuFsuLUIhHWZyh60VjfNPZTItP+9pFuIVrIelpfmw8r2iwdkh+6ddYYiTA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l5s54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9KvUPZu9hC7Y9F7wPQzG1RHp0g5dPyS8NEYNje5h/EQgIAAUCkF8BAAgACQMHogYAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAAAxZGU1ODViZTJkOGQzY2MyNzg5MjdhZDUwMzkzNTM3YTi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmount": "315000000",
+                        "orderCount": 2,
+                        "intervalSeconds": 3600,
+                        "orderType": "time_based",
+                        "beginFillAt": "2026-11-25T10:13:04.146Z"
+                    }
+                ],
+                "output": "{\"depositRequestId\":\"e3c8ad07-9265-47f0-946a-76b7177512cc\",\"depositSignedTx\":\"AxdRvvsu2v9z042tMRLJY0zYZ0/aZuFsuLUIhHWZyh60VjfNPZTItP+9pFuIVrIelpfmw8r2iwdkh+6ddYYiTA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l5s54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9KvUPZu9hC7Y9F7wPQzG1RHp0g5dPyS8NEYNje5h/EQgIAAUCkF8BAAgACQMHogYAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAAAxZGU1ODViZTJkOGQzY2MyNzg5MjdhZDUwMzkzNTM3YTi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=\",\"userPubkey\":\"5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o\",\"inputMint\":\"So11111111111111111111111111111111111111112\",\"outputMint\":\"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\"inputAmount\":\"315000000\",\"orderCount\":2,\"intervalSeconds\":3600,\"orderType\":\"time_based\",\"beginFillAt\":\"2026-11-25T10:13:04.146Z\"}"
+            }
+        ],
+        "fetchDcaOrders": [
+            {
+                "description": "fetchDcaOrders dca order history, captured live",
+                "method": "fetchDcaOrders",
+                "url": "https://api.jup.ag/trigger/v2/orders/history/dca",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDcaOrder": [
+            {
+                "description": "fetchDcaOrder single dca order, captured live",
+                "method": "fetchDcaOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/history/dca/01a21216-784f-754c-be94-a75f5e757aee",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee"
+                ],
+                "output": null
+            }
+        ],
+        "cancelDcaOrder": [
+            {
+                "description": "cancelDcaOrder starts cancellation and returns the unsigned withdrawal, captured live",
+                "method": "cancelDcaOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/dca/cancel/01a21216-784f-754c-be94-a75f5e757aee",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee"
+                ],
+                "output": "{}"
+            }
+        ],
+        "confirmCancelDcaOrder": [
+            {
+                "description": "confirmCancelDcaOrder completes cancellation with the signed withdrawal, captured live",
+                "method": "confirmCancelDcaOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/dca/confirm-cancel/01a21216-784f-754c-be94-a75f5e757aee",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee",
+                    {
+                        "signedTransaction": "AzJkDZpZlfCWPd70f2gur02kxyc4/qS0T0F9T8Ir1nGXmOU/chT//0hG4KomPR9TIFw37NBFz7t8jJaHzR4zFgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l7YqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqYXU9cGU5LR3gchSBFzrjSh1VNGZmwZHHRqhGx04QBJhCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ=="
+                    }
+                ],
+                "output": "{\"signedTransaction\":\"AzJkDZpZlfCWPd70f2gur02kxyc4/qS0T0F9T8Ir1nGXmOU/chT//0hG4KomPR9TIFw37NBFz7t8jJaHzR4zFgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l7YqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqYXU9cGU5LR3gchSBFzrjSh1VNGZmwZHHRqhGx04QBJhCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==\"}"
+            }
+        ],
+        "createTriggerPriceOrder": [
+            {
+                "description": "createTriggerPriceOrder submits a single price order with the signed deposit, captured live",
+                "method": "createTriggerPriceOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/price",
+                "input": [
+                    {
+                        "orderType": "single",
+                        "depositRequestId": "353dbc1b-5d56-4c89-a349-0a667a5e43a7",
+                        "depositSignedTx": "A8b5VERs9OjyF46tPPmcDk6W3NzbGpEwwweY/e0VpdgpFcXzCPQ2NS+KqmFwqAp2EHtEOFbsMViaJDxJyMgxRgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDJs54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKnmMOgLXqm2hhmLG1+pSdj7JMrLNUyCexPW/wJk6ijSHggIAAUCkF8BAAgACQP7SgQAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAABkNjlhZjQ1MjUyYjdlODYwNzBjZjRjNDBiYzUwMTM4Yzi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmount": "315000000",
+                        "triggerMint": "So11111111111111111111111111111111111111112",
+                        "triggerCondition": "above",
+                        "triggerPriceUsd": 500,
+                        "slippageBps": 100,
+                        "expiresAt": 1795686790715
+                    }
+                ],
+                "output": "{\"orderType\":\"single\",\"depositRequestId\":\"353dbc1b-5d56-4c89-a349-0a667a5e43a7\",\"depositSignedTx\":\"A8b5VERs9OjyF46tPPmcDk6W3NzbGpEwwweY/e0VpdgpFcXzCPQ2NS+KqmFwqAp2EHtEOFbsMViaJDxJyMgxRgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDJs54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKnmMOgLXqm2hhmLG1+pSdj7JMrLNUyCexPW/wJk6ijSHggIAAUCkF8BAAgACQP7SgQAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAABkNjlhZjQ1MjUyYjdlODYwNzBjZjRjNDBiYzUwMTM4Yzi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=\",\"userPubkey\":\"5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o\",\"inputMint\":\"So11111111111111111111111111111111111111112\",\"outputMint\":\"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\"inputAmount\":\"315000000\",\"triggerMint\":\"So11111111111111111111111111111111111111112\",\"triggerCondition\":\"above\",\"triggerPriceUsd\":500,\"slippageBps\":100,\"expiresAt\":1795686790715}"
+            }
+        ],
+        "fetchTriggerOrders": [
+            {
+                "description": "fetchTriggerOrders active price orders, captured live",
+                "method": "fetchTriggerOrders",
+                "url": "https://api.jup.ag/trigger/v2/orders/history?state=active",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "state": "active"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "editTriggerOrder": [
+            {
+                "description": "editTriggerOrder moves the trigger price, captured live",
+                "method": "editTriggerOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/price/01a21217-945c-746f-9abc-f4d1b018dbf4",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    {
+                        "orderType": "single",
+                        "triggerPriceUsd": 550
+                    }
+                ],
+                "output": "{\"orderType\":\"single\",\"triggerPriceUsd\":550}"
+            }
+        ],
+        "cancelTriggerOrder": [
+            {
+                "description": "cancelTriggerOrder starts cancellation and returns the unsigned withdrawal, captured live",
+                "method": "cancelTriggerOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/price/cancel/01a21217-945c-746f-9abc-f4d1b018dbf4",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4"
+                ],
+                "output": "{}"
+            }
+        ],
+        "confirmCancelTriggerOrder": [
+            {
+                "description": "confirmCancelTriggerOrder completes cancellation with the signed withdrawal, captured live",
+                "method": "confirmCancelTriggerOrder",
+                "url": "https://api.jup.ag/trigger/v2/orders/price/confirm-cancel/01a21217-945c-746f-9abc-f4d1b018dbf4",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    {
+                        "signedTransaction": "A/jvhfFSYNn8wwrTM0863HZMAZJSnW1RPRZ8e1dzC6q2ZnDo1gl3O9cmKPa9AwLVNEP1l5ObA9xpdqPfmQqbJgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDLYqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqSsUGUVCg4fmLw8k+ek6CDQQwXGVWlo1E3VEdknEL8nuCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ=="
+                    }
+                ],
+                "output": "{\"signedTransaction\":\"A/jvhfFSYNn8wwrTM0863HZMAZJSnW1RPRZ8e1dzC6q2ZnDo1gl3O9cmKPa9AwLVNEP1l5ObA9xpdqPfmQqbJgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDLYqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqSsUGUVCg4fmLw8k+ek6CDQQwXGVWlo1E3VEdknEL8nuCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==\"}"
+            }
         ]
     }
 }

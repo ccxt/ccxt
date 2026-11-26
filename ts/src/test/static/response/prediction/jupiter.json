@@ -5557,6 +5557,476 @@
                     "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg"
                 }
             }
+        ],
+        "executePredictionTransaction": [
+            {
+                "description": "executePredictionTransaction submits the signed order transaction, captured live",
+                "method": "executePredictionTransaction",
+                "input": [
+                    "AmkpCMXm+yIPOxX74o894no1oUF/YTlycIrQKKoA51eOwkTbah3Kk1hfE4HuyXBP1r8xYq8mxSESwKDu1aH24gzHMy9zvSvbrjsPGPCVJcPjXMcw7axW/VNaGEUXXCVUDCIPanw1XK3k8SF0zhvGV06wJeIKe1OaAzX8RBGza7gGgAIBBQ1DYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUopI+E5Qg1NtOawuU241JvUbkDGLCMTmdMsZd8yesS2gOOJaruB5nVNAEaiY5Xs+G3fbPCyIBQE1Dhv8corUlXJeVMJhco+8NoEZxwc0LvEsnudnokrJ67A8lfw+JIrkqoOuL4Zijq55XOICe0gA4KO4EU2nyzGEdRI0XXrohMLvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHDAE8A3CfIcHYn9erYFVXLrzjrBZH0drXo2MXPH/00eQOWDxYV5arsXNMKef2Tv8fxys5M9vCt40u0FIgH8YfdBKFDpXoQ4F2vOoClv3C4/Pekvt7Unt/yfK8Wc4K8/EMomDyo5Ib7v0YpssyPyQPaDsYXYzpxmnPmExGNVoy9tIYyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTjwgEv0K5nQYn8YY9ny+AdGkYyP59oGKNWWYRl+hjugmqBQsACQNQwwAAAAAAAAsABQKwcQsACgYAAwAUFxYBAQwcAAUDExQWFgwZDBUQBg0RBQMUEw4VABYWEhUPDCe7ZPrMMcSvFAiDYAAAAAAAj4BgAAAAAAAKAAAAAAABAAAAJhAnAAEJDQAAARgCBAgDFAcWChdtlu0RPTvAfDQgAAAAMzg4ODcwMzkyNjcwNGY4NWIzYzQxZTZiMTgwMWExMTAgAAAAZWE0NjhmODU5ZjIyNTA3MjllNTIzYzBkNDY0OTk5OWEBAXCtUgMAAAAAsK0BAAAAAADaZ2AAAAAAAAAAAAIh7Brqmrlu0y8NDuAloitaCSskVbwDpNs7gsxLnALfTQXCxr7BxQXKDcjHDFL8u2U4Uipt4emGr4VTAQhqeK2WIw2h/AGbVt2Vy6i6AAMFAQQ=",
+                    {
+                        "type": "create_order"
+                    }
+                ],
+                "httpResponse": {
+                    "status": "Success",
+                    "signature": "36wnEFq7iE1FrrmmaKaHQydpGvTFSX5rjdjLTsdjshveZh5g57U5w2K9mFHpoECPD3YKRZ5LnGKw3LoYZBZeT4SP",
+                    "error": null
+                },
+                "parsedResponse": {
+                    "status": "Success",
+                    "signature": "36wnEFq7iE1FrrmmaKaHQydpGvTFSX5rjdjLTsdjshveZh5g57U5w2K9mFHpoECPD3YKRZ5LnGKw3LoYZBZeT4SP",
+                    "error": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder resolves an in-flight signed order, captured live",
+                "method": "fetchOrder",
+                "input": [
+                    "9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                    "POLY-6353936:YES"
+                ],
+                "httpResponse": {
+                    "pubkey": "9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                    "owner": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    "market": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                    "marketId": "ea468f859f2250729e523c0d4649999a",
+                    "marketIdHash": "ea468f859f2250729e523c0d4649999a",
+                    "eventId": "POLY-1273034",
+                    "position": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                    "status": "pending",
+                    "isYes": true,
+                    "isBuy": true,
+                    "createdAt": 1795600288,
+                    "updatedAt": 1795600288,
+                    "contracts": "55",
+                    "contractsMicro": "55750000",
+                    "contractsDecimal": "55.75",
+                    "maxFillPriceUsd": "110000",
+                    "maxBuyPriceUsd": "110000",
+                    "minSellPriceUsd": null,
+                    "filledAt": 0,
+                    "filledContracts": "0",
+                    "filledContractsMicro": "0",
+                    "filledContractsDecimal": "0",
+                    "avgFillPriceUsd": "0",
+                    "settled": false,
+                    "orderId": "",
+                    "sizeUsd": "6132500",
+                    "eventMetadata": {
+                        "eventId": "POLY-1273034",
+                        "title": "Fed Decision in April?",
+                        "subtitle": "",
+                        "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+                        "isLive": false,
+                        "tags": [
+                            "economics",
+                            "economy",
+                            "politics",
+                            "trump",
+                            "finance",
+                            "fed-rates",
+                            "fed",
+                            "fomc",
+                            "recurring",
+                            "kevin-warsh",
+                            "Global-Rates",
+                            "jerome-powell",
+                            "economic-policy",
+                            "macro-indicators"
+                        ],
+                        "closeTime": 1808956740,
+                        "beginAt": null,
+                        "category": "economics",
+                        "subcategory": ""
+                    },
+                    "marketMetadata": {
+                        "marketId": "POLY-6353936",
+                        "eventId": "POLY-1273034",
+                        "title": "25 bps decrease",
+                        "subtitle": "25 bps decrease",
+                        "description": "25 bps decrease",
+                        "status": "open",
+                        "result": null,
+                        "closeTime": 1808956740,
+                        "openTime": 1793210502,
+                        "isTeamMarket": false,
+                        "team": null,
+                        "sportsLine": null,
+                        "providerSportsLine": null,
+                        "periodType": null,
+                        "periodNumber": null,
+                        "gameNumber": null,
+                        "sportsMarketType": null,
+                        "marketOptions": [
+                            {
+                                "label": "Yes",
+                                "buyYes": true
+                            },
+                            {
+                                "label": "No",
+                                "buyYes": false
+                            }
+                        ]
+                    },
+                    "externalOrderId": "3888703926704f85b3c41e6b1801a110",
+                    "clientOrderId": "3888703926704f85b3c41e6b1801a110",
+                    "bump": 255,
+                    "orderType": "market"
+                },
+                "parsedResponse": {
+                    "id": "9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-25T09:51:28.000Z",
+                    "timestamp": 1795600288000,
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "type": "market",
+                    "side": "buy",
+                    "price": 0,
+                    "average": null,
+                    "amount": 55.75,
+                    "filled": 0,
+                    "remaining": 55.75,
+                    "cost": 6.1325,
+                    "fee": null,
+                    "reduceOnly": false,
+                    "postOnly": false,
+                    "outcome": "POLY-6353936:YES",
+                    "outcomeId": "ea468f859f2250729e523c0d4649999a:YES",
+                    "label": "Yes",
+                    "market": "ea468f859f2250729e523c0d4649999a",
+                    "event": null,
+                    "trades": [],
+                    "info": {
+                        "pubkey": "9s2TdKm5Y6YqDaLKEL7QJw9x44St5sPZkPSroUhVsiXG",
+                        "owner": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "market": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                        "marketId": "ea468f859f2250729e523c0d4649999a",
+                        "marketIdHash": "ea468f859f2250729e523c0d4649999a",
+                        "eventId": "POLY-1273034",
+                        "position": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                        "status": "pending",
+                        "isYes": true,
+                        "isBuy": true,
+                        "createdAt": 1795600288,
+                        "updatedAt": 1795600288,
+                        "contracts": "55",
+                        "contractsMicro": "55750000",
+                        "contractsDecimal": "55.75",
+                        "maxFillPriceUsd": "110000",
+                        "maxBuyPriceUsd": "110000",
+                        "minSellPriceUsd": null,
+                        "filledAt": 0,
+                        "filledContracts": "0",
+                        "filledContractsMicro": "0",
+                        "filledContractsDecimal": "0",
+                        "avgFillPriceUsd": "0",
+                        "settled": false,
+                        "orderId": "",
+                        "sizeUsd": "6132500",
+                        "eventMetadata": {
+                            "eventId": "POLY-1273034",
+                            "title": "Fed Decision in April?",
+                            "subtitle": "",
+                            "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+                            "isLive": false,
+                            "tags": [
+                                "economics",
+                                "economy",
+                                "politics",
+                                "trump",
+                                "finance",
+                                "fed-rates",
+                                "fed",
+                                "fomc",
+                                "recurring",
+                                "kevin-warsh",
+                                "Global-Rates",
+                                "jerome-powell",
+                                "economic-policy",
+                                "macro-indicators"
+                            ],
+                            "closeTime": 1808956740,
+                            "beginAt": null,
+                            "category": "economics",
+                            "subcategory": ""
+                        },
+                        "marketMetadata": {
+                            "marketId": "POLY-6353936",
+                            "eventId": "POLY-1273034",
+                            "title": "25 bps decrease",
+                            "subtitle": "25 bps decrease",
+                            "description": "25 bps decrease",
+                            "status": "open",
+                            "result": null,
+                            "closeTime": 1808956740,
+                            "openTime": 1793210502,
+                            "isTeamMarket": false,
+                            "team": null,
+                            "sportsLine": null,
+                            "providerSportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null,
+                            "sportsMarketType": null,
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ]
+                        },
+                        "externalOrderId": "3888703926704f85b3c41e6b1801a110",
+                        "clientOrderId": "3888703926704f85b3c41e6b1801a110",
+                        "bump": 255,
+                        "orderType": "market"
+                    }
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition for a held POLY-1273034 outcome, captured live",
+                "method": "fetchPosition",
+                "input": [
+                    "POLY-6353936:YES",
+                    {
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o"
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pubkey": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                            "owner": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                            "market": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                            "marketId": "POLY-6353936",
+                            "marketIdHash": "ea468f859f2250729e523c0d4649999a",
+                            "isYes": true,
+                            "contracts": "55",
+                            "contractsMicro": "55720000",
+                            "contractsDecimal": "55.72",
+                            "totalCostUsd": "6129199",
+                            "openOrders": 0,
+                            "feesPaidUsd": "177150",
+                            "realizedPnlUsd": 0,
+                            "claimed": false,
+                            "claimedUsd": "0",
+                            "openedAt": 1795600292,
+                            "updatedAt": 1795600292,
+                            "bump": 255,
+                            "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                            "eventId": "POLY-1273034",
+                            "sizeUsd": "6129199",
+                            "valueUsd": "5014800",
+                            "avgPriceUsd": "109999",
+                            "markPriceUsd": "90000",
+                            "maxSlippageBps": 2500,
+                            "pnlUsd": "-1114399",
+                            "pnlUsdPercent": -18.18,
+                            "pnlUsdAfterFees": "-1291549",
+                            "pnlUsdAfterFeesPercent": -20.48,
+                            "eventMetadata": {
+                                "eventId": "POLY-1273034",
+                                "title": "Fed Decision in April?",
+                                "subtitle": "",
+                                "isActive": true,
+                                "beginAt": null,
+                                "category": "economics",
+                                "subcategory": "",
+                                "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+                                "isLive": false,
+                                "closeCondition": "",
+                                "tags": [
+                                    "economics",
+                                    "economy",
+                                    "politics",
+                                    "trump",
+                                    "finance",
+                                    "fed-rates",
+                                    "fed",
+                                    "fomc",
+                                    "recurring",
+                                    "kevin-warsh",
+                                    "Global-Rates",
+                                    "jerome-powell",
+                                    "economic-policy",
+                                    "macro-indicators"
+                                ],
+                                "closeTime": 1808956740
+                            },
+                            "marketMetadata": {
+                                "marketId": "POLY-6353936",
+                                "eventId": "POLY-1273034",
+                                "provider": "polymarket",
+                                "title": "25 bps decrease",
+                                "subtitle": "25 bps decrease",
+                                "description": "25 bps decrease",
+                                "status": "open",
+                                "result": null,
+                                "closeTime": 1808956740,
+                                "openTime": 1793210502,
+                                "isTeamMarket": false,
+                                "team": null,
+                                "sportsLine": null,
+                                "providerSportsLine": null,
+                                "sportsMarketType": null,
+                                "periodType": null,
+                                "periodNumber": null,
+                                "gameNumber": null,
+                                "marketOptions": [
+                                    {
+                                        "label": "Yes",
+                                        "buyYes": true
+                                    },
+                                    {
+                                        "label": "No",
+                                        "buyYes": false
+                                    }
+                                ]
+                            },
+                            "claimable": false,
+                            "claimableAt": null,
+                            "payoutUsd": "55720000",
+                            "settlementDate": 1808956740,
+                            "sellPriceUsd": "90000",
+                            "integratorFeeUsd": "0",
+                            "source": "program"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                    "timestamp": 1795600292000,
+                    "datetime": "2026-11-25T09:51:32.000Z",
+                    "contracts": 55.72,
+                    "contractSize": null,
+                    "side": "yes",
+                    "notional": 5.0148,
+                    "unrealizedPnl": -1.114399,
+                    "realizedPnl": 0,
+                    "collateral": null,
+                    "entryPrice": 0.109999,
+                    "markPrice": 0.09,
+                    "lastPrice": null,
+                    "percentage": null,
+                    "resolved": false,
+                    "won": null,
+                    "settleFraction": null,
+                    "payout": 55.72,
+                    "outcome": "POLY-6353936:YES",
+                    "outcomeId": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                    "label": null,
+                    "market": "POLY-6353936",
+                    "event": null,
+                    "info": {
+                        "pubkey": "4q429xVeZ7pYEKqgx66rE1UPqDzG8kbQnXtXMGKJrB6q",
+                        "owner": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "market": "Au1jcPdXvC1b6YanBz3SxLFmdLt4En7R3TfaKqHUYxrj",
+                        "marketId": "POLY-6353936",
+                        "marketIdHash": "ea468f859f2250729e523c0d4649999a",
+                        "isYes": true,
+                        "contracts": "55",
+                        "contractsMicro": "55720000",
+                        "contractsDecimal": "55.72",
+                        "totalCostUsd": "6129199",
+                        "openOrders": 0,
+                        "feesPaidUsd": "177150",
+                        "realizedPnlUsd": 0,
+                        "claimed": false,
+                        "claimedUsd": "0",
+                        "openedAt": 1795600292,
+                        "updatedAt": 1795600292,
+                        "bump": 255,
+                        "ownerPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "eventId": "POLY-1273034",
+                        "sizeUsd": "6129199",
+                        "valueUsd": "5014800",
+                        "avgPriceUsd": "109999",
+                        "markPriceUsd": "90000",
+                        "maxSlippageBps": 2500,
+                        "pnlUsd": "-1114399",
+                        "pnlUsdPercent": -18.18,
+                        "pnlUsdAfterFees": "-1291549",
+                        "pnlUsdAfterFeesPercent": -20.48,
+                        "eventMetadata": {
+                            "eventId": "POLY-1273034",
+                            "title": "Fed Decision in April?",
+                            "subtitle": "",
+                            "isActive": true,
+                            "beginAt": null,
+                            "category": "economics",
+                            "subcategory": "",
+                            "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+                            "isLive": false,
+                            "closeCondition": "",
+                            "tags": [
+                                "economics",
+                                "economy",
+                                "politics",
+                                "trump",
+                                "finance",
+                                "fed-rates",
+                                "fed",
+                                "fomc",
+                                "recurring",
+                                "kevin-warsh",
+                                "Global-Rates",
+                                "jerome-powell",
+                                "economic-policy",
+                                "macro-indicators"
+                            ],
+                            "closeTime": 1808956740
+                        },
+                        "marketMetadata": {
+                            "marketId": "POLY-6353936",
+                            "eventId": "POLY-1273034",
+                            "provider": "polymarket",
+                            "title": "25 bps decrease",
+                            "subtitle": "25 bps decrease",
+                            "description": "25 bps decrease",
+                            "status": "open",
+                            "result": null,
+                            "closeTime": 1808956740,
+                            "openTime": 1793210502,
+                            "isTeamMarket": false,
+                            "team": null,
+                            "sportsLine": null,
+                            "providerSportsLine": null,
+                            "sportsMarketType": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null,
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ]
+                        },
+                        "claimable": false,
+                        "claimableAt": null,
+                        "payoutUsd": "55720000",
+                        "settlementDate": 1808956740,
+                        "sellPriceUsd": "90000",
+                        "integratorFeeUsd": "0",
+                        "source": "program"
+                    }
+                }
+            }
         ]
     }
 }

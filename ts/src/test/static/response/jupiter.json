@@ -3200,6 +3200,929 @@
                     "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAGD1z/9rrgFNVNVhjwVgZQ62Aiy5Hv5zC8dOcK9OhcyvHZsiCGTEwilZPNgd+FKnpjjWEDksjNBmewTlUDvgUYiqWqiGBc7UuGG8hBSc/fPnEicMTX9gzGP64aRB8/UQSQgnJc9SHdrFXUKfUckImNGyKfBqAowDSMzFmJ7nRJ7ZcEqb0+vL6+k2RlkY7OnsnXLkQccwhOvqP+jW8QB460Qy3Get3Ath9uzyJU8yD8gm1VYiofAk9rRLGgU6mkRhnVaoq0mgjpfqPHUmYBaqFlxUIig/mzpk7IbrzfS4dqzkc50/XPZ52iltScDNdzBt1VTgInhk38Qe0HnGrjtnsvL+2aXNqNGY56uFqMstcbhzGxRighAnR6G57wKGvuOINY0gMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAACv4fkyKnodHDZh1nF5HKmzDTIC8eH9aHOnfM3HGPETMLcGWx49F8RTidUn9rBMPNWLhscxqg/bVJttG8A/gpRgan1RcZLFxRIYzJTD1K8X9Y2u4Im6H9ROPb2YoAAAAAV7tTiu2ouZVXVpxbjG04vK8njXot3BxpwFBmZFH2ntynjB7ywRemS5oyM4s8+gdk6Ee+KviW/D9GfONIa9chZ5F0NL6EXR1M79AP3xpY1jCe8O+d3uAKAyJO9zUfKBVbAwkABQLAXBUACg0AGA8BAgMEGRobHAsMDsUUCgFhoLFbAQCrKgAACicABQYKCgodDx4fDQEDEBAHBwgREhMUICEVFgoKIiMkGRkaGw4IFxcx2WrQY3SXKocAAAAAAAAAAAAAAAAAAAAAQEIPAAAAAAAAAAAAAAAAAAEBAwAAAAEBAgEnPU8l4n1LMD8g/Es4NkgTrbgk/lSsQnvvIm6Xe5iU6wkCNgYHCAkqKxoNAC4vLTIBAwQKCwwsNw=="
                 }
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "createConvertTrade executes a signed swap, captured live (SOL to JUP)",
+                "method": "createConvertTrade",
+                "input": [
+                    "01a21210-884a-7166-8cd0-c0188254ef58",
+                    "SOL",
+                    "JUP",
+                    0.01,
+                    {
+                        "signedTransaction": "AZx0t6JFLuI/MhCvHXLFGOE+e/3DWvFV9nqwdzSosaGDFN3BYUZZnueGznkvs7HNIby/MCR08NgfP461OgD5YgyAAQADC0NiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudSENYwirN+CqbwXK8/Rd64ucLRY88xCJz7xy0grRu9lrEgETukNnJrgIDezmEaqMxEqtAiAULMB/7LQvRo3K8dSaGe7kf+aWyEEWtw+eNb2M7C8TilZparAjJPcREiU7ELrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHC4KFDr2lCPGHo97lKL+hreGj5B4AkdJbmcIHALM3rWx9GQ05LA8smb5jNzk+3mnst2hHTOrh7A01e+w0BM79Kh806FhQ0udrDUxuNn/v1U3Sk0q5yQhhpCUSe2sZnU/coDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAALXjShTivHNIaQ7h9a9d7tZVOECjbaq4YLBQYHO9wDwQCvHDQyGIyjpjUTWhOhiVGs69Wp9gPah4XggYYopFo3dj2fPsviQ9TAKz3BRNC7Z39ry/N3y30bkz9XBinCstCAQIAAUCJjMDAAgACQPREAAAAAAAAAkGAAYbHRgWEC8+m6yDzSXJgJaYAAAAAAAJJx0YFgAXCQkcHgkJCiAbGRARDQsPDA4SBgQfHQATARQEFQUDBwIhGpIB+MaekeF1h8gFAAAAJT0Hi2Anel0TIfUK5AWdMjlS9iENEuk6zRbqt9U0IOWky7HM9ruiWateoyoqVeHHUv3GbwOyYGoAaeyfF8NmRgllETwcAAB0hpMAAAAxAgAAALhi/wMAAAAACbNgRgAAAAAABi02gJaYAAAAAAADAP5QCgAAAAAAAAE39y8AAAAAADIAAAADFASotUqpoowbQQL99GKJc4wcRItRF4w6yRvI6/WL+voACgAKB77EvQEFBhIVMzWZi/xXoOj2y4LnS3o1x2FDy2W0cweIdxONgggluggABAgFAhITBgEMCt3s6WeJOuSTufcUVGubBJCvtaiJX0mzaFa6TKroRwwD6uzrAe0="
+                    }
+                ],
+                "httpResponse": {
+                    "status": "Success",
+                    "signature": "48Rn64XW7tgCyakcGeDTjTBqQ3BshFRe6VeR2oPwK6ACNjo5aYYWJCFBHrSNVBGZmDd9eXr8U4D5utN5kvUzyY4K",
+                    "slot": "473698544",
+                    "code": 0,
+                    "totalInputAmount": "10000000",
+                    "totalOutputAmount": "3141785",
+                    "inputAmountResult": "10000000",
+                    "outputAmountResult": "3141785"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "status": "Success",
+                        "signature": "48Rn64XW7tgCyakcGeDTjTBqQ3BshFRe6VeR2oPwK6ACNjo5aYYWJCFBHrSNVBGZmDd9eXr8U4D5utN5kvUzyY4K",
+                        "slot": "473698544",
+                        "code": 0,
+                        "totalInputAmount": "10000000",
+                        "totalOutputAmount": "3141785",
+                        "inputAmountResult": "10000000",
+                        "outputAmountResult": "3141785"
+                    },
+                    "id": "48Rn64XW7tgCyakcGeDTjTBqQ3BshFRe6VeR2oPwK6ACNjo5aYYWJCFBHrSNVBGZmDd9eXr8U4D5utN5kvUzyY4K",
+                    "fromCurrency": "SOL",
+                    "fromAmount": 0.01,
+                    "toCurrency": "JUP",
+                    "toAmount": 3.141785,
+                    "price": 314.1785,
+                    "fee": null
+                }
+            }
+        ],
+        "verifyTriggerChallenge": [
+            {
+                "description": "verifyTriggerChallenge exchanges a signed challenge for trigger tokens, captured live",
+                "method": "verifyTriggerChallenge",
+                "input": [
+                    "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    {
+                        "type": "message",
+                        "signature": "3FYeKJGHdu31dj2x28cd5utgZbxKtfeN2Cd5ePgSgifs33wjMXFqCTuPZP6PSf247QkuqYW8uoo2ics1oxbjgd6R",
+                        "authMode": "access_refresh"
+                    }
+                ],
+                "httpResponse": {
+                    "authMode": "access_refresh",
+                    "accessToken": "eyJhbGciOiJFZERTQSJ9.c2FuaXRpemVkLWFjY2Vzcy10b2tlbi01.c2lnbmF0dXJl",
+                    "refreshToken": "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1",
+                    "expiresAt": "2026-11-25T09:58:01.000Z",
+                    "tokenType": "Bearer"
+                },
+                "parsedResponse": {
+                    "authMode": "access_refresh",
+                    "accessToken": "eyJhbGciOiJFZERTQSJ9.c2FuaXRpemVkLWFjY2Vzcy10b2tlbi01.c2lnbmF0dXJl",
+                    "refreshToken": "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1",
+                    "expiresAt": "2026-11-25T09:58:01.000Z",
+                    "tokenType": "Bearer"
+                }
+            }
+        ],
+        "refreshTriggerToken": [
+            {
+                "description": "refreshTriggerToken rotates the trigger tokens, captured live",
+                "method": "refreshTriggerToken",
+                "input": [
+                    "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1"
+                ],
+                "httpResponse": {
+                    "authMode": "access_refresh",
+                    "accessToken": "eyJhbGciOiJFZERTQSJ9.c2FuaXRpemVkLWFjY2Vzcy10b2tlbi02.c2lnbmF0dXJl",
+                    "refreshToken": "01a21216-0000-0000-0000-000000000002.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t2",
+                    "expiresAt": "2026-11-25T09:58:05.000Z",
+                    "tokenType": "Bearer"
+                },
+                "parsedResponse": {
+                    "authMode": "access_refresh",
+                    "accessToken": "eyJhbGciOiJFZERTQSJ9.c2FuaXRpemVkLWFjY2Vzcy10b2tlbi02.c2lnbmF0dXJl",
+                    "refreshToken": "01a21216-0000-0000-0000-000000000002.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t2",
+                    "expiresAt": "2026-11-25T09:58:05.000Z",
+                    "tokenType": "Bearer"
+                }
+            }
+        ],
+        "createTriggerDeposit": [
+            {
+                "description": "createTriggerDeposit crafts an unsigned dca vault deposit, captured live",
+                "method": "createTriggerDeposit",
+                "input": [
+                    {
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "userAddress": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "amount": "315000000",
+                        "orderType": "dca"
+                    }
+                ],
+                "httpResponse": {
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l5s54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9KvUPZu9hC7Y9F7wPQzG1RHp0g5dPyS8NEYNje5h/EQgIAAUCkF8BAAgACQMHogYAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAAAxZGU1ODViZTJkOGQzY2MyNzg5MjdhZDUwMzkzNTM3YTi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                    "requestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+                    "receiverAddress": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                    "mint": "So11111111111111111111111111111111111111112",
+                    "amount": "315000000",
+                    "tokenDecimals": 9,
+                    "inputTokenAccount": "8ePeFfWka1HmqfuX44NLjdC623pczUk8fw2gTjeXCvT8"
+                },
+                "parsedResponse": {
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l5s54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9KvUPZu9hC7Y9F7wPQzG1RHp0g5dPyS8NEYNje5h/EQgIAAUCkF8BAAgACQMHogYAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAAAxZGU1ODViZTJkOGQzY2MyNzg5MjdhZDUwMzkzNTM3YTi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                    "requestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+                    "receiverAddress": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                    "mint": "So11111111111111111111111111111111111111112",
+                    "amount": "315000000",
+                    "tokenDecimals": 9,
+                    "inputTokenAccount": "8ePeFfWka1HmqfuX44NLjdC623pczUk8fw2gTjeXCvT8"
+                }
+            }
+        ],
+        "createDcaOrder": [
+            {
+                "description": "createDcaOrder submits a dca order with the signed deposit, captured live",
+                "method": "createDcaOrder",
+                "input": [
+                    {
+                        "depositRequestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+                        "depositSignedTx": "AxdRvvsu2v9z042tMRLJY0zYZ0/aZuFsuLUIhHWZyh60VjfNPZTItP+9pFuIVrIelpfmw8r2iwdkh+6ddYYiTA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l5s54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKk9KvUPZu9hC7Y9F7wPQzG1RHp0g5dPyS8NEYNje5h/EQgIAAUCkF8BAAgACQMHogYAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAAAxZGU1ODViZTJkOGQzY2MyNzg5MjdhZDUwMzkzNTM3YTi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmount": "315000000",
+                        "orderCount": 2,
+                        "intervalSeconds": 3600,
+                        "orderType": "time_based",
+                        "beginFillAt": "2026-11-25T10:13:04.146Z"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi"
+                },
+                "parsedResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                    "owner": null,
+                    "inputCurrency": null,
+                    "outputCurrency": null,
+                    "status": null,
+                    "info": {
+                        "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                        "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi"
+                    }
+                }
+            }
+        ],
+        "fetchDcaOrders": [
+            {
+                "description": "fetchDcaOrders dca order history, captured live",
+                "method": "fetchDcaOrders",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                        "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmountInitial": "315000000",
+                        "inputAmountRemaining": "315000000",
+                        "amountPerRound": "157500000",
+                        "outputAmountTotal": "0",
+                        "inputAmountUsed": "0",
+                        "orderType": "time_based",
+                        "minPriceUsd": null,
+                        "maxPriceUsd": null,
+                        "triggerMint": null,
+                        "retryWindowSeconds": 1800,
+                        "jlEnabled": false,
+                        "jlYieldUsd": null,
+                        "numberOfRounds": 2,
+                        "intervalSeconds": 3600,
+                        "beginFillAt": "2026-11-25T10:08:10.067Z",
+                        "nextFillAt": "2026-11-25T10:08:10.067Z",
+                        "lastFillAt": null,
+                        "roundsFilled": 0,
+                        "fillPercent": 0,
+                        "state": "active",
+                        "displayState": "active",
+                        "createdAt": "2026-11-25T09:43:12.208Z",
+                        "updatedAt": "2026-11-25T09:43:12.870Z",
+                        "events": [
+                            {
+                                "type": "deposit",
+                                "timestamp": "2026-11-25T09:43:12.870Z",
+                                "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                                "inputAmount": "315000000",
+                                "state": "success"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                        "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmountInitial": "315000000",
+                        "inputAmountRemaining": "315000000",
+                        "amountPerRound": "157500000",
+                        "outputAmountTotal": "0",
+                        "inputAmountUsed": "0",
+                        "orderType": "time_based",
+                        "minPriceUsd": null,
+                        "maxPriceUsd": null,
+                        "triggerMint": null,
+                        "retryWindowSeconds": 1800,
+                        "jlEnabled": false,
+                        "jlYieldUsd": null,
+                        "numberOfRounds": 2,
+                        "intervalSeconds": 3600,
+                        "beginFillAt": "2026-11-25T10:08:10.067Z",
+                        "nextFillAt": "2026-11-25T10:08:10.067Z",
+                        "lastFillAt": null,
+                        "roundsFilled": 0,
+                        "fillPercent": 0,
+                        "state": "active",
+                        "displayState": "active",
+                        "createdAt": "2026-11-25T09:43:12.208Z",
+                        "updatedAt": "2026-11-25T09:43:12.870Z",
+                        "events": [
+                            {
+                                "type": "deposit",
+                                "timestamp": "2026-11-25T09:43:12.870Z",
+                                "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                                "inputAmount": "315000000",
+                                "state": "success"
+                            }
+                        ],
+                        "owner": null,
+                        "inputCurrency": "So11111111111111111111111111111111111111112",
+                        "outputCurrency": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "status": "active",
+                        "info": {
+                            "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                            "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                            "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                            "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                            "inputMint": "So11111111111111111111111111111111111111112",
+                            "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                            "inputAmountInitial": "315000000",
+                            "inputAmountRemaining": "315000000",
+                            "amountPerRound": "157500000",
+                            "outputAmountTotal": "0",
+                            "inputAmountUsed": "0",
+                            "orderType": "time_based",
+                            "minPriceUsd": null,
+                            "maxPriceUsd": null,
+                            "triggerMint": null,
+                            "retryWindowSeconds": 1800,
+                            "jlEnabled": false,
+                            "jlYieldUsd": null,
+                            "numberOfRounds": 2,
+                            "intervalSeconds": 3600,
+                            "beginFillAt": "2026-11-25T10:08:10.067Z",
+                            "nextFillAt": "2026-11-25T10:08:10.067Z",
+                            "lastFillAt": null,
+                            "roundsFilled": 0,
+                            "fillPercent": 0,
+                            "state": "active",
+                            "displayState": "active",
+                            "createdAt": "2026-11-25T09:43:12.208Z",
+                            "updatedAt": "2026-11-25T09:43:12.870Z",
+                            "events": [
+                                {
+                                    "type": "deposit",
+                                    "timestamp": "2026-11-25T09:43:12.870Z",
+                                    "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                                    "inputAmount": "315000000",
+                                    "state": "success"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchDcaOrder": [
+            {
+                "description": "fetchDcaOrder single dca order, captured live",
+                "method": "fetchDcaOrder",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee"
+                ],
+                "httpResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                    "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                    "inputMint": "So11111111111111111111111111111111111111112",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inputAmountInitial": "315000000",
+                    "inputAmountRemaining": "315000000",
+                    "amountPerRound": "157500000",
+                    "outputAmountTotal": "0",
+                    "inputAmountUsed": "0",
+                    "orderType": "time_based",
+                    "minPriceUsd": null,
+                    "maxPriceUsd": null,
+                    "triggerMint": null,
+                    "retryWindowSeconds": 1800,
+                    "jlEnabled": false,
+                    "jlYieldUsd": null,
+                    "numberOfRounds": 2,
+                    "intervalSeconds": 3600,
+                    "beginFillAt": "2026-11-25T10:08:10.067Z",
+                    "nextFillAt": "2026-11-25T10:08:10.067Z",
+                    "lastFillAt": null,
+                    "roundsFilled": 0,
+                    "fillPercent": 0,
+                    "state": "active",
+                    "displayState": "active",
+                    "createdAt": "2026-11-25T09:43:12.208Z",
+                    "updatedAt": "2026-11-25T09:43:12.870Z",
+                    "events": [
+                        {
+                            "type": "deposit",
+                            "timestamp": "2026-11-25T09:43:12.870Z",
+                            "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                            "inputAmount": "315000000",
+                            "state": "success"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                    "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                    "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                    "inputMint": "So11111111111111111111111111111111111111112",
+                    "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "inputAmountInitial": "315000000",
+                    "inputAmountRemaining": "315000000",
+                    "amountPerRound": "157500000",
+                    "outputAmountTotal": "0",
+                    "inputAmountUsed": "0",
+                    "orderType": "time_based",
+                    "minPriceUsd": null,
+                    "maxPriceUsd": null,
+                    "triggerMint": null,
+                    "retryWindowSeconds": 1800,
+                    "jlEnabled": false,
+                    "jlYieldUsd": null,
+                    "numberOfRounds": 2,
+                    "intervalSeconds": 3600,
+                    "beginFillAt": "2026-11-25T10:08:10.067Z",
+                    "nextFillAt": "2026-11-25T10:08:10.067Z",
+                    "lastFillAt": null,
+                    "roundsFilled": 0,
+                    "fillPercent": 0,
+                    "state": "active",
+                    "displayState": "active",
+                    "createdAt": "2026-11-25T09:43:12.208Z",
+                    "updatedAt": "2026-11-25T09:43:12.870Z",
+                    "events": [
+                        {
+                            "type": "deposit",
+                            "timestamp": "2026-11-25T09:43:12.870Z",
+                            "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                            "inputAmount": "315000000",
+                            "state": "success"
+                        }
+                    ],
+                    "owner": null,
+                    "inputCurrency": "So11111111111111111111111111111111111111112",
+                    "outputCurrency": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "status": "active",
+                    "info": {
+                        "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                        "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmountInitial": "315000000",
+                        "inputAmountRemaining": "315000000",
+                        "amountPerRound": "157500000",
+                        "outputAmountTotal": "0",
+                        "inputAmountUsed": "0",
+                        "orderType": "time_based",
+                        "minPriceUsd": null,
+                        "maxPriceUsd": null,
+                        "triggerMint": null,
+                        "retryWindowSeconds": 1800,
+                        "jlEnabled": false,
+                        "jlYieldUsd": null,
+                        "numberOfRounds": 2,
+                        "intervalSeconds": 3600,
+                        "beginFillAt": "2026-11-25T10:08:10.067Z",
+                        "nextFillAt": "2026-11-25T10:08:10.067Z",
+                        "lastFillAt": null,
+                        "roundsFilled": 0,
+                        "fillPercent": 0,
+                        "state": "active",
+                        "displayState": "active",
+                        "createdAt": "2026-11-25T09:43:12.208Z",
+                        "updatedAt": "2026-11-25T09:43:12.870Z",
+                        "events": [
+                            {
+                                "type": "deposit",
+                                "timestamp": "2026-11-25T09:43:12.870Z",
+                                "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+                                "inputAmount": "315000000",
+                                "state": "success"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "cancelDcaOrder": [
+            {
+                "description": "cancelDcaOrder starts cancellation and returns the unsigned withdrawal, captured live",
+                "method": "cancelDcaOrder",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee"
+                ],
+                "httpResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "roundsRemaining": 2,
+                    "refundAmount": "315000000",
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l7YqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqYXU9cGU5LR3gchSBFzrjSh1VNGZmwZHHRqhGx04QBJhCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==",
+                    "requestId": "0a61450c-d5dd-42b0-9918-01ca18b02def"
+                },
+                "parsedResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "roundsRemaining": 2,
+                    "refundAmount": "315000000",
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l7YqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqYXU9cGU5LR3gchSBFzrjSh1VNGZmwZHHRqhGx04QBJhCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==",
+                    "requestId": "0a61450c-d5dd-42b0-9918-01ca18b02def"
+                }
+            }
+        ],
+        "confirmCancelDcaOrder": [
+            {
+                "description": "confirmCancelDcaOrder completes cancellation with the signed withdrawal, captured live",
+                "method": "confirmCancelDcaOrder",
+                "input": [
+                    "01a21216-784f-754c-be94-a75f5e757aee",
+                    {
+                        "signedTransaction": "AzJkDZpZlfCWPd70f2gur02kxyc4/qS0T0F9T8Ir1nGXmOU/chT//0hG4KomPR9TIFw37NBFz7t8jJaHzR4zFgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9VxleZvh8mtX0EavQFfvbGp+I/cw7xhvFqwyU+7B202l7YqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqYXU9cGU5LR3gchSBFzrjSh1VNGZmwZHHRqhGx04QBJhCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ=="
+                    }
+                ],
+                "httpResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "txSignature": "21S9J77LoxBBf7z8hLM2qzZHpTswbakYBCVLseuGkTfJMbMUJBPZtCWMVvwKtofgfXJkrFrqMfAzUrXPmaAmDhDn"
+                },
+                "parsedResponse": {
+                    "id": "01a21216-784f-754c-be94-a75f5e757aee",
+                    "txSignature": "21S9J77LoxBBf7z8hLM2qzZHpTswbakYBCVLseuGkTfJMbMUJBPZtCWMVvwKtofgfXJkrFrqMfAzUrXPmaAmDhDn"
+                }
+            }
+        ],
+        "createTriggerPriceOrder": [
+            {
+                "description": "createTriggerPriceOrder submits a single price order with the signed deposit, captured live",
+                "method": "createTriggerPriceOrder",
+                "input": [
+                    {
+                        "orderType": "single",
+                        "depositRequestId": "353dbc1b-5d56-4c89-a349-0a667a5e43a7",
+                        "depositSignedTx": "A8b5VERs9OjyF46tPPmcDk6W3NzbGpEwwweY/e0VpdgpFcXzCPQ2NS+KqmFwqAp2EHtEOFbsMViaJDxJyMgxRgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCBgxDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDJs54ShPWGhKZxnMXVAN15DgBlgRyI3yhRZolmFyzbnvrFZUg6KRKnW3+dg+giHrDk3VIdQKfhks1rWztGpyTHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIyXJY9OJInxuz0QKRSODYMLWhOZ2v8QhASOe9jb6fhZAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAADG+nrzvtutOj1l82qryXQxsbvkwtL24OR8pgIDRS9dYQabiFf+q4GE+2h/Y0YYwDXaxDncGus7VZig8AAAAAABBt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKnmMOgLXqm2hhmLG1+pSdj7JMrLNUyCexPW/wJk6ijSHggIAAUCkF8BAAgACQP7SgQAAAAAAAcGAAUACQYLAQEHBgAEAQkGCwEBBgMAAwF8AwAAAL8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgIAAAAAAAAABkNjlhZjQ1MjUyYjdlODYwNzBjZjRjNDBiYzUwMTM4Yzi2FgAAAAAApQAAAAAAAAAG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqQsCAwohEr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgBgMAAwIMAgAAAMCExhIAAAAACwEDARE=",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "inputAmount": "315000000",
+                        "triggerMint": "So11111111111111111111111111111111111111112",
+                        "triggerCondition": "above",
+                        "triggerPriceUsd": 500,
+                        "slippageBps": 100,
+                        "expiresAt": 1795686790715
+                    }
+                ],
+                "httpResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+                    "depositConfirmed": true
+                },
+                "parsedResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+                    "depositConfirmed": true
+                }
+            }
+        ],
+        "fetchTriggerOrders": [
+            {
+                "description": "fetchTriggerOrders active price orders, captured live",
+                "method": "fetchTriggerOrders",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "state": "active"
+                    }
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                            "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                            "privyWalletPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                            "inputMint": "So11111111111111111111111111111111111111112",
+                            "remainingInputAmount": "315000000",
+                            "initialInputAmount": "315000000",
+                            "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                            "triggerMint": "So11111111111111111111111111111111111111112",
+                            "expiresAt": 1795686262818,
+                            "createdAt": 1795599864925,
+                            "updatedAt": 1795599865594,
+                            "events": [
+                                {
+                                    "type": "deposit",
+                                    "timestamp": 1795599865594,
+                                    "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+                                    "mint": "So11111111111111111111111111111111111111112",
+                                    "amount": "315000000",
+                                    "state": "success"
+                                }
+                            ],
+                            "orderType": "single",
+                            "orderState": "open",
+                            "rawState": "open",
+                            "triggerCondition": "above",
+                            "triggerPriceUsd": 500,
+                            "slippageBps": 100,
+                            "fillPercent": 0,
+                            "trailingBps": null,
+                            "highWatermark": null,
+                            "lowWatermark": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                        "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "privyWalletPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+                        "inputMint": "So11111111111111111111111111111111111111112",
+                        "remainingInputAmount": "315000000",
+                        "initialInputAmount": "315000000",
+                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                        "triggerMint": "So11111111111111111111111111111111111111112",
+                        "expiresAt": 1795686262818,
+                        "createdAt": 1795599864925,
+                        "updatedAt": 1795599865594,
+                        "events": [
+                            {
+                                "type": "deposit",
+                                "timestamp": 1795599865594,
+                                "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+                                "mint": "So11111111111111111111111111111111111111112",
+                                "amount": "315000000",
+                                "state": "success"
+                            }
+                        ],
+                        "orderType": "single",
+                        "orderState": "open",
+                        "rawState": "open",
+                        "triggerCondition": "above",
+                        "triggerPriceUsd": 500,
+                        "slippageBps": 100,
+                        "fillPercent": 0,
+                        "trailingBps": null,
+                        "highWatermark": null,
+                        "lowWatermark": null
+                    }
+                ]
+            }
+        ],
+        "editTriggerOrder": [
+            {
+                "description": "editTriggerOrder moves the trigger price, captured live",
+                "method": "editTriggerOrder",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    {
+                        "orderType": "single",
+                        "triggerPriceUsd": 550
+                    }
+                ],
+                "httpResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4"
+                },
+                "parsedResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4"
+                }
+            }
+        ],
+        "cancelTriggerOrder": [
+            {
+                "description": "cancelTriggerOrder starts cancellation and returns the unsigned withdrawal, captured live",
+                "method": "cancelTriggerOrder",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4"
+                ],
+                "httpResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDLYqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqSsUGUVCg4fmLw8k+ek6CDQQwXGVWlo1E3VEdknEL8nuCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==",
+                    "requestId": "3313098a-25fb-481c-9aac-e936e8c96b09"
+                },
+                "parsedResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDLYqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqSsUGUVCg4fmLw8k+ek6CDQQwXGVWlo1E3VEdknEL8nuCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ==",
+                    "requestId": "3313098a-25fb-481c-9aac-e936e8c96b09"
+                }
+            }
+        ],
+        "confirmCancelTriggerOrder": [
+            {
+                "description": "confirmCancelTriggerOrder completes cancellation with the signed withdrawal, captured live",
+                "method": "confirmCancelTriggerOrder",
+                "input": [
+                    "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    {
+                        "signedTransaction": "A/jvhfFSYNn8wwrTM0863HZMAZJSnW1RPRZ8e1dzC6q2ZnDo1gl3O9cmKPa9AwLVNEP1l5ObA9xpdqPfmQqbJgsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBBQpDYlJEPZaCxJhMlSfRf1GKaMolMmXRSju0RdKLLyrnUr8GQ5FXdPFmFK5AgTqcaGg51VFWDjjn0hah5WYQxuUgDUjHKsrOFPVwGfmQFwHHgWST75hdcLkGE1QZ/OgrO9UvPx4HBqVnM14Cub4cCbgEkKJQ4UaRX6ZfXLNkGxNhDLYqNt/VDhxPrzQJlWEAtAUMDRF+AMu2VtmsGzvK3y/KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAR51VvyMcBu7nTFbs5oFQf9sbLeo/SOUQKxzaJWvBOPBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEG3fbh12Whk9nL4UbO63msHLSF7V9bN5E6jPWFfv8AqSsUGUVCg4fmLw8k+ek6CDQQwXGVWlo1E3VEdknEL8nuCAYABQL2FgAABgAJA5DQAwAAAAAABQMABAIMAgAAADi2FgAAAAAABwYEAQgJBQAJk/F7ZPSErnb/CQMDBAEJA8CExhIAAAAACQMEAAEBCQUCAAAMAgAAAMCExhIAAAAACQMDAAEBCQ=="
+                    }
+                ],
+                "httpResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "txSignature": "5yfhU8GH7fFw6M7Nn6RY9dpT4nrHDthgqqSkgZu4ehn7KPaQsNN543Gby6yoRK6V7pDVsaVwG4XPB2ZTQe34nEgi"
+                },
+                "parsedResponse": {
+                    "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+                    "txSignature": "5yfhU8GH7fFw6M7Nn6RY9dpT4nrHDthgqqSkgZu4ehn7KPaQsNN543Gby6yoRK6V7pDVsaVwG4XPB2ZTQe34nEgi"
+                }
+            }
+        ],
+        "repayCurrency": [
+            {
+                "description": "repayCurrency builds the repay-all transaction against a live borrow position, captured live",
+                "method": "repayCurrency",
+                "input": [
+                    "1",
+                    null,
+                    {
+                        "all": true,
+                        "signer": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "positionId": 11099
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "borrow/vaults": [
+                        {
+                            "id": 1,
+                            "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+                            "type": 0,
+                            "supplyToken": {
+                                "address": "So11111111111111111111111111111111111111112",
+                                "chainId": "solana",
+                                "name": "Wrapped SOL",
+                                "symbol": "WSOL",
+                                "uiSymbol": "SOL",
+                                "decimals": 9,
+                                "logoUrl": "https://coin-images.coingecko.com/coins/images/21629/large/solana.jpg?1696520989",
+                                "price": "67.443277460368",
+                                "coingeckoId": "wrapped-solana",
+                                "updatedAt": "2026-11-25T09:45:07.000+00:00"
+                            },
+                            "borrowToken": {
+                                "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                "chainId": "solana",
+                                "name": "USD Coin",
+                                "symbol": "USDC",
+                                "uiSymbol": "USDC",
+                                "decimals": 6,
+                                "logoUrl": "https://coin-images.coingecko.com/coins/images/6319/large/USDC.png?1769615602",
+                                "price": "0.999544045713",
+                                "coingeckoId": "usd-coin",
+                                "updatedAt": "2026-11-25T09:45:07.000+00:00"
+                            },
+                            "totalSupply": "1821560126191270",
+                            "totalSupplyLiquidity": "1821560128441948",
+                            "totalBorrow": "67841029055119",
+                            "totalBorrowLiquidity": "67841026494454",
+                            "absorbedSupply": "0",
+                            "absorbedBorrow": "0",
+                            "supplyRateMagnifier": "0",
+                            "borrowRateMagnifier": "0",
+                            "borrowFee": "0",
+                            "collateralFactor": "800",
+                            "liquidationThreshold": "850",
+                            "liquidationMaxLimit": "900",
+                            "liquidationPenalty": "100",
+                            "withdrawalGap": "50",
+                            "supplyRate": "368",
+                            "supplyRateLiquidity": "368",
+                            "borrowRate": "512",
+                            "borrowRateLiquidity": "512",
+                            "withdrawLimit": "1366170096331462",
+                            "withdrawableUntilLimit": "364311661376363",
+                            "withdrawable": "364311661376363",
+                            "borrowLimit": "84801283118067",
+                            "borrowableUntilLimit": "16960239663356",
+                            "borrowable": "16960239663356",
+                            "borrowLimitUtilization": "466184345724870",
+                            "minimumBorrowing": "1067595",
+                            "totalPositions": 11099,
+                            "oracle": "6uU9EvKL1rSTyw3ZqKz4hMNEB4NBCo3D3rg3n13fymHm",
+                            "oraclePrice": "67446197060000000",
+                            "oraclePriceOperate": "67446197060000000",
+                            "oraclePriceLiquidate": "67446197060000000",
+                            "oracleSources": [
+                                {
+                                    "source": "CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt",
+                                    "invert": false,
+                                    "multiplier": "1",
+                                    "divisor": "1",
+                                    "sourceType": {
+                                        "chainlink": {}
+                                    }
+                                }
+                            ],
+                            "oracleTimestamp": 1795600052741,
+                            "liquiditySupplyData": {
+                                "modeWithInterest": true,
+                                "supply": "1821560128441948",
+                                "withdrawalLimit": "1366170096331462",
+                                "lastUpdateTimestamp": "1795600000",
+                                "expandPercent": "2500",
+                                "expandDuration": "21600",
+                                "baseWithdrawalLimit": "58060468216231",
+                                "withdrawableUntilLimit": "455390032110486",
+                                "withdrawable": "441680512238683",
+                                "decayAmount": "139885959235",
+                                "decayEndTimestamp": "1795601933"
+                            },
+                            "liquidityBorrowData": {
+                                "modeWithInterest": true,
+                                "borrow": "67841026494454",
+                                "borrowLimit": "84801283118067",
+                                "lastUpdateTimestamp": "1795600027",
+                                "expandPercent": "2500",
+                                "expandDuration": "21600",
+                                "baseBorrowLimit": "26689878519000",
+                                "maxBorrowLimit": "320278542228000",
+                                "borrowLimitUtilization": "466184345724870",
+                                "borrowableUntilLimit": "16960256623613",
+                                "borrowable": "16960256623613"
+                            },
+                            "rewards": [],
+                            "topTick": 2704,
+                            "metadata": {
+                                "maxLeverage": false,
+                                "nativeStake": false,
+                                "pegged": false,
+                                "hidden": false,
+                                "multiply": {
+                                    "enabled": true,
+                                    "reduceFactor": 300
+                                }
+                            }
+                        }
+                    ],
+                    "borrow/operate": {
+                        "nftId": 11099,
+                        "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAGDkNiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudS0ZDTksDyyZvmM3OT7eaey3aEdM6uHsDTV77DQEzv0qGsVlSDopEqdbf52D6CIesOTdUh1Ap+GSzWtbO0anJMcIMC40EFTvbcrF+6i82PQ/zWugrfrqyCz1dDq1tD0R4u+QPBXZgRfmticPNVWaEZwBkei34ypXb1XMS8OSXKR7/T9c9nnaKW1JwM13MG3VVOAieGTfxB7QecauO2ey8v7czaW8dNuJqkL/JXWdsrn7EolU+iiUZLa3VeOv+k06Df54d8CZ0nLd5sEPWl+P6uo4bos5otgrJbMKjEZFIpS3QDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAr+H5Mip6HRw2YdZxeRypsw0yAvHh/Whzp3zNxxjxEzV7tTiu2ouZVXVpxbjG04vK8njXot3BxpwFBmZFH2ntxF0+Da08+sxTy9TGjIyc3JcmBVQXnMvSbRzasmSUes4W+MIm6UvRz2Kj/p8S4PbGsU5EcXRX6RmiVZ6v4VM72+p4we8sEXpkuaMjOLPPoHZOhHvir4lvw/RnzjSGvXIWc6WFHdeSGBfTTLZ1huBDJe5jJizzcpjwjphKj74fdqugIIAAUCwFwVAAknAAECCQkJGA4ZGgoDCwQPDAUGEBESExscFBUJCR0eHyAgISINBxYXMdlq0GN0lyqHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAQMAAAABAQIBJz1PJeJ9SzA/IPxLODZIE624JP5UrEJ77yJul3uYlOsKAjYGBwgJKisaIgsBAwQKCwwsNy4vLQ=="
+                    }
+                },
+                "parsedResponse": {
+                    "nftId": 11099,
+                    "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAGDkNiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudS0ZDTksDyyZvmM3OT7eaey3aEdM6uHsDTV77DQEzv0qGsVlSDopEqdbf52D6CIesOTdUh1Ap+GSzWtbO0anJMcIMC40EFTvbcrF+6i82PQ/zWugrfrqyCz1dDq1tD0R4u+QPBXZgRfmticPNVWaEZwBkei34ypXb1XMS8OSXKR7/T9c9nnaKW1JwM13MG3VVOAieGTfxB7QecauO2ey8v7czaW8dNuJqkL/JXWdsrn7EolU+iiUZLa3VeOv+k06Df54d8CZ0nLd5sEPWl+P6uo4bos5otgrJbMKjEZFIpS3QDBkZv5SEXMv/srbpyw5vnvIzlu8X3EmssQ5s6QAAAAAr+H5Mip6HRw2YdZxeRypsw0yAvHh/Whzp3zNxxjxEzV7tTiu2ouZVXVpxbjG04vK8njXot3BxpwFBmZFH2ntxF0+Da08+sxTy9TGjIyc3JcmBVQXnMvSbRzasmSUes4W+MIm6UvRz2Kj/p8S4PbGsU5EcXRX6RmiVZ6v4VM72+p4we8sEXpkuaMjOLPPoHZOhHvir4lvw/RnzjSGvXIWc6WFHdeSGBfTTLZ1huBDJe5jJizzcpjwjphKj74fdqugIIAAUCwFwVAAknAAECCQkJGA4ZGgoDCwQPDAUGEBESExscFBUJCR0eHyAgISINBxYXMdlq0GN0lyqHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAQMAAAABAQIBJz1PJeJ9SzA/IPxLODZIE624JP5UrEJ77yJul3uYlOsKAjYGBwgJKisaIgsBAwQKCwwsNy4vLQ=="
+                }
+            }
+        ],
+        "withdrawCollateral": [
+            {
+                "description": "withdrawCollateral builds the collateral withdrawal against a live borrow position, captured live",
+                "method": "withdrawCollateral",
+                "input": [
+                    "1",
+                    0.0599,
+                    {
+                        "signer": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+                        "positionId": 11099
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "borrow/vaults": [
+                        {
+                            "id": 1,
+                            "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+                            "type": 0,
+                            "supplyToken": {
+                                "address": "So11111111111111111111111111111111111111112",
+                                "chainId": "solana",
+                                "name": "Wrapped SOL",
+                                "symbol": "WSOL",
+                                "uiSymbol": "SOL",
+                                "decimals": 9,
+                                "logoUrl": "https://coin-images.coingecko.com/coins/images/21629/large/solana.jpg?1696520989",
+                                "price": "67.443277460368",
+                                "coingeckoId": "wrapped-solana",
+                                "updatedAt": "2026-11-25T09:45:07.000+00:00"
+                            },
+                            "borrowToken": {
+                                "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                "chainId": "solana",
+                                "name": "USD Coin",
+                                "symbol": "USDC",
+                                "uiSymbol": "USDC",
+                                "decimals": 6,
+                                "logoUrl": "https://coin-images.coingecko.com/coins/images/6319/large/USDC.png?1769615602",
+                                "price": "0.999544045713",
+                                "coingeckoId": "usd-coin",
+                                "updatedAt": "2026-11-25T09:45:07.000+00:00"
+                            },
+                            "totalSupply": "1821560126191270",
+                            "totalSupplyLiquidity": "1821560128441948",
+                            "totalBorrow": "67841029055119",
+                            "totalBorrowLiquidity": "67841026494454",
+                            "absorbedSupply": "0",
+                            "absorbedBorrow": "0",
+                            "supplyRateMagnifier": "0",
+                            "borrowRateMagnifier": "0",
+                            "borrowFee": "0",
+                            "collateralFactor": "800",
+                            "liquidationThreshold": "850",
+                            "liquidationMaxLimit": "900",
+                            "liquidationPenalty": "100",
+                            "withdrawalGap": "50",
+                            "supplyRate": "368",
+                            "supplyRateLiquidity": "368",
+                            "borrowRate": "512",
+                            "borrowRateLiquidity": "512",
+                            "withdrawLimit": "1366170096331462",
+                            "withdrawableUntilLimit": "364311661376363",
+                            "withdrawable": "364311661376363",
+                            "borrowLimit": "84801283118067",
+                            "borrowableUntilLimit": "16960239663356",
+                            "borrowable": "16960239663356",
+                            "borrowLimitUtilization": "466184345724870",
+                            "minimumBorrowing": "1067595",
+                            "totalPositions": 11099,
+                            "oracle": "6uU9EvKL1rSTyw3ZqKz4hMNEB4NBCo3D3rg3n13fymHm",
+                            "oraclePrice": "67446197060000000",
+                            "oraclePriceOperate": "67446197060000000",
+                            "oraclePriceLiquidate": "67446197060000000",
+                            "oracleSources": [
+                                {
+                                    "source": "CH31Xns5z3M1cTAbKW34jcxPPciazARpijcHj9rxtemt",
+                                    "invert": false,
+                                    "multiplier": "1",
+                                    "divisor": "1",
+                                    "sourceType": {
+                                        "chainlink": {}
+                                    }
+                                }
+                            ],
+                            "oracleTimestamp": 1795600052741,
+                            "liquiditySupplyData": {
+                                "modeWithInterest": true,
+                                "supply": "1821560128441948",
+                                "withdrawalLimit": "1366170096331462",
+                                "lastUpdateTimestamp": "1795600000",
+                                "expandPercent": "2500",
+                                "expandDuration": "21600",
+                                "baseWithdrawalLimit": "58060468216231",
+                                "withdrawableUntilLimit": "455390032110486",
+                                "withdrawable": "441680512238683",
+                                "decayAmount": "139885959235",
+                                "decayEndTimestamp": "1795601933"
+                            },
+                            "liquidityBorrowData": {
+                                "modeWithInterest": true,
+                                "borrow": "67841026494454",
+                                "borrowLimit": "84801283118067",
+                                "lastUpdateTimestamp": "1795600027",
+                                "expandPercent": "2500",
+                                "expandDuration": "21600",
+                                "baseBorrowLimit": "26689878519000",
+                                "maxBorrowLimit": "320278542228000",
+                                "borrowLimitUtilization": "466184345724870",
+                                "borrowableUntilLimit": "16960256623613",
+                                "borrowable": "16960256623613"
+                            },
+                            "rewards": [],
+                            "topTick": 2704,
+                            "metadata": {
+                                "maxLeverage": false,
+                                "nativeStake": false,
+                                "pegged": false,
+                                "hidden": false,
+                                "multiply": {
+                                    "enabled": true,
+                                    "reduceFactor": 300
+                                }
+                            }
+                        }
+                    ],
+                    "borrow/operate": {
+                        "nftId": 11099,
+                        "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAFDENiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudS0ZDTksDyyZvmM3OT7eaey3aEdM6uHsDTV77DQEzv0qGsVlSDopEqdbf52D6CIesOTdUh1Ap+GSzWtbO0anJMcIMC40EFTvbcrF+6i82PQ/zWugrfrqyCz1dDq1tD0R4u0/XPZ52iltScDNdzBt1VTgInhk38Qe0HnGrjtnsvL+3M2lvHTbiapC/yV1nbK5+xKJVPoolGS2t1Xjr/pNOg3+eHfAmdJy3ebBD1pfj+rqOG6LOaLYKyWzCoxGRSKUt0AwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAK/h+TIqeh0cNmHWcXkcqbMNMgLx4f1oc6d8zccY8RM1e7U4rtqLmVV1acW4xtOLyvJ416LdwcacBQZmRR9p7cRdPg2tPPrMU8vUxoyMnNyXJgVUF5zL0m0c2rJklHrOGnjB7ywRemS5oyM4s8+gdk6Ee+KviW/D9GfONIa9chZ+IBZjYfJT1K9liceuaRPGsG0rXKpcvUuMKnSKtl6PJsAgcABQLAXBUACCcAAQIICAgVDBYXCQMKDQ0EBAUODxARGBkSEwgIGhscHR0eHwsGFBQx2WrQY3SXKoeg/238////////////////AAAAAAAAAAAAAAAAAAAAAAEBAwAAAAEBAgEnPU8l4n1LMD8g/Es4NkgTrbgk/lSsQnvvIm6Xe5iU6wkCNgYHCAkqKxoLAQMECgsMLDcuLy0="
+                    }
+                },
+                "parsedResponse": {
+                    "nftId": 11099,
+                    "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAFDENiUkQ9loLEmEyVJ9F/UYpoyiUyZdFKO7RF0osvKudS0ZDTksDyyZvmM3OT7eaey3aEdM6uHsDTV77DQEzv0qGsVlSDopEqdbf52D6CIesOTdUh1Ap+GSzWtbO0anJMcIMC40EFTvbcrF+6i82PQ/zWugrfrqyCz1dDq1tD0R4u0/XPZ52iltScDNdzBt1VTgInhk38Qe0HnGrjtnsvL+3M2lvHTbiapC/yV1nbK5+xKJVPoolGS2t1Xjr/pNOg3+eHfAmdJy3ebBD1pfj+rqOG6LOaLYKyWzCoxGRSKUt0AwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAAAK/h+TIqeh0cNmHWcXkcqbMNMgLx4f1oc6d8zccY8RM1e7U4rtqLmVV1acW4xtOLyvJ416LdwcacBQZmRR9p7cRdPg2tPPrMU8vUxoyMnNyXJgVUF5zL0m0c2rJklHrOGnjB7ywRemS5oyM4s8+gdk6Ee+KviW/D9GfONIa9chZ+IBZjYfJT1K9liceuaRPGsG0rXKpcvUuMKnSKtl6PJsAgcABQLAXBUACCcAAQIICAgVDBYXCQMKDQ0EBAUODxARGBkSEwgIGhscHR0eHwsGFBQx2WrQY3SXKoeg/238////////////////AAAAAAAAAAAAAAAAAAAAAAEBAwAAAAEBAgEnPU8l4n1LMD8g/Es4NkgTrbgk/lSsQnvvIm6Xe5iU6wkCNgYHCAkqKxoLAQMECgsMLDcuLy0="
+                }
+            }
         ]
     }
 }

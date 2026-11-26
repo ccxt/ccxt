@@ -1389,6 +1389,15 @@ export default class jupiter extends Exchange {
         const request = this.omit (params, [ 'jwt' ]);
         request['walletPubkey'] = walletPubkey;
         const response = await this.triggerPrivatePostAuthVerify (request);
+        //
+        //     {
+        //         "authMode": "access_refresh",
+        //         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...",
+        //         "refreshToken": "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1",
+        //         "expiresAt": "2026-11-25T09:58:01.000Z",
+        //         "tokenType": "Bearer"
+        //     }
+        //
         const accessToken = this.safeString2 (response, 'accessToken', 'token');
         if (accessToken !== undefined) {
             this.options['jwt'] = accessToken;
@@ -1409,6 +1418,15 @@ export default class jupiter extends Exchange {
         const request = this.omit (params, [ 'jwt' ]);
         request['refreshToken'] = refreshToken;
         const response = await this.triggerPrivatePostAuthRefresh (request);
+        //
+        //     {
+        //         "authMode": "access_refresh",
+        //         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...",
+        //         "refreshToken": "01a21216-0000-0000-0000-000000000002.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t2",
+        //         "expiresAt": "2026-11-25T09:58:05.000Z",
+        //         "tokenType": "Bearer"
+        //     }
+        //
         const accessToken = this.safeString (response, 'accessToken');
         if (accessToken !== undefined) {
             this.options['jwt'] = accessToken;
@@ -1431,7 +1449,19 @@ export default class jupiter extends Exchange {
      * @returns {object} unsigned transaction and request metadata
      */
     async createTriggerDeposit (params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostDepositCraft (params);
+        const response = await this.triggerPrivatePostDepositCraft (params);
+        //
+        //     {
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+        //         "receiverAddress": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "mint": "So11111111111111111111111111111111111111112",
+        //         "amount": "315000000",
+        //         "tokenDecimals": 9,
+        //         "inputTokenAccount": "8ePeFfWka1HmqfuX44NLjdC623pczUk8fw2gTjeXCvT8"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1449,6 +1479,12 @@ export default class jupiter extends Exchange {
      */
     override async createDcaOrder (params: Dict = {}): Promise<Dict> {
         const response = await this.triggerPrivatePostOrdersDca (params);
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi"
+        //     }
+        //
         return this.parseDcaOrder (response);
     }
 
@@ -1469,6 +1505,50 @@ export default class jupiter extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.triggerPrivateGetOrdersHistoryDca (request);
+        //
+        //     [
+        //         {
+        //             "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //             "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //             "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //             "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //             "inputMint": "So11111111111111111111111111111111111111112",
+        //             "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //             "inputAmountInitial": "315000000",
+        //             "inputAmountRemaining": "315000000",
+        //             "amountPerRound": "157500000",
+        //             "outputAmountTotal": "0",
+        //             "inputAmountUsed": "0",
+        //             "orderType": "time_based",
+        //             "minPriceUsd": null,
+        //             "maxPriceUsd": null,
+        //             "triggerMint": null,
+        //             "retryWindowSeconds": 1800,
+        //             "jlEnabled": false,
+        //             "jlYieldUsd": null,
+        //             "numberOfRounds": 2,
+        //             "intervalSeconds": 3600,
+        //             "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //             "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //             "lastFillAt": null,
+        //             "roundsFilled": 0,
+        //             "fillPercent": 0,
+        //             "state": "active",
+        //             "displayState": "active",
+        //             "createdAt": "2026-11-25T09:43:12.208Z",
+        //             "updatedAt": "2026-11-25T09:43:12.870Z",
+        //             "events": [
+        //                 {
+        //                     "type": "deposit",
+        //                     "timestamp": "2026-11-25T09:43:12.870Z",
+        //                     "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                     "inputAmount": "315000000",
+        //                     "state": "success"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
         const orders = (Array.isArray (response)) ? response : this.safeList (response, 'orders', []);
         const result: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1488,6 +1568,48 @@ export default class jupiter extends Exchange {
      */
     override async fetchDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
         const response = await this.triggerPrivateGetOrdersHistoryDcaId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //         "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //         "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "inputMint": "So11111111111111111111111111111111111111112",
+        //         "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "inputAmountInitial": "315000000",
+        //         "inputAmountRemaining": "315000000",
+        //         "amountPerRound": "157500000",
+        //         "outputAmountTotal": "0",
+        //         "inputAmountUsed": "0",
+        //         "orderType": "time_based",
+        //         "minPriceUsd": null,
+        //         "maxPriceUsd": null,
+        //         "triggerMint": null,
+        //         "retryWindowSeconds": 1800,
+        //         "jlEnabled": false,
+        //         "jlYieldUsd": null,
+        //         "numberOfRounds": 2,
+        //         "intervalSeconds": 3600,
+        //         "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //         "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //         "lastFillAt": null,
+        //         "roundsFilled": 0,
+        //         "fillPercent": 0,
+        //         "state": "active",
+        //         "displayState": "active",
+        //         "createdAt": "2026-11-25T09:43:12.208Z",
+        //         "updatedAt": "2026-11-25T09:43:12.870Z",
+        //         "events": [
+        //             {
+        //                 "type": "deposit",
+        //                 "timestamp": "2026-11-25T09:43:12.870Z",
+        //                 "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                 "inputAmount": "315000000",
+        //                 "state": "success"
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseDcaOrder (response);
     }
 
@@ -1497,6 +1619,48 @@ export default class jupiter extends Exchange {
      * @returns {object} normalized DCA order fields with the original response in info
      */
     parseDcaOrder (order: Dict): Dict {
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //         "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //         "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "inputMint": "So11111111111111111111111111111111111111112",
+        //         "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "inputAmountInitial": "315000000",
+        //         "inputAmountRemaining": "315000000",
+        //         "amountPerRound": "157500000",
+        //         "outputAmountTotal": "0",
+        //         "inputAmountUsed": "0",
+        //         "orderType": "time_based",
+        //         "minPriceUsd": null,
+        //         "maxPriceUsd": null,
+        //         "triggerMint": null,
+        //         "retryWindowSeconds": 1800,
+        //         "jlEnabled": false,
+        //         "jlYieldUsd": null,
+        //         "numberOfRounds": 2,
+        //         "intervalSeconds": 3600,
+        //         "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //         "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //         "lastFillAt": null,
+        //         "roundsFilled": 0,
+        //         "fillPercent": 0,
+        //         "state": "active",
+        //         "displayState": "active",
+        //         "createdAt": "2026-11-25T09:43:12.208Z",
+        //         "updatedAt": "2026-11-25T09:43:12.870Z",
+        //         "events": [
+        //             {
+        //                 "type": "deposit",
+        //                 "timestamp": "2026-11-25T09:43:12.870Z",
+        //                 "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                 "inputAmount": "315000000",
+        //                 "state": "success"
+        //             }
+        //         ]
+        //     }
+        //
         const data = this.safeDict (order, 'data', this.safeDict (order, 'order', order));
         const info = this.safeDict (order, 'info', order);
         return this.extend (data, {
@@ -1519,7 +1683,17 @@ export default class jupiter extends Exchange {
      * @returns {object} unsigned withdrawal transaction and cancellation request id
      */
     override async cancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersDcaCancelId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivatePostOrdersDcaCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "roundsRemaining": 2,
+        //         "refundAmount": "315000000",
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "0a61450c-d5dd-42b0-9918-01ca18b02def"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1534,7 +1708,14 @@ export default class jupiter extends Exchange {
      * @returns {object} cancellation confirmation and transaction signature
      */
     override async confirmCancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersDcaConfirmCancelId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivatePostOrdersDcaConfirmCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "txSignature": "21S9J77LoxBBf7z8hLM2qzZHpTswbakYBCVLseuGkTfJMbMUJBPZtCWMVvwKtofgfXJkrFrqMfAzUrXPmaAmDhDn"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1552,7 +1733,15 @@ export default class jupiter extends Exchange {
      * @returns {object} created trigger order response
      */
     async createTriggerPriceOrder (params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersPrice (params);
+        const response = await this.triggerPrivatePostOrdersPrice (params);
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+        //         "depositConfirmed": true
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1572,6 +1761,45 @@ export default class jupiter extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.triggerPrivateGetOrdersHistory (request);
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //                 "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //                 "privyWalletPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //                 "inputMint": "So11111111111111111111111111111111111111112",
+        //                 "remainingInputAmount": "315000000",
+        //                 "initialInputAmount": "315000000",
+        //                 "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                 "triggerMint": "So11111111111111111111111111111111111111112",
+        //                 "expiresAt": 1795686262818,
+        //                 "createdAt": 1795599864925,
+        //                 "updatedAt": 1795599865594,
+        //                 "events": [
+        //                     {
+        //                         "type": "deposit",
+        //                         "timestamp": 1795599865594,
+        //                         "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+        //                         "mint": "So11111111111111111111111111111111111111112",
+        //                         "amount": "315000000",
+        //                         "state": "success"
+        //                     }
+        //                 ],
+        //                 "orderType": "single",
+        //                 "orderState": "open",
+        //                 "rawState": "open",
+        //                 "triggerCondition": "above",
+        //                 "triggerPriceUsd": 500,
+        //                 "slippageBps": 100,
+        //                 "fillPercent": 0,
+        //                 "trailingBps": null,
+        //                 "highWatermark": null,
+        //                 "lowWatermark": null
+        //             }
+        //         ]
+        //     }
+        //
         const orders = this.safeList (response, 'orders', []);
         return orders as Dict[];
     }
@@ -1587,7 +1815,13 @@ export default class jupiter extends Exchange {
      * @returns {object} updated order response
      */
     async editTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePatchOrdersPriceId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivatePatchOrdersPriceId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1600,7 +1834,15 @@ export default class jupiter extends Exchange {
      * @returns {object} unsigned withdrawal transaction and cancellation request id
      */
     async cancelTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersPriceCancelId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivatePostOrdersPriceCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "3313098a-25fb-481c-9aac-e936e8c96b09"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1615,7 +1857,14 @@ export default class jupiter extends Exchange {
      * @returns {object} cancellation confirmation and transaction signature
      */
     async confirmCancelTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersPriceConfirmCancelId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivatePostOrdersPriceConfirmCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "txSignature": "5yfhU8GH7fFw6M7Nn6RY9dpT4nrHDthgqqSkgZu4ehn7KPaQsNN543Gby6yoRK6V7pDVsaVwG4XPB2ZTQe34nEgi"
+        //     }
+        //
+        return response;
     }
 
     /**
@@ -1984,6 +2233,18 @@ export default class jupiter extends Exchange {
             request['lastValidBlockHeight'] = lastValidBlockHeight;
         }
         const response = await this.publicPostSwapV2Execute (request);
+        //
+        //     {
+        //         "status": "Success",
+        //         "signature": "48Rdf64XW7t...8U4D5utN5kvUzhfK",
+        //         "slot": "473698544",
+        //         "code": 0,
+        //         "totalInputAmount": "10000000",
+        //         "totalOutputAmount": "3141785",
+        //         "inputAmountResult": "10000000",
+        //         "outputAmountResult": "3141785"
+        //     }
+        //
         const status = this.safeString (response, 'status');
         if (status !== 'Success') {
             const error = this.safeString (response, 'error', this.json (response));
