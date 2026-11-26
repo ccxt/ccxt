@@ -5138,8 +5138,8 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             return null;
         }
-        String dayPart = (String) (parts == null || 2 >= parts.size() ? null : parts.get(2));
-        String day = (dayPart.length() >= 2 ? dayPart.substring(dayPart.length() - 2) : String.format("%" + (2 - dayPart.length()) + "s", "").replace(' ', '0') + dayPart);
+        String dayPart = this.safeString(parts, 2, "");
+        String day = (((String)dayPart).length() >= 2 ? ((String)dayPart).substring(((String)dayPart).length() - 2) : String.format("%" + (2 - ((String)dayPart).length()) + "s", "").replace(' ', '0') + ((String)dayPart));
         String offset = this.safeString(offsets, (parts == null || 4 >= parts.size() ? null : parts.get(4)), "+00:00");
         return this.parse8601(((((((((parts == null || 5 >= parts.size() ? null : parts.get(5)) + "-") + month) + "-") + day) + "T") + (parts == null || 3 >= parts.size() ? null : parts.get(3))) + offset));
     }

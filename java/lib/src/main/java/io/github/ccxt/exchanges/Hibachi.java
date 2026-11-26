@@ -1081,7 +1081,7 @@ public class Hibachi extends HibachiApi
         request.put("price", priceInternal);
         request.put("signature", signature);
         request.put("maxFeesPercent", this.numberToString(feeRate));
-        Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type.toUpperCase(), "MARKET"), null, parameters);
+        Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type.toUpperCase(), "MARKET"), false, parameters);
         Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");

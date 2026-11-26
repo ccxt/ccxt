@@ -3223,7 +3223,7 @@ public class Extended extends ExtendedApi
         }
         String amountString = this.amountToPrecision(symbol, amount);
         String priceString = this.priceToPrecision(symbol, price);
-        Boolean postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), null, parameters);
+        Boolean postOnly = this.isPostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), false, parameters);
         Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (java.util.Objects.equals(timeInForce, null))

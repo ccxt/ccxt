@@ -1064,8 +1064,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Double baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         Double quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         Double close = this.safeNumber(tick, "close", null);
-        Double rose = this.safeNumber(tick, "rose", null);
-        Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);
+        String rose = this.safeString(tick, "rose");
+        String percentage = Precise.stringMul(rose, "100");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", tick );
             put( "symbol", symbol );

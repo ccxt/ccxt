@@ -5717,14 +5717,14 @@ public class Digifinex extends DigifinexApi
         String urlencoded = "";
         if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))
         {
-            urlencoded = Helpers.json(parameters);
+            urlencoded = this.json(parameters);
         } else
         {
             urlencoded = this.urlencode(this.keysort(query));
         }
         if (Boolean.TRUE.equals(signed))
         {
-            String auth = "";
+            Object auth = "";
             String nonce = "";
             if (java.util.Objects.equals(pathPart, "/swap/v2"))
             {

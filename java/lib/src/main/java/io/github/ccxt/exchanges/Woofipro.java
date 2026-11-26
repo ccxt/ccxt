@@ -2399,7 +2399,7 @@ public class Woofipro extends WoofiproApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, false, parameters);
         String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
         String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
@@ -2673,7 +2673,7 @@ public class Woofipro extends WoofiproApi
             String orderType = type.toUpperCase();
             String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-            Boolean postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
+            Boolean postOnly = this.isPostOnly(isMarket, false, paramsOmitted);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("order_type", "POST_ONLY");

@@ -1648,7 +1648,7 @@ public class Dydx extends DydxApi
         Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(takeProfitPrice, null);
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
-        Boolean postOnly = this.isPostOnly(isMarket, null, paramsSubAccountId);
+        Boolean postOnly = this.isPostOnly(isMarket, false, paramsSubAccountId);
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
         Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -2326,7 +2326,12 @@ public class Dydx extends DydxApi
             gasPrice = this.safeString(feeDenom, "CHAINTOKEN_GAS_PRICE");
             denom = this.safeString(feeDenom, "CHAINTOKEN_DENOM");
         }
-        Double gasLimit = Math.ceil(Double.parseDouble(java.util.Objects.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)), null)));
+        Double gasLimitNum = this.parseNumber(Precise.stringMul(gasUsed, defaultFeeMultiplier));
+        if (java.util.Objects.equals(gasLimitNum, null))
+        {
+            throw new ExchangeError((this.id + " estimateTxFee() missing gasLimit")) ;
+        }
+        Double gasLimit = Math.ceil(Double.parseDouble(String.valueOf(gasLimitNum)));
         String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
         if (java.util.Objects.equals(feeAmount, null))
         {
@@ -2334,7 +2339,11 @@ public class Dydx extends DydxApi
         }
         if (((String)feeAmount).indexOf(".") >= 0)
         {
-            feeAmount = this.numberToString(Math.ceil(Double.parseDouble(java.util.Objects.toString(this.parseToNumeric(feeAmount), null))));
+            Double feeAmountNum = this.parseNumber(feeAmount);
+            if (!java.util.Objects.equals(feeAmountNum, null))
+            {
+                feeAmount = this.numberToString(Math.ceil(Double.parseDouble(String.valueOf(feeAmountNum))));
+            }
         }
         Map<String, Object> feeObj = new HashMap<String, Object>();
         feeObj.put("amount", feeAmount);

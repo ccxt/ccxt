@@ -2594,7 +2594,7 @@ public class Grvt extends GrvtApi
             put( "reduce_only", isReduceOnly );
         }};
         String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
-        Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsOmitted3);
         if (Boolean.TRUE.equals(postOnly))
         {
             orderRequest.put("post_only", true);
@@ -3973,10 +3973,12 @@ public class Grvt extends GrvtApi
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
+        String rHex = this.safeString(signature, "r", "");
+        String sHex = this.safeString(signature, "s", "");
         Map<String, Object> signatureEntry = new HashMap<String, Object>() {{
             put( "signer", null );
-            put( "r", Grvt.this.formatSignatureRS((String) (signature.get("r"))) );
-            put( "s", Grvt.this.formatSignatureRS((String) (signature.get("s"))) );
+            put( "r", Grvt.this.formatSignatureRS(rHex) );
+            put( "s", Grvt.this.formatSignatureRS(sHex) );
             put( "v", Grvt.this.sum(27, signature.get("v")) );
             put( "expiration", requestSignature.get("expiration") );
             put( "nonce", requestSignature.get("nonce") );

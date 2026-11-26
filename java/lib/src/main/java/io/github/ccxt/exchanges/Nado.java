@@ -3539,7 +3539,7 @@ public class Nado extends NadoApi
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        Boolean postOnly = this.isPostOnly(false, null, parameters);
+        Boolean postOnly = this.isPostOnly(false, false, parameters);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
         if (java.util.Objects.equals(timeInForce, "IOC"))

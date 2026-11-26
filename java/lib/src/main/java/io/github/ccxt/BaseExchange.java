@@ -11193,7 +11193,7 @@ public Map<String, Object> describe()
         return this.handleTriggerAndParams(parameters);
     }
 
-    public Boolean isPostOnly(Object isMarketOrder, Boolean exchangeSpecificParam, Map<String, Object> parameters)
+    public Boolean isPostOnly(Object isMarketOrder, Object exchangeSpecificParam, Map<String, Object> parameters)
     {
         /**
          * @ignore

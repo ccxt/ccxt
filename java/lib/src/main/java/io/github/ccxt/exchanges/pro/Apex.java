@@ -1122,7 +1122,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             mapLiteral1.put("passphrase", this.password);
             mapLiteral1.put("timestamp", timestamp);
             mapLiteral1.put("signature", signature);
-            message.put("args", new ArrayList<Object>(Arrays.asList(Helpers.json(mapLiteral1))));
+            message.put("args", new ArrayList<Object>(Arrays.asList(this.json(mapLiteral1))));
             this.watch(url, messageHash, message, messageHash, null);
         }
         return future.getFuture().join();

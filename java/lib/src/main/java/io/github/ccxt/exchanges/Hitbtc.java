@@ -2976,7 +2976,7 @@ public class Hitbtc extends HitbtcApi
         Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", null);
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
-        Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
+        Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
         String resolvedMarketType = this.safeString(market, "type");
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("type", type);
