@@ -21531,6 +21531,13 @@ const CSHARP_77C7_HANDWRITTEN_RETURNS = {
     'ethAbiEncode': 'byte[]',
     'lighterCreateAuthToken': 'string',
     'implodeParams': 'string',
+    // Exchange.Crypto.cs `public byte[] decryptPrivateKey`, Exchange.cs `public BigInteger modPow`
+    'decryptPrivateKey': 'byte[]',
+    'modPow': 'System.Numerics.BigInteger',
+    // Exchange.Lighter.cs `public LighterSigner.Signer lighterCreateClient` (returns its cast argument)
+    'lighterCreateClient': 'LighterSigner.Signer',
+    // Exchange.cs: the single return is StarkSharp TypedData.EncodeTypedDataRaw's `string`
+    'starknetEncodeStructuredData': 'string',
 };
 for (const [ name, type ] of Object.entries (CSHARP_77C7_HANDWRITTEN_RETURNS)) {
     if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {

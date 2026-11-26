@@ -1101,7 +1101,7 @@ public partial class BaseExchange
         return StarknetPoseidon.HashMany(data).ToString();
     }
 
-    public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
+    public string starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
     {
         var domain = domain2 as IDictionary<string, object>;
         var messageTypes = messageTypes2 as IDictionary<string, object>;
