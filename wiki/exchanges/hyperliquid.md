@@ -528,7 +528,11 @@ create a trade order
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -546,6 +550,10 @@ create a trade order
 | params.slippage | <code>string</code> | No | the slippage for market order |
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.priorityFee | <code>int</code> | No | the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance |
+| params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingTriggerPrice | <code>float</code> | No | *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted |
 
 
 ```javascript
@@ -588,12 +596,17 @@ create a list of trade orders
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.priorityFee | <code>int</code> | No | the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance |
 
 
 ```javascript

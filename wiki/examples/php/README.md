@@ -106,6 +106,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
+- [Hyperliquid Trailing Order](./examples/php/hyperliquid-trailing-order.md)
+
 - [Indodax Fetch Balance Create Order Cancel Order](./examples/php/indodax-fetch-balance-create-order-cancel-order.md)
 
 - [Kraken Create And Close Position](./examples/php/kraken-create-and-close-position.md)
