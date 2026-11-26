@@ -162,8 +162,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     private Object unsubscribePublicCore(String url, String topic, String messageHash, String symbol, Map<String, Object> request, Map<String, Object> parameters)
     {
 
-        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-        String wsUrl = this.safeString(wsUrls, "public");
+        String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
         if (java.util.Objects.equals(wsUrl, null))
         {
             throw new ExchangeError((this.id + " unsubscribePublic() has no public websocket url")) ;
@@ -210,7 +209,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         this.cleanCache(subscription);
         String requestId = this.safeString(subscription, "id", "");
-        if (!java.util.Objects.equals(this.safeDict(client.subscriptions, requestId, null), null))
+        if (client.subscriptions.containsKey(requestId))
         {
             client.subscriptions.remove((String)requestId);
         }
@@ -265,12 +264,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     private Object unsubscribePrivateCore(String topic, String subscribeHash, Map<String, Object> request, Map<String, Object> parameters)
     {
 
-        Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
-        String url = this.safeString(wsUrls, "private");
-        if (java.util.Objects.equals(url, null))
-        {
-            throw new ExchangeError((this.id + " unsubscribePrivate() has no private websocket url")) ;
-        }
+        String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
         String token = (this.handleToken(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> cookies = new HashMap<String, Object>() {{
             put( "JWT_COOKIE", token );
@@ -1282,7 +1276,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String messageId = this.safeString(message, "id");
-        if (java.util.Objects.equals(messageId, null))
+        if ((java.util.Objects.equals(messageId, null)) || !(client.subscriptions.containsKey(messageId)))
         {
             return;
         }
@@ -1322,7 +1316,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 this.handlePong(client, message);
             }
             String messageId = this.safeString(message, "id");
-            if (!java.util.Objects.equals(messageId, null))
+            if ((!java.util.Objects.equals(messageId, null)) && (client.subscriptions.containsKey(messageId)))
             {
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, messageId, null);
                 if ((!java.util.Objects.equals(subscription, null)) && Boolean.TRUE.equals(this.safeBool(subscription, "unsubscribe", false)))
