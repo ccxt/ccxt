@@ -1112,7 +1112,7 @@ func (this *Btse) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
+		request["depth"] = min(*limit, 50) // the endpoint supports a maximum depth of 50
 	}
 
 	r1 := <-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params))
@@ -1186,7 +1186,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period *string = nil
-	var paramsPeriod any = nil
+	var paramsPeriod map[string]any = nil
 	period, paramsPeriod = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
 	if period == nil {
 		period = SafeStringPtr("7D")
@@ -1469,12 +1469,12 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		if (symbolsNormalized == nil) || this.InArray(symbol, symbolsNormalized) {
-			var levels []any = SafeListTyped(entry, "riskLimits")
+			var levels []map[string]any = this.SafeListMapsTyped(entry, "riskLimits")
 			var tiers []any = []any{}
 			// each tier's floor is the previous tier's cap (0 for the first)
 			var minNotional any = nil
 			for j := 0; j < len(levels); j++ {
-				var level any = levels[j]
+				var level map[string]any = levels[j]
 				var maxNotional *float64 = this.SafeNumber(level, "value")
 				// the endpoint only reports the notional ladder, the
 				// per-tier leverage and margin rates are not available
@@ -2005,7 +2005,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
+		request["limit"] = min(*limit, 500) // the endpoint supports a maximum of 500 trades
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchTrades", "until")
@@ -2529,7 +2529,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	if postOnly == true {
 		request["postOnly"] = true
 	}
-	var timeInForce any = this.HandleTimeInForce(query)
+	var timeInForce *string = this.HandleTimeInForce(query)
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
@@ -2759,15 +2759,8 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	var positionMode *string = this.SafeString(query, "positionMode")
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
-		var hedged any = false
-		var hedgedqueryVariable []any = this.HandleOptionBoolAndParamsNullable(query, "createOrder", "hedged", hedged)
-		hedged = func() any {
-			if p, _ := hedgedqueryVariable[0].(*bool); p != nil {
-				return *p
-			}
-			return nil
-		}()
-		query = hedgedqueryVariable[1]
+		var hedged bool = false
+		hedged, query = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
 		var marginMode any = "cross"
 		var marginModePtr *string = nil
 		marginModePtr, query = this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode)
@@ -2776,11 +2769,11 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			marginMode = *marginModePtr
 		}
 		if marginMode == "isolated" {
-			if hedged == true {
+			if hedged {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
 			}
 			request["positionMode"] = "ISOLATED"
-		} else if hedged == true {
+		} else if hedged {
 			request["positionMode"] = "HEDGE"
 		}
 	}
@@ -2794,7 +2787,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if postOnly == true {
 		request["postOnly"] = true
 	}
-	var timeInForce any = this.HandleTimeInForce(query)
+	var timeInForce *string = this.HandleTimeInForce(query)
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
@@ -3157,12 +3150,12 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol an
  * @param {string} [params.clientOrderId] a unique id for the order, required if id is not provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btse) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btse) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3182,7 +3175,7 @@ func (this *Btse) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
 		request["clOrderId"] = clientOrderId
-	} else if IsEqual(id, nil) {
+	} else if false {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires an id argument or a clientOrderId parameter"))
 	} else {
 		request["orderId"] = id
@@ -3297,7 +3290,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ToArray(response), market))}
 	return nil
 }
 
@@ -3750,7 +3743,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	//         "success": true
 	//     }
 	//
-	var rawRows any = this.SafeList(response, "data", response)
+	var rawRows []any = this.SafeListSlice(response, "data", response)
 	// the requested types are also filtered client side over both the legacy
 	// and the unified enum vocabularies as the legacy endpoint ignored the
 	// filter and returned the whole mixed ledger
@@ -3761,7 +3754,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 		AddElementToObject(allowed, this.Capitalize(strings.ToLower(historyType)), true)
 	}
 	var rows []any = []any{}
-	for i := 0; i < GetArrayLength(rawRows); i++ {
+	for i := 0; i < len(rawRows); i++ {
 		var entry map[string]any = this.SafeDictMap(rawRows, i, map[string]any{})
 		var typeVar string = *this.SafeString(entry, "type", "")
 		if _, ok := allowed[typeVar]; ok {
@@ -4928,14 +4921,14 @@ func (this *Btse) HandleErrors(code int64, reason string, url string, method str
 		var row map[string]any = SafeMapTyped(rows, i)
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
-			var message *string = this.SafeString(row, "message")
-			var embedded any = this.ParseJson(message)
+			var rowMessage *string = this.SafeString(row, "message")
+			var embedded any = this.ParseJson(rowMessage)
 			if embedded != nil {
-				message = this.SafeString(embedded, "default_msg", message)
+				rowMessage = this.SafeString(embedded, "default_msg", rowMessage)
 			}
 			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], rowMessage, feedback)
 		}
 	}
 	return nil

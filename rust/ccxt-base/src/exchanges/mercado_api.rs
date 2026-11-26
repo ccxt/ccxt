@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::mercado::MercadoCore;
+use super::mercado::Mercado;
 use crate::exchange::ExchangeRuntime;
 
-impl MercadoCore {
+impl Mercado {
     /// Auto-generated wrapper for the `publicGetCoins` implicit endpoint.
     pub async fn public_get_coins(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_coins".into()), optional_args).await

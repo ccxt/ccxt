@@ -1,3 +1,4 @@
+import type { Int } from '../types.js';
 declare const now: () => number;
 declare const microseconds: () => number;
 declare const milliseconds: () => number;
@@ -8,8 +9,8 @@ declare class TimedOut extends Error {
     constructor();
 }
 declare const iso8601: (timestamp: any) => string | undefined;
-declare const parse8601: (x: any) => number | undefined;
-declare const parseDate: (x: any) => number | undefined;
+declare const parse8601: (x: any) => Int;
+declare const parseDate: (x: any) => Int;
 declare const mdy: (timestamp: any, infix?: string) => string;
 declare const ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
 declare const yymmdd: (timestamp: any, infix?: string) => string;

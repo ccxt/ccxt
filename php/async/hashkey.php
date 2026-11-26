@@ -1185,7 +1185,7 @@ class hashkey extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         $response = Async\await($this->publicGetApiV1ExchangeInfo($params));
-        $coins = $this->safe_list($response, 'coins');
+        $coins = $this->safe_list($response, 'coins', array());
         //
         //     {
         //         ...
@@ -3743,8 +3743,7 @@ class hashkey extends Exchange {
     }
 
     public function handle_trigger_option_and_params(array $params, string $methodName, ?bool $defaultValue = null): array {
-        $isTrigger = $defaultValue;
-        list($isTriggerStop, $paramsStop) = $this->handle_option_bool_and_params_2($params, $methodName, 'stop', 'trigger', $isTrigger);
+        list($isTriggerStop, $paramsStop) = $this->handle_option_bool_and_params_2($params, $methodName, 'stop', 'trigger', $defaultValue);
         return array( $isTriggerStop, $paramsStop );
     }
 
@@ -4035,7 +4034,7 @@ class hashkey extends Exchange {
         return $this->parse_funding_rates($response, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",

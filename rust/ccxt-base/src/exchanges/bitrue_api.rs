@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitrue::BitrueCore;
+use super::bitrue::Bitrue;
 use crate::exchange::ExchangeRuntime;
 
-impl BitrueCore {
+impl Bitrue {
     /// Auto-generated wrapper for the `spotKlinePublicGetPublicJson` implicit endpoint.
     pub async fn spot_kline_public_get_public_json(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_kline_public_get_public_json".into()), optional_args).await

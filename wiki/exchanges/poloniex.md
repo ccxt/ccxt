@@ -25,6 +25,7 @@
 * [fetchBalance](#fetchbalance)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchFundingRate](#fetchfundingrate)
 * [createDepositAddress](#createdepositaddress)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [transfer](#transfer)
@@ -553,12 +554,33 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
 poloniex.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>poloniex</code>](#poloniex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+poloniex.fetchFundingRate (symbol, params?)
 ```
 
 

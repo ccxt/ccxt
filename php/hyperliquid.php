@@ -333,6 +333,7 @@ class hyperliquid extends Exchange {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // todo, in two orders
+                        'trailing' => true,
                     ),
                 ),
                 'swap' => array(
@@ -787,9 +788,9 @@ class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             $decimalPart = $this->safe_string($priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            $leadingZeros = $this->parse_to_int(0);
+            $leadingZeros = 0;
             while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
-                $leadingZeros = $this->parse_to_int($leadingZeros + 1);
+                $leadingZeros = $leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             $pricePrecision = $leadingZeros . $significantDigits;
@@ -1420,7 +1421,7 @@ class hyperliquid extends Exchange {
         return $this->parse_funding_rates($result, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $info, ?array $market = null): array {
+    public function parse_funding_rate(?array $info, ?array $market = null): array {
         //
         //     {
         //         "maxLeverage": "50",
@@ -2162,15 +2163,98 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->slippage] the slippage for market $order
          * @param {string} [$params->vaultAddress] the vault address for $order
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
+         * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the best mark $price, the $order is sent as a native trailing stop that executes as a market $order
+         * @param {float} [$params->trailingTriggerPrice] *swap only* the mark $price at which a trailing $order starts tracking, tracking starts immediately if omitted
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $isTrailing = $this->safe_string_2($params, 'trailingPercent', 'trailingAmount') !== null;
+        if ($isTrailing) {
+            $this->initialize_client();
+            $trailingMarket = $this->market($symbol);
+            $trailingRequest = $this->create_trailing_stop_request($symbol, $side, $amount, $params);
+            $trailingResponse = $this->privatePostExchange($trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            $trailingResponseObj = $this->safe_dict($trailingResponse, 'response', array());
+            $trailingData = $this->safe_dict($trailingResponseObj, 'data', array());
+            return $this->parse_order($this->extend($trailingData, array( 'status' => 'open' )), $trailingMarket);
+        }
         list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
         $orders = $this->create_orders(array( $order ), $globalParams);
         $created = $this->safe_dict($orders, 0);
         return $created;
+    }
+
+    public function create_trailing_stop_request(string $symbol, string $side, float $amount, $params = array()): array {
+        /**
+         * @ignore
+         * builds the signed $request of a native trailing stop order, which executes as a $market order once the mark price retraces from its best level, used by createOrder when $trailingPercent or $trailingAmount is set
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+         *
+         * @param {string} $symbol unified $symbol of the swap $market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->trailingPercent] the percent to trail away from the best mark price
+         * @param {float} [$params->trailingAmount] the quote $amount to trail away from the best mark price
+         * @param {float} [$params->trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+         * @param {string} [$params->vaultAddress] the vault address for order
+         * @return {array} the $request to be sent to the exchange endpoint
+         */
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' createOrder() supports trailing orders for swap markets only');
+        }
+        $trailingPercent = $this->safe_string($params, 'trailingPercent');
+        $trailingAmount = $this->safe_string($params, 'trailingAmount');
+        $trailingTriggerPrice = $this->safe_string($params, 'trailingTriggerPrice');
+        $retracement = array();
+        if ($trailingPercent !== null) {
+            $retracement['pct'] = $trailingPercent . '%';
+        } else {
+            $retracement['px'] = $this->price_to_precision($symbol, $trailingAmount);
+        }
+        list($vaultAddressOption, $paramsVault) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
+        $nonce = $this->incrementing_nonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        $action = array(
+            'type' => 'trailingStop',
+            'asset' => $this->parse_to_int($market['baseId']),
+            'isBuy' => (strtoupper($side) === 'BUY'),
+            'sz' => $this->amount_to_precision($symbol, $amount),
+            'reduceOnly' => $this->safe_bool($paramsVault, 'reduceOnly', false),
+            'retracement' => $retracement,
+            'activationPx' => null,
+        );
+        if ($trailingTriggerPrice !== null) {
+            $action['activationPx'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
+        }
+        $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $signature,
+        );
+        if ($vaultAddress !== null) {
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        return $request;
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
@@ -3570,12 +3654,17 @@ class hyperliquid extends Exchange {
         }
         $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
         $triggerPx = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
+        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        $isTrailing = (mb_strpos($orderTypeRaw, 'trailing') !== false);
+        if ($isTrailing && Precise::string_eq($this->safe_string($entry, 'triggerPx', '0'), '0')) {
+            $triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        $orderTypeRaw = $this->safe_string_lower($entry, 'orderType', '');
         $stopLossPrice = null;
         $takeProfitPrice = null;
-        if ($triggerPx !== null) {
+        if (($triggerPx !== null) && !$isTrailing) {
             if (mb_strpos($orderTypeRaw, 'stop') !== false) {
                 $stopLossPrice = $triggerPx;
             } elseif (mb_strpos($orderTypeRaw, 'take profit') !== false) {
@@ -3622,6 +3711,7 @@ class hyperliquid extends Exchange {
             'canceled' => 'canceled',
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
+            'scheduledCancel' => 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         );
         if (str_ends_with($status, 'Rejected')) {
             return 'rejected';
@@ -3636,6 +3726,7 @@ class hyperliquid extends Exchange {
         $statuses = array(
             'stop limit' => 'limit',
             'stop market' => 'market',
+            'trailing stop market' => 'market',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -4119,11 +4210,7 @@ class hyperliquid extends Exchange {
         );
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if ($vaultAddress !== null) {
-            if (str_starts_with($vaultAddress, '0x')) {
-                $vaultAddress = str_replace('0x', '', $vaultAddress);
-            }
-        }
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -4529,7 +4616,8 @@ class hyperliquid extends Exchange {
                 'type' => 'vaultTransfer',
                 'vaultAddress' => '0x' . $vaultAddress,
                 'isDeposit' => false,
-                'usd' => $amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd' => $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000')),
             );
             $sig = $this->sign_l1_action($action, $nonce);
         } else {
@@ -5291,12 +5379,11 @@ class hyperliquid extends Exchange {
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
         $isPost = ($method === 'POST');
-        $postHeaders = array(
-            'Content-Type' => 'application/json',
-        );
         $requestHeaders = null;
         if ($isPost) {
-            $requestHeaders = $postHeaders;
+            $requestHeaders = array(
+                'Content-Type' => 'application/json',
+            );
         }
         $requestBody = null;
         if ($isPost) {

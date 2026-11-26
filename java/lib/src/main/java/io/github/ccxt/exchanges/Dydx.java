@@ -620,7 +620,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.safeInteger(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -783,7 +783,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
             List<Object> markets = new ArrayList<Object>(data.values());
             return this.parseMarkets(markets);
         });
@@ -870,7 +870,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -931,13 +931,19 @@ public class Dydx extends DydxApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("fromIso", this.iso8601(since));
+                request.put("fromISO", this.iso8601(since));
             }
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("toIso", this.iso8601(until));
+                request.put("toISO", this.iso8601(until));
+            } else if (!java.util.Objects.equals(since, null))
+            {
+                // the indexer returns the newest candles in the range, so the range ends where the limit does
+                Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                Long count = (((!java.util.Objects.equals(limit, null)))) ? Math.min(limit, 1000) : 1000L;
+                request.put("toISO", this.iso8601(this.sum(since, (duration * count))));
             }
             Map<String, Object> response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted))).join();
             //
@@ -961,7 +967,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1020,8 +1026,8 @@ public class Dydx extends DydxApi
             // }
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            List<Object> rows = (List<Object>) this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            List<Object> rows = this.safeList(response, "historicalFunding", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
@@ -1440,7 +1446,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(rows, symbols, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -1484,7 +1490,7 @@ public class Dydx extends DydxApi
     put( "type", "string" );
 }})) );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         if (java.util.Objects.equals(this.privateKey, null) || java.util.Objects.equals(this.privateKey, ""))
         {
             throw new ArgumentsRequired((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
@@ -1493,7 +1499,7 @@ public class Dydx extends DydxApi
         return signature;
     }
 
-    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Object account, Object authenticators, Object fee)
+    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
@@ -1506,7 +1512,7 @@ public class Dydx extends DydxApi
 
     public Object retrieveCredentials()
     {
-        Object credentials = this.safeDict(this.options, "dydxCredentials", (Object) null);
+        Object credentials = this.safeDict(this.options, "dydxCredentials", null);
         if (!java.util.Objects.equals(credentials, null))
         {
             return credentials;
@@ -1537,7 +1543,7 @@ public class Dydx extends DydxApi
 
             // required in js
             (this.loadDydxProtos()).join();
-            Map<String, Object> dydxAccount = (Map<String, Object>) this.safeDict(this.options, "dydxAccount", (Object) null);
+            Map<String, Object> dydxAccount = this.safeDict(this.options, "dydxAccount", null);
             if (!java.util.Objects.equals(dydxAccount, null))
             {
                 return this.safeDict(this.options, "dydxAccount", new HashMap<String, Object>() {{}});
@@ -1567,8 +1573,8 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> pubKey = (Map<String, Object>) this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}});
+            Map<String, Object> account = this.safeDict(response, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> pubKey = this.safeDict(account, "pub_key", new HashMap<String, Object>() {{}});
             account.put("pub_key", new HashMap<String, Object>() {{
         put( "key", pubKey.get("key") );
     }});
@@ -1621,7 +1627,7 @@ public class Dydx extends DydxApi
         Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsSubAccountId);
         String amountStr = this.amountToPrecision(symbol, amount);
         String priceStr = this.priceToPrecision(symbol, price);
-        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Object atomicResolution = marketInfo.get("atomicResolution");
         String quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         String quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1715,7 +1721,7 @@ public class Dydx extends DydxApi
             goodTillBlockTime = (this.seconds() + goodTillBlockTimeInSecondsOption);
         }
         Integer sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
-        Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
+        Integer defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Long clientOrderId = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "clientOrderId", defaultClientOrderId);
         Map<String, Object> orderPayload = new HashMap<String, Object>();
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
@@ -1748,9 +1754,9 @@ public class Dydx extends DydxApi
         String walletAddress = this.getWalletAddress();
         Long clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
         Object subaccountIdValue = (((java.util.Objects.equals(subaccountIdOption, null)))) ? 0 : subaccountIdOption;
-        Object clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
+        Long clientOrderIdValue = (((java.util.Objects.equals(clientOrderId, null)))) ? 0 : clientOrderId;
         Object orderFlagValue = (((java.util.Objects.equals(orderFlag, null)))) ? 0 : orderFlag;
-        Object clobPairIdValue = (((java.util.Objects.equals(clobPairId, null)))) ? 0 : clobPairId;
+        Long clobPairIdValue = (((java.util.Objects.equals(clobPairId, null)))) ? 0 : clobPairId;
         String orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new ArrayList<Object>(Arrays.asList(orderId, this.extend(signingPayload, paramsOmitted)));
     }
@@ -1784,15 +1790,15 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            Map<String, Object> info = (Map<String, Object>) this.safeDict(result, "response", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            Map<String, Object> info = this.safeDict(result, "response", null);
             Long height = this.safeInteger(info, "last_block_height");
             if (java.util.Objects.equals(height, null))
             {
                 throw new ExchangeError((this.id + " fetchLatestBlockHeight() could not parse last_block_height")) ;
             }
             return height;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1857,10 +1863,10 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
-            Map<String, Object> requestValue = (Map<String, Object>) this.safeDict(orderRequest, "value", new HashMap<String, Object>() {{}});
-            Map<String, Object> requestOrder = (Map<String, Object>) this.safeDict(requestValue, "order", new HashMap<String, Object>() {{}});
-            Map<String, Object> requestOrderId = (Map<String, Object>) this.safeDict(requestOrder, "orderId", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = this.safeDict(response, "result", null);
+            Map<String, Object> requestValue = this.safeDict(orderRequest, "value", new HashMap<String, Object>() {{}});
+            Map<String, Object> requestOrder = this.safeDict(requestValue, "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> requestOrderId = this.safeDict(requestOrder, "orderId", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", orderId );
@@ -1950,7 +1956,7 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> cancelPayload = new HashMap<String, Object>();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("subaccountId", new HashMap<String, Object>() {{
@@ -1987,7 +1993,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
             }}, (Map<String, Object>) null);
@@ -2016,7 +2022,7 @@ public class Dydx extends DydxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", (Object) null);
+            List<Object> clientOrderIds = this.safeList(parameters, "clientOrderIds", null);
             if (java.util.Objects.equals(clientOrderIds, null))
             {
                 throw new NotSupported((this.id + " cancelOrders only support clientOrderIds.")) ;
@@ -2033,7 +2039,7 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> cancelOrders = new HashMap<String, Object>();
             cancelOrders.put("clientIds", clientOrderIds);
             cancelOrders.put("clobPairId", marketInfo.get("clobPairId"));
@@ -2068,7 +2074,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+            Map<String, Object> result = this.safeDict(response, "result", null);
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", result );
     }}, (Map<String, Object>) null)));
@@ -2159,8 +2165,8 @@ public class Dydx extends DydxApi
         }
         String amount = this.safeString(item, "size");
         Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
-        Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender", (Object) null);
-        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient", (Object) null);
+        Map<String, Object> sender = this.safeDict(item, "sender", null);
+        Map<String, Object> recipient = this.safeDict(item, "recipient", null);
         HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
         mapLiteral7.put("info", item);
         mapLiteral7.put("id", this.safeString(item, "id"));
@@ -2242,7 +2248,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> gasInfo = (Map<String, Object>) this.safeDict(response, "gas_info", (Object) null);
+            Map<String, Object> gasInfo = this.safeDict(response, "gas_info", null);
             if (java.util.Objects.equals(gasInfo, null))
             {
                 throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
@@ -2254,7 +2260,7 @@ public class Dydx extends DydxApi
             }
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Map<String, Object> feeDenom = (Map<String, Object>) this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
+            Map<String, Object> feeDenom = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
             String gasPrice = null;
             String denom = null;
             if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
@@ -2283,7 +2289,7 @@ public class Dydx extends DydxApi
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2330,7 +2336,7 @@ public class Dydx extends DydxApi
             Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             Map<String, Object> payload = null;
-            Map<String, Object> signingPayload = null;
+            Map<String, Object> signingPayload = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(fromAccount, "main"))
             {
                 // deposit to subaccount
@@ -2431,8 +2437,8 @@ public class Dydx extends DydxApi
         String currencyId = this.safeString(transfer, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "size", (Object) null);
-        Map<String, Object> sender = (Map<String, Object>) this.safeDict(transfer, "sender", (Object) null);
-        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(transfer, "recipient", (Object) null);
+        Map<String, Object> sender = this.safeDict(transfer, "sender", null);
+        Map<String, Object> recipient = this.safeDict(transfer, "recipient", null);
         String fromAccount = this.safeString(sender, "address");
         String toAccount = this.safeString(recipient, "address");
         Long timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
@@ -2507,8 +2513,8 @@ public class Dydx extends DydxApi
         // }
         //
         String id = this.safeString(transaction, "id");
-        Map<String, Object> sender = (Map<String, Object>) this.safeDict(transaction, "sender", (Object) null);
-        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(transaction, "recipient", (Object) null);
+        Map<String, Object> sender = this.safeDict(transaction, "sender", null);
+        Map<String, Object> recipient = this.safeDict(transaction, "recipient", null);
         String addressTo = this.safeString(recipient, "address");
         String addressFrom = this.safeString(sender, "address");
         String txid = this.safeString(transaction, "transactionHash");
@@ -2610,7 +2616,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
@@ -2759,7 +2765,7 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            List<Object> transfers = (List<Object>) this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = this.safeList(response, "transfers", new ArrayList<Object>(Arrays.asList()));
             return transfers;
         });
 
@@ -2830,9 +2836,9 @@ public class Dydx extends DydxApi
             //     ]
             // }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = this.safeList(response, "subaccounts", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object account = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String accountId = this.safeString(account, "subaccountNumber");
@@ -2937,7 +2943,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(response, "subaccount", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -2970,7 +2976,7 @@ public class Dydx extends DydxApi
         {
             return this.walletAddress;
         }
-        Map<String, Object> dydxAccount = (Map<String, Object>) this.safeDict(this.options, "dydxAccount", (Object) null);
+        Map<String, Object> dydxAccount = this.safeDict(this.options, "dydxAccount", null);
         if (!java.util.Objects.equals(dydxAccount, null))
         {
             // return dydxAccount;
@@ -3034,7 +3040,7 @@ public class Dydx extends DydxApi
         // rest response
         // { "code": 123 }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
+        Map<String, Object> result = this.safeDict(response, "result", null);
         String errorCode = this.safeString(result, "code");
         if ((java.util.Objects.equals(errorCode, null)) || (java.util.Objects.equals(errorCode, "")))
         {

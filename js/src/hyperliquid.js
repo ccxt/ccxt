@@ -214,6 +214,7 @@ export default class hyperliquid extends Exchange {
                     'Insufficient spot balance asset': InsufficientFunds,
                     'Insufficient balance for withdrawal': InsufficientFunds,
                     'Insufficient balance for token transfer': InsufficientFunds,
+                    'Insufficient delegatable balance for priority order': InsufficientFunds, // priorityFee is paid in HYPE from the undelegated staking balance
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': OrderNotFound,
                     'Too many cumulative requests sent': RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
@@ -340,6 +341,7 @@ export default class hyperliquid extends Exchange {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined, // todo, in two orders
+                        'trailing': true,
                     },
                 },
                 'swap': {
@@ -787,9 +789,9 @@ export default class hyperliquid extends Exchange {
             // Get the part after the decimal separator
             const decimalPart = this.safeString(priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
-            let leadingZeros = this.parseToInt(0);
+            let leadingZeros = 0;
             while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
-                leadingZeros = this.parseToInt(leadingZeros + 1);
+                leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
@@ -2122,6 +2124,7 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2136,16 +2139,100 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const isTrailing = this.safeString2(params, 'trailingPercent', 'trailingAmount') !== undefined;
+        if (isTrailing) {
+            await this.initializeClient();
+            const trailingMarket = this.market(symbol);
+            const trailingRequest = this.createTrailingStopRequest(symbol, side, amount, params);
+            const trailingResponse = await this.privatePostExchange(trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            const trailingResponseObj = this.safeDict(trailingResponse, 'response', {});
+            const trailingData = this.safeDict(trailingResponseObj, 'data', {});
+            return this.parseOrder(this.extend(trailingData, { 'status': 'open' }), trailingMarket);
+        }
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders([order], globalParams);
         const created = this.safeDict(orders, 0);
         return created;
+    }
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} the request to be sent to the exchange endpoint
+     */
+    createTrailingStopRequest(symbol, side, amount, params = {}) {
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new NotSupported(this.id + ' createOrder() supports trailing orders for swap markets only');
+        }
+        const trailingPercent = this.safeString(params, 'trailingPercent');
+        const trailingAmount = this.safeString(params, 'trailingAmount');
+        const trailingTriggerPrice = this.safeString(params, 'trailingTriggerPrice');
+        const retracement = {};
+        if (trailingPercent !== undefined) {
+            retracement['pct'] = trailingPercent + '%';
+        }
+        else {
+            retracement['px'] = this.priceToPrecision(symbol, trailingAmount);
+        }
+        const [vaultAddressOption, paramsVault] = this.handleOptionStringAndParams(params, 'createOrder', 'vaultAddress');
+        const vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        const nonce = this.incrementingNonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        const action = {
+            'type': 'trailingStop',
+            'asset': this.parseToInt(market['baseId']),
+            'isBuy': (side.toUpperCase() === 'BUY'),
+            'sz': this.amountToPrecision(symbol, amount),
+            'reduceOnly': this.safeBool(paramsVault, 'reduceOnly', false),
+            'retracement': retracement,
+            'activationPx': null,
+        };
+        if (trailingTriggerPrice !== undefined) {
+            action['activationPx'] = this.priceToPrecision(symbol, trailingTriggerPrice);
+        }
+        const signature = this.signL1Action(action, nonce, vaultAddress);
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        return request;
     }
     /**
      * @method
@@ -2227,8 +2314,10 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
@@ -2382,10 +2471,11 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        let params2 = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
+        let params2 = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'priorityFee']);
         const nonce = this.incrementingNonce();
         const orderReq = [];
         let grouping = 'na';
+        let priorityFee = this.safeInteger(params, 'priorityFee');
         for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -2396,6 +2486,13 @@ export default class hyperliquid extends Exchange {
             let amount = this.safeString(rawOrder, 'amount');
             const price = this.safeString(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
+            const orderPriorityFee = this.safeInteger(orderParams, 'priorityFee');
+            if (orderPriorityFee !== undefined) {
+                if ((priorityFee !== undefined) && (priorityFee !== orderPriorityFee)) {
+                    throw new BadRequest(this.id + ' createOrders() all orders must use the same priorityFee, it is applied to the whole request');
+                }
+                priorityFee = orderPriorityFee;
+            }
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
@@ -2454,10 +2551,35 @@ export default class hyperliquid extends Exchange {
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
+        let groupingValue = grouping;
+        if (priorityFee !== undefined) {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if (grouping !== 'na') {
+                throw new NotSupported(this.id + ' createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders');
+            }
+            let allIoc = true;
+            let allPostOnly = true;
+            for (let i = 0; i < orderReq.length; i++) {
+                const builtOrder = this.safeDict(orderReq, i, {});
+                const builtOrderType = this.safeDict(builtOrder, 't', {});
+                const builtOrderLimit = this.safeDict(builtOrderType, 'limit', {});
+                const builtOrderTif = this.safeString(builtOrderLimit, 'tif');
+                if (builtOrderTif !== 'Ioc') {
+                    allIoc = false;
+                }
+                if ((builtOrderTif !== 'Alo') || this.safeBool(builtOrder, 'r', false)) {
+                    allPostOnly = false;
+                }
+            }
+            if (!allIoc && !allPostOnly) {
+                throw new InvalidOrder(this.id + ' createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only');
+            }
+            groupingValue = { 'p': priorityFee };
+        }
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
-            'grouping': grouping,
+            'grouping': groupingValue,
         };
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
             const builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
@@ -3555,13 +3677,18 @@ export default class hyperliquid extends Exchange {
             postOnly = (tif === 'ALO');
         }
         const isTrigger = this.safeBool(entry, 'isTrigger', false);
-        const triggerPx = isTrigger ? this.safeNumber(entry, 'triggerPx') : undefined;
+        let triggerPx = isTrigger ? this.safeNumber(entry, 'triggerPx') : undefined;
+        const orderTypeRaw = this.safeStringLower(entry, 'orderType', '');
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        const isTrailing = (orderTypeRaw.indexOf('trailing') >= 0);
+        if (isTrailing && Precise.stringEq(this.safeString(entry, 'triggerPx', '0'), '0')) {
+            triggerPx = undefined;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        const orderTypeRaw = this.safeStringLower(entry, 'orderType', '');
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
-        if (triggerPx !== undefined) {
+        if ((triggerPx !== undefined) && !isTrailing) {
             if (orderTypeRaw.indexOf('stop') >= 0) {
                 stopLossPrice = triggerPx;
             }
@@ -3608,6 +3735,7 @@ export default class hyperliquid extends Exchange {
             'canceled': 'canceled',
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
+            'scheduledCancel': 'canceled', // canceled by the scheduled cancel deadline (dead man's switch), see cancelAllOrdersAfter
         };
         if (status.endsWith('Rejected')) {
             return 'rejected';
@@ -3621,6 +3749,7 @@ export default class hyperliquid extends Exchange {
         const statuses = {
             'stop limit': 'limit',
             'stop market': 'market',
+            'trailing stop market': 'market',
         };
         return this.safeString(statuses, status, status);
     }
@@ -4100,11 +4229,7 @@ export default class hyperliquid extends Exchange {
         };
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith('0x')) {
-                vaultAddress = vaultAddress.replace('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -4508,7 +4633,8 @@ export default class hyperliquid extends Exchange {
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
-                'usd': amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': this.parseToInt(Precise.stringMul(this.numberToString(amount), '1000000')),
             };
             sig = this.signL1Action(action, nonce);
         }
@@ -5271,12 +5397,11 @@ export default class hyperliquid extends Exchange {
         }
         const url = this.implodeHostname(apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody = undefined;
         if (isPost) {

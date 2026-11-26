@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::lighter::LighterCore;
+use super::lighter::Lighter;
 use crate::exchange::ExchangeRuntime;
 
-impl LighterCore {
+impl Lighter {
     /// Auto-generated wrapper for the `rootGet` implicit endpoint.
     pub async fn root_get(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("root_get".into()), optional_args).await

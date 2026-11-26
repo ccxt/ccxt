@@ -129,11 +129,11 @@ class PredictionExchange(BaseExchange):
         if (eventId is not None) or (slug is not None):
             filtered = []
             for i in range(0, len(result)):
-                event = self.safe_value(result, i)
+                event = self.safe_dict(result, i)
                 idMatch = (eventId is not None) and (self.safe_string(event, 'id') == eventId)
                 slugMatch = (slug is not None) and (self.safe_string(event, 'slug') == slug)
                 if idMatch or slugMatch:
-                    filtered.append(event)
+                    filtered.append(self.safe_value(result, i))
             result = filtered
         result = self.filter_events_by_status(result, self.safe_string(params, 'status'))
         result = self.filter_events_by_tags(result, self.safe_list(params, 'tags'))
@@ -178,11 +178,11 @@ class PredictionExchange(BaseExchange):
         wantActive = (status == 'active')
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             isActive = self.safe_bool(event, 'active')
             # keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive is None) or (isActive == wantActive):
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     def filter_events_by_search_in(self, events: list[object], queries: Strings, searchIn: Str = None):
@@ -197,7 +197,7 @@ class PredictionExchange(BaseExchange):
         checkDescription = (searchIn == 'description') or (searchIn == 'both')
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             title = self.safe_string_lower(event, 'title', '')
             description = self.safe_string_lower(event, 'description', '')
             matched = False
@@ -214,7 +214,7 @@ class PredictionExchange(BaseExchange):
                     matched = True
                     break
             if matched:
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     def normalize_tag_key(self, tag: str):
@@ -255,7 +255,7 @@ class PredictionExchange(BaseExchange):
                 wanted.append(wantedKey)
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             eventTags = self.safe_list(event, 'tags', [])
             matched = False
             for ti in range(0, len(eventTags)):
@@ -274,7 +274,7 @@ class PredictionExchange(BaseExchange):
                 if matched:
                     break
             if matched:
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     async def fetch_events(self, params: fetchEventsParams = {}):
@@ -292,7 +292,7 @@ class PredictionExchange(BaseExchange):
         if self.events_by_slug is None:
             self.events_by_slug = {}
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             id = self.safe_string(event, 'id')
             slug = self.safe_string(event, 'slug')
             handle = self.safe_string(event, 'event')
@@ -339,9 +339,9 @@ class PredictionExchange(BaseExchange):
         # cache-only event resolver (the event analogue of this.outcome) - the cache fills
         # through fetchEvents; this never fetches
         if (self.events is not None) and (eventIdOrSlug in self.events):
-            return self.safe_value(self.events, eventIdOrSlug)
+            return self.safe_dict(self.events, eventIdOrSlug)
         if (self.events_by_slug is not None) and (eventIdOrSlug in self.events_by_slug):
-            return self.safe_value(self.events_by_slug, eventIdOrSlug)
+            return self.safe_dict(self.events_by_slug, eventIdOrSlug)
         raise BadSymbol(self.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({'query': ...}) first")
 
     def outcome(self, outcomeSymbol: Str):
@@ -367,20 +367,24 @@ class PredictionExchange(BaseExchange):
             return True
         return False
 
-    def safe_outcome(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
+    def safe_outcome(self, outcomeIdOrSymbol: Str, market: Market = None):
         if outcomeIdOrSymbol is not None:
             if (self.outcomes is not None) and (outcomeIdOrSymbol in self.outcomes):
                 return self.safe_value(self.outcomes, outcomeIdOrSymbol)
             if (self.outcomes_by_id is not None) and (outcomeIdOrSymbol in self.outcomes_by_id):
                 return self.safe_value(self.outcomes_by_id, outcomeIdOrSymbol)
-        if outcomeObj is not None:
-            return outcomeObj
+        if market is not None:
+            return market
         # stub for an unknown handle; it only carries the identity keys, not the market fields
         outcomeObjValue = {'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': None, 'label': None, 'event': None, 'info': {}}
         return outcomeObjValue
 
     def safe_outcome_symbol(self, outcomeIdOrSymbol: Str, outcomeObj: object = None):
-        outcomeObjValue = self.safe_outcome(outcomeIdOrSymbol, outcomeObj)
+        # outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
+        # handing it to safeOutcome (whose fallback slot is a Market)
+        if not self.has_outcome(outcomeIdOrSymbol) and (outcomeObj is not None):
+            return self.safe_string(outcomeObj, 'outcome')
+        outcomeObjValue = self.safe_outcome(outcomeIdOrSymbol)
         return outcomeObjValue['outcome']
 
     def shorten_slug(self, slug: Str):
@@ -534,7 +538,7 @@ class PredictionExchange(BaseExchange):
                 # on a real collision of same handle but different outcomeId, disambiguate the
                 # second one deterministically instead of silently overwriting the first —
                 # trading the wrong market would otherwise be indistinguishable
-                existing = self.safe_value(self.outcomes, ocSymbol)
+                existing = self.safe_dict(self.outcomes, ocSymbol)
                 if existing is not None:
                     existingId = self.safe_string(existing, 'outcomeId')
                     if (existingId is not None) and (ocId is not None) and (existingId != ocId):
@@ -1336,10 +1340,10 @@ class PredictionExchange(BaseExchange):
             results.append(position)
         return results
 
-    def filter_by_outcome_since_limit(self, array: object, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcome_since_limit(self, array: list[object] | None, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 
-    def filter_by_outcomes_since_limit(self, array: object, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcomes_since_limit(self, array: list[object] | None, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'outcome', outcomes, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 

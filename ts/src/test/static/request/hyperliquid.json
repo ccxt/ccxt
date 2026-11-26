@@ -672,6 +672,253 @@
                     }
                 ],
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "183.75", "s": "0.1", "r": false, "t": { "limit": { "tif": "Ioc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711104140105, "signature": { "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af", "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043", "v": 27 }, "vaultAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58" }
+            },
+            {
+                "description": "trailing percent order with an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.17,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "trailingTriggerPrice": 106.37
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": false,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "pct": "5%"
+                        },
+                        "activationPx": "106.37"
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "trailing amount order with an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.17,
+                    null,
+                    {
+                        "trailingAmount": 3.5458,
+                        "trailingTriggerPrice": 63.825
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": true,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "px": "3.5458"
+                        },
+                        "activationPx": "63.825"
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "trailing percent order without an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.17,
+                    null,
+                    {
+                        "trailingPercent": 20
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": false,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "pct": "20%"
+                        },
+                        "activationPx": null
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "IOC limit order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.3,
+                    35,
+                    {
+                        "timeInForce": "IOC",
+                        "priorityFee": 10000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "35",
+                                "s": "0.3",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Ioc"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 10000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "post-only limit order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.3,
+                    35,
+                    {
+                        "postOnly": true,
+                        "priorityFee": 1
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "35",
+                                "s": "0.3",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 1
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "market order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    175,
+                    {
+                        "priorityFee": 5000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "183.75",
+                                "s": "0.1",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Ioc"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 5000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
             }
         ],
         "createTwapOrder": [
@@ -724,6 +971,82 @@
                     ]
                 ],
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "60", "s": "0.1", "r": false, "t": { "limit": { "tif": "Gtc" } } }, { "a": 5, "b": true, "p": "61", "s": "0.11", "r": false, "t": { "limit": { "tif": "Gtc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1709643776143, "signature": { "r": "0xe94bca75465d32e21e86e86f32d443331ebe1195888eb05e5eebf5a4db2a1716", "s": "0x2c9b208ec7e339ed005b2263030f303c9d0b3a1f4bb41e9aa38b40a62b9c34a4", "v": 28 } }
+            },
+            {
+                "description": "post-only orders sharing a priority fee",
+                "method": "createOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60,
+                            "params": {
+                                "postOnly": true
+                            }
+                        },
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61,
+                            "params": {
+                                "postOnly": true
+                            }
+                        }
+                    ],
+                    {
+                        "priorityFee": 20000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "60",
+                                "s": "0.1",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            },
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "61",
+                                "s": "0.11",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 20000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1709643776143,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
             }
         ],
         "editOrder": [
@@ -1721,7 +2044,21 @@
                       "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781"
                     }
                   ],
-                "output": { "action": { "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781", "isDeposit": false, "usd": 100, "type": "vaultTransfer" }, "nonce": 1718449507245, "signature": { "r": "0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1", "s": "0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9", "v": 27 } }
+                "output": { "action": { "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781", "isDeposit": false, "usd": 100000000, "type": "vaultTransfer" }, "nonce": 1718449507245, "signature": { "r": "0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1", "s": "0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9", "v": 27 } }
+            },
+            {
+                "description": "withdraw a fractional amount from vault",
+                "method": "withdraw",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "USDC",
+                    5.5,
+                    "0xc751489d24a33172541ea451bc253d7a9e98c781",
+                    {
+                      "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781"
+                    }
+                  ],
+                "output": { "action": { "vaultAddress": "0xc751489d24a33172541ea451bc253d7a9e98c781", "isDeposit": false, "usd": 5500000, "type": "vaultTransfer" }, "nonce": 1718449507245, "signature": { "r": "0x10bb60d01ebab494400e5509b50881f6967389adbe04579419ae5fdb3555fae1", "s": "0x232044e07569968bfe6f2a52ecb0d9e85b9f5215174e39c8a82241d244860b9", "v": 27 } }
             }
         ],
         "cancelOrdersForSymbols": [

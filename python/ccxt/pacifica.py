@@ -1146,7 +1146,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(result, symbols)
 
-    def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: dict, market: Market = None) -> FundingRate:
         #
         #      {
         #         "funding": "0.00010529",
@@ -2703,7 +2703,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         operationType = 'update_leverage'
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)

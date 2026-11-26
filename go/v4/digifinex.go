@@ -893,7 +893,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var market any = DerefScalar(response[i])
+		var market any = response[i]
 		var id *string = this.SafeString2(market, "symbol", "instrument_id")
 		var baseId *string = this.SafeString2(market, "base_asset", "base_currency")
 		var quoteId *string = this.SafeString2(market, "quote_asset", "quote_currency")
@@ -916,12 +916,12 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 		//
 		var isAllowedRaw int64 = *this.SafeInteger(market, "is_allow", 1)
 		var isTradingSwap bool = false
-		var typeVar string = func() string {
-			if defaultType != nil && *defaultType == "margin" {
-				return "margin"
-			}
-			return "spot"
-		}()
+		var typeVar string
+		if defaultType != nil && *defaultType == "margin" {
+			typeVar = "margin"
+		} else {
+			typeVar = "spot"
+		}
 		var spot bool = (settle == nil)
 		var swap bool = !spot
 		var margin any = func() any {
@@ -1034,10 +1034,10 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan AsyncResult[[]MarketInterface]
 	//         "code":0
 	//     }
 	//
-	var markets []any = SafeListTyped(response, "data")
+	var markets []map[string]any = this.SafeListMapsTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = markets[i]
+		var market map[string]any = markets[i]
 		var id *string = this.SafeString(market, "market")
 		if id == nil {
 			panic(ExchangeError(this.Id + " fetchMarketsV1() missing id"))
@@ -1176,7 +1176,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 		}
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	var response map[string]any = nil
@@ -1464,7 +1464,7 @@ func (this *Digifinex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	for i := 0; i < len(tickers); i++ {
 		var rawTicker map[string]any = this.Extend(map[string]any{
 			"date": date,
-		}, this.SafeValue(tickers, i))
+		}, this.SafeDict(tickers, i))
 		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
@@ -1570,16 +1570,16 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	//
 	var date *int64 = this.SafeInteger(response, "date")
 	var tickers []any = SafeListTyped(response, "ticker")
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var firstTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
-	var result any = data
 	if !(*this.SafeBool(market, "swap", false)) {
-		result = this.Extend(map[string]any{
+
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{
 			"date": date,
-		}, firstTicker)
+		}, firstTicker), market)}
+		return nil
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response, "data", map[string]any{}), market)}
 	return nil
 }
 func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1937,7 +1937,7 @@ func (this *Digifinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any,
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		if *this.SafeBool(market, "swap", false) {
-			request["limit"] = mathMin(limit, 100)
+			request["limit"] = min(*limit, 100)
 		} else {
 			request["limit"] = limit
 		}
@@ -2070,7 +2070,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		request["instrument_id"] = market["id"]
 		request["granularity"] = timeframe
 		if limit != nil {
-			request["limit"] = mathMin(limit, 100)
+			request["limit"] = min(*limit, 100)
 		}
 
 		r1 := <-this.PublicSwapGetPublicCandles(this.Extend(request, params))
@@ -2084,30 +2084,30 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		request["period"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var duration int64 = this.ParseTimeframe(timeframe)
 		if (since != nil) || (limit != nil) || (until != nil) {
-			var endTime int64 = func() int64 {
-				if until != nil {
-					return *until
-				}
-				return this.Milliseconds()
-			}()
-			var startLimit int64 = func() int64 {
-				if limit != nil {
-					return *limit
-				}
-				return 200
-			}()
-			var startTime int64 = func() int64 {
-				if since != nil {
-					return this.ParseToInt(float64(*since) / 1000)
-				}
-				return this.ParseToInt(float64((endTime - ((startLimit * duration) * 1000))) / 1000)
-			}()
+			var endTime int64
+			if until != nil {
+				endTime = *until
+			} else {
+				endTime = this.Milliseconds()
+			}
+			var startLimit int64
+			if limit != nil {
+				startLimit = *limit
+			} else {
+				startLimit = 200
+			}
+			var startTime int64
+			if since != nil {
+				startTime = this.ParseToInt(float64(*since) / 1000)
+			} else {
+				startTime = this.ParseToInt(float64(endTime-((startLimit*duration)*1000)) / 1000)
+			}
 			request["start_time"] = startTime
 			if (limit != nil) || (until != nil) {
 				if until != nil {
 					var endByUntil int64 = this.ParseToInt(float64(*until) / 1000)
 					if limit != nil {
-						var endByLimit int64 = this.ParseToInt(this.Sum(startTime, *limit*duration))
+						var endByLimit int64 = this.ParseToInt(startTime + *limit*duration)
 						request["end_time"] = func() int64 {
 							if endByLimit < endByUntil {
 								return endByLimit
@@ -2121,7 +2121,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 					if limit == nil {
 						panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a limit argument"))
 					}
-					request["end_time"] = this.Sum(startTime, *limit*duration)
+					request["end_time"] = startTime + *limit*duration
 				}
 			}
 		}
@@ -2213,7 +2213,7 @@ func (this *Digifinex) createOrderBody(ch chan AsyncResult[Order], symbol string
 	var market map[string]any = this.Market(symbol)
 	marginResultSlot0, _ := this.HandleMarginModeAndParams("createOrder", params)
 	var marginMode *string = marginResultSlot0
-	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
 
@@ -2506,11 +2506,9 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
 		var quantity any = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuy bool = isMarketOrder && (side != nil && *side == "buy")
-		var keysToOmit []any = nil
+		var keysToOmit []any = []any{"postOnly"}
 		if isMarketBuy {
-			keysToOmit = []any{"cost", "postOnly"}
-		} else {
-			keysToOmit = []any{"postOnly"}
+			keysToOmit = append(keysToOmit, "cost")
 		}
 		paramsRequest = this.OmitDict(paramsRequiresPrice, keysToOmit)
 		if isMarketBuy {
@@ -2600,12 +2598,12 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Digifinex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2625,7 +2623,7 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id any, optio
 	}
 	var idValue *string = this.NumberToString(id)
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	var request map[string]any = map[string]any{
 		"order_id": idValue,
@@ -2745,12 +2743,12 @@ func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []an
  * @param {string} [params.type] 'spot', 'margin' or 'swap', defaults to the type of the symbol's market or options.defaultType
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Digifinex) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2775,7 +2773,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 		}
 		var marketSymbol *string = SafeStringPtr(market["symbol"])
 		var orders []any = []any{}
-		for i := 0; i < GetArrayLength(ids); i++ {
+		for i := 0; i < len(ids); i++ {
 			var orderItem map[string]any = map[string]any{
 				"id":     this.SafeString(ids, i, ""),
 				"symbol": marketSymbol,
@@ -2787,18 +2785,18 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		retRes212019Recv, _ := OrdersToList(r1.Value), r1.Value != nil
-		var retRes212019 []any = retRes212019Recv
-		if retRes212019 == nil {
+		retRes211619Recv, _ := OrdersToList(r1.Value), r1.Value != nil
+		var retRes211619 []any = retRes211619Recv
+		if retRes211619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes212019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211619)}
 		}
 		return nil
 	}
 	var request map[string]any = map[string]any{
 		"market":   marketType,
-		"order_id": Join(ids, ","),
+		"order_id": strings.Join(ids, ","),
 	}
 
 	r2 := <-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsOmitted))
@@ -2917,12 +2915,12 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		for i := 0; i < len(ids); i++ {
 			var orderId *string = SafeStringPtr(DerefScalar(ids[i]))
 			var isCanceled bool = this.InArray(orderId, data)
-			var status string = func() string {
-				if isCanceled {
-					return "canceled"
-				}
-				return "failed"
-			}()
+			var status string
+			if isCanceled {
+				status = "canceled"
+			} else {
+				status = "failed"
+			}
 			result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 				"info": orderId,
 				"id":   orderId,
@@ -3170,7 +3168,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOpenOrders", paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -3315,7 +3313,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOrders", paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -3457,7 +3455,7 @@ func (this *Digifinex) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOrder", paramsMarketType)
 	var idValue *string = this.NumberToString(id)
@@ -3601,7 +3599,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchMyTrades", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
@@ -3797,7 +3795,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	}
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchLedger", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
@@ -4005,7 +4003,7 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan AsyncResult[[]Transac
 		request["currency"] = currency["id"]
 	}
 	if limit != nil {
-		request["size"] = mathMin(500, limit)
+		request["size"] = min(500, *limit)
 	}
 	var response map[string]any = nil
 	if typeVar == "deposit" {
@@ -4083,11 +4081,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes310815 []any = TransactionsToList(r.Value)
-	if retRes310815 == nil {
+	var retRes310415 []any = TransactionsToList(r.Value)
+	if retRes310415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310415)}
 	}
 	return nil
 }
@@ -4124,11 +4122,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312315 []any = TransactionsToList(r.Value)
-	if retRes312315 == nil {
+	var retRes311915 []any = TransactionsToList(r.Value)
+	if retRes311915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes312315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311915)}
 	}
 	return nil
 }
@@ -4313,7 +4311,7 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code str
 	var fromSwap bool = (fromAccount == "swap")
 	var toSwap bool = (toAccount == "swap")
 	var response map[string]any = nil
-	var amountString any = this.CurrencyToPrecision(code, amount)
+	var amountString *string = this.CurrencyToPrecision(code, amount)
 	if fromSwap || toSwap {
 		if (fromId == nil || *fromId != "1") && (toId == nil || *toId != "1") {
 			panic(ExchangeError(this.Id + " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only"))
@@ -4480,7 +4478,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	//         "unrealized_pnl": "-0.049158102631998504"
 	//     }
 	//
-	var rows []any = SafeListTyped(response, "positions")
+	var rows []any = SafeListTypedDefault(response, "positions", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}
@@ -4893,10 +4891,10 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = SafeListTyped(data, "funding_rates")
+	var result []map[string]any = this.SafeListMapsTyped(data, "funding_rates")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var entry any = result[i]
+		var entry map[string]any = result[i]
 		var marketId *string = this.SafeString(data, "instrument_id")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
@@ -5041,7 +5039,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 		}
 		market = this.Market(symbol)
 	}
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPositions", paramsMarketType)
 	if marginMode != nil {
@@ -5169,7 +5167,7 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol a
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPosition", paramsMarketType)
 	if marginMode != nil {
@@ -5351,7 +5349,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintain_margin")
-	var forceCloseFee any = this.OmitZero(this.SafeString(position, "force_close_fee"))
+	var forceCloseFee *string = this.OmitZero(this.SafeString(position, "force_close_fee"))
 	if (maintenanceMarginString != nil) && (forceCloseFee != nil) {
 		maintenanceMarginString = Precise.StringAdd(maintenanceMarginString, forceCloseFee)
 	}
@@ -6199,12 +6197,12 @@ func (this *Digifinex) setMarginModeBody(ch chan AsyncResult[map[string]any], ma
 	}
 	var market map[string]any = this.Market(symbol)
 	var marginModeLower string = strings.ToLower(marginMode)
-	var marginModeResolved string = func() string {
-		if marginModeLower == "cross" {
-			return "crossed"
-		}
-		return marginModeLower
-	}()
+	var marginModeResolved string
+	if marginModeLower == "cross" {
+		marginModeResolved = "crossed"
+	} else {
+		marginModeResolved = marginModeLower
+	}
 	var request map[string]any = map[string]any{
 		"instrument_id": market["id"],
 		"margin_mode":   marginModeResolved,

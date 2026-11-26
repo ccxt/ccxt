@@ -25,7 +25,7 @@ public class TestFetchMarkets extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         List<Object> marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
-        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
+        for (var i = 0; i < marketValues.size(); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, (Map<String, Object>) ((marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i))));
         }

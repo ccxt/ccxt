@@ -21,10 +21,15 @@ class bullish extends \ccxt\async\bullish {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchOrderBook' => true,
+                'unWatchOrderBook' => true,
                 'watchOrders' => true,
+                'unWatchOrders' => true,
                 'watchTrades' => true,
+                'unWatchTrades' => true,
                 'watchPositions' => true,
+                'unWatchPositions' => true,
                 'watchMyTrades' => true,
+                'unWatchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => false,
             ),
@@ -54,7 +59,7 @@ class bullish extends \ccxt\async\bullish {
         ));
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -109,6 +114,71 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($wsUrl . $url, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
+    public function unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_public(...))($url, $topic, $messageHash, $symbol, $request, $params);
+    }
+
+    private function do_unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()) {
+        /**
+         * @ignore
+         * sends an unsubscribe command for one public $topic and registers the pending unsubscription under the $request id
+         * @param {string} $url path of the public websocket endpoint the $subscription was opened on
+         * @param {string} $topic unified cache $topic => trades, orderbook
+         * @param {string} $messageHash $message hash the $subscription was opened with
+         * @param {string} $symbol unified $symbol of the market to unsubscribe from
+         * @param {array} $request exchange-specific $topic and $symbol of the $subscription
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' unsubscribePublic() has no public websocket url');
+        }
+        $requestId = (string) $this->request_id();
+        $message = array(
+            'jsonrpc' => '2.0',
+            'type' => 'command',
+            'method' => 'unsubscribe',
+            'params' => $request,
+            'id' => $requestId,
+        );
+        $unsubHash = 'unsubscribe::' . $messageHash;
+        $symbols = array( $symbol );
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        $subscription = array(
+            'unsubscribe' => true,
+            'id' => $requestId,
+            'topic' => $topic,
+            'symbols' => $symbols,
+            'subMessageHash' => $messageHash,
+            'messageHash' => $unsubHash,
+        );
+        return Async\await($this->watch($wsUrl . $url, $unsubHash, $this->deep_extend($message, $params), $requestId, $subscription));
+    }
+
+    public function handle_un_subscription(Client $client, array $subscription) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "2",
+        //         "result": {
+        //             "responseCode": "200",
+        //             "responseCodeName": "OK",
+        //             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+        //         }
+        //     }
+        //
+        $subHash = $this->safe_string($subscription, 'subMessageHash');
+        $unsubHash = $this->safe_string($subscription, 'messageHash');
+        $subHashIsPrefix = $this->safe_bool($subscription, 'subHashIsPrefix', false);
+        $this->clean_unsubscription($client, $subHash, $unsubHash, $subHashIsPrefix);
+        $this->clean_cache($subscription);
+        $requestId = $this->safe_string($subscription, 'id', '');
+        if (is_array($client->subscriptions) && array_key_exists($requestId ?? '', $client->subscriptions)) {
+            unset($client->subscriptions[$requestId]);
+        }
+    }
+
     public function watch_private(string $messageHash, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
         return Async\async(self::do_watch_private(...))($messageHash, $subscribeHash, $request, $params);
     }
@@ -130,6 +200,58 @@ class bullish extends \ccxt\async\bullish {
         );
         $result = Async\await($this->watch($url, $messageHash, $this->deep_extend($message, $params), $subscribeHash));
         return $result;
+    }
+
+    public function unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_private(...))($topic, $subscribeHash, $request, $params);
+    }
+
+    private function do_unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()) {
+        /**
+         * @ignore
+         * sends an unsubscribe command for one private $topic and registers the pending unsubscription under the $request id
+         * @param {string} $topic unified cache $topic => orders, myTrades, positions
+         * @param {string} $subscribeHash hash the $subscription was opened with, per-symbol $message hashes start with it
+         * @param {array} $request exchange-specific $topic of the $subscription
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id the $subscription was opened with
+         * @return {any} status of the unwatch $request
+         */
+        $url = $this->urls['api']['ws']['private'];
+        $token = Async\await($this->handleToken());
+        $cookies = array(
+            'JWT_COOKIE' => $token,
+        );
+        $this->options['ws']['cookies'] = $cookies;
+        $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
+        $paramsOmitted = $params;
+        $requestParams = $request;
+        if ($tradingAccountId !== null) {
+            $accountRequest = array(
+                'tradingAccountId' => $tradingAccountId,
+            );
+            $paramsOmitted = $this->omit($params, 'tradingAccountId');
+            $requestParams = $this->extend($request, $accountRequest);
+        }
+        $requestId = (string) $this->request_id();
+        $message = array(
+            'jsonrpc' => '2.0',
+            'type' => 'command',
+            'method' => 'unsubscribe',
+            'params' => $requestParams,
+            'id' => $requestId,
+        );
+        $unsubHash = 'unsubscribe::' . $subscribeHash;
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        $subscription = array(
+            'unsubscribe' => true,
+            'id' => $requestId,
+            'topic' => $topic,
+            'subMessageHash' => $subscribeHash,
+            'subHashIsPrefix' => true,
+            'messageHash' => $unsubHash,
+        );
+        return Async\await($this->watch($url, $unsubHash, $this->deep_extend($message, $paramsOmitted), $requestId, $subscription));
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -164,6 +286,35 @@ class bullish extends \ccxt\async\bullish {
             $limitResolved = $trades->getLimit($symbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the trades channel
+         *
+         * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+         *
+         * @param {string} $symbol unified $symbol of the $market to unsubscribe from
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'trades::' . $marketSymbol;
+        $url = '/trading-api/v1/market-data/trades';
+        $request = array(
+            'topic' => 'anonymousTrades',
+            'symbol' => $marketId,
+        );
+        return Async\await($this->unsubscribe_public($url, 'trades', $messageHash, $marketSymbol, $request, $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -331,6 +482,35 @@ class bullish extends \ccxt\async\bullish {
         return $orderbook->limit();
     }
 
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unsubscribes from the orderbook channel
+         *
+         * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+         *
+         * @param {string} $symbol unified $symbol of the $market to unsubscribe from
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
+        $marketId = $this->safe_string($market, 'id', '');
+        $messageHash = 'orderbook::' . $marketSymbol;
+        $url = '/trading-api/v1/market-data/orderbook';
+        $request = array(
+            'topic' => 'l2Orderbook',
+            'symbol' => $marketId,
+        );
+        return Async\await($this->unsubscribe_public($url, 'orderbook', $messageHash, $marketSymbol, $request, $params));
+    }
+
     public function handle_order_book(Client $client, array $message) {
         //
         //     {
@@ -437,6 +617,30 @@ class bullish extends \ccxt\async\bullish {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+    }
+
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+         *
+         * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+         *
+         * @param {string} [$symbol] not used by bullish unWatchOrders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id the subscription was opened with
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'topic' => 'orders',
+        );
+        return Async\await($this->unsubscribe_private('orders', 'orders', $request, $params));
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -560,6 +764,30 @@ class bullish extends \ccxt\async\bullish {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+         *
+         * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+         *
+         * @param {string} [$symbol] not used by bullish unWatchMyTrades
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id the subscription was opened with
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'topic' => 'trades',
+        );
+        return Async\await($this->unsubscribe_private('myTrades', 'myTrades', $request, $params));
     }
 
     public function handle_my_trades(Client $client, array $message) {
@@ -782,6 +1010,30 @@ class bullish extends \ccxt\async\bullish {
         return $this->filter_by_symbols_since_limit($positions, $symbolsNormalized, $since, $limit, true);
     }
 
+    public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_positions(...))($symbols, $params);
+    }
+
+    private function do_un_watch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * unsubscribes from the positions channel, the subscription is account-wide so all $symbols are unsubscribed
+         *
+         * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+         *
+         * @param {string[]} [$symbols] not used by bullish unWatchPositions
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tradingAccountId] the trading account id the subscription was opened with
+         * @return {any} status of the unwatch $request
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'topic' => 'derivativesPositionsV2',
+        );
+        return Async\await($this->unsubscribe_private('positions', 'positions', $request, $params));
+    }
+
     public function handle_positions(Client $client, array $message) {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
@@ -843,14 +1095,60 @@ class bullish extends \ccxt\async\bullish {
         }
     }
 
+    public function handle_un_subscription_error(Client $client, array $message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "1",
+        //         "error": {
+        //             "code": "-32602",
+        //             "errorCode": "29013",
+        //             "errorCodeName": "'abcde' is not a valid topic"
+        //         }
+        //     }
+        //
+        $messageId = $this->safe_string($message, 'id');
+        if (($messageId === null) || !(is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
+            return;
+        }
+        $subscription = $this->safe_dict($client->subscriptions, $messageId);
+        if (($subscription === null) || !$this->safe_bool($subscription, 'unsubscribe', false)) {
+            return;
+        }
+        // the subscription stays active, only the pending unsubscription is dropped and rejected
+        unset($client->subscriptions[$messageId]);
+        $unsubHash = $this->safe_string($subscription, 'messageHash');
+        $errorResponse = $this->safe_dict($message, 'error', array());
+        $feedback = $this->id . ' ' . $this->json($errorResponse);
+        try {
+            $errorCode = $this->safe_string($errorResponse, 'errorCode');
+            $errorCodeName = $this->safe_string($errorResponse, 'errorCodeName');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCodeName, $feedback);
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            $client->reject($e, $unsubHash);
+        }
+    }
+
     public function handle_message(Client $client, array $message) {
         $dataType = $this->safe_string($message, 'dataType');
         $result = $this->safe_dict($message, 'result');
+        $errorResponse = $this->safe_dict($message, 'error');
         if ($result !== null) {
             $response = $this->safe_string($result, 'message');
             if ($response === 'Keep alive pong') {
                 $this->handle_pong($client, $message);
             }
+            $messageId = $this->safe_string($message, 'id');
+            if (($messageId !== null) && (is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
+                $subscription = $this->safe_dict($client->subscriptions, $messageId);
+                if (($subscription !== null) && $this->safe_bool($subscription, 'unsubscribe', false)) {
+                    $this->handle_un_subscription($client, $subscription);
+                }
+            }
+        } elseif ($errorResponse !== null) {
+            $this->handle_un_subscription_error($client, $message);
         } elseif ($dataType !== null) {
             if ($dataType === 'V1TAAnonymousTradeUpdate') {
                 $this->handle_trades($client, $message);

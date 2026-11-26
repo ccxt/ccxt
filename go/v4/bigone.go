@@ -599,10 +599,10 @@ func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(rawCurrency, "binding_gateways")
+	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "binding_gateways")
 	var currencyMaxPrecision any = this.ParsePrecision(this.SafeString2(rawCurrency, "withdrawal_scale", "scale"))
 	for j := 0; j < len(chains); j++ {
-		var chain any = chains[j]
+		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "gateway_name")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit *bool = this.SafeBool(chain, "is_deposit_enabled")
@@ -818,7 +818,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var contractMarkets []any = this.ToArray(contractResponse)
 	for i := 0; i < len(contractMarkets); i++ {
-		var market any = DerefScalar(contractMarkets[i])
+		var market any = contractMarkets[i]
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var settleId *string = this.SafeString(market, "settleCurrency")
@@ -1079,8 +1079,8 @@ func (this *Bigone) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var data any = nil
 	if isSpot {
 		if symbolsNormalized != nil {
-			var ids any = this.MarketIds(symbolsNormalized)
-			request["pair_names"] = Join(ids, ",")
+			var ids []string = this.MarketIdsStrings(symbolsNormalized)
+			request["pair_names"] = strings.Join(ids, ",")
 		}
 
 		r1 := <-this.PublicGetAssetPairsTickers(this.Extend(request, paramsMarketType))
@@ -1441,13 +1441,12 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if makerFeeCost != nil {
 		var makerCode *string = makerCurrencyCode
 		if takerFeeCost != nil {
-			var takerCode *string = takerCurrencyCode
 			result["fees"] = []any{map[string]any{
 				"cost":     makerFeeCost,
 				"currency": makerCode,
 			}, map[string]any{
 				"cost":     takerFeeCost,
-				"currency": takerCode,
+				"currency": takerCurrencyCode,
 			}}
 		} else {
 			result["fee"] = map[string]any{
@@ -1456,10 +1455,9 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 	} else if takerFeeCost != nil {
-		var takerCode2 *string = takerCurrencyCode
 		result["fee"] = map[string]any{
 			"cost":     takerFeeCost,
-			"currency": takerCode2,
+			"currency": takerCurrencyCode,
 		}
 	} else {
 		result["fee"] = nil
@@ -1602,12 +1600,12 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if sinceIsDefined && untilIsDefined {
 		defaultLimit = 500
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = int64(defaultLimit)
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
 		"period":          this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1616,9 +1614,9 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if since != nil {
 		// const start = this.parseToInt (since / 1000);
 		var duration int64 = this.ParseTimeframe(timeframe)
-		var endByLimit int64 = this.ParseToInt(this.Sum(since, ((limitResolved * duration) * 1000)))
+		var endByLimit int64 = this.ParseToInt(this.Sum(since, (limitResolved*duration)*1000))
 		if until != nil {
-			request["time"] = this.Iso8601(mathMin(endByLimit, *until+1))
+			request["time"] = this.Iso8601(min(endByLimit, *until+1))
 		} else {
 			request["time"] = this.Iso8601(endByLimit)
 		}
@@ -1915,10 +1913,10 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var uppercaseType string = strings.ToUpper(typeVar)
 	var isLimit bool = (uppercaseType == "LIMIT")
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
-	var postOnly any = nil
+	var postOnly bool
 	var query any = nil
 	var postOnlyqueryVariable []any = this.HandlePostOnly((uppercaseType == "MARKET"), exchangeSpecificParam, params)
-	postOnly = postOnlyqueryVariable[0]
+	postOnly = postOnlyqueryVariable[0].(bool)
 	query = postOnlyqueryVariable[1]
 	var triggerPrice *string = this.SafeStringN(query, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var request map[string]any = map[string]any{
@@ -1933,18 +1931,18 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			if timeInForce != nil && *timeInForce == "IOC" {
 				request["immediate_or_cancel"] = true
 			}
-			if postOnly == true {
+			if postOnly {
 				request["post_only"] = true
 			}
 		}
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	} else {
 		if isBuy {
-			var createMarketBuyOrderRequiresPrice any = nil
+			var createMarketBuyOrderRequiresPrice bool
 			createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(query, "cost")
 			query = this.Omit(query, "cost")
-			if createMarketBuyOrderRequiresPrice == true {
+			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
@@ -2022,12 +2020,12 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bigone) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bigone) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bigone) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bigone) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2396,11 +2394,11 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes195715 []any = OrdersToList(r.Value)
-	if retRes195715 == nil {
+	var retRes195515 []any = OrdersToList(r.Value)
+	if retRes195515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195515)}
 	}
 	return nil
 }
@@ -2440,11 +2438,11 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes197515 []any = OrdersToList(r.Value)
-	if retRes197515 == nil {
+	var retRes197315 []any = OrdersToList(r.Value)
+	if retRes197315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197315)}
 	}
 	return nil
 }

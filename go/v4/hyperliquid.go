@@ -213,6 +213,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 				"Insufficient spot balance asset":                                    InsufficientFunds,
 				"Insufficient balance for withdrawal":                                InsufficientFunds,
 				"Insufficient balance for token transfer":                            InsufficientFunds,
+				"Insufficient delegatable balance for priority order":                InsufficientFunds,
 				"TWAP order value too small. Min is $1200, which is $10 per minute.": InvalidOrder,
 				"TWAP was never placed, already canceled, or filled.":                OrderNotFound,
 				"Too many cumulative requests sent":                                  RateLimitExceeded,
@@ -338,6 +339,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 					"stopLossPrice":              true,
 					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
+					"trailing":                   true,
 				},
 			},
 			"swap": map[string]any{
@@ -676,14 +678,14 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// builder-deployed perp dexs start at 110000
 		var dex map[string]any = SafeMapTyped(fetchDexes, i)
 		var secondPart int64 = (int64(i) * 10000) - 10000
-		var offset int64 = this.Sum(110000, secondPart).(int64)
+		var offset int64 = 110000 + secondPart
 		AddElementToObject(perpDexesOffset, this.SafeString(dex, "name", ""), offset)
 	}
 	var fetchDexesList any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var hip3 map[string]any = SafeMapTyped(options, "hip3")
 	var dexesProvided any = this.SafeList(hip3, "dexes", []any{}) // let users provide their own list of dexes to load
-	var maxLimit *int64 = this.SafeInteger(hip3, "limit", 10)
+	var maxLimit int64 = *this.SafeInteger(hip3, "limit", 10)
 	var userProvidedDexesLength int = GetArrayLength(dexesProvided)
 	if userProvidedDexesLength > 0 {
 		if userProvidedDexesLength > 0 {
@@ -696,7 +698,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		// python transpiler collapses every for-loop bound to an exclusive
 		// range(), so `<=` silently emits range(1, maxLimit) and loads one dex
 		// too few (build/transpile.ts treats <, <=, > and >= identically)
-		var maxIteration int64 = this.Sum(maxLimit, 1).(int64)
+		var maxIteration int64 = maxLimit + 1
 		for i := 1; int64(i) < maxIteration; i++ {
 			if i >= fetchDexesLength {
 				break
@@ -895,16 +897,16 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any,
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		// and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-		pricePrecision = mathMin(decimalsLeft, 5)
+		pricePrecision = min(decimalsLeft, 5)
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5
 		// Get the part after the decimal separator
 		var decimalPart *string = this.SafeString(priceSplitted, 1, "")
 		// Count the number of leading zeros in the decimal part
-		var leadingZeros int64 = this.ParseToInt(0)
+		var leadingZeros int64 = 0
 		for (leadingZeros <= int64(len(*decimalPart))) && (GetValue(decimalPart, leadingZeros) == "0") {
-			leadingZeros = this.ParseToInt(leadingZeros + 1)
+			leadingZeros = leadingZeros + 1
 		}
 		// Calculate price precision based on leading zeros and significant digits
 		pricePrecision = leadingZeros + int64(significantDigits)
@@ -1340,19 +1342,19 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 		for i := 0; i < len(balances); i++ {
 			var balance map[string]any = SafeMapTyped(balances, i)
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
-			var code any = func() any {
-				if isSpot {
-					return this.UpdateSpotCurrencyCode(unifiedCode)
-				}
-				return unifiedCode
-			}()
+			var code *string
+			if isSpot {
+				code = this.UpdateSpotCurrencyCode(unifiedCode)
+			} else {
+				code = unifiedCode
+			}
 			var account map[string]any = this.Account()
 			var total *string = this.SafeString(balance, "total")
 			var used *string = this.SafeString(balance, "hold")
 			account["total"] = total
 			account["used"] = used
 			if code != nil {
-				AddElementToObject(spotBalances, code, account)
+				spotBalances[*code] = account
 			}
 		}
 
@@ -2000,7 +2002,7 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) *string {
 	if Precise.StringEq(result, "0") && Precise.StringGt(this.NumberToString(amount), "0") {
 		panic(InvalidOrder(Add(this.Id+" amount of "+market["symbol"].(string)+" must be greater than minimum amount precision of ", this.NumberToString(this.SafeNumber(market["precision"], "amount")))))
 	}
-	return SafeStringPtr(result)
+	return &result
 }
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = this.Market(symbol)
@@ -2033,12 +2035,12 @@ func (this *Hyperliquid) SignMessage(message any, privateKey string) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
 	var isTestnet bool = GetArgBool(optionalArgs, 0, true)
 	_ = isTestnet
-	var source string = func() string {
-		if isTestnet == true {
-			return "b"
-		}
-		return "a"
-	}()
+	var source string
+	if isTestnet == true {
+		source = "b"
+	} else {
+		source = "a"
+	}
 	return map[string]any{
 		"source":       source,
 		"connectionId": hash,
@@ -2763,6 +2765,7 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
  * @name hyperliquid#createOrder
  * @description create a trade order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2777,6 +2780,10 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+ * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -2798,19 +2805,114 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
 			panic(r.Err)
 		}
 	}
+	var isTrailing bool = (this.SafeString2(params, "trailingPercent", "trailingAmount") != nil)
+	if isTrailing {
+
+		r1 := <-this.InitializeClientAsync()
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var trailingMarket map[string]any = this.Market(symbol)
+		var trailingRequest map[string]any = this.CreateTrailingStopRequest(symbol, side, amount, params)
+
+		r2 := <-this.PrivatePostExchange(trailingRequest)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var trailingResponse map[string]any = r2.Value
+		//
+		//     {
+		//         "status": "ok",
+		//         "response": {
+		//             "type": "trailingStop",
+		//             "data": {
+		//                 "oid": 77738308
+		//             }
+		//         }
+		//     }
+		//
+		var trailingResponseObj map[string]any = SafeMapTyped(trailingResponse, "response")
+		var trailingData map[string]any = this.SafeDictMap(trailingResponseObj, "data", map[string]any{})
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(trailingData, map[string]any{
+			"status": "open",
+		}), trailingMarket)}
+		return nil
+	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
 	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
 	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
 
-	r1 := <-this.CreateOrdersAsync([]any{order}, globalParams)
-	if r1.Err != nil {
-		panic(r1.Err)
+	r3 := <-this.CreateOrdersAsync([]any{order}, globalParams)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
-	var orders []any = OrdersToList(r1.Value)
+	var orders []any = OrdersToList(r3.Value)
 	var created map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(created)}
 	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#createTrailingStopRequest
+ * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+ * @param {string} symbol unified symbol of the swap market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+ * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+ * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} the request to be sent to the exchange endpoint
+ */
+func (this *Hyperliquid) CreateTrailingStopRequest(symbol string, side string, amount any, optionalArgs ...any) map[string]any {
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var market map[string]any = this.Market(symbol)
+	if !(market["swap"] == true) {
+		panic(NotSupported(this.Id + " createOrder() supports trailing orders for swap markets only"))
+	}
+	var trailingPercent *string = this.SafeString(params, "trailingPercent")
+	var trailingAmount *string = this.SafeString(params, "trailingAmount")
+	var trailingTriggerPrice *string = this.SafeString(params, "trailingTriggerPrice")
+	var retracement map[string]any = map[string]any{}
+	if trailingPercent != nil {
+		retracement["pct"] = *trailingPercent + "%"
+	} else {
+		retracement["px"] = this.PriceToPrecision(symbol, trailingAmount)
+	}
+	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var nonce int64 = this.IncrementingNonce()
+	// the action is hashed and signed, so the order of the keys must match the exchange's
+	var action map[string]any = map[string]any{
+		"type":         "trailingStop",
+		"asset":        this.ParseToInt(market["baseId"]),
+		"isBuy":        (strings.ToUpper(side) == "BUY"),
+		"sz":           this.AmountToPrecision(symbol, amount),
+		"reduceOnly":   this.SafeBool(paramsVault, "reduceOnly", false),
+		"retracement":  retracement,
+		"activationPx": nil,
+	}
+	if trailingTriggerPrice != nil {
+		action["activationPx"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
+	}
+	var signature any = this.SignL1Action(action, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+	return request
 }
 
 /**
@@ -2920,8 +3022,10 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol 
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -3111,10 +3215,11 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 			}
 		}
 	}
-	var params2 any = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
+	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "priorityFee"})
 	var nonce int64 = this.IncrementingNonce()
 	var orderReq []any = []any{}
 	var grouping string = "na"
+	var priorityFee *int64 = this.SafeInteger(params, "priorityFee")
 	for i := 0; i < ordersLength; i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -3125,6 +3230,13 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		var amount *string = this.SafeString(rawOrder, "amount")
 		var price *string = this.SafeString(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var orderPriorityFee *int64 = this.SafeInteger(orderParams, "priorityFee")
+		if orderPriorityFee != nil {
+			if (priorityFee != nil) && (priorityFee != orderPriorityFee && (priorityFee == nil || orderPriorityFee == nil || *priorityFee != *orderPriorityFee)) {
+				panic(BadRequest(this.Id + " createOrders() all orders must use the same priorityFee, it is applied to the whole request"))
+			}
+			priorityFee = orderPriorityFee
+		}
 		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
 		AddElementToObject(orderParams, "slippage", slippage)
 		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
@@ -3183,10 +3295,37 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		vaultAddress = *vaultAddressPtr
 	}
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
+	var groupingValue any = grouping
+	if priorityFee != nil {
+		// the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+		if grouping != "na" {
+			panic(NotSupported(this.Id + " createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders"))
+		}
+		var allIoc bool = true
+		var allPostOnly bool = true
+		for i := 0; i < len(orderReq); i++ {
+			var builtOrder map[string]any = SafeMapTyped(orderReq, i)
+			var builtOrderType map[string]any = SafeMapTyped(builtOrder, "t")
+			var builtOrderLimit map[string]any = SafeMapTyped(builtOrderType, "limit")
+			var builtOrderTif *string = this.SafeString(builtOrderLimit, "tif")
+			if builtOrderTif == nil || *builtOrderTif != "Ioc" {
+				allIoc = false
+			}
+			if (builtOrderTif == nil || *builtOrderTif != "Alo") || (*this.SafeBool(builtOrder, "r", false)) {
+				allPostOnly = false
+			}
+		}
+		if !allIoc && !allPostOnly {
+			panic(InvalidOrder(this.Id + " createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only"))
+		}
+		groupingValue = map[string]any{
+			"p": priorityFee,
+		}
+	}
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
 		"orders":   orderReq,
-		"grouping": grouping,
+		"grouping": groupingValue,
 	}
 	if *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
@@ -3208,7 +3347,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3230,12 +3369,12 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) ma
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3252,7 +3391,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 		return nil
 	}
 
-	r1 := <-this.CancelOrdersAsync([]any{id}, symbol, params)
+	r1 := <-this.CancelOrdersAsync([]string{id}, symbol, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3279,12 +3418,12 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
  * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hyperliquid) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3355,12 +3494,12 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any,
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CancelTwapOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) CancelTwapOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelTwapOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3380,7 +3519,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 	var market map[string]any = this.Market(symbol)
 	vaultAddressOption, paramsUnwrapped := this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var params2 any = paramsUnwrapped
+	var params2 map[string]any = paramsUnwrapped
 	var action map[string]any = map[string]any{
 		"type": "twapCancel",
 		"a":    this.ParseToInt(market["baseId"]),
@@ -3394,13 +3533,13 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id any,
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	var expiresAfter *int64 = this.SafeInteger(params2, "expiresAfter")
 	if expiresAfter != nil {
 		request["expiresAfter"] = expiresAfter
-		params2 = this.Omit(params2, "expiresAfter")
+		params2 = this.OmitDict(params2, "expiresAfter")
 	}
 
 	r1 := <-this.PrivatePostExchange(request)
@@ -3449,7 +3588,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
 	var fast *bool = this.SafeBool(params, "fast", false)
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id", "fast"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id", "fast"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3497,7 +3636,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) map[s
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	return request
@@ -3563,18 +3702,18 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		if (id != nil) && cancelByCloid {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId"))
 		}
-		var assetKey string = func() string {
-			if cancelByCloid {
-				return "asset"
-			}
-			return "a"
-		}()
-		var idKey string = func() string {
-			if cancelByCloid {
-				return "cloid"
-			}
-			return "o"
-		}()
+		var assetKey string
+		if cancelByCloid {
+			assetKey = "asset"
+		} else {
+			assetKey = "a"
+		}
+		var idKey string
+		if cancelByCloid {
+			idKey = "cloid"
+		} else {
+			idKey = "o"
+		}
 		var market map[string]any = this.Market(symbol)
 		var cancelObj map[string]any = map[string]any{}
 		cancelObj[assetKey] = this.ParseToNumeric(market["baseId"])
@@ -3665,7 +3804,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var params2 any = this.Omit(params, []any{"clientOrderId", "client_id"})
+	var params2 map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var nonce int64 = this.IncrementingNonce()
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
@@ -3685,7 +3824,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string
 	request["action"] = cancelAction
 	request["signature"] = signature
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 
@@ -4095,13 +4234,13 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	if since != nil {
 		request["startTime"] = since
 	} else {
-		var maxLimit int64 = func() int64 {
-			if limit == nil {
-				return 500
-			}
-			return *limit
-		}()
-		request["startTime"] = (this.Milliseconds() - (((maxLimit * 60) * 60) * 1000))
+		var maxLimit int64
+		if limit == nil {
+			maxLimit = 500
+		} else {
+			maxLimit = *limit
+		}
+		request["startTime"] = this.Milliseconds() - (maxLimit*60)*60*1000
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
@@ -4740,12 +4879,17 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		return nil
 	}()
+	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
+	// a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+	var isTrailing bool = (strings.Index(orderTypeRaw, "trailing") >= 0)
+	if isTrailing && Precise.StringEq(this.SafeString(entry, "triggerPx", "0"), "0") {
+		triggerPx = nil
+	}
 	// standalone stop / take-profit orders carry their trigger in triggerPx - surface it
 	// through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
 	var stopLossPrice any = nil
 	var takeProfitPrice any = nil
-	if !IsEqual(triggerPx, nil) {
+	if (!IsEqual(triggerPx, nil)) && !isTrailing {
 		if strings.Index(orderTypeRaw, "stop") >= 0 {
 			stopLossPrice = triggerPx
 		} else if strings.Index(orderTypeRaw, "take profit") >= 0 {
@@ -4785,12 +4929,13 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		return nil
 	}
 	var statuses map[string]any = map[string]any{
-		"triggered":      "open",
-		"filled":         "closed",
-		"open":           "open",
-		"canceled":       "canceled",
-		"rejected":       "rejected",
-		"marginCanceled": "canceled",
+		"triggered":       "open",
+		"filled":          "closed",
+		"open":            "open",
+		"canceled":        "canceled",
+		"rejected":        "rejected",
+		"marginCanceled":  "canceled",
+		"scheduledCancel": "canceled",
 	}
 	if strings.HasSuffix(*status, "Rejected") {
 		return "rejected"
@@ -4802,8 +4947,9 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 }
 func (this *Hyperliquid) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
-		"stop limit":  "limit",
-		"stop market": "market",
+		"stop limit":           "limit",
+		"stop market":          "market",
+		"trailing stop market": "market",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -5432,11 +5578,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	if vaultAddressPtr != nil {
 		vaultAddress = *vaultAddressPtr
 	}
-	if vaultAddress != nil {
-		if StartsWith(vaultAddress, "0x") {
-			vaultAddress = Replace(vaultAddress, "0x", "")
-		}
-	}
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
 	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    updateAction,
@@ -5502,7 +5644,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 	var isCross bool = (marginMode == "cross")
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var nonce int64 = this.IncrementingNonce()
-	var params2 any = this.Omit(params, "marginMode")
+	var params2 map[string]any = this.OmitDict(params, "marginMode")
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
 		"asset":    asset,
@@ -5523,7 +5665,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan AsyncResult[map[string]any], le
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 
@@ -5833,12 +5975,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		var sendAssetToken string = *this.SafeString(sendAssetCurrencyInfo, "name", "") + ":" + *this.SafeString(sendAssetCurrencyInfo, "tokenId", "")
 		// '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
 		// keeps every balance in the spot clearinghouse so spot is the default on both sides
-		var defaultDex string = func() string {
-			if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
-				return ""
-			}
-			return "spot"
-		}()
+		var defaultDex string
+		if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
+			defaultDex = ""
+		} else {
+			defaultDex = "spot"
+		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
 		var sendAssetPayload map[string]any = map[string]any{
@@ -6024,7 +6166,7 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 			"type":         "vaultTransfer",
 			"vaultAddress": Add("0x", vaultAddress),
 			"isDeposit":    false,
-			"usd":          amount,
+			"usd":          this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000")),
 		}
 		sig = this.SignL1Action(action, nonce)
 	} else {
@@ -6990,13 +7132,9 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	//
 	var status string = *this.SafeString(response, "status", "")
 	var error *string = this.SafeString(response, "error")
-	var message any = nil
+	var message *string = nil
 	if status == "err" {
-		if derefPtr := this.SafeString(response, "response"); derefPtr != nil {
-			message = *derefPtr
-		} else {
-			message = nil
-		}
+		message = this.SafeString(response, "response")
 	} else if status == "unknownOid" {
 		panic(OrderNotFound(this.Id + " " + body))
 	} else if error != nil {
@@ -7006,12 +7144,8 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		var data map[string]any = SafeMapTyped(responsePayload, "data")
 		var statuses []any = SafeListTyped(data, "statuses")
 		for i := 0; i < len(statuses); i++ {
-			if derefPtr := this.SafeString(statuses[i], "error"); derefPtr != nil {
-				message = *derefPtr
-			} else {
-				message = nil
-			}
-			if !IsEqual(message, nil) {
+			message = this.SafeString(statuses[i], "error")
+			if message != nil {
 				break
 			}
 		}
@@ -7024,7 +7158,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 		}
 	}
 	var feedback string = this.Id + " " + body
-	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
+	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
@@ -7048,12 +7182,11 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = this.ImplodeHostname(apiUrl) + "/" + path
 	var isPost bool = (method == "POST")
-	var postHeaders map[string]any = map[string]any{
-		"Content-Type": "application/json",
-	}
 	var requestHeaders map[string]any = nil
 	if isPost {
-		requestHeaders = postHeaders
+		requestHeaders = map[string]any{
+			"Content-Type": "application/json",
+		}
 	}
 	var requestBody *string = nil
 	if isPost {
@@ -7431,6 +7564,7 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @name hyperliquid#createOrder
  * @description create a trade order
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -7445,6 +7579,10 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+ * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -7497,8 +7635,10 @@ func (this *Hyperliquid) CreateTwapOrder(symbol string, side string, amount floa
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {

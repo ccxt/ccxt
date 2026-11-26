@@ -136,7 +136,7 @@ export default class backpack extends Exchange {
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    filterStockStructures(entries: List): List;
+    filterStockStructures(entries: Dict[]): List;
     parseMarketType(type: Str): Str;
     /**
      * @method
@@ -207,7 +207,7 @@ export default class backpack extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name backpack#fetchOpenInterest

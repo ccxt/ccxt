@@ -22,6 +22,7 @@ var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
 var bit2c = require('./src/bit2c.js');
+var bit2me = require('./src/bit2me.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
 var bitfinex = require('./src/bitfinex.js');
@@ -77,6 +78,7 @@ var htx = require('./src/htx.js');
 var hyperliquid = require('./src/hyperliquid.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
+var interactivebrokers = require('./src/interactivebrokers.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
@@ -123,6 +125,7 @@ var binancecoinm$1 = require('./src/pro/binancecoinm.js');
 var binanceus$1 = require('./src/pro/binanceus.js');
 var binanceusdm$1 = require('./src/pro/binanceusdm.js');
 var bingx$1 = require('./src/pro/bingx.js');
+var bit2me$1 = require('./src/pro/bit2me.js');
 var bitfinex$1 = require('./src/pro/bitfinex.js');
 var bitget$1 = require('./src/pro/bitget.js');
 var bithumb$1 = require('./src/pro/bithumb.js');
@@ -159,6 +162,7 @@ var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
+var interactivebrokers$1 = require('./src/pro/interactivebrokers.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
@@ -200,7 +204,7 @@ var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.92';
+const version = '4.5.94';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -214,6 +218,7 @@ const exchanges = {
     'binanceusdm': binanceusdm["default"],
     'bingx': bingx["default"],
     'bit2c': bit2c["default"],
+    'bit2me': bit2me["default"],
     'bitbank': bitbank["default"],
     'bitbns': bitbns["default"],
     'bitfinex': bitfinex["default"],
@@ -269,6 +274,7 @@ const exchanges = {
     'hyperliquid': hyperliquid["default"],
     'independentreserve': independentreserve["default"],
     'indodax': indodax["default"],
+    'interactivebrokers': interactivebrokers["default"],
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
@@ -317,6 +323,7 @@ const pro = {
     'binanceus': binanceus$1["default"],
     'binanceusdm': binanceusdm$1["default"],
     'bingx': bingx$1["default"],
+    'bit2me': bit2me$1["default"],
     'bitfinex': bitfinex$1["default"],
     'bitget': bitget$1["default"],
     'bithumb': bithumb$1["default"],
@@ -353,6 +360,7 @@ const pro = {
     'htx': htx$1["default"],
     'hyperliquid': hyperliquid$1["default"],
     'independentreserve': independentreserve$1["default"],
+    'interactivebrokers': interactivebrokers$1["default"],
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
@@ -465,6 +473,7 @@ exports.binanceus = binanceus["default"];
 exports.binanceusdm = binanceusdm["default"];
 exports.bingx = bingx["default"];
 exports.bit2c = bit2c["default"];
+exports.bit2me = bit2me["default"];
 exports.bitbank = bitbank["default"];
 exports.bitbns = bitbns["default"];
 exports.bitfinex = bitfinex["default"];
@@ -520,6 +529,7 @@ exports.htx = htx["default"];
 exports.hyperliquid = hyperliquid["default"];
 exports.independentreserve = independentreserve["default"];
 exports.indodax = indodax["default"];
+exports.interactivebrokers = interactivebrokers["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];

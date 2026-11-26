@@ -2383,17 +2383,17 @@ class bitget(Exchange, ImplicitAPI):
             contract = True
             inverse = (base == settle)
             linear = not inverse
-            priceDecimals = self.safe_integer(market, 'pricePlace')
-            amountDecimals = self.safe_integer(market, 'volumePlace')
-            priceStep = self.safe_string(market, 'priceEndStep')
-            amountStep = self.safe_string(market, 'sizeMultiplier')
-            precise = Precise(priceStep)
-            precise.decimals = max(precise.decimals, priceDecimals)
+            pricePlaces = self.safe_integer(market, 'pricePlace')
+            volumePlaces = self.safe_integer(market, 'volumePlace')
+            priceEndStep = self.safe_string(market, 'priceEndStep')
+            sizeMultiplier = self.safe_string(market, 'sizeMultiplier')
+            precise = Precise(priceEndStep)
+            precise.decimals = max(precise.decimals, pricePlaces)
             precise.reduce()
             priceString = str(precise)
             pricePrecision = self.parse_number(priceString)
-            preciseAmount = Precise(amountStep)
-            preciseAmount.decimals = max(preciseAmount.decimals, amountDecimals)
+            preciseAmount = Precise(sizeMultiplier)
+            preciseAmount.decimals = max(preciseAmount.decimals, volumePlaces)
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
@@ -2781,12 +2781,9 @@ class bitget(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         chains = self.safe_list(entry, 'chains', [])
         networks = {}
-        withdraw = None
-        deposit = None
+        withdraw = False
+        deposit = False
         chainsLength = len(chains)
-        if chainsLength == 0:
-            withdraw = False
-            deposit = False
         for j in range(0, chainsLength):
             chain = self.safe_dict(chains, j)
             networkId = self.safe_string(chain, 'chain')
@@ -2798,8 +2795,8 @@ class bitget(Exchange, ImplicitAPI):
             rechargeableString = self.safe_string(chain, 'rechargeable')
             withdrawable = (withdrawableString == 'true')
             rechargeable = (rechargeableString == 'true')
-            withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
-            deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
+            withdraw = withdraw or withdrawable
+            deposit = deposit or rechargeable
             withdrawMinScale = self.safe_string(chain, 'withdrawMinScale')
             precision = self.parse_precision(withdrawMinScale)
             networks[network] = {
@@ -3033,7 +3030,7 @@ class bitget(Exchange, ImplicitAPI):
         tiers = []
         minNotional = 0
         for i in range(0, len(info)):
-            item = self.safe_value(info, i)
+            item = self.safe_dict(info, i, {})
             minimumNotional = self.safe_number_2(item, 'startUnit', 'minTierValue')
             if minimumNotional is not None:
                 minNotional = minimumNotional
@@ -9260,7 +9257,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsExtended = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
         return self.fetch_funding_rates(symbols, paramsExtended)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         #

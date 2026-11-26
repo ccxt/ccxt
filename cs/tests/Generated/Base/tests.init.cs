@@ -24,6 +24,7 @@ public partial class BaseTest
             testDecimalToPrecision();
             testCapitalize();
             testIncrementingNonce();
+            testArraySlice();
             testIsDictionary();
             testNumberToString();
             testPrecise();
@@ -74,6 +75,8 @@ public partial class BaseTest
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();
+            testModPow();
+            // testParseMarkets ();
             return true;
         }
 }

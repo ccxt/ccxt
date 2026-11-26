@@ -1240,7 +1240,7 @@ export default class weex extends Exchange {
         }
         const results: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
-            const rawTicker = this.safeValue (response, i);
+            const rawTicker = this.safeDict (response, i, {});
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString (rawTicker, 'symbol');
             const tickerMarket = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1641,7 +1641,7 @@ export default class weex extends Exchange {
                 if (limit !== undefined && limit !== null && limit !== 0) {
                     historyLimit = this.parseToInt (Math.min (limit, maxHistoricalLimit));
                 }
-                const timeDelta = this.parseToInt (historyLimit * duration);
+                const timeDelta = historyLimit * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1797,7 +1797,7 @@ export default class weex extends Exchange {
             tradeMarketType = 'swap';
         }
         const marketResolved: Market = this.safeMarket ((market === undefined) ? tradeMarketId : undefined, market, undefined, tradeMarketType);
-        let isSpot: Bool = undefined;
+        let isSpot: boolean = false;
         if (market === undefined) {
             isSpot = tradeMarketType === 'spot';
         } else {
@@ -1929,7 +1929,7 @@ export default class weex extends Exchange {
         return this.parseFundingRates (response, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (contract, 'time');

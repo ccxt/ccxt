@@ -60,7 +60,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined, // has but not implemented
                 'fetchGreeks': false,
@@ -460,6 +460,7 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
+                    '401': PermissionDenied, // {"code":401,"message":"Illegal of ip"}
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
@@ -607,7 +608,12 @@ export default class poloniex extends Exchange {
                     '12004': PermissionDenied, // NOT_KYC_VERIFIED
                     '21001': OperationRejected, // POSITION_NOT_EXIST
                 },
-                'broad': {},
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': AuthenticationError,
+                    'ApiKey not exist': AuthenticationError,
+                    'Illegal of ip': PermissionDenied,
+                },
             },
         });
     }
@@ -858,7 +864,7 @@ export default class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        const markets = this.safeList(response, 'data');
+        const markets = this.safeList(response, 'data', []);
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
@@ -1265,11 +1271,10 @@ export default class poloniex extends Exchange {
         return this.parseCurrencies(response);
     }
     parseCurrency(currency) {
-        const entry = currency;
-        const id = this.safeString(entry, 'coin');
+        const id = this.safeString(currency, 'coin');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const chains = this.safeList(entry, 'networkList', []);
+        const chains = this.safeList(currency, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict(chains, j);
@@ -1301,18 +1306,18 @@ export default class poloniex extends Exchange {
         }
         return this.safeCurrencyStructure({
             'id': id,
-            'name': this.safeString(entry, 'name'),
+            'name': this.safeString(currency, 'name'),
             'code': code,
             'type': undefined,
             'precision': undefined,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': undefined,
             'withdraw': undefined,
             'active': undefined,
             'fee': undefined,
             'limits': undefined,
-            'margin': this.safeBool(entry, 'supportBorrow'),
+            'margin': this.safeBool(currency, 'supportBorrow'),
         });
     }
     /**
@@ -2815,7 +2820,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -2826,10 +2831,8 @@ export default class poloniex extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (this.safeBool(market, 'contract', false)) {
-                request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 150], limit);
         }
         if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
@@ -2886,6 +2889,88 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601(timestamp),
             'nonce': undefined,
         };
+    }
+    /**
+     * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!this.safeBool(market, 'swap', false)) {
+            throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapPublicGetV3MarketFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        const marketId = this.safeString(contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        const previousFundingTimestamp = this.safeInteger(contract, 'fT');
+        const fundingTimestamp = this.safeInteger(contract, 'nFT');
+        const intervalMilliseconds = Precise.stringSub(this.safeString(contract, 'nFT'), this.safeString(contract, 'fT'));
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'nFR'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber(contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601(previousFundingTimestamp),
+            'interval': this.parseFundingInterval(intervalMilliseconds),
+        };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '7200000': '2h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
     }
     /**
      * @method
@@ -3526,8 +3611,8 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeTimestamp(transactionValue, 'timestamp');
         const currencyId = this.safeString(transactionValue, 'currency');
         const code = this.safeCurrencyCode(currencyId);
-        let status = this.safeString(transactionValue, 'status', 'pending');
-        status = this.parseTransactionStatus(status);
+        const rawStatus = this.safeString(transactionValue, 'status', 'pending');
+        const status = this.parseTransactionStatus(rawStatus);
         const txid = this.safeString(transactionValue, 'txid');
         let type = 'deposit';
         if (this.safeString(transactionValue, 'withdrawalRequestsId') !== undefined) {
@@ -4027,8 +4112,8 @@ export default class poloniex extends Exchange {
         if ((responseCode !== undefined) && (responseCode !== '200')) {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
         return undefined;

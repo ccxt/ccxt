@@ -125,7 +125,7 @@ func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) 
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -187,7 +187,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -534,9 +534,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil && timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -547,7 +547,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		}
 		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ohlcvs[i]
-			stored.(ccxt.Appender).Append(candle)
+			stored.Append(candle)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -1143,8 +1143,8 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
-		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
-		ccxt.AddElementToObject(snapshot, "nonce", nonce)
+		var snapshot map[string]any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
+		snapshot["nonce"] = nonce
 		// reset the existing orderbook instead of replacing it: a consumer
 		// holds a reference to the old object and would never see updates
 		// after a re-subscription snapshot
@@ -1845,9 +1845,9 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	if lastTradeTimestamp != nil && *lastTradeTimestamp == 0 {
 		lastTradeTimestamp = nil
 	}
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
 	var stopPrice *string = this.SafeString(order, "stopPx")
-	var postOnly bool = (ccxt.IsEqual(timeInForce, "PO"))
+	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -2035,12 +2035,12 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Phemex) SubscribePrivateAsync(typeVar any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Phemex) SubscribePrivateAsync(typeVar *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, typeVar, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar any, messageHash any, optionalArgs ...any) any {
+func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar *string, messageHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2062,7 +2062,7 @@ func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar 
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
 	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
 	var channel string = "aop.subscribe"
-	if ccxt.IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		channel = "wo.subscribe"
 	}
 	if settleIsUSDT {

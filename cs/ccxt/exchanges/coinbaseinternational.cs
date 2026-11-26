@@ -668,7 +668,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<Int64> FetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTime", parameters);
@@ -698,7 +698,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.currency] settlement currency filter, defaults to any on Deribit
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMarkets", parameters);
@@ -826,7 +826,7 @@ public partial class coinbaseinternational : Exchange
         {
             type = "option";
         }
-        object symbol = instrumentName;
+        string? symbol = instrumentName;
         if (!isComboMarket && ((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
@@ -849,7 +849,7 @@ public partial class coinbaseinternational : Exchange
         if (!isComboMarket && (isOption || isFuture))
         {
             string? expiryString = this.yymmdd(expiry, "");
-            symbol = ((object)(symbol == null ? null : symbol + "-" + expiryString));
+            symbol = (symbol == null ? null : symbol + "-" + expiryString);
         }
         if (!isComboMarket && isOption)
         {
@@ -859,7 +859,7 @@ public partial class coinbaseinternational : Exchange
                 optionTypeLetter = "C";
             }
             string? strikeString = this.numberToString(strike);
-            symbol = ((object)(symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter));
+            symbol = (symbol == null ? null : symbol + "-" + strikeString + "-" + optionTypeLetter);
         }
         Dictionary<string, object> marketStructure = new Dictionary<string, object>() {
             { "id", instrumentName },
@@ -927,7 +927,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchCurrencies", parameters);
@@ -1076,7 +1076,7 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         Int64? limitVar = limit;
@@ -1088,9 +1088,9 @@ public partial class coinbaseinternational : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
+        (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
+        IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
@@ -1133,7 +1133,7 @@ public partial class coinbaseinternational : Exchange
         {
             request["end_timestamp"] = until;
         }
-        object paramsOmitted = ((until != null)) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+        IDictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(paramsPaginate, "until") : paramsPaginate;
         Dictionary<string, object> response = await this.publicGetGetTradingviewChartData(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1184,16 +1184,16 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchFundingRateHistory", parameters);
-        object paramsPaginate = paramsResolved;
+        IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchFundingRateHistory", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")) ;
@@ -1211,7 +1211,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64 duration = (this.parseTimeframe("1h") * 1000L);
         Int64 now = this.milliseconds();
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
@@ -1223,7 +1223,7 @@ public partial class coinbaseinternational : Exchange
         };
         if ((limit != null))
         {
-            object endTimestamp = this.sum(sinceResolved, (limit * duration));
+            Int64 endTimestamp = this.sum(sinceResolved, (limit * duration));
             request["end_timestamp"] = endTimestamp;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
@@ -1231,7 +1231,7 @@ public partial class coinbaseinternational : Exchange
         {
             request["end_timestamp"] = until;
         }
-        object paramsOmitted = paramsPaginate;
+        IDictionary<string, object> paramsOmitted = paramsPaginate;
         if (((until != null)) || this.isNativeDeribitCredentials())
         {
             paramsOmitted = this.omit(paramsPaginate, "until");
@@ -1317,7 +1317,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTickers", parameters);
@@ -1355,7 +1355,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTicker", parameters);
@@ -1477,7 +1477,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrderBook", parameters);
@@ -1573,7 +1573,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.code] unified currency code for a native Deribit single account summary
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchBalance", parameters);
@@ -1583,7 +1583,7 @@ public partial class coinbaseinternational : Exchange
         }
         await this.authenticateV2();
         string? code = this.safeString(paramsResolved, "code");
-        object paramsOmitted = paramsResolved;
+        Dictionary<string, object> paramsOmitted = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
             paramsOmitted = this.omit(paramsResolved, "code");
@@ -1858,15 +1858,15 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object summaries = new List<object>() {response};
+        List<object> summaries = new List<object>() {response};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            summaries = response;
+            summaries = ((List<object>)response);
         } else if (this.isNativeDeribitCredentials())
         {
             summaries = this.safeList(response, "summaries", new List<object>() {response});
         }
-        for (int i = 0; i < getArrayLength(summaries); i++)
+        for (int i = 0; i < (summaries?.Count ?? 0); i++)
         {
             IDictionary<string, object> data = this.safeDict(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -1900,7 +1900,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchTransfers", parameters);
@@ -1914,7 +1914,7 @@ public partial class coinbaseinternational : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Int64 now = this.milliseconds();
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
@@ -1934,7 +1934,7 @@ public partial class coinbaseinternational : Exchange
         {
             request["end_timestamp"] = until;
         }
-        object paramsOmitted = ((until != null)) ? this.omit(paramsResolved, "until") : paramsResolved;
+        Dictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(paramsResolved, "until") : paramsResolved;
         await this.authenticateV2();
         Dictionary<string, object> response = await this.privateGetGetTransactionLog(this.extend(request, paramsOmitted));
         //
@@ -2049,7 +2049,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchPosition", parameters);
@@ -2192,7 +2192,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.kind] instrument kind filter
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchPositions", parameters);
@@ -2257,7 +2257,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchDepositsWithdrawals", parameters);
@@ -2271,7 +2271,7 @@ public partial class coinbaseinternational : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         Int64 now = this.milliseconds();
-        object sinceResolved = since;
+        Int64? sinceResolved = since;
         if ((since == null))
         {
             sinceResolved = (now - (((((30L * 24L) * 60) * 60) * 1000)));
@@ -2290,7 +2290,7 @@ public partial class coinbaseinternational : Exchange
         {
             request["count"] = limit;
         }
-        object paramsOmitted = ((until != null)) ? this.omit(paramsResolved, "until") : paramsResolved;
+        Dictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(paramsResolved, "until") : paramsResolved;
         await this.authenticateV2();
         Dictionary<string, object> response = await this.privateGetGetTransactionLog(this.extend(request, paramsOmitted));
         //
@@ -2364,7 +2364,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchWithdrawals", parameters);
@@ -2392,7 +2392,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.continuation] continuation token for pagination
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchDeposits", parameters);
@@ -2405,7 +2405,7 @@ public partial class coinbaseinternational : Exchange
         }));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         //     {
@@ -2518,7 +2518,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("createOrder", parameters);
@@ -2899,7 +2899,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelOrder", parameters);
@@ -2962,7 +2962,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("cancelAllOrders", parameters);
@@ -3013,7 +3013,7 @@ public partial class coinbaseinternational : Exchange
      * @param {float} [params.triggerPrice] price to trigger stop orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("editOrder", parameters);
@@ -3118,7 +3118,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOrder", parameters);
@@ -3183,16 +3183,16 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchOpenOrders", parameters);
-        object paramsPaginate = paramsResolved;
+        IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchOpenOrders", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchOpenOrders() does not support pagination")) ;
@@ -3267,16 +3267,16 @@ public partial class coinbaseinternational : Exchange
      * @param {boolean} [params.paginate] native Deribit automatic pagination is not supported
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchMyTrades", parameters);
-        object paramsPaginate = paramsResolved;
+        IDictionary<string, object> paramsPaginate = paramsResolved;
         if (this.isNativeDeribitCredentials())
         {
-            (bool?, object) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
+            (bool?, IDictionary<string, object>) paginateparamsFinalVariable = this.handleOptionBoolAndParams(paramsResolved, "fetchMyTrades", "paginate", false);
             bool? paginate = paginateparamsFinalVariable.Item1;
-            IDictionary<string, object> paramsFinal = ((IDictionary<string, object>)paginateparamsFinalVariable.Item2);
+            IDictionary<string, object> paramsFinal = (paginateparamsFinalVariable.Item2);
             if ((paginate == true))
             {
                 throw new NotSupported ((this.id + " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")) ;
@@ -3301,7 +3301,7 @@ public partial class coinbaseinternational : Exchange
             request["count"] = limit;
         }
         Int64? until = this.safeInteger(paramsPaginate, "until");
-        object paramsOmitted = paramsPaginate;
+        IDictionary<string, object> paramsOmitted = paramsPaginate;
         if (this.isNativeDeribitCredentials())
         {
             paramsOmitted = this.omit(paramsPaginate, "until");
@@ -3381,7 +3381,7 @@ public partial class coinbaseinternational : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         // fetchMyTrades
@@ -3495,7 +3495,7 @@ public partial class coinbaseinternational : Exchange
      * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("fetchLeverage", parameters);
@@ -3558,7 +3558,7 @@ public partial class coinbaseinternational : Exchange
      * @param {int} [params.subaccount_id] The user id for the subaccount, available to retail broker callers, defaults to the authenticated account
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("setLeverage", parameters);
@@ -3623,7 +3623,7 @@ public partial class coinbaseinternational : Exchange
                 uri = ((uri == null) ? null : ((string)uri).Substring(0, Math.Max(Math.Min((quesPos < 0 ? ((string)uri).Length + (quesPos) : quesPos), ((string)uri).Length), 0)));
             }
         }
-        object nonce = this.randomBytes(16);
+        string nonce = this.randomBytes(16);
         string aud = "retail_rest_api_proxy";
         if (useEddsa == true)
         {
@@ -3869,9 +3869,9 @@ public partial class coinbaseinternational : Exchange
     public virtual Dictionary<string, object> handleRouteAndParams(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        (string?, object) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
+        (string?, IDictionary<string, object>) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");
         string? route = routeparamsResolvedVariable.Item1;
-        IDictionary<string, object> paramsResolved = ((IDictionary<string, object>)routeparamsResolvedVariable.Item2);
+        IDictionary<string, object> paramsResolved = (routeparamsResolvedVariable.Item2);
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();

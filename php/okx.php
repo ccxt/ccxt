@@ -354,6 +354,7 @@ class okx extends Exchange {
                         'asset/deposit-history' => array( 'cost' => 5 / 3 ),
                         'asset/withdrawal-history' => array( 'cost' => 5 / 3 ),
                         'asset/deposit-withdraw-status' => array( 'cost' => 20 ),
+                        'asset/travel-rule/get-locked' => array( 'cost' => 10 / 3 ),
                         'asset/monthly-statement' => array( 'cost' => 2 ),
                         'asset/convert/currencies' => array( 'cost' => 5 / 3 ),
                         'asset/convert/currency-pair' => array( 'cost' => 5 / 3 ),
@@ -565,6 +566,7 @@ class okx extends Exchange {
                         'asset/withdrawal' => array( 'cost' => 5 / 3 ),
                         'asset/withdrawal-lightning' => array( 'cost' => 5 ), // not documented
                         'asset/cancel-withdrawal' => array( 'cost' => 5 / 3 ),
+                        'asset/travel-rule/unlock' => array( 'cost' => 10 / 3 ),
                         'asset/convert-dust-assets' => array( 'cost' => 10 ),
                         'asset/monthly-statement' => array( 'cost' => 1296000 ), // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote' => array( 'cost' => 50 ),
@@ -1039,6 +1041,11 @@ class okx extends Exchange {
                     '58229' => '\\ccxt\\InsufficientFunds', // Insufficient funding account balance to pay fees {fee} USDT
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
+                    '58385' => '\\ccxt\\BadRequest', // Travel Rule questionnaire response format is invalid
+                    '58386' => '\\ccxt\\BadRequest', // Missing required field in the Travel Rule questionnaire response
+                    '58387' => '\\ccxt\\BadRequest', // Invalid enum value, country, or date in the Travel Rule questionnaire response
+                    '58388' => '\\ccxt\\ManualInteractionNeeded', // Control test required, please complete it in App/Web
+                    '58389' => '\\ccxt\\OperationRejected', // Unlocking unsuccessful, reach out to CS for further details
                     // Account error codes 59000-59999
                     '59000' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions or open orders
                     '59001' => '\\ccxt\\ExchangeError', // Switching unavailable as you have borrowings
@@ -2099,16 +2106,15 @@ class okx extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $chains = $currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        $firstChain = $this->safe_dict($chains, 0, array());
+        $firstChain = $this->safe_dict($currency, 0, array());
         $currencyId = $this->safe_string($firstChain, 'ccy');
         $code = $this->safe_currency_code($currencyId);
         $networks = array();
         $type = 'crypto';
-        $chainsLength = count($chains);
+        $chainsLength = count($currency);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $this->safe_dict($chains, $j);
+            $chain = $this->safe_dict($currency, $j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if ($networkId === '') {
@@ -2139,7 +2145,7 @@ class okx extends Exchange {
             }
         }
         return $this->safe_currency_structure(array(
-            'info' => $chains,
+            'info' => $currency,
             'code' => $code,
             'id' => $currencyId,
             'name' => $this->safe_string($firstChain, 'name'),
@@ -2706,11 +2712,12 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
-        if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
-        }
         $priceType = $this->safe_string($paramsPaginate, 'price');
         $isMarkOrIndex = $this->in_array($priceType, array( 'mark', 'index' ));
+        if ($paginate) {
+            $maxEntriesPerRequest = ($isMarkOrIndex) ? 100 : 200;
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxEntriesPerRequest);
+        }
         $paramsPrice = $this->omit($paramsPaginate, 'price');
         $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
@@ -2750,7 +2757,10 @@ class okx extends Exchange {
         }
         $until = $this->safe_integer($paramsPrice, 'until');
         if ($until !== null) {
-            $request['after'] = $until;
+            $afterSince = $this->safe_integer($request, 'after');
+            if (($afterSince === null) || ($until < $afterSince)) {
+                $request['after'] = $until;
+            }
         }
         $paramsUntil = ($until !== null) ? $this->omit($paramsPrice, 'until') : $paramsPrice;
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
@@ -2808,6 +2818,7 @@ class okx extends Exchange {
          * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding $rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
@@ -2819,7 +2830,7 @@ class okx extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 100);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 400);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -2831,7 +2842,12 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetPublicFundingRateHistory($this->extend($request, $paramsPaginate));
+        $until = $this->safe_integer($paramsPaginate, 'until');
+        if ($until !== null) {
+            $request['after'] = $until;
+        }
+        $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, 'until') : $paramsPaginate;
+        $response = $this->publicGetPublicFundingRateHistory($this->extend($request, $paramsUntil));
         //
         //     {
         //         "code":"0",
@@ -3190,8 +3206,8 @@ class okx extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
-        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $request = array(
             'instId' => $market['id'],
@@ -6902,7 +6918,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -8312,7 +8328,7 @@ class okx extends Exchange {
          * @return {array[]} the $request and the remaining $params
          */
         $maxLimit = 100;
-        $effectiveLimit = $this->parse_to_int(100);
+        $effectiveLimit = 100;
         if (($limit !== null) && (100 > $limit)) {
             $effectiveLimit = $this->parse_to_int($limit);
         }

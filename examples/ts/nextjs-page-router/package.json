@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "ccxt": "^4.1.56",
-    "next": "16.4.1",
+    "next": "16.4.5",
     "react": "^18",
     "react-dom": "^18"
   },

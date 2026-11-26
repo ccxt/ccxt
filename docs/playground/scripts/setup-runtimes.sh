@@ -210,5 +210,168 @@ else
   echo "    javac or mvn not found — the Java tab will show a 'provision' message until JDK 21+ and Maven are installed"
 fi
 
+CCXT_RUST_VERSION="${CCXT_RUST_VERSION:-}" # empty = latest (crates.io)
+# Venues compiled into the Rust runtime (cargo features of ccxt / ccxt-pro).
+# Each crate defaults to `all`, but ccxt-base puts every venue in ONE crate and
+# a single rustc over all ~100 of them peaks past 14 GB even unoptimized — too
+# much for an image build, and it bloats every run's link. The default is the
+# venues people actually reach for (~4 min, ~6 GB peak at 2 jobs). Set
+# CCXT_RUST_VENUES=all on a builder with ~20 GB free to compile everything.
+CCXT_RUST_VENUES="${CCXT_RUST_VENUES:-binance,binanceusdm,binancecoinm,bybit,okx,coinbase,coinbaseexchange,kraken,krakenfutures,kucoin,kucoinfutures,bitget,gate,htx,mexc,bitfinex,bitstamp,gemini,cryptocom,hyperliquid,deribit,bingx,bitvavo,upbit,poloniex,whitebit}"
+CCXT_RUST_PREDICTION="${CCXT_RUST_PREDICTION:-polymarket,kalshi,limitless,myriad,hyperliquid}"
+
+echo "==> Rust runtime (runtime/rust) — prebuilds ccxt + ccxt-pro + ccxt-prediction (~10 min cold, ~6 GB peak)"
+if is_disabled rust; then
+  echo "    rust disabled (PLAYGROUND_DISABLED) — install-only, skipping prebuild"
+elif [ -z "$CCXT_RUST_VERSION" ] && [ -f runtime/rust/externs.json ] && [ -x "$(sed -n 's/^  "rustc": "\(.*\)",$/\1/p' runtime/rust/externs.json)" ]; then
+  # The Docker image pre-provisions this from the rust-runtime build stage
+  # (whose cargo never ships). Locally it keeps a Go/C# re-warm from repeating
+  # the ~10 min prebuild; `rm -rf runtime/rust` (or pin CCXT_RUST_VERSION) to rebuild.
+  echo "    already provisioned — skipping (rm -rf runtime/rust to rebuild)"
+elif command -v cargo >/dev/null 2>&1 && command -v rustc >/dev/null 2>&1; then
+  RUST_ROOT="$PWD/runtime/rust"
+  rm -rf "$RUST_ROOT"
+  mkdir -p "$RUST_ROOT/src"
+  RV="${CCXT_RUST_VERSION:-*}"
+  # "a,b" -> cargo dependency spec with exactly those features ("all" -> defaults)
+  crate_spec() {
+    if [ "$1" = "all" ]; then echo "\"${RV}\""; return; fi
+    echo "{ version = \"${RV}\", default-features = false, features = [$(echo "$1" | sed 's/[^,][^,]*/"&"/g; s/,/, /g')] }"
+  }
+  # The crates the user's main.rs may name. Runs invoke rustc directly with one
+  # --extern per crate below (lib/runners/rust.ts), so this list IS the import
+  # allowlist. Third-party deps (serde_json, tokio, rustls/ring, hashing) build
+  # at opt-level 2 — that's where JSON parsing and TLS spend their time. The
+  # ccxt crates stay at opt-level 0, as ccxt's own CI builds them: ccxt-base
+  # holds every compiled venue in ONE crate, optimizing it multiplies rustc's
+  # peak memory (opt-level 2 over all venues OOMed a 15 GB builder), and runs
+  # are network-bound anyway (coinbase's 1,000+ markets parse in ~1.5s).
+  # debug = 0 keeps target/ (and every run's link) small.
+  cat > "$RUST_ROOT/Cargo.toml" <<TOML
+[package]
+name = "playground"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ccxt = $(crate_spec "$CCXT_RUST_VENUES")
+ccxt-pro = $(crate_spec "$CCXT_RUST_VENUES")
+ccxt-prediction = $(crate_spec "$CCXT_RUST_PREDICTION")
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+futures = "0.3"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.dev.package.ccxt-common]
+opt-level = 0
+[profile.dev.package.ccxt-base]
+opt-level = 0
+[profile.dev.package.ccxt]
+opt-level = 0
+[profile.dev.package.ccxt-pro]
+opt-level = 0
+[profile.dev.package.ccxt-prediction]
+opt-level = 0
+TOML
+  cat > "$RUST_ROOT/src/main.rs" <<'RS'
+fn main() {
+    let _ = ccxt::Binance::new(None);
+    let _ = ccxt_pro::Binance::new(None);
+    let _ = ccxt_prediction::Polymarket::new(None);
+    let _ = serde_json::json!({});
+    let _ = futures::future::ready(());
+    let _ = tokio::runtime::Builder::new_current_thread();
+}
+RS
+  # rustc must be the exact compiler that built the rlibs (E0514 otherwise).
+  # Resolve the real binary behind the rustup proxy so runs don't depend on
+  # RUSTUP_HOME/RUSTUP_TOOLCHAIN surviving the scrubbed env.
+  RUSTC_BIN="$(rustc --print sysroot)/bin/rustc"
+  if ( cd "$RUST_ROOT" && RUSTC="$RUSTC_BIN" cargo build --message-format=json-render-diagnostics > build.jsonl ) \
+     && node - "$RUST_ROOT" "$RUSTC_BIN" "$CCXT_RUST_VENUES" "$CCXT_RUST_PREDICTION" <<'JS'
+// Turn cargo's artifact records into runtime/rust/externs.json: the exact
+// rlib of each direct dependency (deps/ can hold several versions of a crate,
+// so a bare `--extern name` would be ambiguous) plus the native search paths
+// build scripts emitted (rustc-link-search is not recorded in the rlib).
+const fs = require("fs");
+const path = require("path");
+const [root, rustc, venues, prediction] = process.argv.slice(2);
+const wanted = new Set(["ccxt", "ccxt_pro", "ccxt_prediction", "tokio", "serde_json", "futures"]);
+const externs = {};
+const native = new Set();
+// Every directory holding a library artifact. Cargo up to ~1.99 puts them all
+// in target/debug/deps; newer cargo (build-dir layout) gives each crate its own
+// target/debug/build/<pkg>/<hash>/out. Either way rustc needs an
+// -L dependency=<dir> for each, to resolve the transitive crates by hash.
+const depDirs = new Set();
+const lines = fs.readFileSync(path.join(root, "build.jsonl"), "utf8").split("\n").filter(Boolean);
+for (const line of lines) {
+  const msg = JSON.parse(line);
+  if (msg.reason === "build-script-executed") {
+    for (const p of msg.linked_paths || []) native.add(p);
+  }
+  if (msg.reason !== "compiler-artifact") continue;
+  const libs = msg.filenames.filter((f) => /\.(rlib|rmeta|so|dylib)$/.test(f));
+  for (const f of libs) depDirs.add(path.relative(root, path.dirname(f)));
+  if (!wanted.has(msg.target.name) || !msg.target.kind.includes("lib")) continue;
+  const rlib = libs.find((f) => f.endsWith(".rlib"));
+  if (rlib) externs[msg.target.name] = path.relative(root, rlib);
+}
+const missing = [...wanted].filter((n) => !externs[n]);
+if (missing.length) { console.error("missing rlibs: " + missing.join(", ")); process.exit(1); }
+const manifest = {
+  rustc,
+  edition: "2021",
+  deps: [...depDirs].sort(),
+  externs,
+  // "native=/abs/path" or "/abs/path" → passed through as -L
+  native: [...native],
+  // Compiled-in venue ids ("all" = every venue), so the runner can explain a
+  // missing one instead of surfacing rustc's bare "cannot find type".
+  venues: venues === "all" ? "all" : venues.split(","),
+  prediction: prediction === "all" ? "all" : prediction.split(","),
+};
+fs.writeFileSync(path.join(root, "externs.json"), JSON.stringify(manifest, null, 2) + "\n");
+JS
+  then
+    # Smoke-compile the way a run does, so a manifest that can't link never ships.
+    if node -e '
+      const m = require(process.argv[1] + "/externs.json");
+      const path = require("path");
+      const { execFileSync } = require("child_process");
+      const args = ["--edition", m.edition, "--crate-type", "bin", "-C", "opt-level=0"];
+      for (const d of m.deps) args.push("-L", "dependency=" + path.join(process.argv[1], d));
+      for (const p of m.native) args.push("-L", p);
+      for (const [n, f] of Object.entries(m.externs)) args.push("--extern", n + "=" + path.join(process.argv[1], f));
+      args.push("-o", path.join(process.argv[1], "smoke"), path.join(process.argv[1], "src", "main.rs"));
+      execFileSync(m.rustc, args, { stdio: "inherit" });
+    ' "$RUST_ROOT" && "$RUST_ROOT/smoke"; then
+      RRESOLVED="$(grep -A1 '^name = "ccxt"$' "$RUST_ROOT/Cargo.lock" | sed -n 's/^version = "\(.*\)"$/\1/p')"
+      echo "    rust ccxt ${RRESOLVED:-?} prebuilt ($("$RUSTC_BIN" --version))"
+    else
+      echo "    warning: rust smoke compile failed (Rust tab will show the provision message)"
+      rm -f "$RUST_ROOT/externs.json"
+    fi
+  else
+    echo "    warning: rust prebuild failed (Rust tab will show the provision message)"
+    rm -f "$RUST_ROOT/externs.json"
+  fi
+  # Keep the library artifacts runs link against (target/debug/deps, or
+  # target/debug/build/** under cargo's newer build-dir layout — which also
+  # holds the build-script outputs native search paths point into) and
+  # Cargo.lock; drop what runs never read.
+  rm -rf "$RUST_ROOT/build.jsonl" "$RUST_ROOT/smoke" "$RUST_ROOT/target/debug/incremental" \
+         "$RUST_ROOT/target/debug/playground" "$RUST_ROOT/target/debug/.fingerprint"
+else
+  echo "    cargo/rustc not found — the Rust tab will show a 'provision' message until a Rust toolchain is installed"
+fi
+
 echo "==> Done."
 exit 0

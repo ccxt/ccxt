@@ -23,6 +23,8 @@ services:
         NEXT_BASE_PATH: ${NEXT_BASE_PATH:-}
         PLAYGROUND_DISABLED: ${PLAYGROUND_DISABLED:-}
         CCXT_JAVA_VERSION: ${CCXT_JAVA_VERSION:-}
+        CCXT_RUST_VERSION: ${CCXT_RUST_VERSION:-}
+        CCXT_RUST_VENUES: ${CCXT_RUST_VENUES:-}
     image: ccxt-playground
     container_name: ccxt-playground
     ports:

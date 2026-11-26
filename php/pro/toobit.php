@@ -185,6 +185,10 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watches information on multiple trades made in a market
          *
@@ -196,7 +200,7 @@ class toobit extends \ccxt\async\toobit {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -560,6 +564,10 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -573,7 +581,7 @@ class toobit extends \ccxt\async\toobit {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1114,7 +1122,7 @@ class toobit extends \ccxt\async\toobit {
         $url = $this->get_user_stream_url();
         $client = $this->client($url);
         $this->set_positions_cache($client, $type, $symbolsNormalized);
-        $cache = $this->safe_value($this->positions, $type);
+        $cache = $this->safe_value($this->positionsByType, $type);
         if ($cache === null) {
             $snapshot = Async\await($client->future($type . ':fetchPositionsSnapshot'));
             return $this->filter_by_symbols_since_limit($snapshot, $symbolsNormalized, $since, $limit, true);
@@ -1127,10 +1135,7 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function set_positions_cache(Client $client, string $type, ?array $symbols = null) {
-        if ($this->positions === null) {
-            $this->positions = array();
-        }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+        if (is_array($this->positionsByType) && array_key_exists($type ?? '', $this->positionsByType)) {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1141,7 +1146,7 @@ class toobit extends \ccxt\async\toobit {
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
             }
         } else {
-            $this->positions[$type] = new ArrayCacheBySymbolBySide();
+            $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
         }
     }
 
@@ -1154,8 +1159,8 @@ class toobit extends \ccxt\async\toobit {
             'type' => $type,
         );
         $positions = Async\await($this->fetch_positions(null, $params));
-        $this->positions[$type] = new ArrayCacheBySymbolBySide();
-        $cache = $this->positions[$type];
+        $this->positionsByType[$type] = new ArrayCacheBySymbolBySide();
+        $cache = $this->positionsByType[$type];
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $cache->append($position);
@@ -1194,13 +1199,10 @@ class toobit extends \ccxt\async\toobit {
         // ]
         //
         $accountType = 'swap';
-        if ($this->positions === null) {
-            $this->positions = array();
+        if (!(is_array($this->positionsByType) && array_key_exists($accountType ?? '', $this->positionsByType))) {
+            $this->positionsByType[$accountType] = new ArrayCacheBySymbolBySide();
         }
-        if (!(is_array($this->positions) && array_key_exists($accountType ?? '', $this->positions))) {
-            $this->positions[$accountType] = new ArrayCacheBySymbolBySide();
-        }
-        $cache = $this->positions[$accountType];
+        $cache = $this->positionsByType[$accountType];
         // handleMessage's fallback dispatches one item at a time
         $position = $this->parse_ws_position($message);
         $newPositions = array( $position );

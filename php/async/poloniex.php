@@ -65,7 +65,7 @@ class poloniex extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => null, // has but not implemented
                 'fetchGreeks' => false,
@@ -465,6 +465,7 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
+                    '401' => '\\ccxt\\PermissionDenied', // {"code":401,"message":"Illegal of ip"}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -613,6 +614,10 @@ class poloniex extends Exchange {
                     '21001' => '\\ccxt\\OperationRejected', // POSITION_NOT_EXIST
                 ),
                 'broad' => array(
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature' => '\\ccxt\\AuthenticationError',
+                    'ApiKey not exist' => '\\ccxt\\AuthenticationError',
+                    'Illegal of ip' => '\\ccxt\\PermissionDenied',
                 ),
             ),
         ));
@@ -890,7 +895,7 @@ class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        $markets = $this->safe_list($response, 'data');
+        $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
     }
 
@@ -1315,11 +1320,10 @@ class poloniex extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $entry = $currency;
-        $id = $this->safe_string($entry, 'coin');
+        $id = $this->safe_string($currency, 'coin');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $chains = $this->safe_list($entry, 'networkList', array());
+        $chains = $this->safe_list($currency, 'networkList', array());
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
             $chain = $this->safe_dict($chains, $j);
@@ -1351,18 +1355,18 @@ class poloniex extends Exchange {
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
-            'name' => $this->safe_string($entry, 'name'),
+            'name' => $this->safe_string($currency, 'name'),
             'code' => $code,
             'type' => null,
             'precision' => null,
-            'info' => $entry,
+            'info' => $currency,
             'networks' => $networks,
             'deposit' => null,
             'withdraw' => null,
             'active' => null,
             'fee' => null,
             'limits' => null,
-            'margin' => $this->safe_bool($entry, 'supportBorrow'),
+            'margin' => $this->safe_bool($currency, 'supportBorrow'),
         ));
     }
 
@@ -2939,7 +2943,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum $amount of order book entries to return
+         * @param {int} [$limit] the maximum $amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -2949,10 +2953,8 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ($this->safe_bool($market, 'contract', false)) {
-                $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 150 ), $limit);
         }
         if ($this->safe_bool($market, 'contract', false)) {
             $responseRaw = Async\await($this->swapPublicGetV3MarketOrderBook($this->extend($request, $params)));
@@ -3009,6 +3011,95 @@ class poloniex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_fetch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        if (!$this->safe_bool($market, 'swap', false)) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->swapPublicGetV3MarketFundingRate($this->extend($request, $params)));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        $marketId = $this->safe_string($contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        $previousFundingTimestamp = $this->safe_integer($contract, 'fT');
+        $fundingTimestamp = $this->safe_integer($contract, 'nFT');
+        $intervalMilliseconds = Precise::string_sub($this->safe_string($contract, 'nFT'), $this->safe_string($contract, 'fT'));
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'nFR'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => $this->safe_number($contract, 'fR'),
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'interval' => $this->parse_funding_interval($intervalMilliseconds),
+        );
+    }
+
+    public function parse_funding_interval(?string $interval): ?string {
+        $intervals = array(
+            '3600000' => '1h',
+            '7200000' => '2h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
     }
 
     public function create_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -3711,8 +3802,8 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_timestamp($transactionValue, 'timestamp');
         $currencyId = $this->safe_string($transactionValue, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $status = $this->safe_string($transactionValue, 'status', 'pending');
-        $status = $this->parse_transaction_status($status);
+        $rawStatus = $this->safe_string($transactionValue, 'status', 'pending');
+        $status = $this->parse_transaction_status($rawStatus);
         $txid = $this->safe_string($transactionValue, 'txid');
         $type = 'deposit';
         if ($this->safe_string($transactionValue, 'withdrawalRequestsId') !== null) {
@@ -4250,8 +4341,8 @@ class poloniex extends Exchange {
         if (($responseCode !== null) && ($responseCode !== '200')) {
             $message = $this->safe_string_2($response, 'message', 'msg');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;

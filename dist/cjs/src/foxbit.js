@@ -392,16 +392,14 @@ class foxbit extends foxbit$1["default"] {
             const networkCode = this.networkIdToCode(networkId, code);
             const networkWithdrawInfo = this.safeDict(network, 'withdraw_info');
             const networkDepositInfo = this.safeDict(network, 'deposit_info');
-            const isWithdrawEnabled = this.safeString(networkWithdrawInfo, 'status') === 'ENABLED';
-            const isDepositEnabled = this.safeString(networkDepositInfo, 'status') === 'ENABLED';
             if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
                     'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'name': this.safeString(network, 'name'),
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
+                    'deposit': (this.safeString(networkDepositInfo, 'status') === 'ENABLED'),
+                    'withdraw': (this.safeString(networkWithdrawInfo, 'status') === 'ENABLED'),
                     'active': true,
                     'precision': undefined,
                     'fee': this.safeNumber(networkWithdrawInfo, 'fee'),

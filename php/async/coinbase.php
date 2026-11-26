@@ -1367,10 +1367,12 @@ class coinbase extends Exchange {
             $priceString = $v3Price;
         }
         if (($priceString !== null) && ($amountString !== null)) {
-            $cost = Precise::string_mul($priceString, $amountString);
+            $baseCost = Precise::string_mul($priceString, $amountString);
             $contractSize = $this->safe_string($marketResolved, 'contractSize');
             if ($contractSize !== null) {
-                $cost = Precise::string_mul($cost, $contractSize);
+                $cost = Precise::string_mul($baseCost, $contractSize);
+            } else {
+                $cost = $baseCost;
             }
         } else {
             $cost = $costString;
@@ -1484,8 +1486,8 @@ class coinbase extends Exchange {
                         'type' => 'spot',
                         'spot' => true,
                         'margin' => false,
-                        'swap' => true,
-                        'future' => true,
+                        'swap' => false,
+                        'future' => false,
                         'option' => false,
                         'active' => null,
                         'contract' => false,
@@ -1630,8 +1632,6 @@ class coinbase extends Exchange {
         $fees = $this->safe_dict($promises, 1, array());
         $expiringFutures = $this->safe_dict($contractPromises, 0, array());
         $perpetualFutures = $this->safe_dict($contractPromises, 1, array());
-        $expiringFees = $this->safe_dict($contractPromises, 0, array());
-        $perpetualFees = $this->safe_dict($contractPromises, 1, array());
         //
         //     {
         //         "total_volume": 0,
@@ -1652,8 +1652,6 @@ class coinbase extends Exchange {
         //     }
         //
         $feeTier = $this->safe_dict($fees, 'fee_tier', array());
-        $expiringFeeTier = $this->safe_dict($expiringFees, 'fee_tier', array()); // fee tier null?
-        $perpetualFeeTier = $this->safe_dict($perpetualFees, 'fee_tier', array()); // fee tier null?
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -1664,14 +1662,14 @@ class coinbase extends Exchange {
         }
         $futureData = $this->safe_list($expiringFutures, 'products', array());
         for ($i = 0; $i < count($futureData); $i++) {
-            $futureMarket = $this->parse_contract_market($futureData[$i], $expiringFeeTier);
+            $futureMarket = $this->parse_contract_market($futureData[$i]);
             if ($futureMarket !== null) {
                 $result[] = $futureMarket;
             }
         }
         $perpetualData = $this->safe_list($perpetualFutures, 'products', array());
         for ($i = 0; $i < count($perpetualData); $i++) {
-            $perpetualMarket = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
+            $perpetualMarket = $this->parse_contract_market($perpetualData[$i]);
             if ($perpetualMarket !== null) {
                 $result[] = $perpetualMarket;
             }
@@ -1791,7 +1789,7 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function parse_contract_market(array $market, array $feeTier): array {
+    public function parse_contract_market(array $market, ?array $feeTier = null): array {
         // expiring
         //
         //        {
@@ -1944,8 +1942,9 @@ class coinbase extends Exchange {
         }
         $takerFeeRate = $this->safe_number($feeTier, 'taker_fee_rate');
         $makerFeeRate = $this->safe_number($feeTier, 'maker_fee_rate');
-        $taker = ($takerFeeRate !== null && $takerFeeRate !== null && $takerFeeRate !== 0) ? $takerFeeRate : $this->parse_number('0.06');
-        $maker = ($makerFeeRate !== null && $makerFeeRate !== null && $makerFeeRate !== 0) ? $makerFeeRate : $this->parse_number('0.04');
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        $taker = ($takerFeeRate !== null && $takerFeeRate !== null && $takerFeeRate !== 0) ? $takerFeeRate : $this->parse_number('0.0002');
+        $maker = ($makerFeeRate !== null && $makerFeeRate !== null && $makerFeeRate !== 0) ? $makerFeeRate : $this->parse_number('0.0002');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -2560,14 +2559,14 @@ class coinbase extends Exchange {
         $totalUsdBalance = $this->safe_string($totalUsdBalanceData, 'value');
         $futuresBuyingPower = $this->safe_string($futuresBuyingPowerData, 'value');
         if (($totalUsdBalance !== null) || ($futuresBuyingPower !== null)) {
-            $total = ($totalUsdBalance !== null) ? $totalUsdBalance : $futuresBuyingPower;
-            $free = ($futuresBuyingPower !== null) ? $futuresBuyingPower : $total;
-            $used = Precise::string_sub($total, $free);
+            $usdTotal = ($totalUsdBalance !== null) ? $totalUsdBalance : $futuresBuyingPower;
+            $usdFree = ($futuresBuyingPower !== null) ? $futuresBuyingPower : $usdTotal;
+            $usdUsed = Precise::string_sub($usdTotal, $usdFree);
             $balanceResult = array( 'info' => $response );
             $balanceResult['USD'] = array(
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
+                'free' => $usdFree,
+                'used' => $usdUsed,
+                'total' => $usdTotal,
             );
             return $this->safe_balance($balanceResult);
         }
@@ -2604,17 +2603,17 @@ class coinbase extends Exchange {
                 if ($available !== null && $hold !== null) {
                     $currencyId = $this->safe_string($available, 'currency');
                     $code = $this->safe_currency_code($currencyId);
-                    $used = $this->safe_string($hold, 'value');
-                    $free = $this->safe_string($available, 'value');
-                    $total = Precise::string_add($used, $free);
+                    $v3Used = $this->safe_string($hold, 'value');
+                    $v3Free = $this->safe_string($available, 'value');
+                    $v3Total = Precise::string_add($v3Used, $v3Free);
                     $account = $this->safe_dict($result, $code);
                     if ($account === null) {
-                        $account = $this->extend($this->account(), array( 'free' => $free, 'used' => $used, 'total' => $total ));
+                        $account = $this->extend($this->account(), array( 'free' => $v3Free, 'used' => $v3Used, 'total' => $v3Total ));
                     } else {
                         $account = $this->extend($account, array(
-                            'free' => Precise::string_add($this->safe_string($account, 'free'), $free),
-                            'used' => Precise::string_add($this->safe_string($account, 'used'), $used),
-                            'total' => Precise::string_add($this->safe_string($account, 'total'), $total),
+                            'free' => Precise::string_add($this->safe_string($account, 'free'), $v3Free),
+                            'used' => Precise::string_add($this->safe_string($account, 'used'), $v3Used),
+                            'total' => Precise::string_add($this->safe_string($account, 'total'), $v3Total),
                         ));
                     }
                     if ($code !== null) {

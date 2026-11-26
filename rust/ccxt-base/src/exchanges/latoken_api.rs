@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::latoken::LatokenCore;
+use super::latoken::Latoken;
 use crate::exchange::ExchangeRuntime;
 
-impl LatokenCore {
+impl Latoken {
     /// Auto-generated wrapper for the `publicGetBookCurrencyQuote` implicit endpoint.
     pub async fn public_get_book_currency_quote(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_book_currency_quote".into()), optional_args).await

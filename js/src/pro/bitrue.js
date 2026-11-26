@@ -442,7 +442,7 @@ export default class bitrue extends bitrueRest {
                 throw new ExchangeError(this.id + ' findSwapMarketByWsBaseQuote() market ' + symbolId + ' has no baseId or quoteId');
             }
             if (baseId + quoteId === wsBaseQuote) {
-                return candidate;
+                return this.market(symbolId);
             }
         }
         return undefined;

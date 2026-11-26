@@ -296,7 +296,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     thresholdsLength = len(thresholds)
                     index = self.parse_to_int(indexStr)
                     if thresholdsLength > 0:
-                        bucketLabel: str
+                        bucketLabel = ''
                         if index <= 0:
                             bucketLabel = 'BELOW_' + thresholds[0]
                         elif index >= thresholdsLength:

@@ -1,0 +1,140 @@
+{
+    "exchange": "mercado",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "limit sell and limit buy, one operation each (Trade API v3 list_orders example); fee_rate is a percentage",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/BRL"
+                ],
+                "httpResponse": {
+                    "response_data": {
+                        "orders": [
+                            {
+                                "order_id": 3,
+                                "coin_pair": "BRLBTC",
+                                "order_type": 2,
+                                "category": "limit",
+                                "status": 4,
+                                "has_fills": true,
+                                "quantity": "1.00000000",
+                                "limit_price": "900.00000",
+                                "executed_quantity": "1.00000000",
+                                "executed_price_avg": "900.00000",
+                                "fee": "6.30000000",
+                                "created_timestamp": "1453838494",
+                                "updated_timestamp": "1453838494",
+                                "operations": [
+                                    {
+                                        "operation_id": 1,
+                                        "quantity": "1.00000000",
+                                        "price": "900.00000",
+                                        "fee_rate": "0.70",
+                                        "executed_timestamp": "1453838494"
+                                    }
+                                ]
+                            },
+                            {
+                                "order_id": 4,
+                                "coin_pair": "BRLBTC",
+                                "order_type": 1,
+                                "category": "limit",
+                                "status": 2,
+                                "has_fills": true,
+                                "quantity": "2.00000000",
+                                "limit_price": "900.00000",
+                                "executed_quantity": "1.00000000",
+                                "executed_price_avg": "900.00000",
+                                "fee": "0.00300000",
+                                "created_timestamp": "1453838494",
+                                "updated_timestamp": "1453838494",
+                                "operations": [
+                                    {
+                                        "operation_id": 1,
+                                        "quantity": "1.00000000",
+                                        "price": "900.00000",
+                                        "fee_rate": "0.30",
+                                        "executed_timestamp": "1453838494"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "status_code": 100,
+                    "server_unix_timestamp": "1453838494"
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1",
+                        "info": {
+                            "operation_id": 1,
+                            "quantity": "1.00000000",
+                            "price": "900.00000",
+                            "fee_rate": "0.70",
+                            "executed_timestamp": "1453838494",
+                            "type": "sell"
+                        },
+                        "timestamp": 1453838494000,
+                        "datetime": "2016-01-26T20:01:34.000Z",
+                        "symbol": "BTC/BRL",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 900,
+                        "amount": 1,
+                        "cost": 900,
+                        "fee": {
+                            "currency": "BRL",
+                            "cost": 6.3,
+                            "rate": 0.007
+                        },
+                        "fees": [
+                            {
+                                "currency": "BRL",
+                                "cost": 6.3,
+                                "rate": 0.007
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1",
+                        "info": {
+                            "operation_id": 1,
+                            "quantity": "1.00000000",
+                            "price": "900.00000",
+                            "fee_rate": "0.30",
+                            "executed_timestamp": "1453838494",
+                            "type": "buy"
+                        },
+                        "timestamp": 1453838494000,
+                        "datetime": "2016-01-26T20:01:34.000Z",
+                        "symbol": "BTC/BRL",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 900,
+                        "amount": 1,
+                        "cost": 900,
+                        "fee": {
+                            "currency": "BTC",
+                            "cost": 0.003,
+                            "rate": 0.003
+                        },
+                        "fees": [
+                            {
+                                "currency": "BTC",
+                                "cost": 0.003,
+                                "rate": 0.003
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

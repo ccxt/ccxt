@@ -204,6 +204,7 @@ public partial class hyperliquid : Exchange
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                     { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
                     { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
+                    { "Insufficient delegatable balance for priority order", typeof(InsufficientFunds) },
                     { "TWAP order value too small. Min is $1200, which is $10 per minute.", typeof(InvalidOrder) },
                     { "TWAP was never placed, already canceled, or filled.", typeof(OrderNotFound) },
                     { "Too many cumulative requests sent", typeof(RateLimitExceeded) },
@@ -329,6 +330,7 @@ public partial class hyperliquid : Exchange
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
+                        { "trailing", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -401,7 +403,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<ccxt.Status> FetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> FetchStatus(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -424,7 +426,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public async override Task<Int64> FetchTime(object parameters = null)
+    public async override Task<Int64> FetchTime(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -445,7 +447,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (this.checkRequiredCredentials(false))
@@ -539,7 +541,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
@@ -577,7 +579,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<ccxt.MarketInterface>> FetchHip3Markets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchHip3Markets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object fetchDexes = await this.publicPostInfo(new Dictionary<string, object>() {
@@ -739,7 +741,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSwapMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -810,7 +812,7 @@ public partial class hyperliquid : Exchange
         List<object> priceSplitted = priceStr.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         Int64? maxDecimalsInt = this.parseToInt(maxDecimals);
         Int64? amountPrecisionInt = this.parseToInt(amountPrecision);
-        object decimalsLeft = (maxDecimalsInt - amountPrecisionInt);
+        Int64? decimalsLeft = (maxDecimalsInt - amountPrecisionInt);
         if (Precise.stringEq(priceStr, "0"))
         {
             // Significant digits is always 5 in this case
@@ -823,10 +825,10 @@ public partial class hyperliquid : Exchange
             // Get the part after the decimal separator
             string? decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
-            Int64? leadingZeros = this.parseToInt(0);
+            Int64? leadingZeros = 0;
             while (((leadingZeros == null || leadingZeros <= decimalPart.Length)) && (isEqual(getValue(decimalPart, leadingZeros), "0")))
             {
-                leadingZeros = this.parseToInt((leadingZeros + 1));
+                leadingZeros = (leadingZeros + 1);
             }
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (leadingZeros + significantDigits);
@@ -856,7 +858,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -954,9 +956,9 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
             string? mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
             string? mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
-            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            string? mappedBase = this.safeCurrencyCode(mappedBaseName);
             string? mappedQuote = this.safeCurrencyCode(mappedQuoteId);
-            string? mappedSymbol = ((string)((object)(mappedBase == null ? null : mappedBase + "/" + mappedQuote)));
+            string? mappedSymbol = ((string)(mappedBase == null ? null : mappedBase + "/" + mappedQuote));
             IDictionary<string, object> innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -1184,7 +1186,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
     {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         parameters ??= new Dictionary<string, object>();
@@ -1194,9 +1196,9 @@ public partial class hyperliquid : Exchange
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, paramsPublicAddress);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
-        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
+        (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
+        IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         var isUnifiedEnabledparamsValueVariable = await this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, paramsMarginMode);
         var isUnifiedEnabled = isUnifiedEnabledparamsValueVariable[0];
         var paramsValue = isUnifiedEnabledparamsValueVariable[1];
@@ -1296,7 +1298,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1352,7 +1354,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.hip3] set to true to fetch hip3 markets only
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1361,12 +1363,12 @@ public partial class hyperliquid : Exchange
         }
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        object response = new List<object>() {};
+        List<object> response = new List<object>() {};
         string? type = this.safeString(parameters, "type");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "type"));
-        (bool?, object) hip3OptionparamsHip3Variable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false);
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "type");
+        (bool?, IDictionary<string, object>) hip3OptionparamsHip3Variable = this.handleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false);
         bool? hip3Option = hip3OptionparamsHip3Variable.Item1;
-        IDictionary<string, object> paramsHip3 = ((IDictionary<string, object>)hip3OptionparamsHip3Variable.Item2);
+        IDictionary<string, object> paramsHip3 = (hip3OptionparamsHip3Variable.Item2);
         bool? hip3 = hip3Option;
         if ((symbolsNormalized != null))
         {
@@ -1396,9 +1398,9 @@ public partial class hyperliquid : Exchange
         }
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object market = getValue(response, i);
+            object market = response[i];
             IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             ccxt.Ticker ticker = this.parseTicker(info, market);
             string? symbol = ticker.symbol;
@@ -1416,7 +1418,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1440,7 +1442,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1600,7 +1602,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -1631,7 +1633,7 @@ public partial class hyperliquid : Exchange
                 startTime = 0;
             }
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"until"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"until"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
@@ -1701,7 +1703,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("fetchTrades", parameters), 0);
@@ -1824,9 +1826,9 @@ public partial class hyperliquid : Exchange
 
     public virtual object actionHash(object action, object vaultAddress, object nonce, object expiresAfter = null)
     {
-        object dataBinary = this.packb(action);
-        object dataHex = this.binaryToBase16(dataBinary);
-        object data = (dataHex == null ? null : dataHex + "00000" + this.intToBase16(nonce));
+        byte[] dataBinary = this.packb(action);
+        string dataHex = this.binaryToBase16(dataBinary);
+        object data = ((dataHex + "00000") + this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
             data = ((object)(data == null ? null : data + "00"));
@@ -1891,7 +1893,7 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual object signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614; // check this out
@@ -1926,7 +1928,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUsdClassSendSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUsdClassSendSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UsdClassTransfer", new List<object>() {new Dictionary<string, object>() {
@@ -1946,7 +1948,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildSendAssetSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildSendAssetSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:SendAsset", new List<object>() {new Dictionary<string, object>() {
@@ -1998,7 +2000,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUserDexAbstractionSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUserDexAbstractionSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UserDexAbstraction", new List<object>() {new Dictionary<string, object>() {
@@ -2018,7 +2020,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildUserAbstractionSig(IDictionary<string, object> message)
+    public virtual Dictionary<string, object> buildUserAbstractionSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:UserSetAbstraction", new List<object>() {new Dictionary<string, object>() {
@@ -2038,7 +2040,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual object buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2098,7 +2100,7 @@ public partial class hyperliquid : Exchange
             { "builder", builder },
             { "nonce", nonce },
         };
-        object sig = this.buildApproveBuilderFeeSig(payload);
+        Dictionary<string, object> sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -2187,9 +2189,9 @@ public partial class hyperliquid : Exchange
         }
         object userAddress = ((address != null)) ? address : publicAddress;
         object paramsAddress = ((address != null)) ? parameters : paramsPublicAddress;
-        (bool?, object) enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable = this.handleOptionBoolAndParams(paramsAddress, method, "enableUnifiedMargin");
+        (bool?, IDictionary<string, object>) enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable = this.handleOptionBoolAndParams(paramsAddress, method, "enableUnifiedMargin");
         bool? enableUnifiedMarginOption = enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.Item1;
-        IDictionary<string, object> paramsEnableUnifiedMargin = ((IDictionary<string, object>)enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.Item2);
+        IDictionary<string, object> paramsEnableUnifiedMargin = (enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.Item2);
         bool? enableUnifiedMargin = enableUnifiedMarginOption;
         if ((enableUnifiedMargin == null) || shouldRefresh == true)
         {
@@ -2197,7 +2199,7 @@ public partial class hyperliquid : Exchange
                 { "type", "userAbstraction" },
                 { "user", userAddress },
             };
-            object response = null;
+            string? response = null;
             try
             {
                 // the request keys win: a caller's own 'type' or 'user' params (e.g. transfer's
@@ -2205,7 +2207,7 @@ public partial class hyperliquid : Exchange
                 object rawResponse = await this.publicPostInfo(this.extend(paramsEnableUnifiedMargin, request));
                 if ((rawResponse is string))
                 {
-                    response = rawResponse;
+                    response = ((string)rawResponse);
                 }
             } catch(Exception e)
             {
@@ -2220,9 +2222,9 @@ public partial class hyperliquid : Exchange
             //
             if ((response != null))
             {
-                response = ((string)response).Replace("\"", (string)"");
-                response = ((string)response).Replace("\"", (string)"");
-                enableUnifiedMargin = (response is "unifiedAccount");
+                response = response.Replace("\"", (string)"");
+                response = response.Replace("\"", (string)"");
+                enableUnifiedMargin = response == "unifiedAccount";
             }
             // don't cache this result if this is a different addresss
             this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
@@ -2255,7 +2257,7 @@ public partial class hyperliquid : Exchange
             { "abstraction", abstraction },
             { "nonce", nonce },
         };
-        object sig = this.buildUserAbstractionSig(payload);
+        Dictionary<string, object> sig = this.buildUserAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -2305,7 +2307,7 @@ public partial class hyperliquid : Exchange
             { "enabled", enabled },
             { "nonce", nonce },
         };
-        object sig = this.buildUserDexAbstractionSig(payload);
+        Dictionary<string, object> sig = this.buildUserDexAbstractionSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
@@ -2362,6 +2364,7 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2376,14 +2379,40 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
+        }
+        bool isTrailing = (this.safeString2(parameters, "trailingPercent", "trailingAmount") != null);
+        if (isTrailing)
+        {
+            await this.initializeClient();
+            Dictionary<string, object> trailingMarket = this.market(symbol);
+            object trailingRequest = this.createTrailingStopRequest(symbol, side, amount, parameters);
+            Dictionary<string, object> trailingResponse = await this.privatePostExchange(trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            IDictionary<string, object> trailingResponseObj = this.safeDict(trailingResponse, "response", new Dictionary<string, object>() {});
+            IDictionary<string, object> trailingData = this.safeDict(trailingResponseObj, "data", new Dictionary<string, object>() {});
+            return this.parseOrder(this.extend(trailingData, new Dictionary<string, object>() {                 { "status", "open" },             }), trailingMarket);
         }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = orderglobalParamsVariable[0];
@@ -2391,6 +2420,74 @@ public partial class hyperliquid : Exchange
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
         IDictionary<string, object> created = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(created);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} the request to be sent to the exchange endpoint
+     */
+    public virtual object createTrailingStopRequest(object symbol, object side, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> market = this.market(symbol);
+        if (!(((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        {
+            throw new NotSupported ((this.id + " createOrder() supports trailing orders for swap markets only")) ;
+        }
+        string? trailingPercent = this.safeString(parameters, "trailingPercent");
+        string? trailingAmount = this.safeString(parameters, "trailingAmount");
+        string? trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice");
+        Dictionary<string, object> retracement = new Dictionary<string, object>() {};
+        if ((trailingPercent != null))
+        {
+            retracement["pct"] = (trailingPercent + "%");
+        } else
+        {
+            retracement["px"] = this.priceToPrecision(symbol, trailingAmount);
+        }
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
+        string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
+        IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Int64? nonce = this.incrementingNonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "type", "trailingStop" },
+            { "asset", this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null)) },
+            { "isBuy", ((((string)side).ToUpper() == "BUY")) },
+            { "sz", this.amountToPrecision(symbol, amount) },
+            { "reduceOnly", this.safeBool(paramsVault, "reduceOnly", false) },
+            { "retracement", retracement },
+            { "activationPx", null },
+        };
+        if ((trailingTriggerPrice != null))
+        {
+            action["activationPx"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+        }
+        Dictionary<string, object> signature = this.signL1Action(action, nonce, vaultAddress);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        if ((vaultAddress != null))
+        {
+            request["vaultAddress"] = vaultAddress;
+        }
+        return request;
     }
 
     /**
@@ -2408,7 +2505,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, double duration, object parameters = null)
+    public async override Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, double duration, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2420,10 +2517,10 @@ public partial class hyperliquid : Exchange
         Int64? nonce = this.incrementingNonce();
         bool isBuy = ((side.ToUpper() == "BUY"));
         bool? randomize = this.safeBool(parameters, "randomize", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "randomize"));
-        (string?, object) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress");
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "randomize");
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress");
         string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
-        IDictionary<string, object> paramsVault = ((IDictionary<string, object>)vaultAddressOptionparamsVaultVariable.Item2);
+        IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         double durationMins = (Math.Floor(Double.Parse((((duration / 1000) / 60)).ToString()))); // convert from ms to minutes
         Dictionary<string, object> orderObj = new Dictionary<string, object>() {
@@ -2480,11 +2577,13 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2623,7 +2722,7 @@ public partial class hyperliquid : Exchange
         return orderObj;
     }
 
-    public virtual Dictionary<string, object> createOrdersRequest(IList<object> orders, object parameters = null)
+    public virtual Dictionary<string, object> createOrdersRequest(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         /**
         * @method
@@ -2662,10 +2761,11 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        object params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "priorityFee"});
         Int64? nonce = this.incrementingNonce();
         List<object> orderReq = new List<object>() {};
         string? grouping = "na";
+        Int64? priorityFee = this.safeInteger(parameters, "priorityFee");
         for (int i = 0; i < ordersLength; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -2677,6 +2777,15 @@ public partial class hyperliquid : Exchange
             string? amount = this.safeString(rawOrder, "amount");
             string? price = this.safeString(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            Int64? orderPriorityFee = this.safeInteger(orderParams, "priorityFee");
+            if ((orderPriorityFee != null))
+            {
+                if (((priorityFee != null)) && ((priorityFee != orderPriorityFee)))
+                {
+                    throw new BadRequest ((this.id + " createOrders() all orders must use the same priorityFee, it is applied to the whole request")) ;
+                }
+                priorityFee = orderPriorityFee;
+            }
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             orderParams["slippage"] = slippage;
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
@@ -2738,14 +2847,47 @@ public partial class hyperliquid : Exchange
             }
         }
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "createOrder", "vaultAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
+        object groupingValue = grouping;
+        if ((priorityFee != null))
+        {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if (grouping != "na")
+            {
+                throw new NotSupported ((this.id + " createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders")) ;
+            }
+            bool allIoc = true;
+            bool allPostOnly = true;
+            for (int i = 0; i < (orderReq?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> builtOrder = this.safeDict(orderReq, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderType = this.safeDict(builtOrder, "t", new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderLimit = this.safeDict(builtOrderType, "limit", new Dictionary<string, object>() {});
+                string? builtOrderTif = this.safeString(builtOrderLimit, "tif");
+                if (builtOrderTif != "Ioc")
+                {
+                    allIoc = false;
+                }
+                if ((builtOrderTif != "Alo") || (this.safeBool(builtOrder, "r", false) == true))
+                {
+                    allPostOnly = false;
+                }
+            }
+            if (!allIoc && !allPostOnly)
+            {
+                throw new InvalidOrder ((this.id + " createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only")) ;
+            }
+            groupingValue = new Dictionary<string, object>() {
+                { "p", priorityFee },
+            };
+        }
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
-            { "grouping", grouping },
+            { "grouping", groupingValue },
         };
         if ((this.safeBool(this.options, "approvedBuilderFee", false) == true))
         {
@@ -2792,7 +2934,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(parameters, "twap", false) == true))
@@ -2819,7 +2961,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2874,7 +3016,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> CancelTwapOrder(string id, string symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> CancelTwapOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2886,11 +3028,11 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((this.id + " cancelTwapOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) vaultAddressOptionparamsUnwrappedVariable = this.handleOptionStringAndParams(parameters, "cancelTwapOrder", "vaultAddress");
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsUnwrappedVariable = this.handleOptionStringAndParams(parameters, "cancelTwapOrder", "vaultAddress");
         string? vaultAddressOption = vaultAddressOptionparamsUnwrappedVariable.Item1;
-        IDictionary<string, object> paramsUnwrapped = ((IDictionary<string, object>)vaultAddressOptionparamsUnwrappedVariable.Item2);
+        IDictionary<string, object> paramsUnwrapped = (vaultAddressOptionparamsUnwrappedVariable.Item2);
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
-        object params2 = paramsUnwrapped;
+        IDictionary<string, object> params2 = paramsUnwrapped;
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "type", "twapCancel" },
             { "a", this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null)) },
@@ -2932,7 +3074,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrder(new Dictionary<string, object>() {             { "status", status },             { "oid", id },         }, market);
     }
 
-    public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, object symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, object symbol = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @method
@@ -2950,7 +3092,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         bool? fast = this.safeBool(parameters, "fast", false);
-        object params2 = this.omit(parameters, new List<object>() {"clientOrderId", "client_id", "fast"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"clientOrderId", "client_id", "fast"});
         Int64? nonce = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "nonce", nonce },
@@ -2994,7 +3136,7 @@ public partial class hyperliquid : Exchange
             cancelAction["f"] = true;
         }
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelOrders", "vaultAddress", "subAccountAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3022,7 +3164,7 @@ public partial class hyperliquid : Exchange
      * @param {boolean} [params.fast] whether to send the cancel with the fast flag, rejected for trigger orders, prioritized in the mempool in a future network upgrade, (default is false)
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3111,7 +3253,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3120,7 +3262,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         await this.initializeClient();
-        object params2 = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         Int64? nonce = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "nonce", nonce },
@@ -3130,7 +3272,7 @@ public partial class hyperliquid : Exchange
             { "time", add(nonce, timeout) },
         };
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3152,7 +3294,7 @@ public partial class hyperliquid : Exchange
         return response;
     }
 
-    public virtual Dictionary<string, object> editOrdersRequest(IList<object> orders, object parameters = null)
+    public virtual Dictionary<string, object> editOrdersRequest(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3284,7 +3426,7 @@ public partial class hyperliquid : Exchange
             { "modifies", modifies },
         };
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "editOrder", "vaultAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "editOrder", "vaultAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -3322,7 +3464,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3350,7 +3492,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> EditOrders(IList<object> orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> EditOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3459,7 +3601,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3484,7 +3626,7 @@ public partial class hyperliquid : Exchange
             request["startTime"] = (this.milliseconds() - (((maxLimit * 60) * 60) * 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
         if ((until != null))
         {
             request["endTime"] = until;
@@ -3501,12 +3643,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        object fundings = new List<object>() {};
+        List<object> fundings = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            fundings = response;
+            fundings = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(fundings); i++)
+        for (int i = 0; i < (fundings?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(fundings, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -3549,14 +3691,14 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("fetchOpenOrders", parameters), 0);
         IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchOpenOrders", parameters), 1, new Dictionary<string, object>() {});
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
         string? method = methodparamsMethodVariable.Item1;
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
+        IDictionary<string, object> paramsMethod = (methodparamsMethodVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3591,12 +3733,12 @@ public partial class hyperliquid : Exchange
         //     ]
         //
         List<object> orderWithStatus = new List<object>() {};
-        object rawOrders = new List<object>() {};
+        List<object> rawOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            rawOrders = response;
+            rawOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(rawOrders, i);
             Dictionary<string, object> extendOrder = new Dictionary<string, object>() {};
@@ -3620,7 +3762,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3643,7 +3785,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3666,7 +3808,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3691,7 +3833,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("fetchOrders", parameters), 0);
@@ -3737,14 +3879,14 @@ public partial class hyperliquid : Exchange
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
         Dictionary<string, object> deduplicatedByOid = new Dictionary<string, object>() {};
-        object historicalOrders = new List<object>() {};
+        List<object> historicalOrders = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            historicalOrders = response;
+            historicalOrders = ((List<object>)response);
         }
-        for (int i = 0; i < getArrayLength(historicalOrders); i++)
+        for (int i = 0; i < (historicalOrders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(historicalOrders, i));
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)historicalOrders[i]);
             IDictionary<string, object> entry = this.safeDict(rawOrder, "order", rawOrder);
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
@@ -3780,11 +3922,11 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchOrder", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchOrder", parameters), 1, new Dictionary<string, object>() {});
         if ((this.markets == null))
@@ -3983,12 +4125,18 @@ public partial class hyperliquid : Exchange
         }
         bool? isTrigger = this.safeBool(entry, "isTrigger", false);
         double? triggerPx = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
+        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        bool isTrailing = (orderTypeRaw.IndexOf("trailing", StringComparison.Ordinal) >= 0);
+        if (isTrailing && Precise.stringEq(this.safeString(entry, "triggerPx", "0"), "0"))
+        {
+            triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
         double? stopLossPrice = null;
         double? takeProfitPrice = null;
-        if ((triggerPx != null))
+        if (((triggerPx != null)) && !isTrailing)
         {
             if (orderTypeRaw.IndexOf("stop", StringComparison.Ordinal) >= 0)
             {
@@ -4040,6 +4188,7 @@ public partial class hyperliquid : Exchange
             { "canceled", "canceled" },
             { "rejected", "rejected" },
             { "marginCanceled", "canceled" },
+            { "scheduledCancel", "canceled" },
         };
         if (status.EndsWith("Rejected"))
         {
@@ -4057,6 +4206,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "stop limit", "limit" },
             { "stop market", "market" },
+            { "trailing stop market", "market" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -4075,7 +4225,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("fetchMyTrades", parameters), 0);
@@ -4136,7 +4286,7 @@ public partial class hyperliquid : Exchange
         return this.parseTrades(myFills, market, since, limit);
     }
 
-    public override ccxt.Trade parseTrade(object trade, object market = null)
+    public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4216,7 +4366,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? userAddress = this.safeString(this.handlePublicAddress("fetchMyLiquidations", parameters), 0);
@@ -4336,7 +4486,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
+    public async override Task<ccxt.Position> FetchPosition(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
@@ -4382,7 +4532,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name, eg: XYZ
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4560,7 +4710,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4588,16 +4738,10 @@ public partial class hyperliquid : Exchange
             { "leverage", leverage },
         };
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
-        if ((vaultAddress != null))
-        {
-            if (vaultAddress.StartsWith("0x"))
-            {
-                vaultAddress = vaultAddress.Replace("0x", (string)"");
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         Dictionary<string, object> signature = this.signL1Action(updateAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", updateAction },
@@ -4630,7 +4774,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4646,7 +4790,7 @@ public partial class hyperliquid : Exchange
         bool isCross = (marginMode == "cross");
         Int64? asset = this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null));
         Int64? nonce = this.incrementingNonce();
-        object params2 = this.omit(parameters, "marginMode");
+        IDictionary<string, object> params2 = this.omit(parameters, "marginMode");
         Dictionary<string, object> updateAction = new Dictionary<string, object>() {
             { "type", "updateLeverage" },
             { "asset", asset },
@@ -4654,7 +4798,7 @@ public partial class hyperliquid : Exchange
             { "leverage", leverage },
         };
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setLeverage", "vaultAddress", "subAccountAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -4693,7 +4837,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
@@ -4711,13 +4855,13 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
+    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4803,7 +4947,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -4820,13 +4964,13 @@ public partial class hyperliquid : Exchange
             {
                 throw new NotSupported ((this.id + " transfer() only support spot <> swap transfer")) ;
             }
-            object strAmount = this.numberToString(amount);
+            string strAmount = this.numberToString(amount);
             string? vaultAddressRaw = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
             if ((vaultAddressRaw != null))
             {
-                strAmount = ((object)(strAmount == null ? null : strAmount + " subaccount:" + this.formatVaultAddress(vaultAddressRaw)));
+                strAmount = ((strAmount + " subaccount:") + this.formatVaultAddress(vaultAddressRaw));
             }
-            object strAmountFinal = strAmount; // java req
+            string strAmountFinal = strAmount; // java req
             bool toPerp = ((toAccount == "perp")) || ((toAccount == "swap"));
             Dictionary<string, object> transferPayload = new Dictionary<string, object>() {
                 { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
@@ -4834,7 +4978,7 @@ public partial class hyperliquid : Exchange
                 { "toPerp", toPerp },
                 { "nonce", nonce },
             };
-            object transferSig = this.buildUsdClassSendSig(transferPayload);
+            Dictionary<string, object> transferSig = this.buildUsdClassSendSig(transferPayload);
             Dictionary<string, object> transferRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
                     { "hyperliquidChain", transferPayload["hyperliquidChain"] },
@@ -4858,7 +5002,7 @@ public partial class hyperliquid : Exchange
         }
         // transfer between main account and subaccount
         bool isDeposit = false;
-        object subAccountAddress = null;
+        string? subAccountAddress = null;
         if ((fromAccount == "main"))
         {
             subAccountAddress = toAccount;
@@ -4876,7 +5020,7 @@ public partial class hyperliquid : Exchange
         // unified account is active", a unified account has to move balances with sendAsset instead
         string? transferMethod = null;
         object query = parameters;
-        (string?, object) transferMethodqueryVariable = this.handleOptionStringAndParams(query, "transfer", "method");
+        (string?, IDictionary<string, object>) transferMethodqueryVariable = this.handleOptionStringAndParams(query, "transfer", "method");
         transferMethod = transferMethodqueryVariable.Item1;
         query = transferMethodqueryVariable.Item2;
         string? masterAddress = null;
@@ -4885,11 +5029,11 @@ public partial class hyperliquid : Exchange
         bool useSendAsset = (transferMethod == "sendAsset");
         if ((transferMethod == null))
         {
-            object isUnified = null;
+            bool? isUnified = null;
             var isUnifiedqueryVariable = await this.isUnifiedEnabled("transfer", masterAddress, false, query);
-            isUnified = isUnifiedqueryVariable[0];
+            isUnified = (bool?)isUnifiedqueryVariable[0];
             query = isUnifiedqueryVariable[1];
-            useSendAsset = ((isUnified is true));
+            useSendAsset = ((isUnified == true));
         }
         if (useSendAsset)
         {
@@ -4912,7 +5056,7 @@ public partial class hyperliquid : Exchange
                 { "fromSubAccount", isDeposit ? "" : subAccountAddress },
                 { "nonce", nonce },
             };
-            object sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
+            Dictionary<string, object> sendAssetSig = this.buildSendAssetSig(sendAssetPayload);
             Dictionary<string, object> sendAssetRequest = new Dictionary<string, object>() {
                 { "action", new Dictionary<string, object>() {
                     { "hyperliquidChain", sendAssetPayload["hyperliquidChain"] },
@@ -5020,7 +5164,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] vault address withdraw from
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -5044,7 +5188,7 @@ public partial class hyperliquid : Exchange
                 { "type", "vaultTransfer" },
                 { "vaultAddress", ("0x" + vaultAddress) },
                 { "isDeposit", false },
-                { "usd", amount },
+                { "usd", this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000")) },
             };
             sig = this.signL1Action(action, nonce);
         } else
@@ -5075,7 +5219,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response));
     }
 
-    public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
+    public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
     {
         //
         // { status: 'ok', response: { type: 'default' } }
@@ -5142,7 +5286,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5259,7 +5403,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5267,7 +5411,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchLedger", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchLedger", parameters), 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5301,7 +5445,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, null, since, limit));
     }
 
-    public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
+    public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
     {
         //
         // {
@@ -5368,7 +5512,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5376,7 +5520,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchDepositsWithdrawals", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchDepositsWithdrawals", parameters), 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5418,7 +5562,7 @@ public partial class hyperliquid : Exchange
         }
         List<object> records = this.extractTypeFromDelta(depositLedger);
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5456,7 +5600,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5464,7 +5608,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         string? userAddress = null;
-        object params2 = null;
+        IDictionary<string, object> params2 = null;
         userAddress = this.safeString(this.handlePublicAddress("fetchDepositsWithdrawals", parameters), 0);
         params2 = this.safeDict(this.handlePublicAddress("fetchDepositsWithdrawals", parameters), 1, new Dictionary<string, object>() {});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5502,7 +5646,7 @@ public partial class hyperliquid : Exchange
         }
         List<object> records = this.extractTypeFromDelta(withdrawalLedger);
         string? vaultAddress = null;
-        (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
+        (string?, IDictionary<string, object>) vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5536,7 +5680,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.OpenInterests> FetchOpenInterests(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5562,7 +5706,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? symbolValue = this.symbol(symbol);
@@ -5623,7 +5767,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5747,7 +5891,7 @@ public partial class hyperliquid : Exchange
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    public async override Task<Dictionary<string, object>> CreateSubAccount(string name, object parameters = null)
+    public async override Task<Dictionary<string, object>> CreateSubAccount(string name, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? nonce = this.incrementingNonce();
@@ -5799,12 +5943,12 @@ public partial class hyperliquid : Exchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = userAuxparamsUserVariable.Item1;
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
-        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        IDictionary<string, object> paramsUser = (userAuxparamsUserVariable.Item2);
+        (string?, IDictionary<string, object>) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
         string? user = userparamsAddressVariable.Item1;
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
+        IDictionary<string, object> paramsAddress = (userparamsAddressVariable.Item2);
         if (((user != null)) && (!(user == "")))
         {
             return new List<object>() {user, paramsAddress};
@@ -5828,15 +5972,15 @@ public partial class hyperliquid : Exchange
         if ((hip3Dict != null))
         {
             string? quote = this.safeString(hip3Dict, "quote", "USDC");
-            object code = this.safeString(hip3Dict, "code", coin);
-            return ((string?)((object)(((object)(code == null ? null : code + "/" + quote + ":" + quote)))));
+            string code = this.safeString(hip3Dict, "code", coin);
+            return ((((code + "/") + quote) + ":") + quote);
         }
         if (coin.IndexOf("/", StringComparison.Ordinal) > -1 || coin.IndexOf("@", StringComparison.Ordinal) > -1)
         {
             return ((string?)((object)(coin)));  // spot
         }
         // hip3
-        object coinId = coin;
+        string coinId = coin;
         if (coin.IndexOf(":", StringComparison.Ordinal) > -1)
         {
             coinId = coin.Replace(":", (string)"-");
@@ -5922,13 +6066,12 @@ public partial class hyperliquid : Exchange
         }
         string url = ((this.implodeHostname(apiUrl) + "/") + path);
         bool isPost = ((method == "POST"));
-        Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
-            { "Content-Type", "application/json" },
-        };
         Dictionary<string, object> requestHeaders = null;
         if (isPost)
         {
-            requestHeaders = postHeaders;
+            requestHeaders = new Dictionary<string, object>() {
+                { "Content-Type", "application/json" },
+            };
         }
         string? requestBody = null;
         if (isPost)
@@ -5958,13 +6101,13 @@ public partial class hyperliquid : Exchange
         return this.safeNumber(config, "cost", 1);
     }
 
-    public virtual List<object> parseCreateEditOrderArgs(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual List<object> parseCreateEditOrderArgs(string? id, string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        (string?, object) vaultAddressOptionparams2Variable = this.handleOptionStringAndParams2(parameters, "createOrder", "vaultAddress", "subAccountAddress");
+        (string?, IDictionary<string, object>) vaultAddressOptionparams2Variable = this.handleOptionStringAndParams2(parameters, "createOrder", "vaultAddress", "subAccountAddress");
         string? vaultAddressOption = vaultAddressOptionparams2Variable.Item1;
-        IDictionary<string, object> params2 = ((IDictionary<string, object>)vaultAddressOptionparams2Variable.Item2);
+        IDictionary<string, object> params2 = (vaultAddressOptionparams2Variable.Item2);
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         string? symbolValue = this.safeString(market, "symbol", "");
         Dictionary<string, object> order = new Dictionary<string, object>() {

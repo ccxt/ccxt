@@ -783,9 +783,8 @@ class derive(Exchange, ImplicitAPI):
         maxPages, paramsMaxPages = self.handle_option_integer_and_params(params, 'getMarketsPaginated', 'maxMarketPages', 25)
         pageSize, paramsOmitted = self.handle_option_integer_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
         for i in range(0, maxPages):
-            page = i + 1
             requestExtension = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize,
             }
             requestExtended = self.extend(self.extend(request, requestExtension), paramsOmitted)  # nested because the csharp base defines extend with two arguments only
@@ -1551,9 +1550,9 @@ class derive(Exchange, ImplicitAPI):
         if limit is not None:
             limitResolved = self.parse_to_int(limit)
         if limitResolved > 5000:
-            limitResolved = self.parse_to_int(5000)
+            limitResolved = 5000
         span = self.parse_to_int(limitResolved * duration)
-        windowStart = self.parse_to_int(untilSeconds - span)
+        windowStart = untilSeconds - span
         start = windowStart
         end = untilSeconds
         if since is not None:
@@ -1816,7 +1815,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         symbol = self.safe_string(contract, 'symbol')
         fundingTimestamp = self.safe_integer(contract, 'timestamp')
         return {
