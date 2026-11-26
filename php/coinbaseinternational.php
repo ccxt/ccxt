@@ -567,7 +567,7 @@ class coinbaseinternational extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $instrumentName = $this->safe_string($market, 'instrument_name');
+        $instrumentName = $this->safe_string($market, 'instrument_name', '');
         $lowercaseId = $this->safe_string_lower($market, 'instrument_name');
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'counter_currency');
@@ -618,7 +618,7 @@ class coinbaseinternational extends Exchange {
             if ($optionType === 'call') {
                 $optionTypeLetter = 'C';
             }
-            $strikeString = $this->number_to_string($strike);
+            $strikeString = $this->safe_string($market, 'strike', '');
             $symbol = $symbol . '-' . $strikeString . '-' . $optionTypeLetter;
         }
         $marketStructure = array(

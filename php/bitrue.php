@@ -1471,11 +1471,10 @@ class bitrue extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($this->safe_bool($market, 'linear', false)) {
-                $response = $this->fapiV1PublicGetKlines($this->extend($request, $params));
+                $data = $this->fapiV1PublicGetKlines($this->extend($request, $params));
             } elseif ($this->safe_bool($market, 'inverse', false)) {
-                $response = $this->dapiV1PublicGetKlines($this->extend($request, $params));
+                $data = $this->dapiV1PublicGetKlines($this->extend($request, $params));
             }
-            $data = $response;
         } elseif ($this->safe_bool($market, 'spot', false)) {
             $timeframesSpot = $this->safe_dict($timeframes, 'spot', array());
             $request = array(

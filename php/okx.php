@@ -9896,7 +9896,7 @@ class okx extends Exchange {
         $timestamp = $this->safe_integer($info, 'timestamp');
         $symbol = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         return array(
             'info' => $info,

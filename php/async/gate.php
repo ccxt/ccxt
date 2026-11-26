@@ -2881,7 +2881,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
         list($request, $requestParams) = $this->prepare_request($market, $type, $query);
         $request['type'] = 'fund';  // 'dnw' 'pnl' 'fee' 'refr' 'fund' 'point_dnw' 'point_fee' 'point_refr'

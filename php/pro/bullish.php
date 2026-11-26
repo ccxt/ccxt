@@ -446,7 +446,7 @@ class bullish extends \ccxt\async\bullish {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $parsed = $this->parse_ticker($data, $market);
         if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());

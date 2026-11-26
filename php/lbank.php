@@ -802,7 +802,7 @@ class lbank extends Exchange {
         $marketSymbol = $this->safe_string($market, 'symbol', '');
         if ($this->safe_bool($market, 'swap', false)) {
             $responseForSwap = $this->fetch_tickers(array( $marketSymbol ), $params);
-            $swapTicker = $this->safe_dict($responseForSwap, $market['symbol']);
+            $swapTicker = $this->safe_dict($responseForSwap, $marketSymbol);
             return $swapTicker;
         }
         $request = array(

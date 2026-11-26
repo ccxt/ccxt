@@ -484,7 +484,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $parts = explode('+', $topic);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         $previous = $this->safe_dict($this->tickers, $symbol);
