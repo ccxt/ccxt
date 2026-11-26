@@ -1334,6 +1334,14 @@
             }
         }
     },
+    "etoro": {
+        "preferredSpotSymbol": "BTC/USD",
+        "preferredSwapSymbol": "EUR/USD:USD",
+        "skipMethods": {
+            "fetchOrderBook": "endpoint doesnt exist",
+            "watchOrderBook": "endpoint doesnt exist"
+        }
+    },
     "exmo": {
         "skipMethods": {
             "loadMarkets": {
