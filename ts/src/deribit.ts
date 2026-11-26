@@ -3333,8 +3333,7 @@ export default class deribit extends Exchange {
         const duration = this.parseTimeframe (eachItemDuration) * 1000;
         const now = this.milliseconds ();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const defaultSince = now - month;
-        const sinceResolved: int = (since === undefined) ? defaultSince : since;
+        const sinceResolved: int = (since === undefined) ? (now - month) : since;
         let time = now;
         if (since !== undefined) {
             time = this.parseToInt (since + month);
