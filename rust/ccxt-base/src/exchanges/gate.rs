@@ -8107,7 +8107,7 @@ if _try_result.is_err() {
         }
         let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&params, "reduceOnly", &[]);
         let exchangeSpecificTimeInForce: Option<String> = self.safe_string_lower_n_opt(&params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("time_in_force".into())]), &[]);
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(exchangeSpecificTimeInForce.as_deref() == Some("poc")), &[params]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == Some("market")), (exchangeSpecificTimeInForce.as_deref() == Some("poc")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);
@@ -8521,10 +8521,7 @@ if _try_result.is_err() {
 
 
     pub fn fetch_order_request(&self, id: &str, symbol: Option<&str>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: Option<crate::types::Market> = None;
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -9059,10 +9056,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9275,10 +9269,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

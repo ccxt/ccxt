@@ -2384,7 +2384,7 @@ impl Bitvavo {
         let isLimitOrder: bool = (type_var == "limit") || (type_var == "stopLossLimit") || (type_var == "takeProfitLimit");
         let timeInForce: Option<String> = self.safe_string_k_opt(&params, "timeInForce", &[]);
         let mut triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&params)]);
+        let postOnly: bool = self.is_post_only(isMarketOrder, false, &[&Value::from(&params)]);
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]); // trigger when price crosses from above to below this value
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]);

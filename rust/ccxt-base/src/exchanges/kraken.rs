@@ -3416,8 +3416,8 @@ impl Kraken {
         if (timeInForce.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeinforce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null)); }
         }
-        let isMarket: bool = type_var.map(str::to_owned).as_deref() == Some("market");
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[Value::from(&paramsOmitted2)]);
+        let isMarket: bool = type_var == Some("market");
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarket, false, &[Value::from(&paramsOmitted2)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {
@@ -3486,9 +3486,9 @@ impl Kraken {
             request.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             request = self.omit(Value::Map(std::mem::take(&mut request)), Value::Str("txid".into()), &[]).as_map().cloned().unwrap_or_default();
         }
-        let isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
+        let isMarket: bool = type_var.as_str() == Some("market");
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarket, false, &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
         if (postOnly == Some(true)) {
             request.insert("post_only".into(), Value::Str("true".into())); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }

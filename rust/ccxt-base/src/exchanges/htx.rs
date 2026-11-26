@@ -8860,7 +8860,7 @@ impl Htx {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support ").into()), typeStr.as_deref().unwrap_or("null")).into()), " orders")));
             }
         }
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(orderType.as_deref() == Some("market")), Value::Bool(orderType.as_deref() == Some("limit-maker")), &[Value::from(&paramsMarginMode)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((orderType.as_deref() == Some("market")), (orderType.as_deref() == Some("limit-maker")), &[Value::from(&paramsMarginMode)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {
@@ -8973,7 +8973,7 @@ impl Htx {
                 m.insert("volume".to_string(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
             m
         });
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(type_var == Some("post_only")), &[params]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == Some("market")), (type_var == Some("post_only")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let mut orderType: Option<String> = type_var.map(str::to_owned);

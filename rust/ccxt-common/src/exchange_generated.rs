@@ -996,7 +996,7 @@ pub trait ExchangeBase:
 
     fn filter_by_since_limit(&self, array: impl Rows, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let key = get_arg(optional_args, 0, Value::Str("timestamp".into()));
-        let tail = get_arg(optional_args, 1, Value::Bool(false));
+        let tail: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         if (Rows::absent(&array)) {
             return Default::default();
         }
@@ -1017,12 +1017,12 @@ pub trait ExchangeBase:
             }
             }
         }
-        if tail.as_bool() == Some(true) && (Value::from(limit) != Value::Null) {
+        if tail && (Value::from(limit) != Value::Null) {
             return self.array_slice(&result, (match &(Value::from(limit)) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }), &[]);
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        let shouldFilterFromStart: Value = Value::Bool(!is_true(&tail) && sinceIsDefined);
+        let shouldFilterFromStart: Value = Value::Bool(!tail && sinceIsDefined);
         return self.filter_by_limit(result, &[Value::from(limit), key, shouldFilterFromStart]);
 }
 
@@ -4363,7 +4363,7 @@ pub trait ExchangeBase:
     Default::default()
 }
 
-    fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, returnAsJson: bool, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let startRegex = get_arg(optional_args, 0, Value::Null);
         let endRegex = get_arg(optional_args, 1, Value::Null);
         let options: crate::value::Dict = self.safe_value(&self.options, method, &[Value::Map({
@@ -4411,7 +4411,7 @@ pub trait ExchangeBase:
                 let splitted_by_end: Vec<Value> = split(&content, &endRegex).as_array().cloned().unwrap_or_default();
                 content = splitted_by_end.get(0).cloned().unwrap_or(Value::Null); // we need first part after start
             }
-            if (returnAsJson.as_bool() == Some(true)) && (matches!(&content, Value::Str(_))) {
+            if (returnAsJson) && (matches!(&content, Value::Str(_))) {
                 let jsoned: Value = self.parse_json_value(content.as_str().map(|__s| Value::Str(__s.trim().to_string().into())).unwrap_or(Value::Null)); // content should be trimmed before json parsing
                 if (jsoned != Value::Null) && (jsoned != Value::Null) {
                     return jsoned;
@@ -8430,7 +8430,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[&Value]) -> bool {
+    fn is_post_only(&self, isMarketOrder: bool, exchangeSpecificParam: bool, optional_args: &[&Value]) -> bool {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -8448,11 +8448,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let ioc: bool = timeInForce.as_deref() == Some("IOC");
         let fok: bool = timeInForce.as_deref() == Some("FOK");
         let timeInForcePostOnly: bool = timeInForce.as_deref() == Some("PO");
-        let postOnly: bool = self.safe_bool2(params, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]).as_bool() == Some(true) || timeInForcePostOnly || is_true(&exchangeSpecificParam);
+        let postOnly: bool = self.safe_bool2(params, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]).as_bool() == Some(true) || timeInForcePostOnly || exchangeSpecificParam;
         if postOnly {
             if ioc || fok {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " postOnly orders cannot have timeInForce equal to ").into()), timeInForce.as_deref().unwrap_or("null"))));
-            }  else if isMarketOrder.as_bool() == Some(true) {
+            }  else if isMarketOrder {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " market orders cannot be postOnly")));
             }  else {
                 return true;
@@ -8462,7 +8462,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> (Value, crate::value::Dict) {
+    fn handle_post_only(&self, isMarketOrder: bool, exchangeSpecificPostOnlyOption: bool, optional_args: &[Value]) -> (Value, crate::value::Dict) {
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         /*
          * @ignore
@@ -8476,11 +8476,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let ioc: bool = timeInForce.as_deref() == Some("IOC");
         let fok: bool = timeInForce.as_deref() == Some("FOK");
         let po: bool = timeInForce.as_deref() == Some("PO");
-        let postOnly: bool = self.safe_bool_k(&params, "postOnly", &[Value::Bool(false)]).as_bool() == Some(true) || po || is_true(&exchangeSpecificPostOnlyOption);
+        let postOnly: bool = self.safe_bool_k(&params, "postOnly", &[Value::Bool(false)]).as_bool() == Some(true) || po || exchangeSpecificPostOnlyOption;
         if postOnly {
             if ioc || fok {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " postOnly orders cannot have timeInForce equal to ").into()), timeInForce.as_deref().unwrap_or("null"))));
-            }  else if isMarketOrder.as_bool() == Some(true) {
+            }  else if isMarketOrder {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " market orders cannot be postOnly")));
             }  else {
                 let mut keysToOmit: Value = Value::from(vec![]);
@@ -13509,7 +13509,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_unified_order" => crate::types::IntoRaw::into_raw(self.fetch_unified_order(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_used_balance" => crate::types::IntoRaw::into_raw(self.fetch_used_balance(args.get(0).cloned().unwrap_or_default()).await),
-            "fetch_web_endpoint" => self.fetch_web_endpoint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+            "fetch_web_endpoint" => self.fetch_web_endpoint(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).is_some_and(crate::Value::is_truthy), &args[3.min(args.len())..]).await,
             "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_withdrawals_ws" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "filter_by_array" => self.filter_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
@@ -13564,7 +13564,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_param_integer2" => { let __t = self.handle_param_integer2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]); Value::from(vec![Value::from(__t.0), Value::Dict(__t.1)]) },
             "handle_param_string" => { let __t = self.handle_param_string(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
             "handle_param_string2" => { let __t = self.handle_param_string2(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-            "handle_post_only" => { let __t = self.handle_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+            "handle_post_only" => { let __t = self.handle_post_only(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).is_some_and(crate::Value::is_truthy), &args[2.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
             "handle_sub_type_and_params" => { let __t = self.handle_sub_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>());
                 Value::from(vec![__t.0, Value::Dict(__t.1)]) },
             "handle_time_in_force" => self.handle_time_in_force(&args[..]),
@@ -13578,7 +13578,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "invert_flat_string_dictionary" => Value::Dict(self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
-            "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
+            "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).is_some_and(crate::Value::is_truthy), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
             "is_round_number" => self.is_round_number(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_significant_precision" => self.is_significant_precision(),
             "is_tick_precision" => self.is_tick_precision(),

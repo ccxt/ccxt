@@ -2221,7 +2221,7 @@ impl Upbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         let customType: Option<String> = self.safe_string2_opt(&params, Value::Str("ordType".into()), Value::Str("ord_type".into()), &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[&Value::from(&params)]);
+        let postOnly: bool = self.is_post_only((type_var.as_str() == Some("market")), false, &[&Value::from(&params)]);
         let timeInForce: Option<String> = self.safe_string_lower2_opt(&params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let selfTradePrevention: Option<String> = self.safe_string2_opt(&params, Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), &[]);
         let test: bool = self.safe_bool_k_opt(&params, "test", &[Value::Bool(false)]).unwrap_or(false);
@@ -2386,7 +2386,7 @@ impl Upbit {
         let prevClientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         let customType: Option<String> = self.safe_string2_opt(&params, Value::Str("newOrdType".into()), Value::Str("new_ord_type".into()), &[]);
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "newClientOrderId", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[&Value::from(&params)]);
+        let postOnly: bool = self.is_post_only((type_var.as_str() == Some("market")), false, &[&Value::from(&params)]);
         let timeInForce: Option<String> = self.safe_string_lower2_opt(&params, Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), &[]);
         let selfTradePrevention: Option<String> = self.safe_string2_opt(&params, Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into()), &[]);
         if postOnly && (selfTradePrevention.is_some()) {

@@ -2920,7 +2920,7 @@ impl Deepcoin {
 
     pub fn handle_type_post_only_and_time_in_force(&self, type_var: Option<&str>, params: impl Into<crate::Value>) -> (Value, crate::value::Dict) {
         let params: Value = params.into();
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(type_var == Some("post_only")), &[params]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == Some("market")), (type_var == Some("post_only")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);

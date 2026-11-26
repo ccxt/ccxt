@@ -2962,8 +2962,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("tradingAccountId".to_string(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let isMarketOrder: Value = (Value::Bool((type_var.as_str() == Some("market")) || (type_var.as_str() == Some("MARKET"))));
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("POST_ONLY")), &[params]);
+        let isMarketOrder: bool = (type_var.as_str() == Some("market")) || (type_var.as_str() == Some("MARKET"));
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, (type_var.as_str() == Some("POST_ONLY")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string();
@@ -2978,12 +2978,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("timeInForce".to_string(), timeInForce.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         })]);
-        if !(matches!(&isMarketOrder, Value::Bool(true))) {
+        if !isMarketOrder {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let triggerPrice: Option<String> = self.safe_string_k_opt(&paramsTimeInForce, "triggerPrice", &[]);
         if (triggerPrice.is_some()) {
-            if matches!(&isMarketOrder, Value::Bool(true)) {
+            if isMarketOrder {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support market trigger orders")));
             }
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));

@@ -11715,7 +11715,7 @@ impl Binance {
         });
         let initialUppercaseType: String = type_var.to_string().to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
-        let postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[&params]);
+        let postOnly: bool = self.is_post_only((initialUppercaseType == "MARKET"), (initialUppercaseType == "LIMIT_MAKER"), &[&params]);
         if postOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
@@ -12232,10 +12232,7 @@ impl Binance {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -12245,7 +12242,7 @@ impl Binance {
         let marginMode: Option<String> = self.safe_string_k_opt(&params, "marginMode", &[]);
         let porfolioOptionsValue: bool = self.safe_bool2_opt(&self.options, Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).unwrap_or(false);
         let isPortfolioMargin: Value = self.safe_bool2(&params, Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(porfolioOptionsValue)]);
-        let isConditional: Value = self.is_conditional_order(&[&params]);
+        let isConditional: Value = self.is_conditional_order(&[&Value::from(&params)]);
         // algo and conditional endpoints use different arguments
         // conditional swap and future orders go through the algo api
         // except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
@@ -12670,7 +12667,7 @@ impl Binance {
         }
         let mut postOnly: Option<bool> = None;
         if !isPortfolioMargin {
-            postOnly = Some(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[&Value::from(&paramsPapi)]));
+            postOnly = Some(self.is_post_only(isMarketOrder, (initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[&Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if (postOnly == Some(true)) {
@@ -12681,7 +12678,7 @@ impl Binance {
                 }
             }
         }  else {
-            postOnly = Some(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[&Value::from(&paramsPapi)]));
+            postOnly = Some(self.is_post_only(isMarketOrder, (initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[&Value::from(&paramsPapi)]));
             if (postOnly == Some(true)) {
                 if !(market).contract {
                     uppercaseType = Some("LIMIT_MAKER".to_string());

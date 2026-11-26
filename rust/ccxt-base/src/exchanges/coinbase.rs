@@ -5121,10 +5121,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -5146,7 +5143,7 @@ if _try_result.is_err() {
             let __ws_arg_29 = self.extend(Value::Map(request), &[self.omit(params, &["preview", "test"], &[])]);
             response = self.v3_private_post_brokerage_orders_edit_preview(&[&__ws_arg_29]).await;
         }  else {
-            let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
             response = self.v3_private_post_brokerage_orders_edit(&[&__ws_arg_30]).await;
         }
         let __ws_arg_31 = self.extend(Value::Map({

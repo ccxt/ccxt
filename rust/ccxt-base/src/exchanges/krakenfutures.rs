@@ -2994,7 +2994,7 @@ impl Krakenfutures {
         let symbolValue: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let mut typeValue: Option<String> = self.safe_string_k_opt(&params, "orderType", &[&type_var]);
         let timeInForce: Option<String> = self.safe_string_k_opt(&params, "timeInForce", &[]);
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(typeValue.as_deref() == Some("market")), Value::Bool(typeValue.as_deref() == Some("post")), &[params]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((typeValue.as_deref() == Some("market")), (typeValue.as_deref() == Some("post")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {
@@ -3684,10 +3684,7 @@ impl Krakenfutures {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3712,7 +3709,7 @@ impl Krakenfutures {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.history_get_triggers(&[&__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
             response = self.history_get_orders(&[&__ws_arg_14]).await;
         }
         let allOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "elements"));
@@ -3768,10 +3765,7 @@ impl Krakenfutures {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3796,7 +3790,7 @@ impl Krakenfutures {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.history_get_triggers(&[&__ws_arg_15]).await;
         }  else {
-            let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
             response = self.history_get_orders(&[&__ws_arg_16]).await;
         }
         let allOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "elements"));

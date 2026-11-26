@@ -2901,7 +2901,7 @@ impl Predictfun {
             m
         });
         let postOnly: bool = self.safe_bool_k_opt(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let postOnlyOptionparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly == true), &[Value::from(&paramsTaker)]);
+        let postOnlyOptionparamsPostOnlyVariable = self.handle_post_only(isMarket, (postOnly == true), &[Value::from(&paramsTaker)]);
         let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.0.as_bool();
         let paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.1;
         if (postOnlyOption == Some(true)) {
@@ -3637,10 +3637,8 @@ impl Predictfun {
         let payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(fields.clone()));
         let hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), "keccak", &[Value::Str("hex".into())]));
         let signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(Value::from(privateKey)), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Option<String> = self.safe_string_k_opt(&signature, "r", &[]);
-        let mut sHex: Option<String> = self.safe_string_k_opt(&signature, "s", &[]);
-        rHex = self.pad_hex_to_even(rHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        sHex = self.pad_hex_to_even(sHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let rHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "r", &[Value::Str("".into())])).as_str().map(str::to_owned);
+        let sHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "s", &[Value::Str("".into())])).as_str().map(str::to_owned);
         let yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let signedFields: crate::value::List = self.array_concat_t(fields, Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))), self.rlp_encode_bytes(rHex.map(Value::from).unwrap_or(Value::Null)), self.rlp_encode_bytes(sHex.map(Value::from).unwrap_or(Value::Null))]));
         return format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::Arr(signedFields)));
@@ -3691,8 +3689,8 @@ impl Predictfun {
             let marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
             let marketObj: crate::value::Dict = self.safe_dict_t(&self.markets, marketSymbol.map(Value::from).unwrap_or(Value::Null));
             let marketRow: crate::value::Dict = self.safe_dict_k_t(&marketObj, "info");
-            isNegRisk = self.safe_bool_k(&marketRow, "isNegRisk", &[Value::Bool(false)]).as_bool() == Some(true);
-            isYieldBearing = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true);
+            isNegRisk = (self.safe_bool_k(&marketRow, "isNegRisk", &[Value::Bool(false)]).as_bool() == Some(true));
+            isYieldBearing = (self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool() == Some(true));
         }
         if (side.as_deref() == Some("sell")) {
             let ctfToken: Option<String> = self.safe_string_k_opt(&params, "token", &[&self.conditional_tokens_address(isNegRisk, isYieldBearing).map(Value::from).unwrap_or(Value::Null)]);

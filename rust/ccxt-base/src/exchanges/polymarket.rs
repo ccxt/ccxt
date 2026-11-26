@@ -2206,12 +2206,12 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support trigger or attached stop orders yet")));
         }
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        let isMarketOrder: bool = (type_var.as_str() == Some("market"));
+        let isMarketOrder: bool = type_var.as_str() == Some("market");
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
         let isPostOnlyTimeInForce: bool = timeInForce.as_deref() == Some("PO");
         let mut postOnly: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(isPostOnlyTimeInForce), &[paramsOmitted.clone()]); postOnly = __destr_tmp.0; paramsOmitted = Value::Dict(__destr_tmp.1); }
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, isPostOnlyTimeInForce, &[paramsOmitted.clone()]); postOnly = __destr_tmp.0; paramsOmitted = Value::Dict(__destr_tmp.1); }
         if isMarketOrder {
             if (timeInForce.as_deref() == Some("GTC")) || (timeInForce.as_deref() == Some("PO")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support the ").into()), timeInForce.as_deref().unwrap_or("null")).into()), " timeInForce on market orders")));

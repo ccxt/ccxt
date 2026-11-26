@@ -1343,7 +1343,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 if (method.as_str() == Some("GET")) {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), Value::from(path)).into()), "?").into()), query.as_deref().unwrap_or("null"));
                 }  else {
-                    bodySigned = query.take();
+                    bodySigned = query.clone();
                 }
             }
             headersSigned.insert("INPUT-SOURCE".into(), self.safe_string_k(&self.options, "broker", &[Value::Str("10000700011".into())]));
@@ -3878,7 +3878,7 @@ impl Hashkey {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         let isMarketOrder: bool = typeValue.as_deref() == Some("MARKET");
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(typeValue.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsCost)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, (typeValue.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsCost)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly && (typeValue.as_deref() == Some("LIMIT")) {
@@ -3924,7 +3924,7 @@ impl Hashkey {
                 m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
             m
         });
-        let isMarketOrder: bool = type_var.map(str::to_owned).as_deref() == Some("market");
+        let isMarketOrder: bool = type_var == Some("market");
         if isMarketOrder {
             request.insert("priceType".into(), Value::Str("MARKET".into()));
         }
@@ -3943,7 +3943,7 @@ impl Hashkey {
         let timeInForceParamparamsTimeInForceVariable = self.handle_param_string(&paramsReduceOnly, Value::Str("timeInForce".into()), &[]);
         let timeInForceParam: Option<String> = timeInForceParamparamsTimeInForceVariable.0.as_str().map(str::to_owned);
         let paramsTimeInForce: crate::value::Dict = timeInForceParamparamsTimeInForceVariable.1;
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsTimeInForce)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, (timeInForceParam.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsTimeInForce)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let mut timeInForce: Option<String> = timeInForceParam;

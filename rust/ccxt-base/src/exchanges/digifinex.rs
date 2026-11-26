@@ -3516,7 +3516,7 @@ impl Digifinex {
             marketIdRequest = "instrument_id".to_string();
         }
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&paramsMarginMode)]);
+        let mut postOnly: bool = self.is_post_only(isMarketOrder, false, &[&Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Option<crate::value::Dict> = None;
         if swap {

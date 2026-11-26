@@ -323,8 +323,8 @@ impl Kraken {
             }
             orderParams.insert("limit_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), price))));
         }
-        let isMarket: bool = (type_var.as_str() == Some("market"));
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[params]);
+        let isMarket: bool = type_var.as_str() == Some("market");
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarket, false.clone(), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {

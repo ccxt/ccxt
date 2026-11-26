@@ -3931,7 +3931,7 @@ impl Hitbtc {
         let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&params, "reduceOnly", &[]);
         let timeInForce: Option<String> = self.safe_string_k_opt(&params, "timeInForce", &[]);
         let triggerPrice: Option<f64> = self.safe_number_n(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
-        let isPostOnly: bool = self.is_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[&params]);
+        let isPostOnly: bool = self.is_post_only((type_var == "market"), false, &[&params]);
         let resolvedMarketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

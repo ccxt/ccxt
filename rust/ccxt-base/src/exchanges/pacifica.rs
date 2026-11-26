@@ -2839,10 +2839,7 @@ if _try_result.is_err() {
     }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, Value) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -2951,7 +2948,7 @@ if _try_result.is_err() {
         if (amount.is_some()) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
             sigPayload.insert("amount".into(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }
-        let paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit(&params, &["clientOrderId"], &[]) } else { params }).into_dict();
+        let paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit_t(&params, &["clientOrderId"], &[]) } else { params });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&paramsClientOrderId, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             sigPayload.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -3336,10 +3333,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3347,7 +3341,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
-        let request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]);
+        let request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[Value::from(&params)]);
         let isStopOrder: bool = self.safe_bool2_opt(&params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]);
         let mut response: Option<crate::value::Dict> = None;

@@ -3080,7 +3080,7 @@ impl Btse {
         let isLimitOrder: bool = typeValue == "LIMIT";
         let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }; // this will remove PO from params.timeInForce if present
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, false, &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }; // this will remove PO from params.timeInForce if present
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -3314,7 +3314,7 @@ impl Btse {
         let isLimitOrder: bool = typeValue == "LIMIT";
         let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }; // this will remove PO from params.timeInForce if present
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, false, &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }; // this will remove PO from params.timeInForce if present
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }

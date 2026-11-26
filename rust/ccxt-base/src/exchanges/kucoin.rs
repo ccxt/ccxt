@@ -7493,7 +7493,7 @@ impl Kucoin {
             }
         }
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(false), &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only((type_var == Some("market")), false, &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
         if (postOnly == Some(true)) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -7701,7 +7701,7 @@ impl Kucoin {
             }
         }
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(false), &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only((type_var == Some("market")), false, &[Value::from(&paramsOmitted)]); postOnly = __destr_tmp.0.as_bool(); paramsOmitted = __destr_tmp.1; }
         if (postOnly == Some(true)) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -7843,7 +7843,7 @@ impl Kucoin {
             request.insert("tradeType".into(), tradeType);
         }
         request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        let isMarketOrder: bool = type_var.to_string() == "market";
+        let isMarketOrder: bool = type_var == "market";
         let cost: Option<String> = self.safe_string_k_opt(&paramsRequest, "cost", &[]);
         if (cost.is_some()) {
             paramsRequest = self.omit_t(&paramsRequest, Value::Str("cost".into()), &[]);
@@ -7865,7 +7865,7 @@ impl Kucoin {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsRequest)]); postOnly = __destr_tmp.0.as_bool(); paramsRequest = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, false, &[Value::from(&paramsRequest)]); postOnly = __destr_tmp.0.as_bool(); paramsRequest = __destr_tmp.1; }
         let timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsRequest)]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (timeInForce.is_some()) { self.omit_t(&paramsRequest, Value::Str("timeInForce".into()), &[]) } else { paramsRequest });
         if (timeInForce.is_some()) {
@@ -8887,10 +8887,7 @@ impl Kucoin {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

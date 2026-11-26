@@ -2513,7 +2513,7 @@ impl Tokocrypto {
         let isMarketOrder: bool = requestedType == "MARKET";
         // GTX is the venue spelling of post only, on top of the two unified spellings
         let isPostOnlyTimeInForce: bool = requestedTimeInForce.as_deref() == Some("GTX");
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(isPostOnlyTimeInForce), &[params.clone()]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, isPostOnlyTimeInForce, &[params.clone()]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         // only supported for spot/margin api

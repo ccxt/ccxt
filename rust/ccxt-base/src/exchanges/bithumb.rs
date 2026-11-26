@@ -2836,7 +2836,7 @@ impl Bithumb {
         let timeInForceRaw: Option<String> = self.safe_string2_opt(&params, Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let timeInForce: Option<String> = (if (timeInForceRaw.is_none()) { Some("GTC".to_string()) } else { timeInForceRaw.clone() });
         let paramsTimeInForce: crate::value::Dict = (if (timeInForceRaw.is_none()) { params } else { self.omit(params, Value::Str("timeInForce".into()), &[]) }).into_dict();
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[Value::from(&paramsTimeInForce)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == "market"), false, &[Value::from(&paramsTimeInForce)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let isPostOnly: bool = postOnly || (timeInForce.as_deref() == Some("PO"));

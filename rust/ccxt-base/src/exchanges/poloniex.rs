@@ -3491,7 +3491,7 @@ impl Poloniex {
         }
         let mut upperCaseType: String = type_var.to_string().to_uppercase();
         let isMarket: bool = upperCaseType == "MARKET";
-        let isPostOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[&Value::from(&query)]);
+        let isPostOnly: bool = self.is_post_only(isMarket, (upperCaseType == "LIMIT_MAKER"), &[&Value::from(&query)]);
         let mut queryOmitted: crate::value::Dict = self.omit_t(&query, &["postOnly", "triggerPrice", "stopPrice"], &[]);
         if (triggerPrice.is_some()) {
             if !(market).spot {
@@ -3646,10 +3646,7 @@ impl Poloniex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         //
         // @method
         // @name poloniex#cancelOrder

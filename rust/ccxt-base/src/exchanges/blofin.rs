@@ -3020,7 +3020,7 @@ impl Blofin {
             request.insert(key, Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         let mut postOnly: bool = false;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(type_var == Some("post_only")), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, (type_var == Some("post_only")), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
         if postOnly {
             request.insert("type".into(), Value::Str("post_only".into()));
         }
@@ -3380,10 +3380,7 @@ impl Blofin {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3437,7 +3434,7 @@ impl Blofin {
             let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
             if (takeProfitPrice.is_some()) {
                 request.insert("newTpTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
-                let tpLimitPrice: Option<String> = self.safe_string_k_opt(params, "takeProfitLimitPrice", &[]);
+                let tpLimitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitLimitPrice", &[]);
                 if (type_var.as_str() == Some("market")) {
                     request.insert("newTpOrderPrice".into(), Value::Str("-1".into()));
                 }  else if (tpLimitPrice.is_some()) {
@@ -3451,7 +3448,7 @@ impl Blofin {
     m
 })])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         }  else if isTrigger {
-            let triggerPrice: Option<String> = self.safe_string_k_opt(params, "triggerPrice", &[]);
+            let triggerPrice: Option<String> = self.safe_string_k_opt(&params, "triggerPrice", &[]);
             if (triggerPrice.is_some()) {
                 request.insert("newTriggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }
@@ -3502,10 +3499,7 @@ impl Blofin {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires a symbol argument")));
         }
@@ -4421,10 +4415,7 @@ impl Blofin {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument")));
@@ -4498,7 +4489,7 @@ impl Blofin {
             response = self.private_post_trade_cancel_batch_orders(&[&Value::from(request)]).await; // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
         let ordersData: crate::value::List = self.safe_list_k_t(&response, "data");
-        return Value::Arr(self.parse_orders(&ordersData, Some(&market), &[&Value::Null, &Value::Null, &params]));
+        return Value::Arr(self.parse_orders(&ordersData, Some(&market), &[&Value::Null, &Value::Null, &Value::Dict(params)]));
         Value::Null
         }).await?))
     }

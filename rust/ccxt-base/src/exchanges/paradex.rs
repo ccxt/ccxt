@@ -3499,10 +3499,7 @@ impl Paradex {
 }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -3529,7 +3526,7 @@ impl Paradex {
         let isStopLossOrder: bool = (stopLossPrice.is_some());
         let isStopOrder: bool = (((triggerPrice.is_some()) || isTakeProfitOrder) || isStopLossOrder);
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(false), &[&params]);
+        let postOnly: bool = self.is_post_only(isMarket, false, &[&Value::from(&params)]);
         let mut instruction: Option<String> = Some("GTC".to_string());
         if (timeInForce.is_some()) {
             instruction = self.encode_time_in_force(timeInForce.as_deref());
@@ -3575,13 +3572,13 @@ impl Paradex {
             }
             if isStopLossOrder {
                 stopPrice = self.price_to_precision(symbol, stopLossPrice.map(Value::from).unwrap_or(Value::Null));
-                request.insert("type".into(), (if isMarket { Value::Str("STOP_LOSS_MARKET".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) }));
+                request.insert("type".into(), (if (isMarket) { Value::Str("STOP_LOSS_MARKET".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) }));
             }  else if isTakeProfitOrder {
                 stopPrice = self.price_to_precision(symbol, takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
-                request.insert("type".into(), (if isMarket { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) }));
+                request.insert("type".into(), (if (isMarket) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) }));
             }  else {
                 stopPrice = self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null));
-                request.insert("type".into(), (if isMarket { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) }));
+                request.insert("type".into(), (if (isMarket) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) }));
             }
         }
         if (stopPrice.is_some()) {

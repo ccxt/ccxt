@@ -1871,7 +1871,7 @@ impl Gemini {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let data: Value = self.fetch_web_endpoint(Value::Str("fetchCurrencies".into()), Value::Str("webExchangeGet".into()), Value::Bool(true), &[Value::Str("=\"currencyData\">".into()), Value::Str("</script>".into())]).await;
+        let data: Value = self.fetch_web_endpoint(Value::Str("fetchCurrencies".into()), Value::Str("webExchangeGet".into()), true, &[Value::Str("=\"currencyData\">".into()), Value::Str("</script>".into())]).await;
         if (data == Value::Null) {
             return Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1939,7 +1939,7 @@ impl Gemini {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), Value::Bool(false), &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
+        let data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), false, &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
         let error: String = format!("{}{}", self.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         let tables: crate::value::List = crate::value::List::new(if let Some(__s) = data.as_str() { __s.split("tbody>").map(Value::from).collect() } else { Vec::new() });
         let numTables: i64 = tables.len() as i64;

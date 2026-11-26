@@ -3868,10 +3868,7 @@ impl Extended {
 }
 
     pub async fn create_extended_order_request(&mut self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (false) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -3893,7 +3890,7 @@ impl Extended {
         }
         let amountString: Option<String> = self.amount_to_precision(symbol, Value::from(amount));
         let priceString: Option<String> = self.price_to_precision(symbol, Value::from(price));
-        let postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(false), &[&params]);
+        let postOnly: bool = self.is_post_only((uppercaseType == "MARKET"), false, &[&Value::from(&params)]);
         let reduceOnly: bool = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
         if (timeInForce.is_none()) {
@@ -3902,7 +3899,7 @@ impl Extended {
         let fee: String = self.safe_string_k(&params, "fee", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut builderFeeRate: Option<String> = None;
         let mut builderId: Option<String> = None;
-        let mut paramsBuilder: crate::value::Dict = params.clone().into_dict();
+        let mut paramsBuilder: crate::value::Dict = params.clone();
         let builderEnabled: bool = self.safe_bool_k_opt(&self.options, "builderFee", &[Value::Bool(false)]).unwrap_or(false);
         if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
@@ -4206,10 +4203,7 @@ impl Extended {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument")));
         }
@@ -4256,7 +4250,7 @@ impl Extended {
                 m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
                 m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
             m
-        }), &[params]);
+        }), &[&params]);
         let requestParams: crate::value::Dict = self.extend_t(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cancelId".to_string(), cancelId.map(Value::from).unwrap_or(Value::Null));

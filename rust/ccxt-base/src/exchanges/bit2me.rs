@@ -1658,7 +1658,7 @@ impl Bit2me {
     pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let isMarketOrder: bool = type_var.to_string() == "market";
+        let isMarketOrder: bool = type_var == "market";
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
         let stopLimitPrice: Option<String> = self.safe_string_k_opt(&params, "stopLimitPrice", &[]);
@@ -1675,7 +1675,7 @@ impl Bit2me {
         }
         let mut query: crate::value::Dict = self.omit_t(params, &["triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLimitPrice", "cost", "clientOrderId"], &[]);
         let mut postOnly: bool = false;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, false, &[Value::from(&query)]); postOnly = __destr_tmp.0.as_bool() == Some(true); query = __destr_tmp.1; }
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&query, "timeInForce", &[]);
         query = self.omit_t(query, Value::Str("timeInForce".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({

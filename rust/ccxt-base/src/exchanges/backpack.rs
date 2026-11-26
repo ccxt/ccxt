@@ -2947,10 +2947,7 @@ impl Backpack {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2983,7 +2980,7 @@ impl Backpack {
             }
             }
         }
-        let mut stockExplicitlyDisabled: bool = !(self.safe_bool2(params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[Value::Bool(true)]).as_bool() == Some(true));
+        let mut stockExplicitlyDisabled: bool = !(self.safe_bool2(&params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[Value::Bool(true)]).as_bool() == Some(true));
         let needsExternalRfqTickers: bool = (source.as_deref() == Some("Venue")) && (self.safe_string_k(&query, "source", &[]) == Value::Null) && hasRfqSymbol && !stockExplicitlyDisabled;
         let mut requestParams: Value = Value::from(&query);
         if (source.as_deref() == Some("External")) && (stockOnly || hasStockSymbol) && !(stockExplicitlyDisabled) {
@@ -4168,10 +4165,7 @@ impl Backpack {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let stockqueryVariable = self.handle_option_bool_and_params(params.clone(), Value::Str("createOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]);
         let mut stock: Option<bool> = stockqueryVariable.0;
         let query: crate::value::Dict = stockqueryVariable.1;
@@ -4275,7 +4269,7 @@ impl Backpack {
             request.insert("clientId".into(), Value::from(clientOrderId));
             omitKeys.push(Value::Str("clientOrderId".into()));
         }
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(false), &[self.omit(&query, Value::from(omitKeys), &[])]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == Some("market")), false, &[self.omit(&query, Value::from(omitKeys), &[])]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {

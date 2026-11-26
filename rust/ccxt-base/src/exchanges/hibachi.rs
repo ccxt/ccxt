@@ -1535,10 +1535,7 @@ impl Hibachi {
 
     pub fn create_order_request(&self, mut nonce: Value, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a type argument")));
         }
@@ -1575,7 +1572,7 @@ impl Hibachi {
                 m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
             m
         });
-        let postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Bool(false), &[&params]);
+        let postOnly: bool = self.is_post_only(((if let Some(__s) = type_var { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), false, &[&Value::from(&params)]);
         let reduceOnly: Option<bool> = self.safe_bool2_opt(&params, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let timeInForce: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[]);
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);

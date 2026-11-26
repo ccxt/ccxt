@@ -3661,10 +3661,7 @@ impl Deribit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3698,7 +3695,7 @@ impl Deribit {
         let isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
         let exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k_opt(&params, "post_only", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificPostOnly == Some(true)), &[&params]);
+        let postOnly: bool = self.is_post_only(isMarketOrder, (exchangeSpecificPostOnly == Some(true)), &[&Value::from(&params)]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));

@@ -3843,14 +3843,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit_t(&paramsCost, &["clientOrderId"], &[]) } else { paramsCost });
         let marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
         let isLimitOrder: bool = type_var.as_str() == Some("limit");
-        let isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
+        let isMarketOrder: bool = type_var.as_str() == Some("market");
         let triggerPrice: Option<f64> = self.safe_number_n(Value::from(&paramsOmitted), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("activation_price".into())]), &[]).as_f64();
         let isStopOrder: bool = triggerPrice.is_some();
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&paramsOmitted, "timeInForce", &[]);
         if (timeInForce.is_some()) && (timeInForce.as_deref() != Some("GTC")) && (timeInForce.as_deref() != Some("IOC")) && (timeInForce.as_deref() != Some("PO")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support timeInForce ").into()), timeInForce.as_deref().unwrap_or("null")).into()), ", only GTC, IOC and PO are allowed")));
         }
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&paramsOmitted)]);
+        let postOnly: bool = self.is_post_only(isMarketOrder, false, &[&Value::from(&paramsOmitted)]);
         let ioc: bool = timeInForce.as_deref() == Some("IOC");
         if isStopOrder && (postOnly || ioc) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")));

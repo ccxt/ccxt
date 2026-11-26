@@ -1509,22 +1509,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(Value::Arr(fields.clone())));
         let hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), "keccak", &[Value::Str("hex".into())]));
         let signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(Value::from(privateKey)), Value::Str("secp256k1".into()), Value::Null);
-        let mut rHex: Option<String> = self.safe_string_k_opt(&signature, "r", &[]);
-        let mut sHex: Option<String> = self.safe_string_k_opt(&signature, "s", &[]);
-        if (rHex.is_none()) {
+        let rHexRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (rHexRaw == "") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " signEvmTransaction() missing rHex")));
         }
-        let rHexLength: i64 = (rHex.as_deref().unwrap_or_default().chars().count() as i64);
-        if (((rHexLength % 2)) != 0) {
-            rHex = Some(format!("{}{}", "0", rHex.as_deref().unwrap_or("null")));
-        }
-        if (sHex.is_none()) {
+        let sHexRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (sHexRaw == "") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " signEvmTransaction() missing sHex")));
         }
-        let sHexLength: i64 = (sHex.as_deref().unwrap_or_default().chars().count() as i64);
-        if (((sHexLength % 2)) != 0) {
-            sHex = Some(format!("{}{}", "0", sHex.as_deref().unwrap_or("null")));
-        }
+        let rHex: Option<String> = self.pad_hex_to_even(Value::from(rHexRaw)).as_str().map(str::to_owned);
+        let sHex: Option<String> = self.pad_hex_to_even(Value::from(sHexRaw)).as_str().map(str::to_owned);
         let yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let mut signedFields: Vec<Value> = Vec::new();
         {
@@ -1615,10 +1609,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.as_str(), &[]).await;
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let defaultModel: String = self.safe_string_k(&info, "tradingModel", &[Value::Str("amm".into())]).as_str().unwrap_or("amm").to_string();
@@ -1629,7 +1620,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
-        let mut enableAmm: Option<bool> = self.safe_bool2(params, Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into()), &[self.safe_bool_k(&self.options, "enableAmmOrders", &[Value::Bool(false)])]).as_bool();
+        let mut enableAmm: Option<bool> = self.safe_bool2(&params, Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into()), &[self.safe_bool_k(&self.options, "enableAmmOrders", &[Value::Bool(false)])]).as_bool();
         if !(enableAmm == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")));
         }

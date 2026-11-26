@@ -5727,7 +5727,7 @@ impl Bingx {
             request.insert(exchangeClientOrderId, clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let timeInForce: Option<String> = self.safe_string_upper_k_opt(&paramsMarketType, "timeInForce", &[]);
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForce.as_deref() == Some("PostOnly")), &[Value::from(&paramsMarketType)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only(isMarketOrder, (timeInForce.as_deref() == Some("PostOnly")), &[Value::from(&paramsMarketType)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly || (timeInForce.as_deref() == Some("PostOnly")) {

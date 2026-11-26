@@ -2495,7 +2495,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 // per-language prediction base skeletons don't carry; this base
 // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     fn pad_hex_to_even(&self, mut hex: Value) -> Value {
-        if (hex == Value::Null) {
+        if (hex.as_str() == Some("")) {
             return Value::Str("".into());
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -2520,9 +2520,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     fn rlp_encode_bytes(&self, mut hex: Value) -> Value {
-        if (hex == Value::Null) {
-            return Value::Str("".into());
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         let byteLength: Option<i64> = self.parse_to_int((match ((Value::Int(hex.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         if (byteLength.is_none()) {

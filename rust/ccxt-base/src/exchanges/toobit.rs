@@ -2988,7 +2988,7 @@ impl Toobit {
         }  else {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }
-        let isPostOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[Value::from(&paramsCost)]);
+        let isPostOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == "market"), false, &[Value::from(&paramsCost)]);
         let isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = isPostOnlyparamsPostOnlyVariable.1;
         if isPostOnly {
@@ -3037,7 +3037,7 @@ impl Toobit {
             request.insert("type".into(), Value::Str("LIMIT".into())); // weird, but exchange works this way
             request.insert("priceType".into(), Value::Str("MARKET".into()));
         }
-        let isPostOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(false), &[Value::from(&paramsReduceOnly)]);
+        let isPostOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == "market"), false, &[Value::from(&paramsReduceOnly)]);
         let isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = isPostOnlyparamsPostOnlyVariable.1;
         if isPostOnly {

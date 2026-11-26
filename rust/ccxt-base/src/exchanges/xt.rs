@@ -4768,7 +4768,7 @@ impl Xt {
         if isMarketBuy {
             paramsWithoutCost = self.omit_t(&paramsMarginMode, Value::Str("cost".into()), &[]);
         }
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[Value::Dict(paramsWithoutCost)]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == "market"), (timeInForce.as_deref() == Some("GTX")), &[Value::Dict(paramsWithoutCost)]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {
@@ -4813,7 +4813,7 @@ impl Xt {
             m
         });
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == "market"), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[params]);
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var == "market"), (timeInForce.as_deref() == Some("GTX")), &[params]);
         let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
         let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         if postOnly {

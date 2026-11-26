@@ -11085,14 +11085,14 @@ if _try_result.is_err() {
                     request.insert("tpOrderType".into(), self.safe_string_k(&paramsProductType, "tpOrderType", &[Value::Str("market".into())]));
                 }
             }
-            let isMarketOrder: bool = type_var.map(str::to_owned).as_deref() == Some("market");
+            let isMarketOrder: bool = type_var == Some("market");
             if !isMarketOrder {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
             }
             request.insert("orderType".into(), Value::from(type_var));
             let exchangeSpecificTifParam: Option<String> = self.safe_string_k_opt(&paramsProductType, "timeInForce", &[]);
             let mut postOnly: Option<bool> = None;
-            { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsProductType)]); postOnly = __destr_tmp.0.as_bool(); paramsProductType = __destr_tmp.1; }
+            { let __destr_tmp = self.handle_post_only(isMarketOrder, (exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsProductType)]); postOnly = __destr_tmp.0.as_bool(); paramsProductType = __destr_tmp.1; }
             let mut timeInForce: Option<String> = None;
             { let __destr_tmp = self.handle_option_string_and_params(&paramsProductType, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]); timeInForce = __destr_tmp.0.as_str().map(str::to_owned); paramsProductType = __destr_tmp.1; }
             if (timeInForce.is_some()) {
@@ -11165,7 +11165,7 @@ if _try_result.is_err() {
         if (oneWayMode.is_some()) {
             hedged = Some(!(oneWayMode == Some(true)));
         }
-        let isMarketOrder: bool = type_var.map(str::to_owned).as_deref() == Some("market");
+        let isMarketOrder: bool = type_var == Some("market");
         let triggerPrice: Option<f64> = self.safe_number2(&paramsMarketType, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let stopLossTriggerPrice: Option<f64> = self.safe_number_k(&paramsMarketType, "stopLossPrice", &[]).as_f64();
         let takeProfitTriggerPrice: Option<f64> = self.safe_number_k(&paramsMarketType, "takeProfitPrice", &[]).as_f64();
@@ -11199,7 +11199,7 @@ if _try_result.is_err() {
         let clientOrderId: Option<String> = self.safe_string2_opt(&paramsMarketType, Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
         let exchangeSpecificTifParam: Option<String> = self.safe_string2_opt(&paramsMarketType, Value::Str("force".into()), Value::Str("timeInForce".into()), &[]);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsMarketType)]); postOnly = __destr_tmp.0.as_bool(); paramsMarketType = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarketOrder, (exchangeSpecificTifParam.as_deref() == Some("post_only")), &[Value::from(&paramsMarketType)]); postOnly = __destr_tmp.0.as_bool(); paramsMarketType = __destr_tmp.1; }
         let mut timeInForce: Option<String> = None;
         { let __destr_tmp = self.handle_option_string_and_params(&paramsMarketType, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]); timeInForce = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
         if (timeInForce.is_some()) {

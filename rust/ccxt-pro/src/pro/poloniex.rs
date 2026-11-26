@@ -473,7 +473,7 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrderWs() side is required")));
         }
         let uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
-        let isPostOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[&Value::from(&params)]);
+        let isPostOnly: bool = self.is_post_only((uppercaseType == "MARKET"), (uppercaseType == "LIMIT_MAKER"), &[&Value::from(&params)]);
         if isPostOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }

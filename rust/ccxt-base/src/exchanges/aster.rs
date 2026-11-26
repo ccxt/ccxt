@@ -4205,7 +4205,7 @@ impl Aster {
                 uppercaseType = Some("TAKE_PROFIT".to_string());
             }
         }
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[&Value::from(&params)]);
+        let postOnly: bool = self.is_post_only(isMarketOrder, false, &[&Value::from(&params)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("GTX".into()));
         }

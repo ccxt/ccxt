@@ -732,7 +732,7 @@ impl Btcbox {
     m
 }));
         let promise1: crate::value::Dict = self.call_method_t("public_get_tickers", &[]).await;
-        let promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webApiGetAjaxCoinCoinInfo".into()), Value::Bool(true), &[]).await;
+        let promise2: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webApiGetAjaxCoinCoinInfo".into()), true, &[]).await;
         let response1response2Variable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(promise1), promise2])).await.to_vec();
         let response1: Value = response1response2Variable.get(0).cloned().unwrap_or(Value::Null);
         let response2: Value = response1response2Variable.get(1).cloned().unwrap_or(Value::Null);

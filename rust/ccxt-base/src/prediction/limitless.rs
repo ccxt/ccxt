@@ -3165,9 +3165,9 @@ if _try_result.is_err() {
         let priceString: Option<String> = self.number_to_string(&price);
         let mut makerAmount: Option<String> = None;
         let mut takerAmount: Option<String> = None;
-        let isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
+        let isMarket: bool = type_var.as_str() == Some("market");
         let mut postOnly: Value = Value::Bool(false);
-        { let __destr_tmp = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[Value::from(&paramsValue)]); postOnly = __destr_tmp.0; paramsValue = __destr_tmp.1; }
+        { let __destr_tmp = self.handle_post_only(isMarket, false, &[Value::from(&paramsValue)]); postOnly = __destr_tmp.0; paramsValue = __destr_tmp.1; }
         let mut timeInForce: Option<String> = self.safe_string_k_opt(&paramsValue, "timeInForce", &[]);
         paramsValue = self.omit_t(&paramsValue, Value::Str("timeInForce".into()), &[]);
         if (timeInForce.is_none()) {
@@ -3355,8 +3355,8 @@ if _try_result.is_err() {
         let payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(Value::Arr(fields.clone())));
         let hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), "keccak", &[Value::Str("hex".into())]));
         let signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(Value::from(privateKey)), Value::Str("secp256k1".into()), Value::Null);
-        let rHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "r", &[])).as_str().map(str::to_owned);
-        let sHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "s", &[])).as_str().map(str::to_owned);
+        let rHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "r", &[Value::Str("".into())])).as_str().map(str::to_owned);
+        let sHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "s", &[Value::Str("".into())])).as_str().map(str::to_owned);
         let yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let mut signedFields: Vec<Value> = Vec::new();
         {
