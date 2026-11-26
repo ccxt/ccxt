@@ -1144,7 +1144,8 @@ public class Independentreserve extends IndependentreserveApi
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> fee = this.safeDict(fees, market.get("base"), new HashMap<String, Object>() {{}});
+            String baseCode = this.safeString(market, "base", "");
+            Map<String, Object> fee = this.safeDict(fees, baseCode, new HashMap<String, Object>() {{}});
             result.put(symbol, new HashMap<String, Object>() {{
     put( "info", Independentreserve.this.safeDict(fee, "info", null) );
     put( "symbol", symbol );

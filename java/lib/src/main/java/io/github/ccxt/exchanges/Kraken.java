@@ -1170,8 +1170,9 @@ public class Kraken extends KrakenApi
     {
         Map<String, Object> makerFees = this.safeDict(fee, "fees_maker", new HashMap<String, Object>() {{}});
         Map<String, Object> takerFees = this.safeDict(fee, "fees", new HashMap<String, Object>() {{}});
-        Map<String, Object> symbolMakerFee = this.safeDict(makerFees, market.get("id"), new HashMap<String, Object>() {{}});
-        Map<String, Object> symbolTakerFee = this.safeDict(takerFees, market.get("id"), new HashMap<String, Object>() {{}});
+        String marketId = this.safeString(market, "id", "");
+        Map<String, Object> symbolMakerFee = this.safeDict(makerFees, marketId, new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolTakerFee = this.safeDict(takerFees, marketId, new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", market.get("symbol") );

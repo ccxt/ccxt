@@ -2266,7 +2266,7 @@ public class Predictfun extends PredictfunApi
         Boolean isYieldBearing = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing), true));
         Long defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
         Long expirationDelta = defaultExpiration;
-        Object expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
+        Long expiration = this.safeInteger(paramsWarnOnMarketOrderWithoutPrice, "expiration");
         if (java.util.Objects.equals(expiration, null))
         {
             if (Boolean.TRUE.equals(isMarket))

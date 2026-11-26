@@ -278,8 +278,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));
         }
-        Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-        if (Helpers.isTrue((checksum)) && Boolean.TRUE.equals(receivedSnapshot))
+        boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
+        if ((checksum) && Boolean.TRUE.equals(receivedSnapshot))
         {
             io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
             io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));

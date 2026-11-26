@@ -1359,9 +1359,9 @@ public class Coinsph extends CoinsphApi
                 request.put("endTime", until);
             } else
             {
-                Object endTimeByLimit = this.sum(since, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * ((limitResolved - 1L))));
+                Long endTimeByLimit = this.sum(since, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * ((limitResolved - 1L))));
                 Long now = this.milliseconds();
-                request.put("endTime", (now == null ? null : (((Number) endTimeByLimit).doubleValue() < ((Number) now).doubleValue() ? (Object) (endTimeByLimit) : (Object) (now))));
+                request.put("endTime", Math.min(endTimeByLimit, now));
             }
         } else if (!java.util.Objects.equals(until, null))
         {

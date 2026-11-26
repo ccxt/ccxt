@@ -4871,10 +4871,9 @@ public class Htx extends HtxApi
         //         "ts": 1770293281344
         //     }
         //
-        Map<String, Object> finalResponse = response;
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", finalResponse );
-        }};
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("info", response);
+        List<Object> dataRows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Object data = this.safeValue(response, "data");
         if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
         {
@@ -4897,9 +4896,9 @@ public class Htx extends HtxApi
         {
             if (Boolean.TRUE.equals(isolated))
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+                for (var i = 0; i < dataRows.size(); i++)
                 {
-                    Map<String, Object> entry = this.safeDict(data, i, null);
+                    Map<String, Object> entry = this.safeDict(dataRows, i, null);
                     List<Object> balances = this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
                     Map<String, Object> subResult = new HashMap<String, Object>() {{}};
                     for (var j = 0; j < balances.size(); j++)
@@ -4937,9 +4936,9 @@ public class Htx extends HtxApi
             }
         } else if (Boolean.TRUE.equals(inverse))
         {
-            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+            for (var i = 0; i < dataRows.size(); i++)
             {
-                Map<String, Object> balance = this.safeDict(data, i, null);
+                Map<String, Object> balance = this.safeDict(dataRows, i, null);
                 String currencyId = this.safeString(balance, "symbol");
                 String code = this.safeCurrencyCode(currencyId, null);
                 Map<String, Object> account = this.account();

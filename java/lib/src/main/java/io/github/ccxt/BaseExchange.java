@@ -7729,7 +7729,7 @@ public Map<String, Object> describe()
         //         { 'currency': 'USDT', 'cost': 12.3456 },
         //     ]
         //
-        Map<String, Object> reduced = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> reduced = new HashMap<String, Map<String, Object>>();
         for (var i = 0; i < (fees == null ? 0 : fees.size()); i++)
         {
             Object fee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
@@ -7750,7 +7750,7 @@ public Map<String, Object> describe()
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
                 if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v8 -> ((Object)(rateKey)) != null && j39v8.contains(rateKey); case Map<?, ?> j39v7 -> ((Object)(rateKey)) instanceof String && j39v7.containsKey(rateKey); case null, default -> false; }))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
+                    Helpers.addElementToObject((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost", Precise.stringAdd(Helpers.GetValue((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost"), cost));
                 } else
                 {
                     Map<String, Object> newRateFee = new HashMap<String, Object>();
@@ -9528,7 +9528,7 @@ public Map<String, Object> describe()
                 throw new ExchangeError((this.id + " buildOHLCVC() missing ts")) ;
             }
             Long openingTime = ((ms == null) ? null : (long) ((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))) * ms)); // shift to the edge of m/h/d (but not M)
-            if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(openingTime, java.util.Objects.requireNonNullElse(since, 0L)))
+            if ((openingTime == null || (!(openingTime >= (java.util.Objects.requireNonNullElse(since, 0L))))))
             {
                 continue;
             }
@@ -9560,8 +9560,8 @@ public Map<String, Object> describe()
             {
                 // still processing the same timeframe -> update opening trade
                 List<Object> prevCandle = this.safeList(ohlcvs, candle, null);
-                Object prevHigh = this.safeValue(prevCandle, i_high);
-                Object prevLow = this.safeValue(prevCandle, i_low);
+                Double prevHigh = this.safeNumber(prevCandle, 2, null);
+                Double prevLow = this.safeNumber(prevCandle, 3, null);
                 ohlcvs.get(candle.intValue()).set(i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
                 ohlcvs.get(candle.intValue()).set(i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
                 ohlcvs.get(candle.intValue()).set(i_close, price);
@@ -10623,13 +10623,13 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public Boolean isLeveragedCurrency(Object currencyCode, Boolean checkBaseCoin, Object existingCurrencies)
+    public Boolean isLeveragedCurrency(String currencyCode, Boolean checkBaseCoin, Object existingCurrencies)
     {
         List<String> leverageSuffixes = new ArrayList<String>(Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; i < leverageSuffixes.size(); i++)
         {
             String leverageSuffix = (String) (leverageSuffixes == null || i < 0 || i >= leverageSuffixes.size() ? null : leverageSuffixes.get(i));
-            Boolean endsWithSuffix = ((String)currencyCode).endsWith(leverageSuffix);
+            Boolean endsWithSuffix = currencyCode.endsWith(leverageSuffix);
             if (Boolean.TRUE.equals(endsWithSuffix))
             {
                 if (!java.util.Objects.requireNonNullElse(checkBaseCoin, false))
@@ -12046,7 +12046,7 @@ public Map<String, Object> describe()
             {
                 throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            Double requiredCalls = Math.ceil(Double.parseDouble(String.valueOf((((double) ((until - since))) / ((double) step)))));
+            Long requiredCalls = this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) ((until - since))) / ((double) step))))));
             if ((requiredCalls != null && (maxCallsLimit == null || requiredCalls > maxCallsLimit)))
             {
                 throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsLimit)) + " required calls is ") + String.valueOf(requiredCalls))) ;

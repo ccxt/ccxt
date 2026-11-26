@@ -1287,9 +1287,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         //
         String id = this.safeString(message, "id");
-        Object data = this.safeValue(message, "data");
-        if (!(data instanceof List))
+        if (!(message.get("data") instanceof List))
         {
+            Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (!java.util.Objects.equals(id, null))
@@ -1343,9 +1343,11 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         List<Object> subMessageHashes = this.safeList(pending, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         String action = this.safeString(pending, "method");
         String errorMessage = null;
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        List<Object> rows = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Integer rowsLength = rows.size();
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             String status = this.safeString(entry, "status");
             if (java.util.Objects.equals(status, "err"))
             {

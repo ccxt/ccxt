@@ -7087,7 +7087,7 @@ public class Binance extends BinanceApi
                 if ((since > 0))
                 {
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    Long endTime = (Long) this.sum(since, (((limitValue * ((long) duration)) * 1000L) - 1L));
+                    Long endTime = this.sum(since, (((limitValue * ((long) duration)) * 1000L) - 1L));
                     Long now = this.milliseconds();
                     request.put("endTime", Math.min(now, endTime));
                 }

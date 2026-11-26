@@ -2282,7 +2282,7 @@ public class Myriad extends MyriadApi
         // the /orders endpoint ignores a market_id filter server-side (it returns nothing even for a
         // valid market), so parse every order — each self-resolves its outcome from the network/market/
         // outcome ids — and filter by the requested outcome client-side
-        Object orders = this.parsePredictionOrders(data, null, null, null, new HashMap<String, Object>() {{}});
+        List<Object> orders = this.parsePredictionOrders(data, null, null, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(orders, outcomeSymbol, since, limit, false);
 
     }
@@ -3819,12 +3819,13 @@ public class Myriad extends MyriadApi
         {
             this.options.put("requestId", this.createSafeDictionary());
         }
-        Object options = this.options.get("requestId");
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         if (!java.util.Objects.equals(url, null))
         {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+            options.put(url, newValue);
+            this.options.put("requestId", options);
         }
         return newValue;
     }

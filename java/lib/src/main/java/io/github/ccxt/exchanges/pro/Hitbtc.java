@@ -1854,11 +1854,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result instanceof List))
+            List<Object> rows = this.safeList(message, "result", null);
+            if (!java.util.Objects.equals(rows, null))
             {
                 // to do improve this, not very reliable right now
-                Map<String, Object> first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-                List<Object> rows = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> first = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
                 Integer arrayLength = rows.size();
                 if ((java.util.Objects.equals(arrayLength, 0)) || (first.containsKey("client_order_id")))
                 {

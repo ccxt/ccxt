@@ -1974,7 +1974,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parsePredictionOrders(Object orders, Map<String, Object> outcomeObj, Long since, Long limit, Map<String, Object> parameters)
+    public List<Object> parsePredictionOrders(Object orders, Map<String, Object> outcomeObj, Long since, Long limit, Map<String, Object> parameters)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         List<Object> rows = this.toArray(orders);
@@ -2016,7 +2016,7 @@ public Map<String, Object> describe()
         return results;
     }
 
-    public Object filterByOutcomeSinceLimit(Object array, String outcome, Long since, Long limit, Boolean tail)
+    public List<Object> filterByOutcomeSinceLimit(Object array, String outcome, Long since, Long limit, Boolean tail)
     {
         return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
     }

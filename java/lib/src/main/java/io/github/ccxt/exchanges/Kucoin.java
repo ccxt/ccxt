@@ -4270,7 +4270,7 @@ public class Kucoin extends KucoinApi
         {
             sinceResolved = (now - (limit * duration));
         }
-        Object endAt = now;
+        Long endAt = now;
         if (!java.util.Objects.equals(since, null))
         {
             request.put("from", since);

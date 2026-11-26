@@ -2644,12 +2644,13 @@ public class Sxbet extends SxbetApi
         {
             this.options.put("requestId", this.createSafeDictionary());
         }
-        Object options = this.options.get("requestId");
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         if (!java.util.Objects.equals(url, null))
         {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
+            options.put(url, newValue);
+            this.options.put("requestId", options);
         }
         return newValue;
     }

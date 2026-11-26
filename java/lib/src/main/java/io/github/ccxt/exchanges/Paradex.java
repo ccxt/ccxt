@@ -2866,7 +2866,7 @@ public class Paradex extends ParadexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.createOrderRequest(symbol, type, side, (Double) (amount), price, parameters);
+        Map<String, Object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags", "recv_window")));
         Map<String, Object> editRequest = this.extend(request, new HashMap<String, Object>() {{
             put( "order_id", id );
@@ -4954,7 +4954,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> paramsCalls = (Map<String, Object>) ((List<Object>) paginationCallsparamsCallsVariable).get(1);
             Long until = this.safeInteger(paramsCalls, "until");
             Long pageSpan = this.parseToInt(Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing));
-            Long sinceEnd = (Long) this.sum(since, pageSpan);
+            Long sinceEnd = this.sum(since, pageSpan);
             Long endAt = this.milliseconds();
             if ((endAt != null && (sinceEnd == null || sinceEnd < endAt)))
             {

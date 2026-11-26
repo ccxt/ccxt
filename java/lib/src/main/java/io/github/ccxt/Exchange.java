@@ -1314,7 +1314,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((java.util.Objects.equals(this.options.get("createMarketBuyOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)))
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || (!java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketBuyOrderWithCost"), false)))
         {
             return (this.createOrder(symbol, "market", "buy", cost, 1.0, parameters)).join();
         }
@@ -1339,7 +1339,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        if ((java.util.Objects.equals(this.options.get("createMarketSellOrderRequiresPrice"), true)) || (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false)))
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || (!java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), null) && !java.util.Objects.equals(this.has.get("createMarketSellOrderWithCost"), false)))
         {
             return (this.createOrder(symbol, "market", "sell", cost, 1.0, parameters)).join();
         }

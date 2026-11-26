@@ -1784,7 +1784,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "ccxtStatus", "open" );
             }}));
         }
-        Object parsed = this.parsePredictionOrders(ordersWithStatus, null, since, null, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parsePredictionOrders(ordersWithStatus, null, since, null, new HashMap<String, Object>() {{}});
         String outcomeHandle = null;
         if (!java.util.Objects.equals(outcome, null))
         {
@@ -1853,7 +1853,7 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         List<Object> dedupedValues = new ArrayList<Object>(deduped.values());
-        Object parsed = this.parsePredictionOrders(dedupedValues, null, since, null, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parsePredictionOrders(dedupedValues, null, since, null, new HashMap<String, Object>() {{}});
         String outcomeHandle = null;
         if (!java.util.Objects.equals(outcome, null))
         {

@@ -482,25 +482,23 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> tick = this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
-        Map<String, Object> parseable = tick;
-        if (Boolean.TRUE.equals(isFutures))
-        {
-            List<Object> rawAsks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rawBuys = this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
-            {
-                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
-                hx4NewMap0.put("asks", this.parseContractBidsAsks(rawAsks, symbol));
-                hx4NewMap0.put("buys", this.parseContractBidsAsks(rawBuys, symbol));
-                parseable = hx4NewMap0;
-            }
-        }
         if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Map<String, Object> snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks", 0, 1, 2);
-        orderbook.reset(snapshot);
+        if (Boolean.TRUE.equals(isFutures))
+        {
+            List<Object> rawAsks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawBuys = this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("asks", this.parseContractBidsAsks(rawAsks, symbol));
+            mapLiteral3.put("buys", this.parseContractBidsAsks(rawBuys, symbol));
+            orderbook.reset(this.parseOrderBook(mapLiteral3, symbol, timestamp, "buys", "asks", 0, 1, 2));
+        } else
+        {
+            orderbook.reset(this.parseOrderBook(tick, symbol, timestamp, "buys", "asks", 0, 1, 2));
+        }
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }

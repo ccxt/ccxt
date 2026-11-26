@@ -2637,7 +2637,7 @@ public class Kalshi extends KalshiApi
         }
         (this.loadOutcome(outcome, false)).join();
         (this.cancelOrder(id, outcome, new HashMap<String, Object>() {{}})).join();
-        return (this.createOrder(outcome, type, side, (Double) (amount), price, parameters)).join();
+        return (this.createOrder(outcome, type, side, amount, price, parameters)).join();
 
     }
 

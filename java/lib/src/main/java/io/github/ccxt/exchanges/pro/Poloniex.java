@@ -205,11 +205,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> subscribe = new HashMap<String, Object>();
         subscribe.put("event", "subscribe");
         subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
-        List<String> marketIds = new ArrayList<String>(Arrays.asList());
-        if (this.isEmpty(symbols))
-        {
-            marketIds.add("all");
-        } else
+        List<String> marketIds = new ArrayList<String>(Arrays.asList("all"));
+        if (!this.isEmpty(symbols))
         {
             if (java.util.Objects.equals(symbols, null))
             {

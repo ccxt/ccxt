@@ -2622,8 +2622,8 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body", null))).join();
         // request echo first so the response's real orderID/status/success win on overlap
         Map<String, Object> enriched = this.extend(this.safeDict(built, "request", null), response);
-        Object order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(built, "outcome", null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
-        ((Map<String, Object>)order).put("info", response); // keep info the raw exchange response, not the request echo
+        Map<String, Object> order = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (this.safeDict(built, "outcome", null))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        order.put("info", response); // keep info the raw exchange response, not the request echo
         return order;
 
     }
@@ -2688,8 +2688,8 @@ public class Polymarket extends PolymarketApi
                 // request echo first so the response's real orderID/status win on overlap
                 Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 Map<String, Object> enriched = this.extend(this.safeDict(requests, i, null), rawItem);
-                Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(outcomes, i, null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-                ((Map<String, Object>)parsedItem).put("info", rawItem); // keep info the raw exchange response
+                Map<String, Object> parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (this.safeDict(outcomes, i, null))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                parsedItem.put("info", rawItem); // keep info the raw exchange response
                 result.add(parsedItem);
             }
         } else
@@ -3943,12 +3943,8 @@ public class Polymarket extends PolymarketApi
     {
         for (var i = 0; i < message.size(); i++)
         {
-            Object eventVar = (message == null || i < 0 || i >= message.size() ? null : message.get(i));
-            if ((java.util.Objects.equals(eventVar, null)) || (java.util.Objects.equals(eventVar, null)) || (!(eventVar instanceof Map)))
-            {
-                continue;
-            }
-            this.handleMessageEvent(client, (Map<String, Object>) (eventVar));
+            // a non-object element reads as {}, which carries no event_type and is ignored
+            this.handleMessageEvent(client, this.safeDict(message, i, new HashMap<String, Object>() {{}}));
         }
     }
 

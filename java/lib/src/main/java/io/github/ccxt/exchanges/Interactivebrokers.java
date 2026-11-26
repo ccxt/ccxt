@@ -4405,7 +4405,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         String accountId = accountIdqueryVariable.first();
         Map<String, Object> query = accountIdqueryVariable.second();
-        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, (Double) (amount), price, query);
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, query);
         orderRequest.put("acctId", accountId);
         orderRequest.put("accountId", accountId);
         orderRequest.put("orderId", id);

@@ -3369,11 +3369,10 @@ public class Limitless extends LimitlessApi
         List<String> labels = new ArrayList<String>(Arrays.asList("yes", "no"));
         for (var i = 0; i < clob.size(); i++)
         {
-            Map<String, Object> entry = this.safeDict(clob, i, null);
             for (var j = 0; j < labels.size(); j++)
             {
                 String label = this.safeString(labels, j);
-                Object position = this.getPositionFromClobEntry(label, entry);
+                Object position = this.getPositionFromClobEntry(label, this.safeDict(clob, i, new HashMap<String, Object>() {{}}));
                 if (!java.util.Objects.equals(position, null))
                 {
                     result.add(position);
@@ -3384,12 +3383,8 @@ public class Limitless extends LimitlessApi
 
     }
 
-    public Object getPositionFromClobEntry(String label, Object entry)
+    public Object getPositionFromClobEntry(String label, Map<String, Object> entry)
     {
-        if (java.util.Objects.equals(entry, null))
-        {
-            return null;
-        }
         Map<String, Object> tokensBalance = this.safeDict(entry, "tokensBalance", null);
         String contracts = this.omitZero(this.safeString(tokensBalance, label));
         if (java.util.Objects.equals(contracts, null))

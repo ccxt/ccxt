@@ -2490,21 +2490,21 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // the shape of the matching JSON subscription message, so the JSON handlers parse both.
         // Requests, subscribe acks and errors stay JSON text frames.
         //
-        // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        // ids this decoder does not know (the schema says to skip them), and malformed frames.
+        // Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        // template ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         String frameHex = this.binaryToBase16(message);
         Long frameLength = this.parseToInt((((double) frameHex.length()) / ((double) 2)));
         if (((frameLength == null || frameLength < 8)))
         {
-            return null;
+            return new HashMap<String, Object>() {{}};
         }
         Long blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Long templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Long schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
         if (((schemaId == null || schemaId != 1)) || ((frameLength == null || (!(frameLength >= ((Number) this.sum(blockLength, 8)).doubleValue())))))
         {
-            return null;
+            return new HashMap<String, Object>() {{}};
         }
         String channel = null;
         Map<String, Object> data = null;
@@ -2563,7 +2563,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         if (java.util.Objects.equals(data, null))
         {
-            return null;
+            return new HashMap<String, Object>() {{}};
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -3288,11 +3288,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public void handleBinaryMessage(Client client, Object message)
     {
         Map<String, Object> parsedMessage = this.parseSbeMessage(client, message);
-        if (java.util.Objects.equals(parsedMessage, null))
+        if (parsedMessage.containsKey("params"))
         {
-            return;
+            this.handleStreamMessage(client, parsedMessage);
         }
-        this.handleStreamMessage(client, parsedMessage);
     }
 
     public void handleMessage(Client client, Map<String, Object> message)

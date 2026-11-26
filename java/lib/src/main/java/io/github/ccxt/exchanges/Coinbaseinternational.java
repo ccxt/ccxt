@@ -1280,7 +1280,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         request.put("end_timestamp", now);
         if (!java.util.Objects.equals(limit, null))
         {
-            Long endTimestamp = (Long) this.sum(sinceResolved, (limit * duration));
+            Long endTimestamp = this.sum(sinceResolved, (limit * duration));
             request.put("end_timestamp", endTimestamp);
         }
         Long until = this.safeInteger(paramsPaginate, "until");

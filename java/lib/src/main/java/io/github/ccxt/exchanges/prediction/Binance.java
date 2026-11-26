@@ -1363,7 +1363,7 @@ public class Binance extends BinanceApi
         // }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
+        List<Object> parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
 
     }
@@ -1471,7 +1471,7 @@ public class Binance extends BinanceApi
         // }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-        Object parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
+        List<Object> parsedOrders = this.parsePredictionOrders(orders, outcomeObj, since, null, new HashMap<String, Object>() {{}});
         return this.filterByOutcomeSinceLimit(parsedOrders, outcome, since, limit, false);
 
     }
@@ -1614,7 +1614,7 @@ public class Binance extends BinanceApi
         //
         List<Object> positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedPositions = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
-        Object filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null, false);
+        List<Object> filteredPositions = this.filterByOutcomeSinceLimit(parsedPositions, outcome, null, null, false);
         return this.safeDict(filteredPositions, 0, null);
 
     }

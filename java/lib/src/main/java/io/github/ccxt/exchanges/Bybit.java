@@ -2556,6 +2556,10 @@ public class Bybit extends BybitApi
         }
         String strike = this.safeString(optionParts, 2, "");
         String optionType = this.safeString(optionParts, 3, "");
+        if (java.util.Objects.equals(expiry, null))
+        {
+            throw new BadSymbol((this.id + " createExpiredOptionMarket() missing expiry")) ;
+        }
         String datetime = (String) this.convertExpireDate(expiry);
         Double amountPrecision = null;
         Double pricePrecision = null;
@@ -2574,6 +2578,10 @@ public class Bybit extends BybitApi
             pricePrecision = this.parseNumber("0.01");
         }
         Object convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
+        if (java.util.Objects.equals(convertedExpireDate, null))
+        {
+            throw new BadSymbol((this.id + " createExpiredOptionMarket() invalid expiry")) ;
+        }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", ((((((baseName + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType));
         mapLiteral1.put("symbol", ((((((((((baseName + "/") + quote) + ":") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
@@ -5829,8 +5837,7 @@ public class Bybit extends BybitApi
                     orderCost = cost;
                 } else
                 {
-                    String quoteAmount = Precise.stringMul(amountString, priceString);
-                    orderCost = quoteAmount;
+                    orderCost = Precise.stringMul(amountString, priceString);
                 }
                 request.put("qty", this.getCost(symbolValue, orderCost));
             } else
