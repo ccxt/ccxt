@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { ok, TICKER_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, MAX_CODE_LENGTH, MAX_SYMBOLS } from './common.js';
+import { run, clampLimit, limitParam, limitClamped, limitClampedNotice, sinceGapNotice, timeframeMs, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, MAX_CODE_LENGTH, MAX_SYMBOLS } from './common.js';
 import { UI_STATUSES, uiToolMeta, uiNotice, decideUiStatus, uiSupport, requestClientCapabilities, attachesView, registerUiResources, type UiPayload, type ViewName } from '../ui.js';
 import { currentRequestScope } from '../request-scope.js';
 import { registerLiveTool } from './live.js';
@@ -318,7 +318,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             'symbol': symbolParam ('unified symbol, e.g. "BTC/USDT" (search_markets)'),
             'timeframe': z.string ().min (1).max (MAX_CODE_LENGTH).optional ().describe ('candle interval, default "1h" (describe_exchange .timeframes)'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('number of candles (default ' + CHART_DEFAULT_LIMIT + ', max ' + CHART_MAX_LIMIT + ')'),
+            'limit': limitParam ('number of candles (default ' + CHART_DEFAULT_LIMIT + ', max ' + CHART_MAX_LIMIT + ')'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -334,6 +334,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             return timeframeError;
         }
         const rowLimit = clampLimit (limit, CHART_DEFAULT_LIMIT, CHART_MAX_LIMIT);
+        const clamped = limitClamped (limit, rowLimit);
         const sinceMs = parseSince (exchange, since);
         const rows = await exchange.fetchOHLCV (symbol, frame, sinceMs, rowLimit, params ?? {});
         // some exchanges ignore the API-level limit — keep rowLimit candles: the first ones
@@ -342,13 +343,16 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
         const cleaned = cleanCandles (rows);
         const candles = (sinceMs !== undefined) ? cleaned.slice (0, rowLimit) : cleaned.slice (-rowLimit);
         const timeframes = (exchange.timeframes !== null && exchange.timeframes !== undefined) ? Object.keys (exchange.timeframes).map (String) : [];
+        const frameMs = timeframeMs (frame);
         return respond ({
             'view': 'chart',
             'fallbackTool': 'get_ohlcv',
             'summary': summarizeCandles (exchange, candles),
-            'meta': { 'exchange': exchange.id, symbol, 'timeframe': frame },
+            'meta': { 'exchange': exchange.id, symbol, 'timeframe': frame, 'limitClamped': clamped },
             'notices': [
+                limitClampedNotice (clamped),
                 (candles.length === 0) ? 'the exchange returned no candles for this symbol/timeframe/since' : undefined,
+                sinceGapNotice (exchange.id, sinceMs, candles.map ((candle) => candle[0]), (frameMs === undefined) ? undefined : 2 * frameMs, 'candle'),
                 marketTypeMismatchNotice (exchange, [ symbol ], marketType),
             ],
             'base': { 'exchange': String (exchange.id), 'exchangeName': String (exchange.name ?? exchange.id), symbol, 'timeframe': frame, 'limit': rowLimit },
@@ -362,7 +366,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
         'inputSchema': z.object ({
             'exchange': exchangeParam,
             'symbol': symbolParam ('unified symbol (search_markets)'),
-            'limit': z.number ().int ().optional ().describe ('price levels per side (default ' + BOOK_DEFAULT_LEVELS + ', max ' + BOOK_MAX_LEVELS + ')'),
+            'limit': limitParam ('price levels per side (default ' + BOOK_DEFAULT_LEVELS + ', max ' + BOOK_MAX_LEVELS + ')'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -373,6 +377,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
     }, async ({ exchange: exchangeId, symbol, limit, marketType, prediction, params }) => run ({ 'tool': 'show_orderbook', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit, BOOK_DEFAULT_LEVELS, BOOK_MAX_LEVELS);
+        const clamped = limitClamped (limit, levels);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
         const typed = (side: any[]) => normalizeBookSide (side, levels).map ((level) => [ numberOrNull (level[0]), numberOrNull (level[1]) ]);
         const bids = typed (book?.bids);
@@ -397,8 +402,9 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
                 'amountUnit': unit.amountUnit,
                 'contractSize': unit.inContracts ? unit.contractSize : undefined,
                 'inverse': (unit.inContracts && unit.inverse) ? true : undefined,
+                'limitClamped': clamped,
             },
-            'notices': [ marketTypeMismatchNotice (exchange, [ symbol ], marketType), unitNotice ],
+            'notices': [ limitClampedNotice (clamped), marketTypeMismatchNotice (exchange, [ symbol ], marketType), unitNotice ],
             'base': {
                 'exchange': String (exchange.id),
                 'exchangeName': String (exchange.name ?? exchange.id),

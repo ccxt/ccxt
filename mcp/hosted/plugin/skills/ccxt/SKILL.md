@@ -30,7 +30,7 @@ The CCXT connector reads **public** market data from a curated set of major exch
 
 ## Report data honestly
 
-- Name the exchange next to every price, and say when the data is from (results carry `timestamp` / `datetime`).
+- Name the exchange next to every price, and say when the data is from (results carry `timestamp` / `datetime` when the exchange provides them; some tickers have neither, so do not invent a time).
 - Never state a price a tool did not return. If a tool fails, say so.
 - The server is shared by everyone who uses it, and data is briefly cached (order books 1 s, tickers and trades 2 s, candles up to 60 s). An error with code `RATE_LIMITED` or `EXCHANGE_UNAVAILABLE` carries `retryAfterSeconds`: wait that long before retrying, or use another exchange. Do not retry in a loop.
 - Do not give investment advice.

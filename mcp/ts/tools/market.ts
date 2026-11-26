@@ -4,7 +4,7 @@ import { resolveMarketFields, searchMarketsMaxLimit, marketTypeCounts, zeroMatch
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, methodNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_TEXT_LENGTH, MAX_CODE_LENGTH, MAX_SYMBOLS, accountNameParam } from './common.js';
+import { run, clampLimit, limitParam, limitClamped, limitClampedNotice, sinceGapNotice, tradesSinceTolerance, timeframeMs, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, joinNotices, missingTickersNotice, exchangeParam, predictionParam, paramsParam, sinceParam, symbolParam, marketTypeParam, methodNameParam, MAX_EXCHANGE_ID_LENGTH, MAX_TEXT_LENGTH, MAX_CODE_LENGTH, MAX_SYMBOLS, accountNameParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
 
@@ -176,7 +176,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'quote': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('quote currency filter, e.g. "USDT"'),
             'settle': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('settle currency filter (derivatives)'),
             'activeOnly': z.boolean ().optional ().describe ('only active markets (default true)'),
-            'limit': z.number ().int ().optional ().describe ('max results (default 50, max 100)'),
+            'limit': limitParam ('max results (default 50, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
@@ -236,9 +236,10 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         if (hasMore) {
             meta['nextOffset'] = offset + page.length;
         }
-        if (args.limit !== undefined && args.limit !== applied) {
-            meta['limitClamped'] = { 'requested': args.limit, applied };
-            notices.push ('limit ' + args.limit + ' was clamped to ' + applied + (fields === undefined
+        const clamped = limitClamped (args.limit, applied);
+        if (clamped !== undefined) {
+            meta['limitClamped'] = clamped;
+            notices.push ('limit ' + clamped.requested + ' was clamped to ' + applied + (fields === undefined
                 ? ' (the max for full market rows) — pass fields, e.g. ["symbol"], for compact rows and a max of up to ' + SEARCH_MARKETS_MAX_COMPACT
                 : ' (as many rows of these fields as fit one response)'));
         }
@@ -299,8 +300,8 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'inputSchema': z.object ({
             'exchange': exchangeParam,
             'symbol': symbolParam ('unified symbol — resolve with search_markets'),
-            'limit': z.number ().int ().optional ().describe ('price levels per side (default 20, max 100)'),
-            'depth': z.number ().int ().optional ().describe ('alias for limit (price levels per side)'),
+            'limit': limitParam ('price levels per side (default 20, max 100)'),
+            'depth': limitParam ('alias for limit (price levels per side)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -309,6 +310,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     }, async ({ exchange: exchangeId, symbol, limit, depth, marketType, prediction, params }) => run ({ 'tool': 'get_orderbook', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const levels = clampLimit (limit ?? depth, 20, 100);
+        const clamped = limitClamped (limit ?? depth, levels);
         const book = await exchange.fetchOrderBook (symbol, levels, params ?? {});
         const data = {
             'symbol': book.symbol ?? symbol,
@@ -318,7 +320,12 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'bids': normalizeBookSide (book.bids, levels),
             'asks': normalizeBookSide (book.asks, levels),
         };
-        return ok (data, { 'exchange': exchange.id, 'depth': levels, 'notice': marketTypeMismatchNotice (exchange, [ symbol ], marketType) });
+        const meta: Record<string, any> = { 'exchange': exchange.id, 'depth': levels };
+        if (clamped !== undefined) {
+            meta['limitClamped'] = clamped;
+        }
+        meta['notice'] = joinNotices ([ limitClampedNotice (clamped), marketTypeMismatchNotice (exchange, [ symbol ], marketType) ]);
+        return ok (data, meta);
     }));
 
     server.registerTool ('get_ohlcv', {
@@ -329,7 +336,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'symbol': symbolParam ('unified symbol'),
             'timeframe': z.string ().optional ().describe ('candle interval (default "1h") — valid values come from describe_exchange .timeframes'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('number of candles (default 100, max 500)'),
+            'limit': limitParam ('number of candles (default 100, max 500)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -343,19 +350,28 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             return timeframeError;
         }
         const rowLimit = clampLimit (limit, 100, 500);
-        const rows = await exchange.fetchOHLCV (symbol, frame, parseSince (exchange, since), rowLimit, params ?? {});
+        const clamped = limitClamped (limit, rowLimit);
+        const sinceMs = parseSince (exchange, since);
+        const rows = await exchange.fetchOHLCV (symbol, frame, sinceMs, rowLimit, params ?? {});
         const hasMore = rows.length >= rowLimit;
         const typeNotice = marketTypeMismatchNotice (exchange, [ symbol ], marketType);
-        const pageNotice = hasMore ? 'count hit the limit — page with since/params.until for more' : undefined;
-        return ok (rows, {
+        // the hosted server takes no params, so its hint names only since
+        const pageNotice = hasMore ? (ctx.hosted ? 'count hit the limit — for more, call again with since (the last row\'s timestamp + 1 continues forward)' : 'count hit the limit — page with since/params.until for more') : undefined;
+        const frameMs = timeframeMs (frame);
+        const sinceNotice = sinceGapNotice (exchange.id, sinceMs, rows.map ((row: any) => row?.[0]), (frameMs === undefined) ? undefined : 2 * frameMs, 'candle');
+        const meta: Record<string, any> = {
             'exchange': exchange.id,
             symbol,
             'timeframe': frame,
             'columns': [ 'timestamp', 'open', 'high', 'low', 'close', 'volume' ],
             'count': rows.length,
             hasMore,
-            'notice': joinNotices ([ typeNotice, pageNotice ]),
-        });
+        };
+        if (clamped !== undefined) {
+            meta['limitClamped'] = clamped;
+        }
+        meta['notice'] = joinNotices ([ limitClampedNotice (clamped), sinceNotice, typeNotice, pageNotice ]);
+        return ok (rows, meta);
     }));
 
     server.registerTool ('get_trades', {
@@ -365,7 +381,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'exchange': exchangeParam,
             'symbol': symbolParam ('unified symbol'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('number of trades (default 50, max 200)'),
+            'limit': limitParam ('number of trades (default 50, max 200)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -374,14 +390,25 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
     }, async ({ exchange: exchangeId, symbol, since, limit, marketType, prediction, params }) => run ({ 'tool': 'get_trades', 'exchange': exchangeId }, async () => {
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const tradeLimit = clampLimit (limit, 50, 200);
-        const trades = await exchange.fetchTrades (symbol, parseSince (exchange, since), tradeLimit, params ?? {});
-        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), {
+        const clamped = limitClamped (limit, tradeLimit);
+        const sinceMs = parseSince (exchange, since);
+        const trades = await exchange.fetchTrades (symbol, sinceMs, tradeLimit, params ?? {});
+        const timestamps = trades.map ((trade: any) => trade?.timestamp);
+        const meta: Record<string, any> = {
             'exchange': exchange.id,
             symbol,
             'count': trades.length,
             'hasMore': trades.length >= tradeLimit,
-            'notice': marketTypeMismatchNotice (exchange, [ symbol ], marketType),
-        });
+        };
+        if (clamped !== undefined) {
+            meta['limitClamped'] = clamped;
+        }
+        meta['notice'] = joinNotices ([
+            limitClampedNotice (clamped),
+            sinceGapNotice (exchange.id, sinceMs, timestamps, tradesSinceTolerance (timestamps), 'trade'),
+            marketTypeMismatchNotice (exchange, [ symbol ], marketType),
+        ]);
+        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), meta);
     }));
 
     server.registerTool ('search_events', {
@@ -393,7 +420,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'tags': z.array (z.string ().max (MAX_TEXT_LENGTH)).max (50).optional ().describe ('filter by tags/categories'),
             'status': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('"active" (default), "closed" or "all"'),
             'sort': z.string ().max (MAX_TEXT_LENGTH).optional ().describe ('"volume", "liquidity" or "newest"'),
-            'limit': z.number ().int ().optional ().describe ('max events (default 25, max 100)'),
+            'limit': limitParam ('max events (default 25, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'params': paramsParam,
         }),
@@ -408,6 +435,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'search_events requires a scoping filter: query, tags, or params.eventId/params.slug', 'retryable': false, 'hint': 'e.g. {"exchange": "' + exchangeId + '", "query": "bitcoin"}' } };
         }
         const max = clampLimit (limit, 25, 100);
+        const clamped = limitClamped (limit, max);
         const from = Math.max (0, offset ?? 0);
         const requestParams: Record<string, any> = { ...(params ?? {}) };
         if (query !== undefined) {
@@ -444,14 +472,21 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
                 }))
                 .filter ((market: any) => market.outcomes.length > 0),
         }));
-        return ok (page, {
+        const meta: Record<string, any> = {
             'exchange': exchange.id,
             'returned': page.length,
             'offset': from,
             'hasMore': hasMore,
-            'notice': (hasMore ? 'more events available — increase offset or narrow the query. ' : '')
+        };
+        if (clamped !== undefined) {
+            meta['limitClamped'] = clamped;
+        }
+        meta['notice'] = joinNotices ([
+            limitClampedNotice (clamped),
+            (hasMore ? 'more events available — increase offset or narrow the query. ' : '')
                 + 'pass an outcome handle (events[].markets[].outcomes[].outcome) as the symbol to other tools on this exchange',
-        });
+        ]);
+        return ok (page, meta);
     }));
 
     server.registerTool ('call_read_method', {

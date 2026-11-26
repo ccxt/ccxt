@@ -110,6 +110,16 @@ test ('profile: hosted instructions — first 512 characters stand alone', () =>
     }
 });
 
+test ('profile: hosted instructions and plugin skill promise timestamp/datetime only when the exchange provides them', () => {
+    // kraken, gate and bitfinex tickers carry no timestamp; coinbase's carries only last/bid/ask
+    const skill = fs.readFileSync (path.join (here, '..', 'plugin', 'skills', 'ccxt', 'SKILL.md'), 'utf8');
+    for (const [ name, text ] of [ [ 'HOSTED_INSTRUCTIONS', HOSTED_INSTRUCTIONS ], [ 'plugin SKILL.md', skill ] ]) {
+        assert.doesNotMatch (text, /carry both/, name);
+        assert.match (text, /when the exchange provides them/, name);
+    }
+    assert.match (HOSTED_INSTRUCTIONS, /meta\.limitClamped/);
+});
+
 test ('profile: a reworded local description fails loudly instead of leaving a stale pointer', () => {
     const profile = new HostedToolProfile ();
     assert.throws (() => profile.adjust ('search_markets', { 'description': 'reworded', 'inputSchema': z.object ({}) }), /no longer contains/);

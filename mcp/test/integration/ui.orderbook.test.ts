@@ -74,9 +74,9 @@ test ('show_orderbook: summary for the model, [price, amount] ladder for the vie
     await client.close ();
 });
 
-test ('show_orderbook: limit defaults to 50 and is clamped to 1..100', async () => {
+test ('show_orderbook: limit defaults to 50, is clamped to 100 (reported in meta.limitClamped) and must be positive', async () => {
     const client = await connectUi ({ 'exchangeClass': BookExchange });
-    const cases: [ any, number ][] = [ [ undefined, 50 ], [ 5, 5 ], [ 100, 100 ], [ 101, 100 ], [ 5000, 100 ], [ 0, 1 ] ];
+    const cases: [ any, number ][] = [ [ undefined, 50 ], [ 5, 5 ], [ 100, 100 ], [ 101, 100 ], [ 5000, 100 ] ];
     for (const [ limit, expected ] of cases) {
         const args: any = { 'exchange': 'fakex', 'symbol': 'BTC/USDT' };
         if (limit !== undefined) {
@@ -91,6 +91,17 @@ test ('show_orderbook: limit defaults to 50 and is clamped to 1..100', async () 
         assert.equal (envelope.data.askLevels, expected, 'limit ' + limit);
         assert.equal (envelope.data.bidDepth, expected * 2, 'limit ' + limit);
         assert.equal (envelope.data.askDepth, expected, 'limit ' + limit);
+        if (limit !== undefined && limit > expected) {
+            assert.deepEqual (envelope.meta.limitClamped, { 'requested': limit, 'applied': expected });
+            assert.match (envelope.meta.notice, new RegExp ('limit ' + limit + ' was clamped to ' + expected));
+        } else {
+            assert.equal (envelope.meta.limitClamped, undefined, 'limit ' + limit);
+        }
+    }
+    for (const limit of [ 0, -5 ]) {
+        const result: any = await client.callTool ({ 'name': 'show_orderbook', 'arguments': { 'exchange': 'fakex', 'symbol': 'BTC/USDT', limit } });
+        assert.equal (result.isError, true, 'limit ' + limit);
+        assert.match (result.content[0].text, /Input validation error/, 'limit ' + limit);
     }
     await client.close ();
 });

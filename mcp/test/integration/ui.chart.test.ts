@@ -175,9 +175,9 @@ test ('show_chart: the extension only counts when it lists our mime type', async
     await other.close ();
 });
 
-test ('show_chart: limit defaults to 200 and is clamped to 1..500', async () => {
+test ('show_chart: limit defaults to 200, is clamped to 500 (reported in meta.limitClamped) and must be positive', async () => {
     const client = await connectUi ();
-    const cases: [ any, number ][] = [ [ undefined, 200 ], [ 5, 5 ], [ 500, 500 ], [ 501, 500 ], [ 100000, 500 ], [ 0, 1 ], [ -7, 1 ] ];
+    const cases: [ any, number ][] = [ [ undefined, 200 ], [ 5, 5 ], [ 500, 500 ], [ 501, 500 ], [ 100000, 500 ] ];
     for (const [ limit, expected ] of cases) {
         const args: any = { 'exchange': 'fakex', 'symbol': 'BTC/USDT' };
         if (limit !== undefined) {
@@ -188,6 +188,17 @@ test ('show_chart: limit defaults to 200 and is clamped to 1..500', async () => 
         assert.equal (result.structuredContent.limit, expected, 'limit ' + limit);
         assert.equal (result.structuredContent.candles.length, expected, 'limit ' + limit);
         assert.equal (envelope.data.count, expected, 'limit ' + limit);
+        if (limit !== undefined && limit > expected) {
+            assert.deepEqual (envelope.meta.limitClamped, { 'requested': limit, 'applied': expected });
+            assert.match (envelope.meta.notice, new RegExp ('limit ' + limit + ' was clamped to ' + expected));
+        } else {
+            assert.equal (envelope.meta.limitClamped, undefined, 'limit ' + limit);
+        }
+    }
+    for (const limit of [ 0, -7 ]) {
+        const result: any = await client.callTool ({ 'name': 'show_chart', 'arguments': { 'exchange': 'fakex', 'symbol': 'BTC/USDT', limit } });
+        assert.equal (result.isError, true, 'limit ' + limit);
+        assert.match (result.content[0].text, /Input validation error/, 'limit ' + limit);
     }
     await client.close ();
 });

@@ -220,6 +220,88 @@ export function clampLimit (limit: number | undefined, defaultValue: number, max
     return Math.max (1, Math.min (Math.floor (limit), max));
 }
 
+// a "limit" (or "depth") input: a positive integer. Zero and negative values are schema
+// errors, not silently read as 1; values over a tool's max are clamped and reported
+export const limitParam = (description: string) => z.number ().int ().positive ().optional ().describe (description);
+
+export interface LimitClamped {
+    requested: number;
+    applied: number;
+}
+
+// every tool that clamps a limit reports it the same way: meta.limitClamped plus a notice
+// (search_markets set the pattern), so a shorter answer is never mistaken for all there is
+export function limitClamped (requested: number | undefined, applied: number): LimitClamped | undefined {
+    return (requested !== undefined && requested !== applied) ? { requested, applied } : undefined;
+}
+
+export function limitClampedNotice (clamped: LimitClamped | undefined, reason = 'the max for this tool'): string | undefined {
+    return (clamped === undefined) ? undefined : 'limit ' + clamped.requested + ' was clamped to ' + clamped.applied + ' (' + reason + ')';
+}
+
+// meta with limitClamped and its notice added (ahead of any notice already there)
+export function withLimitClamped (meta: Record<string, any>, clamped: LimitClamped | undefined): Record<string, any> {
+    if (clamped === undefined) {
+        return meta;
+    }
+    return { ...meta, 'limitClamped': clamped, 'notice': joinNotices ([ limitClampedNotice (clamped), meta['notice'] ]) };
+}
+
+const TIMEFRAME_UNIT_MS: Record<string, number> = { 's': 1000, 'm': 60000, 'h': 3600000, 'd': 86400000, 'w': 604800000, 'M': 2592000000, 'y': 31536000000 };
+
+// the length of one candle, as ccxt's parseTimeframe counts it (a month is 30 days)
+export function timeframeMs (frame: string): number | undefined {
+    const match = /^([0-9]+)([smhdwMy])$/.exec (frame);
+    return (match === null) ? undefined : Number (match[1]) * TIMEFRAME_UNIT_MS[match[2]];
+}
+
+function isoOrMs (ms: number): string {
+    const date = new Date (ms);
+    return Number.isNaN (date.getTime ()) ? String (ms) : date.toISOString ();
+}
+
+function roughDuration (ms: number): string {
+    const units: [ number, string ][] = [ [ 86400000, 'days' ], [ 3600000, 'hours' ], [ 60000, 'minutes' ] ];
+    for (const [ size, name ] of units) {
+        if (ms >= 2 * size) {
+            return Math.round (ms / size) + ' ' + name;
+        }
+    }
+    return Math.round (ms / 1000) + ' seconds';
+}
+
+// ccxt hands "since" to the exchange only where the endpoint takes one. Elsewhere (okx
+// fetchTrades, for one) it fetches the latest page and drops what is older than since, so a
+// since in the past silently returns the most recent items. When the earliest item returned
+// is well after since (more than toleranceMs), say so rather than pass it off as the range
+// that starts at since. Generic: get_trades, get_ohlcv and show_chart all use it.
+export function sinceGapNotice (exchangeId: string, sinceMs: number | undefined, timestamps: any[], toleranceMs: number | undefined, what: string): string | undefined {
+    if (sinceMs === undefined || toleranceMs === undefined || !Number.isFinite (sinceMs)) {
+        return undefined;
+    }
+    let earliest = Infinity;
+    for (const timestamp of timestamps) {
+        if (typeof timestamp === 'number' && Number.isFinite (timestamp) && timestamp < earliest) {
+            earliest = timestamp;
+        }
+    }
+    if (earliest === Infinity || earliest - sinceMs <= toleranceMs) {
+        return undefined;
+    }
+    return 'the earliest ' + what + ' returned is at ' + isoOrMs (earliest) + ', ' + roughDuration (earliest - sinceMs) + ' after the requested since (' + isoOrMs (sinceMs) + '): ' + exchangeId + ' did not return data from since — its endpoint may serve only recent data, or there is none in between. Do not present this as the range starting at since';
+}
+
+// how far after since the first trade may be before sinceGapNotice speaks: a minute, or the
+// span of the page itself (an illiquid market's first trade after since can be far off, but
+// then its trades are sparse too)
+export function tradesSinceTolerance (timestamps: any[]): number {
+    const valid = timestamps.filter ((timestamp) => typeof timestamp === 'number' && Number.isFinite (timestamp));
+    if (valid.length === 0) {
+        return 60000;
+    }
+    return Math.max (60000, Math.max (...valid) - Math.min (...valid));
+}
+
 export const CONFIRM_PROMPT_TIMEOUT_MS = 300000;
 
 export interface AuthContext {

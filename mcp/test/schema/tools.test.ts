@@ -161,3 +161,15 @@ test ('SERVER_INSTRUCTIONS: the opening paragraph fits in 512 characters and sta
         assert.ok (ALL_TOOLS.includes (name), name + ' named in the opening is not a tool');
     }
 });
+
+// exchanges do not all date their data (kraken, gate and bitfinex tickers carry no
+// timestamp), so neither the instructions nor the skill may promise both on every result
+test ('SERVER_INSTRUCTIONS and the ccxt-mcp skill promise timestamp/datetime only when the exchange provides them', async () => {
+    const { SERVER_INSTRUCTIONS } = await import ('../../ts/tools/index.js');
+    const skill = fs.readFileSync (new URL ('../../plugin/skills/ccxt-mcp/SKILL.md', import.meta.url), 'utf8');
+    for (const [ name, text ] of [ [ 'SERVER_INSTRUCTIONS', SERVER_INSTRUCTIONS ], [ 'SKILL.md', skill ] ]) {
+        assert.doesNotMatch (text, /carry both/, name);
+        assert.match (text, /when the exchange provides them/, name);
+        assert.match (text, /limitClamped/, name);
+    }
+});

@@ -3,7 +3,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, ORDER_FIELDS, TRADE_FIELDS, POSITION_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, accountParam, paramsParam, sinceParam, environmentMeta, symbolParam, MARKET_TYPES, MAX_SYMBOLS, MAX_TEXT_LENGTH, MAX_CODE_LENGTH } from './common.js';
+import { run, clampLimit, limitParam, limitClamped, withLimitClamped, parseSince, accountParam, paramsParam, sinceParam, environmentMeta, symbolParam, MARKET_TYPES, MAX_SYMBOLS, MAX_TEXT_LENGTH, MAX_CODE_LENGTH } from './common.js';
 
 export function registerReadTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('list_accounts', {
@@ -71,7 +71,7 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
             'symbol': symbolParam ('unified symbol (required by many exchanges for list queries)').optional (),
             'status': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('"open" (default), "closed", "canceled" or "all"'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('max orders (default 50, max 200)'),
+            'limit': limitParam ('max orders (default 50, max 200)'),
             'includeInfo': z.boolean ().optional ().describe ('include the raw exchange payload (single order only)'),
             'params': paramsParam,
         }),
@@ -105,12 +105,12 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         const filtered = (method === 'fetchCanceledAndClosedOrders' && statusValue !== 'all')
             ? orders.filter ((order: any) => order.status === statusValue)
             : orders;
-        return ok (filtered.map ((order: any) => project (order, ORDER_FIELDS)), {
+        return ok (filtered.map ((order: any) => project (order, ORDER_FIELDS)), withLimitClamped ({
             ...environmentMeta (account),
             'status': statusValue,
             'count': filtered.length,
             'hasMore': orders.length >= orderLimit,
-        });
+        }, limitClamped (limit, orderLimit)));
     }));
 
     server.registerTool ('get_my_trades', {
@@ -120,7 +120,7 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
             'account': accountParam,
             'symbol': symbolParam ('unified symbol').optional (),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('max trades (default 50, max 200)'),
+            'limit': limitParam ('max trades (default 50, max 200)'),
             'params': paramsParam,
         }),
         'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
@@ -128,11 +128,11 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         const tradeLimit = clampLimit (limit, 50, 200);
         const trades = await exchange.fetchMyTrades (symbol, parseSince (exchange, since), tradeLimit, params ?? {});
-        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), {
+        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), withLimitClamped ({
             ...environmentMeta (account),
             'count': trades.length,
             'hasMore': trades.length >= tradeLimit,
-        });
+        }, limitClamped (limit, tradeLimit)));
     }));
 
     server.registerTool ('get_positions', {
