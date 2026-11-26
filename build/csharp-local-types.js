@@ -17310,6 +17310,8 @@ export const SIGNATURE_ARG_TYPES = {
     'handleBidAsks': { 0: 'ccxt.pro.IOrderBookSide' },
     // `data: Dict` on the base and every override; every caller passes a dictionary row or response
     'parseMarginModification': { 0: 'IDictionary<string, object>' },
+    // `multiplier: number = 1` on the base (no overrides); callers pass a double literal or nothing, no body writes it
+    'handleUntilOption': { 3: 'double?' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
