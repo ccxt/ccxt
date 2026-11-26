@@ -109,57 +109,6 @@ fn precise_to_string(m: &indexmap::IndexMap<String, Value>) -> String {
     }
 }
 
-pub fn subtract(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) { return Value::Int(as_i64(a).unwrap() - as_i64(b).unwrap()); }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x - y),
-        _ => Value::Null,
-    }
-}
-
-pub fn multiply(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) { return Value::Int(as_i64(a).unwrap() * as_i64(b).unwrap()); }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x * y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by the rust `/` wrapper table; keep at 0 call sites.
-pub fn divide(a: &Value, b: &Value) -> Value {
-    match (as_f64(a), as_f64(b)) {
-        (Some(_), Some(y)) if y == 0.0 => Value::Null,
-        (Some(x), Some(y)) => Value::Float(x / y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by the rust `%` / `%=` wrapper table; keep at 0 call sites.
-pub fn mod_val(a: &Value, b: &Value) -> Value {
-    if both_ints(a, b) {
-        let yi = as_i64(b).unwrap();
-        if yi == 0 { return Value::Null; }
-        return Value::Int(as_i64(a).unwrap() % yi);
-    }
-    match (as_f64(a), as_f64(b)) {
-        (Some(_), Some(y)) if y == 0.0 => Value::Null,
-        (Some(x), Some(y)) => Value::Float(x % y),
-        _ => Value::Null,
-    }
-}
-
-// Printed by printPrefixUnaryExpression when native negation declines; keep.
-pub fn negate(v: &Value) -> Value {
-    match v {
-        Value::Int(n)   => Value::Int(-n),
-        Value::Float(f) => Value::Float(-f),
-        _ => match as_f64(v) {
-            Some(x) => Value::Float(-x),
-            None    => Value::Null,
-        },
-    }
-}
-
 // ── comparisons ─────────────────────────────────────────────────────────────
 
 pub fn is_equal(a: &Value, b: &Value) -> bool {
@@ -181,21 +130,6 @@ pub fn is_greater_than(a: &Value, b: &Value) -> bool {
         (Some(x), Some(y)) => x > y,
         _ => match (a, b) { (Value::Str(x), Value::Str(y)) => x > y, _ => false },
     }
-}
-
-pub fn is_less_than(a: &Value, b: &Value) -> bool {
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => x < y,
-        _ => match (a, b) { (Value::Str(x), Value::Str(y)) => x < y, _ => false },
-    }
-}
-
-pub fn is_greater_than_or_equal(a: &Value, b: &Value) -> bool {
-    is_greater_than(a, b) || is_equal(a, b)
-}
-
-pub fn is_less_than_or_equal(a: &Value, b: &Value) -> bool {
-    is_less_than(a, b) || is_equal(a, b)
 }
 
 /// The dict / list a map holds under `key`, read by reference: the shared container for a dict / list
@@ -223,9 +157,7 @@ impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
 
 pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
 
-pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Arr(_)) }
 pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
-pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float(_)) }
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
 
@@ -502,18 +434,6 @@ pub fn remove(obj: &mut Value, key: &Value) {
         }
         _ => {}
     }
-}
-
-/// `Array.prototype.shift()` — removes and returns the first element.
-/// Called as a free function from transpiled WS code (`shift(stored)`).
-/// Returns `Value::Null` if the array is empty or the target isn't an
-/// array.
-pub fn shift(mut arr: Value) -> Value {
-    if let Value::Arr(a) = &mut arr {
-        let inner = Arc::make_mut(a);
-        if !inner.is_empty() { return inner.remove(0); }
-    }
-    Value::Null
 }
 
 pub fn in_op(obj: &Value, key: &Value) -> bool {
@@ -815,16 +735,6 @@ pub fn to_string_val(v: &Value) -> Value {
     Value::Str(stringify_simple(v).into())
 }
 
-/// `parse_int(value)` — best-effort to integer.
-pub fn parse_int(v: &Value) -> Value {
-    match v {
-        Value::Int(_)   => v.clone(),
-        Value::Float(f) => Value::Int(*f as i64),
-        Value::Str(s)   => s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null),
-        _ => Value::Null,
-    }
-}
-
 /// `parse_float(value)` — best-effort to float.
 pub fn parse_float(v: &Value) -> Value {
     match v {
@@ -839,14 +749,6 @@ pub fn parse_float(v: &Value) -> Value {
 pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
     match (haystack, prefix) {
         (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_ref()),
-        _ => false,
-    }
-}
-
-/// `ends_with(haystack, suffix)` — true if Value haystack ends with suffix.
-pub fn ends_with(haystack: &Value, suffix: &Value) -> bool {
-    match (haystack, suffix) {
-        (Value::Str(h), Value::Str(s)) => h.ends_with(s.as_ref()),
         _ => false,
     }
 }
@@ -1409,37 +1311,6 @@ pub fn date_now() -> Value {
         .map(|d| d.as_millis() as i64)
         .unwrap_or(0);
     Value::Int(ms)
-}
-
-/// `pad_start(s, len, pad)` / `pad_end` — left/right pad strings.
-pub fn pad_start(s: &Value, len: &Value, pad: &Value) -> Value {
-    let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
-    match s {
-        Value::Str(sv) => {
-            if sv.chars().count() >= target { Value::Str(sv.clone()) }
-            else {
-                let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", p.repeat((need / p.chars().count().max(1)).max(1)), sv).into())
-            }
-        }
-        _ => Value::Null,
-    }
-}
-
-pub fn pad_end(s: &Value, len: &Value, pad: &Value) -> Value {
-    let target = match as_i64(len) { Some(v) => v as usize, None => 0 };
-    let p = match pad { Value::Str(p) => p.clone(), _ => " ".to_string().into() };
-    match s {
-        Value::Str(sv) => {
-            if sv.chars().count() >= target { Value::Str(sv.clone()) }
-            else {
-                let need = target - sv.chars().count();
-                Value::Str(format!("{}{}", sv, p.repeat((need / p.chars().count().max(1)).max(1))).into())
-            }
-        }
-        _ => Value::Null,
-    }
 }
 
 /// `to_fixed(x, digits)` — JS `Number.prototype.toFixed`: format a number

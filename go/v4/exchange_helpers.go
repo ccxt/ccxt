@@ -3450,17 +3450,6 @@ func HandleDeltas(bookside any, deltas any) any {
 	return bookside
 }
 
-// the printed element read of a destructured binding, as a bool: the same box the untyped
-// `GetValue` read, folded to def when it is absent, nil or not a bool. `x == true` answered
-// exactly that for the untyped box.
-func GetValueBool(v any, index int, def bool) bool {
-	val := GetValue(v, index)
-	if b, ok := val.(bool); ok {
-		return b
-	}
-	return def
-}
-
 // MapOrEmpty is the dict a typed constructor reads: nil or a non-map value gives an empty map
 func MapOrEmpty(v any) map[string]any {
 	if m := SafeMapTyped(map[string]any{"v": v}, "v"); m != nil {

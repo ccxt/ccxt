@@ -393,14 +393,6 @@ public class Helpers {
         return false;
     }
 
-    // Printed by javaTranspiler's Math.min fallback; keep at 0 call sites.
-    public static Object mathMin(Object a, Object b) {
-        if (a == null || b == null) return null;
-        double first = toDouble(a);
-        double second = toDouble(b);
-        return (first < second) ? a : b;
-    }
-
     // Printed by javaTranspiler's Math.max fallback; keep at 0 call sites.
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
@@ -638,35 +630,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             } else return false;
         } else {
             return false;
-        }
-    }
-
-    public static String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
-
-    // public String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
-
-    public static String Slice(Object str2, Object idx1, Object idx2) {
-        if (str2 == null) return null;
-        String str = (String) str2;
-        int start = (idx1 != null) ? toInt(idx1) : -1;
-
-        if (idx2 == null) {
-            if (start < 0) {
-                int innerStart = str.length() + start;
-                innerStart = Math.max(innerStart, 0);
-                return str.substring(innerStart);
-            } else {
-                if (start > str.length()) return "";
-                return str.substring(start);
-            }
-        } else {
-            int end = toInt(idx2);
-            if (start < 0) start = str.length() + start;
-            if (end < 0) end = str.length() + end;
-            if (start < 0) start = 0;
-            if (end > str.length()) end = str.length();
-            if (start > end) start = end;
-            return str.substring(start, end);
         }
     }
 
@@ -1042,23 +1005,6 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
 //         throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
 //     }
 // }
-
-    // Printed by javaTranspiler's padStart fallback; keep at 0 call sites.
-    public static String padStart(Object input, Object length2, Object padStr) {
-        int length = toInt(length2);
-        String str = toString(input);
-        String pad = toString(padStr);
-
-        if (pad.isEmpty()) {
-            throw new IllegalArgumentException("padStr must not be empty");
-        }
-
-        while (str.length() < length) {
-            str = pad + str;
-        }
-
-        return str.substring(str.length() - length);
-    }
 
     public static String json(Object obj) {
         try {
