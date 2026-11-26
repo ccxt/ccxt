@@ -3,6 +3,7 @@
 import bitrueRest from '../bitrue.js';
 import { AuthenticationError, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import Precise from '../base/Precise.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List, Endpoint } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -893,8 +894,8 @@ export default class bitrue extends bitrueRest {
         const baseVolume = this.convertFromRawQuantity (symbol, rawVol);
         const quoteVolume = this.convertFromRawQuantity (symbol, rawAmount);
         const close = this.safeNumber (tick, 'close');
-        const rose = this.safeNumber (tick, 'rose');
-        const percentage = (rose === undefined) ? undefined : rose * 100;
+        const rose = this.safeString (tick, 'rose');
+        const percentage = Precise.stringMul (rose, '100');
         return this.safeTicker ({
             'info': tick,
             'symbol': symbol,
