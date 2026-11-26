@@ -1791,7 +1791,7 @@ class paradex(ccxt.async_support.paradex):
             'interval': interval,
         }
 
-    def parse_sbe_message(self, client: Client, message: object) -> object:
+    def parse_sbe_message(self, client: Client, message: object) -> dict:
         #
         # Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         # header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -1799,18 +1799,18 @@ class paradex(ccxt.async_support.paradex):
         # the shape of the matching JSON subscription message, so the JSON handlers parse both.
         # Requests, subscribe acks and errors stay JSON text frames.
         #
-        # Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
-        # ids this decoder does not know (the schema says to skip them), and malformed frames.
+        # Returns an empty map (no params) for frames that carry nothing to route: heartbeats, binary acks,
+        # template ids this decoder does not know (the schema says to skip them), and malformed frames.
         #
         frameHex = self.binary_to_base16(message)
         frameLength = self.parse_to_int(len(frameHex) / 2)
         if frameLength < 8:
-            return None
+            return {}
         blockLength = self.parse_to_int(self.sbe_read_uint(frameHex, 0, 2))
         templateId = self.parse_to_int(self.sbe_read_uint(frameHex, 2, 2))
         schemaId = self.parse_to_int(self.sbe_read_uint(frameHex, 4, 2))
         if (schemaId != 1) or (frameLength < self.sum(blockLength, 8)):
-            return None
+            return {}
         channel = None
         data = None
         if templateId == 1:
@@ -1847,7 +1847,7 @@ class paradex(ccxt.async_support.paradex):
             data = self.parse_sbe_account(frameHex, blockLength, frameLength)
             channel = 'account'
         if data is None:
-            return None
+            return {}
         return {
             'sbe': True,
             'params': {
@@ -2362,9 +2362,8 @@ class paradex(ccxt.async_support.paradex):
 
     def handle_binary_message(self, client: Client, message: object):
         parsedMessage = self.parse_sbe_message(client, message)
-        if parsedMessage is None:
-            return
-        self.handle_stream_message(client, parsedMessage)
+        if 'params' in parsedMessage:
+            self.handle_stream_message(client, parsedMessage)
 
     def handle_message(self, client: Client, message: dict):
         self.handle_stream_message(client, message)

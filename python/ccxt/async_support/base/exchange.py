@@ -1559,7 +1559,7 @@ class BaseExchange(SyncExchange):
         if until is not None:
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
-            requiredCalls = int(math.ceil((until - since)) / step)
+            requiredCalls = self.parse_to_int(int(math.ceil((until - since)) / step))
             if requiredCalls > maxCallsLimit:
                 raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsLimit) + ' required calls is ' + str(requiredCalls))
         for i in range(0, maxCallsLimit):
@@ -2328,7 +2328,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if (self.options['createMarketBuyOrderRequiresPrice'] is True) or (self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False):
+        if self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', False) or (self.has['createMarketBuyOrderWithCost'] is not None and self.has['createMarketBuyOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'buy', cost, 1, params)
         raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
 
@@ -2340,7 +2340,7 @@ class Exchange(BaseExchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if (self.options['createMarketSellOrderRequiresPrice'] is True) or (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False):
+        if self.safe_bool(self.options, 'createMarketSellOrderRequiresPrice', False) or (self.has['createMarketSellOrderWithCost'] is not None and self.has['createMarketSellOrderWithCost'] is not False):
             return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
         raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
 

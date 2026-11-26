@@ -170,7 +170,8 @@ class htx(ccxt.async_support.htx):
         if topic == 'market.{marketId}.ticker' and market['type'] != 'spot':
             raise BadRequest(self.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead')
         messageHash = self.implode_params(topic, {'marketId': market['id']})
-        url = self.get_url_by_market_type(market['type'], market['linear'])
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket)
         return await self.subscribe_public(url, symbolValue, messageHash, None, params)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
@@ -265,7 +266,8 @@ class htx(ccxt.async_support.htx):
         symbolValue = self.safe_string(market, 'symbol')
         marketId = self.safe_string(market, 'id', '')
         messageHash = 'market.' + marketId + '.trade.detail'
-        url = self.get_url_by_market_type(market['type'], market['linear'])
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket)
         trades = await self.subscribe_public(url, symbolValue, messageHash, None, params)
         limitResolved = limit
         if self.newUpdates:
@@ -356,7 +358,8 @@ class htx(ccxt.async_support.htx):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         marketId = self.safe_string(market, 'id', '')
         messageHash = 'market.' + marketId + '.kline.' + interval
-        url = self.get_url_by_market_type(market['type'], market['linear'])
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket)
         ohlcv = await self.subscribe_public(url, symbolValue, messageHash, None, params)
         limitResolved = limit
         if self.newUpdates:
@@ -460,7 +463,8 @@ class htx(ccxt.async_support.htx):
             messageHash = 'market.' + marketId + '.mbp.' + str(limitResolved)
         else:
             messageHash = 'market.' + marketId + '.depth.size_' + str(limitResolved) + '.high_freq'
-        url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket, False, True)
         method = self.handle_order_book_subscription
         paramsExtended = params
         if not self.safe_bool(market, 'spot', False):
@@ -586,7 +590,8 @@ class htx(ccxt.async_support.htx):
         params = self.safe_dict(subscription, 'params')
         attempts = self.safe_integer(subscription, 'numAttempts', 0)
         market = self.market(symbol)
-        url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket, False, True)
         requestId = self.request_id()
         request = {
             'req': messageHash,
@@ -2716,7 +2721,8 @@ class htx(ccxt.async_support.htx):
         isFeed = (topic == 'orderbook')
         if market is None:
             raise ArgumentsRequired(self.id + ' unsubscribePublic() market is required')
-        url = self.get_url_by_market_type(market['type'], market['linear'], False, isFeed)
+        isLinearMarket = (market['linear'] is True)
+        url = self.get_url_by_market_type(market['type'], isLinearMarket, False, isFeed)
         subscription = {
             'unsubscribe': True,
             'id': str(requestId),

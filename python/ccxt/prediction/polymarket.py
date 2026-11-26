@@ -2776,10 +2776,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
 
     def handle_list_message(self, client: Client, message: list):
         for i in range(0, len(message)):
-            event = message[i]
-            if (event is None) or (event is None) or (not isinstance(event, dict)):
-                continue
-            self.handle_message_event(client, event)
+            # a non-object element reads as {}, which carries no event_type and is ignored
+            self.handle_message_event(client, self.safe_dict(message, i, {}))
 
     def handle_message_event(self, client: Client, event: dict):
         eventType = self.safe_string(event, 'event_type')

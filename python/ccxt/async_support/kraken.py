@@ -983,8 +983,9 @@ class kraken(Exchange, ImplicitAPI):
     def parse_trading_fee(self, fee: dict, market: MarketInterface) -> TradingFeeInterface:
         makerFees = self.safe_dict(fee, 'fees_maker', {})
         takerFees = self.safe_dict(fee, 'fees', {})
-        symbolMakerFee = self.safe_dict(makerFees, market['id'], {})
-        symbolTakerFee = self.safe_dict(takerFees, market['id'], {})
+        marketId = self.safe_string(market, 'id', '')
+        symbolMakerFee = self.safe_dict(makerFees, marketId, {})
+        symbolTakerFee = self.safe_dict(takerFees, marketId, {})
         return {
             'info': fee,
             'symbol': market['symbol'],

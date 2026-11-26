@@ -168,10 +168,8 @@ class poloniex(ccxt.async_support.poloniex):
                 name,
             ],
         }
-        marketIds = []
-        if self.is_empty(symbols):
-            marketIds.append('all')
-        else:
+        marketIds = ['all']
+        if not self.is_empty(symbols):
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             marketIds = self.market_ids(symbols)

@@ -2614,17 +2614,14 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = []
         labels = ['yes', 'no']
         for i in range(0, len(clob)):
-            entry = self.safe_dict(clob, i)
             for j in range(0, len(labels)):
                 label = self.safe_string(labels, j)
-                position = self.get_position_from_clob_entry(label, entry)
+                position = self.get_position_from_clob_entry(label, self.safe_dict(clob, i, {}))
                 if position is not None:
                     result.append(position)
         return result
 
-    def get_position_from_clob_entry(self, label: Str, entry: dict = None):
-        if entry is None:
-            return None
+    def get_position_from_clob_entry(self, label: Str, entry: dict):
         tokensBalance = self.safe_dict(entry, 'tokensBalance')
         contracts = self.omit_zero(self.safe_string(tokensBalance, label))
         if contracts is None:

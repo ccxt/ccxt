@@ -955,7 +955,7 @@ class polymarket(ccxt.async_support.polymarket):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, 'balance')
 
-    def handle_ack(self, client: Client, message: object):
+    def handle_ack(self, client: Client, message: dict):
         #
         # subscribe or unsubscribe acknowledgement
         #
@@ -967,8 +967,8 @@ class polymarket(ccxt.async_support.polymarket):
         #     { "id": 99, "ts": 1788546831854, "data": { "status": "ok", "ts": 1788546831854, "sq": 35879934302 } }
         #
         id = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data')
-        if not isinstance(data, list):
+        if not isinstance(message['data'], list):
+            data = self.safe_dict(message, 'data', {})
             # post replies carry a data object - the auth op is matched back
             # through its pending entry, anything else counts like a pong
             if id is not None:
@@ -1004,8 +1004,10 @@ class polymarket(ccxt.async_support.polymarket):
         subMessageHashes = self.safe_list(pending, 'subMessageHashes', [])
         action = self.safe_string(pending, 'method')
         errorMessage = None
-        for i in range(0, len(data)):
-            entry = self.safe_dict(data, i, {})
+        rows = self.safe_list(message, 'data', [])
+        rowsLength = len(rows)
+        for i in range(0, rowsLength):
+            entry = self.safe_dict(rows, i, {})
             status = self.safe_string(entry, 'status')
             if status == 'err':
                 errorMessage = self.safe_string(entry, 'error')

@@ -3481,8 +3481,8 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1770293281344
         #     }
         #
-        finalResponse = response
-        result = {'info': finalResponse}
+        result = {'info': response}
+        dataRows = self.safe_list(response, 'data', [])
         data = self.safe_value(response, 'data')
         if isMultiAssetMode or (linear and (swap or future)):
             details = self.safe_list(data, 'details', [])
@@ -3498,8 +3498,8 @@ class htx(Exchange, ImplicitAPI):
             result = self.safe_balance(result)
         elif spot or margin:
             if isolated:
-                for i in range(0, len(data)):
-                    entry = self.safe_dict(data, i)
+                for i in range(0, len(dataRows)):
+                    entry = self.safe_dict(dataRows, i)
                     balances = self.safe_list(entry, 'list', [])
                     subResult = {}
                     for j in range(0, len(balances)):
@@ -3523,8 +3523,8 @@ class htx(Exchange, ImplicitAPI):
                         result[code] = self.parse_margin_balance_helper(balance, code, result)
                 result = self.safe_balance(result)
         elif inverse:
-            for i in range(0, len(data)):
-                balance = self.safe_dict(data, i)
+            for i in range(0, len(dataRows)):
+                balance = self.safe_dict(dataRows, i)
                 currencyId = self.safe_string(balance, 'symbol')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()

@@ -222,7 +222,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         checksum = self.handle_option('watchOrderBook', 'checksum', True)
-        if (checksum) and (receivedSnapshot):
+        if (checksum is True) and (receivedSnapshot):
             storedAsks = orderbook['asks']
             storedBids = orderbook['bids']
             asksLength = len(storedAsks)

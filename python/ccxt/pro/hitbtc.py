@@ -1422,10 +1422,10 @@ class hitbtc(ccxt.async_support.hitbtc):
                 self.handle_order_request(client, message)
             if (result is True) and not ('id' in message):
                 self.handle_authenticate(client, message)
-            if isinstance(result, list):
+            rows = self.safe_list(message, 'result')
+            if rows is not None:
                 # to do improve this, not very reliable right now
-                first = self.safe_dict(result, 0, {})
-                rows = self.safe_list(message, 'result', [])
+                first = self.safe_dict(rows, 0, {})
                 arrayLength = len(rows)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)

@@ -2885,11 +2885,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()
-        options = self.options['requestId']
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         if url is not None:
-            self.options['requestId'][url] = newValue
+            options[url] = newValue
+            self.options['requestId'] = options
         return newValue
 
     def from_wei(self, wei: Str) -> Num:

@@ -1622,6 +1622,8 @@ class bybit(Exchange, ImplicitAPI):
                 quote = 'USDT'
         strike = self.safe_string(optionParts, 2, '')
         optionType = self.safe_string(optionParts, 3, '')
+        if expiry is None:
+            raise BadSymbol(self.id + ' createExpiredOptionMarket() missing expiry')
         datetime = self.convert_expire_date(expiry)
         amountPrecision = None
         pricePrecision = None
@@ -1636,6 +1638,8 @@ class bybit(Exchange, ImplicitAPI):
             amountPrecision = self.parse_number('1')
             pricePrecision = self.parse_number('0.01')
         convertedExpireDate = self.convert_expire_date_to_market_id_date(expiry)
+        if convertedExpireDate is None:
+            raise BadSymbol(self.id + ' createExpiredOptionMarket() invalid expiry')
         return {
             'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': baseName + '/' + quote + ':' + quote + '-' + expiry + '-' + strike + '-' + optionType,
@@ -4283,8 +4287,7 @@ class bybit(Exchange, ImplicitAPI):
                 if cost is not None:
                     orderCost = cost
                 else:
-                    quoteAmount = Precise.string_mul(amountString, priceString)
-                    orderCost = quoteAmount
+                    orderCost = Precise.string_mul(amountString, priceString)
                 request['qty'] = self.get_cost(symbolValue, orderCost)
             else:
                 request['marketUnit'] = 'baseCoin'

@@ -1948,11 +1948,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()
-        options = self.options['requestId']
+        options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         if url is not None:
-            self.options['requestId'][url] = newValue
+            options[url] = newValue
+            self.options['requestId'] = options
         return newValue
 
     def register_sxbet_ws_request(self, requestId: float, messageHash: str, subscription: str):
@@ -2179,7 +2180,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             refreshed.append(sym)
         return refreshed
 
-    def handle_order_book(self, client: Client, rows: list[object]):
+    def handle_order_book(self, client: Client, rows: list[dict]):
         #
         #     {
         #         "marketHash": "0x...",
@@ -2332,7 +2333,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'fee': None,
         })
 
-    def handle_trades(self, client: Client, rows: list[object]):
+    def handle_trades(self, client: Client, rows: list[dict]):
         #
         #     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
         #                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
@@ -2380,7 +2381,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         trades = await self.subscribe_sxbet_channel(messageHash, channel)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, rows: list[object]):
+    def handle_my_trade(self, client: Client, rows: list[dict]):
         #
         #     FillV3 rows - identical to GET /fills-v3
         #
@@ -2424,7 +2425,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         orders = await self.subscribe_sxbet_channel(messageHash, channel)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client: Client, rows: list[object]):
+    def handle_order(self, client: Client, rows: list[dict]):
         #
         #     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
         #
