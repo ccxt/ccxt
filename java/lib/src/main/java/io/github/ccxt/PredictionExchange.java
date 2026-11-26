@@ -2057,7 +2057,7 @@ public Map<String, Object> describe()
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     public String padHexToEven(String hex)
     {
-        if (java.util.Objects.equals(hex, null))
+        if (java.util.Objects.equals(hex, ""))
         {
             return "";
         }
@@ -2083,10 +2083,6 @@ public Map<String, Object> describe()
 
     public String rlpEncodeBytes(String hex)
     {
-        if (java.util.Objects.equals(hex, null))
-        {
-            return "";
-        }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Long byteLength = this.parseToInt((((double) hex.length()) / ((double) 2)));
         if (java.util.Objects.equals(byteLength, null))
@@ -2177,7 +2173,7 @@ public Map<String, Object> describe()
             {
                 continue;
             }
-            return this.padHexToEven((String) ((h == null ? null : h.substring((int) Math.min(i, h.length())))));
+            return this.padHexToEven((h == null ? null : h.substring((int) Math.min(i, h.length()))));
         }
         return "";
     }

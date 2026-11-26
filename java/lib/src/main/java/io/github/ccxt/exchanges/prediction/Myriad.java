@@ -935,37 +935,29 @@ public class Myriad extends MyriadApi
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex((Long) (this.safeInteger(tx, "chainId"))))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex((Long) (this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
-        String rHex = this.safeString(signature, "r");
-        String sHex = this.safeString(signature, "s");
-        if (java.util.Objects.equals(rHex, null))
+        String rHexRaw = this.safeString(signature, "r", "");
+        if (java.util.Objects.equals(rHexRaw, ""))
         {
             throw new ExchangeError((this.id + " signEvmTransaction() missing rHex")) ;
         }
-        Integer rHexLength = rHex.length();
-        if ((((((double) rHexLength) % ((double) 2))) != 0))
-        {
-            rHex = ("0" + rHex);
-        }
-        if (java.util.Objects.equals(sHex, null))
+        String sHexRaw = this.safeString(signature, "s", "");
+        if (java.util.Objects.equals(sHexRaw, ""))
         {
             throw new ExchangeError((this.id + " signEvmTransaction() missing sHex")) ;
         }
-        Integer sHexLength = sHex.length();
-        if ((((((double) sHexLength) % ((double) 2))) != 0))
-        {
-            sHex = ("0" + sHex);
-        }
+        String rHex = this.padHexToEven(rHexRaw);
+        String sHex = this.padHexToEven(sHexRaw);
         Long yParity = this.safeInteger(signature, "v");
         List<Object> signedFields = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < fields.size(); i++)
         {
             signedFields.add((fields == null || i < 0 || i >= fields.size() ? null : fields.get(i)));
         }
-        signedFields.add(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))));
+        signedFields.add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         signedFields.add(this.rlpEncodeBytes(rHex));
         signedFields.add(this.rlpEncodeBytes(sHex));
         return ("0x02" + this.rlpEncodeList(signedFields));

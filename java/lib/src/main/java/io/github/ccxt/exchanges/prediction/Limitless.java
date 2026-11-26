@@ -2712,19 +2712,19 @@ public class Limitless extends LimitlessApi
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex((Long) (this.safeInteger(tx, "chainId"))))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex((Long) (this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
-        String rHex = this.padHexToEven(this.safeString(signature, "r"));
-        String sHex = this.padHexToEven(this.safeString(signature, "s"));
+        String rHex = this.padHexToEven(this.safeString(signature, "r", ""));
+        String sHex = this.padHexToEven(this.safeString(signature, "s", ""));
         Long yParity = this.safeInteger(signature, "v");
         List<Object> signedFields = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < fields.size(); i++)
         {
             signedFields.add((fields == null || i < 0 || i >= fields.size() ? null : fields.get(i)));
         }
-        signedFields.add(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))));
+        signedFields.add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         signedFields.add(this.rlpEncodeBytes(rHex));
         signedFields.add(this.rlpEncodeBytes(sHex));
         return ("0x02" + this.rlpEncodeList(signedFields));
